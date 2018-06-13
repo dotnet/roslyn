@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
     internal struct ExtendedSyntaxNode
     {
         public SyntaxNode Node { get; }
+
         public ImmutableArray<SyntaxTrivia> ExtraLeadingComments { get; }
 
         public ImmutableArray<SyntaxTrivia> ExtraTrailingComments { get; }

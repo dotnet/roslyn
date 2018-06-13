@@ -7,9 +7,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 {
     internal static class Helpers
     {
-        public static SyntaxTrivia[] GetTrivia(IEnumerable<SyntaxNodeOrToken> nodesOrTokens)
-            => GetTrivia(nodesOrTokens.ToArray());
-
         public static SyntaxTrivia[] GetTrivia(IEnumerable<SyntaxToken> tokens)
             => tokens.SelectMany(token => GetTrivia(token)).ToArray();
 

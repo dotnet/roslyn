@@ -5,8 +5,10 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal interface IConverter
+    internal interface IConverter<TForEachStatement, TStatement>
     {
+        ForEachInfo<TForEachStatement, TStatement> ForEachInfo { get; }
+
         void Convert(SyntaxEditor editor, SemanticModel semanticModel, CancellationToken cancellationToken);
     }
 }

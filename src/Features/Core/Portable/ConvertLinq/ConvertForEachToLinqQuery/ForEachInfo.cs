@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
@@ -21,18 +20,18 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
         public ForEachInfo(
             TForEachStatement forEachStatement,
-            IEnumerable<ExtendedSyntaxNode> convertingExtendedNodes,
-            IEnumerable<SyntaxToken> identifiers,
-            IEnumerable<TStatement> statements,
-            IEnumerable<SyntaxToken> leadingTokens,
-            IEnumerable<SyntaxToken> trailingTokens)
+            ImmutableArray<ExtendedSyntaxNode> convertingExtendedNodes,
+            ImmutableArray<SyntaxToken> identifiers,
+            ImmutableArray<TStatement> statements,
+            ImmutableArray<SyntaxToken> leadingTokens,
+            ImmutableArray<SyntaxToken> trailingTokens)
         {
             ForEachStatement = forEachStatement;
-            ConvertingExtendedNodes = convertingExtendedNodes.ToImmutableArray();
-            Identifiers = identifiers.ToImmutableArray();
-            Statements = statements.ToImmutableArray();
-            LeadingTokens = leadingTokens.ToImmutableArray();
-            TrailingTokens = trailingTokens.ToImmutableArray();
+            ConvertingExtendedNodes = convertingExtendedNodes;
+            Identifiers = identifiers;
+            Statements = statements;
+            LeadingTokens = leadingTokens;
+            TrailingTokens = trailingTokens;
         }
     }
 }

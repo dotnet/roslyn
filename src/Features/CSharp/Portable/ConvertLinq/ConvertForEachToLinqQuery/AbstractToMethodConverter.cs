@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
         public override void Convert(SyntaxEditor editor, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var queryExpression = CreateQueryExpression(_forEachInfo, _selectExpression, Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>());
-            var previous = FindPreviousStatementInBlock(_forEachInfo.ForEachStatement);
+            var queryExpression = CreateQueryExpression(_selectExpression, Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>());
+            var previous = FindPreviousStatementInBlock(ForEachInfo.ForEachStatement);
 
             if (previous != null && !previous.ContainsDirectives)
             {
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
             // At least, we already can convert to 
             // list.AddRange(query) or counter += query.Count();
-            editor.ReplaceNode(_forEachInfo.ForEachStatement, CreateDefaultStatement(queryExpression, _modifyingExpression).WithAdditionalAnnotations(Formatter.Annotation));
+            editor.ReplaceNode(ForEachInfo.ForEachStatement, CreateDefaultStatement(queryExpression, _modifyingExpression).WithAdditionalAnnotations(Formatter.Annotation));
 
             void Convert(ExpressionSyntax replacingExpression, SyntaxNode nodeToRemoveIfFollowedByReturn)
             {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 // Check if expressionAssigning is followed by a return statement.
                 var expresisonSymbol = semanticModel.GetSymbolInfo(_modifyingExpression, cancellationToken).Symbol;
                 if (expresisonSymbol is ILocalSymbol &&
-                    FindNextStatementInBlock(_forEachInfo.ForEachStatement) is ReturnStatementSyntax returnStatement &&
+                    FindNextStatementInBlock(ForEachInfo.ForEachStatement) is ReturnStatementSyntax returnStatement &&
                     !returnStatement.ContainsDirectives &&
                     SymbolEquivalenceComparer.Instance.Equals(expresisonSymbol, semanticModel.GetSymbolInfo(returnStatement.Expression, cancellationToken).Symbol))
                 {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 }
 
                 editor.ReplaceNode(replacingExpression, CreateInvocationExpression(queryExpression).WithComments(leadingTrivia, _trivia).KeepCommentsAndAddElasticMarkers());
-                editor.RemoveNode(_forEachInfo.ForEachStatement);
+                editor.RemoveNode(ForEachInfo.ForEachStatement);
             }
 
             SyntaxTrivia[] GetTriviaFromVariableDeclarator(VariableDeclaratorSyntax variableDeclarator)

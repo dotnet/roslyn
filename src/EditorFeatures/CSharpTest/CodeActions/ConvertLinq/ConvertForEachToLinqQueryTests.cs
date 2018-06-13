@@ -156,6 +156,33 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task QueryEmptyDeclarations()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    void M()
+    {
+        [|foreach (int x in new[] {1,2})
+        {
+            int a = 3, b, c = 1;
+            if (x > c)
+            {
+                b = 0;
+                Console.Write(a + x + b);
+            }
+        }|]
+    }
+}";
+
+            await TestMissingInRegularAndScriptAsync(source);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task QueryWhereClause()
         {
@@ -694,6 +721,55 @@ class C
 
             await TestInRegularAndScriptAsync(source, output);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task ReturnIEnumerableWithYieldReturnAndLocalFunction()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<IEnumerable<int>> M(IEnumerable<int> nums)
+    {
+        [|foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                yield return f(n1);
+            }
+        }|]
+
+        yield break;
+
+        IEnumerable<int> f(int a)
+        {
+            yield return a;
+        }
+    }
+}
+";
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<IEnumerable<int>> M(IEnumerable<int> nums)
+    {
+        return from int n1 in nums
+               from int n2 in nums
+               select f(n1);
+        IEnumerable<int> f(int a)
+        {
+            yield return a;
+        }
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task ReturnIEnumerablePartialMethod()

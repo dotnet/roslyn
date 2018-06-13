@@ -19,17 +19,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         public override void Convert(SyntaxEditor editor, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // Filter out identifiers which are not used in statements.
-            var symbolNames = new HashSet<string>(_forEachInfo.Statements.SelectMany(statement => semanticModel.AnalyzeDataFlow(statement).ReadInside).Select(symbol => symbol.Name));
-            var identifiersUsedInStatements = _forEachInfo.Identifiers.Where(identifier => symbolNames.Contains(identifier.ValueText));
+            var symbolNames = new HashSet<string>(ForEachInfo.Statements.SelectMany(statement => semanticModel.AnalyzeDataFlow(statement).ReadInside).Select(symbol => symbol.Name));
+            var identifiersUsedInStatements = ForEachInfo.Identifiers.Where(identifier => symbolNames.Contains(identifier.ValueText));
 
             // If there is a single statement and it is a block, leave it as is.
             // Otherwise, wrap with a block.
-            var block = WrapWithBlockIfNecessary(_forEachInfo.Statements.Select(statement => statement.KeepCommentsAndAddElasticMarkers()));
+            var block = WrapWithBlockIfNecessary(ForEachInfo.Statements.Select(statement => statement.KeepCommentsAndAddElasticMarkers()));
 
-            editor.ReplaceNode(_forEachInfo.ForEachStatement, CreateDefaultReplacementStatement(_forEachInfo, identifiersUsedInStatements, block).WithAdditionalAnnotations(Formatter.Annotation));
+            editor.ReplaceNode(ForEachInfo.ForEachStatement, CreateDefaultReplacementStatement(ForEachInfo, identifiersUsedInStatements, block).WithAdditionalAnnotations(Formatter.Annotation));
         }
 
-        private static StatementSyntax CreateDefaultReplacementStatement(
+        private StatementSyntax CreateDefaultReplacementStatement(
             ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
             IEnumerable<SyntaxToken> identifiers,
             BlockSyntax block)
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             if (identifiersCount == 0)
             {
                 // Generate foreach(var _ ... select new {})
-                return SyntaxFactory.ForEachStatement(VarNameIdentifier, SyntaxFactory.Identifier("_"), CreateQueryExpression(forEachInfo, SyntaxFactory.AnonymousObjectCreationExpression(), Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>()), block);
+                return SyntaxFactory.ForEachStatement(VarNameIdentifier, SyntaxFactory.Identifier("_"), CreateQueryExpression(SyntaxFactory.AnonymousObjectCreationExpression(), Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>()), block);
             }
             else if (identifiersCount == 1)
             {
                 // Generate foreach(var singleIdentifier from ... select singleIdentifier)
-                return SyntaxFactory.ForEachStatement(VarNameIdentifier, identifiers.Single(), CreateQueryExpression(forEachInfo, SyntaxFactory.IdentifierName(identifiers.Single()), Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>()), block);
+                return SyntaxFactory.ForEachStatement(VarNameIdentifier, identifiers.Single(), CreateQueryExpression(SyntaxFactory.IdentifierName(identifiers.Single()), Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>()), block);
             }
             else
             {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         SyntaxFactory.SeparatedList<VariableDesignationSyntax>(identifiers.Select(identifier => SyntaxFactory.SingleVariableDesignation(identifier)))));
 
                 // Generate foreach(var (a,b) ... select (a, b))
-                return SyntaxFactory.ForEachVariableStatement(declaration, CreateQueryExpression(forEachInfo, tupleForSelectExpression, Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>()), block);
+                return SyntaxFactory.ForEachVariableStatement(declaration, CreateQueryExpression(tupleForSelectExpression, Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>()), block);
             }
         }
 

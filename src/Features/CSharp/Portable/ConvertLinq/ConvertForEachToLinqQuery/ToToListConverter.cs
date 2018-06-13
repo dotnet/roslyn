@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         /// Checks that the expression is "new List();"
         /// Exclude "new List(a);" and new List() { 1, 2, 3}
         protected override bool CanReplaceInitialization(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => expression is ObjectCreationExpressionSyntax objectCreationExpression &&
-            semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken).Symbol is ITypeSymbol typeSymbol &&
-            CSharpConvertForEachToLinqQueryProvider.IsList(typeSymbol, semanticModel) &&
-            !objectCreationExpression.ArgumentList.Arguments.Any() &&
-            objectCreationExpression.Initializer == null;
+            => expression is ObjectCreationExpressionSyntax objectCreationExpression && 
+               semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken).Symbol is ITypeSymbol typeSymbol &&
+               CSharpConvertForEachToLinqQueryProvider.IsList(typeSymbol, semanticModel) &&
+               !objectCreationExpression.ArgumentList.Arguments.Any() &&
+               objectCreationExpression.Initializer == null;
 
         /// Input:
         /// foreach(...)

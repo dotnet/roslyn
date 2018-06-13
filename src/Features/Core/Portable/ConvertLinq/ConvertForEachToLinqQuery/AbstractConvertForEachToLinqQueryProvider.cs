@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             SemanticModel semanticModel,
             TStatement statementCannotBeConverted,
             CancellationToken cancellationToken,
-            out IConverter converter);
+            out IConverter<TForEachStatement, TStatement> converter);
 
         /// <summary>
         /// Creates a default converter where foreach is joined with some children statements but other children statements are kept unmodified.
@@ -53,9 +52,9 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
         ///        doSomething(); 
         /// }
         /// </summary>
-        protected abstract IConverter CreateDefaultConverter(ForEachInfo<TForEachStatement, TStatement> forEachInfo);
+        protected abstract IConverter<TForEachStatement, TStatement> CreateDefaultConverter(ForEachInfo<TForEachStatement, TStatement> forEachInfo);
 
-        protected abstract SyntaxNode AddLinqUsing(SyntaxNode root);
+        protected abstract SyntaxNode AddLinqUsing(IConverter<TForEachStatement, TStatement> converter, SemanticModel semanticModel, SyntaxNode root);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -77,19 +76,19 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            if (TryBuildConverter(forEachStatement, semanticModel, cancellationToken, out IConverter converter) &&
+            if (TryBuildConverter(forEachStatement, semanticModel, cancellationToken, out IConverter<TForEachStatement, TStatement> converter) &&
                 !semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
             {
                 context.RegisterRefactoring(new ForEachToLinqQueryCodeAction(FeaturesResources.Convert_to_query, c => ApplyConvesion(converter, semanticModel, document, c)));
             }
         }
 
-        private Task<Document> ApplyConvesion(IConverter converter, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
+        private Task<Document> ApplyConvesion(IConverter<TForEachStatement, TStatement> converter, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(semanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace);
             converter.Convert(editor, semanticModel, cancellationToken);
             var newRoot = editor.GetChangedRoot();
-            var rootWithLinqUsing = AddLinqUsing(newRoot);
+            var rootWithLinqUsing = AddLinqUsing(converter, semanticModel, newRoot);
             return Task.FromResult(document.WithSyntaxRoot(rootWithLinqUsing));
         }
 
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             TForEachStatement forEachStatement,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
-            out IConverter converter)
+            out IConverter<TForEachStatement, TStatement> converter)
         {
             var forEachInfo = CreateForEachInfo(forEachStatement);
 
