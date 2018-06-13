@@ -215,26 +215,27 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
+// Disable integration tests until the image is updated to a new VS build with upgraded SCI/SRM
 // VS Integration Tests
-commitPullList.each { isPr ->
-  ['debug', 'release'].each { configuration ->
-    ['vs-integration'].each { buildTarget ->
-      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
-      def myJob = job(jobName) {
-        description("Windows ${configuration} tests on ${buildTarget}")
-        steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -procdump -testVsi""")
-        }
-      }
-
-      def triggerPhraseOnly = false
-      def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.Open')
-      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-    }
-  }
-}
+// commitPullList.each { isPr ->
+//   ['debug', 'release'].each { configuration ->
+//     ['vs-integration'].each { buildTarget ->
+//       def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
+//       def myJob = job(jobName) {
+//         description("Windows ${configuration} tests on ${buildTarget}")
+//         steps {
+//           batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -procdump -testVsi""")
+//         }
+//       }
+// 
+//       def triggerPhraseOnly = false
+//       def triggerPhraseExtra = ""
+//       Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.Open')
+//       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+//       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+//     }
+//   }
+// }
 
 JobReport.Report.generateJobReport(out)
 
