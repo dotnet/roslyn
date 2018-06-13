@@ -86,6 +86,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
                 return default;
             }
 
+            if (value is IRetryWrapper)
+            {
+                // This object is already wrapped
+                return value;
+            }
+
             if (_wrapperFunctions.TryGetValue(typeof(T), out var wrapperFunction))
             {
                 return (T)wrapperFunction(value);
@@ -119,6 +125,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
         {
             if (unk == IntPtr.Zero)
             {
+                return unk;
+            }
+
+            if (Marshal.GetObjectForIUnknown(unk) is IRetryWrapper)
+            {
+                // This object is already wrapped
                 return unk;
             }
 

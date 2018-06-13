@@ -8,13 +8,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
 {
     internal abstract class AutomationRetryWrapper<T> : IRetryWrapper, ICustomQueryInterface
     {
+        private static readonly Guid IID_IManagedObject = new Guid("C3FCC19E-A970-11D2-8B5A-00A0C9B7C9C4");
+
         protected AutomationRetryWrapper(T automationObject)
         {
             AutomationObject = automationObject;
-            var comCallableWrapper = Marshal.GetIUnknownForObject(this);
+            var comCallableWrapper = Marshal.GetIUnknownForObject(automationObject);
             try
             {
-                RuntimeCallableWrapper = (T)Marshal.GetObjectForIUnknown(comCallableWrapper);
+                var aggregatedObject = Marshal.CreateAggregatedObject(comCallableWrapper, this);
+                try
+                {
+                    RuntimeCallableWrapper = (T)Marshal.GetObjectForIUnknown(aggregatedObject);
+                }
+                finally
+                {
+                    Marshal.Release(aggregatedObject);
+                }
             }
             finally
             {
@@ -85,9 +95,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
 
         CustomQueryInterfaceResult ICustomQueryInterface.GetInterface(ref Guid iid, out IntPtr ppv)
         {
+            if (iid == IID_IManagedObject)
+            {
+                // force this object to be treated as an unmanaged COM object
+                ppv = IntPtr.Zero;
+                return CustomQueryInterfaceResult.Failed;
+            }
+
             var unk = Marshal.GetIUnknownForObject(this);
 
-            if (iid == typeof(IRetryWrapper).GUID)
+            if (iid == typeof(IRetryWrapper).GUID || iid == typeof(T).GUID)
             {
                 ppv = unk;
                 return CustomQueryInterfaceResult.Handled;
