@@ -720,29 +720,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return bindingResult;
         }
 
-        private static string GetAliasQualifier(ExpressionSyntax node)
-        {
-            while (true)
-            {
-                if (node.Kind() == SyntaxKind.AliasQualifiedName)
-                {
-                    return ((AliasQualifiedNameSyntax)node).Alias.Identifier.ValueText;
-                }
-                var parent = node.Parent as ExpressionSyntax;
-                if (parent?.Kind() != SyntaxKind.QualifiedName)
-                {
-                    break;
-                }
-                var qualifiedName = (QualifiedNameSyntax)parent;
-                if (node != qualifiedName.Right)
-                {
-                    break;
-                }
-                node = qualifiedName.Left;
-            }
-            return null;
-        }
-
         private void ReportUseSiteDiagnosticForDynamic(DiagnosticBag diagnostics, IdentifierNameSyntax node)
         {
             // Dynamic type might be bound in a declaration context where we need to synthesize the DynamicAttribute.
@@ -1782,6 +1759,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // It's a single non-type-or-namespace; error was already reported, so just return it.
                 return symbols[0];
+            }
+        }
+
+        private static string GetAliasQualifier(ExpressionSyntax node)
+        {
+            while (true)
+            {
+                if (node.Kind() == SyntaxKind.AliasQualifiedName)
+                {
+                    return ((AliasQualifiedNameSyntax)node).Alias.Identifier.ValueText;
+                }
+                var parent = node.Parent as ExpressionSyntax;
+                if (parent == null)
+                {
+                    return null;
+                }
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.QualifiedName:
+                        var qualifiedName = (QualifiedNameSyntax)parent;
+                        if (node != qualifiedName.Right)
+                        {
+                            return null;
+                        }
+                        node = qualifiedName.Left;
+                        break;
+                    case SyntaxKind.AliasQualifiedName:
+                        node = parent;
+                        break;
+                    default:
+                        return null;
+                }
             }
         }
 

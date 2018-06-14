@@ -1788,9 +1788,13 @@ class Program
 @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(MyNamespace.MyClass))]";
             var compB2 = CreateCompilation(sourceB2, references: new[] { refBImpl }, assemblyName: "B");
-            var refB2 = compB2.EmitToImageReference(aliases: ImmutableArray.Create("B"));
 
-            comp = CreateCompilation(sourceProgram, references: new[] { refA1, refB2, refBImpl });
+            // Alias to PE assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, compB2.EmitToImageReference(aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics();
+
+            // Alias to source assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, new CSharpCompilationReference(compB2, aliases: ImmutableArray.Create("B")), refBImpl });
             comp.VerifyDiagnostics();
         }
 
@@ -1804,7 +1808,7 @@ class Program
             // Alias::Namespace.UnknownType
             // Alias::Namespace.GenericType<T>
             // nameof(Alias::Namespace.Type)
-            // [assembly: TypeForwardedTo(...)] in source assembly
+            // Retargeting assembly
             Assert.False(true);
         }
     }

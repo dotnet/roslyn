@@ -4,14 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -209,6 +205,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
             return GetTypeMembers(name).WhereAsArray(s => s.Arity == arity);
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetForwardedTypes(string name)
+        {
+            throw new NotImplementedException();
         }
 
         internal override ModuleSymbol ContainingModule

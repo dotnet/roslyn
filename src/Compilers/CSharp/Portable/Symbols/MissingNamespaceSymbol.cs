@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
@@ -129,6 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
             return ImmutableArray<Symbol>.Empty;
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetForwardedTypes(string name)
+        {
+            return ImmutableArray<NamedTypeSymbol>.Empty;
         }
     }
 }

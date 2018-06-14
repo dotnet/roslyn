@@ -316,11 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        // Should be abstract.
-        internal virtual ImmutableArray<NamedTypeSymbol> GetForwardedTypes(string name)
-        {
-            return ImmutableArray<NamedTypeSymbol>.Empty;
-        }
+        internal abstract ImmutableArray<NamedTypeSymbol> GetForwardedTypes(string name);
 
         private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensionMethods
         {
