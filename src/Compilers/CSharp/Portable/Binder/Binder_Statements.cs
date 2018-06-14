@@ -1976,11 +1976,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (operand.Kind == BoundKind.SuppressNullableWarningExpression)
-            {
-                operand = ((BoundSuppressNullableWarningExpression)operand).Expression;
-            }
-
             switch (operand.Kind)
             {
                 case BoundKind.BadExpression:

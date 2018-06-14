@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return name;
             }
 
-            // Avoid checking constraints or non-null context when binding explicit interface type since
+            // Avoid checking constraints context when binding explicit interface type since
             // that might result in a recursive attempt to bind the containing class.
             binder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
 
