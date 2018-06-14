@@ -53,29 +53,31 @@ namespace Roslyn.Test.Utilities
 
             DispatcherSynchronizationContext synchronizationContext = null;
             Dispatcher dispatcher = null;
-            var staThreadStartedEvent = new ManualResetEventSlim(initialState: false);
-            var staThread = new Thread((ThreadStart)(() =>
+            using (var staThreadStartedEvent = new ManualResetEventSlim(initialState: false))
             {
-                // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
-                // or mouse input from the user. So use background priority which is a single level below user input.
-                synchronizationContext = new DispatcherSynchronizationContext();
-                dispatcher = Dispatcher.CurrentDispatcher;
+                var staThread = new Thread((ThreadStart)(() =>
+                {
+                    // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
+                    // or mouse input from the user. So use background priority which is a single level below user input.
+                    synchronizationContext = new DispatcherSynchronizationContext();
+                    dispatcher = Dispatcher.CurrentDispatcher;
 
-                // xUnit creates its own synchronization context and wraps any existing context so that messages are
-                // still pumped as necessary. So we are safe setting it here, where we are not safe setting it in test.
-                SynchronizationContext.SetSynchronizationContext(synchronizationContext);
+                    // xUnit creates its own synchronization context and wraps any existing context so that messages are
+                    // still pumped as necessary. So we are safe setting it here, where we are not safe setting it in test.
+                    SynchronizationContext.SetSynchronizationContext(synchronizationContext);
 
-                staThreadStartedEvent.Set();
+                    staThreadStartedEvent.Set();
 
-                Dispatcher.Run();
-            }));
+                    Dispatcher.Run();
+                }));
 
-            staThread.Name = nameof(WpfTestRunner);
-            staThread.SetApartmentState(ApartmentState.STA);
-            staThread.Start();
+                staThread.Name = nameof(WpfTestRunner);
+                staThread.SetApartmentState(ApartmentState.STA);
+                staThread.Start();
 
-            staThreadStartedEvent.Wait();
-            Debug.Assert(synchronizationContext != null);
+                staThreadStartedEvent.Wait();
+                Debug.Assert(synchronizationContext != null);
+            }
 
             var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);
             var task = Task.Factory.StartNew(async () =>
@@ -108,6 +110,10 @@ namespace Roslyn.Test.Utilities
                     }
                     finally
                     {
+                        // Make sure to shut down the dispatcher. Certain framework types listed for the dispatcher
+                        // shutdown to perform cleanup actions. In the absence of an explicit shutdown, these actions
+                        // are delayed and run during AppDomain or process shutdown, where they can lead to crashes of
+                        // the test process.
                         dispatcher.InvokeShutdown();
                     }
                 });
