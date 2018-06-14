@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.CodeLensOOP
     /// <summary>
     /// new code lens API that runs on codelen's OOP assumes it gets result from roslyn OOP's primary workspace.
     /// 
-    /// for now, we keeps both new and old APIs, but before v.Next we will decide wether we will go this way or move back to old API
+    /// for now, we keep both new and old APIs, but before v.Next we will decide wether we will go this way or move back to old API
     /// but add new ability in new code lens API where it can point to any OOP as code lens provider OOP host rather than forcing
     /// people to use codelens OOP which might not have all information.
     /// </summary>
