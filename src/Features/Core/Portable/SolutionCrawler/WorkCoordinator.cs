@@ -633,6 +633,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (_solutionId != null && solution.Id != _solutionId)
                 {
+                    // this is for telemetry. no reason to make it complex such as 
+                    // TryGetLangage(., var language) ? language : string.Empty
+                    // just to look good. this is a helper nested private type anyway.
                     return string.Empty;
                 }
 
