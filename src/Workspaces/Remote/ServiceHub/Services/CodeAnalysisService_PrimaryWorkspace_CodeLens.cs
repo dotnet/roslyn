@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var _ = new SemanticChangeTracker(workspace, rpc, documentId);
             }
 
-            public SemanticChangeTracker(Workspace workspace, JsonRpc rpc, DocumentId documentId)
+            private SemanticChangeTracker(Workspace workspace, JsonRpc rpc, DocumentId documentId)
             {
                 _gate = new object();
 

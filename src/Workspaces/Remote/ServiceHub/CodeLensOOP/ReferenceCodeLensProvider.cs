@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Remote.CodeLensOOP
                             Fields = new List<CodeLensDetailEntryField>()
                             {
                                 // file path
-                                new CodeLensDetailEntryField() { Text =  referenceLocationDescriptor.FilePath },
+                                new CodeLensDetailEntryField() { Text =   Descriptor.FilePath },
                                 // line number
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LineNumber.ToString() },
                                 // column number

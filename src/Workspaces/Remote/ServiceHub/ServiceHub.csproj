@@ -55,9 +55,6 @@
     <InternalsVisibleToCompletionTests Include="Microsoft.VisualStudio.Completion.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CodeLensOOP\" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Update="ServiceHubResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
