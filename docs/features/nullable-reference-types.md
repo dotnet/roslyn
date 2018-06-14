@@ -71,7 +71,9 @@ _Describe set of warnings. Differentiate W warnings._
 _Describe the set of tests that affect flow state._
 
 ## `default`
-`default(T)` is `T?` if `T` is a reference type. _Should `default(T?)` be an error?_
+`default(T)` is `T?` if `T` is a reference type.
+_Is `default(T)` also `T?` if `T` is an unconstrained type parameter?_
+_Is `default(T?)` an error?_
 ```c#
 string? s = default(string); // assigns ?, no warning
 string t = default; // assigns ?, warning

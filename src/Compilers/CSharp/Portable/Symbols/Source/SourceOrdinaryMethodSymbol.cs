@@ -487,8 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
         {
-            var currentClauses = _lazyTypeParameterConstraints;
-            if (currentClauses.IsDefault)
+            var clauses = _lazyTypeParameterConstraints;
+            if (clauses.IsDefault)
             {
                 // Early step.
                 var diagnostics = DiagnosticBag.GetInstance();
@@ -508,16 +508,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
-                currentClauses = _lazyTypeParameterConstraints;
+                clauses = _lazyTypeParameterConstraints;
             }
 
-            if (!early && currentClauses.IsEarly())
+            if (!early && clauses.IsEarly())
             {
                 // Late step.
                 var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = this.MakeTypeParameterConstraintsLate(TypeParameters, currentClauses, diagnostics);
+                var constraints = this.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
                 Debug.Assert(!constraints.IsEarly());
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, currentClauses) == currentClauses)
+                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }

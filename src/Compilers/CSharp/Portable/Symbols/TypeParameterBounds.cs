@@ -15,12 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
+        /// <summary>
+        /// Creates an "early" bound instance that has constraint types set
+        /// but no other fields.
+        /// </summary>
         public TypeParameterBounds(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefault);
             this.ConstraintTypes = constraintTypes;
         }
 
+        /// <summary>
+        /// Creates a "late" bound instance with all fields set.
+        /// </summary>
         public TypeParameterBounds(
             ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
             ImmutableArray<NamedTypeSymbol> interfaces,

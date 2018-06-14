@@ -227,10 +227,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters.AsImmutable();
         }
 
+        /// <summary>
+        /// Returns the constraint clause for the given type parameter.
+        /// The `early` parameter indicates whether the clauses can be from the first phase of constraint
+        /// checking where the constraint types may still contain invalid or duplicate types.
+        /// </summary>
         internal TypeParameterConstraintClause GetTypeParameterConstraintClause(bool early, int ordinal)
         {
-            var currentClauses = _lazyTypeParameterConstraints;
-            if (currentClauses.IsDefault)
+            var clauses = _lazyTypeParameterConstraints;
+            if (clauses.IsDefault)
             {
                 // Early step.
                 var diagnostics = DiagnosticBag.GetInstance();
@@ -239,24 +244,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
-                currentClauses = _lazyTypeParameterConstraints;
+                clauses = _lazyTypeParameterConstraints;
             }
 
-            if (!early && currentClauses.IsEarly())
+            if (!early && clauses.IsEarly())
             {
                 // Late step.
                 var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = this.MakeTypeParameterConstraintsLate(TypeParameters, currentClauses, diagnostics);
+                var constraints = this.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
                 Debug.Assert(!constraints.IsEarly());
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, currentClauses) == currentClauses)
+                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
-                currentClauses = _lazyTypeParameterConstraints;
+                clauses = _lazyTypeParameterConstraints;
             }
 
-            return (currentClauses.Length > 0) ? currentClauses[ordinal] : TypeParameterConstraintClause.Empty;
+            return (clauses.Length > 0) ? clauses[ordinal] : TypeParameterConstraintClause.Empty;
         }
 
         private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsEarly(DiagnosticBag diagnostics)

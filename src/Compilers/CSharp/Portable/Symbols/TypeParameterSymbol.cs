@@ -75,6 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypesNoUseSiteDiagnostics(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
+            // We could call EnsureAllConstraintsAreResolved(early) directly rather than splitting
+            // this into two separate calls. However, the split between early and late must be explicit
+            // somewhere to ensure that the early work for all sibling type parameters is completed
+            // before the late work for any sibling. It seems simpler to handle the split here (in the
+            // one caller of EnsureAllConstraintsAreResolved that supports the late phase) rather than
+            // in several implementations of the abstract EnsureAllConstraintsAreResolved method.
             this.EnsureAllConstraintsAreResolved(early: true);
             if (!early)
             {
@@ -83,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetConstraintTypes(inProgress, early);
         }
 
-        internal ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypesNoUseSiteDiagnostics => GetConstraintTypesNoUseSiteDiagnostics(ConsList<TypeParameterSymbol>.Empty, early: false);
+        internal ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypesNoUseSiteDiagnostics =>
+            GetConstraintTypesNoUseSiteDiagnostics(ConsList<TypeParameterSymbol>.Empty, early: false);
 
         internal ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -366,6 +373,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to allow derived classes to ensure constraints within the containing
         /// type or method are resolved in a consistent order, regardless of the
         /// order the callers query individual type parameters.
+        /// The `early` parameter indicates whether the constraints can be from
+        /// the initial phase of constraint checking where the constraint types may
+        /// still contain invalid or duplicate types.
         /// </summary>
         internal abstract void EnsureAllConstraintsAreResolved(bool early);
 

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static bool IsEarly(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
-            return constraintClauses.Any(clause => clause.IsEarly == true);
+            return constraintClauses.Any(clause => clause.IsEarly);
         }
     }
 }

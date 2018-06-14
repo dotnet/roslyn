@@ -341,6 +341,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(location, useSiteDiagnostics);
         }
 
+        /// <summary>
+        /// The "early" phase for resolving constraint clauses where constraint types are bound.
+        /// Diagnostics are reported for binding types only, and the returned constraint clauses
+        /// will contain any invalid or duplicate types that were in the source.
+        /// The "early" phase is sufficient to support TypeParameterSymbol.IsValueType and
+        /// IsReferenceType without causing cycles.
+        /// </summary>
         internal static ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsEarly(
             this Symbol containingSymbol,
             Binder binder,
@@ -362,6 +369,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, constraintClauses, diagnostics);
         }
 
+        /// <summary>
+        /// The "late" phase for resolving constraint clauses where the constraints from the
+        /// "early" phase are checked for invalid types, duplicate types, and accessibility. 
+        /// </summary>
         internal static ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsLate(
             this Symbol containingSymbol,
             ImmutableArray<TypeParameterSymbol> typeParameters,
