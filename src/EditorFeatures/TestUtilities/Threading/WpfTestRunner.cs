@@ -50,39 +50,56 @@ namespace Roslyn.Test.Utilities
         protected override Task<decimal> InvokeTestMethodAsync(ExceptionAggregator aggregator)
         {
             SharedData.ExecutingTest(TestMethod);
-            var sta = StaTaskScheduler.DefaultSta;
+
+            DispatcherSynchronizationContext synchronizationContext = null;
+            var staThreadStartedEvent = new ManualResetEventSlim(initialState: false);
+            var staThread = new Thread((ThreadStart)(() =>
+            {
+                // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
+                // or mouse input from the user. So use background priority which is a single level below user input.
+                synchronizationContext = new DispatcherSynchronizationContext();
+
+                // xUnit creates its own synchronization context and wraps any existing context so that messages are
+                // still pumped as necessary. So we are safe setting it here, where we are not safe setting it in test.
+                SynchronizationContext.SetSynchronizationContext(synchronizationContext);
+
+                staThreadStartedEvent.Set();
+
+                Dispatcher.Run();
+            }));
+
+            staThread.Name = nameof(WpfTestRunner);
+            staThread.SetApartmentState(ApartmentState.STA);
+            staThread.Start();
+
+            staThreadStartedEvent.Wait();
+            Debug.Assert(synchronizationContext != null);
+
+            var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);
             var task = Task.Factory.StartNew(async () =>
             {
-                Debug.Assert(sta.StaThread == Thread.CurrentThread);
+                Debug.Assert(SynchronizationContext.Current is DispatcherSynchronizationContext);
 
                 using (await SharedData.TestSerializationGate.DisposableWaitAsync(CancellationToken.None))
                 {
-                    try
-                    {
-                        Debug.Assert(SynchronizationContext.Current is DispatcherSynchronizationContext);
+                    // Sync up FTAO to the context that we are creating here. 
+                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(
+                        Thread.CurrentThread,
+                        new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background)),
+                        ForegroundThreadDataKind.StaUnitTest);
 
-                        // Sync up FTAO to the context that we are creating here. 
-                        ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(
-                            Thread.CurrentThread,
-                            new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background)),
-                            ForegroundThreadDataKind.StaUnitTest);
+                    // Reset our flag ensuring that part of this test actually needs WpfFact
+                    s_wpfFactRequirementReason = null;
 
-                        // Reset our flag ensuring that part of this test actually needs WpfFact
-                        s_wpfFactRequirementReason = null;
-
-                        // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                        var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
-                        return invoker.RunAsync().JoinUsingDispatcher(CancellationTokenSource.Token);
-                    }
-                    finally
-                    {
-                        // Cleanup the synchronization context even if the test is failing exceptionally
-                        SynchronizationContext.SetSynchronizationContext(null);
-                    }
+                    // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
+                    var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
+                    return await invoker.RunAsync();
                 }
-            }, CancellationTokenSource.Token, TaskCreationOptions.None, new SynchronizationContextTaskScheduler(sta.DispatcherSynchronizationContext));
+            }, CancellationTokenSource.Token, TaskCreationOptions.None, taskScheduler).Unwrap();
 
-            return task.Unwrap();
+            task.SafeContinueWith(_ => Dispatcher.ExitAllFrames(), taskScheduler);
+
+            return task;
         }
 
         /// <summary>
