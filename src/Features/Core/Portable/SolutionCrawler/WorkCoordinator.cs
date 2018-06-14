@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
@@ -151,15 +150,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void ReanalyzeOnOptionChange(object sender, OptionChangedEventArgs e)
             {
-                // let each analyzer decide what they want on option change
-                foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
+                // get off from option changed event handler since it runs on UI thread
+                // getting analyzer can be slow for the very first time since it is lazily initialized
+                var asyncToken = _listener.BeginAsyncOperation("ReanalyzeOnOptionChange");
+                _eventProcessingQueue.ScheduleTask(() =>
                 {
-                    if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
+                    // let each analyzer decide what they want on option change
+                    foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
                     {
-                        var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
-                        Reanalyze(analyzer, scope);
+                        if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
+                        {
+                            var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                            Reanalyze(analyzer, scope);
+                        }
                     }
-                }
+                }, _shutdownToken).CompletesAsyncOperation(asyncToken);
             }
 
             public void Reanalyze(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority = false)
@@ -626,7 +631,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public string GetLanguages(Solution solution)
             {
-                Contract.ThrowIfFalse(_solutionId == null || solution.Id == _solutionId);
+                if (_solutionId != null && solution.Id != _solutionId)
+                {
+                    return string.Empty;
+                }
 
                 using (var pool = SharedPools.Default<HashSet<string>>().GetPooledObject())
                 {
@@ -665,7 +673,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public int GetDocumentCount(Solution solution)
             {
-                Contract.ThrowIfFalse(_solutionId == null || solution.Id == _solutionId);
+                if (_solutionId != null && solution.Id != _solutionId)
+                {
+                    return 0;
+                }
 
                 var count = 0;
                 if (_solutionId != null)
@@ -702,7 +713,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public IEnumerable<Document> GetDocuments(Solution solution)
             {
-                Contract.ThrowIfFalse(_solutionId == null || solution.Id == _solutionId);
+                if (_solutionId != null && solution.Id != _solutionId)
+                {
+                    yield break;
+                }
 
                 if (_solutionId != null)
                 {
