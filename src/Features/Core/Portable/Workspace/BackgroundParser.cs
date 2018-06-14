@@ -8,6 +8,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
+    /// <summary>
+    /// when users type, we chain all those changes as incremental parsing requests 
+    /// but doesn't actually realize those changes. it is saved as a pending request. 
+    /// so if nobody asks for final parse tree, those chain can keep grow. 
+    /// we do this since Roslyn is lazy at the core (don't do work if nobody asks for it)
+    /// 
+    /// but certain host such as VS, we have this (BackgroundParser) which preemptively 
+    /// trying to realize such trees for open/active files expecting users will use them soonish.
+    /// </summary>
     internal class BackgroundParser
     {
         private readonly Workspace _workspace;
