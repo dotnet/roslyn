@@ -8041,13 +8041,13 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Iteratory nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Iteratory nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">Metody asynchroniczne nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">Metody asynchroniczne nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
