@@ -5,18 +5,21 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class DiscardSymbol : Symbol, IDiscardSymbol
+    internal sealed class DiscardSymbol : Symbol, IDiscardSymbol
     {
-        private readonly TypeSymbol _type;
-
         public DiscardSymbol(TypeSymbol type)
         {
             Debug.Assert((object)type != null);
-            _type = type;
+            Type = type;
         }
 
-        ITypeSymbol IDiscardSymbol.Type => _type;
-        public TypeSymbol Type => _type;
+        ITypeSymbol IDiscardSymbol.Type => Type;
+        public TypeSymbol Type { get; }
+
+        /// <summary>
+        /// Produce a fresh discard symbol for testing.
+        /// </summary>
+        internal static DiscardSymbol CreateForTest(ITypeSymbol type) => new DiscardSymbol((TypeSymbol)type);
 
         public override Symbol ContainingSymbol => null;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
@@ -36,5 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitDiscard(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
+
+        public override bool Equals(object obj) => obj is DiscardSymbol other && this.Type.Equals(other.Type);
+        public override int GetHashCode() => this.Type.GetHashCode();
     }
 }

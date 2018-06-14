@@ -217,8 +217,17 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             // go through explicit types first.
 
             // check array case
-            if (collectionType is IArrayTypeSymbol array && array.Rank == 1)
+            if (collectionType is IArrayTypeSymbol array)
             {
+                if (array.Rank != 1)
+                {
+                    // array type supports IList and other interfaces, but implementation
+                    // only supports Rank == 1 case. other case, it will throw on runtime
+                    // even if there is no error on compile time.
+                    // we explicitly mark that we only support Rank == 1 case
+                    return;
+                }
+
                 if (!IsExchangable(semanticFact, array.ElementType, foreachType, model.Compilation))
                 {
                     return;
@@ -338,8 +347,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         private static bool IsExchangable(
             ISemanticFactsService semanticFact, ITypeSymbol type1, ITypeSymbol type2, Compilation compilation)
         {
-            return semanticFact.IsAssignableTo(type1, type2, compilation) ||
-                   semanticFact.IsAssignableTo(type2, type1, compilation);
+            return compilation.HasImplicitConversion(type1, type2) ||
+                   compilation.HasImplicitConversion(type2, type1);
         }
 
         private static bool IsNullOrErrorType(ITypeSymbol type)

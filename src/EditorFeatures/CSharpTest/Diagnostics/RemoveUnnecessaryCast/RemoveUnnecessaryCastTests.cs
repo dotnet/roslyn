@@ -59,7 +59,7 @@ class Program
     {
         int x = 2;
         int i = 1;
-        Goo((x < i), x > (2 + 3));
+        Goo(x < (i), x > (2 + 3));
     }
  
     static void Goo(bool a, bool b) { }
@@ -3550,7 +3550,7 @@ class C
 {
     void Goo(Task<Action> x)
     {
-        x.Result();
+        (x.Result)();
     }
 }
 ");
@@ -4306,7 +4306,7 @@ class C
     {
         switch (true)
         {
-            case ((bool)default):
+            case (bool)default:
                 break;
         }
     }
@@ -4390,7 +4390,7 @@ class C
     {
         switch (true)
         {
-            case ((bool)default) when true:
+            case (bool)default when true:
                 break;
         }
     }
@@ -4420,7 +4420,7 @@ class C
     {
         switch (true)
         {
-            case (bool)default when (default):
+            case (bool)default when default:
                 break;
         }
     }
@@ -4486,9 +4486,27 @@ class C
 {
     void M()
     {
-        if (true is ((bool)default)) ;
+        if (true is (bool)default) ;
     }
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [WorkItem(27239, "https://github.com/dotnet/roslyn/issues/27239")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastWhereNoConversionExists()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                @"
+using System;
+
+class C
+{
+    void M()
+    {
+        object o = null;
+        TypedReference r2 = [|(TypedReference)o|];
+    }
+}");
         }
     }
 }

@@ -37,7 +37,10 @@ namespace Microsoft.CodeAnalysis.Text
             => line.Snapshot.AsText().Lines[line.LineNumber];
 
         public static SourceText AsText(this ITextSnapshot textSnapshot)
-            => SnapshotSourceText.From(textBufferCloneServiceOpt: null, textSnapshot);
+        {
+            textSnapshot.TextBuffer.Properties.TryGetProperty<ITextBufferCloneService>(typeof(ITextBufferCloneService), out var textBufferCloneServiceOpt);
+            return SnapshotSourceText.From(textBufferCloneServiceOpt, textSnapshot);
+        }
 
         internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, ITextBufferCloneService textBufferCloneServiceOpt, Encoding encoding)
             => new SnapshotSourceText.ClosedSnapshotSourceText(textBufferCloneServiceOpt, ((ITextSnapshot2)textSnapshot).TextImage, encoding);

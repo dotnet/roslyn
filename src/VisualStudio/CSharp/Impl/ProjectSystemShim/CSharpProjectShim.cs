@@ -112,15 +112,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             ReportDiagnostic? ruleSetGeneralDiagnosticOption = null;
             if (this.RuleSetFile != null)
             {
-                ruleSetGeneralDiagnosticOption = this.RuleSetFile.GetGeneralDiagnosticOption();
-                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(this.RuleSetFile.GetSpecificDiagnosticOptions());
+                ruleSetGeneralDiagnosticOption = this.RuleSetFile.Target.GetGeneralDiagnosticOption();
+                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(this.RuleSetFile.Target.GetSpecificDiagnosticOptions());
             }
             else
             {
                 ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             }
 
-            UpdateRuleSetError(this.RuleSetFile);
+            UpdateRuleSetError(this.RuleSetFile?.Target);
 
             ReportDiagnostic generalDiagnosticOption;
             var warningsAreErrors = GetNullableBooleanOption(CompilerOptions.OPTID_WARNINGSAREERRORS);
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 documentationMode = DocumentationMode.Diagnose;
             }
 
-            GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: "").TryParse(out var languageVersion);
+            LanguageVersionFacts.TryParse(GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: ""), out var languageVersion);
 
             return options.WithKind(SourceCodeKind.Regular)
                 .WithLanguageVersion(languageVersion)
