@@ -4177,6 +4177,17 @@ tryAgain:
                             mods: mods,
                             localFunction: out localFunction));
                 }
+                else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
+                {
+                    variables.Add(
+                        this.ParseVariableDeclarator(
+                            type,
+                            flags,
+                            isFirst: false,
+                            allowLocalFunctions: false,
+                            mods,
+                            out localFunction));
+                }
                 else if (!variableDeclarationsExpected || this.SkipBadVariableListTokens(variables, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                 {
                     break;

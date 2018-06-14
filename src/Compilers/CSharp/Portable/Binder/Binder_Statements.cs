@@ -618,6 +618,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 kind = LocalDeclarationKind.Constant;
             }
+            else if (node.UsingKeyword != default)
+            {
+                kind = LocalDeclarationKind.UsingVariable;
+            }
 
             var variableList = node.Declaration.Variables;
             int variableCount = variableList.Count;

@@ -1862,6 +1862,9 @@
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
     </Field>
+    <Field Name="UsingKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="UsingKeyword" Optional="true"/>
+    </Field>
   </Node>
 
   <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode">
