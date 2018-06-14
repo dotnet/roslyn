@@ -1587,8 +1587,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        // PROTOTYPE(dataflow): Revisit and determine if this is too much abstraction, or if it's fine as it is.
-        private void PushArray<T>(ImmutableArray<T> array, Func<T, IOperation> unwrapper = null) where T : IOperation
+        private void VisitAndPushArray<T>(ImmutableArray<T> array, Func<T, IOperation> unwrapper = null) where T : IOperation
         {
             Debug.Assert(unwrapper != null || typeof(T) == typeof(IOperation));
             foreach (var element in array)
@@ -1619,10 +1618,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
+        private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> originalArray, Func<T, IOperation> unwrapper = null, Func<IOperation, int, ImmutableArray<T>, T> wrapper = null) where T : IOperation
+        {
+#if DEBUG
+            int stackSizeBefore = _evalStack.Count;
+#endif
+
+            VisitAndPushArray(originalArray, unwrapper);
+            ImmutableArray<T> visitedArray = PopArray(originalArray, wrapper);
+
+#if DEBUG
+            Debug.Assert(stackSizeBefore == _evalStack.Count);
+#endif
+
+            return visitedArray;
+        }
+
         private ImmutableArray<IArgumentOperation> VisitArguments(ImmutableArray<IArgumentOperation> arguments)
         {
-            PushArray(arguments, UnwrapArgument);
-            return PopArray(arguments, RewriteArgumentFromArray);
+            return VisitArray(arguments, UnwrapArgument, RewriteArgumentFromArray);
 
             IOperation UnwrapArgument(IArgumentOperation argument)
             {
@@ -1660,8 +1674,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, int? captureIdForResult)
         {
             _evalStack.Push(Visit(operation.ArrayReference));
-            PushArray(operation.Indices);
-            ImmutableArray<IOperation> visitedIndices = PopArray(operation.Indices);
+            ImmutableArray<IOperation> visitedIndices = VisitArray(operation.Indices);
             IOperation visitedArrayReference = _evalStack.Pop();
             return new ArrayElementReferenceExpression(visitedArrayReference, visitedIndices, semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -2110,7 +2123,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             SpillEvalStack();
             int captureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
 
-            ref BasicBlockBuilder lazyFallThrough = ref stopSense ? ref fallToTrueOpt : ref fallToFalseOpt;
+            ref BasicBlockBuilder lazyFallThrough = ref stopValue ? ref fallToTrueOpt : ref fallToFalseOpt;
             bool newFallThroughBlock = (lazyFallThrough == null);
 
             VisitConditionalBranch(condition.LeftOperand, ref lazyFallThrough, stopSense);
@@ -2141,19 +2154,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
 
-            // PROTOTYPE(dataflow): Unwrap parenthesized and look for other places where it should happen
-            // PROTOTYPE(dataflow): Do not erase UnaryOperatorKind.Not if ProduceIsSense below will have to add it back.
+            IUnaryOperation lastUnary = null;
 
-            while (condition.Kind == OperationKind.UnaryOperator)
+            do
             {
-                var unOp = (IUnaryOperation)condition;
-                if (!IsBooleanLogicalNot(unOp))
+                switch (condition)
                 {
-                    break;
+                    case IParenthesizedOperation parenthesized:
+                        condition = parenthesized.Operand;
+                        continue;
+                    case IUnaryOperation unary when IsBooleanLogicalNot(unary):
+                        lastUnary = unary;
+                        condition = unary.Operand;
+                        sense = !sense;
+                        continue;
                 }
-                condition = unOp.Operand;
-                sense = !sense;
-            }
+
+                break;
+            } while (true);
 
             if (condition.Kind == OperationKind.BinaryOperator)
             {
@@ -2164,7 +2182,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
-            return ProduceIsSense(Visit(condition), sense);
+            condition = Visit(condition);
+            if (!sense)
+            {
+                return lastUnary != null
+                    ? new UnaryOperatorExpression(lastUnary.OperatorKind, condition, lastUnary.IsLifted, lastUnary.IsChecked,
+                                                  lastUnary.OperatorMethod, semanticModel: null, lastUnary.Syntax,
+                                                  lastUnary.Type, lastUnary.ConstantValue, IsImplicit(lastUnary))
+                    : new UnaryOperatorExpression(UnaryOperatorKind.Not, condition, isLifted: false, isChecked: false,
+                                                  operatorMethod: null, semanticModel: null, condition.Syntax,
+                                                  condition.Type, constantValue: default, isImplicit: true);
+            }
+
+            return condition;
         }
 
         private static bool IsBooleanConditionalOperator(IBinaryOperation binOp)
@@ -2174,27 +2204,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                    ITypeSymbolHelpers.IsBooleanType(binOp.Type) &&
                    ITypeSymbolHelpers.IsBooleanType(binOp.LeftOperand.Type) &&
                    ITypeSymbolHelpers.IsBooleanType(binOp.RightOperand.Type);
-        }
-
-        private IOperation ProduceIsSense(IOperation condition, bool sense)
-        {
-            Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
-
-            if (!sense)
-            {
-                return new UnaryOperatorExpression(UnaryOperatorKind.Not,
-                                                   condition,
-                                                   isLifted: false,
-                                                   isChecked: false,
-                                                   operatorMethod: null,
-                                                   semanticModel: null,
-                                                   condition.Syntax,
-                                                   condition.Type,
-                                                   constantValue: default, // revert constant value if we have one.
-                                                   isImplicit: true);
-            }
-
-            return condition;
         }
 
         private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder dest, bool sense)
@@ -4792,8 +4801,7 @@ oneMoreTime:
 
         public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
         {
-            PushArray(operation.Arguments);
-            ImmutableArray<IOperation> visitedArguments = PopArray(operation.Arguments);
+            ImmutableArray<IOperation> visitedArguments = VisitArray(operation.Arguments);
 
             var hasDynamicArguments = (HasDynamicArgumentsExpression)operation;
             IOperation initializedInstance = new DynamicObjectCreationExpression(visitedArguments, hasDynamicArguments.ArgumentNames, hasDynamicArguments.ArgumentRefKinds,
@@ -5134,8 +5142,6 @@ oneMoreTime:
         {
             StartVisitingStatement(operation);
 
-            // PROTOTYPE(dataflow): Should we do anything special with attributes and parameter initializers?
-            //                      Should we also expose graphs for those only as "nested" graphs?
             _currentRegion.Add(operation.Symbol, operation);
             return FinishVisitingStatement(operation);
         }
@@ -5175,7 +5181,7 @@ oneMoreTime:
             //
             //  In future, based on the customer feedback, we can consider switching to approach #2 and lower the initializer into assignment(s).
 
-            PushArray(operation.DimensionSizes);
+            VisitAndPushArray(operation.DimensionSizes);
             IArrayInitializerOperation visitedInitializer = Visit(operation.Initializer);
             ImmutableArray<IOperation> visitedDimensions = PopArray(operation.DimensionSizes);
             return new ArrayCreationExpression(visitedDimensions, visitedInitializer, semanticModel: null,
@@ -5270,8 +5276,7 @@ oneMoreTime:
                 }
             }
 
-            PushArray(operation.Arguments);
-            ImmutableArray<IOperation> rewrittenArguments = PopArray(operation.Arguments);
+            ImmutableArray<IOperation> rewrittenArguments = VisitArray(operation.Arguments);
 
             IOperation rewrittenOperation;
             if (operation.Operation == null)
@@ -5301,8 +5306,7 @@ oneMoreTime:
                 _evalStack.Push(Visit(operation.Operation));
             }
 
-            PushArray(operation.Arguments);
-            ImmutableArray<IOperation> rewrittenArguments = PopArray(operation.Arguments);
+            ImmutableArray<IOperation> rewrittenArguments = VisitArray(operation.Arguments);
             IOperation rewrittenOperation = operation.Operation != null ? _evalStack.Pop() : null;
 
             return new DynamicIndexerAccessExpression(rewrittenOperation, rewrittenArguments, ((HasDynamicArgumentsExpression)operation).ArgumentNames,
@@ -5416,29 +5420,7 @@ oneMoreTime:
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
         {
-            int startingStackSize = _evalStack.Count;
-            foreach (IOperation child in operation.Children)
-            {
-                _evalStack.Push(Visit(child));
-            }
-
-            int numChildren = _evalStack.Count - startingStackSize;
-            Debug.Assert(numChildren == operation.Children.Count());
-
-            if (numChildren == 0)
-            {
-                return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, ImmutableArray<IOperation>.Empty, IsImplicit(operation));
-            }
-
-            var childrenBuilder = ArrayBuilder<IOperation>.GetInstance(numChildren);
-            for (int i = 0; i < numChildren; i++)
-            {
-                childrenBuilder.Add(_evalStack.Pop());
-            }
-
-            childrenBuilder.ReverseContents();
-
-            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, childrenBuilder.ToImmutableAndFree(), IsImplicit(operation));
+            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, VisitArray(operation.Children.ToImmutableArray()), IsImplicit(operation));
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
@@ -5892,19 +5874,7 @@ oneMoreTime:
 
             IOperation visitInvalidOperationExpression(IInvalidOperation invalidOperation)
             {
-                foreach (IOperation child in children)
-                {
-                    _evalStack.Push(Visit(child));
-                }
-
-                Debug.Assert(children.Count == invalidOperation.Children.Count());
-
-                for (int i = children.Count - 1; i >= 0; i--)
-                {
-                    children[i] = _evalStack.Pop();
-                }
-
-                return new InvalidOperation(children.ToImmutable(), semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation));
+                return new InvalidOperation(VisitArray(invalidOperation.Children.ToImmutableArray()), semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation));
             }
         }
 
