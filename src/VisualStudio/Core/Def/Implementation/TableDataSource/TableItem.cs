@@ -30,26 +30,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public TableItem(IEnumerable<TableItem<T>> items)
         {
-            var itemCount = items.Count();
-            if (itemCount == 0)
-            {
-                // There must be at least 1 item in the list
-                FatalError.ReportWithoutCrash(new ArgumentException("Contains no items", nameof(items)));
-            }
-
-            var filteredItems = items.Where(i => i.PrimaryDocumentId != null);
-            if (filteredItems.Count() != itemCount)
-            {
-                // There must be document id for provided items.
-                FatalError.ReportWithoutCrash(new ArgumentException("Contains an item with null PrimaryDocumentId", nameof(items)));
-            }
-
             var first = true;
             var collectionHash = 1;
             var count = 0;
 
             // Make things to be deterministic. 
-            var orderedItems = filteredItems.OrderBy(i => i.PrimaryDocumentId.Id);
+            var orderedItems = items.Where(i => i.PrimaryDocumentId != null).OrderBy(i => i.PrimaryDocumentId.Id).ToList();
+            if (orderedItems.Count == 0)
+            {
+                // There must be at least 1 item in the list
+                FatalError.ReportWithoutCrash(new ArgumentException("Contains no items", nameof(items)));
+            }
+            else if (orderedItems.Count != items.Count())
+            {
+                // There must be document id for provided items.
+                FatalError.ReportWithoutCrash(new ArgumentException("Contains an item with null PrimaryDocumentId", nameof(items)));
+            }
+
             foreach (var item in orderedItems)
             {
                 count++;
