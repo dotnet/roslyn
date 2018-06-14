@@ -258,6 +258,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // by the value escape of its receiverm, in this case the
                             // collection
                             local.SetRefEscape(collectionEscape);
+
+                            if (IsDirectlyInIterator)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, local.IdentifierToken.GetLocation());
+                            }
+                            else if (IsInAsyncMethod())
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadAsyncLocalType, local.IdentifierToken.GetLocation());
+                            }
                         }
 
                         if (!hasErrors)
