@@ -192,7 +192,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     char curChar = str[strIndex + targetIndex];
                     char targetChar = targetLower[targetIndex];
-                    if (curChar != targetChar && curChar != (targetChar - 32))
+                    const int asciiDiff = 'a' - 'A';
+                    if (curChar != targetChar && curChar != (targetChar - asciiDiff))
                     {
                         return false;
                     }
