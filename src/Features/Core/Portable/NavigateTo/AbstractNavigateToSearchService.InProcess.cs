@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,21 +22,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             new ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>>();
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
-            Project project, string searchPattern, CancellationToken cancellationToken)
+            Project project, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
-                project, searchDocument: null, pattern: searchPattern, cancellationToken: cancellationToken);
+                project, searchDocument: null, pattern: searchPattern, kinds, cancellationToken: cancellationToken);
         }
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
-            Document document, string searchPattern, CancellationToken cancellationToken)
+            Document document, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
-                document.Project, document, searchPattern, cancellationToken);
+                document.Project, document, searchPattern, kinds, cancellationToken);
         }
 
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindSearchResultsAsync(
-            Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
+            Project project, Document searchDocument, string pattern, ISet<string> kinds, CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // scratch.
 #if true
                     var task = searchDocument != null
-                        ? ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, nameMatches, containerMatches, cancellationToken)
-                        : TryFilterPreviousSearchResultsAsync(project, searchDocument, pattern, nameMatcher, containerMatcherOpt, nameMatches, containerMatches, cancellationToken);
+                        ? ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, kinds, nameMatches, containerMatches, cancellationToken)
+                        : TryFilterPreviousSearchResultsAsync(project, searchDocument, pattern, nameMatcher, containerMatcherOpt, kinds, nameMatches, containerMatches, cancellationToken);
 #else
-                    var task = ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, nameMatches, containerMatches, cancellationToken);
+                    var task = ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, kinds, nameMatches, containerMatches, cancellationToken);
 #endif
 
                     var searchResults = await task.ConfigureAwait(false);
@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task<ImmutableArray<SearchResult>> TryFilterPreviousSearchResultsAsync(
             Project project, Document searchDocument, string pattern,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
+            ISet<string> kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 searchResults = FilterPreviousResults(
                     previousResult.Item2,
                     nameMatcher, containerMatcherOpt,
+                    kinds,
                     nameMatches, containerMatches, cancellationToken);
             }
             else
@@ -108,6 +110,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 searchResults = await ComputeSearchResultsAsync(
                     project, searchDocument,
                     nameMatcher, containerMatcherOpt,
+                    kinds,
                     nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
             }
 
@@ -126,6 +129,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static ImmutableArray<SearchResult> FilterPreviousResults(
             ImmutableArray<SearchResult> previousResults,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
+            ISet<string> kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
@@ -137,7 +141,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var info = previousResult.DeclaredSymbolInfo;
 
                 AddResultIfMatch(
-                    document, info, nameMatcher, containerMatcherOpt, 
+                    document, info, nameMatcher, containerMatcherOpt, kinds,
                     nameMatches, containerMatches, result, cancellationToken);
             }
 
@@ -147,6 +151,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task<ImmutableArray<SearchResult>> ComputeSearchResultsAsync(
             Project project, Document searchDocument,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
+            ISet<string> kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
@@ -165,7 +170,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 {
                     AddResultIfMatch(
                         document, declaredSymbolInfo,
-                        nameMatcher, containerMatcherOpt, 
+                        nameMatcher, containerMatcherOpt,
+                        kinds,
                         nameMatches, containerMatches, 
                         result, cancellationToken);
                 }
@@ -177,6 +183,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static void AddResultIfMatch(
             Document document, DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
+            ISet<string> kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches, 
             ArrayBuilder<SearchResult> result, CancellationToken cancellationToken)
         {
@@ -184,7 +191,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             containerMatches.Clear();
 
             cancellationToken.ThrowIfCancellationRequested();
-            if (nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
+            if (kinds.Contains(GetItemKind(declaredSymbolInfo)) &&
+                nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
                 containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
             {
                 result.Add(ConvertResult(
