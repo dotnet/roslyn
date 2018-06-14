@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 for (int cur = startIndex; cur < str.Length; cur++)
                 {
-                    if (char.IsWhiteSpace(str[cur]))
+                    if (!char.IsWhiteSpace(str[cur]))
                     {
                         return cur;
                     }

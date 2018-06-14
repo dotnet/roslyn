@@ -178,6 +178,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void RootEditorConfigFileIsRootUnicodeWhitespace()
+        {
+            var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root\t= \u00a0 true");
+            Assert.True(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+        }
+
+        [Fact]
         public void MixCaseRootEditorConfigFileIsRoot()
         {
             var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("RoOt = TrUE");
