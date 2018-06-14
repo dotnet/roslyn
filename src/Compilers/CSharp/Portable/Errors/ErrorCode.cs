@@ -1605,6 +1605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IsPatternImpossible = 8418,
         WRN_GivenExpressionNeverMatchesPattern = 8419,
         WRN_GivenExpressionAlwaysMatchesConstant = 8420,
+        ERR_PointerTypeInPatternMatching = 8421,
         #endregion diagnostics introduced for recursive patterns
 
     }
