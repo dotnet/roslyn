@@ -3814,5 +3814,47 @@ class Test
                 //         M(out in int x);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 22));
         }
+
+        [Fact]
+        [WorkItem(26516, "https://github.com/dotnet/roslyn/issues/26516")]
+        public void BindingRefVoidAssignment()
+        {
+            CreateCompilation(@"
+public class C
+{
+	public void M(ref int x)
+    {
+    	M(ref void = ref x);
+    }
+}").VerifyDiagnostics(
+                // (6,12): error CS1525: Invalid expression term 'void'
+                //     	M(ref void = ref x);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(6, 12));
+        }
+
+        [Fact]
+        [WorkItem(26978, "https://github.com/dotnet/roslyn/issues/26978")]
+        public void BindingRefDynamicObjAssignment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    public int P;
+
+    static void Main()
+    {
+        dynamic x = new C();
+        x.P = 5;
+        Console.WriteLine(x.P);
+        
+        dynamic y = new C();
+        y.P = ref x.P;
+        Console.WriteLine(y.P);
+    }
+}", references: new[] { CSharpRef }, expectedOutput: @"
+5
+5");
+        }
     }
 }
