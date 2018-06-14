@@ -26,6 +26,11 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public sealed class WpfTestRunner : XunitTestRunner
     {
+        /// <summary>
+        /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
+        /// </summary>
+        private static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
+
         private static string s_wpfFactRequirementReason;
 
         public WpfTestSharedData SharedData { get; }
@@ -53,9 +58,10 @@ namespace Roslyn.Test.Utilities
 
             DispatcherSynchronizationContext synchronizationContext = null;
             Dispatcher dispatcher = null;
+            Thread staThread;
             using (var staThreadStartedEvent = new ManualResetEventSlim(initialState: false))
             {
-                var staThread = new Thread((ThreadStart)(() =>
+                staThread = new Thread((ThreadStart)(() =>
                 {
                     // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
                     // or mouse input from the user. So use background priority which is a single level below user input.
@@ -71,7 +77,7 @@ namespace Roslyn.Test.Utilities
                     Dispatcher.Run();
                 }));
 
-                staThread.Name = nameof(WpfTestRunner);
+                staThread.Name = $"{nameof(WpfTestRunner)} {TestMethod.Name}";
                 staThread.SetApartmentState(ApartmentState.STA);
                 staThread.Start();
 
@@ -115,6 +121,9 @@ namespace Roslyn.Test.Utilities
                         // are delayed and run during AppDomain or process shutdown, where they can lead to crashes of
                         // the test process.
                         dispatcher.InvokeShutdown();
+
+                        // Join the STA thread, which ensures shutdown is complete.
+                        staThread.Join(HangMitigatingTimeout);
                     }
                 });
         }
