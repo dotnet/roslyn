@@ -40,9 +40,20 @@ Unannotated reference types are non-nullable or null-oblivious depending on whet
 ```c#
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(
-        AttributeTargets.All,
-        AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class |
+                    AttributeTargets.Constructor |
+                    AttributeTargets.Delegate |
+                    AttributeTargets.Enum |
+                    AttributeTargets.Event |
+                    AttributeTargets.Field |
+                    AttributeTargets.Interface |
+                    AttributeTargets.Method |
+                    AttributeTargets.Module |
+                    AttributeTargets.Parameter |
+                    AttributeTargets.Property |
+                    AttributeTargets.ReturnValue |
+                    AttributeTargets.Struct,
+                    AllowMultiple = false)]
     public sealed class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool enabled = true) { }

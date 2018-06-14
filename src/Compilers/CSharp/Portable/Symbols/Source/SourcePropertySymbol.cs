@@ -1535,7 +1535,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _nonNullTypesFromAttributes ?? base.NonNullTypes;
+                //return _nonNullTypesFromAttributes ?? base.NonNullTypes; // PROTOTYPE(NullableReferenceTypes): breaking loop
+                return _nonNullTypesFromAttributes ?? ContainingModule?.NonNullTypes == true;
             }
         }
     }

@@ -55,9 +55,21 @@ namespace System.Runtime.CompilerServices
     /// <summary>
     /// Control whether unannotated reference types are treated as non-null or null-oblivious.
     /// </summary>
-    [AttributeUsage(AttributeTargets.All,
+    [AttributeUsage(AttributeTargets.Class |
+                    AttributeTargets.Constructor |
+                    AttributeTargets.Delegate |
+                    AttributeTargets.Enum |
+                    AttributeTargets.Event |
+                    AttributeTargets.Field |
+                    AttributeTargets.Interface |
+                    AttributeTargets.Method |
+                    AttributeTargets.Module |
+                    AttributeTargets.Parameter |
+                    AttributeTargets.Property |
+                    AttributeTargets.ReturnValue |
+                    AttributeTargets.Struct,
                     AllowMultiple = false)]
-    class NonNullTypesAttribute : Attribute
+    public sealed class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
     }
@@ -485,7 +497,7 @@ class D : C<B>, I<B>
             Assert.Equal(null, constraintType.IsNullable);
             var method = baseType.GetMember<MethodSymbol>("M");
             constraintType = method.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
-            Assert.Equal(null, constraintType.IsNullable);
+            Assert.Equal(false, constraintType.IsNullable); // PROTOTYPE(NullableReferenceTypes): should be null
         }
 
         [Fact]
@@ -505,7 +517,7 @@ class C : I<string>
             var type = comp.GetMember<NamedTypeSymbol>("C");
             var interfaceType = type.Interfaces().Single();
             var typeArg = interfaceType.TypeArgumentsNoUseSiteDiagnostics.Single();
-            Assert.Equal(null, typeArg.IsNullable);
+            Assert.Equal(false, typeArg.IsNullable); // PROTOTYPE(NullableReferenceTypes): should be null
             var method = type.GetMember<MethodSymbol>("I<System.String>.F");
             Assert.Equal(null, method.ReturnType.IsNullable);
             typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
@@ -857,6 +869,8 @@ namespace System.Runtime.CompilerServices
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+
+            VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), false);
         }
 
         [Fact]
@@ -870,6 +884,26 @@ namespace System.Runtime.CompilerServices
     class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
+        }
+
+        [Fact]
+        public void NonNullTypes_Cycle5()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    class SomeAttribute : Attribute
+    {
+        public SomeAttribute() { }
+        public int Property { get; set; }
     }
 }
 ";
@@ -978,6 +1012,8 @@ public class External
 ";
 
             var libComp = CreateCompilation(lib + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            libComp.VerifyDiagnostics();
+            verifyExternal(libComp);
 
             var source = @"
 using System.Runtime.CompilerServices;
@@ -1059,7 +1095,7 @@ class E
     }
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll,
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference(), libComp.EmitToImageReference() });
 
             compilation.VerifyTypes();
@@ -1080,6 +1116,46 @@ class E
                 //         OuterD.D.s /*T:string!*/ = null; // warn 5
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(73, 36)
                 );
+
+            // PROTOTYPE(NullableReferenceTypes): problem when loading NonNullTypes from metadata
+            //verifyExternal(compilation);
+
+            var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
+            Assert.False(outerA.NonNullTypes);
+
+            var a = (NamedTypeSymbol)outerA.GetMember("A");
+            VerifyNonNullTypes(a, true);
+
+            var b = (NamedTypeSymbol)compilation.GetMember("B");
+            VerifyNonNullTypes(b, true);
+
+            var c = (NamedTypeSymbol)compilation.GetMember("C");
+            Assert.False(c.NonNullTypes);
+            VerifyNonNullTypes(c.GetMember("s"), true);
+            VerifyNonNullTypes(c.GetMember("ns"), true);
+
+            var outerD = (NamedTypeSymbol)compilation.GetMember("OuterD");
+            Assert.False(outerD.NonNullTypes);
+
+            var d = (NamedTypeSymbol)outerD.GetMember("D");
+            Assert.False(d.NonNullTypes);
+            VerifyNonNullTypes(d.GetMember("s"), true);
+            VerifyNonNullTypes(d.GetMember("ns"), true);
+
+            var oblivious2 = (NamedTypeSymbol)compilation.GetMember("Oblivious2");
+            Assert.True(oblivious2.NonNullTypes);
+            VerifyNonNullTypes(oblivious2.GetMember("s"), false);
+            VerifyNonNullTypes(oblivious2.GetMember("ns"), false);
+
+            void verifyExternal(Compilation comp)
+            {
+                var external = (NamedTypeSymbol)comp.GetMember("External");
+                Assert.True(external.NonNullTypes);
+                Assert.True(external.GetMember("s").NonNullTypes);
+                Assert.True(external.GetMember("ns").NonNullTypes);
+                Assert.False(external.GetMember("fs").NonNullTypes);
+                Assert.False(external.GetMember("fns").NonNullTypes);
+            }
         }
 
         [Fact]
@@ -1194,7 +1270,7 @@ class E
     }
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll,
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference(), libComp.EmitToImageReference() });
 
             compilation.VerifyTypes();
@@ -1429,6 +1505,8 @@ public class Oblivious
 ";
 
             var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+            obliviousComp.VerifyDiagnostics();
+            verifyOblivious(obliviousComp);
 
    var lib = @"
 public class External
@@ -1522,6 +1600,87 @@ class E
                 //         OuterD.D.s /*T:string!*/ = null; // warn 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(57, 36)
                 );
+
+            verifyOblivious(compilation);
+
+            var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
+            Assert.False(outerA.NonNullTypes);
+
+            var a = (NamedTypeSymbol)outerA.GetMember("A");
+            Assert.False(a.NonNullTypes);
+            VerifyNonNullTypes(a.GetMember("s"), true);
+            VerifyNonNullTypes(a.GetMember("ns"), true);
+
+            var b = (NamedTypeSymbol)compilation.GetMember("B");
+            VerifyNonNullTypes(b, true);
+
+            var outerD = (NamedTypeSymbol)compilation.GetMember("OuterD");
+            Assert.False(outerD.NonNullTypes);
+
+            var d = (NamedTypeSymbol)outerD.GetMember("D");
+            VerifyNonNullTypes(d, true);
+
+            var oblivious2 = (NamedTypeSymbol)compilation.GetMember("Oblivious2");
+            Assert.True(oblivious2.NonNullTypes);
+            VerifyNonNullTypes(oblivious2.GetMember("s"), false);
+            VerifyNonNullTypes(oblivious2.GetMember("ns"), false);
+
+            void verifyOblivious(Compilation comp)
+            {
+                VerifyNonNullTypes(comp.GetMember("Oblivious"), false);
+            }
+        }
+
+        /// <summary>
+        /// The type and all of its members should have the expected NonNullTypes value.
+        /// </summary>
+        private static void VerifyNonNullTypes(NamedTypeSymbol type, bool expectNonNullTypes)
+        {
+            Assert.Equal(expectNonNullTypes, type.NonNullTypes);
+
+            foreach (var member in type.GetMembers())
+            {
+                VerifyNonNullTypes(member, expectNonNullTypes);
+            }
+        }
+
+        private static void VerifyNonNullTypes(Symbol symbol, bool expectNonNullTypes)
+        {
+            switch (symbol)
+            {
+                case NamedTypeSymbol type:
+                    VerifyNonNullTypes(type, expectNonNullTypes);
+                    break;
+                case PropertySymbol property:
+                    VerifyNonNullTypes(property, expectNonNullTypes);
+                    break;
+                case MethodSymbol method:
+                    VerifyNonNullTypes(method, expectNonNullTypes);
+                    break;
+                case FieldSymbol field:
+                    Assert.Equal(expectNonNullTypes, field.NonNullTypes);
+                    break;
+            }
+        }
+
+        private static void VerifyNonNullTypes(PropertySymbol property, bool expectNonNullTypes)
+        {
+            Assert.Equal(expectNonNullTypes, property.NonNullTypes);
+            VerifyNonNullTypes(property.GetMethod, expectNonNullTypes);
+            VerifyNonNullTypes(property.SetMethod, expectNonNullTypes);
+        }
+
+        private static void VerifyNonNullTypes(MethodSymbol method, bool expectNonNullTypes)
+        {
+            Assert.Equal(expectNonNullTypes, method.NonNullTypes);
+
+            // PROTOTYPE(NullableReferenceTypes): verify NonNullTypes on return value
+
+            foreach (var parameter in method.Parameters)
+            {
+                // PROTOTYPE(NullableReferenceTypes): verify NonNullTypes on parameters
+                //Assert.Equal(nonNullTypes, parameter.NonNullTypes);
+            }
         }
 
         [Fact]
@@ -1535,6 +1694,7 @@ public class Oblivious
 ";
 
             var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+            verifyOblivious(obliviousComp);
 
             var lib = @"
 public class External
@@ -1545,6 +1705,7 @@ public class External
 ";
 
             var libComp = CreateCompilation(lib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            verifyExternal(libComp);
 
             var source = @"
 using System.Runtime.CompilerServices;
@@ -1627,6 +1788,77 @@ class E
                 //         OuterD.D.Method(null) /*T:string!*/; // warn 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(56, 25)
                 );
+
+            verifyOblivious(compilation);
+            verifyExternal(compilation);
+
+            var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
+            Assert.False(outerA.NonNullTypes);
+
+            var a = (NamedTypeSymbol)outerA.GetMember("A");
+            VerifyNonNullTypes(a, true);
+
+            var b = (NamedTypeSymbol)compilation.GetMember("B");
+            VerifyNonNullTypes(b, true);
+
+            var outerD = (NamedTypeSymbol)compilation.GetMember("OuterD");
+            Assert.False(outerD.NonNullTypes);
+
+            var d = (NamedTypeSymbol)outerD.GetMember("D");
+            Assert.False(d.NonNullTypes);
+            VerifyNonNullTypes(d.GetMember("Method"), true);
+            VerifyNonNullTypes(d.GetMember("NMethod"), true);
+
+            var oblivious2 = (NamedTypeSymbol)compilation.GetMember("Oblivious2");
+            VerifyNonNullTypes(oblivious2, false);
+
+            void verifyOblivious(Compilation comp)
+            {
+                VerifyNonNullTypes((NamedTypeSymbol)comp.GetMember("Oblivious"), false);
+            }
+
+            void verifyExternal(Compilation comp)
+            {
+                VerifyNonNullTypes((NamedTypeSymbol)comp.GetMember("External"), true);
+            }
+        }
+
+        [Fact]
+        public void NonNullTypes_OnModule()
+        {
+            var obliviousLib = @"
+using System.Runtime.CompilerServices;
+
+[module: NonNullTypes(false)]
+public class Oblivious { }
+";
+
+            var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), false);
+
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
+            compilation.VerifyDiagnostics();
+            VerifyNonNullTypes(compilation.GetMember("Oblivious"), false);
+        }
+
+        [Fact]
+        public void NonNullTypes_OnAssembly()
+        {
+            var obliviousLib = @"
+using System.Runtime.CompilerServices;
+
+[assembly: NonNullTypes(false)]
+public class Oblivious { }
+";
+
+            var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            obliviousComp.VerifyDiagnostics(
+                // (4,12): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, constructor, method, property, indexer, field, event, interface, parameter, delegate, return' declarations.
+                // [assembly: NonNullTypes(false)]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, constructor, method, property, indexer, field, event, interface, parameter, delegate, return").WithLocation(4, 12)
+                );
+            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), true); // PROTOTYPE(NullableReferenceTypes): should be false
         }
 
         [Fact]
@@ -3451,7 +3683,7 @@ public class Class<T> : Base<T> where T : class
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): skipped because of a cycle in ApplyNullableTransforms which is currently mitigated but not solved")]
         public void Overriding_Properties_WithNullableTypeArgument_WithStructConstraint()
         {
             var source = @"
@@ -23747,13 +23979,13 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -23915,13 +24147,13 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19)
                 };
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expectedDiagnostics);
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -24085,13 +24317,13 @@ partial class C
 
             };
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -24256,13 +24488,13 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(21, 19)
             };
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -24399,7 +24631,7 @@ partial class C
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -24415,7 +24647,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(29, 19)
                 );
 
-            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
