@@ -242,17 +242,16 @@ namespace Analyzer.Utilities.Extensions
         /// If the operation is referencing an implicit or an explicit this/base/Me/MyBase/MyClass instance, then we return "null".
         /// </summary>
         /// <param name="operation"></param>
-        /// <param name="isInsideObjectInitializer">Flag to indicate if the operation is a descendant of an <see cref="IObjectOrCollectionInitializerOperation"/> or an <see cref="IAnonymousObjectCreationOperation"/>.</param>
+        /// <param name="isInsideAnonymousObjectInitializer">Flag to indicate if the operation is a descendant of an <see cref="IAnonymousObjectCreationOperation"/>.</param>
         /// <remarks>
-        /// PERF: Note that the parameter <paramref name="isInsideObjectInitializer"/> is to improve performance by avoiding walking the entire IOperation parent for non-initializer cases.
+        /// PERF: Note that the parameter <paramref name="isInsideAnonymousObjectInitializer"/> is to improve performance by avoiding walking the entire IOperation parent for non-initializer cases.
         /// </remarks>
-        public static IOperation GetInstance(this IInstanceReferenceOperation operation, bool isInsideObjectInitializer)
+        public static IOperation GetInstance(this IInstanceReferenceOperation operation, bool isInsideAnonymousObjectInitializer)
         {
-            Debug.Assert(isInsideObjectInitializer ==
-                (operation.GetAncestor<IObjectOrCollectionInitializerOperation>(OperationKind.ObjectOrCollectionInitializer) != null ||
-                 operation.GetAncestor<IAnonymousObjectCreationOperation>(OperationKind.AnonymousObjectCreation) != null));
+            Debug.Assert(isInsideAnonymousObjectInitializer ==
+                (operation.GetAncestor<IAnonymousObjectCreationOperation>(OperationKind.AnonymousObjectCreation) != null));
 
-            if (isInsideObjectInitializer)
+            if (isInsideAnonymousObjectInitializer)
             {
                 for (IOperation current = operation; current != null && current.Kind != OperationKind.Block; current = current.Parent)
                 {
@@ -260,36 +259,12 @@ namespace Analyzer.Utilities.Extensions
                     {
                         // VB object initializer allows accessing the members of the object being created with "." operator.
                         // The syntax of such an IInstanceReferenceOperation points to the object being created.
-                        // Check for such an  IObjectCreationOperation or IAnonymousObjectCreationOperation with matching syntax.
+                        // Check for such an IAnonymousObjectCreationOperation with matching syntax.
                         // For example, instance reference for members ".Field1" and ".Field2" in "New C() With { .Field1 = 0, .Field2 = .Field1 }".
-                        case OperationKind.ObjectCreation:
                         case OperationKind.AnonymousObjectCreation:
                             if (current.Syntax == operation.Syntax)
                             {
                                 return current;
-                            }
-
-                            break;
-
-                        // IInstanceReferenceOperation on left of an IMemberInitializerOperation refers to the ancestor IObjectCreationOperation/IAnonymousObjectCreationOperation/IMemberInitializerOperation.
-                        // For example, implicit instance reference for member initializer "AnotherType" in "new C() { AnotherType = { IntField = 0 } };", where "AnotherType" is a member of named type kind.
-                        case OperationKind.MemberInitializer:
-                            var parentMemberInitializer = (IMemberInitializerOperation)current;
-                            if (parentMemberInitializer.InitializedMember.DescendantsAndSelf().Contains(operation))
-                            {
-                                return parentMemberInitializer.GetCreation();
-                            }
-
-                            break;
-
-                        // IInstanceReferenceOperation on left of an ISimpleAssignmentOperation with an IObjectOrCollectionInitializerOperation parent refers to the parenting IObjectCreationOperation/IAnonymousObjectCreationOperation/IMemberInitializerOperation.
-                        // For example, implicit instance reference for "IntField" in "new C() { IntField = 0 };".
-                        case OperationKind.SimpleAssignment:
-                            var parentSimpleAssignmentInitialier = (ISimpleAssignmentOperation)current;
-                            if (parentSimpleAssignmentInitialier.Parent is IObjectOrCollectionInitializerOperation &&
-                                parentSimpleAssignmentInitialier.Target.DescendantsAndSelf().Contains(operation))
-                            {
-                                return parentSimpleAssignmentInitialier.Parent.Parent;
                             }
 
                             break;
@@ -300,15 +275,6 @@ namespace Analyzer.Utilities.Extensions
             // For all other cases, IInstanceReferenceOperation refers to the implicit or explicit this/base/Me/MyBase/MyClass reference.
             // We return null for such cases.
             return null;
-        }
-
-        /// <summary>
-        /// Gets the object creation or anonymous object creation for the given member initializer.
-        /// </summary>
-        public static IOperation GetCreation(this IMemberInitializerOperation operation)
-        {
-            Debug.Assert(operation.Parent is IObjectOrCollectionInitializerOperation);
-            return operation.Parent.Parent;
         }
 
         /// <summary>
