@@ -52,12 +52,14 @@ namespace Roslyn.Test.Utilities
             SharedData.ExecutingTest(TestMethod);
 
             DispatcherSynchronizationContext synchronizationContext = null;
+            Dispatcher dispatcher = null;
             var staThreadStartedEvent = new ManualResetEventSlim(initialState: false);
             var staThread = new Thread((ThreadStart)(() =>
             {
                 // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
                 // or mouse input from the user. So use background priority which is a single level below user input.
                 synchronizationContext = new DispatcherSynchronizationContext();
+                dispatcher = Dispatcher.CurrentDispatcher;
 
                 // xUnit creates its own synchronization context and wraps any existing context so that messages are
                 // still pumped as necessary. So we are safe setting it here, where we are not safe setting it in test.
@@ -97,9 +99,18 @@ namespace Roslyn.Test.Utilities
                 }
             }, CancellationTokenSource.Token, TaskCreationOptions.None, taskScheduler).Unwrap();
 
-            task.SafeContinueWith(_ => Dispatcher.ExitAllFrames(), taskScheduler);
-
-            return task;
+            return Task.Run(
+                async () =>
+                {
+                    try
+                    {
+                        return await task.ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        dispatcher.InvokeShutdown();
+                    }
+                });
         }
 
         /// <summary>
