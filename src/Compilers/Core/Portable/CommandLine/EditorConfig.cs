@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Text.RegularExpressions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -52,20 +53,32 @@ namespace Microsoft.CodeAnalysis
         public Section GlobalSection { get; }
 
         /// <summary>
-        /// The directory containing the editor config file, with '/' as the directory separator.
+        /// The directory the editorconfig was contained in, with all directory separators
+        /// replaced with '/'.
         /// </summary>
-        public string Directory { get; }
+        public string NormalizedDirectory { get; }
+
+        /// <summary>
+        /// The path passed to <see cref="EditorConfig.Parse(string, string)"/> during construction.
+        /// </summary>
+        public string PathToFile { get; }
 
         public ImmutableArray<Section> NamedSections { get; }
 
         private EditorConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
-            string directory)
+            string pathToFile)
         {
             GlobalSection = globalSection;
             NamedSections = namedSections;
-            Directory = directory;
+            PathToFile = pathToFile;
+
+            // Find the containing directory and normalize the path separators
+            string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
+            NormalizedDirectory = PathUtilities.DirectorySeparatorChar == '/'
+                ? directory
+                : directory.Replace(PathUtilities.DirectorySeparatorChar, '/');
         }
 
         /// <summary>
@@ -74,11 +87,16 @@ namespace Microsoft.CodeAnalysis
         public bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
         /// <summary>
-        /// Parses an editor config file text located within the given parent directory. No parsing
+        /// Parses an editor config file text located at the given path. No parsing
         /// errors are reported. If any line contains a parse error, it is dropped.
         /// </summary>
-        public static EditorConfig Parse(string text, string parentDirectory)
+        public static EditorConfig Parse(string text, string pathToFile)
         {
+            if (!Path.IsPathRooted(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
+            {
+                throw new ArgumentException("Must be an absolute path to an editorconfig file", nameof(pathToFile));
+            }
+
             Section globalSection = null;
             var namedSectionBuilder = ImmutableArray.CreateBuilder<Section>();
 
@@ -165,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                 namedSectionBuilder.Add(lastSection);
             }
 
-            return new EditorConfig(globalSection, namedSectionBuilder.ToImmutable(), parentDirectory);
+            return new EditorConfig(globalSection, namedSectionBuilder.ToImmutable(), pathToFile);
         }
 
         private static bool IsComment(string line)

@@ -149,13 +149,11 @@ dotnet_diagnostic.cs0169.severity = garbage");
 
             Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
 
-            var normalizedDir = Path.GetDirectoryName(analyzerConfig.Path).Replace(PathUtilities.DirectorySeparatorChar, '/') + "/";
-
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal(
-$@"warning CS8500: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file in directory '{normalizedDir}'.
+$@"warning CS8500: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
 test.cs(4,9): warning CS0169: The field 'C._f' is never used
 ", outWriter.ToString());
         }

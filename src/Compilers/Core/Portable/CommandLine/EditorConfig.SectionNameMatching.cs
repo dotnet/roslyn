@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -36,6 +37,25 @@ namespace Microsoft.CodeAnalysis
             var sb = new StringBuilder();
             sb.Append('^');
 
+            // EditorConfig matching depends on the whether or not there are
+            // directory separators and where they are located in the section
+            // name. Specifically, the editorconfig core parser says:
+            // https://github.com/editorconfig/editorconfig-core-c/blob/5d3996811e962a717a7d7fdd0a941192382241a7/src/lib/editorconfig.c#L231
+            //
+            //     Pattern would be:
+            //     /dir/of/editorconfig/file[double_star]/[section] if section does not contain '/',
+            //     /dir/of/editorconfig/file[section] if section starts with a '/', or
+            //     /dir/of/editorconfig/file/[section] if section contains '/' but does not start with '/'.
+
+            if (!sectionName.Contains("/"))
+            {
+                sb.Append(".*/");
+            }
+            else if (sectionName[0] != '/')
+            {
+                sb.Append('/');
+            }
+
             var lexer = new SectionNameLexer(sectionName);
             while (!lexer.IsDone)
             {
@@ -47,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                         return null;
                     case TokenKind.SimpleCharacter:
                         // Matches just this character
-                        sb.Append(lexer.EatCurrentCharacter());
+                        sb.Append(Regex.Escape(lexer.EatCurrentCharacter().ToString()));
                         break;
                     case TokenKind.Question:
                         // '?' matches any single character

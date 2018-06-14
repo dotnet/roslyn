@@ -247,31 +247,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Takes a list of paths to source files and a list of AnalyzeConfigs
-        /// and produces a resultant dictionary of diagnostic configurations
-        /// for each of the source paths. Source paths are matched by checking
-        /// if they are members of the language recognized by
+        /// Takes a list of paths to source files and a list of AnalyzeConfigs and produces a
+        /// resultant dictionary of diagnostic configurations for each of the source paths.
+        /// Source paths are matched by checking if they are members of the language recognized by
         /// <see cref="EditorConfig.Section.Name"/>s.
         /// </summary>
         /// <param name="sourcePaths">
-        /// Absolute, normalized paths to source files. These paths are expected
-        /// to be normalized using the same mechanism used to normalize the path
-        /// passed to the path paramater of 
-        /// <see cref="EditorConfig.Parse(string, string)"/>. Source files will
-        /// only be considered applicable for a given <see cref="EditorConfig"/>
-        /// if the config path is an ordinal prefix of the source path.
+        /// Absolute, normalized paths to source files. These paths are expected to be normalized
+        /// using the same mechanism used to normalize the path passed to the path paramater of 
+        /// <see cref="EditorConfig.Parse(string, string)"/>. Source files will only be considered
+        /// applicable for a given <see cref="EditorConfig"/> if the config path is an ordinal
+        /// prefix of the source path.
         /// </param>
         /// <param name="analyzerConfigs">
-        /// Parsed AnalyzerConfig files. The <see cref="EditorConfig.Directory"/>
-        /// must be an ordinal prefix of a source file path to be considered
-        /// applicable.
+        /// Parsed AnalyzerConfig files. The <see cref="EditorConfig.NormalizedDirectory"/>
+        /// must be an ordinal prefix of a source file path to be considered applicable.
         /// </param>
-        /// <param name="messageProvider">
-        /// Used to produce diagnostics.
-        /// </param>
-        /// <param name="diagnostics">
-        /// Any produced diagnostics are added to this bag.
-        /// </param>
+        /// <param name="messageProvider">Used to produce diagnostics.</param>
+        /// <param name="diagnostics">Any produced diagnostics are added to this bag.</param>
         /// <returns>
         /// A list of diagnostic options, where the dictionary index corresponds
         /// to the options for the source path at the same index. If there are
@@ -289,7 +282,7 @@ namespace Microsoft.CodeAnalysis
             // Since paths are compared as ordinal string comparisons, the least nested
             // file will always be the first in sort order
             analyzerConfigs.Sort(Comparer<EditorConfig>.Create(
-                (e1, e2) => e1.Directory.Length.CompareTo(e2.Directory.Length)));
+                (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length)));
 
             var allDiagnosticOptions =
                 ArrayBuilder<ImmutableDictionary<string, ReportDiagnostic>>.GetInstance(sourcePaths.Count);
@@ -322,16 +315,25 @@ namespace Microsoft.CodeAnalysis
                 // are resolved from most nested to least nested, where last setting wins
                 foreach (EditorConfig config in analyzerConfigs)
                 {
-                    if (normalizedPath.StartsWith(config.Directory, StringComparison.Ordinal))
+                    if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
                     {
-                        string relativePath = normalizedPath.Substring(config.Directory.Length);
+                        int dirLength = config.NormalizedDirectory.Length;
+                        // Leave '/' if the normalized directory ends with a '/'. This can happen if
+                        // we're in a root directory (e.g. '/' or 'Z:/'). The section matching
+                        // always expects that the relative path start with a '/'. 
+                        if (config.NormalizedDirectory[dirLength - 1] == '/')
+                        {
+                            dirLength--;
+                        }
+                        string relativePath = normalizedPath.Substring(dirLength);
+
                         ImmutableArray<Regex> regexes = allRegexes[config];
                         for (int sectionIndex = 0; sectionIndex < regexes.Length; sectionIndex++)
                         {
                             if (regexes[sectionIndex].IsMatch(relativePath))
                             {
                                 var section = config.NamedSections[sectionIndex];
-                                addDiagnosticOptions(section, optionsBuilder, config.Directory);
+                                addDiagnosticOptions(section, optionsBuilder, config.PathToFile);
                             }
                         }
                     }
@@ -466,14 +468,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     processedDirs.Add(directory);
 
-                    // Path mapping expects a trailing '/' to be included
-                    if (directory[directory.Length - 1] != '/')
-                    {
-                        directory = directory + "/";
-                    }
-
-                    var forwardPath = PathWithForwardSlashSeparators(directory);
-                    var editorConfig = EditorConfig.Parse(fileContent, forwardPath);
+                    var editorConfig = EditorConfig.Parse(fileContent, normalizedPath);
                     configs.Add(editorConfig);
                 }
 
