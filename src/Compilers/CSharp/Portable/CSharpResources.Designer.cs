@@ -10467,6 +10467,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to coalescing assignment.
+        /// </summary>
+        internal static string IDS_FeatureCoalesceAssignmentExpression {
+            get {
+                return ResourceManager.GetString("IDS_FeatureCoalesceAssignmentExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to collection initializer.
         /// </summary>
         internal static string IDS_FeatureCollectionInitializer {
