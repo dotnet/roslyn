@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -102,7 +102,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(
             this Workspace workspace, CancellationToken cancellationToken)
-            => workspace.Services.GetService<IRemoteHostClientService>()?.TryGetRemoteHostClientAsync(cancellationToken);
+        {
+            var service = workspace.Services.GetService<IRemoteHostClientService>();
+            if (service == null)
+            {
+                return SpecializedTasks.Default<RemoteHostClient>();
+            }
+
+            return service.TryGetRemoteHostClientAsync(cancellationToken);
+        }
 
         public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> featureOption)
         {

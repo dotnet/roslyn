@@ -54,4 +54,20 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToCompletionTests Include="Microsoft.VisualStudio.Completion.Tests" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CodeLensOOP\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="ServiceHubResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ServiceHubResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="ServiceHubResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ServiceHubResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
