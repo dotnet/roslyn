@@ -64,7 +64,7 @@ try {
     $fakeSign = Join-Path (Get-PackageDir "FakeSign") "Tools\FakeSign.exe"
 
     $shortVersion = $version.Substring(0, $version.IndexOf('.'))
-    $packageVersion = "15.0.$shortVersion-$versionSuffix"
+    $packageVersion = "15.8.$shortVersion-$versionSuffix"
     $dllPath = Join-Path $outPath "Dlls"
     $packagePath = Join-Path $outPath "Packages"
 
