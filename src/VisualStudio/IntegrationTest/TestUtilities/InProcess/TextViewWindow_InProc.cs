@@ -387,7 +387,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         // the caller would not be able to interact with the preview changes dialog, and the tests would
                         // either timeout or deadlock.
                         fixSomeCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
-
                     }
 
                     if (string.IsNullOrEmpty(actionName))

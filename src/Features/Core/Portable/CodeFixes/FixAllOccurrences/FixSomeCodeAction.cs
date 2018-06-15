@@ -103,9 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             /// Gets a reference to <see cref="_showPreviewChangesDialog"/>, which can be read or written by test code.
             /// </summary>
             public ref bool ShowPreviewChangesDialog
-            {
-                get => ref _fixSomeCodeAction._showPreviewChangesDialog;
-            }
+                => ref _fixSomeCodeAction._showPreviewChangesDialog;
         }
     }
 }
