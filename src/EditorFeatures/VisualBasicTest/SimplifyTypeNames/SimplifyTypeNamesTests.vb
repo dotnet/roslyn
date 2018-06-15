@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
 
             Return OptionsSet(
                 SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Error),
-                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithNone, language))
+                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent, language))
         End Function
 
         Private Function PreferIntrinsicTypeInMemberAccess() As IDictionary(Of OptionKey, Object)
@@ -39,11 +39,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
 
             Return OptionsSet(
                 SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption.Error),
-                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithNone, language))
+                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithSilent, language))
         End Function
 
         Private ReadOnly onWithError As New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)
-        Private ReadOnly offWithNone As New CodeStyleOption(Of Boolean)(False, NotificationOption.None)
+        Private ReadOnly offWithSilent As New CodeStyleOption(Of Boolean)(False, NotificationOption.Silent)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericNames() As Task

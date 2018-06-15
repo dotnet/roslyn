@@ -559,7 +559,7 @@ IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc in
   Children(1):
       IInvocationOperation ( System.Int32 C.M()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M()')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
         Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -593,7 +593,7 @@ IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc in
         Operand: 
           IInvocationOperation ( System.Object C.M()) (OperationKind.Invocation, Type: System.Object, IsInvalid) (Syntax: 'M()')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
             Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -656,7 +656,7 @@ IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc in
         Operand: 
           IInvocationOperation ( C C.M()) (OperationKind.Invocation, Type: C, IsInvalid) (Syntax: 'M()')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
             Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

@@ -23440,7 +23440,7 @@ class Program
 @"
 IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'base?.ToString()')
   Operation: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Object, IsInvalid) (Syntax: 'base')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsInvalid) (Syntax: 'base')
   WhenNotNull: 
     IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
       Instance Receiver: 

@@ -8041,13 +8041,13 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Os iteradores não podem ter locais por referência</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Os iteradores não podem ter locais por referência</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">Os métodos assíncronos não podem ter locais por referência</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">Os métodos assíncronos não podem ter locais por referência</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (enumeratorType.IsValueType)
                     {
                         // No way for the struct to be nullable and disposable.
-                        Debug.Assert(((TypeSymbol)enumeratorType.OriginalDefinition).SpecialType != SpecialType.System_Nullable_T);
+                        Debug.Assert(!enumeratorType.IsNullableType());
 
                         // For non-nullable structs, no null check is required.
                         disposeStmt = disposeCall;

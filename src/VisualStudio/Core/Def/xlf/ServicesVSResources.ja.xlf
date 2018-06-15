@@ -12,11 +12,6 @@
         <target state="translated">要素が有効ではありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Ignore">
-        <source>Ignore</source>
-        <target state="translated">無視</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">その他の演算子内で</target>

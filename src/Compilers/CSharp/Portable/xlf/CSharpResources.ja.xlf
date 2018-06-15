@@ -8041,13 +8041,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">反復子は参照渡しのローカル変数を持つことができません</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">反復子は参照渡しのローカル変数を持つことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">非同期メソッドは参照渡しのローカル変数を持つことができません</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">非同期メソッドは参照渡しのローカル変数を持つことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
