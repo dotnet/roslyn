@@ -605,6 +605,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;Flow-Analysis&apos; is disabled..
+        /// </summary>
+        internal static string FlowAnalysisFeatureDisabled {
+            get {
+                return ResourceManager.GetString("FlowAnalysisFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}.GetMetadata() must return an instance of {1}..
         /// </summary>
         internal static string GetMetadataMustReturnInstance {
@@ -1028,11 +1037,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Given operation has a non-null parent..
+        /// </summary>
+        internal static string NotARootOperation {
+            get {
+                return ResourceManager.GetString("NotARootOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A value in the pathMap is null..
         /// </summary>
         internal static string NullValueInPathMap {
             get {
                 return ResourceManager.GetString("NullValueInPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Given operation has a null semantic model..
+        /// </summary>
+        internal static string OperationHasNullSemanticModel {
+            get {
+                return ResourceManager.GetString("OperationHasNoSemanticModel", resourceCulture);
             }
         }
         

@@ -1426,7 +1426,6 @@ Microsoft.CodeAnalysis.Operations.IEmptyOperation
 Microsoft.CodeAnalysis.Operations.IEndOperation
 Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation
 Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.Adds.get -> bool
-Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.HandlerValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 Microsoft.CodeAnalysis.Operations.IEventReferenceOperation.Event.get -> Microsoft.CodeAnalysis.IEventSymbol

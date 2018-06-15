@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
+        <source>Add parameter to '{0}' (and overrides/implementations)</source>
+        <target state="new">Add parameter to '{0}' (and overrides/implementations)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
         <source>Add project reference to '{0}'.</source>
         <target state="translated">将参数引用添加到“{0}”。</target>
@@ -15,6 +20,16 @@
       <trans-unit id="Actions_can_not_be_empty">
         <source>Actions can not be empty.</source>
         <target state="translated">操作不能为空。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_0">
+        <source>Add to '{0}'</source>
+        <target state="new">Add to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="new">Related method signatures found in metadata will not be updated.</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
