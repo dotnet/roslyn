@@ -41,7 +41,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End If
 
             Dim graphBuilder As New GraphBuilder(_workspace.CurrentSolution, CancellationToken.None)
-
             graphBuilder.AddNodeForSymbolAsync(symbol, document.Project, document).Wait(CancellationToken.None)
             Return graphBuilder.Graph
         End Function
