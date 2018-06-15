@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void VerifyOperationTreeContracts(IOperation root)
         {
-            var semanticModel = ((Operation)root).SemanticModel;
+            var semanticModel = root.SemanticModel;
             var set = new HashSet<IOperation>(root.DescendantsAndSelf());
 
             foreach (var child in root.DescendantsAndSelf())

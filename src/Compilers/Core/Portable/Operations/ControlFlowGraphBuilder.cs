@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public static ControlFlowGraph Create(IOperation body, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
         {
             Debug.Assert(body != null);
-            Debug.Assert(((Operation)body).SemanticModel != null);
+            Debug.Assert(body.SemanticModel != null);
 
 #if DEBUG
             if (enclosing == null)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 #endif 
 
-            var builder = new ControlFlowGraphBuilder(((Operation)body).SemanticModel.Compilation, captureIdDispenser);
+            var builder = new ControlFlowGraphBuilder(body.SemanticModel.Compilation, captureIdDispenser);
             var blocks = ArrayBuilder<BasicBlockBuilder>.GetInstance();
             builder._blocks = blocks;
             builder._evalStack = ArrayBuilder<IOperation>.GetInstance();
@@ -1290,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private IOperation FinishVisitingStatement(IOperation originalOperation, IOperation result = null)
         {
-            Debug.Assert(((Operation)originalOperation).SemanticModel != null, "Not an original node.");
+            Debug.Assert(originalOperation.SemanticModel != null, "Not an original node.");
             Debug.Assert(_currentStatement == originalOperation);
             Debug.Assert(_evalStack.Count == 0);
 
@@ -5898,7 +5898,7 @@ oneMoreTime:
         public IOperation Visit(IOperation operation)
         {
             // We should never be revisiting nodes we've already visited, and we don't set SemanticModel in this builder.
-            Debug.Assert(operation == null || ((Operation)operation).SemanticModel.Compilation == _compilation);
+            Debug.Assert(operation == null || operation.SemanticModel.Compilation == _compilation);
             return Visit(operation, argument: null);
         }
 

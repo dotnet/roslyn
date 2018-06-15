@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.NotARootOperation, argumentNameForException);
             }
 
-            if (((Operation)operation).SemanticModel == null)
+            if (operation.SemanticModel == null)
             {
                 throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
             }

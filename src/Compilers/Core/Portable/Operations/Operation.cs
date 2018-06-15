@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly IOperation s_unset = new EmptyStatement(null, null, null, default, isImplicit: true);
 
-        internal readonly SemanticModel SemanticModel;
-
         // this will be lazily initialized. this will be initialized only once
         // but once initialized, will never change
         private IOperation _parentDoNotAccessDirectly;
@@ -92,6 +90,8 @@ namespace Microsoft.CodeAnalysis
 
         public abstract IEnumerable<IOperation> Children { get; }
 
+        public SemanticModel SemanticModel { get; }
+
         public abstract void Accept(OperationVisitor visitor);
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis
             var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, s_unset);
 
             // tree must belong to same semantic model if parent is given
-            Debug.Assert(parent == null || ((Operation)parent).SemanticModel == SemanticModel ||
-                ((Operation)parent).SemanticModel == null || SemanticModel == null);
+            Debug.Assert(parent == null || parent.SemanticModel == SemanticModel ||
+                parent.SemanticModel == null || SemanticModel == null);
 
             // make sure given parent and one we already have is same if we have one already
             Debug.Assert(result == s_unset || result == parent);

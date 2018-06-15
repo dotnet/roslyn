@@ -1096,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Indent();
             LogConversion(operation.Conversion);
 
-            if (((Operation)operation).SemanticModel == null)
+            if (operation.SemanticModel == null)
             {
                 LogNewLine();
                 Indent();
