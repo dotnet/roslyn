@@ -1438,7 +1438,7 @@ End Enum
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '+i')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'i')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: E) (Syntax: 'i')
@@ -1466,7 +1466,7 @@ End Enum
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-i')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'i')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: E) (Syntax: 'i')
@@ -1519,7 +1519,7 @@ End Enum
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '+Method()')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'Method()')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'Method()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IInvocationOperation ( Function A.Method() As E) (OperationKind.Invocation, Type: E) (Syntax: 'Method()')
@@ -1550,7 +1550,7 @@ End Enum
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-Method()')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'Method()')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'Method()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IInvocationOperation ( Function A.Method() As E) (OperationKind.Invocation, Type: E) (Syntax: 'Method()')
@@ -1907,7 +1907,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If x OrE
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function CustomType.op_True(x As CustomType) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'x OrElse y')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function CustomType.op_BitwiseOr(x As CustomType, y As CustomType) As CustomType) (OperationKind.BinaryOperator, Type: CustomType) (Syntax: 'x OrElse y')
+        IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: Function CustomType.op_BitwiseOr(x As CustomType, y As CustomType) As CustomType) (OperationKind.BinaryOperator, Type: CustomType) (Syntax: 'x OrElse y')
           Left: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: CustomType) (Syntax: 'x')
           Right: 
@@ -1970,7 +1970,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: Function BaseType.op_UnaryPlus(x As BaseType) As BaseType) (OperationKind.UnaryOperator, Type: BaseType) (Syntax: '+i')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: BaseType, IsImplicit) (Syntax: 'i')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: BaseType, IsImplicit) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: DerivedType) (Syntax: 'i')
@@ -2131,7 +2131,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, IsLifted) (OperationKind.UnaryOperator
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
             Dim references = DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(compilation, fileName, expectedOperationTree, expectedDiagnostics)
         End Sub
@@ -2158,7 +2158,7 @@ IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: Sy
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
             Dim references = DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(compilation, fileName, expectedOperationTree, expectedDiagnostics)
         End Sub

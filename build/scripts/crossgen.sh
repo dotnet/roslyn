@@ -15,9 +15,9 @@ UNAME="$(uname)"
 
 if [ -z "$RID" ]; then
     if [ "$UNAME" == "Darwin" ]; then
-        RID=osx.10.10-x64
+        RID=osx-x64
     elif [ "$UNAME" == "Linux" ]; then
-        RID=ubuntu.14.04-x64
+        RID=linux-x64
     else
         echo "Unknown OS: $UNAME" 1>&2
         exit 1

@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 {
@@ -31,6 +33,22 @@ class C
 }";
 
             VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_NewLine()
+        {
+            var code = "//$$\r\nclass C\r\n{\r\n}";
+
+            var expected = "/// <summary>\n/// $$\n/// </summary>\r\nclass C\r\n{\r\n}";
+
+            VerifyTypingCharacter(code, expected, newLine: "\n");
+
+            code = "//$$\r\nclass C\r\n{\r\n}";
+
+            expected = "/// <summary>\r\n/// $$\r\n/// </summary>\r\nclass C\r\n{\r\n}";
+
+            VerifyTypingCharacter(code, expected, newLine: "\r\n");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1878,12 +1896,46 @@ $$
             VerifyOpenLineBelow(code, expected, useTabs: true);
         }
 
+        [WorkItem(468638, @"https://devdiv.visualstudio.com/DevDiv/NET%20Developer%20Experience%20IDE/_workitems/edit/468638")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void VerifyEnterWithTrimNewLineEditorConfigOption()
+        {
+            const string code =
+@"/// <summary>
+/// $$
+/// </summary>
+class C { }";
+
+            const string expected =
+@"/// <summary>
+///
+/// $$
+/// </summary>
+class C { }";
+
+            try
+            {
+                VerifyPressingEnter(code, expected, useTabs: true, setOptionsOpt:
+                workspace =>
+                {
+                    workspace.GetService<IEditorOptionsFactoryService>().GlobalOptions
+                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, true);
+                });
+            }
+            finally
+            {
+                TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
+                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
+            }
+            
+        }
+
         protected override char DocumentationCommentCharacter
         {
             get { return '/'; }
         }
 
-        internal override ICommandHandler CreateCommandHandler(
+        internal override VSCommanding.ICommandHandler CreateCommandHandler(
             IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)

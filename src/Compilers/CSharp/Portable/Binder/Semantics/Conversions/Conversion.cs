@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class DeconstructionUncommonData : UncommonData
         {
-            internal DeconstructionUncommonData(DeconstructionInfo deconstructionInfoOpt, ImmutableArray<Conversion> nestedConversions)
-                : base(false, false, default(UserDefinedConversionResult), null, nestedConversions)
+            internal DeconstructionUncommonData(DeconstructMethodInfo deconstructMethodInfoOpt, ImmutableArray<Conversion> nestedConversions)
+                : base(isExtensionMethod: false, isArrayIndex: false, conversionResult: default, conversionMethod: null, nestedConversions)
             {
                 Debug.Assert(!nestedConversions.IsDefaultOrEmpty);
-                DeconstructionInfo = deconstructionInfoOpt;
+                DeconstructMethodInfo = deconstructMethodInfoOpt;
             }
 
-            readonly internal DeconstructionInfo DeconstructionInfo;
+            readonly internal DeconstructMethodInfo DeconstructMethodInfo;
         }
 
         private Conversion(
@@ -131,12 +131,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nestedConversions: nestedConversions);
         }
 
-        internal Conversion(ConversionKind kind, DeconstructionInfo deconstructionInfo, ImmutableArray<Conversion> nestedConversions)
+        internal Conversion(ConversionKind kind, DeconstructMethodInfo deconstructMethodInfo, ImmutableArray<Conversion> nestedConversions)
         {
             Debug.Assert(kind == ConversionKind.Deconstruction);
 
             this._kind = kind;
-            _uncommonData = new DeconstructionUncommonData(deconstructionInfo, nestedConversions);
+            _uncommonData = new DeconstructionUncommonData(deconstructMethodInfo, nestedConversions);
         }
 
         internal Conversion SetConversionMethod(MethodSymbol conversionMethod)
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            Debug.Assert(isTrivial, "this conversion needs addtitional data: " + kind);
+            Debug.Assert(isTrivial, "this conversion needs additional data: " + kind);
         }
 
         internal static Conversion GetTrivialConversion(ConversionKind kind)
@@ -236,7 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ExplicitDynamic => new Conversion(ConversionKind.ExplicitDynamic);
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
-        internal static Conversion IdentityValue => new Conversion(ConversionKind.IdentityValue);
         internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
 
         // trivial conversions that could be underlying in nullable conversion
@@ -353,18 +352,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
                         return analysis.Operator;
                     }
+
+                    if (uncommonData is DeconstructionUncommonData deconstruction
+                        && deconstruction.DeconstructMethodInfo.Invocation is BoundCall call)
+                    {
+                        return call.Method;
+                    }
                 }
 
                 return null;
             }
         }
 
-        internal DeconstructionInfo DeconstructionInfo
+        internal DeconstructMethodInfo DeconstructionInfo
         {
             get
             {
                 var uncommonData = (DeconstructionUncommonData)_uncommonData;
-                return uncommonData == null ? default(DeconstructionInfo) : uncommonData.DeconstructionInfo;
+                return uncommonData == null ? default(DeconstructMethodInfo) : uncommonData.DeconstructMethodInfo;
             }
         }
 
@@ -876,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
             var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, methodSymbol);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, methodSymbol);
         }
 
         /// <summary>
@@ -973,9 +978,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Stores all the information from binding for calling a Deconstruct method.</summary>
-    internal struct DeconstructionInfo
+    internal struct DeconstructMethodInfo
     {
-        internal DeconstructionInfo(BoundExpression invocation, BoundDeconstructValuePlaceholder inputPlaceholder,
+        internal DeconstructMethodInfo(BoundExpression invocation, BoundDeconstructValuePlaceholder inputPlaceholder,
             ImmutableArray<BoundDeconstructValuePlaceholder> outputPlaceholders)
         {
              (Invocation, InputPlaceholder, OutputPlaceholders) = (invocation, inputPlaceholder, outputPlaceholders);
@@ -984,6 +989,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         readonly internal BoundExpression Invocation;
         readonly internal BoundDeconstructValuePlaceholder InputPlaceholder;
         readonly internal ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders;
-        internal bool IsDefault => (object)Invocation == null;
+        internal bool IsDefault => Invocation is null;
     }
 }

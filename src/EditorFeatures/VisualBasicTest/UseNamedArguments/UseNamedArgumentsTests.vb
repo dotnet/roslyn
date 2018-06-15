@@ -337,5 +337,21 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestCharacterEscape() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub M([If] As Integer, [For] As Integer)
+        M([If][||], [For])
+    End Sub
+End Class",
+"Class C
+    Sub M([If] As Integer, [For] As Integer)
+        M([If]:=[If], [For]:=[For])
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

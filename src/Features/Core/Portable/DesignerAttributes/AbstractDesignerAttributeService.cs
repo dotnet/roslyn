@@ -17,13 +17,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         // on remote host, so we need to make sure given input always belong to right workspace where
         // the session belong to.
         private readonly Workspace _workspace;
-        private readonly SemaphoreSlim _gate;
-
-        private KeepAliveSession _sessionDoNotAccessDirectly;
 
         protected AbstractDesignerAttributeService(Workspace workspace)
         {
-            _gate = new SemaphoreSlim(initialCount: 1);
             _workspace = workspace;
         }
 
@@ -51,28 +47,13 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             return await ScanDesignerAttributesInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellationToken)
-        {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                if (_sessionDoNotAccessDirectly == null)
-                {
-                    _sessionDoNotAccessDirectly = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(cancellationToken).ConfigureAwait(false);
-                }
-
-                return _sessionDoNotAccessDirectly;
-            }
-        }
-
         private async Task<DesignerAttributeResult> ScanDesignerAttributesInRemoteHostAsync(RemoteHostClient client, Document document, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
-
-            var result = await keepAliveSession.TryInvokeAsync<DesignerAttributeResult>(
+            return await client.TryRunCodeAnalysisRemoteAsync<DesignerAttributeResult>(
+                document.Project.Solution,
                 nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                document.Project.Solution, new object[] { document.Id }, cancellationToken).ConfigureAwait(false);
-
-            return result;
+                document.Id,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<DesignerAttributeResult> ScanDesignerAttributesInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
@@ -103,7 +84,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         {
                             // The DesignerCategoryAttribute doesn't exist. either not applicable or
                             // no idea on design attribute status, just leave things as it is.
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: true);
+                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: false);
                         }
                     }
 
@@ -134,7 +115,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         if (attribute != null && attribute.ConstructorArguments.Length == 1)
                         {
                             designerAttributeArgument = GetArgumentString(attribute.ConstructorArguments[0]);
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: false);
+                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
                         }
                     }
                 }
@@ -146,7 +127,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                 }
             }
 
-            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: false);
+            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
         }
 
         private static string GetArgumentString(TypedConstant argument)

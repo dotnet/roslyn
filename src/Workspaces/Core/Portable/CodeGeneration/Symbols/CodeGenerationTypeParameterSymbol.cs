@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool HasConstructorConstraint { get; }
         public bool HasReferenceTypeConstraint { get; }
         public bool HasValueTypeConstraint { get; }
+        public bool HasUnmanagedTypeConstraint { get; }
         public int Ordinal { get; }
 
         public CodeGenerationTypeParameterSymbol(
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool hasConstructorConstraint,
             bool hasReferenceConstraint,
             bool hasValueConstraint,
+            bool hasUnmanagedConstraint,
             int ordinal)
             : base(containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None)
         {
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.HasConstructorConstraint = hasConstructorConstraint;
             this.HasReferenceTypeConstraint = hasReferenceConstraint;
             this.HasValueTypeConstraint = hasValueConstraint;
+            this.HasUnmanagedTypeConstraint = hasUnmanagedConstraint;
         }
 
         protected override CodeGenerationSymbol Clone()
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationTypeParameterSymbol(
                 this.ContainingType, this.GetAttributes(), this.Variance, this.Name,
                 this.ConstraintTypes, this.HasConstructorConstraint, this.HasReferenceTypeConstraint,
-                this.HasValueTypeConstraint, this.Ordinal);
+                this.HasValueTypeConstraint, this.HasUnmanagedTypeConstraint, this.Ordinal);
         }
 
         public new ITypeParameterSymbol OriginalDefinition => this;

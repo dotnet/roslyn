@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_ExpectedSingleScript { get; }
         public abstract int ERR_OpenResponseFile { get; }
         public abstract int ERR_InvalidPathMap { get; }
-        public abstract int FTL_InputFileNameTooLong { get; }
+        public abstract int FTL_InvalidInputFileName { get; }
         public abstract int ERR_FileNotFound { get; }
         public abstract int ERR_NoSourceFile { get; }
         public abstract int ERR_CantOpenFileWrite { get; }
@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_InvalidSubsystemVersion { get; }
         public abstract int ERR_InvalidOutputName { get; }
         public abstract int ERR_InvalidInstrumentationKind { get; }
+        public abstract int ERR_InvalidHashAlgorithmName { get; }
 
         // reference manager:
         public abstract int ERR_MetadataFileNotAssembly { get; }
@@ -225,13 +226,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Takes an exception produced while writing to a file stream and produces a diagnostic.
         /// </summary>
-        public void ReportStreamWriteException(Exception e, string filePath, TextWriter consoleOutput)
+        public void ReportStreamWriteException(Exception e, string filePath, DiagnosticBag diagnostics)
         {
-            if (consoleOutput != null)
-            {
-                var diagnostic = new DiagnosticInfo(this, ERR_OutputWriteFailed, filePath, e.Message);
-                consoleOutput.WriteLine(diagnostic.ToString(consoleOutput.FormatProvider));
-            }
+            diagnostics.Add(CreateDiagnostic(ERR_OutputWriteFailed, Location.None, filePath, e.Message));
         }
 
         public abstract void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute);

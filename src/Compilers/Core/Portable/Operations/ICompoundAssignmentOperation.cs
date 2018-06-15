@@ -27,13 +27,24 @@ namespace Microsoft.CodeAnalysis.Operations
         IMethodSymbol OperatorMethod { get; }
 
         /// <summary>
-        /// <code>true</code> if this assignment contains a 'lifted' binary operation.
+        /// <see langword="true"/> if this assignment contains a 'lifted' binary operation.
         /// </summary>
         bool IsLifted { get; }
 
         /// <summary>
-        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// <see langword="true"/> if overflow checking is performed for the arithmetic operation.
         /// </summary>
         bool IsChecked { get; }
+
+        /// <summary>
+        /// Conversion applied to <see cref="IAssignmentOperation.Target"/> before the operation occurs.
+        /// </summary>
+        CommonConversion InConversion { get; }
+
+        /// <summary>
+        /// Conversion applied to the result of the binary operation, before it is assigned back to
+        /// <see cref="IAssignmentOperation.Target"/>.
+        /// </summary>
+        CommonConversion OutConversion { get; }
     }
 }

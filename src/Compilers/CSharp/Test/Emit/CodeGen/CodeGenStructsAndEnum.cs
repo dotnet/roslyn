@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1242,7 +1243,7 @@ public class D
         }
 
         [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void InplaceCtor005()
         {
             string source = @"
@@ -1545,7 +1546,7 @@ public class D
     }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: false);
+            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -2042,7 +2043,7 @@ readonly struct S
         // named argument reordering introduces a sequence with temps
         // and we cannot know whether RefMethod returns a ref to a sequence local
         // so we must assume that it can, and therefore must keep all the sequence the locals in use 
-        // for the duration of the most-encompasing expression.
+        // for the duration of the most-encompassing expression.
         Console.WriteLine(RefMethod(arg2: I(5), arg1: I(3)).GreaterThan(
                           RefMethod(arg2: I(0), arg1: I(0))));
     }
@@ -2065,7 +2066,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: false, expectedOutput: "True");
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: "True");
 
             compilation.VerifyIL("S.Main",
 @"
@@ -2186,7 +2187,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: false, expectedOutput: @"353
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: @"353
 353");
 
             compilation.VerifyIL("S.TestRO",
@@ -2265,7 +2266,7 @@ public class Test
             compilation.VerifyIL("NullableTest.EqualEqual",
 @"
 {
-  // Code size      120 (0x78)
+  // Code size      112 (0x70)
   .maxstack  2
   .locals init (decimal? V_0)
   IL_0000:  ldc.i4.0
@@ -2279,31 +2280,27 @@ public class Test
   IL_001c:  ldloca.s   V_0
   IL_001e:  call       ""decimal decimal?.GetValueOrDefault()""
   IL_0023:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_0028:  brtrue.s   IL_002d
-  IL_002a:  ldc.i4.0
-  IL_002b:  br.s       IL_0034
-  IL_002d:  ldloca.s   V_0
-  IL_002f:  call       ""bool decimal?.HasValue.get""
-  IL_0034:  box        ""bool""
-  IL_0039:  ldc.i4.0
-  IL_003a:  box        ""bool""
-  IL_003f:  call       ""void Test.Eval(object, object)""
-  IL_0044:  ldsfld     ""decimal decimal.Zero""
-  IL_0049:  ldsfld     ""decimal? NullableTest.NULL""
-  IL_004e:  stloc.0
-  IL_004f:  ldloca.s   V_0
-  IL_0051:  call       ""decimal decimal?.GetValueOrDefault()""
-  IL_0056:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_005b:  brtrue.s   IL_0060
-  IL_005d:  ldc.i4.0
-  IL_005e:  br.s       IL_0067
-  IL_0060:  ldloca.s   V_0
-  IL_0062:  call       ""bool decimal?.HasValue.get""
-  IL_0067:  box        ""bool""
-  IL_006c:  ldc.i4.0
-  IL_006d:  box        ""bool""
-  IL_0072:  call       ""void Test.Eval(object, object)""
-  IL_0077:  ret
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""bool decimal?.HasValue.get""
+  IL_002f:  and
+  IL_0030:  box        ""bool""
+  IL_0035:  ldc.i4.0
+  IL_0036:  box        ""bool""
+  IL_003b:  call       ""void Test.Eval(object, object)""
+  IL_0040:  ldsfld     ""decimal decimal.Zero""
+  IL_0045:  ldsfld     ""decimal? NullableTest.NULL""
+  IL_004a:  stloc.0
+  IL_004b:  ldloca.s   V_0
+  IL_004d:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0052:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0057:  ldloca.s   V_0
+  IL_0059:  call       ""bool decimal?.HasValue.get""
+  IL_005e:  and
+  IL_005f:  box        ""bool""
+  IL_0064:  ldc.i4.0
+  IL_0065:  box        ""bool""
+  IL_006a:  call       ""void Test.Eval(object, object)""
+  IL_006f:  ret
 }
 ");
         }

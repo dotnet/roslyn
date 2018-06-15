@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -429,7 +430,7 @@ CodeStyleOptions.QualifyPropertyAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_VoidCallWithArguments()
         {
             await TestAsyncWithOption(
@@ -451,7 +452,7 @@ CodeStyleOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_AsReturn()
         {
             await TestAsyncWithOption(
@@ -471,7 +472,7 @@ CodeStyleOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_ChainedAccess()
         {
             await TestAsyncWithOption(
@@ -491,7 +492,7 @@ CodeStyleOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_ConditionalAccess()
         {
             await TestAsyncWithOption(
@@ -511,7 +512,7 @@ CodeStyleOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_EventSubscription1()
         {
             await TestAsyncWithOption(
@@ -541,7 +542,7 @@ CodeStyleOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_EventSubscription2()
         {
             await TestAsyncWithOption(
@@ -571,7 +572,7 @@ CodeStyleOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_OnBase()
         {
             await TestAsyncWithOption(
@@ -1237,6 +1238,44 @@ CodeStyleOptions.QualifyPropertyAccess);
 {
     public string Foo { get; set; }
     public string Bar { get { return Foo; } => this.Foo; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_InObjectInitializer1()
+        {
+            await TestMissingAsyncWithOption(
+@"public class C
+{
+    public string Foo { get; set; }
+    public void Bar()
+    {
+        var c = new C
+        {
+            [|Foo|] = string.Empty
+        };
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_InObjectInitializer2()
+        {
+            await TestMissingAsyncWithOption(
+@"public class C
+{
+    public string Foo;
+    public void Bar()
+    {
+        var c = new C
+        {
+            [|Foo|] = string.Empty
+        };
+    }
 }",
 CodeStyleOptions.QualifyPropertyAccess);
         }

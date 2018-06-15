@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If this is not an identity conversion of a float with unknown precision, strip away the identity conversion.
                     if (!IsFloatingPointExpressionOfUnknownPrecision(rewrittenOperand))
                     {
-                        return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenOperand);
+                        return rewrittenOperand;
                     }
 
                     break;
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitTupleLiteral:
                     {
                         // we keep tuple literal conversions in the tree for the purpose of semantic model (for example when they are casts in the source)
-                        // for the purpose of lowering/codegeneration thay are identity conversions.
+                        // for the purpose of lowering/codegeneration they are identity conversions.
                         Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, TypeCompareKind.IgnoreDynamicAndTupleNames));
                         return rewrittenOperand;
                     }
@@ -694,7 +694,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        // If the nullable expression always has a value, returns the value, otherwise null.
+        /// <summary>
+        /// If the nullable expression always has a value, returns the value, otherwise null.
+        /// If this method is updated to recognize more complex patterns, callers should be reviewed.
+        /// </summary>
         private static BoundExpression NullableAlwaysHasValue(BoundExpression expression)
         {
             if (expression.Type.IsNullableType() && expression.Kind == BoundKind.ObjectCreationExpression)
@@ -1014,8 +1017,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // do not rewrite user defined conversion 
+            // - in expression trees or 
+            // - special situations when converting from array to ReadOnlySpan, which has special support in codegen
+            bool doNotLowerToCall = _inExpressionLambda ||
+                                    (rewrittenOperand.Type.IsArray()) && _compilation.IsReadOnlySpanType(rewrittenType);
+
             BoundExpression result =
-                _inExpressionLambda
+                doNotLowerToCall
                 ? BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, true, default(ConstantValue), rewrittenType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, conversion.Method, rewrittenOperand);
             Debug.Assert(result.Type == rewrittenType);

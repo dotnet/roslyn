@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not element.IsImplicitlyDeclared Then
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name, noEscaping:=False))
                     AddSpace()
-                    AddPunctuation(SyntaxKind.AsKeyword)
+                    AddKeyword(SyntaxKind.AsKeyword)
                     AddSpace()
                 End If
 
@@ -479,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddTypeParameterConstraints(typeParam)
                     End If
                 Else
-                    typeArg.Accept(Me.NotFirstVisitor())
+                    typeArg.Accept(Me.NotFirstVisitorNamespaceOrType())
                 End If
 
                 If modifiersSource IsNot Nothing Then

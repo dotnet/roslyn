@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -47,22 +48,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var syntaxTree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFactsService.IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree, context.Position, cancellationToken))
+            try
             {
-                var token = syntaxTree.FindTokenOnLeftOfPosition(context.Position, cancellationToken);
-                var attributeSyntaxNode = GetAttributeSyntaxNodeOfToken(syntaxFactsService, token);
-                if (attributeSyntaxNode == null)
+                var cancellationToken = context.CancellationToken;
+                var syntaxTree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
+                if (syntaxFactsService.IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree, context.Position, cancellationToken))
                 {
-                    return;
-                }
+                    var token = syntaxTree.FindTokenOnLeftOfPosition(context.Position, cancellationToken);
+                    var attributeSyntaxNode = GetAttributeSyntaxNodeOfToken(syntaxFactsService, token);
+                    if (attributeSyntaxNode == null)
+                    {
+                        return;
+                    }
 
-                if (await CheckTypeInfoOfAttributeAsync(context.Document, attributeSyntaxNode, context.CancellationToken).ConfigureAwait(false))
-                {
-                    await AddAssemblyCompletionItemsAsync(context, cancellationToken).ConfigureAwait(false);
+                    if (await CheckTypeInfoOfAttributeAsync(context.Document, attributeSyntaxNode, context.CancellationToken).ConfigureAwait(false))
+                    {
+                        await AddAssemblyCompletionItemsAsync(context, cancellationToken).ConfigureAwait(false);
+                    }
                 }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
             }
         }
 
@@ -75,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //[Attribute(""|
             //[Attribute("Text"|)
             var node = token.Parent;
-            if (syntaxFactsService.IsStringLiteralExpression(node))
+            if (node != null && syntaxFactsService.IsStringLiteralExpression(node))
             {
                 // Edge case: ElementAccessExpressionSyntax is present if the following statement is another attribute:
                 //   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("|

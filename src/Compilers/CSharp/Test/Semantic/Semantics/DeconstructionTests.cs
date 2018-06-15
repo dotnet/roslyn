@@ -77,6 +77,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -121,6 +122,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -164,6 +166,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.Int64 y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.Int64 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'y')
@@ -205,6 +208,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x.f, y.g) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (? f, ? g), IsInvalid) (Syntax: '(x.f, y.g)')
+      NaturalType: (? f, ? g)
       Elements(2):
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x.f')
             Children(1):
@@ -256,6 +260,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y), IsInvalid) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
@@ -297,6 +302,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y), IsInvalid) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
@@ -346,6 +352,7 @@ struct C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y) = c')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -388,6 +395,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -437,6 +445,7 @@ class C : D
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -482,6 +491,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -526,6 +536,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -571,6 +582,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = ne ... uctMethod }')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -627,6 +639,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x, System.Int32 y), IsInvalid) (Syntax: '(x, y) = ne ... uctMethod }')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -694,6 +707,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = c')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.Int32 y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -736,6 +750,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Byte x, System.String y), IsInvalid) (Syntax: '(x, y)')
+      NaturalType: (System.Byte x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Byte, IsInvalid) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String, IsInvalid) (Syntax: 'y')
@@ -777,7 +792,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "System.ValueTuple`2[System.Int32,System.Int32]");
         }
@@ -806,6 +821,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -834,9 +850,9 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (a) => a;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9)
                 );
@@ -860,7 +876,7 @@ IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.Anonymous
   IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         /*<bind>*/(a, b) => { }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(6, 19)
             };
@@ -886,6 +902,7 @@ class C
 IInvocationOperation (virtual System.String (System.Int32, System.String).ToString()) (OperationKind.Invocation, Type: System.String, IsInvalid) (Syntax: '((int, stri ... .ToString()')
   Instance Receiver: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String), IsInvalid) (Syntax: '(int, string)')
+      NaturalType: (System.Int32, System.String)
       Elements(2):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'int')
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'string')
@@ -932,7 +949,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "M M 43", additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source, expectedOutput: "M M 43");
             comp.VerifyDiagnostics(
                 );
         }
@@ -970,6 +987,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32, System.Int32)) (Syntax: '(M(), M()) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(M(), M())')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           IInvocationOperation (ref System.Int32 C.M()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M()')
             Instance Receiver: 
@@ -1012,6 +1030,7 @@ static class D
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = x')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1045,7 +1064,8 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(x, x) = null')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = null')
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1078,7 +1098,8 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(x, x) = undeclared')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = undeclared')
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1114,6 +1135,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, x) = M()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1155,14 +1177,16 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Byte x, System.String y), IsInvalid) (Syntax: '(x, y) = (1, 2)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Byte x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Byte x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Byte) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Byte, System.String), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Byte, System.String), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(1, 2)')
+          NaturalType: (System.Int32, System.Int32)
           Elements(2):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
@@ -1194,6 +1218,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32, System.Int32 P), IsInvalid) (Syntax: '(1, P) = (1, 2)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32 P), IsInvalid) (Syntax: '(1, P)')
+      NaturalType: (System.Int32, System.Int32 P)
       Elements(2):
           IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1')
             Children(1):
@@ -1205,6 +1230,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                     null
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -1251,7 +1277,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2");
@@ -1290,11 +1316,13 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y) = (1, 2)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -1329,6 +1357,7 @@ class C : Base
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1370,6 +1399,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1408,6 +1438,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.Int32 y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1451,7 +1482,7 @@ class C
 
             var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple);
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,113): error CS1501: No overload for method 'Deconstruct' takes 22 arguments
                 //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
@@ -1484,6 +1515,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = c')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -1523,6 +1555,7 @@ class C1
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C1()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -1566,13 +1599,13 @@ class C1
     }
 }
 ";
-            var libMissingComp = CreateStandardCompilation(new string[] { libMissingSource }, assemblyName: "libMissingComp").VerifyDiagnostics();
+            var libMissingComp = CreateCompilation(new string[] { libMissingSource }, assemblyName: "libMissingComp").VerifyDiagnostics();
             var libMissingRef = libMissingComp.EmitToImageReference();
 
-            var libComp = CreateStandardCompilation(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+            var libComp = CreateCompilation(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular).VerifyDiagnostics();
             var libRef = libComp.EmitToImageReference();
 
-            var comp = CreateStandardCompilation(new string[] { source }, references: new[] { libRef });
+            var comp = CreateCompilation(new string[] { source }, references: new[] { libRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C();
@@ -1604,6 +1637,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int32 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -1650,7 +1684,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)");
             comp.VerifyDiagnostics();
         }
 
@@ -1684,6 +1718,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      NaturalType: (System.Int64 x, System.String y)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
@@ -1720,7 +1755,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)");
             comp.VerifyDiagnostics();
         }
 
@@ -1752,14 +1787,17 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ((System.Int64 x1, System.String x2), System.Int32 x3)) (Syntax: '((x1, x2),  ... new C(), 3)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: ((System.Int64 x1, System.String x2), System.Int32 x3)) (Syntax: '((x1, x2), x3)')
+      NaturalType: ((System.Int64 x1, System.String x2), System.Int32 x3)
       Elements(2):
           ITupleOperation (OperationKind.Tuple, Type: (System.Int64 x1, System.String x2)) (Syntax: '(x1, x2)')
+            NaturalType: (System.Int64 x1, System.String x2)
             Elements(2):
                 ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x1')
                 ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: System.String) (Syntax: 'x2')
           ILocalReferenceOperation: x3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x3')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (C, System.Int32)) (Syntax: '(new C(), 3)')
+      NaturalType: (C, System.Int32)
       Elements(2):
           IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
             Arguments(0)
@@ -1792,7 +1830,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)");
             comp.VerifyDiagnostics();
 
             var tree = comp.Compilation.SyntaxTrees.First();
@@ -1828,13 +1866,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'y = (x, x,  ... ) = new C()')
-  Variables: Local_1: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y
+IVariableDeclaratorOperation (Symbol: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y = (x, x,  ... ) = new C()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (x, x, x, ... ) = new C()')
       IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... ) = new C()')
         Left: 
           ITupleOperation (OperationKind.Tuple, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... x, x, x, x)')
+            NaturalType: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)
             Elements(9):
                 ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
                 ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x')
@@ -1875,7 +1913,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (7,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var y = (x, x) = new C();
@@ -1902,7 +1940,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(1, 1) 1 1");
         }
@@ -1931,6 +1969,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int64, System.Int64)) (Syntax: '(x1, x1) =  ... ) = new C()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64, System.Int64)) (Syntax: '(x1, x1)')
+      NaturalType: (System.Int64, System.Int64)
       Elements(2):
           ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x1')
           ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x1')
@@ -1938,6 +1977,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
     IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int64, System.Int64)) (Syntax: '(x2, x2) = new C()')
       Left: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int64, System.Int64)) (Syntax: '(x2, x2)')
+          NaturalType: (System.Int64, System.Int64)
           Elements(2):
               ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x2')
               ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'x2')
@@ -1972,20 +2012,24 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x, (System.Int32 y, System.Int32 z)), IsInvalid) (Syntax: '(x, (y, z)) ... ull, null))')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, (System.Int32 y, System.Int32 z))) (Syntax: '(x, (y, z))')
+      NaturalType: (System.Int32 x, (System.Int32 y, System.Int32 z))
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ITupleOperation (OperationKind.Tuple, Type: (System.Int32 y, System.Int32 z)) (Syntax: '(y, z)')
+            NaturalType: (System.Int32 y, System.Int32 z)
             Elements(2):
                 ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
                 ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'z')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, (System.Int32, System.Int32)), IsInvalid, IsImplicit) (Syntax: '(null, (null, null))')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, (System.Int32, System.Int32)), IsInvalid, IsImplicit) (Syntax: '(null, (null, null))')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: null, IsInvalid) (Syntax: '(null, (null, null))')
+          NaturalType: null
           Elements(2):
               ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
               ITupleOperation (OperationKind.Tuple, Type: null, IsInvalid) (Syntax: '(null, null)')
+                NaturalType: null
                 Elements(2):
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
@@ -2029,6 +2073,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, y, z) = MakePair()')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y, System.Int32 z), IsInvalid) (Syntax: '(x, y, z)')
+      NaturalType: (System.Int32 x, System.Int32 y, System.Int32 z)
       Elements(3):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
@@ -2068,9 +2113,11 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(x, (y, z,  ... , (43, 44))')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, (System.Int32 y, System.Int32 z, System.Int32 w)), IsInvalid) (Syntax: '(x, (y, z, w))')
+      NaturalType: (System.Int32 x, (System.Int32 y, System.Int32 z, System.Int32 w))
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
           ITupleOperation (OperationKind.Tuple, Type: (System.Int32 y, System.Int32 z, System.Int32 w), IsInvalid) (Syntax: '(y, z, w)')
+            NaturalType: (System.Int32 y, System.Int32 z, System.Int32 w)
             Elements(3):
                 ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
                 ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'z')
@@ -2080,12 +2127,13 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       Instance Receiver: 
         null
       Arguments(2):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: '42')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '42')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(43, 44)')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '(43, 44)')
             ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(43, 44)')
+              NaturalType: (System.Int32, System.Int32)
               Elements(2):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 43, IsInvalid) (Syntax: '43')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 44, IsInvalid) (Syntax: '44')
@@ -2131,11 +2179,11 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) 
       Instance Receiver: 
         null
       Arguments(2):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument, Type: null) (Syntax: '1')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument, Type: System.Int32) (Syntax: '2')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument, Type: null) (Syntax: '2')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2171,7 +2219,7 @@ class C
 }
 " + commonSource;
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular6);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var (x1, x2) = Pair.Create(1, 2);
@@ -2206,11 +2254,13 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: 'var (x1, x1)')
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x1, x1)')
+        NaturalType: (System.Int32, System.Int32)
         Elements(2):
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x1')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -2244,11 +2294,13 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: 'var (x1, x2)')
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(x1, x2)')
+        NaturalType: (System.Int32 x1, System.Int32 x2)
         Elements(2):
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -2312,6 +2364,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2) = M(x1)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, int x2)')
+      NaturalType: (System.Int32 x1, System.Int32 x2)
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
@@ -2322,7 +2375,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       Instance Receiver: 
         null
       Arguments(1):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'x1')
             ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2354,6 +2407,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(int x1, int x2) = M(x1)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, int x2)')
+      NaturalType: (System.Int32 x1, System.Int32 x2)
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
@@ -2364,7 +2418,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       Instance Receiver: 
         null
       Arguments(1):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'x1')
             ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2402,6 +2456,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, in ... 2) = (1, 2)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, int x2)')
+      NaturalType: (System.Int32 x1, System.Int32 x2)
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
@@ -2409,6 +2464,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -2438,7 +2494,8 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(int x1, int x2) = null')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2) = null')
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, int x2)')
+      NaturalType: (System.Int32 x1, System.Int32 x2)
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
@@ -2472,10 +2529,12 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: 'var (x1, x2) = null')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = null')
-      Elements(2):
-          ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
-          ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
+      ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+        NaturalType: (var x1, var x2)
+        Elements(2):
+            ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
   Right: 
     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ";
@@ -2510,12 +2569,15 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: 'var (x1, x2) = (1, null)')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, null)')
-      Elements(2):
-          ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
-          ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
+      ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+        NaturalType: (var x1, var x2)
+        Elements(2):
+            ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(1, null)')
+      NaturalType: null
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -2548,11 +2610,13 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(string x1, ... ull), null)')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, (System.Byte x2, var x3), var x4), IsInvalid) (Syntax: '(string x1, ... ull), null)')
+    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, (System.Byte x2, var x3), var x4), IsInvalid) (Syntax: '(string x1, ... 3), var x4)')
+      NaturalType: (System.String x1, (System.Byte x2, var x3), var x4)
       Elements(3):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String) (Syntax: 'x1')
           ITupleOperation (OperationKind.Tuple, Type: (System.Byte x2, var x3), IsInvalid) (Syntax: '(byte x2, var x3)')
+            NaturalType: (System.Byte x2, var x3)
             Elements(2):
                 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Byte) (Syntax: 'byte x2')
                   ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Byte) (Syntax: 'x2')
@@ -2562,9 +2626,11 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x4 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x4')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(null, (2, null), null)')
+      NaturalType: null
       Elements(3):
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
           ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(2, null)')
+            NaturalType: null
             Elements(2):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -2598,9 +2664,11 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '((string x1 ... = (null, 4)')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: ((System.String x1, System.Byte x2, var x3), System.Int32 x4), IsInvalid) (Syntax: '((string x1 ... = (null, 4)')
+    ITupleOperation (OperationKind.Tuple, Type: ((System.String x1, System.Byte x2, var x3), System.Int32 x4), IsInvalid) (Syntax: '((string x1 ... 3), int x4)')
+      NaturalType: ((System.String x1, System.Byte x2, var x3), System.Int32 x4)
       Elements(2):
           ITupleOperation (OperationKind.Tuple, Type: (System.String x1, System.Byte x2, var x3), IsInvalid) (Syntax: '(string x1, ... x2, var x3)')
+            NaturalType: (System.String x1, System.Byte x2, var x3)
             Elements(3):
                 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
                   ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String) (Syntax: 'x1')
@@ -2612,6 +2680,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x4 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x4')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: null, IsInvalid) (Syntax: '(null, 4)')
+      NaturalType: null
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
@@ -2644,7 +2713,8 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(string x1, ...  (null, 2))')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, var x2), IsInvalid) (Syntax: '(string x1, ...  (null, 2))')
+    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, var x2), IsInvalid) (Syntax: '(string x1, var x2)')
+      NaturalType: (System.String x1, var x2)
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String) (Syntax: 'x1')
@@ -2652,9 +2722,11 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(null, (null, 2))')
+      NaturalType: null
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
           ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(null, 2)')
+            NaturalType: null
             Elements(2):
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -2685,6 +2757,7 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(string x1, ... l, ""hello"")')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.String x1, System.String x2, System.Int32 x3), IsInvalid) (Syntax: '(string x1, ... x2, int x3)')
+      NaturalType: (System.String x1, System.String x2, System.Int32 x3)
       Elements(3):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String, IsInvalid) (Syntax: 'string x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsInvalid) (Syntax: 'x1')
@@ -2693,16 +2766,14 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x3')
             ILocalReferenceOperation: x3 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x3')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.String), IsInvalid, IsImplicit) (Syntax: '(null, ""hello"")')
-      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: 
-        ITupleOperation (OperationKind.Tuple, Type: (System.String, System.String), IsInvalid) (Syntax: '(null, ""hello"")')
-          Elements(2):
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"", IsInvalid) (Syntax: '""hello""')
+    ITupleOperation (OperationKind.Tuple, Type: (System.String, System.String), IsInvalid) (Syntax: '(null, ""hello"")')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"", IsInvalid) (Syntax: '""hello""')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
@@ -2731,23 +2802,22 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(string x1, ... ""hello"", 3)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.String x1, System.String y1), IsInvalid) (Syntax: '(string x1, var y1)')
+      NaturalType: (System.String x1, System.String y1)
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String, IsInvalid) (Syntax: 'string x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsInvalid) (Syntax: 'x1')
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String, IsInvalid) (Syntax: 'var y1')
             ILocalReferenceOperation: y1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsInvalid) (Syntax: 'y1')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: '(null, ""hello"", 3)')
-      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: 
-        ITupleOperation (OperationKind.Tuple, Type: (System.String, System.String, System.Int32), IsInvalid) (Syntax: '(null, ""hello"", 3)')
-          Elements(3):
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"", IsInvalid) (Syntax: '""hello""')
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+    ITupleOperation (OperationKind.Tuple, Type: (System.String, System.String, System.Int32), IsInvalid) (Syntax: '(null, ""hello"", 3)')
+      NaturalType: null
+      Elements(3):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"", IsInvalid) (Syntax: '""hello""')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
@@ -2783,14 +2853,16 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
       ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+        NaturalType: (var x1, var x2)
         Elements(2):
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, var), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, var), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(1, 2)')
+          NaturalType: (System.Int32, System.Int32)
           Elements(2):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
@@ -2833,14 +2905,16 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (D x3, D x4), IsInvalid) (Syntax: 'var (x3, x4)')
       ITupleOperation (OperationKind.Tuple, Type: (D x3, D x4), IsInvalid) (Syntax: '(x3, x4)')
+        NaturalType: (D x3, D x4)
         Elements(2):
             ILocalReferenceOperation: x3 (IsDeclaration: True) (OperationKind.LocalReference, Type: D, IsInvalid) (Syntax: 'x3')
             ILocalReferenceOperation: x4 (IsDeclaration: True) (OperationKind.LocalReference, Type: D, IsInvalid) (Syntax: 'x4')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (D, D), IsInvalid, IsImplicit) (Syntax: '(3, 4)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (D, D), IsInvalid, IsImplicit) (Syntax: '(3, 4)')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(3, 4)')
+          NaturalType: (System.Int32, System.Int32)
           Elements(2):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4, IsInvalid) (Syntax: '4')
@@ -2877,9 +2951,11 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: '(var (x1, x ... = (1, 2, 3)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: ((var x1, var x2), System.Int32 x3), IsInvalid) (Syntax: '(var (x1, x2), var x3)')
+      NaturalType: ((var x1, var x2), System.Int32 x3)
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
             ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+              NaturalType: (var x1, var x2)
               Elements(2):
                   ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
                   ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
@@ -2887,6 +2963,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x3 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x3')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32, System.Int32), IsInvalid) (Syntax: '(1, 2, 3)')
+      NaturalType: (System.Int32, System.Int32, System.Int32)
       Elements(3):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
@@ -2925,14 +3002,16 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 x1, var x2)) (Syntax: 'var (x1, x2)')
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, var x2)) (Syntax: '(x1, x2)')
+        NaturalType: (System.Int32 x1, var x2)
         Elements(2):
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, var x1), IsInvalid) (Syntax: '(1, x1)')
+          NaturalType: (System.Int32, var x1)
           Elements(2):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
@@ -2967,14 +3046,16 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, System.Int32 x2)) (Syntax: 'var (x1, x2)')
       ITupleOperation (OperationKind.Tuple, Type: (var x1, System.Int32 x2)) (Syntax: '(x1, x2)')
+        NaturalType: (var x1, System.Int32 x2)
         Elements(2):
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (var x2, System.Int32), IsInvalid) (Syntax: '(x2, 2)')
+          NaturalType: (var x2, System.Int32)
           Elements(2):
               ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -3015,6 +3096,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x, var y), IsInvalid) (Syntax: 'var (x, y)')
       ITupleOperation (OperationKind.Tuple, Type: (var x, var y), IsInvalid) (Syntax: '(x, y)')
+        NaturalType: (var x, var y)
         Elements(2):
             ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x')
             ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'y')
@@ -3075,7 +3157,7 @@ class C
 ";
             // The correct expectation is for the code to compile and execute
             //var comp = CompileAndVerify(source, expectedOutput: "42 43 44");
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,9): error CS8134: Deconstruction must contain at least two variables.
                 //         (var(x, y)) = 43; // parsed as invocation
@@ -3202,9 +3284,11 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) 
                   Children(0)
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, (System.Int32, System.Int32))) (Syntax: '(1, (2, 3))')
+      NaturalType: (System.Int32, (System.Int32, System.Int32))
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(2, 3)')
+            NaturalType: (System.Int32, System.Int32)
             Elements(2):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -3287,14 +3371,16 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 x1, var x2)) (Syntax: 'var (x1, x2)')
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, var x2)) (Syntax: '(x1, x2)')
+        NaturalType: (System.Int32 x1, var x2)
         Elements(2):
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, var x1), IsInvalid) (Syntax: '(1, x1)')
+          NaturalType: (System.Int32, var x1)
           Elements(2):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
@@ -3329,14 +3415,16 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, System.Int32 x2)) (Syntax: 'var (x1, x2)')
       ITupleOperation (OperationKind.Tuple, Type: (var x1, System.Int32 x2)) (Syntax: '(x1, x2)')
+        NaturalType: (var x1, System.Int32 x2)
         Elements(2):
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (var x2, System.Int32), IsInvalid) (Syntax: '(x2, 2)')
+          NaturalType: (var x2, System.Int32)
           Elements(2):
               ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -3375,13 +3463,14 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
     Local_2: System.Int32 x2
   LoopControlVariable: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2)')
+      NaturalType: (System.Int32 x1, System.Int32 x2)
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x1')
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Collection: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M()')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IInvocationOperation ((System.Int32, System.Int32)[] C.M()) (OperationKind.Invocation, Type: (System.Int32, System.Int32)[]) (Syntax: 'M()')
@@ -3421,20 +3510,21 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
     Local_2: System.Int32 x2
   LoopControlVariable: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2)')
+      NaturalType: (System.Int32 x1, System.Int32 x2)
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x1')
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Collection: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M(out int x1)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M(out int x1)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IInvocationOperation ((System.Int32, System.Int32)[] C.M(out System.Int32 a)) (OperationKind.Invocation, Type: (System.Int32, System.Int32)[]) (Syntax: 'M(out int x1)')
           Instance Receiver: 
             null
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: System.Int32) (Syntax: 'out int x1')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'out int x1')
                 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
                   ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3470,7 +3560,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,17): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int x1 = 1;
@@ -3492,7 +3582,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,40): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach ((int x1, int x2) in M(x1))
@@ -3515,7 +3605,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0103: The name 'x1' does not exist in the current context
                 //         System.Console.Write(x1);
@@ -3542,6 +3632,7 @@ class C
             string expectedOperationTree = @"
 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
   ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+    NaturalType: (var x1, var x2)
     Elements(2):
         ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
         ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
@@ -3581,11 +3672,13 @@ class C
 ";
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, (System.Int32 x2, System.Int32 x3))) (Syntax: '(int x1, var (x2, x3))')
+  NaturalType: (System.Int32 x1, (System.Int32 x2, System.Int32 x3))
   Elements(2):
       IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
         ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
       IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 x2, System.Int32 x3)) (Syntax: 'var (x2, x3)')
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x2, System.Int32 x3)) (Syntax: '(x2, x3)')
+          NaturalType: (System.Int32 x2, System.Int32 x3)
           Elements(2):
               ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
               ILocalReferenceOperation: x3 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x3')
@@ -3619,7 +3712,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,36): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach (var (x1, x2) in M(x1)) { }
@@ -3653,7 +3746,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3686,7 +3779,7 @@ class C
                 Assert.Equal("(int, int)", model.GetTypeInfo(literal2).Type.ToDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3703,7 +3796,7 @@ class C
     static T M<T>(out T x) { x = default(T); return x; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,31): error CS0841: Cannot use local variable 'x2' before it is declared
                 //         var (x1, x2) = (M(out x2), M(out x1));
@@ -3728,7 +3821,7 @@ class C1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (4,32): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static void Test(int arg1, (byte, byte) arg2)
@@ -3756,7 +3849,7 @@ class C1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // this is no longer considered a declaration statement,
                 // but rather is an assignment expression. So no error.
@@ -3777,7 +3870,7 @@ class C1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3795,7 +3888,7 @@ class C
     void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): warning CS0612: 'C.Deconstruct(out int, out int)' is obsolete
                 //        (int y1, int y2) = new C();
@@ -3817,7 +3910,7 @@ class C
     void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): error CS0619: 'C.Deconstruct(out int, out int)' is obsolete: 'Deprecated'
                 //        (int y1, int y2) = new C();
@@ -3850,7 +3943,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -3903,18 +3996,22 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'const (int  ... ) = (1, 2);')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: '= (1, 2)')
-    Variables: Local_1: (System.Int32 x, System.Int32 y) 
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const (int  ... ) = (1, 2);')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: '(int x, int y) = (1, 2)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int32 x, System.Int32 y) ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '= (1, 2)')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (1, 2)')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')
+                Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+                    NaturalType: (System.Int32, System.Int32)
+                    Elements(2):
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
     Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (1, 2)')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')
-          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
-            ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
-              Elements(2):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1001: Identifier expected
@@ -3941,7 +4038,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0106: The modifier 'const' is not valid for this item
                 //         const var (x, y) = (1, 2);
@@ -3995,7 +4092,7 @@ unsafe class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source,
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.UnsafeDebugDll);
 
@@ -4006,63 +4103,6 @@ unsafe class C
                 // (6,10): error CS1525: Invalid expression term 'int'
                 //         (int* x1, int y1) = c;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 10),
-                // (8,10): error CS1525: Invalid expression term 'int'
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 10),
-                // (8,14): error CS1525: Invalid expression term '['
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(8, 14),
-                // (8,15): error CS0443: Syntax error; value expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(8, 15),
-                // (8,17): error CS1026: ) expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x3").WithLocation(8, 17),
-                // (8,17): error CS1002: ; expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x3").WithLocation(8, 17),
-                // (8,19): error CS1002: ; expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(8, 19),
-                // (8,19): error CS1513: } expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(8, 19),
-                // (8,27): error CS1002: ; expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 27),
-                // (8,27): error CS1513: } expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 27),
-                // (8,29): error CS1525: Invalid expression term '='
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 29),
-                // (9,14): error CS1525: Invalid expression term '['
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(9, 14),
-                // (9,15): error CS0443: Syntax error; value expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(9, 15),
-                // (9,17): error CS1026: ) expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x4").WithLocation(9, 17),
-                // (9,17): error CS1002: ; expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x4").WithLocation(9, 17),
-                // (9,19): error CS1002: ; expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(9, 19),
-                // (9,19): error CS1513: } expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(9, 19),
-                // (9,27): error CS1002: ; expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 27),
-                // (9,27): error CS1513: } expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 27),
-                // (9,29): error CS1525: Invalid expression term '='
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(9, 29),
                 // (6,15): error CS0103: The name 'x1' does not exist in the current context
                 //         (int* x1, int y1) = c;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 15),
@@ -4084,21 +4124,24 @@ unsafe class C
                 // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var* x2, int y2)").WithLocation(7, 9),
-                // (8,17): error CS0103: The name 'x3' does not exist in the current context
+                // (8,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'int*[]'. An explicit conversion exists (are you missing a cast?)
                 //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(8, 17),
-                // (9,10): error CS0103: The name 'var' does not exist in the current context
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(9, 10),
-                // (9,17): error CS0103: The name 'x4' does not exist in the current context
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(9, 17),
-                // (8,25): warning CS0168: The variable 'y3' is declared but never used
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int*[] x3").WithArguments("dynamic", "int*[]").WithLocation(8, 10),
+                // (8,21): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y3").WithArguments("y3").WithLocation(8, 25),
-                // (9,25): warning CS0168: The variable 'y4' is declared but never used
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y3").WithArguments("dynamic", "int").WithLocation(8, 21),
+                // (9,10): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y4").WithArguments("y4").WithLocation(9, 25)
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(9, 10),
+                // (9,10): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(9, 10),
+                // (9,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'var*[]'. An explicit conversion exists (are you missing a cast?)
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "var*[] x4").WithArguments("dynamic", "var*[]").WithLocation(9, 10),
+                // (9,21): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y4").WithArguments("dynamic", "int").WithLocation(9, 21)
                 );
         }
 
@@ -4115,7 +4158,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         string s = nameof((int x1, var x2) = (1, 2)).ToString();
@@ -4167,7 +4210,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var (a,b), var c, int d);
@@ -4178,7 +4221,7 @@ class C
                 // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 28),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (a,b), var c, int d)").WithLocation(6, 9),
                 // (6,28): error CS0165: Use of unassigned local variable 'd'
@@ -4198,7 +4241,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_01_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
@@ -4298,7 +4341,7 @@ class C
 (var (a,b), var c, int d);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,7): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var (a,b), var c, int d);
@@ -4318,7 +4361,7 @@ class C
                 // (2,20): error CS8185: A declaration is not allowed in this context.
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 20),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (a,b), var c, int d)").WithLocation(2, 1)
                 );
@@ -4329,7 +4372,7 @@ class C
 (var (a,b), var c, int d) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_02_VerifySemanticModel(comp2);
         }
@@ -4435,7 +4478,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var (_, _), var _, int _);
@@ -4446,7 +4489,7 @@ class C
                 // (6,29): error CS8185: A declaration is not allowed in this context.
                 //         (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 29),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (_, _), var _, int _)").WithLocation(6, 9)
                 );
@@ -4463,7 +4506,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_03_VerifySemanticModel(comp2);
         }
@@ -4559,7 +4602,7 @@ class C
 (var (_, _), var _, int _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
@@ -4570,7 +4613,7 @@ class C
                 // (2,21): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 21),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (_, _), var _, int _)").WithLocation(2, 1)
                 );
@@ -4581,7 +4624,7 @@ class C
 (var (_, _), var _, int _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_03_VerifySemanticModel(comp2);
         }
@@ -4601,7 +4644,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_05_VerifySemanticModel(comp1);
 
@@ -4617,7 +4660,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_05_VerifySemanticModel(comp2);
         }
@@ -4664,6 +4707,34 @@ class C
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[1].Type).ToTestDisplayString());
         }
 
+        [Fact]
+        [WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")]
+        public void StandAlone_05_WithDuplicateNames()
+        {
+            string source1 = @"
+using var = System.Int32;
+
+class C
+{
+    static void Main()
+    {
+        (var (a, a), var c);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source1);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var model = comp1.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var aa = nodes.OfType<DeclarationExpressionSyntax>().ElementAt(0);
+            Assert.Equal("var (a, a)", aa.ToString());
+            var aaType = (TypeSymbol)model.GetTypeInfo(aa).Type;
+            Assert.True(aaType.TupleElementNames.IsDefault);
+        }
+
         [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_06()
         {
@@ -4673,7 +4744,7 @@ using var = System.Int32;
 (var (a,b), var c);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_06_VerifySemanticModel(comp1);
 
@@ -4683,7 +4754,7 @@ using var = System.Int32;
 (var (a,b), var c) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_06_VerifySemanticModel(comp2);
         }
@@ -4745,7 +4816,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_07_VerifySemanticModel(comp1);
 
@@ -4761,7 +4832,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_07_VerifySemanticModel(comp2);
         }
@@ -4820,7 +4891,7 @@ using var = System.Int32;
 (var (_, _), var _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_07_VerifySemanticModel(comp1);
 
@@ -4830,7 +4901,7 @@ using var = System.Int32;
 (var (_, _), var _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_07_VerifySemanticModel(comp2);
         }
@@ -4850,7 +4921,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_09_VerifySemanticModel(comp1);
 
@@ -4866,7 +4937,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_09_VerifySemanticModel(comp2);
         }
@@ -4902,7 +4973,7 @@ using al = System.Int32;
 (al (a,b), al c);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_10_VerifySemanticModel(comp1);
 
@@ -4912,7 +4983,7 @@ using al = System.Int32;
 (al (a,b), al c) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_10_VerifySemanticModel(comp2);
         }
@@ -4954,7 +5025,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_11_VerifySemanticModel(comp1);
 
@@ -4970,7 +5041,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_11_VerifySemanticModel(comp2);
         }
@@ -5009,7 +5080,7 @@ using al = System.Int32;
 (al (_, _), al _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_11_VerifySemanticModel(comp1);
 
@@ -5019,7 +5090,7 @@ using al = System.Int32;
 (al (_, _), al _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_11_VerifySemanticModel(comp2);
         }
@@ -5038,7 +5109,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (7,19): error CS1002: ; expected
                 //         var (c, d)
@@ -5080,7 +5151,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,11): error CS8185: A declaration is not allowed in this context.
                 //         ((var (a,b), var c), int d);
@@ -5091,7 +5162,7 @@ class C
                 // (6,30): error CS8185: A declaration is not allowed in this context.
                 //         ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 30),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (a,b), var c), int d)").WithLocation(6, 9),
                 // (6,30): error CS0165: Use of unassigned local variable 'd'
@@ -5111,7 +5182,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_14_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
@@ -5225,7 +5296,7 @@ class C
 ((var (a,b), var c), int d);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // ((var (a,b), var c), int d);
@@ -5245,7 +5316,7 @@ class C
                 // (2,22): error CS8185: A declaration is not allowed in this context.
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 22),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (a,b), var c), int d)").WithLocation(2, 1)
                 );
@@ -5256,7 +5327,7 @@ class C
 ((var (a,b), var c), int d) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_15_VerifySemanticModel(comp2);
         }
@@ -5375,7 +5446,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,11): error CS8185: A declaration is not allowed in this context.
                 //         ((var (_, _), var _), int _);
@@ -5386,7 +5457,7 @@ class C
                 // (6,31): error CS8185: A declaration is not allowed in this context.
                 //         ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 31),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (_, _), var _), int _)").WithLocation(6, 9)
                 );
@@ -5403,7 +5474,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_16_VerifySemanticModel(comp2);
         }
@@ -5512,7 +5583,7 @@ class C
 ((var (_, _), var _), int _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,3): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
@@ -5523,7 +5594,7 @@ class C
                 // (2,23): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 23),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (_, _), var _), int _)").WithLocation(2, 1)
                 );
@@ -5534,7 +5605,7 @@ class C
 ((var (_, _), var _), int _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_16_VerifySemanticModel(comp2);
         }
@@ -5552,7 +5623,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var ((a,b), c), int d);
@@ -5560,7 +5631,7 @@ class C
                 // (6,26): error CS8185: A declaration is not allowed in this context.
                 //         (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 26),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((a,b), c), int d)").WithLocation(6, 9),
                 // (6,26): error CS0165: Use of unassigned local variable 'd'
@@ -5580,7 +5651,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_18_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
@@ -5662,7 +5733,7 @@ class C
 (var ((a,b), c), int d);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var ((a,b), c), int d);
@@ -5679,7 +5750,7 @@ class C
                 // (2,18): error CS8185: A declaration is not allowed in this context.
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 18),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((a,b), c), int d)").WithLocation(2, 1)
                 );
@@ -5690,7 +5761,7 @@ class C
 (var ((a,b), c), int d) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_19_VerifySemanticModel(comp2);
         }
@@ -5778,7 +5849,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var ((_, _), _), int _);
@@ -5786,7 +5857,7 @@ class C
                 // (6,27): error CS8185: A declaration is not allowed in this context.
                 //         (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 27),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((_, _), _), int _)").WithLocation(6, 9)
                 );
@@ -5803,7 +5874,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_20_VerifySemanticModel(comp2);
         }
@@ -5878,7 +5949,7 @@ class C
 (var ((_, _), _), int _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
@@ -5886,7 +5957,7 @@ class C
                 // (2,19): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 19),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((_, _), _), int _)").WithLocation(2, 1)
                 );
@@ -5897,7 +5968,7 @@ class C
 (var ((_, _), _), int _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_20_VerifySemanticModel(comp2);
         }
@@ -5912,7 +5983,7 @@ class C
         (_, _) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,22): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (_, _) = (1, Main());
@@ -5952,7 +6023,7 @@ class C
         (int x, void y) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, Main());
@@ -5998,7 +6069,7 @@ class C
         var (x, y) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,26): error CS8210: A tuple may not contain a value of type 'void'.
                 //         var (x, y) = (1, Main());
@@ -6038,7 +6109,7 @@ class C
         (int x, void y) = (1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, 2);
@@ -6083,7 +6154,7 @@ class C
         (int x, int y) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,30): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (int x, int y) = (1, Main());
@@ -6131,11 +6202,13 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32, System.Int32)) (Syntax: 'var (_, _)')
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(_, _)')
+        NaturalType: (System.Int32, System.Int32)
         Elements(2):
-            IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
-            IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
+            IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+            IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -6163,11 +6236,13 @@ class C
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x, System.Int32)) (Syntax: '(x, _) = (0, 0)')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32)) (Syntax: '(x, _)')
+      NaturalType: (System.Int32 x, System.Int32)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
-          IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
+          IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
+      NaturalType: (System.Int32, System.Int32)
       Elements(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -6196,7 +6271,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'var _')
+IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: 'var _')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

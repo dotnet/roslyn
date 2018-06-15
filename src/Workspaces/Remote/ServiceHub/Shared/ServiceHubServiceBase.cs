@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_lazyRoslynServices == null)
                 {
-                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage);
+                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
                 }
 
                 return _lazyRoslynServices;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
-            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage);
+            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
             return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
         }
 
@@ -149,10 +150,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (e.Reason != DisconnectedReason.Disposed)
             {
-                // this is common for us since we close connection forcefully when operation
-                // is cancelled. use Warning level so that by default, it doesn't write out to
-                // servicehub\log files. one can still make this to write logs by opting in.
-                Log(TraceEventType.Warning, $"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
+                // we no longer close connection forcefully. so connection shouldn't go away 
+                // in normal situation. if it happens, log why it did in more detail.
+                LogError($@"Client stream disconnected unexpectedly: 
+{nameof(e.Description)}: {e.Description}
+{nameof(e.Reason)}: {e.Reason}
+{nameof(e.LastMessage)}: {e.LastMessage}
+{nameof(e.Exception)}: {e.Exception?.ToString()}");
             }
         }
 
@@ -251,11 +255,47 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 LogError("Exception: " + ex.ToString());
 
+                LogExtraInformation(ex);
+
                 var callStack = new StackTrace().ToString();
                 LogError("From: " + callStack);
             }
 
             return false;
+        }
+
+        private void LogExtraInformation(Exception ex)
+        {
+            if (ex == null)
+            {
+                return;
+            }
+
+            if (ex is ReflectionTypeLoadException reflection)
+            {
+                foreach (var loaderException in reflection.LoaderExceptions)
+                {
+                    LogError("LoaderException: " + loaderException.ToString());
+                    LogExtraInformation(loaderException);
+                }
+            }
+
+            if (ex is FileNotFoundException file)
+            {
+                LogError("FusionLog: " + file.FusionLog);
+            }
+
+            if (ex is AggregateException agg)
+            {
+                foreach (var innerException in agg.InnerExceptions)
+                {
+                    LogExtraInformation(innerException);
+                }
+            }
+            else
+            {
+                LogExtraInformation(ex.InnerException);
+            }
         }
     }
 }

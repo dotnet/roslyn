@@ -40,17 +40,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Creates a clone of a red node that can be used as a root of given syntaxTree.
-        ''' New node has no parents, position == 0, and syntaxTree as specified.
-        ''' </summary>
-        Friend Shared Function CloneNodeAsRoot(Of T As VisualBasicSyntaxNode)(node As T, syntaxTree As SyntaxTree) As T
-            Dim clone = DirectCast(node.Green.CreateRed(Nothing, 0), T)
-            clone._syntaxTree = syntaxTree
-
-            Return clone
-        End Function
-
-        ''' <summary>
         ''' Returns a non-null SyntaxTree that owns this node.
         ''' If this node was created with an explicit non-null SyntaxTree, returns that tree.
         ''' Otherwise, if this node has a non-null parent, then returns the parent's SyntaxTree.
@@ -416,39 +405,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional computeReplacementToken As Func(Of SyntaxToken, SyntaxToken, SyntaxToken) = Nothing,
             Optional trivia As IEnumerable(Of SyntaxTrivia) = Nothing,
             Optional computeReplacementTrivia As Func(Of SyntaxTrivia, SyntaxTrivia, SyntaxTrivia) = Nothing) As SyntaxNode
-            Return SyntaxReplacer.Replace(Me, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia)
+
+            Return SyntaxReplacer.Replace(Me, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function RemoveNodesCore(nodes As IEnumerable(Of SyntaxNode), options As SyntaxRemoveOptions) As SyntaxNode
-            Return SyntaxNodeRemover.RemoveNodes(Me, nodes, options)
+            Return SyntaxNodeRemover.RemoveNodes(Me, nodes, options).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function ReplaceNodeInListCore(originalNode As SyntaxNode, replacementNodes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxReplacer.ReplaceNodeInList(Me, originalNode, replacementNodes)
+            Return SyntaxReplacer.ReplaceNodeInList(Me, originalNode, replacementNodes).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function InsertNodesInListCore(nodeInList As SyntaxNode, nodesToInsert As IEnumerable(Of SyntaxNode), insertBefore As Boolean) As SyntaxNode
-            Return SyntaxReplacer.InsertNodeInList(Me, nodeInList, nodesToInsert, insertBefore)
+            Return SyntaxReplacer.InsertNodeInList(Me, nodeInList, nodesToInsert, insertBefore).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function ReplaceTokenInListCore(originalToken As SyntaxToken, newTokens As IEnumerable(Of SyntaxToken)) As SyntaxNode
-            Return SyntaxReplacer.ReplaceTokenInList(Me, originalToken, newTokens)
+            Return SyntaxReplacer.ReplaceTokenInList(Me, originalToken, newTokens).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function InsertTokensInListCore(originalToken As SyntaxToken, newTokens As IEnumerable(Of SyntaxToken), insertBefore As Boolean) As SyntaxNode
-            Return SyntaxReplacer.InsertTokenInList(Me, originalToken, newTokens, insertBefore)
+            Return SyntaxReplacer.InsertTokenInList(Me, originalToken, newTokens, insertBefore).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function ReplaceTriviaInListCore(originalTrivia As SyntaxTrivia, newTrivia As IEnumerable(Of SyntaxTrivia)) As SyntaxNode
-            Return SyntaxReplacer.ReplaceTriviaInList(Me, originalTrivia, newTrivia)
+            Return SyntaxReplacer.ReplaceTriviaInList(Me, originalTrivia, newTrivia).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function InsertTriviaInListCore(originalTrivia As SyntaxTrivia, newTrivia As IEnumerable(Of SyntaxTrivia), insertBefore As Boolean) As SyntaxNode
-            Return SyntaxReplacer.InsertTriviaInList(Me, originalTrivia, newTrivia, insertBefore)
+            Return SyntaxReplacer.InsertTriviaInList(Me, originalTrivia, newTrivia, insertBefore).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function NormalizeWhitespaceCore(indentation As String, eol As String, elasticTrivia As Boolean) As SyntaxNode
-            Return SyntaxNormalizer.Normalize(Me, indentation, eol, elasticTrivia, useDefaultCasing:=False)
+            Return SyntaxNormalizer.Normalize(Me, indentation, eol, elasticTrivia, useDefaultCasing:=False).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 #End Region
 

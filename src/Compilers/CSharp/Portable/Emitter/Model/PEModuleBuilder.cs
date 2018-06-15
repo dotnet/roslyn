@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
-
-        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
+        private bool _needsGeneratedIsUnmanagedAttribute_Value;
+        private bool _needsGeneratedAttributes_IsFrozen;
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+                _needsGeneratedAttributes_IsFrozen = true;
                 return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
             }
         }
@@ -67,6 +67,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 return Compilation.NeedsGeneratedIsByRefLikeAttribute;
+            }
+        }
+
+        internal bool NeedsGeneratedIsUnmanagedAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return Compilation.NeedsGeneratedIsUnmanagedAttribute || _needsGeneratedIsUnmanagedAttribute_Value;
             }
         }
 
@@ -1150,6 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             BoundArgListOperator optArgList = null,
             bool needDeclaration = false)
         {
+            Debug.Assert(!methodSymbol.IsDefaultValueTypeConstructor());
             Debug.Assert(optArgList == null || (methodSymbol.IsVararg && !needDeclaration));
 
             Cci.IMethodReference unexpandedMethodRef = Translate(methodSymbol, syntaxNodeOpt, diagnostics, needDeclaration);
@@ -1427,11 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeEmbeddedAttribute()
-        {
-            // Embedded attributes should never be synthesized in modules.
-            throw ExceptionUtilities.Unreachable;
-        }
+        internal abstract SynthesizedAttributeData SynthesizeEmbeddedAttribute();
 
         internal SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
         {
@@ -1442,6 +1448,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return TrySynthesizeIsReadOnlyAttribute();
+        }
+
+        internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsUnmanagedAttribute();
         }
 
         internal SynthesizedAttributeData SynthesizeIsByRefLikeAttribute(Symbol symbol)
@@ -1461,6 +1478,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
         }
 
+        protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1469,6 +1492,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal void EnsureIsReadOnlyAttributeExists()
         {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
             if (_needsGeneratedIsReadOnlyAttribute_Value || Compilation.NeedsGeneratedIsReadOnlyAttribute)
             {
                 return;
@@ -1477,8 +1502,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Don't report any errors. They should be reported during binding.
             if (Compilation.CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
             {
-                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
                 _needsGeneratedIsReadOnlyAttribute_Value = true;
+            }
+        }
+
+        internal void EnsureIsUnmanagedAttributeExists()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
+            if (_needsGeneratedIsUnmanagedAttribute_Value || Compilation.NeedsGeneratedIsUnmanagedAttribute)
+            {
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfIsUnmanagedAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                _needsGeneratedIsUnmanagedAttribute_Value = true;
             }
         }
     }

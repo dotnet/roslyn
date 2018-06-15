@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void ParseSeperatedStrings_ExcludeSeparatorChar()
+        public void ParseSeparatedStrings_ExcludeSeparatorChar()
         {
             Assert.Equal(
                 CommandLineParser.ParseSeparatedStrings(@"a,b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// preserved in the final string.
         /// </summary>
         [Fact]
-        public void ParseSeperatedStrings_IncludeQuotes()
+        public void ParseSeparatedStrings_IncludeQuotes()
         {
             Assert.Equal(
                 CommandLineParser.ParseSeparatedStrings(@"""a"",b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),

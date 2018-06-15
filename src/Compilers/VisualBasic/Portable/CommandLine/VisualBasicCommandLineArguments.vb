@@ -66,59 +66,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             resolved As List(Of MetadataReference)
             ) As Boolean
 
-            If MyBase.ResolveMetadataReferences(metadataResolver, diagnostics, messageProvider, resolved) Then
+            Dim result = MyBase.ResolveMetadataReferences(metadataResolver, diagnostics, messageProvider, resolved)
 
-                ' If there were no references, don't try to add default Cor library reference.
-                If Me.DefaultCoreLibraryReference IsNot Nothing AndAlso resolved.Count > 0 Then
-                    ' All references from arguments were resolved successfully. Let's see if we have a reference that can be used as a Cor library.
-                    For Each reference In resolved
-                        Dim refProps = reference.Properties
-
-                        ' The logic about deciding what assembly is a candidate for being a Cor library here and in
-                        ' CommonReferenceManager<TCompilation, TAssemblySymbol>.IndexOfCorLibrary
-                        ' should be equivalent.
-                        If Not refProps.EmbedInteropTypes AndAlso refProps.Kind = MetadataImageKind.Assembly Then
-                            Try
-                                Dim assemblyMetadata = TryCast(DirectCast(reference, PortableExecutableReference).GetMetadataNoCopy(), AssemblyMetadata)
-
-                                If assemblyMetadata Is Nothing OrElse Not assemblyMetadata.IsValidAssembly() Then
-                                    ' There will be some errors reported later.
-                                    Return True
-                                End If
-
-                                Dim assembly As PEAssembly = assemblyMetadata.GetAssembly()
-
-                                If assembly.AssemblyReferences.Length = 0 AndAlso Not assembly.ContainsNoPiaLocalTypes AndAlso assembly.DeclaresTheObjectClass Then
-                                    ' This reference looks like a valid Cor library candidate, bail out.
-                                    Return True
-                                End If
-
-                            Catch e As BadImageFormatException
-                                ' error reported later
-                                Return True
-                            Catch e As IOException
-                                ' error reported later
-                                Return True
-                            End Try
-                        End If
-                    Next
-
-                    ' None of the supplied references could be used as a Cor library. Let's add a default one.
-                    Dim defaultCorLibrary = ResolveMetadataReference(Me.DefaultCoreLibraryReference.Value, metadataResolver, diagnostics, messageProvider).FirstOrDefault()
-
-                    If defaultCorLibrary Is Nothing OrElse defaultCorLibrary.IsUnresolved Then
-                        Debug.Assert(diagnostics Is Nothing OrElse diagnostics.Any())
-                        Return False
-                    Else
-                        resolved.Insert(0, defaultCorLibrary)
-                        Return True
+            ' If there were no references, don't try to add default Cor library reference.
+            If Me.DefaultCoreLibraryReference IsNot Nothing AndAlso resolved.Count > 0 Then
+                ' All references from arguments were resolved successfully. Let's see if we have a reference that can be used as a Cor library.
+                For Each reference In resolved
+                    If reference.IsUnresolved Then
+                        Continue For
                     End If
-                End If
 
-                Return True
+                    Dim refProps = reference.Properties
+
+                    ' The logic about deciding what assembly is a candidate for being a Cor library here and in
+                    ' CommonReferenceManager<TCompilation, TAssemblySymbol>.IndexOfCorLibrary
+                    ' should be equivalent.
+                    If Not refProps.EmbedInteropTypes AndAlso refProps.Kind = MetadataImageKind.Assembly Then
+                        Try
+                            Dim assemblyMetadata = TryCast(DirectCast(reference, PortableExecutableReference).GetMetadataNoCopy(), AssemblyMetadata)
+
+                            If assemblyMetadata Is Nothing OrElse Not assemblyMetadata.IsValidAssembly() Then
+                                ' There will be some errors reported later.
+                                Return result
+                            End If
+
+                            Dim assembly As PEAssembly = assemblyMetadata.GetAssembly()
+
+                            If assembly.AssemblyReferences.Length = 0 AndAlso Not assembly.ContainsNoPiaLocalTypes AndAlso assembly.DeclaresTheObjectClass Then
+                                ' This reference looks like a valid Cor library candidate, bail out.
+                                Return result
+                            End If
+
+                        Catch e As BadImageFormatException
+                            ' error reported later
+                            Return result
+                        Catch e As IOException
+                            ' error reported later
+                            Return result
+                        End Try
+                    End If
+                Next
+
+                ' None of the supplied references could be used as a Cor library. Let's add a default one.
+                Dim defaultCorLibrary = ResolveMetadataReference(Me.DefaultCoreLibraryReference.Value, metadataResolver, diagnostics, messageProvider).FirstOrDefault()
+
+                If defaultCorLibrary Is Nothing OrElse defaultCorLibrary.IsUnresolved Then
+                    Debug.Assert(diagnostics Is Nothing OrElse diagnostics.Any())
+                    Return False
+                Else
+                    resolved.Insert(0, defaultCorLibrary)
+                    Return result
+                End If
             End If
 
-            Return False
+            Return result
         End Function
 
     End Class

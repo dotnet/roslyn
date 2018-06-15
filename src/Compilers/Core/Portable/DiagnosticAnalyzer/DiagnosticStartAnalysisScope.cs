@@ -17,14 +17,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostSessionStartAnalysisScope _scope;
-        
-        private readonly bool _isIOperationFeatureEnabled;
 
-        public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope, bool isIOperationFeatureEnabled = false)
+        public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope)
         {
             _analyzer = analyzer;
             _scope = scope;
-            _isIOperationFeatureEnabled = isIOperationFeatureEnabled;
         }
 
         public override void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
@@ -77,35 +74,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
-            RegisterOperationActionImmutableArrayInternal(action, operationKinds);
-        }
-
-        internal override void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
-        {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
         public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
         {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
-            RegisterOperationBlockStartActionInternal(action);
-        }
-
-        internal override void RegisterOperationBlockStartActionInternal(Action<OperationBlockStartAnalysisContext> action)
-        {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterOperationBlockStartAction(_analyzer, action);
         }
 
         public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
-            RegisterOperationBlockActionInternal(action);
-        }
-
-        internal override void RegisterOperationBlockActionInternal(Action<OperationBlockAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterOperationBlockAction(_analyzer, action);
@@ -130,8 +109,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostCompilationStartAnalysisScope _scope;
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
-        
-        private readonly bool _isIOperationFeatureEnabled;
 
         public AnalyzerCompilationStartAnalysisContext(
             DiagnosticAnalyzer analyzer,
@@ -145,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _analyzer = analyzer;
             _scope = scope;
             _compilationAnalysisValueProviderFactory = compilationAnalysisValueProviderFactory;
-            _isIOperationFeatureEnabled = compilation.IsIOperationFeatureEnabled();
         }
 
         public override void RegisterCompilationEndAction(Action<CompilationAnalysisContext> action)
@@ -185,34 +161,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
         {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
-            RegisterOperationBlockStartActionInternal(action);
-        }
-
-        internal override void RegisterOperationBlockStartActionInternal(Action<OperationBlockStartAnalysisContext> action)
-        {
             _scope.RegisterOperationBlockStartAction(_analyzer, action);
         }
 
         public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
-            RegisterOperationBlockActionInternal(action);
-        }
-
-        internal override void RegisterOperationBlockActionInternal(Action<OperationBlockAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterOperationBlockAction(_analyzer, action);
         }
 
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
-            RegisterOperationActionImmutableArrayInternal(action, operationKinds);
-        }
-
-        internal override void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
@@ -323,6 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
         {
             _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
+            GetOrCreateAnalyzerActions(analyzer).EnableConcurrentExecution();
         }
 
         public void ConfigureGeneratedCodeAnalysis(DiagnosticAnalyzer analyzer, GeneratedCodeAnalysisFlags mode)
@@ -749,6 +708,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
         private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
+        private bool _concurrent;
 
         internal AnalyzerActions()
         {
@@ -768,6 +728,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public int CodeBlockStartActionsCount { get { return _codeBlockStartActions.Length; } }
         public int CodeBlockEndActionsCount { get { return _codeBlockEndActions.Length; } }
         public int CodeBlockActionsCount { get { return _codeBlockActions.Length; } }
+        public bool Concurrent => _concurrent;
 
         internal ImmutableArray<CompilationStartAnalyzerAction> CompilationStartActions
         {
@@ -909,6 +870,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _operationActions = _operationActions.Add(action);
         }
 
+        internal void EnableConcurrentExecution()
+        {
+            _concurrent = true;
+        }
+
         /// <summary>
         /// Append analyzer actions from <paramref name="otherActions"/> to actions from this instance.
         /// </summary>
@@ -935,6 +901,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             actions._operationBlockStartActions = _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions);
             actions._operationBlockEndActions = _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions);
             actions._operationBlockActions = _operationBlockActions.AddRange(otherActions._operationBlockActions);
+            actions._concurrent = actions._concurrent || otherActions.Concurrent;
 
             return actions;
         }

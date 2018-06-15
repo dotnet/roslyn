@@ -3,6 +3,7 @@
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_XmlDoc
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -574,6 +575,31 @@ class c
 
                 ' /// <see cref=">$$"/>
                 Await state.AssertLineTextAroundCaret("    /// <see cref="">", """/>")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        Public Async Function InvokeWithOpenAngleCommitSeeOnTab() As Task
+
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class c
+{
+    /// $$
+    void goo() { }
+}
+            ]]></Document>)
+
+                state.SendTypeChars("<")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("se")
+                Await state.AssertSelectedCompletionItem(displayText:="see")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <see cref="$$"/>
+                Await state.AssertLineTextAroundCaret("    /// <see cref=""", """/>")
             End Using
         End Function
 

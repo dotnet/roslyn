@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         public static TelemetrySession SessionOpt => s_sessionOpt;
 
         /// <summary>
+        /// Check whether current user is microsoft internal or not
+        /// </summary>
+        public static bool IsUserMicrosoftInternal => SessionOpt?.IsUserMicrosoftInternal ?? false;
+
+        /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
@@ -59,6 +64,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// CAB.</param>
         public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
+            var emptyCallstack = exception.SetCallstackIfEmpty();
+
             // if given exception is non recoverable exception,
             // crash instead of NFW
             if (IsNonRecoverableException(exception))
@@ -66,7 +73,17 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 CodeAnalysis.FailFast.OnFatalException(exception);
             }
 
-            SessionOpt?.PostFault(
+            if (!exception.ShouldReport())
+            {
+                return;
+            }
+
+            if (SessionOpt == null)
+            {
+                return;
+            }
+
+            var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
                 exceptionObject: exception,
@@ -74,8 +91,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 {
                     // always add current processes dump
                     arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
+
                     return callback(arg);
                 });
+
+            // add extra bucket parameters to bucket better in NFW
+            // we do it here so that it gets bucketted better in both
+            // watson and telemetry. 
+            faultEvent.SetExtraParameters(exception, emptyCallstack);
+
+            SessionOpt.PostEvent(faultEvent);
         }
 
         private static bool IsNonRecoverableException(Exception exception)

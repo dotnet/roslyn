@@ -157,7 +157,7 @@ End Module
                          </compilation>
 
             For i = 0 To 100
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+                Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
 
                 Dim tasks(10) As Task
                 For jj = 0 To tasks.Length - 1
@@ -684,6 +684,35 @@ Module Program
         Dim at2 As Object = New With {.f1 = "YYY", Key .f2 = 456, Key .f3 = "XXX", .f4 = Nothing }
         ' Changes in Key fields
         Dim at3 As Object = New With {.f1 = 123, Key .f2 = 455, Key .f3 = "XXX", .f4 = 123.456!}
+
+        Dim hc1 = at1.GetHashCode()      
+        Console.WriteLine(hc1 = at2.GetHashCode )
+        Console.WriteLine(hc1 = at3.GetHashCode)
+    
+    End Sub
+End Module
+    </file>
+</compilation>,
+expectedOutput:=<![CDATA[
+True
+False
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestAnonymousType_GetHashCode03()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module Program
+
+    Sub Main()
+        Dim at1 As Object = New With {.Ǉ1 = 123, Key .Ǉ2 = 456, Key .Ǉ3 = "XXX", .Ǉ4 = 123.456!}
+        ' Value changes in non-key fields, casing changes in all fields that require a recent unicode version
+        Dim at2 As Object = New With {.ǈ1 = "YYY", Key .ǈ2 = 456, Key .ǈ3 = "XXX", .ǈ4 = Nothing }
+        ' Value changes in Key fields
+        Dim at3 As Object = New With {.Ǉ1 = 123, Key .Ǉ2 = 455, Key .Ǉ3 = "XXX", .Ǉ4 = 123.456!}
 
         Dim hc1 = at1.GetHashCode()      
         Console.WriteLine(hc1 = at2.GetHashCode )

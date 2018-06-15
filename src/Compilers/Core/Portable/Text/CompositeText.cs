@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Reduces the number of segments toward the target number of segments,
-        /// if the number of regments is deemed to be too large (beyond the maximum).
+        /// if the number of segments is deemed to be too large (beyond the maximum).
         /// </summary>
         private static void ReduceSegmentCountIfNecessary(ArrayBuilder<SourceText> segments)
         {

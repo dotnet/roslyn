@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(MessageID code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(!string.IsNullOrEmpty(message));
+            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
             return message;
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(ErrorCode code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(message != null);
+            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
             return message;
         }
 
@@ -312,14 +312,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
-                case ErrorCode.WRN_FilterIsConstant:
+                case ErrorCode.WRN_FilterIsConstantTrue:
+                case ErrorCode.WRN_FilterIsConstantFalse:
+                case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                 case ErrorCode.WRN_IdentifierOrNumericLiteralExpected:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
                 case ErrorCode.WRN_Experimental:
-                case ErrorCode.WRN_DefaultInSwitch:
+                case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
+                case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
+                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                     return 1;
                 default:
                     return 0;

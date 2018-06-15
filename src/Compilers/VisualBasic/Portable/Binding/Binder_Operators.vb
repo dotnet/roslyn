@@ -555,7 +555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ForceLiftToEmptyString(left As BoundExpression, stringType As TypeSymbol, diagnostics As DiagnosticBag) As BoundExpression
             Debug.Assert(stringType.IsStringType)
 
-            Dim nothingStr = New BoundLiteral(left.Syntax, ConstantValue.Nothing, stringType)
+            Dim nothingStr = New BoundLiteral(left.Syntax, ConstantValue.Nothing, stringType).MakeCompilerGenerated()
 
             Return AnalyzeConversionAndCreateBinaryConditionalExpression(left.Syntax,
                                                                          left,
@@ -564,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          stringType,
                                                                          False,
                                                                          diagnostics,
-                                                                         explicitConversion:=True)
+                                                                         explicitConversion:=True).MakeCompilerGenerated()
         End Function
 
         Private Function BindUserDefinedNonShortCircuitingBinaryOperator(

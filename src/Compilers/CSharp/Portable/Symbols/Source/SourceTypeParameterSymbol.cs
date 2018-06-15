@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     lazyAttributesStored = LoadAndValidateAttributes(
                         OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists),
-                        ref _lazyCustomAttributesBag);
+                        ref _lazyCustomAttributesBag,
+                        binderOpt: (ContainingSymbol as LocalFunctionSymbol)?.SignatureBinder);
                 }
                 else
                 {
@@ -224,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset), TypeParameterBounds.Unset))
                 {
                     this.CheckConstraintTypeConstraints(diagnostics);
+                    this.CheckUnmanagedConstraint(diagnostics);
                     this.AddDeclarationDiagnostics(diagnostics);
                     _state.NotePartComplete(CompletionPart.TypeParameterConstraints);
                 }
@@ -265,6 +267,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private void CheckUnmanagedConstraint(DiagnosticBag diagnostics)
+        {
+            if (this.HasUnmanagedTypeConstraint)
+            {
+                bool modifyCompilation;
+
+                switch (this.ContainingSymbol)
+                {
+                    case SourceOrdinaryMethodSymbol _:
+                    case SourceMemberContainerTypeSymbol _:
+                        modifyCompilation = true;
+                        break;
+                    case LocalFunctionSymbol _:
+                        modifyCompilation = false;
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(this.ContainingSymbol);
+                }
+
+                DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, modifyCompilation);
+            }
+        }
+
         private NamedTypeSymbol GetDefaultBaseType()
         {
             return this.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
@@ -302,6 +327,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
+            }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            if (this.HasUnmanagedTypeConstraint)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
             }
         }
     }
@@ -350,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ValueType) != 0;
+                return (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Unmanaged)) != 0;
             }
         }
 
@@ -360,6 +395,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraints = this.GetDeclaredConstraints();
                 return (constraints & TypeParameterConstraintKind.ReferenceType) != 0;
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.Unmanaged) != 0;
             }
         }
 
@@ -420,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ValueType) != 0;
+                return (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Unmanaged)) != 0;
             }
         }
 
@@ -430,6 +474,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraints = this.GetDeclaredConstraints();
                 return (constraints & TypeParameterConstraintKind.ReferenceType) != 0;
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.Unmanaged) != 0;
             }
         }
 
@@ -624,6 +677,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeParameter = this.OverriddenTypeParameter;
                 return ((object)typeParameter != null) && typeParameter.HasReferenceTypeConstraint;
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                var typeParameter = this.OverriddenTypeParameter;
+                return ((object)typeParameter != null) && typeParameter.HasUnmanagedTypeConstraint;
             }
         }
 

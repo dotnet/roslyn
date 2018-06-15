@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -162,7 +163,7 @@ ILocalFunctionOperation (Symbol: System.Int32 Local3(System.Int32 p1)) (Operatio
               Instance Receiver: 
                 null
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: System.Int32) (Syntax: 'p1')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: null) (Syntax: 'p1')
                     IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p1')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -194,7 +195,7 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 p1)) (Operation
           Instance Receiver: 
             null
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: System.Int32) (Syntax: 'x + p1')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: null) (Syntax: 'x + p1')
                 IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + p1')
                   Left: 
                     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
@@ -240,7 +241,7 @@ ILocalFunctionOperation (Symbol: System.Threading.Tasks.Task<System.Int32> Local
               Instance Receiver: 
                 null
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: millisecondsDelay) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: millisecondsDelay) (OperationKind.Argument, Type: null) (Syntax: '0')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -457,6 +458,112 @@ ILocalFunctionOperation (Symbol: X F()) (OperationKind.LocalFunction, Type: null
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
+        public void TestInvalidLocalFunction_ExpressionAndBlockBody()
+        {
+            string source = @"
+class C
+{
+    void M(int p)
+    {
+        /*<bind>*/object F() => new object(); { return null; }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction, Type: null) (Syntax: 'object F()  ... w object();')
+  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> new object()')
+    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'new object()')
+      ReturnedValue: 
+        IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new object()')
+          Arguments(0)
+          Initializer: 
+            null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,49): error CS0127: Since 'C.M(int)' returns void, a return keyword must not be followed by an object expression
+                //         /*<bind>*/object F() => new object(); { return new object(); }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M(int)").WithLocation(6, 49),
+                // file.cs(6,26): warning CS8321: The local function 'F' is declared but never used
+                //         /*<bind>*/object F() => new object(); { return new object(); }/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 26)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
+        public void TestInvalidLocalFunction_BlockAndExpressionBody()
+        {
+            string source = @"
+class C
+{
+    void M(int p)
+    {
+        /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'object F()  ...  } => null;')
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ return new object(); }')
+      IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return new object();')
+        ReturnedValue: 
+          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+            Arguments(0)
+            Initializer: 
+              null
+  IgnoredBody: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> null')
+      IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'null')
+        ReturnedValue: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // error CS8057: Block bodies and expression bodies cannot both be provided.
+                //         /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "object F() { return new object(); } => null;").WithLocation(6, 19),
+                // warning CS8321: The local function 'F' is declared but never used
+                //         /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 26)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
+        public void TestLocalFunction_ExpressionBodyInnerMember()
+        {
+            string source = @"
+class C
+{
+    public void M(int x)
+    {
+        int Local(int p1) /*<bind>*/=> x++/*</bind>*/;
+        Local(0);
+    }
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x++')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x++')
+    ReturnedValue: 
+      IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'x++')
+        Target: 
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

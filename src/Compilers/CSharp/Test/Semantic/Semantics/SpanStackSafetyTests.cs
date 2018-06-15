@@ -15,6 +15,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SpanStackSafetyTests : CompilingTestBase
     {
         [Fact]
+        public void SpanAssignmentExpression()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M()
+    {
+        Span<int> s1 = stackalloc int[1];
+        Span<int> s2 = new Span<int>();
+
+        s2 = (s2 = new Span<int>());
+        s2 = (s1 = s2);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use local 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         s2 = (s1 = s2);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s1 = s2").WithArguments("s1").WithLocation(11, 15));
+        }
+
+        [Fact]
         public void SpanToSpanSwitch()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1121,6 +1143,7 @@ public class Program
             );
         }
 
+        [WorkItem(21979, "https://github.com/dotnet/roslyn/issues/21979")]
         [Fact]
         public void MethodConversion()
         {
@@ -1131,7 +1154,7 @@ public class Program
 {
     static void Main()
     {
-        // we allow this. Is that because it would be a breaking change?
+        // we no longer allow this.
         // see https://github.com/dotnet/roslyn/issues/21979
         Func<int> d0 = default(TypedReference).GetHashCode;
 
@@ -1148,6 +1171,9 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyEmitDiagnostics(
+                // (10,48): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
+                //         Func<int> d0 = default(TypedReference).GetHashCode;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(10, 48),
                 // (13,43): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
                 //         Func<int> d1 = default(Span<int>).GetHashCode;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(13, 43),
@@ -1169,7 +1195,7 @@ namespace System
     public struct Span<T> { }
     public struct ReadOnlySpan<T> { }
 }";
-            var reference = CreateCompilation(
+            var reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.ReleaseDll);
@@ -1186,7 +1212,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1203,7 +1229,7 @@ namespace System
     public ref struct Span<T> { }
     public ref struct ReadOnlySpan<T> { }
 }";
-            var reference = CreateCompilation(
+            var reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.ReleaseDll);
@@ -1220,7 +1246,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1247,7 +1273,7 @@ namespace System
         }
     }
 }";
-            var reference = CreateCompilation(
+            var reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.UnsafeReleaseDll);
@@ -1264,7 +1290,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1288,7 +1314,7 @@ namespace System
         }
     }
 }";
-            var reference = CreateCompilation(
+            var reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.UnsafeReleaseDll);
@@ -1305,7 +1331,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1314,6 +1340,105 @@ class Program
                 // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
                 //         Span<int> x = stackalloc int [10];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
+        }
+
+        [Fact]
+        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        public void CreateVariableFromRefStructFieldInNonRefStruct()
+        {
+            var code = @"
+public ref struct Point
+{
+}
+class Program
+{
+    public Point field1 = new Point();
+    public static Point field2 = new Point();
+
+    void Check()
+    {
+        var temp1 = field1;
+        var temp2 = field2;
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field2 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
+                // (7,12): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public Point field1 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 12));
+        }
+
+        [Fact]
+        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        public void CreateVariableFromRefStructFieldInRefStruct()
+        {
+            var code = @"
+public ref struct Point
+{
+}
+ref struct Program
+{
+    public static Point field1;
+    public static Point field2 = new Point();
+
+    public Program(Point p)
+    {
+        field1 = p;
+    }
+
+    void Check()
+    {
+        var temp1 = field1;
+        var temp2 = field2;
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field2 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
+                // (7,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field1;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 19));
+        }
+
+        [Fact]
+        [WorkItem(24627, "https://github.com/dotnet/roslyn/issues/24627")]
+        public void ArgMixingBogusInstanceCall()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+class Program
+{
+    ref struct S1
+    {
+        public void Test(int x) => throw null;       
+        public int this[int x] => throw null;        
+        public S1(S1 x, int y) => throw null;            
+    }
+    
+    static void Main()
+    {
+        // these are all errors, we should not be doing escape analysis on them.
+        S1.Test(1);
+        var x = S1[1];       
+        var y = new S1(S1, 1);
+    }
+}");           
+            
+            comp.VerifyDiagnostics(
+                // (14,9): error CS0120: An object reference is required for the non-static field, method, or property 'Program.S1.Test(int)'
+                //         S1.Test(1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "S1.Test").WithArguments("Program.S1.Test(int)").WithLocation(14, 9),
+                // (15,17): error CS0119: 'Program.S1' is a type, which is not valid in the given context
+                //         var x = S1[1];       
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "S1").WithArguments("Program.S1", "type").WithLocation(15, 17),
+                // (16,24): error CS0119: 'Program.S1' is a type, which is not valid in the given context
+                //         var y = new S1(S1, 1);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "S1").WithArguments("Program.S1", "type").WithLocation(16, 24)
+                );
         }
     }
 }

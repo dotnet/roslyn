@@ -1645,7 +1645,7 @@ True
         End Sub
 
         <Fact>
-        Public Sub TestImplicitConstructorConverage()
+        Public Sub TestImplicitConstructorCoverage()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
 Module Program
@@ -1868,7 +1868,7 @@ True
         End Sub
 
         <Fact>
-        Public Sub MissingMethodNeededForAnaysis()
+        Public Sub MissingMethodNeededForAnalysis()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
 Namespace System
@@ -2336,7 +2336,7 @@ Class D
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            Dim c = CreateCompilationWithMscorlib40(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
             c.VerifyDiagnostics()
 
             Dim verifier = CompileAndVerify(c, emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
@@ -2373,7 +2373,7 @@ Class D
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            Dim c = CreateCompilationWithMscorlib40(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
             c.VerifyDiagnostics()
 
             Dim verifier = CompileAndVerify(c, emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
@@ -2805,7 +2805,7 @@ True
         End Sub
 
         Private Function CreateCompilation(source As XElement) As Compilation
-            Return CreateCompilationWithReferences(source, references:=New MetadataReference() {}, options:=TestOptions.ReleaseExe.WithDeterministic(True))
+            Return CreateEmptyCompilationWithReferences(source, references:=New MetadataReference() {}, options:=TestOptions.ReleaseExe.WithDeterministic(True))
         End Function
 
         Private Overloads Function CompileAndVerify(source As XElement, Optional expectedOutput As XCData = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier

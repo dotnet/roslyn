@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1116,6 +1117,69 @@ namespace N
     }
 }",
 parseOptions: null);
+        }
+
+        [WorkItem(16547, "https://github.com/dotnet/roslyn/issues/16547")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForAddExtentionMethodWithSameNameAsProperty()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    public class Foo
+    {
+        public void Bar()
+        {
+            var self = this.[|Self()|];
+        }
+
+        public Foo Self
+        {
+            get { return this; }
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class FooExtensions
+    {
+        public static Foo Self(this Foo foo)
+        {
+            return foo;
+        }
+    }
+}",
+@"
+using A.Extensions;
+
+namespace A
+{
+    public class Foo
+    {
+        public void Bar()
+        {
+            var self = this.Self();
+        }
+
+        public Foo Self
+        {
+            get { return this; }
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class FooExtensions
+    {
+        public static Foo Self(this Foo foo)
+        {
+            return foo;
+        }
+    }
+}");
         }
     }
 }

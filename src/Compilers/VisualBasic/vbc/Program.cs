@@ -26,10 +26,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
         private static int MainCore(string[] args)
         {
 #if NET46
-            return DesktopBuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run, new DesktopAnalyzerAssemblyLoader());
+            var loader = new DesktopAnalyzerAssemblyLoader();
 #else
-            return CoreClrBuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run, new CoreClrAnalyzerAssemblyLoader());
+            var loader = new CoreClrAnalyzerAssemblyLoader();
 #endif
+            return DesktopBuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run, loader);
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)

@@ -233,7 +233,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
       Event Reference: 
         IEventReferenceOperation: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReference, Type: System.Action) (Syntax: 'Me.TestEvent')
           Instance Receiver: 
-            null
+            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass) (Syntax: 'Me')
       Handler: 
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
@@ -275,7 +275,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
       Event Reference: 
         IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action, IsInvalid) (Syntax: 'TestClass.TestEvent')
           Instance Receiver: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'TestClass')
+            null
       Handler: 
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 

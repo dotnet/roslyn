@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a declaration expression operation. Unlike a regular variable declaration <see cref="IVariableDeclarationOperation"/>, this operation represents an "expression" declaring a variable.
+    /// Represents a declaration expression operation. Unlike a regular variable declaration <see cref="IVariableDeclaratorOperation"/> and <see cref="IVariableDeclarationOperation"/>, this operation represents an "expression" declaring a variable.
     /// <para>
     /// Current usage:
     ///  (1) C# declaration expression. For example,

@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal virtual bool CanScheduleToStack
-        {
-            get { return !IsConst && !IsPinned; }
-        }
+        internal virtual bool CanScheduleToStack => !IsConst && !IsPinned;
 
         internal abstract SyntaxToken IdentifierToken
         {
@@ -256,7 +253,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract SyntaxNode GetDeclaratorSyntax();
 
-        internal virtual bool IsWritable
+        /// <summary>
+        /// Describes whether this represents a modifiable variable. Note that
+        /// this refers to the variable, not the underlying value, so if this
+        /// variable is a ref-local, the writability refers to ref-assignment,
+        /// not assignment to the underlying storage.
+        /// </summary>
+        internal virtual bool IsWritableVariable
         {
             get
             {
@@ -268,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case LocalDeclarationKind.UsingVariable:
                         return false;
                     default:
-                        return RefKind != RefKind.RefReadOnly;
+                        return true;
                 }
             }
         }
@@ -321,9 +324,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
-        public bool IsRef => RefKind == RefKind.Ref;
+        public bool IsRef => RefKind != RefKind.None;
 
-        internal abstract RefKind RefKind
+        public abstract RefKind RefKind
         {
             get;
         }
@@ -332,13 +335,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns the scope to which a local can "escape" ref assignments or other form of aliasing
         /// Makes sense only for locals with formal scopes - i.e. source locals
         /// </summary>
-        internal virtual uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal abstract uint RefEscapeScope { get; }
 
         /// <summary>
         /// Returns the scope to which values of a local can "escape" via ordinary assignments
         /// Makes sense only for ref-like locals with formal scopes - i.e. source locals
         /// </summary>
-        internal virtual uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal abstract uint ValEscapeScope { get; }
 
         /// <summary>
         /// When a local variable's type is inferred, it may not be used in the

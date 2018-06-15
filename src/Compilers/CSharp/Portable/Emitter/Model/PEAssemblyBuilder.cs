@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -82,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
                 builder.Add(_lazyIsReadOnlyAttribute);
+            }
+
+            if ((object)_lazyIsUnmanagedAttribute != null)
+            {
+                builder.Add(_lazyIsUnmanagedAttribute);
             }
 
             if ((object)_lazyIsByRefLikeAttribute != null)
@@ -165,15 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
-            if ((object)_lazyEmbeddedAttribute != null)
-            {
-                return new SynthesizedAttributeData(
-                    _lazyEmbeddedAttribute.Constructor,
-                    ImmutableArray<TypedConstant>.Empty,
-                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
-            }
-
-            return base.SynthesizeEmbeddedAttribute();
+            // _lazyEmbeddedAttribute should have been created before calling this method.
+            return new SynthesizedAttributeData(
+                _lazyEmbeddedAttribute.Constructor,
+                ImmutableArray<TypedConstant>.Empty,
+                ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
@@ -187,6 +186,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return base.TrySynthesizeIsReadOnlyAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
+        {
+            if ((object)_lazyIsUnmanagedAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyIsUnmanagedAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsUnmanagedAttribute();
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
@@ -222,6 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyIsByRefLikeAttribute,
                     diagnostics,
                     AttributeDescription.IsByRefLikeAttribute);
+            }
+
+            if (this.NeedsGeneratedIsUnmanagedAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsUnmanagedAttribute,
+                    diagnostics,
+                    AttributeDescription.IsUnmanagedAttribute);
             }
         }
 

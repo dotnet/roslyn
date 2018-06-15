@@ -24,9 +24,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a As Ac ... iteLine("")')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... iteLine("")')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... iteLine("")')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= Sub() Con ... iteLine("")')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
@@ -107,9 +110,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... iteLine("")')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= Sub(i As  ... iteLine("")')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
@@ -157,9 +163,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.String)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... iteLine("")')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= Sub(c1 As ... iteLine("")')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
@@ -206,9 +215,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... nExistant()')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Func(Of System.String)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... nExistant()')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... nExistant()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= Function( ... nExistant()')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
@@ -218,7 +230,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
                 Locals: Local_1: <anonymous local> As System.String
                 IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
                   ReturnedValue: 
-                    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -253,9 +265,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... unction() 1')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Func(Of System.String)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... unction() 1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... unction() 1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= Function() 1')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Function() 1')
@@ -265,7 +280,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
                 Locals: Local_1: <anonymous local> As System.String
                 IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
                   ReturnedValue: 
-                    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -299,9 +314,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a As Ac ... unction() 1')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... unction() 1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... unction() 1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= Function() 1')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'Function() 1')
@@ -338,9 +356,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a As Ac ... riteLine(o)')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.String)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... riteLine(o)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... riteLine(o)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= Sub(o As  ... riteLine(o)')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.String), IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
@@ -512,7 +533,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.String
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -553,7 +574,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.String
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -590,12 +611,15 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.Object)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... f Integer))')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.Object)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= CType(Sub ... f Integer))')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Sub(i ... f Integer))')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Sub(i ... f Integer))')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Sub(i ... f Integer))')
@@ -645,7 +669,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.Object
         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '1')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -748,12 +772,15 @@ End Module
             ' Explicitly verifying the entire tree here to ensure that the top level initializer statement is actually an IConversion, and not
             ' a delegate creation
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.Object)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... f Integer))')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.Object)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= CType(Add ... f Integer))')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Addre ... f Integer))')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Addre ... f Integer))')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Addre ... f Integer))')
@@ -920,7 +947,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.String
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -962,7 +989,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.String
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -1046,7 +1073,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.Object
         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '1')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1290,7 +1317,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.Object
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -1479,9 +1506,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... eLine(), 1)')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... eLine(), 1)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... eLine(), 1)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New Actio ... eLine(), 1)')
         IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... eLine(), 1)')
@@ -1733,7 +1763,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.Object
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -1753,6 +1783,623 @@ BC30002: Type 'NonExistant' is not defined.
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        CType(((Sub() Console.WriteLine())), Action)'BIND:"CType(((Sub() Console.WriteLine())), Action)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'CType(((Sub ... )), Action)')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Sub() Con ... iteLine()))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Sub() Cons ... riteLine())')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+              IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                  Expression: 
+                    IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  ReturnedValue: 
+                    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_Multiline()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        CType(((Sub()'BIND:"CType(((Sub()"
+                End Sub)), Action)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'CType(((Sub ... )), Action)')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Sub()'BIN ... End Sub))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Sub()'BIND ... End Sub)')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+              IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+                  ReturnedValue: 
+                    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_Implicit()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a As Action = ((Sub() Console.WriteLine()))'BIND:"= ((Sub() Console.WriteLine()))"
+    End Sub
+
+    Public Sub M2()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ((Sub() C ... iteLine()))')
+  IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '((Sub() Con ... iteLine()))')
+    Operand: 
+      IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '(Sub() Cons ... riteLine())')
+        Operand: 
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+            Target: 
+              IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                    Expression: 
+                      IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                        Instance Receiver: 
+                          null
+                        Arguments(0)
+                  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    Statement: 
+                      null
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    ReturnedValue: 
+                      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_InvalidMissingParameter()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        CType(((Sub()'BIND:"CType(((Sub()"
+                End Sub)), Action(Of String))
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'CType(((Sub ... Of String))')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '((Sub()'BIN ... End Sub))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '(Sub()'BIND ... End Sub)')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
+              IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'End Sub')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'End Sub')
+                  ReturnedValue: 
+                    null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30455: Argument not specified for parameter 'obj' of 'Action(Of String)'.
+        CType(((Sub()'BIND:"CType(((Sub()"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_InvalidConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        CType(((Sub()'BIND:"CType(((Sub()"
+                End Sub)), Func(Of String))
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'CType(((Sub ... Of String))')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '((Sub()'BIN ... End Sub))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '(Sub()'BIND ... End Sub)')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
+              IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'End Sub')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'End Sub')
+                  ReturnedValue: 
+                    null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Func(Of String)'.
+        CType(((Sub()'BIND:"CType(((Sub()"
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_NonDelegateTargetType_SuccessfulConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a = CType(((Sub() Console.WriteLine())), Object)'BIND:"CType(((Sub() Console.WriteLine())), Object)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'CType(((Sub ... )), Object)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '((Sub() Con ... iteLine()))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '(Sub() Cons ... riteLine())')
+          Operand: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                      Expression: 
+                        IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
+                    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      Statement: 
+                        null
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      ReturnedValue: 
+                        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_NestedCTypeNonDelegateTargetType_SuccessfulConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a = CType(((CType(Sub() Console.WriteLine(), Action))), Object)'BIND:"CType(((CType(Sub() Console.WriteLine(), Action))), Object)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'CType(((CTy ... )), Object)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '((CType(Sub ... , Action)))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '(CType(Sub( ... ), Action))')
+          Operand: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'CType(Sub() ... (), Action)')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                      Expression: 
+                        IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
+                    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      Statement: 
+                        null
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      ReturnedValue: 
+                        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_DirectCast_NonDelegateTargetType_SuccessfulConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a = DirectCast(((Sub() Console.WriteLine())), Object)'BIND:"DirectCast(((Sub() Console.WriteLine())), Object)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast( ... )), Object)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '((Sub() Con ... iteLine()))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '(Sub() Cons ... riteLine())')
+          Operand: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                      Expression: 
+                        IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
+                    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      Statement: 
+                        null
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      ReturnedValue: 
+                        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_DirectCast_NestedDirectCastNonDelegateTargetType_SuccessfulConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a = DirectCast(((DirectCast(Sub() Console.WriteLine(), Action))), Object)'BIND:"DirectCast(((DirectCast(Sub() Console.WriteLine(), Action))), Object)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast( ... )), Object)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '((DirectCas ... , Action)))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '(DirectCast ... ), Action))')
+          Operand: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'DirectCast( ... (), Action)')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                      Expression: 
+                        IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
+                    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      Statement: 
+                        null
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      ReturnedValue: 
+                        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_TryCast_NonDelegateTargetType_SuccessfulConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a = TryCast(((Sub() Console.WriteLine())), Object)'BIND:"TryCast(((Sub() Console.WriteLine())), Object)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'TryCast(((S ... )), Object)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '((Sub() Con ... iteLine()))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '(Sub() Cons ... riteLine())')
+          Operand: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                      Expression: 
+                        IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
+                    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      Statement: 
+                        null
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      ReturnedValue: 
+                        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_TryCast_NestedTryCastNonDelegateTargetType_SuccessfulConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a = TryCast(((TryCast(Sub() Console.WriteLine(), Action))), Object)'BIND:"TryCast(((TryCast(Sub() Console.WriteLine(), Action))), Object)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'TryCast(((T ... )), Object)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '((TryCast(S ... , Action)))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '(TryCast(Su ... ), Action))')
+          Operand: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'TryCast(Sub ... (), Action)')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                      Expression: 
+                        IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
+                    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      Statement: 
+                        null
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      ReturnedValue: 
+                        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_Implicit_NonDelegateTargetType_SuccessfulConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a As Object = ((Sub() Console.WriteLine()))'BIND:"= ((Sub() Console.WriteLine()))"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ((Sub() C ... iteLine()))')
+  IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Object) (Syntax: '((Sub() Con ... iteLine()))')
+    Operand: 
+      IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Object) (Syntax: '(Sub() Cons ... riteLine())')
+        Operand: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                Target: 
+                  IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                        Expression: 
+                          IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                            Instance Receiver: 
+                              null
+                            Arguments(0)
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                        Statement: 
+                          null
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                        ReturnedValue: 
+                          null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_InvalidNonDelegateTargetType_InvalidConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a = CType(((Sub() Console.WriteLine())), String)'BIND:"CType(((Sub() Console.WriteLine())), String)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid) (Syntax: 'CType(((Sub ... )), String)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '((Sub() Con ... iteLine()))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '(Sub() Cons ... riteLine())')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+              IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'Console.WriteLine()')
+                  Expression: 
+                    IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  ReturnedValue: 
+                    null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36625: Lambda expression cannot be converted to 'String' because 'String' is not a delegate type.
+        Dim a = CType(((Sub() Console.WriteLine())), String)'BIND:"CType(((Sub() Console.WriteLine())), String)"
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_DirectCast()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        DirectCast(((Sub()'BIND:"DirectCast(((Sub()"
+                End Sub)), Action)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'DirectCast( ... )), Action)')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Sub()'BIN ... End Sub))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Sub()'BIND ... End Sub)')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+              IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+                  ReturnedValue: 
+                    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_TryCast()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        TryCast(((Sub()'BIND:"TryCast(((Sub()"
+                  End Sub)), Action)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'TryCast(((S ... )), Action)')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Sub()'BIN ... End Sub))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Sub()'BIND ... End Sub)')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+              IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+                  ReturnedValue: 
+                    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 #End Region
@@ -1775,9 +2422,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= AddressOf Method2')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -1834,9 +2484,12 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a As Ac ...  o.ToString')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ...  o.ToString')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ...  o.ToString')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= AddressOf o.ToString')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'AddressOf o.ToString')
@@ -1867,9 +2520,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= AddressOf Method2')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -1908,9 +2564,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.String)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= AddressOf Method2')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -1948,9 +2607,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Func(Of System.String)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= AddressOf Method2')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -1986,9 +2648,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Func(Of System.String)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= AddressOf Method2')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -2032,9 +2697,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= AddressOf Method2')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -2065,9 +2733,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.Int32)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.Int32)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= AddressOf Method2')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'AddressOf Method2')
@@ -2102,12 +2773,15 @@ End Module]]>.Value
             ' We don't expect a delegate creation here. This is documenting that we still have a conversion expression when the target type
             ' isn't a delegate type
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As St ... sOf Method2')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.String
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As St ... sOf Method2')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As String ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= AddressOf Method2')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf Method2')
@@ -3119,9 +3793,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... Method2, 1)')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... Method2, 1)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... Method2, 1)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New Actio ... Method2, 1)')
         IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... Method2, 1)')
@@ -3346,6 +4023,382 @@ BC30002: Type 'NonExistant' is not defined.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IDelegateCreation_SharedAddressOfWithInstanceReceiver()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Shared Sub S1()
+        End Sub
+        Shared Sub S2()
+            Dim c1Instance As New C1
+            Dim a As Action = AddressOf c1Instance.S1'BIND:"AddressOf c1Instance.S1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IMethodReferenceOperation: Sub M1.C1.S1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf c1Instance.S1')
+  Instance Receiver: 
+    ILocalReferenceOperation: c1Instance (OperationKind.LocalReference, Type: M1.C1) (Syntax: 'c1Instance')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+            Dim a As Action = AddressOf c1Instance.S1'BIND:"AddressOf c1Instance.S1"
+                              ~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IDelegateCreation_SharedAddressOfAccessOnClass()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Shared Sub S1()
+        End Sub
+        Shared Sub S2()
+            Dim a As Action = AddressOf C1.S1'BIND:"AddressOf C1.S1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IMethodReferenceOperation: Sub M1.C1.S1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf C1.S1')
+  Instance Receiver: 
+    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IDelegateCreation_InstanceAddressOfAccessOnClass()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Sub S1()
+        End Sub
+        Shared Sub S2()
+            Dim a As Action = AddressOf C1.S1'BIND:"AddressOf C1.S1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf C1.S1')
+  Children(1):
+      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C1.S1')
+        Children(1):
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30469: Reference to a non-shared member requires an object reference.
+            Dim a As Action = AddressOf C1.S1'BIND:"AddressOf C1.S1"
+                              ~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreation_ParenthesizedAddressOf_CType()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        CType(((AddressOf M2)), Action)'BIND:"CType(((AddressOf M2)), Action)"
+    End Sub
+
+    Public Sub M2()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'CType(((Add ... )), Action)')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((AddressOf M2))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(AddressOf M2)')
+          Operand: 
+            IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreation_ParenthesizedAddressOf_Implicit()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a As Action = ((AddressOf M2))'BIND:"= ((AddressOf M2))"
+    End Sub
+
+    Public Sub M2()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ((AddressOf M2))')
+  IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '((AddressOf M2))')
+    Operand: 
+      IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '(AddressOf M2)')
+        Operand: 
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M2')
+            Target: 
+              IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreation_ParenthesizedAddressOf_CType_InvalidMethod()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        CType(((AddressOf M2)), Action)'BIND:"CType(((AddressOf M2)), Action)"
+    End Sub
+
+    Public Sub M2(o As Object)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: 'CType(((Add ... )), Action)')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '((AddressOf M2))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '(AddressOf M2)')
+          Operand: 
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
+              Children(1):
+                  IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
+                    Children(1):
+                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Sub M2(o As Object)' does not have a signature compatible with delegate 'Delegate Sub Action()'.
+        CType(((AddressOf M2)), Action)'BIND:"CType(((AddressOf M2)), Action)"
+                          ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreation_ParenthesizedAddressOf_CType_InvalidMissingParameter()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        CType(((AddressOf M2)), Action(Of String))'BIND:"CType(((AddressOf M2)), Action(Of String))"
+    End Sub
+
+    Public Sub M2()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'CType(((Add ... Of String))')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '((AddressOf M2))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '(AddressOf M2)')
+          Operand: 
+            IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30455: Argument not specified for parameter 'obj' of 'Action(Of String)'.
+        CType(((AddressOf M2)), Action(Of String))'BIND:"CType(((AddressOf M2)), Action(Of String))"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreation_ParenthesizedAddressOf_CType_InvalidCast()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        CType(((AddressOf M2)), Func(Of String)) 'BIND:"CType(((AddressOf M2)), Func(Of String))"
+    End Sub
+
+    Public Sub M2()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'CType(((Add ... Of String))')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '((AddressOf M2))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '(AddressOf M2)')
+          Operand: 
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
+              Children(1):
+                  IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
+                    Children(1):
+                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Sub M2()' does not have a signature compatible with delegate 'Delegate Function Func(Of String)() As String'.
+        CType(((AddressOf M2)), Func(Of String)) 'BIND:"CType(((AddressOf M2)), Func(Of String))"
+                          ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreation_ParenthesizedAddressOf_CType_InvalidNonDelegateTargetType()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        CType(((AddressOf M2)), Object)'BIND:"CType(((AddressOf M2)), Object)"
+    End Sub
+
+    Public Sub M2(o As Object)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid) (Syntax: 'CType(((Add ... )), Object)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '((AddressOf M2))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '(AddressOf M2)')
+          Operand: 
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
+              Children(1):
+                  IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
+                    Children(1):
+                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30581: 'AddressOf' expression cannot be converted to 'Object' because 'Object' is not a delegate type.
+        CType(((AddressOf M2)), Object)'BIND:"CType(((AddressOf M2)), Object)"
+                ~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreation_ParenthesizedAddressOf_DirectCast()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        DirectCast(((AddressOf M2)), Action)'BIND:"DirectCast(((AddressOf M2)), Action)"
+    End Sub
+
+    Public Sub M2()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'DirectCast( ... )), Action)')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((AddressOf M2))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(AddressOf M2)')
+          Operand: 
+            IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreation_ParenthesizedAddressOf_TryCast()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        TryCast(((AddressOf M2)), Action)'BIND:"TryCast(((AddressOf M2)), Action)"
+    End Sub
+
+    Public Sub M2()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'TryCast(((A ... )), Action)')
+  Target: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((AddressOf M2))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(AddressOf M2)')
+          Operand: 
+            IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
 #End Region
 
 #Region "Anonymous Delegates"
@@ -3364,9 +4417,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a = Sub ... End Sub')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As Sub <generated method>()
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a = Sub ... End Sub')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a = Sub()'B ... End Sub')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As Sub <generated method>()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= Sub()'BIN ... End Sub')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
@@ -3428,9 +4484,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a = Sub ... WriteLine()')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As Sub <generated method>()
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a = Sub ... WriteLine()')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a = Sub() C ... WriteLine()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As Sub <generated method>()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= Sub() Con ... WriteLine()')
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')

@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
+    <[UseExportProvider]>
     Public Class ImplicitReferenceConflictTests
 
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
@@ -46,6 +47,54 @@ class C
 
 
                 result.AssertLabeledSpansAre("foreachconflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameDeconstructCausesConflictInDeconstructionAssignment()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void M()
+    {
+        {|deconstructconflict:var (y1, y2)|} = this;
+    }
+
+    public void [|$$Deconstruct|](out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Deconstruct2")
+
+                result.AssertLabeledSpansAre("deconstructconflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameDeconstructCausesConflictInDeconstructionForEach()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void M()
+    {
+        foreach({|deconstructconflict:var (y1, y2)|} in new[] { this })
+        {
+        }
+    }
+
+    public void [|$$Deconstruct|](out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Deconstruct2")
+
+                result.AssertLabeledSpansAre("deconstructconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 

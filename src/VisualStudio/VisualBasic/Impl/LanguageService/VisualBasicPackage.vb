@@ -9,6 +9,7 @@ Imports Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
@@ -38,6 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
     <Guid(Guids.VisualBasicPackageIdString)>
     <PackageRegistration(UseManagedResourcesOnly:=True)>
+    <ProvideRoslynVersionRegistration(Guids.VisualBasicPackageIdString, "Microsoft Visual Basic", 113, 114)>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".bas")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".cls")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".ctl")>
@@ -62,7 +64,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Implements IVsUserSettingsQuery
 
         ' The property page for WinForms project has a special interface that it uses to get
-        ' entry points that are Forms: IVbEntryPointProvider. The semantics for this 
+        ' entry points that are Forms: IVbEntryPointProvider. The semantics for this
         ' interface are the same as VisualBasicProject::GetFormEntryPoints, but callers get
         ' the VB Package and cast it to IVbEntryPointProvider. The property page is managed
         ' and we've redefined the interface, so we have to register a COM aggregate of the
@@ -142,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Function
 
         Protected Overrides Function CreateEditorFactories() As IEnumerable(Of IVsEditorFactory)
-            Dim editorFactory = New VisualBasicEditorFactory(Me)
+            Dim editorFactory = New VisualBasicEditorFactory(Me.ComponentModel)
             Dim codePageEditorFactory = New VisualBasicCodePageEditorFactory(editorFactory)
 
             Return {editorFactory, codePageEditorFactory}

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 locations = new RenameLocations(
                     locations.Locations.Where(loc => filter(loc.Location)).ToSet(),
                     symbolAndProjectId, locations.Solution,
-                    locations.ReferencedSymbols, locations.ImplicitLocations,
+                    locations.ReferencedSymbols, locations.ImplicitLocations.Where(loc => filter(loc.Location)),
                     locations.Options);
             }
 

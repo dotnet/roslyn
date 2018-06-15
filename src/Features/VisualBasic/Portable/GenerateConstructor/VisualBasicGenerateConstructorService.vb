@@ -192,8 +192,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 Dim speculativeModel As SemanticModel = Nothing
                 If document.SemanticModel.TryGetSpeculativeSemanticModel(invocationStatement.SpanStart, newInvocationStatement, speculativeModel) Then
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newInvocation, cancellationToken)
-                    Return GenerateConstructorHelpers.GetDelegatingConstructor(
+                    Dim delegatingConstructor = GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes)
+
+                    If (delegatingConstructor Is Nothing OrElse meOrMybaseExpression.IsKind(SyntaxKind.MyBaseExpression)) Then
+                        Return delegatingConstructor
+                    End If
+
+                    Return If(CanDelegeteThisConstructor(state, document, delegatingConstructor, cancellationToken), delegatingConstructor, Nothing)
                 End If
             Else
                 Dim oldNode = oldToken.Parent _
@@ -248,6 +254,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
             Dim newArguments = oldArgumentList.Arguments.Take(argumentCount)
             Return SyntaxFactory.ArgumentList(New SeparatedSyntaxList(Of ArgumentSyntax)().AddRange(newArguments))
+        End Function
+
+        Protected Overrides Function GetCurrentConstructor(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As IMethodSymbol
+            Return semanticModel.GetDeclaredSymbol(token.GetAncestor(Of ConstructorBlockSyntax)().SubNewStatement, cancellationToken)
+        End Function
+
+        Protected Overrides Function GetDelegatedConstructor(semanticModel As SemanticModel, constructor As IMethodSymbol, cancellationToken As CancellationToken) As IMethodSymbol
+            Dim constructorStatements = constructor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken).Parent.GetStatements()
+            If (constructorStatements.IsEmpty()) Then
+                Return Nothing
+            End If
+            Dim constructorInitializerSyntax = constructorStatements(0)
+            Dim expressionStatement = TryCast(constructorInitializerSyntax, ExpressionStatementSyntax)
+            If (expressionStatement IsNot Nothing AndAlso expressionStatement.Expression.IsKind(SyntaxKind.InvocationExpression)) Then
+                Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(expressionStatement.Expression, cancellationToken).Symbol, IMethodSymbol)
+                Return If(methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.Constructor, methodSymbol, Nothing)
+            End If
+            Return Nothing
         End Function
     End Class
 End Namespace

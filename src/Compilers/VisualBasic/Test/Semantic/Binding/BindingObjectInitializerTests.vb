@@ -501,6 +501,47 @@ BC30991: Member 'Field1' cannot be initialized in an object initializer expressi
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        Public Sub ObjectInitializerInitializeSharedPropertyOnNewInstance()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Property Property1 As String
+
+    Public Shared Sub Main()
+        Dim c1 As New C1() With {.Property1 = "Hello World!"}'BIND:"New C1() With {.Property1 = "Hello World!"}"
+    End Sub
+
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Prop ... lo World!"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '.Property1  ... llo World!"')
+            Left: 
+              IPropertyReferenceOperation: Property C1.Property1 As System.String (Static) (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Property1')
+                Instance Receiver: 
+                  null
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30991: Member 'Property1' cannot be initialized in an object initializer expression because it is shared.
+        Dim c1 As New C1() With {.Property1 = "Hello World!"}'BIND:"New C1() With {.Property1 = "Hello World!"}"
+                                  ~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
         Public Sub ObjectInitializerInitializeNonExistentField()
             Dim source = <![CDATA[
 Option Strict On
@@ -587,7 +628,7 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
                       Children(1):
                           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... Field = 23}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '23')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '23')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
@@ -634,7 +675,7 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
                       Children(1):
                           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
@@ -723,7 +764,7 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
                       Instance Receiver: 
                         IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
@@ -805,9 +846,12 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As C3
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x')
-      Variables: Local_1: x As C3
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'x As New C3 ... .X = "goo"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As C3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New C3() ... .X = "goo"}')
           IObjectCreationOperation (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreation, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
@@ -823,7 +867,7 @@ IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
                                 Children(1):
                                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ... .X = "goo"}')
                       Right: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"goo"')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"goo"')
                           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo") (Syntax: '"goo"')
@@ -910,6 +954,16 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T() With {.Bar = 23}')
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T) (Syntax: 'With {.Bar = 23}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.Bar = 23')
+            Left: 
+              IPropertyReferenceOperation: Property IGoo.Bar As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Bar')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: 'New T() With {.Bar = 23}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -955,6 +1009,8 @@ IObjectCreationOperation (Constructor: Sub C1(Of T)..ctor()) (OperationKind.Obje
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1(Of T), IsImplicit) (Syntax: 'New C1(Of T ... ld = New T}')
             Right: 
               ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+                Initializer: 
+                  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1057,7 +1113,7 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
                 Instance Receiver: 
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ...  = .Field2}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field2')
@@ -1199,7 +1255,7 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
                               Instance Receiver: 
                                 IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ...  = .Field2}')
                           Right: 
-                            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
                               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field2')
@@ -1357,7 +1413,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC42104: Variable 'y' is used before it has been assigned a value. A null reference exception could result at runtime.
         Dim x As New C1 With {.RefTypeField = y.CreateC2}
@@ -1574,7 +1630,7 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
                       Locals: Local_1: <anonymous local> As System.Object
                       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return .Field')
                         ReturnedValue: 
-                          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '.Field')
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '.Field')
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                             Operand: 
                               IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: '.Field')
@@ -1599,7 +1655,7 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
                       Locals: Local_1: <anonymous local> As System.Object
                       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return .Field')
                         ReturnedValue: 
-                          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '.Field')
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '.Field')
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                             Operand: 
                               IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: '.Field')
@@ -1655,7 +1711,7 @@ IObjectCreationOperation (Constructor: Sub cust..ctor()) (OperationKind.ObjectCr
                 Instance Receiver: 
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: cust, IsImplicit) (Syntax: 'New cust With {.x = !a}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: '!a')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: '!a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IPropertyReferenceOperation: ReadOnly Property cust.scen5(arg As System.String) As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '!a')
@@ -1714,7 +1770,7 @@ IObjectCreationOperation (Constructor: Sub scen2..ctor()) (OperationKind.ObjectC
                 Instance Receiver: 
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: scen2, IsImplicit) (Syntax: 'New scen2 W ... .Scen2 = 5}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 5, IsImplicit) (Syntax: '5')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 5, IsImplicit) (Syntax: '5')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
@@ -1777,7 +1833,7 @@ End Class
 
             ' NOTE: Dev10 handled 416 levels of nesting, both algorithms are recursive, so there's not much to
             ' do for us here :(
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -1879,7 +1935,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC42109: Variable 'var27' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
         Dim var27 As T = New T() With {.Goo1 = var27.Goo2.Length}               ' temporary used, warning
@@ -1948,7 +2004,7 @@ End Module
    </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC30053: Arrays cannot be declared with 'New'.
         Dim b13() As New Integer() {1,2,3}
@@ -2011,7 +2067,7 @@ Console.writeline( cust2.e.ToString)
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=XmlReferences)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:=XmlReferences)
             CompileAndVerify(compilation)
         End Sub
 

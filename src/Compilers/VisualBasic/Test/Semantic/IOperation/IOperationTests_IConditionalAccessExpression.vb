@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -28,7 +29,7 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Void)
   WhenNotNull: 
     IInvocationOperation (virtual Function System.Object.ToString() As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
       Instance Receiver: 
-        IPlaceholderOperation (OperationKind.None, Type: System.Object, IsImplicit) (Syntax: 'o?.ToString()')
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: System.Object, IsImplicit) (Syntax: 'o')
       Arguments(0)
 ]]>.Value
 
@@ -60,12 +61,46 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Nulla
   WhenNotNull: 
     IPropertyReferenceOperation: ReadOnly Property C1.Prop1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.Prop1')
       Instance Receiver: 
-        IPlaceholderOperation (OperationKind.None, Type: C1, IsImplicit) (Syntax: 'c1?.Prop1')
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C1, IsImplicit) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ConditionalAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        <WorkItem(23009, "https://github.com/dotnet/roslyn/issues/23009")>
+        Public Sub IConditionalAccessExpression_ErrorReceiver()
+            Dim source = <![CDATA[
+Option Strict On
+
+Public Class C1
+    Public Sub M1()
+        MyBase?.ToString()'BIND:"MyBase?.ToString()"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Void, IsInvalid) (Syntax: 'MyBase?.ToString()')
+  Operation: 
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Object, IsInvalid) (Syntax: 'MyBase')
+  WhenNotNull: 
+    IInvocationOperation (virtual Function System.Object.ToString() As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
+      Instance Receiver: 
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'MyBase')
+      Arguments(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC32027: 'MyBase' must be followed by '.' and an identifier.
+        MyBase?.ToString()'BIND:"MyBase?.ToString()"
+        ~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ConditionalAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -427,7 +426,7 @@ public class C
 ");
         }
         [WorkItem(546412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546412")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestBug15818()
         {
             var source =
@@ -447,7 +446,7 @@ class C
     }
 }";
             var tree = Parse(source);
-            var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
+            var compilation = CreateEmptyCompilation(tree, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, assemblyName: "Test");
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
@@ -504,7 +503,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -578,7 +577,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -823,7 +822,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"
@@ -1833,7 +1832,7 @@ public class D
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestAssignIdentity()
         {
             string source = @"
@@ -1879,7 +1878,7 @@ There are no context policies.
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestRefCast()
         {
             string source = @"
@@ -4326,7 +4325,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: false, options: TestOptions.ReleaseExe);
+", verify: Verification.Fails, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4459,7 +4458,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: false, options: TestOptions.ReleaseExe);
+", verify: Verification.Fails, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -4994,7 +4993,7 @@ public class D
         }
 
         [Fact]
-        public void ReadonlyAddress()
+        public void ReadonlyAddressConstrained()
         {
             string source = @"
 public class D
@@ -5052,6 +5051,204 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
   IL_0031:  ret       
 }
 ");
+        }
+
+        [WorkItem(22858, "https://github.com/dotnet/roslyn/issues/22858")]
+        [Fact]
+        public void CovariantArrayRefParam()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                Test(ref ((object[])new string[] { ""hi"", ""hello"" })[0]);
+            }
+            catch (System.ArrayTypeMismatchException)
+            {
+                System.Console.WriteLine(""PASS"");
+            }
+        }
+
+        static void Test(ref object r)
+        {
+            throw null;
+        }
+    }";
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"PASS", verify: Verification.Passes);
+
+            compilation.VerifyIL("Program.Main(string[])",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  4
+  .locals init (object[] V_0)
+  .try
+  {
+    IL_0000:  ldc.i4.2
+    IL_0001:  newarr     ""string""
+    IL_0006:  dup
+    IL_0007:  ldc.i4.0
+    IL_0008:  ldstr      ""hi""
+    IL_000d:  stelem.ref
+    IL_000e:  dup
+    IL_000f:  ldc.i4.1
+    IL_0010:  ldstr      ""hello""
+    IL_0015:  stelem.ref
+    IL_0016:  stloc.0
+    IL_0017:  ldloc.0
+    IL_0018:  ldc.i4.0
+    IL_0019:  ldelema    ""object""
+    IL_001e:  call       ""void Program.Test(ref object)""
+    IL_0023:  leave.s    IL_0032
+  }
+  catch System.ArrayTypeMismatchException
+  {
+    IL_0025:  pop
+    IL_0026:  ldstr      ""PASS""
+    IL_002b:  call       ""void System.Console.WriteLine(string)""
+    IL_0030:  leave.s    IL_0032
+  }
+  IL_0032:  ret
+}
+");
+        }
+
+        [WorkItem(22841, "https://github.com/dotnet/roslyn/issues/22841")]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        [Fact]
+        public void ReadonlyAddressInParam()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var stringArray = new string[] { ""hi"", ""hello"" };
+            var objectArray = (object[])stringArray;
+
+            Test(objectArray[0]);
+        }
+
+        static void Test(in object r)
+        {
+            System.Console.WriteLine(r);
+        }
+    }";
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Fails);
+
+            compilation.VerifyIL("Program.Main(string[])",
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  4
+  .locals init (object[] V_0)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""string""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldstr      ""hi""
+  IL_000d:  stelem.ref
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  ldstr      ""hello""
+  IL_0015:  stelem.ref
+  IL_0016:  stloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4.0
+  IL_0019:  readonly.
+  IL_001b:  ldelema    ""object""
+  IL_0020:  call       ""void Program.Test(in object)""
+  IL_0025:  ret
+}
+");
+            compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            compilation.VerifyIL("Program.Main(string[])",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (object[] V_0,
+                object V_1)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""string""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldstr      ""hi""
+  IL_000d:  stelem.ref
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  ldstr      ""hello""
+  IL_0015:  stelem.ref
+  IL_0016:  stloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4.0
+  IL_0019:  ldelem.ref
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  call       ""void Program.Test(in object)""
+  IL_0022:  ret
+}
+");
+        }
+
+        [WorkItem(22841, "https://github.com/dotnet/roslyn/issues/22841")]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        [Fact]
+        public void ReadonlyAddressStrict()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var stringArray = new string[] { ""hi"", ""hello"" };
+            var objectArray = (object[])stringArray;
+
+            Test(GetElementRef(objectArray));
+        }
+
+        static ref readonly T GetElementRef<T>(T[] objectArray)
+        {
+            Test(in objectArray[0]);
+            return ref objectArray[0];
+        }
+
+        static void Test<T>(in T r)
+        {
+            System.Console.Write(r);
+        }
+    }";
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
+
+            var expectedIL = @"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  call       ""void Program.Test<T>(in T)""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  readonly.
+  IL_0012:  ldelema    ""T""
+  IL_0017:  ret
+}
+";
+            compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
+
+            // expect the same IL in the compat case since direct references are required and must be emitted with "readonly.", even though unverifiable
+            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
         }
 
         [Fact]
@@ -6404,7 +6601,7 @@ public class D
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void InitFromBlob()
         {
             string source = @"
@@ -6443,7 +6640,7 @@ public class D
         System.Console.WriteLine(d[4]);
     }
 }";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
+            var compilation = CompileAndVerifyWithMscorlib40(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 3
 -5
 True
@@ -6694,7 +6891,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: @"
 Byte
 Char
 DBNull
@@ -9222,7 +9419,7 @@ VerifyIL("Test.Main", @"
         [Fact(), WorkItem(543691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543691")]
         public void NullableAsArgsForTypeParameter()
         {
-            CreateCompilationWithMscorlibAndSystemCore(@"
+            CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
 class C
 {
@@ -10215,7 +10412,7 @@ class Test
         (new Test()).Goo();
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             // Both Dev10 and Roslyn currently generate unverifiable code for this case...
             // Dev10 reports warning CS0626: Method, operator, or accessor 'Test.Goo()' is marked external
@@ -10225,7 +10422,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: false).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -10256,9 +10453,9 @@ public class Test
         }
     }
 }";
-            CompileAndVerify(
+            CompileAndVerifyWithMscorlib40(
                 source,
-                additionalRefs: new[] { SystemCoreRef },
+                references: new[] { SystemCoreRef },
                 expectedOutput: @"Success");
         }
 
@@ -10283,7 +10480,7 @@ class Test
     }
 }
 ";
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateEmptyCompilation(source).VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
         }
 
@@ -10302,7 +10499,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [WorkItem(542267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542267")]
@@ -10536,7 +10733,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 00000000000000000000000000000000
 00000000000000000000000000010000
@@ -10584,11 +10781,11 @@ class C
             decimal d;
             if (decimal.TryParse("0E1", System.Globalization.NumberStyles.AllowExponent, null, out d))
             {
-                CreateStandardCompilation(source).VerifyDiagnostics();
+                CreateCompilation(source).VerifyDiagnostics();
             }
             else
             {
-                CreateStandardCompilation(source).VerifyDiagnostics(
+                CreateCompilation(source).VerifyDiagnostics(
                     // (6,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
                     Diagnostic(ErrorCode.ERR_FloatOverflow, "0E1M").WithArguments("decimal").WithLocation(6, 27),
                     // (7,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
@@ -10656,7 +10853,7 @@ class Goo
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 00000001000000000000000000000000
 0000000a000000000000000000010000
@@ -10736,7 +10933,7 @@ class Goo
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 00000001000000000000000080000000
 0000000a000000000000000080010000
@@ -10810,7 +11007,7 @@ class Goo
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 ffffffffffffffffffffffff00000000
 ffffffffffffffffffffffff00000000
@@ -11513,7 +11710,7 @@ public class DefaultParameterValues
             System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1);
+            var compilation1 = CreateCompilation(source1);
 
             var source2 = @"
 public class Test
@@ -12025,7 +12222,7 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"42", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Fails);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12058,7 +12255,39 @@ struct MyManagedStruct
 }
 ");
 
-            comp = CompileAndVerify(source, expectedOutput: @"42", verify: true, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (MyManagedStruct V_0)
+  IL_0000:  newobj     ""cls1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""MyManagedStruct cls1.y""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       ""void MyManagedStruct.mutate(int)""
+  IL_0015:  dup
+  IL_0016:  ldfld      ""MyManagedStruct cls1.y""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_0023:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0028:  ldc.i4     0x1c8
+  IL_002d:  call       ""void MyManagedStruct.Nested.Nested1.mutate(int)""
+  IL_0032:  ldfld      ""MyManagedStruct cls1.y""
+  IL_0037:  ldfld      ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_003c:  ldfld      ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0041:  ldfld      ""int MyManagedStruct.Nested.Nested1.num""
+  IL_0046:  call       ""void System.Console.WriteLine(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions: TestOptions.Regular7_1);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12146,7 +12375,7 @@ struct MyManagedStruct
             return null;
         }
     }";
-            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Fails);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12175,7 +12404,7 @@ struct MyManagedStruct
 }
 ");
 
-            comp = CompileAndVerify(source, expectedOutput: @"-10", verify: true, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12394,7 +12623,7 @@ class C
 }
 ";
             // NOTE: this is a breaking change - dev10 builds and prints 11.
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (8,63): error CS1939: Cannot pass the range variable 'x' as an out or ref parameter
                 //         foreach (var e in from x in new int[2] select Goo(ref x))
                 Diagnostic(ErrorCode.ERR_QueryOutRefRangeVariable, "x").WithArguments("x"));
@@ -12617,7 +12846,7 @@ class C
         Console.WriteLine((decimal)2e-30f);
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,27): error CS0031: Constant value '-1E+30' cannot be converted to a 'decimal'
                 //         Console.WriteLine((decimal)-1e30d); // Dev11: CS0031
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)-1e30d").WithArguments("-1E+30", "decimal"),
@@ -12639,7 +12868,7 @@ class C
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,31): error CS0031: Constant value '-3E+30' cannot be converted to a 'decimal'
                 //             Console.WriteLine((decimal)-3e30d); // Dev11: CS0030
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)-3e30d").WithArguments("-3E+30", "decimal"),
@@ -12767,7 +12996,7 @@ enum " + "\u0915\u094d\u200d\u0937" + @"
   .field public static literal valuetype E '" + "\u0915\u094d\u200d\u0937" + @"' = int32(0x00000000)
 } // end of class E
 ";
-            var comp = CreateCompilationWithCustomILSource("", il);
+            var comp = CreateCompilationWithILAndMscorlib40("", il);
             var @enum = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
             var field = @enum.GetMembers().OfType<FieldSymbol>().Single();
             Assert.False(field.CanBeReferencedByName);
@@ -12958,7 +13187,7 @@ expectedOutput: "-100");
         return () => { }; // generate lambda
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithConcurrentBuild(false));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithConcurrentBuild(false));
             var options = compilation.Options;
             var diagnostics = DiagnosticBag.GetInstance();
 
@@ -12992,7 +13221,7 @@ expectedOutput: "-100");
             diagnostics.Free();
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(546957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546957")]
         public void Bug17352_VarArgCtor()
         {
@@ -13062,6 +13291,222 @@ blah");
 ");
         }
 
+        [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void VarargBridgeSource()
+        {
+
+            var code = @"
+public class VarArgs
+{
+    public void Invoke(__arglist)
+    {
+        var ai = new System.ArgIterator(__arglist);
+        System.Console.WriteLine(ai.GetRemainingCount());
+    }
+}
+
+interface IVarArgs
+{
+    void Invoke(__arglist);
+}
+
+class MyVarArgs : VarArgs, IVarArgs
+{
+
+}
+
+public static class P
+{
+    public static void Main()
+    {
+        IVarArgs iv = new MyVarArgs();
+
+        iv.Invoke(__arglist(1, 2, 3, 4));
+    }
+}
+";
+
+            var compilation = CompileAndVerifyWithMscorlib40(code, expectedOutput: "4");
+        }
+
+        [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void VarargByRef()
+        {
+            var code = @"
+using System;
+class A
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref int a = ref __refvalue(args.GetNextArg(), int);
+        a = 5;
+    }
+    static void Main()
+    {
+        int a = 0;
+        Test(__arglist(ref a));
+        Console.WriteLine(a);
+    }
+}
+";
+            var comp = CompileAndVerify(code, expectedOutput: "5", options: TestOptions.DebugExe);
+            comp.VerifyIL("A.Main",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (int V_0) //a
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""void A.Test(__arglist) with __arglist( ref int)""
+  IL_000a:  nop
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""void System.Console.WriteLine(int)""
+  IL_0011:  nop
+  IL_0012:  ret
+}
+");
+
+            comp = CompileAndVerify(code, expectedOutput: "5", options: TestOptions.ReleaseExe);
+            comp.VerifyIL("A.Main",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (int V_0) //a
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""void A.Test(__arglist) with __arglist( ref int)""
+  IL_0009:  ldloc.0
+  IL_000a:  call       ""void System.Console.WriteLine(int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void VarargBridgeMeta()
+        {
+            var reference = CreateCompilation(@"
+public class VarArgs
+{
+    public void Invoke(__arglist)
+    {
+        var ai = new System.ArgIterator(__arglist);
+        System.Console.WriteLine(ai.GetRemainingCount());
+    }
+}");
+
+            var code = @"
+interface IVarArgs
+{
+    void Invoke(__arglist);
+}
+
+class MyVarArgs : VarArgs, IVarArgs
+{
+
+}
+
+public static class P
+{
+    public static void Main()
+    {
+        IVarArgs iv = new MyVarArgs();
+
+        iv.Invoke(__arglist(1, 2, 3, 4));
+    }
+}
+";
+
+            var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter.
+                // class MyVarArgs : VarArgs, IVarArgs
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(7, 28)
+                );
+
+            comp = CreateCompilation(code, references: new[] { reference.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter.
+                // class MyVarArgs : VarArgs, IVarArgs
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(7, 28)
+                );
+        }
+
+        [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void VarargBridgeSourceModopt()
+        {
+
+            var il = @"
+.class interface public auto ansi abstract IVarArgs
+{
+	// Methods
+	.method public hidebysig newslot abstract virtual 
+		instance vararg int32 modopt(int64) Invoke () cil managed 
+	{
+	} // end of method IVarArgs::Invoke
+
+} // end of class IVarArgs
+
+
+";
+
+            var reference = CompileIL(il);
+
+            var code = @"
+
+public class VarArgs
+{
+    public int Invoke(__arglist) => throw null;
+}
+
+class MyVarArgs : VarArgs, IVarArgs
+{
+
+}
+
+class MyVarArgs2 : IVarArgs
+{
+    public int Invoke(__arglist) => throw null;
+}
+
+class MyVarArgs3 : IVarArgs
+{
+    // this is ok, modifiers are copied
+    int IVarArgs.Invoke(__arglist) => throw null;
+}
+
+public static class P
+{
+    public static void Main()
+    {
+        IVarArgs iv = new MyVarArgs3();
+
+        iv.Invoke(__arglist(1, 2, 3, 4));
+    }
+}
+";
+
+            var comp = CreateCompilation(code, references: new[] { reference });
+            comp.VerifyDiagnostics(
+                // (15,16): error CS0630: 'MyVarArgs2.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs2' because it has an __arglist parameter
+                //     public int Invoke(__arglist) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "Invoke").WithArguments("MyVarArgs2.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs2").WithLocation(15, 16),
+                // (8,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter
+                // class MyVarArgs : VarArgs, IVarArgs
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(8, 28)
+                );
+        }
+
         [WorkItem(530067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530067")]
         [Fact]
         public void NopAfterCall()
@@ -13084,8 +13529,8 @@ class C
 }
 ";
 
-            var compRelease = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
-            var compDebug = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var compDebug = CreateCompilation(source, options: TestOptions.DebugExe);
 
             // (2) is not met.
             CompileAndVerify(compRelease).VerifyIL("C.Main", @"
@@ -13128,7 +13573,7 @@ class C
 }
 ";
             // Nop after Debugger.Break(), even though it isn't at the end of a statement.
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             var v = CompileAndVerify(comp);
 
             v.VerifyIL("C.Main", @"
@@ -13681,7 +14126,7 @@ public class Test
 }
 ";
 
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
+            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
         }
 
 
@@ -14038,7 +14483,7 @@ class C
         switch (s) { case ""A"": break; case ""B"": break; }
     }
 }";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14071,7 +14516,7 @@ class C
 {
     static object F = typeof(C);
 }";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14107,7 +14552,7 @@ class C
         return __reftype(__makeref(o));
     }
 }";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14129,7 +14574,7 @@ class C
         return __reftype(__makeref(o));
     }
 }";
-            compilation = CreateStandardCompilation(text);
+            compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14288,7 +14733,7 @@ public static class AExtensions
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -14314,7 +14759,7 @@ static class CExtensions
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -14376,7 +14821,7 @@ using System;
     }
 ";
 
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: @""
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @""
 ).VerifyIL("Program.TestArrElement(bool[])",
 @"
 {
@@ -14581,7 +15026,7 @@ class Program
 }";
 
             var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
-            var compilation = CompileAndVerify(source, additionalRefs: new[] { testReference });
+            var compilation = CompileAndVerify(source, references: new[] { testReference });
             compilation.VerifyIL("Program.Main", @"
 {
   // Code size       12 (0xc)
@@ -14858,7 +15303,7 @@ class Program
 
         [WorkItem(5880, "https://github.com/dotnet/roslyn/issues/5880")]
         [Fact]
-        public void StuctCtorArgTernary()
+        public void StructCtorArgTernary()
         {
             string source = @"
    using System.Collections.Generic;
@@ -15005,7 +15450,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
 
             // the main point of this test is to have it PEVerify/run correctly, although checking IL too can't hurt.
             compilation.VerifyIL("M..ctor",
@@ -15074,7 +15519,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
 
             compilation.VerifyIL("M..ctor",
 @"{
@@ -15142,10 +15587,10 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (6,16): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     object a = Test((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(6, 16)
             );
         }
 
@@ -15187,7 +15632,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
         }
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
@@ -15233,10 +15678,10 @@ class M : B
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (16,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //     public M() : base((object)Test((dynamic)2))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(16, 31)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(16, 31)
             );
         }
 
@@ -15266,10 +15711,10 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (8,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //         Console.Write((object)Test((dynamic)2));
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(8, 31)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(8, 31)
             );
         }
 
@@ -15294,10 +15739,10 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (4,31): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     static object o = (object)Test((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(4, 31)
             );
         }
 
@@ -15353,25 +15798,25 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
                 // (30,30): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     int instanceField = (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
                 // (21,25): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //             return (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
                 // (26,21): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //         return (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
                 // (31,33): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C(int x) : base((int)InstanceMethod((dynamic)x))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)x)").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
                 // (34,28): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C() : this((int)InstanceMethod((dynamic)2))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
             );
         }
 
@@ -15432,25 +15877,25 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
                 // (30,30): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     int instanceField = (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
                 // (21,25): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //             return (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
                 // (26,21): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //         return (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
                 // (31,33): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C(int x) : base((int)C.InstanceMethod((dynamic)x))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)x)").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
                 // (34,28): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C() : this((int)C.InstanceMethod((dynamic)2))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
             );
         }
 
@@ -15633,7 +16078,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "0");
         }
 
@@ -15687,7 +16132,7 @@ class Test
     }
 }", TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "24");
+            CompileAndVerify(comp, expectedOutput: "24", verify: Verification.Fails);
         }
 
         [Fact]
@@ -15706,20 +16151,15 @@ class Test
     }
 }", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "330", verify: false).VerifyIL("Test.Main", @"
+            CompileAndVerify(comp, expectedOutput: "330", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       49 (0x31)
   .maxstack  2
-  .locals init (System.Span<int> V_0, //x
-                int V_1)
-  IL_0000:  ldc.i4.s   33
-  IL_0002:  stloc.1
-  IL_0003:  ldloc.1
-  IL_0004:  conv.u
-  IL_0005:  ldc.i4.4
-  IL_0006:  mul.ovf.un
-  IL_0007:  localloc
-  IL_0009:  ldloc.1
+  .locals init (System.Span<int> V_0) //x
+  IL_0000:  ldc.i4     0x84
+  IL_0005:  conv.u
+  IL_0006:  localloc
+  IL_0008:  ldc.i4.s   33
   IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
   IL_000f:  stloc.0
   IL_0010:  ldloca.s   V_0
@@ -15758,7 +16198,7 @@ class Test
     }
 }", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "12345", verify: false).VerifyIL("Test.Main", @"
+            CompileAndVerify(comp, expectedOutput: "12345", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       44 (0x2c)
   .maxstack  2
@@ -15819,7 +16259,7 @@ unsafe class Test
     }
 }", TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: false);
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: Verification.Fails);
         }
 
         [Fact]
@@ -15841,7 +16281,415 @@ unsafe class Test
     }
 }", TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: false);
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void ArrayElementCompoundAssignment_Invariant()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(string[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(string[] a, string s)
+    {
+        a[0] += s;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "B");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""string""
+  IL_0007:  dup
+  IL_0008:  ldind.ref
+  IL_0009:  ldarg.1
+  IL_000a:  call       ""string string.Concat(string, string)""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+        }
+
+        [WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")]
+        [Fact]
+        public void ArrayElementCompoundAssignment_Covariant()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new object[] { """" }, ""A"");
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(object[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(object[] a, string s)
+    {
+        a[0] += s;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "AB");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  4
+  .locals init (object[] V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelem.ref
+  IL_0007:  ldarg.1
+  IL_0008:  call       ""string string.Concat(object, object)""
+  IL_000d:  stelem.ref
+  IL_000e:  ret
+}");
+        }
+
+        [Fact]
+        public void ArrayElementCompoundAssignment_ValueType()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new int[] { 1 }, 2);
+    }
+    static void F(int[] a, int i)
+    {
+        G(a, i);
+        System.Console.Write(a[0]);
+    }
+    static void G(int[] a, int i)
+    {
+        a[0] += i;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "3");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  dup
+  IL_0008:  ldind.i4
+  IL_0009:  ldarg.1
+  IL_000a:  add
+  IL_000b:  stind.i4
+  IL_000c:  ret
+}");
+        }
+
+        [WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")]
+        [Fact]
+        public void ArrayElementCompoundAssignment_Covariant_NonConstantIndex()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new object[] { """" }, ""A"");
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(object[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(object[] a, string s)
+    {
+        a[Index(a)] += s;
+    }
+    static int Index(object arg)
+    {
+        System.Console.Write(arg.GetType().Name);
+        return 0;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "Object[]AString[]B");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  4
+  .locals init (object[] V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""int C.Index(object)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  ldelem.ref
+  IL_000e:  ldarg.1
+  IL_000f:  call       ""string string.Concat(object, object)""
+  IL_0014:  stelem.ref
+  IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        public void ArrayElementIncrement_ValueType()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new int[] { 1 });
+    }
+    static void F(int[] a)
+    {
+        G(a);
+        System.Console.Write(a[0]);
+    }
+    static void G(int[] a)
+    {
+        a[0]++;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  dup
+  IL_0008:  ldind.i4
+  IL_0009:  ldc.i4.1
+  IL_000a:  add
+  IL_000b:  stind.i4
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void EnumConstraint_NoBoxing()
+        {
+            var code = @"
+enum E1
+{
+    A = 5
+}
+class Test1
+{
+    public static void M<T>(T arg)  where T : struct, System.Enum
+    {
+    }
+}
+class Test2
+{
+    public void M()
+    {
+        Test1.M(E1.A);
+    }
+}";
+
+            CompileAndVerify(code).VerifyIL("Test2.M", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.5
+  IL_0001:  call       ""void Test1.M<E1>(E1)""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PartialMethodsWithInParameter_WithBody()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        M(5);
+    }
+    partial void M(in int i);
+}
+partial class C
+{
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "5")
+                .VerifyIL("C.Call", @"
+
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.5
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""void C.M(in int)""
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void PartialMethodsWithInParameter_NoBody()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        M(5);
+    }
+    partial void M(in int i);
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}")
+                .VerifyIL("C.Call", @"
+
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [Fact]
+        public void OverloadingPartialMethods_RefKindInWithNone_ImplementIn()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        int x = 0;
+        M(x);
+        M(in x);
+    }
+    partial void M(in int i);
+    partial void M(int i);
+}
+partial class C
+{
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(""in called"");
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "in called");
+        }
+
+        [Fact]
+        public void OverloadingPartialMethods_RefKindInWithNone_ImplementNone()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        int x = 0;
+        M(x);
+        M(in x);
+    }
+    partial void M(in int i);
+    partial void M(int i);
+}
+partial class C
+{
+    partial void M(int i)
+    {
+        System.Console.WriteLine(""none called"");
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "none called");
+        }
+
+        [Fact]
+        public void OverloadingPartialMethods_RefKindInWithNone_ImplementBoth()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        int x = 0;
+        M(x);
+        M(in x);
+    }
+    partial void M(in int i);
+    partial void M(int i);
+}
+partial class C
+{
+    partial void M(int i)
+    {
+        System.Console.WriteLine(""none called"");
+    }
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(""in called"");
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: @"
+none called
+in called");
         }
     }
 }

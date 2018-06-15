@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// When the compilation is recreated for a solution the compiler asks for metadata again and we need to provide the original content,
         /// not read the file again. Therefore we need to save the timestamp on the <see cref="Snapshot"/>.
         /// 
-        /// When the VS observes a change in a metadata reference file the <see cref="Project"/> version is advanced and a new instance of 
+        /// When the VS observes a change in a metadata reference file the project version is advanced and a new instance of 
         /// <see cref="Snapshot"/> is created for the corresponding reference.
         /// </remarks>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]

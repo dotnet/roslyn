@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
         }
 
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get { return _sourceTypeParameter.HasUnmanagedTypeConstraint; }
+        }
+
         public override ImmutableArray<Location> Locations
         {
             get { throw ExceptionUtilities.Unreachable; }
@@ -119,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
             var interfaces = _sourceTypeParameter.GetInterfaces(inProgress);
-            return this.TypeMap.SubstituteNamedTypes(Interfaces);
+            return this.TypeMap.SubstituteNamedTypes(interfaces);
         }
 
         private TypeMap TypeMap

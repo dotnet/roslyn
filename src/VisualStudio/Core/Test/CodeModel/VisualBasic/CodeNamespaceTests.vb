@@ -2,6 +2,7 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
@@ -817,6 +818,94 @@ End Namespace
 </Code>
 
             Await TestSetDocComment(code, expected, "<summary>Hello World</summary>")
+        End Function
+
+#End Region
+
+#Region "Set Name tests"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_SameName() As Task
+            Dim code =
+<Code>
+Namespace N$$
+    Class C
+    End Class
+End Namespace
+</Code>
+
+            Dim expected =
+<Code>
+Namespace N
+    Class C
+    End Class
+End Namespace
+</Code>
+
+            Await TestSetName(code, expected, "N", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_NewName() As Task
+            Dim code =
+<Code>
+Namespace N$$
+    Class C
+    End Class
+End Namespace
+</Code>
+
+            Dim expected =
+<Code>
+Namespace N2
+    Class C
+    End Class
+End Namespace
+</Code>
+
+            Await TestSetName(code, expected, "N2", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_SimpleNameToDottedName() As Task
+            Dim code =
+<Code>
+Namespace N1$$
+    Class C
+    End Class
+End Namespace
+</Code>
+
+            Dim expected =
+<Code>
+Namespace N2.N3
+    Class C
+    End Class
+End Namespace
+</Code>
+
+            Await TestSetName(code, expected, "N2.N3", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_DottedNameToDottedName() As Task
+            Dim code =
+<Code>
+Namespace N1.N2$$
+    Class C
+    End Class
+End Namespace
+</Code>
+
+            Dim expected =
+<Code>
+Namespace N3.N4
+    Class C
+    End Class
+End Namespace
+</Code>
+
+            Await TestSetName(code, expected, "N3.N4", NoThrow(Of String)())
         End Function
 
 #End Region

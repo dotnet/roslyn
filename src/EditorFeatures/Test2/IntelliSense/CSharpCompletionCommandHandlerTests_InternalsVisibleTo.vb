@@ -4,6 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_InternalsVisibleTo
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -341,7 +342,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
                             CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
-                            StrongNameProvider=<%= GetType(SigningTestHelpers.VirtualizedStrongNameProvider).AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
                     </Project>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
                         <Document>
@@ -363,7 +364,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
-                            StrongNameProvider=<%= GetType(SigningTestHelpers.VirtualizedStrongNameProvider).AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
                         <Document>
                             [assembly: System.Reflection.AssemblyKeyFile("<%= SigningTestHelpers.PublicKeyFile.Replace("\", "\\") %>")]
                         </Document>
@@ -389,7 +390,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
                             CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
-                            StrongNameProvider=<%= GetType(SigningTestHelpers.VirtualizedStrongNameProvider).AssemblyQualifiedName %>
+                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>
                             DelaySign="True"/>
                     </Project>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">

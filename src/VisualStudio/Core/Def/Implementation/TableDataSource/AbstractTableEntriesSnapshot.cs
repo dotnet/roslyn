@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var currentSnapshot = textBuffer.CurrentSnapshot;
-            return GetLinePosition(snapshot, trackingPoint);
+            return GetLinePosition(currentSnapshot, trackingPoint);
         }
 
         private LinePosition GetLinePosition(ITextSnapshot snapshot, ITrackingPoint trackingPoint)

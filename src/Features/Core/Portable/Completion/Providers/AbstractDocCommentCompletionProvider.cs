@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateCompletionItem(prefix, "<" + prefix, suffix);
         }
 
-        protected IEnumerable<CompletionItem> GetNestedItems(ISymbol symbol)
+        protected IEnumerable<CompletionItem> GetNestedItems(ISymbol symbol, bool includeKeywords)
         {
             var items = s_nestedTagNames.Select(GetItem);
 
@@ -135,7 +135,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                              .Concat(GetTypeParamRefItems(symbol));
             }
 
-            items = items.Concat(GetKeywordNames().Select(CreateLangwordCompletionItem));
+            if (includeKeywords)
+            {
+                items = items.Concat(GetKeywordNames().Select(CreateLangwordCompletionItem));
+            }
 
             return items;
         }
@@ -220,9 +223,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     items.Add(GetItem(ReturnsElementName));
                 }
+
+                if (symbol is INamedTypeSymbol namedType && namedType.IsDelegateType())
+                {
+                    var delegateInvokeMethod = namedType.DelegateInvokeMethod;
+                    if (delegateInvokeMethod != null)
+                    {
+                        items.AddRange(GetParameterItems(delegateInvokeMethod.GetParameters(), syntax, ParameterElementName));
+                    }
+                }
             }
 
             return items;
+        }
+
+        protected IEnumerable<CompletionItem> GetItemTagItems()
+        {
+            return new[] { TermElementName, DescriptionElementName }.Select(GetItem);
         }
 
         protected IEnumerable<CompletionItem> GetListItems()

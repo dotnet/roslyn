@@ -188,7 +188,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
             v.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""DynamicMembers"" name=""get_Prop"">
@@ -375,7 +375,7 @@ namespace ConsoleApplication1
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""ConsoleApplication1.Program"" name=""Main"" parameterNames=""args"">
@@ -531,7 +531,7 @@ class TestCase
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""TestCase"" name=""Await"" parameterNames=""d"">
@@ -752,7 +752,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -789,7 +789,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
@@ -842,7 +842,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -884,7 +884,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
@@ -943,7 +943,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -979,7 +979,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
@@ -1031,7 +1031,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1074,7 +1074,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
@@ -1089,6 +1089,234 @@ class C
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void LocalReuse_Release()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(int b)
+    {
+        if (b > 0)
+        {
+            int x = 42;   
+            int y = 42;   
+            await Task.Delay(0);
+
+            Console.WriteLine(x);
+            Console.WriteLine(x);
+        }
+
+        if (b > 0)
+        {
+            int x = 42;   
+            int y1 = 42;   
+            int z = 42;   
+            await Task.Delay(0);
+
+            Console.WriteLine(x);
+            Console.WriteLine(y1);
+            Console.WriteLine(z);
+        }
+    }
+}
+";
+            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            {
+                Assert.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "b",
+                    "<x>5__2",
+                    "<>u__1",  // awaiter
+                    "<y1>5__3",
+                    "<z>5__4",
+                }, module.GetFieldNames("C.<M>d__0"));
+            });
+
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+        <hoistedLocalScopes>
+          <slot />
+          <slot startOffset=""0x1a"" endOffset=""0x93"" />
+          <slot startOffset=""0x9f"" endOffset=""0x130"" />
+          <slot startOffset=""0x9f"" endOffset=""0x130"" />
+        </hoistedLocalScopes>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0x11"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x22"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x2e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7d"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x88"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x93"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x9f"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""25"" document=""1"" />
+        <entry offset=""0xaf"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xb7"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""33"" document=""1"" />
+        <entry offset=""0xc3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x10f"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x11a"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x125"" startLine=""28"" startColumn=""13"" endLine=""28"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x130"" hidden=""true"" document=""1"" />
+        <entry offset=""0x132"" hidden=""true"" document=""1"" />
+        <entry offset=""0x149"" startLine=""30"" startColumn=""5"" endLine=""30"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x151"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x15d"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
+      <asyncInfo>
+        <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
+        <await yield=""0x40"" resume=""0x5a"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0xd5"" resume=""0xec"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>");        
+        }
+
+        [Fact]
+        public void LocalReuse_Debug()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(int b)
+    {
+        if (b > 0)
+        {
+            int x = 42;   
+            int y = 42;   
+            await Task.Delay(0);
+
+            Console.WriteLine(x);
+            Console.WriteLine(x);
+        }
+
+        if (b > 0)
+        {
+            int x = 42;   
+            int y1 = 42;   
+            int z = 42;   
+            await Task.Delay(0);
+
+            Console.WriteLine(x);
+            Console.WriteLine(y1);
+            Console.WriteLine(z);
+        }
+    }
+}
+";
+            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            {
+                Assert.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "b",
+                    "<x>5__1",
+                    "<y>5__2",
+                    "<x>5__3",
+                    "<y1>5__4",
+                    "<z>5__5",
+                    "<>u__1",  // awaiter
+                }, module.GetFieldNames("C.<M>d__0"));
+            });
+
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+        <hoistedLocalScopes>
+          <slot startOffset=""0x2a"" endOffset=""0xb4"" />
+          <slot startOffset=""0x2a"" endOffset=""0xb4"" />
+          <slot startOffset=""0xc6"" endOffset=""0x164"" />
+          <slot startOffset=""0xc6"" endOffset=""0x164"" />
+          <slot startOffset=""0xc6"" endOffset=""0x164"" />
+        </hoistedLocalScopes>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""1"" offset=""11"" />
+          <slot kind=""33"" offset=""102"" />
+          <slot kind=""temp"" />
+          <slot kind=""1"" offset=""217"" />
+          <slot kind=""33"" offset=""337"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0x19"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x33"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x3b"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x47"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9b"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""34"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""34"" document=""1"" />
+        <entry offset=""0xb3"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb4"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""19"" document=""1"" />
+        <entry offset=""0xbf"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc6"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xc7"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xcf"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""25"" document=""1"" />
+        <entry offset=""0xd7"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xdf"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""33"" document=""1"" />
+        <entry offset=""0xec"" hidden=""true"" document=""1"" />
+        <entry offset=""0x13f"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x14b"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x157"" startLine=""28"" startColumn=""13"" endLine=""28"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x163"" startLine=""29"" startColumn=""9"" endLine=""29"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x164"" hidden=""true"" document=""1"" />
+        <entry offset=""0x166"" hidden=""true"" document=""1"" />
+        <entry offset=""0x180"" startLine=""30"" startColumn=""5"" endLine=""30"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x188"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x195"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
+      <asyncInfo>
+        <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
+        <await yield=""0x59"" resume=""0x77"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0xfe"" resume=""0x11a"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+      </asyncInfo>
     </method>
   </methods>
 </symbols>");
@@ -1128,7 +1356,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1172,7 +1400,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1220,7 +1448,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1260,7 +1488,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1307,7 +1535,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1351,7 +1579,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1451,7 +1679,7 @@ class C
             v.VerifyPdb("C.G", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""G"">
@@ -1609,7 +1837,7 @@ class C
             v.VerifyPdb("C+<G>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;G&gt;d__0"" name=""MoveNext"">
@@ -1712,7 +1940,7 @@ class C
             v.VerifyPdb("C.G", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""G"">
@@ -1754,7 +1982,7 @@ public partial class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1830,12 +2058,12 @@ class C
         }
     }
 }";
-            var v = CompileAndVerify(src, LatestVbReferences, options: TestOptions.DebugDll);
+            var v = CreateEmptyCompilation(src, LatestVbReferences, options: TestOptions.DebugDll);
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name=""test"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name=""test"" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">

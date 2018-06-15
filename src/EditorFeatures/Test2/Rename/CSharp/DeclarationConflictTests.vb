@@ -2,8 +2,8 @@
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
+    <[UseExportProvider]>
     Public Class DeclarationConflictTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -600,6 +600,37 @@ class C
                 result.AssertLabeledSpansAre("first", "M(new { }, (_, a) => (long)X(a))", type:=RelatedLocationType.ResolvedNonReferenceConflict)
                 result.AssertLabeledSpansAre("second", "M(new { }, (_, a) => (long)X(a))", type:=RelatedLocationType.ResolvedNonReferenceConflict)
                 result.AssertLabeledSpansAre("origin", "X", type:=RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(18566, "https://github.com/dotnet/roslyn/issues/18566")>
+        Public Sub ParameterInPartialMethodDefinitionConflictingWithLocalInPartialMethodImplementation()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+partial class C
+{
+    partial void M(int {|parameter0:$$x|});
+}
+                        </Document>
+                        <Document>
+partial class C
+{
+    partial void M(int {|parameter1:x|})
+    {
+        int {|local0:y|} = 1;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="y")
+
+                result.AssertLabeledSpansAre("parameter0", "y", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("parameter1", "y", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("local0", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
     End Class

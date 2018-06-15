@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 syntaxTree.IsParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                IsValidContextForType(context, cancellationToken) ||
                 syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext() ||
@@ -114,17 +115,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     return true;
 
                 // {
-                //     for(ref var x ...
-                // 
+                //     for (ref var x ...
+                //
+                //     foreach (ref var x ...
+                //
                 case SyntaxKind.OpenParenToken:
                     var previous = token.GetPreviousToken(includeSkipped: true);
-                    return previous.IsKind(SyntaxKind.ForKeyword);
+                    return previous.IsKind(SyntaxKind.ForKeyword)
+                        || previous.IsKind(SyntaxKind.ForEachKeyword);
 
                 // {
                 //     ref var x = ref
                 // 
                 case SyntaxKind.EqualsToken:
-                    return token.Parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
+                    var parent = token.Parent;
+                    return parent?.Kind() == SyntaxKind.SimpleAssignmentExpression
+                        || parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
 
                 // {
                 //     var x = true ?
@@ -135,6 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             return false;
+        }
+
+        private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
+                validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations, canBePartial: true, cancellationToken);
         }
     }
 }

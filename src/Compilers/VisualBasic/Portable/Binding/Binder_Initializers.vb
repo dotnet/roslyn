@@ -132,7 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim firstFieldOrProperty = initializer.FieldsOrProperties.First
-                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty)
+                    Dim additionalSymbols = If(initializer.FieldsOrProperties.Length > 1, initializer.FieldsOrProperties.RemoveAt(0), ImmutableArray(Of Symbol).Empty)
+                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty, additionalSymbols)
                     If initializerNode.Kind = SyntaxKind.ModifiedIdentifier Then
                         ' Array field with no explicit initializer.
                         Debug.Assert(initializer.FieldsOrProperties.Length = 1)

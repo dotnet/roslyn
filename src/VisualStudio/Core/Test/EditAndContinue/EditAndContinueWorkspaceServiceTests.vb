@@ -1,24 +1,18 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
-Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
+    <[UseExportProvider]>
     Public Class EditAndContinueWorkspaceServiceTests
         <Fact>
         Public Sub ReadOnlyDocumentTest()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
-            Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
+            Dim encService As IEditAndContinueService = New EditAndContinueService(diagnosticService, New TestActiveStatementProvider())
             Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
@@ -43,24 +37,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Assert.Equal(True, isReadOnly)
 
             ' edit mode
-            Dim activeStatement = New Dictionary(Of DocumentId, ImmutableArray(Of ActiveStatementSpan))()
-            Dim projectStates = ImmutableArray.Create(Of KeyValuePair(Of ProjectId, ProjectReadOnlyReason))(New KeyValuePair(Of ProjectId, ProjectReadOnlyReason)(project.Id, ProjectReadOnlyReason.None))
+            Dim projectStates = ImmutableArray.Create(New KeyValuePair(Of ProjectId, ProjectReadOnlyReason)(project.Id, ProjectReadOnlyReason.None))
 
-            encService.StartEditSession(currentSolution, activeStatement, projectStates.ToImmutableDictionary(), stoppedAtException:=False)
+            encService.StartEditSession(currentSolution, projectStates.ToImmutableDictionary(), stoppedAtException:=False)
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
             Assert.Equal(ProjectReadOnlyReason.None, projectReason)
             Assert.Equal(SessionReadOnlyReason.None, sessionReason)
             Assert.Equal(False, isReadOnly)
 
             ' end edit session
-            encService.EndEditSession()
+            encService.EndEditSession(ImmutableDictionary(Of ActiveMethodId, ImmutableArray(Of NonRemappableRegion)).Empty)
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
             Assert.Equal(ProjectReadOnlyReason.None, projectReason)
             Assert.Equal(SessionReadOnlyReason.Running, sessionReason)
             Assert.Equal(True, isReadOnly)
 
             ' break mode and stop at exception
-            encService.StartEditSession(currentSolution, activeStatement, projectStates.ToImmutableDictionary(), stoppedAtException:=True)
+            encService.StartEditSession(currentSolution, projectStates.ToImmutableDictionary(), stoppedAtException:=True)
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
             Assert.Equal(ProjectReadOnlyReason.None, projectReason)
             Assert.Equal(SessionReadOnlyReason.StoppedAtException, sessionReason)
@@ -70,7 +63,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         <Fact>
         Public Sub NotLoadedTest()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
-            Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
+            Dim encService As IEditAndContinueService = New EditAndContinueService(diagnosticService, New TestActiveStatementProvider())
             Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
@@ -83,10 +76,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             encService.StartDebuggingSession(workspace.CurrentSolution)
 
             ' edit mode
-            Dim activeStatement = New Dictionary(Of DocumentId, ImmutableArray(Of ActiveStatementSpan))()
-            Dim projectStates = ImmutableArray.Create(Of KeyValuePair(Of ProjectId, ProjectReadOnlyReason))(New KeyValuePair(Of ProjectId, ProjectReadOnlyReason)(project.Id, ProjectReadOnlyReason.NotLoaded))
+            Dim projectStates = ImmutableArray.Create(New KeyValuePair(Of ProjectId, ProjectReadOnlyReason)(project.Id, ProjectReadOnlyReason.NotLoaded))
 
-            encService.StartEditSession(currentSolution, activeStatement, projectStates.ToImmutableDictionary(), stoppedAtException:=False)
+            encService.StartEditSession(currentSolution, projectStates.ToImmutableDictionary(), stoppedAtException:=False)
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
             Assert.Equal(ProjectReadOnlyReason.NotLoaded, projectReason)
             Assert.Equal(SessionReadOnlyReason.None, sessionReason)
@@ -96,7 +88,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         <Fact>
         Public Sub MetaDataNotAvailableTest()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
-            Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
+            Dim encService As IEditAndContinueService = New EditAndContinueService(diagnosticService, New TestActiveStatementProvider())
             Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
@@ -109,10 +101,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             encService.StartDebuggingSession(workspace.CurrentSolution)
 
             ' edit mode with empty project
-            Dim activeStatement = New Dictionary(Of DocumentId, ImmutableArray(Of ActiveStatementSpan))()
             Dim projectStates = ImmutableDictionary.Create(Of ProjectId, ProjectReadOnlyReason)
 
-            encService.StartEditSession(currentSolution, activeStatement, projectStates, stoppedAtException:=False)
+            encService.StartEditSession(currentSolution, projectStates, stoppedAtException:=False)
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
             Assert.Equal(ProjectReadOnlyReason.MetadataNotAvailable, projectReason)
             Assert.Equal(SessionReadOnlyReason.None, sessionReason)

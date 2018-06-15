@@ -4,13 +4,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -142,8 +140,8 @@ namespace Roslyn.Test.Utilities
                     AssertEqualityComparer<T>.Equals(expected, actual)))
                 {
                     Fail("Expected and actual were different.\r\n" +
-                         "Expected: " + expected + "\r\n" +
-                         "Actual:   " + actual + "\r\n" +
+                         "Expected:\r\n" + expected + "\r\n" +
+                         "Actual:\r\n" + actual + "\r\n" +
                          message);
                 }
             }
@@ -267,7 +265,7 @@ namespace Roslyn.Test.Utilities
             return true;
         }
 
-        public static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = "\r\n")
+        public static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = "\r\n", Func<T, string> itemInspector = null)
         {
             var expectedSet = new HashSet<T>(expected, comparer);
             var result = expected.Count() == actual.Count() && expectedSet.SetEquals(actual);
@@ -276,8 +274,8 @@ namespace Roslyn.Test.Utilities
                 if (string.IsNullOrEmpty(message))
                 {
                     message = GetAssertMessage(
-                        ToString(expected, itemSeparator),
-                        ToString(actual, itemSeparator));
+                        ToString(expected, itemSeparator, itemInspector),
+                        ToString(actual, itemSeparator, itemInspector));
                 }
 
                 Assert.True(result, message);
@@ -473,7 +471,7 @@ namespace Roslyn.Test.Utilities
                 }
                 else
                 {
-                    itemSeparator = ",\r\n";
+                    itemSeparator = "," + Environment.NewLine;
                 }
             }
 
@@ -487,7 +485,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");
-            message.AppendLine(DiffUtil.DiffReport(expected, actual, comparer, itemInspector, itemSeparator));
+            message.AppendLine(DiffUtil.DiffReport(expected, actual, itemSeparator, comparer, itemInspector));
 
             if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out var link))
             {
@@ -560,6 +558,25 @@ namespace Roslyn.Test.Utilities
                 itemSeparator: Environment.NewLine,
                 expectedValueSourcePath: expectedValueSourcePath,
                 expectedValueSourceLine: expectedValueSourceLine);
+        }
+
+        public static void Throws<TException>(Action action, Action<TException> checker = null)
+            where TException : Exception
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                if (e is AggregateException agg && agg.InnerExceptions.Count == 1)
+                {
+                    e = agg.InnerExceptions[0];
+                }
+
+                Assert.Equal(typeof(TException), e.GetType());
+                checker?.Invoke((TException)e);
+            }
         }
     }
 }

@@ -11,6 +11,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
+    Partial Friend Class BoundAssignmentOperator
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
+            Get
+                Return ImmutableArray.Create(Of BoundNode)(Me.Left, Me.Right)
+            End Get
+        End Property
+    End Class
+
     Partial Friend Class BoundDelegateCreationExpression
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get

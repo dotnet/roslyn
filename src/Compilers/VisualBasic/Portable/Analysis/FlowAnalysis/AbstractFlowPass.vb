@@ -2249,7 +2249,7 @@ EnteredRegion:
         End Function
 
         Private Function VisitAddRemoveHandlerStatement(node As BoundAddRemoveHandlerStatement) As BoundNode
-            ' from the data/control flow prospective AddRemoveHandler
+            ' from the data/control flow perspective AddRemoveHandler
             ' statement is just a trivial binary operator.
             VisitRvalue(node.EventAccess)
             VisitRvalue(node.Handler)
@@ -2546,8 +2546,16 @@ EnteredRegion:
         End Function
 
         Public Overrides Function VisitConditionalGoto(node As BoundConditionalGoto) As BoundNode
-            VisitRvalue(node.Condition)
-            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
+            VisitCondition(node.Condition)
+            Debug.Assert(Me.IsConditionalState)
+            If node.JumpIfTrue Then
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenTrue, Me._nesting))
+                Me.SetState(Me.StateWhenFalse)
+            Else
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenFalse, Me._nesting))
+                Me.SetState(Me.StateWhenTrue)
+            End If
+
             Return Nothing
         End Function
 

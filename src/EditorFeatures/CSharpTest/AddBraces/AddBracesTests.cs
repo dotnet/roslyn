@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
@@ -217,6 +217,48 @@ class Buzz : IDisposable
         [|lock|] (str1)
             lock (str2)
                 return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task DoNotFireForFixedWithChildFixed()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    unsafe static void Main()
+    {
+        [|fixed|] (int* p = null)
+        fixed (int* q = null)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task FireForFixedWithoutBraces()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    unsafe static void Main()
+    {
+        fixed (int* p = null)
+        [|fixed|] (int* q = null)
+            return;
+    }
+}",
+@"class Program
+{
+    unsafe static void Main()
+    {
+        fixed (int* p = null)
+        fixed (int* q = null)
+        {
+            return;
+        }
     }
 }");
         }

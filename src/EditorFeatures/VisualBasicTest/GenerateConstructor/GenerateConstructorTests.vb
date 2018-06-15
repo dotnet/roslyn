@@ -1647,5 +1647,171 @@ Module P
     End Sub
 End Module")
         End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor1() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(a As Integer)
+        [|Me.New(a, 1)|]
+    End Sub
+End Class",
+"Public Class B
+    Private a As Integer
+    Private v As Integer
+
+    Public Sub New(a As Integer)
+        Me.New(a, 1)
+    End Sub
+
+    Public Sub New(a As Integer, v As Integer)
+        Me.a = a
+        Me.v = v
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor2() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(x As Integer)
+        Me.New(x, 0, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        [|Me.New(x, y)|]
+    End Sub
+End Class",
+"Public Class B
+    Private x As Integer
+    Private y As Integer
+
+    Public Sub New(x As Integer)
+        Me.New(x, 0, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        Me.x = x
+        Me.y = y
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        Me.New(x, y)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor3() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(x As Integer)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        [|Me.New(x, y)|]
+    End Sub
+End Class",
+"Public Class B
+    Private y As Integer
+
+    Public Sub New(x As Integer)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        Me.New(x)
+        Me.y = y
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        Me.New(x, y)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor4() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(x As Integer)
+        Me.New(x, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        [|Me.New(x, y, 0)|]
+    End Sub
+End Class",
+"Public Class B
+    Private x As Integer
+    Private y As Integer
+    Private v As Integer
+
+    Public Sub New(x As Integer)
+        Me.New(x, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        Me.New(x, y, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, v As Integer)
+        Me.x = x
+        Me.y = y
+        Me.v = v
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor5() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Public Sub New(a As Integer)
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.New(True, True)
+    End Sub
+
+    Public Sub New(a As Boolean, b As Boolean)
+        Me.New(1, 1)
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer, c As Integer, e As Integer)
+        [|Me.New(a, b, c)|]
+    End Sub
+End Class",
+"Class C
+    Private b As Integer
+    Private c As Integer
+
+    Public Sub New(a As Integer)
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.New(True, True)
+    End Sub
+
+    Public Sub New(a As Boolean, b As Boolean)
+        Me.New(1, 1)
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer, c As Integer)
+        Me.New(a)
+        Me.b = b
+        Me.c = c
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer, c As Integer, e As Integer)
+        Me.New(a, b, c)
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

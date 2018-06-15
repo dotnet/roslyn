@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     /// <summary>
     /// DiagnosticAnalyzer that looks for is-tests and cast-expressions, and offers to convert them
-    /// to use patterns.  i.e. if the user has <code>obj is TestFile &amp;&amp; ((TestFile)obj).Name == "Test"</code>
-    /// it will offer to convert that <code>obj is TestFile file &amp;&amp; file.Name == "Test"</code>.
+    /// to use patterns.  i.e. if the user has <c>obj is TestFile &amp;&amp; ((TestFile)obj).Name == "Test"</c>
+    /// it will offer to convert that <c>obj is TestFile file &amp;&amp; file.Name == "Test"</c>.
     /// 
     /// Complements <see cref="CSharpIsAndCastCheckDiagnosticAnalyzer"/> (which does the same,
     /// but only for code cases where the user has provided an appropriate variable name in
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // relate to the type the user is casting to, and it should not collisde with anything
             // in scope.
             var reservedNames = semanticModel.LookupSymbols(isExpression.SpanStart)
-                                             .Concat(GetExistingSymbols(semanticModel, container, cancellationToken))
+                                             .Concat(semanticModel.GetExistingSymbols(container, cancellationToken))
                                              .Select(s => s.Name)
                                              .ToSet();
 
@@ -155,15 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             return (matches, localName);
-        }
-
-        private static IEnumerable<ISymbol> GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
-        {
-            // Ignore an annonymous type property or tuple field.  It's ok if they have a name that 
-            // matches the name of the local we're introducing.
-            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
-                                .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
 
         private bool ReplacementCausesError(

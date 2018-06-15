@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 case StandardTableKeyNames2.TextInlines:
                     var inlines = new List<Inline> { new Run(" ") };
-                    inlines.AddRange(DefinitionItem.DisplayParts.ToInlines(_presenter.TypeMap));
+                    inlines.AddRange(DefinitionItem.DisplayParts.ToInlines(_presenter.ClassificationFormatMap, _presenter.TypeMap));
                     foreach (var inline in inlines)
                     {
                         inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);

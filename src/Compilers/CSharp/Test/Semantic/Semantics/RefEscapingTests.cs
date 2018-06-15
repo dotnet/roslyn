@@ -1912,7 +1912,7 @@ using System;
 using System.Collections.Generic;
 
 // X cannot be a ref-like type since it must implement IEnumerable
-// that significantly reduces the number of scenarios that coudl be applicable to ref-like types
+// that significantly reduces the number of scenarios that could be applicable to ref-like types
 class X : List<int>
 {
     void Add(Span<int> x, int y) { }
@@ -2480,7 +2480,7 @@ class Program
             var comp = CreateCompilationWithMscorlibAndSpan(text);
             comp.VerifyDiagnostics();
 
-            var compiled = CompileAndVerify(comp, verify: false);
+            var compiled = CompileAndVerify(comp, verify: Verification.Passes);
             compiled.VerifyIL("C.M(ref System.Span<int>)", @"
 {
   // Code size        8 (0x8)
@@ -2595,6 +2595,12 @@ public static class Extensions
                 // (8,9): error CS1510: A ref or out value must be an assignable variable
                 //         (global, global) = global;
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9),
+                // (8,9): error CS8352: Cannot use local '(global, global) = global' in this context because it may expose referenced variables outside of their declaration scope
+                //         (global, global) = global;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "(global, global) = global").WithArguments("(global, global) = global").WithLocation(8, 9),
+                // (8,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(ref Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         (global, global) = global;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28),
                 // (8,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Span<int>', with 2 out parameters and a void return type.
                 //         (global, global) = global;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "global").WithArguments("System.Span<int>", "2").WithLocation(8, 28),
@@ -2805,7 +2811,7 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSpan(text);
             compilation.VerifyDiagnostics(
-                // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, local)").WithArguments("System.ValueTuple`2").WithLocation(12, 28),
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
@@ -2814,31 +2820,31 @@ public class C
                 // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 36),
-                // (14,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (14,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(14, 23),
                 // (14,24): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(14, 24),
-                // (15,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (15,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, s) = (local, null); // error 3
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(15, 23),
-                // (17,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (17,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(global, """")").WithArguments("System.ValueTuple`2").WithLocation(17, 22),
                 // (17,23): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(17, 23),
-                // (18,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (18,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (local, s) = (global, null); // error 5
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(global, null)").WithArguments("System.ValueTuple`2").WithLocation(18, 22),
-                // (20,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (20,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(20, 18),
                 // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19),
-                // (21,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (21,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (c, s) = (local, null);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(21, 18)
             );
@@ -3194,6 +3200,196 @@ public class C
 
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(24776, "https://github.com/dotnet/roslyn/issues/24776")]
+        public void PointerElementAccess_RefStructPointer()
+        {
+            CreateCompilation(@"
+public ref struct TestStruct
+{
+    public void M() { }
+}
+public class C
+{
+    public static unsafe void Test(TestStruct[] ar)
+    {
+        fixed (TestStruct* p = ar)
+        {
+            for (int i = 0; i < ar.Length; i++)
+            {
+                p[i].M();
+            }
+        }
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,36): error CS0611: Array elements cannot be of type 'TestStruct'
+                //     public static unsafe void Test(TestStruct[] ar)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "TestStruct").WithArguments("TestStruct").WithLocation(8, 36));
+        }
+
+        [Fact]
+        [WorkItem(24776, "https://github.com/dotnet/roslyn/issues/24776")]
+        public void PointerIndirectionOperator_RefStructPointer()
+        {
+            CreateCompilation(@"
+public ref struct TestStruct
+{
+    public void M() { }
+}
+public class C
+{
+    public static unsafe void Test(TestStruct[] ar)
+    {
+        fixed (TestStruct* p = ar)
+        {
+            var x = *p;
+        }
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,36): error CS0611: Array elements cannot be of type 'TestStruct'
+                //     public static unsafe void Test(TestStruct[] ar)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "TestStruct").WithArguments("TestStruct").WithLocation(8, 36));
+        }
+
+        [Fact]
+        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        public void AwaitRefStruct()
+        {
+            CreateCompilation(@"
+using System.Threading.Tasks;
+
+ref struct S { }
+
+class C
+{
+    async Task M(Task<S> t)
+    {
+        _ = await t;
+
+        var a = await t;
+
+        var r = t.Result;
+        M(await t, ref r);
+    }
+
+    void M(S t, ref S t1)
+    {
+    }
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (8,26): error CS0306: The type 'S' may not be used as a type argument
+                //     async Task M(Task<S> t)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("S").WithLocation(8, 26),
+                // (12,9): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or lambda expressions.
+                //         var a = await t;
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(12, 9),
+                // (14,9): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or lambda expressions.
+                //         var r = t.Result;
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(14, 9),
+                // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         M(await t, ref r);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        public void CoalesceRefStruct()
+        {
+            CreateCompilation(@"
+ref struct S { }
+
+class C
+{
+    void M()
+    {       
+        _ = (S?)null ?? default;
+
+        var a = (S?)null ?? default;
+    }
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (8,14): error CS0306: The type 'S' may not be used as a type argument
+                //         _ = (S?)null ?? default;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(8, 14),
+                // (10,18): error CS0306: The type 'S' may not be used as a type argument
+                //         var a = (S?)null ?? default;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(10, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        public void ArrayAccessRefStruct()
+        {
+            CreateCompilation(@"
+ref struct S { }
+
+class C
+{
+    void M()
+    {       
+        _ = ((S[])null)[0];
+
+        var a = ((S[])null)[0];
+    }
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (8,15): error CS0611: Array elements cannot be of type 'S'
+                //         _ = ((S[])null)[0];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(8, 15),
+                // (10,19): error CS0611: Array elements cannot be of type 'S'
+                //         var a = ((S[])null)[0];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(10, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        public void ConditionalRefStruct()
+        {
+            CreateCompilation(@"
+ref struct S { }
+
+class C
+{
+    void M()
+    {       
+        _ = ((C)null)?.Test();
+
+        var a = ((C)null)?.Test();
+    }
+    
+    S Test() => default;        
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (8,22): error CS0023: Operator '?' cannot be applied to operand of type 'S'
+                //         _ = ((C)null)?.Test();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S").WithLocation(8, 22),
+                // (10,26): error CS0023: Operator '?' cannot be applied to operand of type 'S'
+                //         var a = ((C)null)?.Test();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S").WithLocation(10, 26)
+                );
+        }
+
+        [Fact]
+        [WorkItem(25485, "https://github.com/dotnet/roslyn/issues/25485")]
+        public void ArrayAccess_CrashesEscapeRules()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public class Class1
+{
+    public void Foo(Span<Thing>[] first, Thing[] second)
+    {
+        var x = first[0];
+    }
+}
+public struct Thing
+{
+}
+").VerifyDiagnostics(
+                // (5,21): error CS0611: Array elements cannot be of type 'Span<Thing>'
+                //     public void Foo(Span<Thing>[] first, Thing[] second)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<Thing>").WithArguments("System.Span<Thing>").WithLocation(5, 21));
         }
     }
 }

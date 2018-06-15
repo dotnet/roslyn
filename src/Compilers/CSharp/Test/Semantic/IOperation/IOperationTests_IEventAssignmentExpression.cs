@@ -123,7 +123,7 @@ IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: Sy
       Instance Receiver: 
         ILocalReferenceOperation: t (OperationKind.LocalReference, Type: Test) (Syntax: 't')
   Handler: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.EventHandler, Constant: null, IsImplicit) (Syntax: 'null')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.EventHandler, Constant: null, IsImplicit) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -309,7 +309,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
   Event Reference: 
     IEventReferenceOperation: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
       Instance Receiver: 
-        null
+        ILocalReferenceOperation: t (OperationKind.LocalReference, Type: Test, IsInvalid) (Syntax: 't')
   Handler: 
     IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
       Target: 
@@ -359,7 +359,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
   Event Reference: 
     IEventReferenceOperation: event System.EventHandler Test.MyEvent (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: 'Test.MyEvent')
       Instance Receiver: 
-        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Test')
+        null
   Handler: 
     IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
       Target: 

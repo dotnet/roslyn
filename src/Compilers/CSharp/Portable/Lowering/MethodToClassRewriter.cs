@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression originalRight = node.Right;
 
             if (leftLocal.LocalSymbol.RefKind != RefKind.None &&
-                node.RefKind != RefKind.None &&
+                node.IsRef &&
                 NeedsProxy(leftLocal.LocalSymbol))
             {
                 Debug.Assert(!proxies.ContainsKey(leftLocal.LocalSymbol));
@@ -422,8 +422,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundAssignmentOperator tempAssignment;
                 BoundLocal tempLocal = factory.StoreToTemp(rewrittenRight, out tempAssignment);
 
-                Debug.Assert(node.RefKind == RefKind.None);
-                BoundAssignmentOperator rewrittenAssignment = node.Update(rewrittenLeft, tempLocal, node.RefKind, rewrittenType);
+                Debug.Assert(!node.IsRef);
+                BoundAssignmentOperator rewrittenAssignment = node.Update(rewrittenLeft, tempLocal, node.IsRef, rewrittenType);
 
                 return new BoundSequence(
                     node.Syntax,
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewrittenType);
             }
 
-            return node.Update(rewrittenLeft, rewrittenRight, node.RefKind, rewrittenType);
+            return node.Update(rewrittenLeft, rewrittenRight, node.IsRef, rewrittenType);
         }
 
         public override BoundNode VisitFieldInfo(BoundFieldInfo node)
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {
             internal BaseMethodWrapperSymbol(NamedTypeSymbol containingType, MethodSymbol methodBeingWrapped, SyntaxNode syntax, string name)
-                : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), null, syntax.GetLocation(), name, DeclarationModifiers.Private)
+                : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), syntax.GetLocation(), name, DeclarationModifiers.Private)
             {
                 Debug.Assert(containingType.ContainingModule is SourceModuleSymbol);
                 Debug.Assert(ReferenceEquals(methodBeingWrapped, methodBeingWrapped.ConstructedFrom));

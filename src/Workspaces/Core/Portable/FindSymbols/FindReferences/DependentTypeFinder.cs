@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             // We're going to be sweeping over this project over and over until we reach a 
-            // fixed point.  In order to limit GC and excess work, we cache all the sematic
+            // fixed point.  In order to limit GC and excess work, we cache all the semantic
             // models and DeclaredSymbolInfo for hte documents we look at.
             // Because we're only processing a project at a time, this is not an issue.
             var cachedModels = new ConcurrentSet<SemanticModel>();

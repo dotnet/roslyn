@@ -4468,7 +4468,7 @@ End Module]]>.Value.Replace("~"c, FULLWIDTH_COLON))
         Dim source = "
 Imports <xmlns = ""http://xml"">
 "
-        Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll)
 
         Const bug123533IsFixed = False
 
@@ -4501,7 +4501,7 @@ Imports <xmlns = "http://xml">
         Const bug123533IsFixed = False
 
         If bug123533IsFixed Then
-            CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(import))).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40({""}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(import))).VerifyDiagnostics()
         Else
             Assert.Throws(Of ArgumentException)(Sub() GlobalImport.Parse(import))
         End If

@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ExternMethodNoImplementation = 626,
         WRN_ProtectedInSealed = 628,
         ERR_InterfaceImplementedByConditional = 629,
+        ERR_InterfaceImplementedImplicitlyByVariadic = 630,
         ERR_IllegalRefParam = 631,
         ERR_BadArgumentToAttribute = 633,
         //ERR_MissingComTypeOrMarshaller = 635,
@@ -578,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingArgument = 839,
         //ERR_AutoPropertiesMustHaveBothAccessors = 840,
         ERR_VariableUsedBeforeDeclaration = 841,
-        ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
+        //ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
         ERR_UnassignedThisAutoProperty = 843,
         ERR_VariableUsedBeforeDeclarationAndHidesField = 844,
         ERR_ExpressionTreeContainsBadCoalesce = 845,
@@ -1039,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //FTL_NoMessagesDLL = 2018,
         FTL_InvalidTarget = 2019,
         //ERR_BadTargetForSecondInputSet = 2020,    Roslyn doesn't support building two binaries at once!
-        FTL_InputFileNameTooLong = 2021,
+        FTL_InvalidInputFileName = 2021,
         //ERR_NoSourcesInLastInputSet = 2022,       Roslyn doesn't support building two binaries at once!
         WRN_NoConfigNotOnCommandLine = 2023,
         ERR_InvalidFileAlignment = 2024,
@@ -1232,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FixedBufferTooManyDimensions = 7092,
         ERR_CantReadConfigFile = 7093,
         ERR_BadAwaitInCatchFilter = 7094,
-        WRN_FilterIsConstant = 7095,
+        WRN_FilterIsConstantTrue = 7095,
         ERR_EncNoPIAReference = 7096,
         //ERR_EncNoDynamicOperation = 7097,   // dynamic operations are now allowed
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
@@ -1294,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncodinglessSyntaxTree = 8055,
         // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
-        ERR_FeatureIsExperimental = 8058,
+        //ERR_FeatureIsExperimental = 8058, No experimental feature
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8062-8069
         ERR_SwitchFallOut = 8070,
@@ -1353,6 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         ERR_LocalFunctionMissingBody = 8112,
+        ERR_InvalidHashAlgorithmName = 8113,
 
         // Available = 8113, 8114, 8115
 
@@ -1429,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
         #region stragglers for C# 7
-        ERR_PredefinedValueTupleTypeNotFound = 8179,
+        ERR_PredefinedValueTupleTypeNotFound = 8179, // We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget)
         ERR_SemiOrLBraceOrArrowExpected = 8180,
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
@@ -1458,8 +1460,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region more stragglers for C# 7
         ERR_VarInvocationLvalueReserved = 8199,
-        ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
-        ERR_ExpressionVariableInQueryClause = 8201,
+        //ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
+        //ERR_ExpressionVariableInQueryClause = 8201, 
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
@@ -1487,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadOpOnNullOrDefault = 8310,
         ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
-        WRN_DefaultInSwitch = 8313,
+        ERR_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
@@ -1517,7 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        ERR_BadParameterModifiersOrder = 8339,
+        // ERR_BadParameterModifiersOrder = 8339, // Modifier ordering is relaxed
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -1525,7 +1527,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefStructInterfaceImpl = 8343,
         ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
-
         ERR_StackAllocConversionNotPossible = 8346,
 
         ERR_EscapeCall = 8347,
@@ -1536,6 +1537,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeLocal = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
+        ERR_OutAttrOnInParam = 8355,
         #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+
+        ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
+        ERR_InvalidVersionFormatDeterministic = 8357,
+        ERR_AttributeCtorInParameter = 8358,
+
+        #region diagnostics for FilterIsConstant warning message fix
+        WRN_FilterIsConstantFalse = 8359,
+        WRN_FilterIsConstantFalseRedundantTryCatch = 8360,
+        #endregion diagnostics for FilterIsConstant warning message fix
+
+        ERR_ConditionalInInterpolation = 8361,
+        ERR_CantUseVoidInArglist = 8362,
+        ERR_DefaultInPattern = 8363,
+        ERR_InDynamicMethodArg = 8364,
+
+        #region diagnostics introduced for C# 7.3
+        ERR_FeatureNotAvailableInVersion7_3 = 8370,
+        WRN_AttributesOnBackingFieldsNotAvailable = 8371,
+        ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
+        ERR_RefLocalOrParamExpected = 8373,
+        ERR_RefAssignNarrower = 8374,
+
+        ERR_NewBoundWithUnmanaged = 8375,
+        ERR_UnmanagedConstraintMustBeFirst = 8376,
+        ERR_UnmanagedConstraintNotSatisfied = 8377,
+        ERR_CantUseInOrOutInArglist = 8378,
+        ERR_ConWithUnmanagedCon = 8379,
+        ERR_UnmanagedBoundWithClass = 8380,
+
+        ERR_InvalidStackAllocArray = 8381,
+
+        ERR_ExpressionTreeContainsTupleBinOp = 8382,
+        WRN_TupleBinopLiteralNameMismatch = 8383,
+        ERR_TupleSizesMismatchForBinOps = 8384,
+        ERR_ExprCannotBeFixed = 8385,
+        ERR_InvalidObjectCreation = 8386,
+        #endregion diagnostics introduced for C# 7.3
+        WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
+        ERR_OutVariableCannotBeByRef = 8388,
     }
+    // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         objectType)
                     { WasCompilerGenerated = true },
                     thisReference,
-                    RefKind.None,
+                    false,
                     thisReference.Type)
                 { WasCompilerGenerated = true })
             { WasCompilerGenerated = true });

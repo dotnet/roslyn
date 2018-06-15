@@ -20,15 +20,20 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.dll" target="lib\netstandard1.3" />
     <file src="Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\CSharpCodeAnalysis\**\Microsoft.CodeAnalysis.CSharp.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

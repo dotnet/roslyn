@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureTuples = MessageBase + 12711,
         IDS_FeatureOutVar = MessageBase + 12713,
 
-        IDS_FeatureIOperation = MessageBase + 12714,
+        // IDS_FeatureIOperation = MessageBase + 12714,
         IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
         IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
         IDS_ThrowExpression = MessageBase + 12717,
@@ -143,13 +143,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefStructs = MessageBase + 12726,
         IDS_FeatureReadOnlyStructs = MessageBase + 12727,
         IDS_FeatureRefExtensionMethods = MessageBase + 12728,
-        IDS_StackAllocExpression = MessageBase + 12729,
+        // IDS_StackAllocExpression = MessageBase + 12729,
         IDS_FeaturePrivateProtected = MessageBase + 12730,
+
+        IDS_FeatureRefConditional = MessageBase + 12731,
+        IDS_FeatureAttributesOnBackingFields = MessageBase + 12732,
+        IDS_FeatureImprovedOverloadCandidates = MessageBase + 12733,
+        IDS_FeatureRefReassignment = MessageBase + 12734,
+        IDS_FeatureRefFor = MessageBase + 12735,
+        IDS_FeatureRefForEach = MessageBase + 12736,
+        IDS_FeatureEnumGenericTypeConstraint = MessageBase + 12737,
+        IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12738,
+        IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12739,
+        IDS_FeatureStackAllocInitializer = MessageBase + 12740,
+        IDS_FeatureTupleEquality = MessageBase + 12741,
+        IDS_FeatureExpressionVariablesInQueriesAndInitializers = MessageBase + 12742,
+        IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
+        IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
     }
 
     // Message IDs may refer to strings that need to be localized.
     // This struct makes an IFormattable wrapper around a MessageID
-    internal struct LocalizableErrorArgument : IFormattable, IMessageSerializable
+    internal struct LocalizableErrorArgument : IFormattable
     {
         private readonly MessageID _id;
 
@@ -178,29 +193,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalizableErrorArgument(id);
         }
 
-        // Returns the string to be used in the /features flag switch to enable the MessageID feature.
-        // Always call this before RequiredVersion:
-        //   If this method returns null, call RequiredVersion and use that.
-        //   If this method returns non-null, use that.
-        // Features should be mutually exclusive between RequiredFeature and RequiredVersion.
-        //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
-        internal static string RequiredFeature(this MessageID feature)
-        {
-            switch (feature)
-            {
-                case MessageID.IDS_FeatureIOperation:
-                    return "IOperation";
-                default:
-                    return null;
-            }
-        }
-
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 7.3 features.
+                case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
+                case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
+                case MessageID.IDS_FeatureTupleEquality: // semantic check
+                case MessageID.IDS_FeatureRefReassignment:
+                case MessageID.IDS_FeatureRefFor:
+                case MessageID.IDS_FeatureRefForEach:
+                case MessageID.IDS_FeatureEnumGenericTypeConstraint: // semantic check
+                case MessageID.IDS_FeatureDelegateGenericTypeConstraint: // semantic check
+                case MessageID.IDS_FeatureUnmanagedGenericTypeConstraint: // semantic check
+                case MessageID.IDS_FeatureStackAllocInitializer:
+                case MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers: // semantic check
+                case MessageID.IDS_FeatureExtensibleFixedStatement:  // semantic check
+                case MessageID.IDS_FeatureIndexingMovableFixedBuffers: //semantic check
+                    return LanguageVersion.CSharp7_3;
+
                 // C# 7.2 features.
                 case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
                 case MessageID.IDS_FeatureLeadingDigitSeparator:
@@ -209,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRefStructs:
                 case MessageID.IDS_FeatureReadOnlyStructs:
                 case MessageID.IDS_FeatureRefExtensionMethods:
+                case MessageID.IDS_FeatureRefConditional:
                     return LanguageVersion.CSharp7_2;
 
                 // C# 7.1 features.
