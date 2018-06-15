@@ -546,6 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundSwitchSection BindSwitchSection(SwitchSectionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             var sectionBinder = originalBinder.GetBinder(node);
+            var locals = sectionBinder.GetDeclaredLocalsForScope(node);
 
             // Bind switch section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
@@ -563,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
             }
 
-            return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+            return new BoundSwitchSection(node, locals, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
         }
 
         private Dictionary<SyntaxNode, LabelSymbol> _labelsByNode;
