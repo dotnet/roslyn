@@ -1440,5 +1440,38 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "S1").WithArguments("Program.S1", "type").WithLocation(16, 24)
                 );
         }
+
+        [Fact]
+        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        public void PassingSpansToLocals_EscapeScope()
+        {
+            CompileAndVerify(
+                CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+        
+        Console.WriteLine(M1(ref x).Length);
+        Console.WriteLine(M2(ref x).Length);
+    }
+    
+    static ref Span<int> M1(ref Span<int> x)
+    {
+        ref Span<int> q = ref x;
+        return ref q;
+  	}
+    
+    static ref Span<int> M2(ref Span<int> x)
+    {
+        return ref x;
+    }
+}",
+                options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+10
+10");
+        }
     }
 }
