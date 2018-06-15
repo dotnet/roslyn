@@ -100,6 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return;
             }
 
+            if (kinds == null || kinds.Count == 0)
+            {
+                kinds = KindsProvided;
+            }
+
             var searchCurrentDocument = GetSearchCurrentDocumentOption(callback);
             var searcher = new Searcher(
                 _workspace.CurrentSolution,
