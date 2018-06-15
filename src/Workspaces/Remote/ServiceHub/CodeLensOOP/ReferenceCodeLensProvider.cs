@@ -120,9 +120,9 @@ namespace Microsoft.CodeAnalysis.Remote.CodeLensOOP
 
                 return new CodeLensDataPointDescriptor()
                 {
-                    Description = referenceCount.Count == 1 ?
-                                    string.Format(ServiceHubResources._0_reference, referenceCountString) :
-                                    string.Format(ServiceHubResources._0_references, referenceCountString),
+                    Description = referenceCount.Count == 1
+                        ? string.Format(ServiceHubResources._0_reference, referenceCountString)
+                        : string.Format(ServiceHubResources._0_references, referenceCountString),
                     IntValue = referenceCount.Count,
                     TooltipText = string.Format(ServiceHubResources.This_0_has_1_references, Util.GetCodeElementKindsString(Descriptor.Kind), referenceCountString),
                     ImageId = null
@@ -152,12 +152,12 @@ namespace Microsoft.CodeAnalysis.Remote.CodeLensOOP
                         new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference1 },
                         new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference2 },
                     },
-                    Entries = referenceLocationDescriptors.SelectAsArray(referenceLocationDescriptor =>
+                    Entries = referenceLocationDescriptors.Select(referenceLocationDescriptor =>
                     {
                         ImageId imageId = default;
                         if (referenceLocationDescriptor.Glyph.HasValue)
                         {
-                            var moniker = Util.GetImageMoniker(referenceLocationDescriptor.Glyph.Value);
+                            var moniker = referenceLocationDescriptor.Glyph.Value.GetImageMoniker();
                             imageId = new ImageId(moniker.Guid, moniker.Id);
                         }
 
@@ -169,29 +169,17 @@ namespace Microsoft.CodeAnalysis.Remote.CodeLensOOP
                             Tooltip = null,
                             Fields = new List<CodeLensDetailEntryField>()
                             {
-                                // file path
-                                new CodeLensDetailEntryField() { Text =   Descriptor.FilePath },
-                                // line number
+                                new CodeLensDetailEntryField() { Text = Descriptor.FilePath },
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LineNumber.ToString() },
-                                // column number
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ColumnNumber.ToString() },
-                                // reference text
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceLineText },
-                                // reference start
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceStart.ToString() },
-                                // reference end
                                 new CodeLensDetailEntryField() { Text = (referenceLocationDescriptor.ReferenceStart + referenceLocationDescriptor.ReferenceLength).ToString() },
-                                // reference long description
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LongDescription },
-                                // reference image id
                                 new CodeLensDetailEntryField() { ImageId = imageId }, 
-                                // text before reference 2
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText2 },
-                                // text before reference 1
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText1 },
-                                // text after reference 1
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText1 },
-                                // text after reference 2
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText2 }
                             },
                         };
@@ -213,6 +201,9 @@ namespace Microsoft.CodeAnalysis.Remote.CodeLensOOP
 
             public Task TrackChangesAsync(CancellationToken cancellationToken)
             {
+                // this asks Roslyn OOP to start track workspace changes and call back Invalidate on this type when there is one.
+                // each data point owns 1 connection which is alive while data point is alive. and all communication is done through
+                // that connection
                 return _rpc.InvokeWithCancellationAsync(
                     nameof(IRemoteCodeLensReferencesFromPrimaryWorkspaceService.SetCodeLensReferenceCallback),
                     new object[] { _projectIdGuid, Descriptor.FilePath }, cancellationToken);
