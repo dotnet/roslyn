@@ -63,18 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, optionSet, cancellationToken);
             if (!typeStyle.IsStylePreferred ||
-                typeStyle.Severity == DiagnosticSeverity.Hidden ||
+                typeStyle.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) >= ReportDiagnostic.Hidden ||
                 !typeStyle.CanConvert())
             {
                 return;
             }
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
-            var descriptor = GetDescriptorWithSeverity(typeStyle.Severity);
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span));
+            var descriptor = Descriptor;
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
         }
 
-        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan) 
-            => Diagnostic.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan));
+        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity) 
+            => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
     }
 }
