@@ -4,7 +4,10 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class MethodWellKnownAttributeData : CommonMethodWellKnownAttributeData
+    /// <summary>
+    /// Information decoded from well-known custom attributes applied on a field.
+    /// </summary>
+    internal sealed class FieldWellKnownAttributeData : CommonFieldWellKnownAttributeData
     {
         #region NonNullTypesAttribute
 

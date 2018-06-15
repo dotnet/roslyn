@@ -2452,7 +2452,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            value = default;
+            value = false;
             return false;
         }
 

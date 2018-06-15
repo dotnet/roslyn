@@ -833,7 +833,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Is module/type/method/field/property/event/parameter definition opted-in/out of treating un-annotated types as non-null.
-        /// This is determined by the presence of the `[NonNullTypes]` attribute and whether the containing module utilizes nullable reference types.
+        /// This is determined by the presence of the `[NonNullTypes]` attribute.
+        /// PROTOTYPE(NullableReferenceTypes): presumably whether the feature is turned on or off will affect NonNullTypes default value on source module.
         /// Not valid to call on non-definitions.
         /// </summary>
         internal virtual bool NonNullTypes

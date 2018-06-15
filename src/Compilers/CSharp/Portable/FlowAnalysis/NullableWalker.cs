@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (useLegacyWarnings)
                 {
-                    ReportWarningW(value.Syntax);
+                    ReportWWarning(value.Syntax);
                 }
                 else if (!ReportNullAsNonNullableReferenceIfNecessary(value))
                 {
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void ReportWarningW(SyntaxNode syntax)
+        private void ReportWWarning(SyntaxNode syntax)
         {
             ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, syntax);
         }
@@ -2648,7 +2648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (reportNullable)
                 {
-                    ReportWarningW(node.Syntax);
+                    ReportWWarning(node.Syntax);
                 }
             }
 
@@ -3444,7 +3444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbolWithAnnotations result = ApplyConversion(node.IterationVariableType, operandOpt: null, conversion, destinationType.TypeSymbol, sourceType, checkConversion: false, fromExplicitCast: true, out bool canConvertNestedNullability);
                     if (destinationType.IsReferenceType && destinationType.IsNullable == false && sourceType.IsNullable == true)
                     {
-                        ReportWarningW(node.IterationVariableType.Syntax);
+                        ReportWWarning(node.IterationVariableType.Syntax);
                     }
                     isNullableIfReferenceType = result.IsNullable;
                 }

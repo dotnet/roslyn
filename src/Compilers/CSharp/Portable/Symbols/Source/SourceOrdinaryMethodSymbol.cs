@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeSymbolWithAnnotations _lazyReturnType;
         private bool _lazyIsVararg;
-        private bool? _nonNullTypesFromAttributes;
 
         /// <summary>
         /// A collection of type parameter constraints, populated when
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken arglistToken;
 
             // Force binding of early attributes to check for NonNullTypes attribute
-            BindNonNullTypesAttribute(syntax);
+            BindNonNullTypesAttribute(syntax.AttributeLists);
 
             var nonNullTypesFlag = NonNullTypes ? BinderFlags.NonNullTypesTrue : BinderFlags.NonNullTypesFalse;
 
@@ -377,32 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckModifiers(_hasAnyBody, location, diagnostics);
-        }
-
-        /// <summary>
-        /// Force binding of early attributes to check for NonNullTypes attribute
-        /// </summary>
-        private void BindNonNullTypesAttribute(MethodDeclarationSyntax syntax)
-        {
-            CustomAttributesBag<CSharpAttributeData> temp = null;
-            LoadAndValidateAttributes(OneOrMany.Create(syntax.AttributeLists), ref temp, earlyDecodingOnly: true);
-            if (temp != null)
-            {
-                Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
-                var methodData = (CommonMethodEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
-                if (methodData != null)
-                {
-                    _nonNullTypesFromAttributes = methodData.NonNullTypes;
-                }
-            }
-        }
-
-        internal override bool NonNullTypes
-        {
-            get
-            {
-                return _nonNullTypesFromAttributes ?? base.NonNullTypes;
-            }
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
