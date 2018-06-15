@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -305,10 +306,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <param name="operation">Operation whose root is requested.</param>
         internal static IOperation GetRootOperation(this IOperation operation)
         {
-            if (operation == null)
-            {
-                throw new ArgumentNullException(nameof(operation));
-            }
+            Debug.Assert(operation != null);
 
             while (operation.Parent != null)
             {

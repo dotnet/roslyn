@@ -888,6 +888,25 @@ namespace Microsoft.CodeAnalysis
 
                         // Verify analyzer driver caches the flow graph.
                         Assert.Same(controlFlowGraph, getControlFlowGraph(operationBlock));
+
+                        // Verify exceptions for invalid inputs.
+                        try
+                        {
+                            _ = getControlFlowGraph(null);
+                        }
+                        catch (ArgumentNullException ex)
+                        {
+                            Assert.Equal(new ArgumentNullException("operationBlock").Message, ex.Message);
+                        }
+
+                        try
+                        {
+                            _ = getControlFlowGraph(operationBlock.Descendants().First());
+                        }
+                        catch (ArgumentException ex)
+                        {
+                            Assert.Equal(new ArgumentException(CodeAnalysisResources.InvalidOperationBlockForAnalysisContext, "operationBlock").Message, ex.Message);
+                        }
                     }
                 }
             }
