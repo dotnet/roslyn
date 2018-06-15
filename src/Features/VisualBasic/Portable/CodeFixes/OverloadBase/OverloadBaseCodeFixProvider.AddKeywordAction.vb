@@ -11,27 +11,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
 #Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     Partial Friend Class OverloadBaseCodeFixProvider
 #Enable Warning RS1016
-        Private Class AddOverloadsKeywordAction
+        Private Class AddKeywordAction
             Inherits CodeAction
 
             Private ReadOnly _document As Document
             Private ReadOnly _node As SyntaxNode
+            Private ReadOnly _title As String
+            Private ReadOnly _modifier As SyntaxKind
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return VBFeaturesResources.Add_Overloads
+                    Return _title
                 End Get
             End Property
 
             Public Overrides ReadOnly Property EquivalenceKey As String
                 Get
-                    Return VBFeaturesResources.Add_Overloads
+                    Return _title
                 End Get
             End Property
 
-            Public Sub New(document As Document, node As SyntaxNode)
+            Public Sub New(document As Document, node As SyntaxNode, title As String, modifier As SyntaxKind)
                 _document = document
                 _node = node
+                _title = title
+                _modifier = modifier
             End Sub
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
@@ -48,12 +52,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
 
                 Dim propertyStatement = TryCast(node, PropertyStatementSyntax)
                 If propertyStatement IsNot Nothing Then
-                    newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.OverloadsKeyword))
+                    newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(_modifier))
                 End If
 
                 Dim methodStatement = TryCast(node, MethodStatementSyntax)
                 If methodStatement IsNot Nothing Then
-                    newNode = methodStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.OverloadsKeyword))
+                    newNode = methodStatement.AddModifiers(SyntaxFactory.Token(_modifier))
                 End If
 
                 'Make sure we preserve any trivia from the original node
