@@ -2228,10 +2228,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return localSymbol.RefKind == RefKind.None;
                         }
                     case BoundKind.PointerIndirectionOperator: //Covers ->, since the receiver will be one of these.
-                    case BoundKind.PointerElementAccess:
                     case BoundKind.ConvertedStackAllocExpression:
                         {
                             return true;
+                        }
+                    case BoundKind.PointerElementAccess:
+                        {
+                            expr = ((BoundPointerElementAccess)expr).Expression;
+                            continue;
                         }
                     case BoundKind.PropertyAccess: // Never a variable.
                     case BoundKind.IndexerAccess: // Never a variable.
