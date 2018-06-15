@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
                     var solution = _registration.CurrentSolution;
                     SolutionCrawlerLogger.LogReanalyze(
-                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
+                        CorrelationId, analyzer, scope.TryGetDocumentCount(solution), scope.TryGetLanguagesStringForTelemetry(solution), highPriority);
                 }
             }
 
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var solution = _registration.CurrentSolution;
                 var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
 
-                foreach (var document in scope.GetDocuments(solution))
+                foreach (var document in scope.TryGetDocuments(solution))
                 {
                     await EnqueueWorkItemAsync(analyzer, document, invocationReasons).ConfigureAwait(false);
                 }
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public bool HasMultipleDocuments => _solutionId != null || _projectOrDocumentIds?.Count > 1;
 
-            public string GetLanguagesStringForTelemetry(Solution solution)
+            public string TryGetLanguagesStringForTelemetry(Solution solution)
             {
                 if (_solutionId != null && solution.Id != _solutionId)
                 {
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public int GetDocumentCount(Solution solution)
+            public int TryGetDocumentCount(Solution solution)
             {
                 if (_solutionId != null && solution.Id != _solutionId)
                 {
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return count;
             }
 
-            public IEnumerable<Document> GetDocuments(Solution solution)
+            public IEnumerable<Document> TryGetDocuments(Solution solution)
             {
                 if (_solutionId != null && solution.Id != _solutionId)
                 {
