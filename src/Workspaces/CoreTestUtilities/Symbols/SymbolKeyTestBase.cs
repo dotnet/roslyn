@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Symbols
 {
+    [UseExportProvider]
     public abstract class SymbolKeyTestBase
     {
         private static readonly MetadataReference s_mscorlib = MetadataReference.CreateFromFile(typeof(string).Assembly.Location);
