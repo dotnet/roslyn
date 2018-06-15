@@ -114,7 +114,7 @@ class C
             var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
             comp.VerifyOperationTree(m, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (ref re ... }')
+  IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (ref re ... }')
     Locals: Local_1: C.LinkedList cur
     Condition: 
       IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'cur != null')
@@ -206,7 +206,7 @@ class RefEnumerable
             var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
             comp.VerifyOperationTree(m, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (re ... }')
+  IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (re ... }')
     Locals: Local_1: System.Int32 x
     LoopControlVariable: 
       IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')

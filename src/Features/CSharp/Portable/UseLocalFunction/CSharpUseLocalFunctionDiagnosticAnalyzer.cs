@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            var severity = styleOption.Notification.Value;
+            var severity = styleOption.Notification.Severity;
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)syntaxContext.Node;
 
             var semanticModel = syntaxContext.SemanticModel;
@@ -130,30 +130,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             additionalLocations = additionalLocations.AddRange(explicitInvokeCallLocations);
 
-            if (severity != DiagnosticSeverity.Hidden)
+            if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {
                 // If the diagnostic is not hidden, then just place the user visible part
                 // on the local being initialized with the lambda.
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity),
+                syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor,
                     localDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
-                    additionalLocations));
+                    severity,
+                    additionalLocations,
+                    properties: null));
             }
             else
             {
                 // If the diagnostic is hidden, place it on the entire construct.
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity),
+                syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor,
                     localDeclaration.GetLocation(),
-                    additionalLocations));
+                    severity,
+                    additionalLocations,
+                    properties: null));
 
                 var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
                 if (localDeclaration != anonymousFunctionStatement)
                 {
-                    syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                        GetDescriptorWithSeverity(severity),
+                    syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                        Descriptor,
                         anonymousFunctionStatement.GetLocation(),
-                        additionalLocations));
+                        severity,
+                        additionalLocations,
+                        properties: null));
                 }
             }
         }

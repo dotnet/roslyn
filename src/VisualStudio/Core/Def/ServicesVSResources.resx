@@ -968,9 +968,6 @@ Additional information: {1}</value>
   <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
     <value>Keep all parentheses in:</value>
   </data>
-  <data name="Ignore" xml:space="preserve">
-    <value>Ignore</value>
-  </data>
   <data name="In_other_operators" xml:space="preserve">
     <value>In other operators</value>
   </data>

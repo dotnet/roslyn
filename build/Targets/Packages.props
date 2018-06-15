@@ -75,6 +75,7 @@
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.0.26730-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.0.26730-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
+    <MicrosoftVisualStudioCodingConventionsVersion>1.1.20180503.2</MicrosoftVisualStudioCodingConventionsVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>15.0.26730-alpha</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>15.7.153-preview-g7d0635149a</MicrosoftVisualStudioCoreUtilityVersion>
@@ -234,7 +235,6 @@
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>
-    <VSExternalAPIsCodingConventionsVersion>1.0.60704.2</VSExternalAPIsCodingConventionsVersion>
     <VSLangProjVersion>7.0.3300</VSLangProjVersion>
     <VSLangProj140Version>14.3.25407-alpha</VSLangProj140Version>
     <VSLangProj2Version>7.0.5000</VSLangProj2Version>

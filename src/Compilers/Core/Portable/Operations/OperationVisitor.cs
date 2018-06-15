@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -138,7 +140,14 @@ namespace Microsoft.CodeAnalysis.Operations
         // Make public after review: https://github.com/dotnet/roslyn/issues/21281
         internal virtual void VisitFixed(IFixedOperation operation)
         {
-            DefaultVisit(operation);
+            // https://github.com/dotnet/roslyn/issues/21281
+            //DefaultVisit(operation);
+            VisitNoneOperation(operation);
+        }
+
+        internal virtual void VisitAggregateQuery(IAggregateQueryOperation operation)
+        {
+            VisitNoneOperation(operation);
         }
 
         public virtual void VisitExpressionStatement(IExpressionStatementOperation operation)
@@ -295,6 +304,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitDelegateCreation(IDelegateCreationOperation operation)
         {
             DefaultVisit(operation);
@@ -360,6 +374,7 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        [Obsolete("ICollectionElementInitializerOperation has been replaced with " + nameof(IInvocationOperation) + " and " + nameof(IDynamicInvocationOperation), error: true)]
         public virtual void VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation)
         {
             DefaultVisit(operation);
@@ -440,6 +455,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        internal virtual void VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation)
+        {
+            VisitNoneOperation(operation);
+        }
+
         public virtual void VisitInvalid(IInvalidOperation operation)
         {
             DefaultVisit(operation);
@@ -511,6 +531,31 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual void VisitDiscardOperation(IDiscardOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitFlowCapture(IFlowCaptureOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitIsNull(IIsNullOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitCaughtException(ICaughtExceptionOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -658,7 +703,14 @@ namespace Microsoft.CodeAnalysis.Operations
         // Make public after review: https://github.com/dotnet/roslyn/issues/21281
         internal virtual TResult VisitFixed(IFixedOperation operation, TArgument argument)
         {
-            return DefaultVisit(operation, argument);
+            // https://github.com/dotnet/roslyn/issues/21281
+            //return DefaultVisit(operation, argument);
+            return VisitNoneOperation(operation, argument);
+        }
+
+        internal virtual TResult VisitAggregateQuery(IAggregateQueryOperation operation, TArgument argument)
+        {
+            return VisitNoneOperation(operation, argument);
         }
 
         public virtual TResult VisitExpressionStatement(IExpressionStatementOperation operation, TArgument argument)
@@ -815,6 +867,11 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
+        public virtual TResult VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
         public virtual TResult VisitDelegateCreation(IDelegateCreationOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -880,6 +937,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
+        [Obsolete("ICollectionElementInitializerOperation has been replaced with " + nameof(IInvocationOperation) + " and " + nameof(IDynamicInvocationOperation), error: true)]
         public virtual TResult VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -960,6 +1018,11 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
+        internal virtual TResult VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, TArgument argument)
+        {
+            return VisitNoneOperation(operation, argument);
+        }
+
         public virtual TResult VisitInvalid(IInvalidOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -1031,6 +1094,31 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitDiscardOperation(IDiscardOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitFlowCapture(IFlowCaptureOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitIsNull(IIsNullOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitCaughtException(ICaughtExceptionOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

@@ -3558,9 +3558,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var type = BindType(node.Type, diagnostics);
 
-            BoundExpression boundInitializerOpt = node.Initializer == null ?
+            BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer == null ?
                 null :
-                BindInitializerExpressionOrValue(
+                BindInitializerExpression(
                     syntax: node.Initializer,
                     type: type,
                     typeSyntax: node.Type,
@@ -3779,7 +3779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, string typeName, BoundExpression boundInitializerOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, string typeName, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
         {
             // Get the bound arguments and the argument names.
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
@@ -3821,8 +3821,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), children.ToImmutableAndFree(), type);
         }
 
-        private BoundExpression BindInitializerExpressionOrValue(
-            ExpressionSyntax syntax,
+        private BoundObjectInitializerExpressionBase BindInitializerExpression(
+            InitializerExpressionSyntax syntax,
             TypeSymbol type,
             SyntaxNode typeSyntax,
             DiagnosticBag diagnostics)
@@ -3835,15 +3835,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ObjectInitializerExpression:
                     {
                         var implicitReceiver = new BoundImplicitReceiver(typeSyntax, type) { WasCompilerGenerated = true };
-                        return BindObjectInitializerExpression((InitializerExpressionSyntax)syntax, type, diagnostics, implicitReceiver);
+                        return BindObjectInitializerExpression(syntax, type, diagnostics, implicitReceiver);
                     }
 
                 case SyntaxKind.CollectionInitializerExpression:
                     {
                         var implicitReceiver = new BoundImplicitReceiver(typeSyntax, type) { WasCompilerGenerated = true };
-                        return BindCollectionInitializerExpression((InitializerExpressionSyntax)syntax, type, diagnostics, implicitReceiver);
+                        return BindCollectionInitializerExpression(syntax, type, diagnostics, implicitReceiver);
                     }
 
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private BoundExpression BindInitializerExpressionOrValue(
+            ExpressionSyntax syntax,
+            TypeSymbol type,
+            SyntaxNode typeSyntax,
+            DiagnosticBag diagnostics)
+        {
+            Debug.Assert(syntax != null);
+            Debug.Assert((object)type != null);
+
+            switch (syntax.Kind())
+            {
+                case SyntaxKind.ObjectInitializerExpression:
+                case SyntaxKind.CollectionInitializerExpression:
+                    return BindInitializerExpression((InitializerExpressionSyntax)syntax, type, typeSyntax, diagnostics);
                 default:
                     return BindValue(syntax, diagnostics, BindValueKind.RValue);
             }
@@ -3912,7 +3931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
                         var memberName = ((IdentifierNameSyntax)leftSyntax).Identifier.Text;
-                        boundLeft = new BoundDynamicObjectInitializerMember(leftSyntax, memberName, initializerType, hasErrors: false);
+                        boundLeft = new BoundDynamicObjectInitializerMember(leftSyntax, memberName, implicitReceiver.Type, initializerType, hasErrors: false);
                     }
                 }
                 else
@@ -4414,6 +4433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
                     arguments: boundElementInitializerExpressions,
+                    implicitReceiver,
                     applicableMethods: ImmutableArray<MethodSymbol>.Empty,
                     type: GetSpecialType(SpecialType.System_Void, diagnostics, elementInitializer),
                     hasErrors: hasErrors);
@@ -4434,6 +4454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
                     dynamicInvocation.Arguments,
+                    implicitReceiver,
                     dynamicInvocation.ApplicableMethods,
                     dynamicInvocation.Type,
                     hasErrors: dynamicInvocation.HasAnyErrors);
@@ -4455,10 +4476,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementInitializer,
                     boundCall.Method,
                     boundCall.Arguments,
+                    boundCall.ReceiverOpt,
                     boundCall.Expanded,
                     boundCall.ArgsToParamsOpt,
                     boundCall.InvokedAsExtensionMethod,
                     boundCall.ResultKind,
+                    binderOpt: boundCall.BinderOpt,
                     boundCall.Type,
                     boundCall.HasAnyErrors)
                 { WasCompilerGenerated = true };
@@ -4537,7 +4560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol type,
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics,
-            BoundExpression boundInitializerOpt = null)
+            BoundObjectInitializerExpressionBase boundInitializerOpt = null)
         {
 
             BoundExpression result = null;
@@ -4699,7 +4722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(node, resultKind, symbols.ToImmutableAndFree(), childNodes.ToImmutableAndFree(), type);
         }
 
-        private BoundExpression BindInterfaceCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BoundExpression boundInitializerOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindInterfaceCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert((object)type != null);
 
@@ -4736,7 +4759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundExpression BindComImportCoClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol interfaceType, NamedTypeSymbol coClassType, BoundExpression boundInitializerOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindComImportCoClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol interfaceType, NamedTypeSymbol coClassType, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert((object)interfaceType != null);
             Debug.Assert(interfaceType.IsInterfaceType());
@@ -4812,7 +4835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ObjectCreationExpressionSyntax node,
             NamedTypeSymbol interfaceType,
             NamedTypeSymbol coClassType,
-            BoundExpression boundInitializerOpt,
+            BoundObjectInitializerExpressionBase boundInitializerOpt,
             DiagnosticBag diagnostics)
         {
             string guidString;
@@ -4847,7 +4870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return creation;
         }
 
-        private BoundExpression BindTypeParameterCreationExpression(ObjectCreationExpressionSyntax node, TypeParameterSymbol typeParameter, BoundExpression boundInitializerOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindTypeParameterCreationExpression(ObjectCreationExpressionSyntax node, TypeParameterSymbol typeParameter, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
         {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
