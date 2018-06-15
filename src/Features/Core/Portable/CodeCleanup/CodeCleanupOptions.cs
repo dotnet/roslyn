@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             nameof(CodeCleanupOptions), nameof(SortAccessibilityModifiers), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Sort Accessibility Modifiers"));
 
-        public static readonly PerLanguageOption<bool> ApplyExpressionBodiedMembersPreferences = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(ApplyExpressionBodiedMembersPreferences), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Apply Expression Bodied Members Preferences"));
+        public static readonly PerLanguageOption<bool> ApplyExpressionBlockBodyPreferences = new PerLanguageOption<bool>(
+            nameof(CodeCleanupOptions), nameof(ApplyExpressionBlockBodyPreferences), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Apply Expression Block Body Preferences"));
 
         public static readonly PerLanguageOption<bool> ApplyImplicitExplicitTypePreferences = new PerLanguageOption<bool>(
             nameof(CodeCleanupOptions), nameof(ApplyImplicitExplicitTypePreferences), defaultValue: true,
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             CodeCleanupOptions.AreCodeCleanupRulesConfigured,
             CodeCleanupOptions.AddAccessibilityModifiers,
             CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements,
-            CodeCleanupOptions.ApplyExpressionBodiedMembersPreferences,
+            CodeCleanupOptions.ApplyExpressionBlockBodyPreferences,
             CodeCleanupOptions.ApplyLanguageFrameworkTypePreferences,
             CodeCleanupOptions.ApplyImplicitExplicitTypePreferences,
             CodeCleanupOptions.ApplyInlineOutVariablePreferences,

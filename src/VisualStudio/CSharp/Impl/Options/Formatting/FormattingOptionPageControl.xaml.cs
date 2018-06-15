@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             AddRemoveBracesForSingleLineControlStatementsCheckBox.Content = CSharpVSResources.Add_remove_braces_for_single_line_control_statements;
             AddAccessibilityModifiersCheckBox.Content = CSharpVSResources.Add_accessibility_modifiers;
             SortAccessibilityModifiersCheckBox.Content = CSharpVSResources.Sort_accessibility_modifiers;
-            ApplyExpressionBodiedMembersPreferencesCheckBox.Content = CSharpVSResources.Apply_expression_bodied_members_preferences;
+            ApplyExpressionBlockBodyPreferencesCheckBox.Content = CSharpVSResources.Apply_expression_block_body_preferences;
             ApplyImplicitExplicitTypePreferencesCheckBox.Content = CSharpVSResources.Apply_implicit_explicit_type_preferences;
             ApplyInlineOutVariablePreferencesCheckBox.Content = CSharpVSResources.Apply_inline_out_variable_preferences;
             ApplyLanguageFrameworkTypePreferencesCheckBox.Content = CSharpVSResources.Apply_language_framework_type_preferences;
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(AddRemoveBracesForSingleLineControlStatementsCheckBox, CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements, LanguageNames.CSharp);
             BindToOption(AddAccessibilityModifiersCheckBox, CodeCleanupOptions.AddAccessibilityModifiers, LanguageNames.CSharp);
             BindToOption(SortAccessibilityModifiersCheckBox, CodeCleanupOptions.SortAccessibilityModifiers, LanguageNames.CSharp);
-            BindToOption(ApplyExpressionBodiedMembersPreferencesCheckBox, CodeCleanupOptions.ApplyExpressionBodiedMembersPreferences, LanguageNames.CSharp);
+            BindToOption(ApplyExpressionBlockBodyPreferencesCheckBox, CodeCleanupOptions.ApplyExpressionBlockBodyPreferences, LanguageNames.CSharp);
             BindToOption(ApplyImplicitExplicitTypePreferencesCheckBox, CodeCleanupOptions.ApplyImplicitExplicitTypePreferences, LanguageNames.CSharp);
             BindToOption(ApplyInlineOutVariablePreferencesCheckBox, CodeCleanupOptions.ApplyInlineOutVariablePreferences, LanguageNames.CSharp);
             BindToOption(ApplyLanguageFrameworkTypePreferencesCheckBox, CodeCleanupOptions.ApplyLanguageFrameworkTypePreferences, LanguageNames.CSharp);

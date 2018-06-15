@@ -17,9 +17,9 @@
         <target state="new">Apply all C# formatting rules (indentation, wrapping, spacing)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_expression_bodied_members_preferences">
-        <source>Apply expression-bodied member preferences</source>
-        <target state="new">Apply expression-bodied member preferences</target>
+      <trans-unit id="Apply_expression_block_body_preferences">
+        <source>Apply expression/block body preferences</source>
+        <target state="new">Apply expression/block body preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">

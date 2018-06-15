@@ -106,11 +106,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Apply expression-bodied member preferences.
+        ///   Looks up a localized string similar to Apply expression/block body preferences.
         /// </summary>
-        internal static string Apply_expression_bodied_members_preferences {
+        internal static string Apply_expression_block_body_preferences {
             get {
-                return ResourceManager.GetString("Apply_expression_bodied_members_preferences", resourceCulture);
+                return ResourceManager.GetString("Apply_expression_block_body_preferences", resourceCulture);
             }
         }
         

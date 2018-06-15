@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)
                 ),
                 Tuple.Create(
-                    CodeCleanupOptions.ApplyExpressionBodiedMembersPreferences,
+                    CodeCleanupOptions.ApplyExpressionBlockBodyPreferences,
                     ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
                                           IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
                                           IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
