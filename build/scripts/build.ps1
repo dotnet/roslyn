@@ -484,7 +484,7 @@ function Build-DeployToSymStore() {
 }
 
 function Build-CheckLocStatus() {
-    Run-MSBuild "Roslyn.sln" "/t:CheckLocStatus" -logFileName "RoslynCheckLocStatus"
+    Run-MSBuild "Roslyn.sln" "/t:EnsureAllResourcesTranslated" -logFileName "RoslynCheckLocStatus"
 }
 
 # These are tests that don't follow our standard restore, build, test pattern. They customize

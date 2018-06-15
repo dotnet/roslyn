@@ -37,8 +37,13 @@
 
   <!-- Settings for localization -->
   <ItemGroup>
-    <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" Condition="'$(NonShipping)' != 'true'" />
+    <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Disable localization for non-shipping projects -->
+    <EnableXlfLocalization Condition="'$(NonShipping)' == 'true'">false</EnableXlfLocalization>
+  </PropertyGroup>
 
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
@@ -497,12 +502,4 @@
            Condition="$(PathMap.Contains(' '))" />
   </Target>
 
-  <!--
-    Delegates to XliffTasks to validate that all localizable resources have been translated.
-    We can't use EnsureAllResoucesTranslated directly because the XliffTasks package is only pulled in by projects that
-    produce shipping binaries.
-  -->
-  <Target Name="CheckLocStatus"
-          DependsOnTargets="EnsureAllResourcesTranslated"
-          Condition="'$(NonShipping)' != 'true'" />
 </Project>
