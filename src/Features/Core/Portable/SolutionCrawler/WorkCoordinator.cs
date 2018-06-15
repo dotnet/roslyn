@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
                     var solution = _registration.CurrentSolution;
                     SolutionCrawlerLogger.LogReanalyze(
-                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguages(solution), highPriority);
+                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
                 }
             }
 
@@ -629,13 +629,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public bool HasMultipleDocuments => _solutionId != null || _projectOrDocumentIds?.Count > 1;
 
-            public string GetLanguages(Solution solution)
+            public string GetLanguagesStringForTelemetry(Solution solution)
             {
                 if (_solutionId != null && solution.Id != _solutionId)
                 {
-                    // this is for telemetry. no reason to make it complex such as 
-                    // TryGetLangage(., var language) ? language : string.Empty
-                    // just to look good. this is a helper nested private type anyway.
+                    // return empty if given solution is not 
+                    // same as solution this scope is created for
                     return string.Empty;
                 }
 
