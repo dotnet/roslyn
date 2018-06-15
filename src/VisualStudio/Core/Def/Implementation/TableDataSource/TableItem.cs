@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -29,22 +30,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public TableItem(IEnumerable<TableItem<T>> items)
         {
-#if DEBUG
-            // If code reached here,
-            // There must be at least 1 item in the list
-            Contract.ThrowIfFalse(items.Count() > 0);
-
-            // There must be document id
-            Contract.ThrowIfTrue(items.Any(i => i.PrimaryDocumentId == null));
-#endif
-
             var first = true;
             var collectionHash = 1;
             var count = 0;
 
             // Make things to be deterministic. 
-            var ordereditems = items.OrderBy(i => i.PrimaryDocumentId.Id);
-            foreach (var item in ordereditems)
+            var orderedItems = items.Where(i => i.PrimaryDocumentId != null).OrderBy(i => i.PrimaryDocumentId.Id).ToList();
+            if (orderedItems.Count == 0)
+            {
+                // There must be at least 1 item in the list
+                FatalError.ReportWithoutCrash(new ArgumentException("Contains no items", nameof(items)));
+            }
+            else if (orderedItems.Count != items.Count())
+            {
+                // There must be document id for provided items.
+                FatalError.ReportWithoutCrash(new ArgumentException("Contains an item with null PrimaryDocumentId", nameof(items)));
+            }
+
+            foreach (var item in orderedItems)
             {
                 count++;
 
@@ -68,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             // order of item is important. make sure we maintain it.
-            _cache = SharedInfoCache.GetOrAdd(collectionHash, ordereditems, c => new SharedInfoCache(c.Select(i => i.PrimaryDocumentId).ToImmutableArray()));
+            _cache = SharedInfoCache.GetOrAdd(collectionHash, orderedItems, c => new SharedInfoCache(c.Select(i => i.PrimaryDocumentId).ToImmutableArray()));
         }
 
         public DocumentId PrimaryDocumentId
