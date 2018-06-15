@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TypeConversions(this.corLibrary, currentRecursionDepth, IncludeNullability);
         }
 
+        internal override ConversionsBase WithNullability(bool includeNullability)
+        {
+            return (IncludeNullability == includeNullability) ? this : new TypeConversions(corLibrary, currentRecursionDepth, includeNullability);
+        }
+
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Conversions involving method groups require a Binder.

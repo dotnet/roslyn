@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If so, are we interested in an InMethodBinder specifically?
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
-            _conversions = _binder.Conversions.WithNullability(true);
+            _conversions = (Conversions)_binder.Conversions.WithNullability(true);
             _useMethodSignatureReturnType = (object)methodSignatureOpt != null && useMethodSignatureReturnType;
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
@@ -2044,10 +2044,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We do a first pass to work through the arguments without making any assumptions
             ImmutableArray<TypeSymbolWithAnnotations> results = VisitArgumentsEvaluate(arguments, refKindsOpt);
 
-            if ((object)method != null && method.IsGenericMethod && HasImplicitTypeArguments(node))
+            if ((object)method != null && method.IsGenericMethod)
             {
-                method = InferMethodTypeArguments((BoundCall)node, method, GetArgumentsForMethodTypeInference(arguments, results));
-                parameters = method.Parameters;
+                if (HasImplicitTypeArguments(node))
+                {
+                    method = InferMethodTypeArguments((BoundCall)node, method, GetArgumentsForMethodTypeInference(arguments, results));
+                    parameters = method.Parameters;
+                }
+                var syntax = node.Syntax;
+                CheckMethodConstraints((syntax as InvocationExpressionSyntax)?.Expression ?? syntax, method);
             }
 
             // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
@@ -2486,7 +2491,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref useSiteDiagnostics);
             if (result.Success)
             {
-                // PROTOTYPE(NullableReferenceTypes): Check constraints
                 return definition.Construct(result.InferredTypeArguments);
             }
             return method;
@@ -2527,6 +2531,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return new BoundValuePlaceholder(argument.Syntax, argumentType.IsNullable, argumentType.TypeSymbol);
             }
+        }
+
+        private void CheckMethodConstraints(SyntaxNode syntax, MethodSymbol method)
+        {
+            var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            var warningsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+            ConstraintsHelper.CheckMethodConstraints(
+                method,
+                _conversions,
+                compilation,
+                diagnosticsBuilder,
+                warningsBuilder,
+                ref useSiteDiagnosticsBuilder);
+            foreach (var pair in warningsBuilder)
+            {
+                Diagnostics.Add(pair.DiagnosticInfo, syntax.Location);
+            }
+            useSiteDiagnosticsBuilder?.Free();
+            warningsBuilder.Free();
+            diagnosticsBuilder.Free();
         }
 
         private void ReplayReadsAndWrites(LocalFunctionSymbol localFunc,

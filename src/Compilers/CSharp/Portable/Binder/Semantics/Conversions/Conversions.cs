@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSharpCompilation Compilation { get { return _binder.Compilation; } }
 
-        internal Conversions WithNullability(bool includeNullability)
+        internal override ConversionsBase WithNullability(bool includeNullability)
         {
             return (IncludeNullability == includeNullability) ? this : new Conversions(_binder, currentRecursionDepth, includeNullability);
         }

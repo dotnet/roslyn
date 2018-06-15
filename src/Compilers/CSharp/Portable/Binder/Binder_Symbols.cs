@@ -1166,7 +1166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ShouldCheckConstraints)
             {
-                type.CheckConstraintsForNonTuple(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+                type.CheckConstraintsForNonTuple(this.Conversions.WithNullability(includeNullability), typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);

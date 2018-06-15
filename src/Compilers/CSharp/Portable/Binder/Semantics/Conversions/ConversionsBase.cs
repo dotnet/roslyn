@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             IncludeNullability = includeNullability;
         }
 
+        internal abstract ConversionsBase WithNullability(bool includeNullability);
+
         public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         public abstract Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);

@@ -14595,6 +14595,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{3}&apos; cannot be used as type parameter &apos;{2}&apos; in the generic type or method &apos;{0}&apos;. Nullability of type argument &apos;{3}&apos; doesn&apos;t match constraint type &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterConstraint {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn&apos;t match constraint type..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterConstraint_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterConstraint_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference or unconstrained type parameter..
         /// </summary>
         internal static string WRN_NullAsNonNullable {
