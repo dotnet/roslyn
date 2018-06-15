@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -136,8 +137,6 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             public override void VisitMethod(IMethodSymbol symbol)
             {
-                Debug.Assert(symbol.Equals(symbol.ConstructedFrom));
-
                 switch (symbol.MethodKind)
                 {
                     case MethodKind.ReducedExtension:
@@ -150,7 +149,15 @@ namespace Microsoft.CodeAnalysis.Symbols
                         WriteBodyLevelSymbol(symbol);
                         break;
                     default:
-                        WriteMethod(symbol);
+                        if (!symbol.Equals(symbol.ConstructedFrom))
+                        {
+                            WriteConstructedMethod(symbol);
+                        }
+                        else
+                        {
+                            WriteMethod(symbol);
+                        }
+
                         break;
                 }
             }
@@ -167,7 +174,14 @@ namespace Microsoft.CodeAnalysis.Symbols
                 }
                 else if (symbol.IsAnonymousType)
                 {
-                    WriteAnonymousType(symbol);
+                    if (symbol.IsDelegateType())
+                    {
+                        WriteAnonymousDelegateType(symbol);
+                    }
+                    else
+                    {
+                        WriteAnonymousType(symbol);
+                    }
                 }
                 else
                 {
@@ -219,6 +233,25 @@ namespace Microsoft.CodeAnalysis.Symbols
                 {
                     WriteTypeParameter(symbol);
                 }
+            }
+
+            private void WriteAnonymousDelegateType(INamedTypeSymbol symbol)
+            {
+                Debug.Assert(symbol.IsAnonymousDelegateType());
+
+                // Write out if this was an anonymous delegate or anonymous function.
+                // In both cases they'll have the same location (the location of 
+                // the lambda that forced them into existence).  When we resolve the
+                // symbol later, if it's an anonymous delegate, we'll first resolve to
+                // the anonymous-function, then use that anonymous-function to get at
+                // the synthesized anonymous delegate.
+
+                var isAnonymousDelegateType = true;
+                var location = symbol.Locations.FirstOrDefault();
+
+                _writer.WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
+                _writer.WriteBool(isAnonymousDelegateType);
+                _writer.WriteLocation(location);
             }
 
             private void WriteAnonymousFunction(IMethodSymbol symbol)
@@ -352,6 +385,16 @@ namespace Microsoft.CodeAnalysis.Symbols
                 }
 
                 return result.ToImmutableAndFree();
+            }
+
+            private void WriteConstructedMethod(IMethodSymbol symbol)
+            {
+                var constructedFrom = symbol.ConstructedFrom;
+                var typeArguments = symbol.TypeArguments;
+
+                _writer.WriteType(SymbolKeyType.ConstructedMethod);
+                _writer.WriteSymbol(constructedFrom);
+                _writer.WriteSymbolArray(typeArguments);
             }
 
             private void WriteErrorType(INamedTypeSymbol symbol)

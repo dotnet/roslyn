@@ -228,10 +228,9 @@ namespace N1
         {
             const string code = @"
 using $$N2 = X.Y.Z;
-
-namespace N1 { }
 ";
 
+            // Note that C# and VB differ here.
             const string expected = @"(A ""N2"" (E ""Z"" (E ""Y"" (E ""X"" (N """" 0 (U (S ""TestProject"" 6) 5) 4) 0 ! 3) 0 ! 2) 0 ! 1) ""TestFile"" 0)";
 
             await AssertDeclaredSymbol<UsingDirectiveSyntax>(code, expected);
@@ -653,6 +652,24 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)]
+        public async Task TestConstructedMethod()
+        {
+            const string code = @"
+class C1
+{
+    void M<T>()
+    {
+        $$M<int>();
+    }
+}
+";
+
+            const string expected = @"(C (M ""M"" (D ""C1"" (N """" 0 (U (S ""TestProject"" 5) 4) 3) 0 2 0 ! 2) 1 0 (% 0) (% 0) ! 1) (% 1 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6)) 0)";
+
+            await AssertSymbol<InvocationExpressionSyntax>(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)]
         public async Task TestLocalFunction()
         {
             const string code = @"
@@ -785,7 +802,7 @@ namespace N1
     {
         void M()
         {
-            $$var t = (1, 2);
+            var t = $$(1, 2);
         }
     }
 }
@@ -793,7 +810,7 @@ namespace N1
 
             const string expected = @"(T 0 (D ""ValueTuple`2"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 5) 4) 3) 2) 2 10 0 (% 2 (D ""Int32"" (# 2) 0 10 0 ! 6) (# 6)) 1) (% 2 ! !) (% 2  1 ""TestFile"" 90 1  1 ""TestFile"" 93 1) 0)";
 
-            await AssertSymbol<TypeSyntax>(code, expected);
+            await AssertType<TupleExpressionSyntax>(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)]
@@ -806,7 +823,7 @@ namespace N1
     {
         void M()
         {
-            $$var t = new { X = 19, Y = 42 };
+            var t = $$new { X = 19, Y = 42 };
         }
     }
 }
@@ -814,7 +831,28 @@ namespace N1
 
             const string expected = @"(W (% 2 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 5) 4) 3) 2) 0 10 0 ! 1) (# 1)) (% 2 ""X"" ""Y"") (% 2 1 1) (% 2  1 ""TestFile"" 95 1  1 ""TestFile"" 103 1) 0)";
 
-            await AssertSymbol<TypeSyntax>(code, expected);
+            await AssertDeclaredSymbol<AnonymousObjectCreationExpressionSyntax>(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)]
+        public async Task TestAnonymousTypeProperty()
+        {
+            const string code = @"
+namespace N1
+{
+    class C1
+    {
+        void M()
+        {
+            var t = new { $$X = 19, Y = 42 };
+        }
+    }
+}
+";
+
+            const string expected = @"(Q ""X"" (W (% 2 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 6) 5) 4) 3) 0 10 0 ! 2) (# 2)) (% 2 ""X"" ""Y"") (% 2 1 1) (% 2  1 ""TestFile"" 95 1  1 ""TestFile"" 103 1) 1) 0 (% 0) (% 0) 0)";
+
+            await AssertDeclaredSymbol<AnonymousObjectMemberDeclaratorSyntax>(code, expected, useNew: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)]
@@ -861,7 +899,7 @@ namespace N1
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        protected override ParseOptions SetLanguageVersion(ParseOptions options)
-            => ((CSharpParseOptions)options).WithLanguageVersion(LanguageVersion.Latest);
+        protected override ParseOptions CreateParseOptions()
+            => CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
     }
 }
