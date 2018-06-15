@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -386,8 +387,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
                         // the caller would not be able to interact with the preview changes dialog, and the tests would
                         // either timeout or deadlock.
-                        fixSomeCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
-
+                        var field = typeof(FixSomeCodeAction).GetField("_showPreviewChangesDialog", BindingFlags.Instance | BindingFlags.NonPublic);
+                        field.SetValue(fixSomeCodeAction, false);
                     }
 
                     if (string.IsNullOrEmpty(actionName))
