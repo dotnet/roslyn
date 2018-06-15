@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var severity = styleOption.Notification.Value;
+            var severity = styleOption.Notification.Severity;
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
             // in projects targetting a lesser version.
@@ -144,10 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 localDeclarationStatement.GetLocation());
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(severity),
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 localDeclarationStatement.GetLocation(),
-                additionalLocations));
+                severity,
+                additionalLocations,
+                properties: null));
         }
 
         public bool TryGetPatternPieces(

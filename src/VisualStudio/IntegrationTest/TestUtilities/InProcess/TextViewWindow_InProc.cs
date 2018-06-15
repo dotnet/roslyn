@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
@@ -319,7 +321,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
         {
-            var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope);
+            var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, blockUntilComplete);
             var task = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -340,7 +342,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
             => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 
-        private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope)
+        private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {
             return async view =>
             {
@@ -376,6 +378,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     if (action == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
+                    }
+
+                    if (willBlockUntilComplete
+                        && action is FixAllSuggestedAction fixAllSuggestedAction
+                        && fixAllSuggestedAction.CodeAction is FixSomeCodeAction fixSomeCodeAction)
+                    {
+                        // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
+                        // the caller would not be able to interact with the preview changes dialog, and the tests would
+                        // either timeout or deadlock.
+                        var field = typeof(FixSomeCodeAction).GetField("_showPreviewChangesDialog", BindingFlags.Instance | BindingFlags.NonPublic);
+                        field.SetValue(fixSomeCodeAction, false);
                     }
 
                     if (string.IsNullOrEmpty(actionName))

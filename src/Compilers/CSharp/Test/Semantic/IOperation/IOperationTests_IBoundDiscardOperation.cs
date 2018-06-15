@@ -54,7 +54,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
       Right: 
         IPropertyReferenceOperation: System.Int32 C.P { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'P')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'P')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
