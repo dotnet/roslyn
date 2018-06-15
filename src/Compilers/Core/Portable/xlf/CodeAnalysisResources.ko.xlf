@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="new">Given operation has a non-null parent.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNoSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="new">Given operation has a null semantic model.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">출력 종류가 지원되지 않습니다.</target>
@@ -831,6 +841,11 @@
       <trans-unit id="CompilerDiagnosticIdReported">
         <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
         <target state="translated">보고된 진단에 ID '{0}'이(가) 있습니다. 이 ID는 컴파일러만 보고할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
         <note />
       </trans-unit>
     </body>

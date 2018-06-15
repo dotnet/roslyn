@@ -2,7 +2,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -133,6 +136,147 @@ class C
             VisualStudio.Editor.Verify.CodeAction("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
             VisualStudio.Editor.Verify.TextContains("First?.");
             VisualStudio.Editor.Verify.TextContains("Second?.");
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.EditorConfig)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
+        [WorkItem(19089, "https://github.com/dotnet/roslyn/issues/19089")]
+        public void ApplyEditorConfigAndFixAllOccurrences()
+        {
+            var markup = @"
+class C
+{
+    public int X1
+    {
+        get
+        {
+            $$return 3;
+        }
+    }
+
+    public int Y1 => 5;
+
+    public int X2
+    {
+        get
+        {
+            return 3;
+        }
+    }
+
+    public int Y2 => 5;
+}";
+            var expectedText = @"
+class C
+{
+    public int X1 => 3;
+
+    public int Y1 => 5;
+
+    public int X2 => 3;
+
+    public int Y2 => 5;
+}";
+
+            // CodingConventions only sends notifications if a file is open for all directories in the project
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), @"Properties\AssemblyInfo.cs");
+
+            // Switch back to the main document we'll be editing
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
+
+            /*
+             * The first portion of this test adds a .editorconfig file to configure the analyzer behavior, and verifies
+             * that diagnostics appear automatically in response to the newly-created file. A fix all operation is
+             * applied, and the result is verified against the expected outcome for the .editorconfig style.
+             */
+
+            MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
+            SetUpEditor(markup);
+            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Editor.Verify.CodeActionsNotShowing();
+
+            var editorConfig = @"root = true
+
+[*.cs]
+csharp_style_expression_bodied_properties = true:warning
+";
+
+            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+
+            // Wait for CodingConventions library events to propagate to the workspace
+            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction(
+                "Use expression body for properties",
+                applyFix: true,
+                fixAllScope: FixAllScope.Project);
+
+            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+
+            /*
+             * The second portion of this test modifier the existing .editorconfig file to configure the analyzer to the
+             * opposite style of the initial configuration, and verifies that diagnostics update automatically in
+             * response to the changes. A fix all operation is applied, and the result is verified against the expected
+             * outcome for the modified .editorconfig style.
+             */
+
+            VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
+
+            // Wait for CodingConventions library events to propagate to the workspace
+            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction(
+                "Use block body for properties",
+                applyFix: true,
+                fixAllScope: FixAllScope.Project);
+
+            expectedText = @"
+class C
+{
+    public int X1
+    {
+        get
+        {
+            return 3;
+        }
+    }
+
+    public int Y1
+    {
+        get
+        {
+            return 5;
+        }
+    }
+
+    public int X2
+    {
+        get
+        {
+            return 3;
+        }
+    }
+
+    public int Y2
+    {
+        get
+        {
+            return 5;
+        }
+    }
+}";
+
+            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]

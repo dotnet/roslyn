@@ -34,6 +34,7 @@
     <ValueType Name="SourceMemberFlags"/>
     <ValueType Name="NoOpStatementFlavor"/>
     <ValueType Name="BoundTypeOrValueData"/>
+    <ValueType Name="BitVector" />
 
   <AbstractNode Name="BoundExpression" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="allow"/>
@@ -642,6 +643,8 @@
       
         <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
+        <!-- Which arguments are default. Used by IOperation for determining ArgumentKind. -->
+        <Field Name="DefaultArguments" Type="BitVector" Null="NotApplicable" />
 
         <Field Name="ConstantValueOpt" PropertyOverrides="true" Type="ConstantValue" Null="allow"/>
         <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
@@ -776,7 +779,7 @@
  
      dim x as integer = new integer()        
   -->
-    <Node Name="BoundObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
+    <Node Name="BoundObjectCreationExpression" Base="BoundObjectCreationExpressionBase" HasValidate="true">
         <!-- Constructor symbol may only be omitted in case the type being constructed 
              is a ValueType AND the constructor is inaccessible. 
              Details: Because metadata loader creates a synthesized constructor for ValueTypes 
@@ -791,6 +794,8 @@
         <Field Name="MethodGroupOpt" Type="BoundMethodGroup" Null="allow" SkipInVisitor="true" />
 
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
+        <!-- Which arguments are default. Used by IOperation for determining ArgumentKind. -->
+        <Field Name="DefaultArguments" Type="BitVector" Null="NotApplicable" />
     </Node>
 
     <Node Name="BoundNoPiaObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
@@ -958,6 +963,8 @@
 
         <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
+        <!-- Which arguments are default. Used by IOperation for determining ArgumentKind. -->
+        <Field Name="DefaultArguments" Type="BitVector" Null="NotApplicable" />
     </Node>
 
     <Node Name="BoundEventAccess" Base="BoundExpression">
@@ -1150,22 +1157,23 @@
     <AbstractNode Name="BoundCaseClause" Base="BoundNode">
     </AbstractNode>
 
-    <Node Name="BoundSimpleCaseClause" Base="BoundCaseClause">
+    <AbstractNode Name="BoundSingleValueCaseClause" Base="BoundCaseClause">
         <Field Name="ValueOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="ConditionOpt" Type="BoundExpression" Null="allow"/>
+    </AbstractNode>
+  
+    <Node Name="BoundSimpleCaseClause" Base="BoundSingleValueCaseClause" HasValidate="true">
     </Node>
   
-    <Node Name="BoundRangeCaseClause" Base="BoundCaseClause">
+    <Node Name="BoundRangeCaseClause" Base="BoundCaseClause" HasValidate="true">
         <Field Name="LowerBoundOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="UpperBoundOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="LowerBoundConditionOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="UpperBoundConditionOpt" Type="BoundExpression" Null="allow"/>
     </Node>
   
-    <Node Name="BoundRelationalCaseClause" Base="BoundCaseClause">
+    <Node Name="BoundRelationalCaseClause" Base="BoundSingleValueCaseClause" HasValidate="true">
         <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
-        <Field Name="OperandOpt" Type="BoundExpression" Null="allow"/>
-        <Field Name="ConditionOpt" Type="BoundExpression" Null="allow"/>
     </Node>
   
     <AbstractNode Name="BoundLoopStatement" Base="BoundStatement">
@@ -1666,7 +1674,8 @@
       <Field Name="ResourceList" Type="ImmutableArray(Of BoundLocalDeclarationBase)" Null="allow" />
       <Field Name="ResourceExpressionOpt" Type="BoundExpression" Null="allow" />
       <Field Name="Body" Type="BoundBlock" Null="disallow" />
-      <Field Name="UsingInfo" Type="UsingInfo" Null="disallow" />    
+      <Field Name="UsingInfo" Type="UsingInfo" Null="disallow" />
+      <Field Name="Locals" Type="ImmutableArray(Of LocalSymbol)"/>
     </Node>
 
   <Node Name="BoundSyncLockStatement" Base="BoundStatement">

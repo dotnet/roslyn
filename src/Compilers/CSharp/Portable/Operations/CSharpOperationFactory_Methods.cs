@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class CSharpOperationFactory
     {
+        private static readonly IConvertibleConversion s_boxedIdentityConversion = Conversion.Identity;
+
         private static Optional<object> ConvertToOptional(ConstantValue value)
         {
             return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
@@ -20,18 +22,21 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
         {
-            var statementList = statement as BoundStatementList;
-            if (statementList != null)
-            {
-                return statementList.Statements.SelectAsArray(n => Create(n));
-            }
-            else if (statement == null)
+            if (statement == null)
             {
                 return ImmutableArray<IOperation>.Empty;
             }
 
+            if (statement.Kind == BoundKind.StatementList)
+            {
+                return ((BoundStatementList)statement).Statements.SelectAsArray(n => Create(n));
+            }
+
             return ImmutableArray.Create(Create(statement));
         }
+
+        private IInstanceReferenceOperation CreateImplicitReciever(SyntaxNode syntax, ITypeSymbol type) =>
+            new InstanceReferenceExpression(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type, constantValue: default, isImplicit: true);
 
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
@@ -41,12 +46,13 @@ namespace Microsoft.CodeAnalysis.Operations
             var argument = value.Syntax?.Parent as ArgumentSyntax;
 
             // if argument syntax doesn't exist, this operation is implicit
-            return new CSharpArgument(kind,
+            return new ArgumentOperation(value,
+                kind,
                 parameter,
-                value,
+                s_boxedIdentityConversion,
+                s_boxedIdentityConversion,
                 semanticModel: _semanticModel,
                 syntax: argument ?? value.Syntax,
-                constantValue: default,
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }
 
@@ -109,6 +115,16 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return new Lazy<IOperation>(() => Create(instance));
         }
+
+        private bool IsCallVirtual(MethodSymbol targetMethod, BoundExpression receiver)
+        {
+            return (object)targetMethod != null && receiver != null &&
+                   (targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride) &&
+                   !receiver.SuppressVirtualCalls;
+        }
+
+        private bool IsMethodInvalid(LookupResultKind resultKind, MethodSymbol targetMethod) =>
+            resultKind == LookupResultKind.OverloadResolutionFailure || targetMethod?.OriginalDefinition is ErrorMethodSymbol;
 
         private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
@@ -221,8 +237,10 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
+                var locals = switchSection.Locals.CastArray<ILocalSymbol>();
 
-                return (ISwitchCaseOperation)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
+                return (ISwitchCaseOperation)new SwitchCase(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
+                                                            type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 
@@ -232,8 +250,10 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
+                ImmutableArray<ILocalSymbol> locals = switchSection.Locals.CastArray<ILocalSymbol>();
 
-                return (ISwitchCaseOperation)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
+                return (ISwitchCaseOperation)new SwitchCase(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
+                                                            type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 
@@ -293,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             internal static BinaryOperatorKind DeriveBinaryOperatorKind(CSharp.BinaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.BinaryOperatorKind.OpMask)
+                switch (operatorKind.OperatorWithLogical())
                 {
                     case CSharp.BinaryOperatorKind.Addition:
                         return BinaryOperatorKind.Add;
@@ -342,6 +362,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     case CSharp.BinaryOperatorKind.GreaterThan:
                         return BinaryOperatorKind.GreaterThan;
+
+                    case CSharp.BinaryOperatorKind.LogicalAnd:
+                        return BinaryOperatorKind.ConditionalAnd;
+
+                    case CSharp.BinaryOperatorKind.LogicalOr:
+                        return BinaryOperatorKind.ConditionalOr;
                 }
 
                 return BinaryOperatorKind.None;

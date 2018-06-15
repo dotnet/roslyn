@@ -1566,7 +1566,7 @@ class Configuration
                 {
                     SymbolSpecificationID = specification.ID,
                     NamingStyleID = style.ID,
-                    EnforcementLevel = DiagnosticSeverity.Error
+                    EnforcementLevel = ReportDiagnostic.Error
                 };
             }
         }
