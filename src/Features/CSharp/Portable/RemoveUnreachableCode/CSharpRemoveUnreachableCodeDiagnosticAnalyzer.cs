@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // statement in this group.
             var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
 
-            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : HiddenDescriptor;
+            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : Descriptor;
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, firstStatementLocation, additionalLocations));

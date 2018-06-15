@@ -56,16 +56,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             switch (context.Node)
             {
                 case VariableDeclarationSyntax variableDeclaration:
-                    AnalyzeVariableDeclaration(context, variableDeclaration, option.Notification.Value);
+                    AnalyzeVariableDeclaration(context, variableDeclaration, option.Notification.Severity);
                     return;
                 case ForEachStatementSyntax forEachStatement:
-                    AnalyzeForEachStatement(context, forEachStatement, option.Notification.Value);
+                    AnalyzeForEachStatement(context, forEachStatement, option.Notification.Severity);
                     return;
             }
         }
 
         private void AnalyzeVariableDeclaration(
-            SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, DiagnosticSeverity severity)
+            SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, ReportDiagnostic severity)
         {
             if (!TryAnalyzeVariableDeclaration(
                     context.SemanticModel, variableDeclaration, out _,
@@ -74,13 +74,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(severity),
-                variableDeclaration.Variables[0].Identifier.GetLocation()));
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                variableDeclaration.Variables[0].Identifier.GetLocation(),
+                severity,
+                additionalLocations: null,
+                properties: null));
         }
 
         private void AnalyzeForEachStatement(
-            SyntaxNodeAnalysisContext context, ForEachStatementSyntax forEachStatement, DiagnosticSeverity severity)
+            SyntaxNodeAnalysisContext context, ForEachStatementSyntax forEachStatement, ReportDiagnostic severity)
         {
             if (!TryAnalyzeForEachStatement(
                     context.SemanticModel, forEachStatement, out _,
@@ -89,9 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(severity),
-                forEachStatement.Identifier.GetLocation()));
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                forEachStatement.Identifier.GetLocation(),
+                severity,
+                additionalLocations: null,
+                properties: null));
         }
 
         public static bool TryAnalyzeVariableDeclaration(

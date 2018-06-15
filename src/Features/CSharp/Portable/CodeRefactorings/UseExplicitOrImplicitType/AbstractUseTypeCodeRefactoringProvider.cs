@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             }
 
             var typeStyle = AnalyzeTypeName(declaredType, semanticModel, optionSet, cancellationToken);
-            if (typeStyle.IsStylePreferred && typeStyle.Severity != DiagnosticSeverity.Hidden)
+            if (typeStyle.IsStylePreferred && typeStyle.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {
                 // the analyzer would handle this.  So we do not.
                 return;

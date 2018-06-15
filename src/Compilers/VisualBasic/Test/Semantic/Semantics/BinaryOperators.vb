@@ -859,6 +859,8 @@ IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary
         ICoalesceOperation (OperationKind.Coalesce, Type: System.String, IsImplicit) (Syntax: 'line')
           Expression: 
             IParameterReferenceOperation: line (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'line')
+          ValueConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingString)
           WhenNull: 
             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'line')
   Right: 
