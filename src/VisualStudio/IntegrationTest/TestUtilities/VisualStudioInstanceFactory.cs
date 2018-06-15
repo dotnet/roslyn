@@ -105,10 +105,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             ThrowExceptionIfAlreadyHasActiveContext();
 
-            bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
-            await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
+            try
+            {
+                bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
+                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
 
-            return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+                return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+            }
+            catch
+            {
+                // Make sure the next test doesn't try to reuse the same instance
+                NotifyCurrentInstanceContextDisposed(canReuse: false);
+                throw;
+            }
         }
 
         internal void NotifyCurrentInstanceContextDisposed(bool canReuse)
@@ -176,14 +185,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
             else
             {
-                // We are going to reuse the currently running instance, so ensure that we grab the host Process and Dte
+                // We are going to reuse the currently running instance, so ensure that we grab the host Process and DTE
                 // before cleaning up any hooks or remoting services created by the previous instance. We will then
                 // create a new VisualStudioInstance from the previous to ensure that everything is in a 'clean' state.
+                //
+                // We create a new DTE instance in the current context since the COM object could have been separated
+                // from its RCW during the previous test.
 
                 Debug.Assert(_currentlyRunningInstance != null);
 
                 hostProcess = _currentlyRunningInstance.HostProcess;
-                dte = _currentlyRunningInstance.Dte;
+                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(false);
                 supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
                 installationPath = _currentlyRunningInstance.InstallationPath;
 
