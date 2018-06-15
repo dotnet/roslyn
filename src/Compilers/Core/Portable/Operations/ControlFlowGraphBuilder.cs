@@ -54,23 +54,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return _forceImplicit || operation.IsImplicit;
         }
 
-        public static bool IsValidRootOperationKind(IOperation operation)
-        {
-            switch (operation.Kind)
-            {
-                case OperationKind.Block:
-                case OperationKind.MethodBodyOperation:
-                case OperationKind.ConstructorBodyOperation:
-                case OperationKind.FieldInitializer:
-                case OperationKind.PropertyInitializer:
-                case OperationKind.ParameterInitializer:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
         public static ControlFlowGraph Create(IOperation body, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
         {
             Debug.Assert(body != null);
@@ -80,13 +63,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             if (enclosing == null)
             {
                 Debug.Assert(body.Parent == null);
-                Debug.Assert(IsValidRootOperationKind(body), $"Unexpected root operation kind: {body.Kind}");
+                Debug.Assert(body.Kind == OperationKind.Block ||
+                    body.Kind == OperationKind.MethodBodyOperation ||
+                    body.Kind == OperationKind.ConstructorBodyOperation ||
+                    body.Kind == OperationKind.FieldInitializer ||
+                    body.Kind == OperationKind.PropertyInitializer ||
+                    body.Kind == OperationKind.ParameterInitializer,
+                    $"Unexpected root operation kind: {body.Kind}");
             }
             else
             {
                 Debug.Assert(body.Kind == OperationKind.LocalFunction || body.Kind == OperationKind.AnonymousFunction);
             }
-#endif 
+#endif
 
             var builder = new ControlFlowGraphBuilder(((Operation)body).SemanticModel.Compilation, captureIdDispenser);
             var blocks = ArrayBuilder<BasicBlockBuilder>.GetInstance();

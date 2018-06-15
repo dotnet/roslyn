@@ -624,7 +624,7 @@
   <data name="OperationHasNullSemanticModel" xml:space="preserve">
     <value>Given operation has a null semantic model.</value>
   </data>
-  <data name="UnsupportedRootOperationKind" xml:space="preserve">
-    <value>Unsupported root operation kind '{0}'.</value>
+  <data name="InvalidOperationBlockForAnalysisContext" xml:space="preserve">
+    <value>Given operation block does not belong to the current analysis context.</value>
   </data>
 </root>

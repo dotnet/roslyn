@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Gets the root operation for the <see cref="IOperation"/> tree containing the given <paramref name="operation"/>.
         /// </summary>
         /// <param name="operation">Operation whose root is requested.</param>
-        public static IOperation GetRootOperation(this IOperation operation)
+        internal static IOperation GetRootOperation(this IOperation operation)
         {
             if (operation == null)
             {
@@ -316,15 +316,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return operation;
-        }
-
-        /// <summary>
-        /// Gets a <see cref="FlowAnalysis.ControlFlowGraph"/> for the executable code block containing the given <paramref name="operation"/>.
-        /// </summary>
-        /// <param name="operation">Operation within an executable code block.</param>
-        public static FlowAnalysis.ControlFlowGraph GetEnclosingControlFlowGraph(this IOperation operation)
-        {
-            return SemanticModel.GetEnclosingControlFlowGraph(operation);
         }
     }
 }

@@ -812,6 +812,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Given operation block does not belong to the current analysis context..
+        /// </summary>
+        internal static string InvalidOperationBlockForAnalysisContext {
+            get {
+                return ResourceManager.GetString("InvalidOperationBlockForAnalysisContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid output kind for submission. DynamicallyLinkedLibrary expected..
         /// </summary>
         internal static string InvalidOutputKindForSubmission {
@@ -1546,15 +1555,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string UnsupportedHashAlgorithm {
             get {
                 return ResourceManager.GetString("UnsupportedHashAlgorithm", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unsupported root operation kind &apos;{0}&apos;..
-        /// </summary>
-        internal static string UnsupportedRootOperationKind {
-            get {
-                return ResourceManager.GetString("UnsupportedRootOperationKind", resourceCulture);
             }
         }
         
