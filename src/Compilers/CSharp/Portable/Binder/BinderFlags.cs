@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// A specific location for binding.
     /// </summary>
     [Flags]
-    internal enum BinderFlags : ulong
+    internal enum BinderFlags : uint
     {
         None, // No specific location
         SuppressConstraintChecks = 1 << 0,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Indicates a context with [NonNullTypes(false)], so unannotated reference types should be interpreted as null-oblivious.
         /// This flag is used to avoid cycles.
         /// </summary>
-        NonNullTypesFalse = (ulong)1 << 31,
+        NonNullTypesFalse = 1u << 31,
 
         // Groups
 

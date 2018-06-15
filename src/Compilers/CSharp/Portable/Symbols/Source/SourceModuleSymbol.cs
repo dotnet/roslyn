@@ -520,10 +520,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DecodeOneNullableOptOutForAssemblyAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().NonNullTypes = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-            }
         }
 
         private void DecodeOneNullableOptOutForAssemblyAttribute(
@@ -591,8 +587,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData() as ModuleWellKnownAttributeData;
-                return data?.NonNullTypes ?? base.NonNullTypes;
+                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
+                return SyntaxBasedNonNullTypes(((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations()) ?? base.NonNullTypes;
             }
         }
 

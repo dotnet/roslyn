@@ -2139,7 +2139,7 @@ public class Class
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes) Skipping due to cycle"), WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")]
+        [Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")]
         public void TestFieldReferenceAnalyzer_InAttributes()
         {
             string source = @"

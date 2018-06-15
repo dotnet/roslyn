@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
-        private bool? _lazyNonNullTypesFromAttributes;
 
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
@@ -182,30 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _cachedDiagnostics; }
         }
 
-        /// <summary>
-        /// Force binding of early attributes to check for NonNullTypes attribute
-        /// </summary>
-        protected void BindNonNullTypesAttribute(SyntaxList<AttributeListSyntax> attributes)
-        {
-            CustomAttributesBag<CSharpAttributeData> temp = null;
-            LoadAndValidateAttributes(OneOrMany.Create(attributes), ref temp, earlyDecodingOnly: true);
-            if (temp != null)
-            {
-                Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
-                var methodData = (MethodEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
-                if (methodData != null)
-                {
-                    _lazyNonNullTypesFromAttributes = methodData.NonNullTypes;
-                }
-            }
-        }
-
         internal override bool NonNullTypes
         {
             get
             {
-                //return _lazyNonNullTypesFromAttributes ?? base.NonNullTypes; // PROTOTYPE(NullableReferenceTypes): breaking race condition for initializing parameters (see AttributeCtorInParam)
-                return _lazyNonNullTypesFromAttributes ?? ContainingModule?.UtilizesNullableReferenceTypes == true;
+                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
+                return SyntaxBasedNonNullTypes(this.GetAttributeDeclarations()) ?? base.NonNullTypes; 
             }
         }
 
@@ -1076,21 +1057,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         string name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
                         arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
-                        if (!hasAnyDiagnostics)
-                        {
-                            return boundAttribute;
-                        }
-                    }
-
-                    return null;
-                }
-                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NonNullTypesAttribute))
-                {
-                    CSharpAttributeData boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                    if (!boundAttribute.HasErrors)
-                    {
-                        bool nonNullTypes = boundAttribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);
-                        arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().NonNullTypes = nonNullTypes;
                         if (!hasAnyDiagnostics)
                         {
                             return boundAttribute;

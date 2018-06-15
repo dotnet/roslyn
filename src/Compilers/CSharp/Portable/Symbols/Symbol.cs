@@ -1327,5 +1327,95 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ToString();
         }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool? SyntaxBasedNonNullTypes(SyntaxList<AttributeListSyntax> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                bool? nonNullTypes = SyntaxBasedNonNullTypes(attribute);
+                if (nonNullTypes.HasValue)
+                {
+                    return nonNullTypes.Value;
+                }
+            }
+            return null;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool? SyntaxBasedNonNullTypes(ImmutableArray<SyntaxList<AttributeListSyntax>> attributeLists)
+        {
+            foreach (var attributeList in attributeLists)
+            {
+                bool? nonNullTypes = SyntaxBasedNonNullTypes(attributeList);
+                if (nonNullTypes.HasValue)
+                {
+                    return nonNullTypes.Value;
+                }
+            }
+
+            return null;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool? SyntaxBasedNonNullTypes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeLists)
+        {
+            for (int i = 0; i < attributeLists.Count; i++)
+            {
+                bool? nonNullTypes = SyntaxBasedNonNullTypes(attributeLists[i]);
+                if (nonNullTypes.HasValue)
+                {
+                    return nonNullTypes.Value;
+                }
+            }
+
+            return null;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool? SyntaxBasedNonNullTypes(SeparatedSyntaxList<AttributeSyntax> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                if (LooksLikeNonNullTypes(attribute, out bool result))
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool? SyntaxBasedNonNullTypes(AttributeListSyntax attributes)
+        {
+            foreach (var attribute in attributes.Attributes)
+            {
+                if (LooksLikeNonNullTypes(attribute, out bool result))
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool LooksLikeNonNullTypes(AttributeSyntax attribute, out bool value)
+        {
+            switch (attribute.ToString())
+            {
+                case "NonNullTypes":
+                case "NonNullTypes(true)":
+                case "System.Runtime.CompilerServices.NonNullTypes(true)":
+                    value = true;
+                    return true;
+                case "NonNullTypes(false)":
+                case "System.Runtime.CompilerServices.NonNullTypes(false)":
+                    value = false;
+                    return true;
+            }
+
+            value = false;
+            return false;
+        }
     }
 }

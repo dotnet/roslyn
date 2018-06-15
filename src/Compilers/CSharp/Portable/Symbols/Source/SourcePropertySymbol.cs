@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private readonly string _sourceName;
 
-        private readonly bool? _nonNullTypesFromAttributes;
-
         private string _lazyDocComment;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
@@ -77,32 +75,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckAccessibility(location, diagnostics);
 
             this.CheckModifiers(location, isIndexer, diagnostics);
-
-            // Evaluate the early attributes immediately in case the IndexerName or NonNullTypes attributes were applied.
-
-            // NOTE: we want IsExplicitInterfaceImplementation, IsOverride, Locations, and the syntax reference
-            // to be initialized before we pass this symbol to LoadCustomAttributes.
-
-            // CONSIDER: none of the information from this early binding pass is cached.  Everything will
-            // be re-bound when someone calls GetAttributes.  If this gets to be a problem, we could
-            // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
-            // handle partially filled bags.
-            CustomAttributesBag<CSharpAttributeData> temp = null;
-            LoadAndValidateAttributes(OneOrMany.Create(this.CSharpSyntaxNode.AttributeLists), ref temp, earlyDecodingOnly: true);
-            if (temp != null)
+            if (isIndexer && !isExplicitInterfaceImplementation)
             {
-                Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
-                var propertyData = (PropertyEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
-                if (propertyData != null)
+                // Evaluate the early attributes immediately in case the IndexerName attributes were applied.
+
+                // NOTE: we want IsExplicitInterfaceImplementation, IsOverride, Locations, and the syntax reference
+                // to be initialized before we pass this symbol to LoadCustomAttributes.
+
+                // CONSIDER: none of the information from this early binding pass is cached.  Everything will
+                // be re-bound when someone calls GetAttributes.  If this gets to be a problem, we could
+                // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
+                // handle partially filled bags.
+                CustomAttributesBag<CSharpAttributeData> temp = null;
+                LoadAndValidateAttributes(OneOrMany.Create(this.CSharpSyntaxNode.AttributeLists), ref temp, earlyDecodingOnly: true);
+                if (temp != null)
                 {
-                    _sourceName = propertyData.IndexerName;
-                    _nonNullTypesFromAttributes = propertyData.NonNullTypes;
+                    Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
+                    var propertyData = (PropertyEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
+                    if (propertyData != null)
+                    {
+                        _sourceName = propertyData.IndexerName;
+                    }
                 }
             }
 
-            var nonNullTypesFlag = NonNullTypes ? BinderFlags.NonNullTypesTrue : BinderFlags.NonNullTypesFalse;
             bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
-            bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks | nonNullTypesFlag, this);
+            bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             string aliasQualifierOpt;
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
@@ -1204,27 +1202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return boundAttribute;
             }
 
-            bool hasAnyDiagnostics;
-
-            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NonNullTypesAttribute))
-            {
-                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!boundAttribute.HasErrors)
-                {
-                    bool nonNullTypes = boundAttribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);
-                    arguments.GetOrCreateData<PropertyEarlyWellKnownAttributeData>().NonNullTypes = nonNullTypes;
-
-                    if (!hasAnyDiagnostics)
-                    {
-                        return boundAttribute;
-                    }
-                }
-
-                return null;
-             }
-
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.IndexerNameAttribute))
             {
+                bool hasAnyDiagnostics;
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
@@ -1535,8 +1515,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                //return _nonNullTypesFromAttributes ?? base.NonNullTypes; // PROTOTYPE(NullableReferenceTypes): breaking loop
-                return _nonNullTypesFromAttributes ?? ContainingModule?.UtilizesNullableReferenceTypes == true;
+                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
+                return SyntaxBasedNonNullTypes(this.CSharpSyntaxNode.AttributeLists) ?? base.NonNullTypes;
             }
         }
     }

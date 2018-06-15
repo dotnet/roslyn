@@ -287,10 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<EventWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                arguments.GetOrCreateData<EventWellKnownAttributeData>().NonNullTypes = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
@@ -346,8 +342,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData() as EventWellKnownAttributeData;
-                return data?.NonNullTypes ?? base.NonNullTypes;
+                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
+                return SyntaxBasedNonNullTypes(this.AttributeDeclarationSyntaxList) ?? base.NonNullTypes;
             }
         }
 

@@ -24,7 +24,4 @@ export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 echo "Building this commit:"
 git show --no-patch --pretty=raw HEAD
 
-"${root_path}"/build.sh --restore --build --packall --stop-vbcscompiler --test "$@"
-
-# PROTOTYPE(NullableReferenceTypes): Disabled bootstrap for now, because cycle issues block CI
-# "${root_path}"/build.sh --restore --bootstrap --build --packall --stop-vbcscompiler --test "$@"
+"${root_path}"/build.sh --restore --bootstrap --build --packall --stop-vbcscompiler --test "$@"

@@ -79,15 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
             ParameterListSyntax parameterList = syntax.ParameterList;
 
-            // Force binding of early attributes to check for NonNullTypes attribute
-            BindNonNullTypesAttribute(syntax.AttributeLists);
-
-            var nonNullTypesFlag = NonNullTypes ? BinderFlags.NonNullTypesTrue : BinderFlags.NonNullTypesFalse;
-
             // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
             // we might still be constructing the member list of the containing type.  However, getting the binder
             // for the parameters should be safe.
-            var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithAdditionalFlagsAndContainingMemberOrLambda(nonNullTypesFlag, this);
+            var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
 
             SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(

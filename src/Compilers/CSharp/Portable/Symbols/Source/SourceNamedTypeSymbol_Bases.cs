@@ -350,13 +350,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var localInterfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             var baseBinder = this.DeclaringCompilation.GetBinder(bases);
 
-            // PROTOTYPE(NullableReferenceTypes): breaking cycle with hard-coded mitigation
-            var nonNullTypesFlag = (ContainingModule?.UtilizesNullableReferenceTypes == true) ? BinderFlags.NonNullTypesTrue : BinderFlags.NonNullTypesFalse;
-
             // Wrap base binder in a location-specific binder that will avoid generic constraint checks
             // (to avoid cycles if the constraint types are not bound yet). Instead, constraint checks
             // are handled by the caller.
-            baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks | nonNullTypesFlag, this);
+            baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             int i = -1;
             foreach (var baseTypeSyntax in bases.Types)

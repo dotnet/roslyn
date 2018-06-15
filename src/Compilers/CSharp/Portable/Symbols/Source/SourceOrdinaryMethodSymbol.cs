@@ -159,17 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SyntaxToken arglistToken;
 
-            // Force binding of early attributes to check for NonNullTypes attribute
-            BindNonNullTypesAttribute(syntax.AttributeLists);
-
-            var nonNullTypesFlag = NonNullTypes ? BinderFlags.NonNullTypesTrue : BinderFlags.NonNullTypesFalse;
-
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
             // evaluating the constraints may depend on accessing this method from
             // the container (comparing this method to others to find overrides for
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
-            var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks | nonNullTypesFlag, this);
+            var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             _lazyParameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, syntax.ParameterList, out arglistToken,

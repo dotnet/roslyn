@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         hasDisplayClassThis,
                         _methodNotType,
                         out declaredLocals);
+                    binder = binder.WithAdditionalFlags(BinderFlags.NonNullTypesTrue);
                     var statementSyntax = syntax as StatementSyntax;
 
                     return (statementSyntax == null) ?

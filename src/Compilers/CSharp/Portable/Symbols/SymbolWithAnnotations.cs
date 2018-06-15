@@ -705,8 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbolWithAnnotations AsObliviousReferenceType()
             {
-                // PROTOTYPE(NullableReferenceTypes): skipping this assert for now because of cycle in caller
-                //Debug.Assert(_isNullable != true);
+                Debug.Assert(_isNullable != true);
                 return _isNullable == null ?
                     this :
                     new NonLazyType(_typeSymbol, isNullable: null, _customModifiers);
@@ -874,8 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // AsObliviousReferenceType is used to produce a null-oblivious when applying a nullable transform
                 // in a context with [NonNullTypes(false)]. But that attribute only affects types that don't have
                 // a `?` annotation. Since LazyNullableType always results from a `?` annotation, this method is unreachable.
-                //throw ExceptionUtilities.Unreachable; // PROTOTYPE(NullableReferenceTypes): skipping this for now because of cycle in caller
-                return this;
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap)

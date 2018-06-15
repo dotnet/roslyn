@@ -9,25 +9,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class FieldWellKnownAttributeData : CommonFieldWellKnownAttributeData
     {
-        #region NonNullTypesAttribute
-
-        private bool? _nonNullTypes;
-        public bool? NonNullTypes
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _nonNullTypes;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                Debug.Assert(value.HasValue);
-                _nonNullTypes = value;
-                SetDataStored();
-            }
-        }
-
-        #endregion
     }
 }
