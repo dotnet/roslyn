@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -71,9 +72,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         public async Task InlineVariableWithConstructor1()
         {
             await TestInRegularAndScriptAsync(
-@"class C
+@"class C1
 {
-    void M()
+    public C1(int v, out int i) {}
+
+    void M(int v)
     {
         [|int|] i;
         if (new C1(v, out i))
@@ -81,9 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
     }
 }",
-@"class C
+@"class C1
 {
-    void M()
+    public C1(int v, out int i) {}
+
+    void M(int v)
     {
         if (new C1(v, out int i))
         {
@@ -1825,7 +1830,7 @@ class C
 
         [WorkItem(17743, "https://github.com/dotnet/roslyn/issues/17743")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-        public async Task TestInLocalFunction()
+        public async Task TestInLocalFunction1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"
@@ -1844,6 +1849,53 @@ class Demo
                 Dictionary<int, int> dict = null;
                 int [|x|] = 0;
                 dict?.TryGetValue(0, out x);
+                Console.WriteLine(x);
+            };
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLocalFunction2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class Demo
+{
+    static void Main()
+    {
+        F();
+        void F()
+        {
+            Action f = () =>
+            {
+                Dictionary<int, int> dict = null;
+                int [|x|] = 0;
+                dict.TryGetValue(0, out x);
+                Console.WriteLine(x);
+            };
+        }
+    }
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Demo
+{
+    static void Main()
+    {
+        F();
+        void F()
+        {
+            Action f = () =>
+            {
+                Dictionary<int, int> dict = null;
+                dict.TryGetValue(0, out int x);
                 Console.WriteLine(x);
             };
         }
@@ -2113,6 +2165,93 @@ class Program
 
     public static void Out<T>(out T t) => t = default;
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignment1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static bool M(out bool i) => throw null;
+
+    static void M(bool condition)
+    {
+        [|bool|] x = false;
+        if (condition || M(out x))
+        {
+            Console.WriteLine(x);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignment2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static bool M(out bool i) => throw null;
+    static bool Use(bool i) => throw null;
+
+    static void M(bool condition)
+    {
+        [|bool|] x = false;
+        if (condition || M(out x))
+        {
+            x = Use(x);
+        }
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [InlineData("c && M(out x)", "c && M(out bool x)")]
+        [InlineData("false || M(out x)", "false || M(out bool x)")]
+        [InlineData("M(out x) || M(out x)", "M(out bool x) || M(out x)")]
+        public async Task TestDefiniteAssignment3(string input, string output)
+        {
+            await TestInRegularAndScriptAsync(
+$@"
+using System;
+
+class C
+{{
+    static bool M(out bool i) => throw null;
+    static bool Use(bool i) => throw null;
+
+    static void M(bool c)
+    {{
+        [|bool|] x = false;
+        if ({input})
+        {{
+            Console.WriteLine(x);
+        }}
+    }}
+}}",
+$@"
+using System;
+
+class C
+{{
+    static bool M(out bool i) => throw null;
+    static bool Use(bool i) => throw null;
+
+    static void M(bool c)
+    {{
+        if ({output})
+        {{
+            Console.WriteLine(x);
+        }}
+    }}
+}}");
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var pattern = BindPattern(node.Pattern, expressionType, hasErrors, diagnostics);
+            var pattern = BindPattern(expression, node.Pattern, expressionType, hasErrors, diagnostics);
             if (!hasErrors && pattern is BoundDeclarationPattern p && !p.IsVar && expression.ConstantValue == ConstantValue.Null)
             {
                 diagnostics.Add(ErrorCode.WRN_IsAlwaysFalse, node.Location, p.DeclaredType.Type);
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal BoundPattern BindPattern(
+            BoundExpression sourceExpression,
             PatternSyntax node,
             TypeSymbol operandType,
             bool hasErrors,
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.DeclarationPattern:
                     return BindDeclarationPattern(
-                        (DeclarationPatternSyntax)node, operandType, hasErrors, diagnostics);
+                        sourceExpression, (DeclarationPatternSyntax)node, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.ConstantPattern:
                     var constantPattern = (ConstantPatternSyntax)node;
@@ -234,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundPattern BindDeclarationPattern(
+            BoundExpression sourceExpression,
             DeclarationPatternSyntax node,
             TypeSymbol operandType,
             bool hasErrors,
@@ -245,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isVar;
             AliasSymbol aliasOpt;
-            TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
+            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
                 declType = operandType;
@@ -286,10 +288,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
-                    Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
                 }
 
                 localSymbol.SetType(declType);
+                localSymbol.SetValEscape(GetValEscape(sourceExpression, LocalScopeDepth));
 
                 // Check for variable declaration errors.
                 hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);

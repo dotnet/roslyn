@@ -508,6 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool UseOnlyReferenceEquality(BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            // We consider the `null` literal, but not the `default` literal, since the latter does not require a reference equality
             return
                 BuiltInOperators.IsValidObjectEquality(Conversions, left.Type, left.IsLiteralNull(), right.Type, right.IsLiteralNull(), ref useSiteDiagnostics) &&
                 ((object)left.Type == null || (!left.Type.IsDelegateType() && left.Type.SpecialType != SpecialType.System_String && left.Type.SpecialType != SpecialType.System_Delegate)) &&

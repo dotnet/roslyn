@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -13,8 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// Returns the RefKind if the expression represents a symbol
-        /// that has a RefKind. This method is ILLEGAL to call for
-        /// other expressions.
+        /// that has a RefKind, or RefKind.None otherwise.
         /// </summary>
         public static RefKind GetRefKind(this BoundExpression node)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundPropertyAccess)node).PropertySymbol.RefKind;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
+                    return RefKind.None;
             }
         }
 

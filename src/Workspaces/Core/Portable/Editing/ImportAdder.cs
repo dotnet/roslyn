@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options = null, CancellationToken cancellationToken = default)
         {
-            var service = document.Project.LanguageServices.GetService<ImportAdderService>();
+            var service = document.GetLanguageService<ImportAdderService>();
             if (service != null)
             {
                 return service.AddImportsAsync(document, spans, options, cancellationToken);

@@ -115,7 +115,7 @@ Public Class D
 End Class
                              </file>
                          </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseCompileDiagnostics(comp, <Expected></Expected>)
         End Sub
 
@@ -143,7 +143,7 @@ Public Class E
 End Class
 ")
             Dim vbCompilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
-                sourceTrees:={source},
+                source:={source},
                 references:={csharpCompilation.EmitToImageReference()},
                 options:=TestOptions.DebugDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseCompileDiagnostics(vbCompilation, <Expected></Expected>)
@@ -183,7 +183,7 @@ Public Class Form2
 End Class
                              </file>
                          </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseCompileDiagnostics(comp,
 <Expected>
 BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
@@ -214,7 +214,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseParseDiagnostics(comp2,
 <expected>
 BC31122: 'Custom' modifier is not valid on events declared without explicit delegate types.
@@ -237,9 +237,9 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off))
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off))
             CompilationUtils.AssertNoErrors(comp1)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
@@ -263,7 +263,7 @@ Class C1
 End Class
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics()
         End Sub
 
         <Fact()>
@@ -359,9 +359,9 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off))
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off))
             CompilationUtils.AssertNoErrors(comp1)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
@@ -384,7 +384,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -422,7 +422,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -453,7 +453,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
 BC31059: event '_Empty' implicitly defines '_EmptyEventHandler', which conflicts with a member implicitly declared for property 'EmptyEventhandler' in class 'MissileLauncher1'.
@@ -483,7 +483,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -513,7 +513,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -553,7 +553,7 @@ End Module
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -598,7 +598,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -643,7 +643,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertNoErrors(comp2)
 
 
@@ -809,7 +809,7 @@ End Module
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
@@ -1112,7 +1112,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ParamArrayIllegal1, "paramarray").WithArguments("Event"),
                                    Diagnostic(ERRID.ERR_ParamArrayIllegal1, "paramarray").WithArguments("Delegate"))
         End Sub
@@ -1279,7 +1279,7 @@ Module Module1
 End Module
                     </file>
                 </compilation>,
-                additionalRefs:={csCompilation.EmitToImageReference()})
+                references:={csCompilation.EmitToImageReference()})
 
             vbCompilation.AssertTheseDiagnostics(<errors>
 BC30610: Class 'Goo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
@@ -1556,7 +1556,7 @@ End Class
         End Sub
         <Fact()>
         Public Sub BindOnRegularEventParams()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1596,7 +1596,7 @@ End Module
 
         <Fact()>
         Public Sub BindOnEventHandlerAddHandler()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -1634,7 +1634,7 @@ End Module
 
         <Fact()>
         Public Sub BindOnEventPrivateField()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -1676,7 +1676,7 @@ End Module
         <WorkItem(543447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543447")>
         <Fact()>
         Public Sub BindOnFieldOfRegularEventHandlerType()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -1713,7 +1713,7 @@ End Class
         <WorkItem(543725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543725")>
         <Fact()>
         Public Sub SynthesizedEventDelegateSymbolImplicit()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1754,7 +1754,7 @@ End Class
         <WorkItem(545200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545200")>
         <Fact()>
         Public Sub TestBadlyFormattedEventCode()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System<Serializable>Class c11    <NonSerialized()>
@@ -1780,7 +1780,7 @@ Imports System<Serializable>Class c11    <NonSerialized()>
         <WorkItem(545221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545221")>
         <Fact()>
         Public Sub TestBadlyFormattedCustomEvent()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1826,7 +1826,7 @@ End Class
         <WorkItem(101185, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=101185")>
         <WorkItem(530406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530406")>
         Public Sub CustomEventTypeDuplicateErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -1857,7 +1857,7 @@ BC30508: 'value' cannot expose type 'C.D' in namespace '<Default>' through class
 
         <Fact()>
         Public Sub MissingSystemTypes_Event()
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I
@@ -1880,7 +1880,7 @@ BC31044: Events declared with an 'As' clause must have a delegate type.
 
         <Fact()>
         Public Sub MissingSystemTypes_WithEvents()
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Class C
@@ -1910,7 +1910,7 @@ BC30002: Type 'System.Object' is not defined.
         <WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
         <Fact()>
         Public Sub EventInMemberNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -1932,7 +1932,7 @@ End Class
 
         <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -1958,7 +1958,7 @@ BC35000: Requested operation is not available because the runtime library functi
 
         <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_02()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 public delegate sub E1()
@@ -2055,7 +2055,7 @@ End Class
 
         <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_03()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 public delegate sub E1()
@@ -2152,7 +2152,7 @@ End Structure
 
         <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_04()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 public delegate sub E1()
@@ -2221,7 +2221,7 @@ End Class
 
         <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_05()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 public delegate sub E1()
@@ -2290,7 +2290,7 @@ End Structure
 
         <Fact, WorkItem(3448, "https://github.com/dotnet/roslyn/issues/3448")>
         Public Sub HandlesInAnInterface()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I
@@ -2321,7 +2321,7 @@ BC30270: 'Handles' is not valid on an interface method declaration.
 
         <Fact, WorkItem(3448, "https://github.com/dotnet/roslyn/issues/3448")>
         Public Sub HandlesInAStruct()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Structure S
@@ -2353,7 +2353,7 @@ BC30728: Methods declared in structures cannot have 'Handles' clauses.
 
         <Fact, WorkItem(3448, "https://github.com/dotnet/roslyn/issues/3448")>
         Public Sub HandlesInAnEnum()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Enum E1
@@ -2399,7 +2399,7 @@ End Enum
         <WorkItem(9400, "https://github.com/dotnet/roslyn/issues/9400")>
         <Fact()>
         Public Sub HandlesNoMyBase()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I
@@ -2420,7 +2420,7 @@ BC30590: Event 'E' cannot be found.
         <WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")>
         <Fact()>
         Public Sub SemanticModelOnParameters_01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -2452,7 +2452,7 @@ End Class]]></file>
         <WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")>
         <Fact()>
         Public Sub SemanticModelOnParameters_02()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I1
@@ -2483,7 +2483,7 @@ End Class]]></file>
         <WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")>
         <Fact()>
         Public Sub SemanticModelOnParameters_03()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I1
@@ -2529,7 +2529,7 @@ BC30401: 'E1' cannot implement 'E1' because there is no matching event on interf
         <WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")>
         <Fact()>
         Public Sub SemanticModelOnParameters_04()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I1

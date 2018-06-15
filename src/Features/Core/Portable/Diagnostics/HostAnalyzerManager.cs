@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -76,13 +75,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
 
-        public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            this(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => hostAnalyzerPackages.ToImmutableArrayOrEmpty(), isThreadSafe: true), hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource)
-        {
-        }
-
-        public HostAnalyzerManager(Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            this(new Lazy<ImmutableArray<AnalyzerReference>>(() => CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages.Value, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource), hostAnalyzerAssemblyLoader), isThreadSafe: true),
+        public HostAnalyzerManager(Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace) :
+            this(new Lazy<ImmutableArray<AnalyzerReference>>(() => CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages.Value, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource, primaryWorkspace), hostAnalyzerAssemblyLoader), isThreadSafe: true),
                  hostAnalyzerPackages, hostDiagnosticUpdateSource)
         {
         }
@@ -93,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _hostDiagnosticAnalyzerPackages = hostAnalyzerPackages;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
-            _hostAnalyzerReferencesMap = new Lazy<ImmutableDictionary<object, AnalyzerReference>>(() => CreateAnalyzerReferencesMap(hostAnalyzerReferences.Value), isThreadSafe: true);
+            _hostAnalyzerReferencesMap = new Lazy<ImmutableDictionary<object, AnalyzerReference>>(() => hostAnalyzerReferences.Value.IsDefaultOrEmpty ? ImmutableDictionary<object, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences.Value), isThreadSafe: true);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap.Value), isThreadSafe: true);
 
@@ -500,10 +494,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private class HostAnalyzerReferenceDiagnosticReporter
         {
             private readonly AbstractHostDiagnosticUpdateSource _hostUpdateSource;
+            private readonly PrimaryWorkspace _primaryWorkspace;
 
-            public HostAnalyzerReferenceDiagnosticReporter(AbstractHostDiagnosticUpdateSource hostUpdateSource)
+            public HostAnalyzerReferenceDiagnosticReporter(AbstractHostDiagnosticUpdateSource hostUpdateSource, PrimaryWorkspace primaryWorkspace)
             {
                 _hostUpdateSource = hostUpdateSource;
+                _primaryWorkspace = primaryWorkspace;
             }
 
             public void OnAnalyzerLoadFailed(object sender, AnalyzerLoadFailureEventArgs e)
@@ -519,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // diagnostic from host analyzer can never go away
                 var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     id: Tuple.Create(this, reference.FullPath, e.ErrorCode, e.TypeName),
-                    workspace: PrimaryWorkspace.Workspace,
+                    workspace: _primaryWorkspace.Workspace,
                     solution: null,
                     projectId: null,
                     documentId: null,

@@ -816,7 +816,7 @@ dynamic x = 0;
                 source: source,
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                references: new[] { SystemCoreRef, DesktopCSharpRef });
+                references: new[] { SystemCoreRef, CSharpDesktopRef });
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -1200,7 +1200,7 @@ class C
                 Signature(
                     "C",
                     "<P>k__BackingField",
-                    ".field [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] private static System.Object[] <P>k__BackingField")
+                    ".field [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private static System.Object[] <P>k__BackingField")
             });
         }
 

@@ -1,177 +1,119 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
+Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
-    ' <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InvertIf)>
-    Friend Class InvertIfCodeRefactoringProvider
-        Inherits CodeRefactoringProvider
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InvertIf), [Shared]>
+    Friend Class VisualBasicInvertIfCodeRefactoringProvider
+        Inherits AbstractInvertIfCodeRefactoringProvider
 
-        Public Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
-            Dim document = context.Document
-            Dim textSpan = context.Span
-            Dim cancellationToken = context.CancellationToken
+        Private Shared ReadOnly s_ifNodeAnnotation As New SyntaxAnnotation
 
-            Dim workspace = document.Project.Solution.Workspace
-            If workspace.Kind = WorkspaceKind.MiscellaneousFiles Then
-                Return
-            End If
+        Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
+            Return VisualBasicSyntaxFactsService.Instance
+        End Function
 
-            If Not textSpan.IsEmpty Then
-                Return
-            End If
+        Protected Overrides Function GetIfStatement(textSpan As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As SyntaxNode
 
-            ' We need to find a relevant if-else statement of type SingleLineIfStatement or
-            ' MultiLineIfBlock to act on its IfPart and ElsePart.
             Dim relevantIfBlockOrIfStatement As ExecutableStatementSyntax = Nothing
-
-            ' We also need to find the relevant if statement's span in that if-(elseif)-else
-            ' statement to indicate where the refactoring should happen. The relevant if statement
-            ' could be the top statement in an if block (if it consists of an If and an Else) or it
-            ' could be the last ElseIf statement in a block before an Else statement.
             Dim relevantSpan As TextSpan = Nothing
 
-            If cancellationToken.IsCancellationRequested Then
-                Return
-            End If
-
-            Dim syntaxDocument = Await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(False)
-
-            Dim singleLineIf = FindAncestor(Of SingleLineIfStatementSyntax)(syntaxDocument, textSpan.Start, cancellationToken)
-            Dim multiLineIf = FindAncestor(Of MultiLineIfBlockSyntax)(syntaxDocument, textSpan.Start, cancellationToken)
+            Dim singleLineIf = token.GetAncestor(Of SingleLineIfStatementSyntax)()
+            Dim multiLineIf = token.GetAncestor(Of MultiLineIfBlockSyntax)()
 
             If singleLineIf IsNot Nothing AndAlso
                singleLineIf.ElseClause IsNot Nothing Then
 
                 relevantIfBlockOrIfStatement = singleLineIf
-                relevantSpan = singleLineIf.IfKeyword.Span
+                relevantSpan = TextSpan.FromBounds(singleLineIf.IfKeyword.Span.Start, singleLineIf.Condition.Span.End)
 
             ElseIf multiLineIf IsNot Nothing AndAlso
-                   multiLineIf.ElseBlock IsNot Nothing Then
+                   multiLineIf.ElseBlock IsNot Nothing AndAlso
+                   multiLineIf.ElseIfBlocks.IsEmpty Then
 
                 relevantIfBlockOrIfStatement = multiLineIf
-
-                If multiLineIf.ElseIfBlocks.IsEmpty Then
-                    relevantSpan = multiLineIf.IfStatement.IfKeyword.Span
-                Else
-                    Dim elseIfBlock = FindAncestor(Of ElseIfBlockSyntax)(syntaxDocument, textSpan.Start, cancellationToken)
-
-                    ' The MultiLineIfBlockSyntax has ElseIfBlocks and now we want to find out if the
-                    ' user has placed the cursor on the last ElseIfPart or a node contained in the
-                    ' last ElseIfPart to decide whether or not we should provide the code action
-                    If elseIfBlock IsNot Nothing AndAlso
-                       elseIfBlock Is multiLineIf.ElseIfBlocks.Last Then
-
-                        relevantSpan = elseIfBlock.ElseIfStatement.ElseIfKeyword.Span
-                    Else
-                        Return
-                    End If
-                End If
+                relevantSpan = TextSpan.FromBounds(multiLineIf.IfStatement.IfKeyword.Span.Start, multiLineIf.IfStatement.Condition.Span.End)
             Else
-                Return
+                Return Nothing
             End If
 
             If Not relevantSpan.IntersectsWith(textSpan.Start) Then
-                Return
+                Return Nothing
             End If
 
-            If syntaxDocument.SyntaxTree.OverlapsHiddenPosition(relevantSpan, cancellationToken) Then
-                Return
+            If token.SyntaxTree.OverlapsHiddenPosition(relevantSpan, cancellationToken) Then
+                Return Nothing
             End If
 
-            context.RegisterRefactoring(
-                New MyCodeAction(VBFeaturesResources.Invert_If_statement, Function(c) InvertIfAsync(document, relevantIfBlockOrIfStatement, c)))
+            Return relevantIfBlockOrIfStatement
         End Function
 
-        Private Function FindAncestor(Of T As SyntaxNode)(document As SyntacticDocument, startPosition As Integer, cancellationToken As CancellationToken) As T
-            Return document.Root.FindToken(startPosition).GetAncestor(Of T)()
-        End Function
+        Protected Overrides Function GetRootWithInvertIfStatement(document As Document, model As SemanticModel, ifStatement As SyntaxNode, cancellationToken As CancellationToken) As SyntaxNode
 
-        Private Shared ReadOnly s_comparisonInversesMap As Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind)) =
-            New Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind))(SyntaxFacts.EqualityComparer) From
-            {
-                {SyntaxKind.EqualsExpression, Tuple.Create(SyntaxKind.NotEqualsExpression, SyntaxKind.LessThanGreaterThanToken)},
-                {SyntaxKind.NotEqualsExpression, Tuple.Create(SyntaxKind.EqualsExpression, SyntaxKind.EqualsToken)},
-                {SyntaxKind.LessThanExpression, Tuple.Create(SyntaxKind.GreaterThanOrEqualExpression, SyntaxKind.GreaterThanEqualsToken)},
-                {SyntaxKind.LessThanOrEqualExpression, Tuple.Create(SyntaxKind.GreaterThanExpression, SyntaxKind.GreaterThanToken)},
-                {SyntaxKind.GreaterThanExpression, Tuple.Create(SyntaxKind.LessThanOrEqualExpression, SyntaxKind.LessThanEqualsToken)},
-                {SyntaxKind.GreaterThanOrEqualExpression, Tuple.Create(SyntaxKind.LessThanExpression, SyntaxKind.LessThanToken)},
-                {SyntaxKind.IsExpression, Tuple.Create(SyntaxKind.IsNotExpression, SyntaxKind.IsNotKeyword)},
-                {SyntaxKind.IsNotExpression, Tuple.Create(SyntaxKind.IsExpression, SyntaxKind.IsKeyword)}
-            }
+            Dim generator = SyntaxGenerator.GetGenerator(document)
+            Dim syntaxFacts = GetSyntaxFactsService()
 
-        Private Shared ReadOnly s_logicalInversesMap As Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind)) =
-            New Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind))(SyntaxFacts.EqualityComparer) From
-            {
-                {SyntaxKind.OrExpression, Tuple.Create(SyntaxKind.AndExpression, SyntaxKind.AndKeyword)},
-                {SyntaxKind.AndExpression, Tuple.Create(SyntaxKind.OrExpression, SyntaxKind.OrKeyword)},
-                {SyntaxKind.OrElseExpression, Tuple.Create(SyntaxKind.AndAlsoExpression, SyntaxKind.AndAlsoKeyword)},
-                {SyntaxKind.AndAlsoExpression, Tuple.Create(SyntaxKind.OrElseExpression, SyntaxKind.OrElseKeyword)}
-            }
+            Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifStatement.WithAdditionalAnnotations(s_ifNodeAnnotation)), cancellationToken)
 
-        Private Shared ReadOnly s_ifNodeAnnotation As New SyntaxAnnotation
+            Dim ifNode = result.Root.GetAnnotatedNodesAndTokens(s_ifNodeAnnotation).Single().AsNode()
 
-        Protected Shared Async Function FindIfNodeAsync(document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim result = root _
-                .GetAnnotatedNodesAndTokens(s_ifNodeAnnotation) _
-                .Single() _
-                .AsNode()
-
-            Return result
-        End Function
-
-        Private Async Function InvertIfAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim _updatedDocument = document
-
-            ' Annotate the original node so we can get back to it.
-            Dim ifNode = node
-            _updatedDocument = Await _updatedDocument.ReplaceNodeAsync(ifNode, ifNode.WithAdditionalAnnotations(s_ifNodeAnnotation), cancellationToken).ConfigureAwait(False)
-            ifNode = Await FindIfNodeAsync(_updatedDocument, cancellationToken).ConfigureAwait(False)
-
-            ' Complexify the top-most statement parenting this if-statement if necessary
+            'In order to add parentheses for SingleLineIfStatements with commas, such as
+            'Case Sub() [||]If True Then Dim x Else Return, Nothing
+            'complexify the top-most statement parenting this if-statement if necessary
             Dim topMostExpression = ifNode.Ancestors().OfType(Of ExpressionSyntax).LastOrDefault()
             If topMostExpression IsNot Nothing Then
                 Dim topMostStatement = topMostExpression.Ancestors().OfType(Of StatementSyntax).FirstOrDefault()
                 If topMostStatement IsNot Nothing Then
-                    Dim explicitTopMostStatement = Await Simplifier.ExpandAsync(topMostStatement, _updatedDocument, cancellationToken:=cancellationToken).ConfigureAwait(False)
-                    _updatedDocument = Await _updatedDocument.ReplaceNodeAsync(topMostStatement, explicitTopMostStatement, cancellationToken).ConfigureAwait(False)
-
-                    ifNode = Await FindIfNodeAsync(_updatedDocument, cancellationToken).ConfigureAwait(False)
+                    Dim explicitTopMostStatement = Simplifier.Expand(topMostStatement, result.Model, document.Project.Solution.Workspace, cancellationToken:=cancellationToken)
+                    result = UpdateSemanticModel(result.Model, result.Root.ReplaceNode(topMostStatement, explicitTopMostStatement), cancellationToken)
+                    ifNode = result.Root.GetAnnotatedNodesAndTokens(s_ifNodeAnnotation).Single().AsNode()
                 End If
             End If
 
-            Dim semanticModel = Await _updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-
             If (TypeOf ifNode Is SingleLineIfStatementSyntax) Then
-                _updatedDocument = Await InvertSingleLineIfStatementAsync(DirectCast(ifNode, SingleLineIfStatementSyntax), _updatedDocument, semanticModel, cancellationToken).ConfigureAwait(False)
+                model = InvertSingleLineIfStatement(document, DirectCast(ifNode, SingleLineIfStatementSyntax), generator, syntaxFacts, result.Model, cancellationToken)
             Else
-                _updatedDocument = Await InvertMultiLineIfBlockAsync(DirectCast(ifNode, MultiLineIfBlockSyntax), _updatedDocument, semanticModel, cancellationToken).ConfigureAwait(False)
+                model = InvertMultiLineIfBlock(DirectCast(ifNode, MultiLineIfBlockSyntax), document, generator, syntaxFacts, result.Model, cancellationToken)
             End If
 
             ' Complexify the inverted if node.
-            Dim invertedIfNode = Await FindIfNodeAsync(_updatedDocument, cancellationToken).ConfigureAwait(False)
-            Dim explicitInvertedIfNode = Await Simplifier.ExpandAsync(invertedIfNode, _updatedDocument, cancellationToken:=cancellationToken).ConfigureAwait(False)
-            _updatedDocument = Await _updatedDocument.ReplaceNodeAsync(invertedIfNode, explicitInvertedIfNode, cancellationToken).ConfigureAwait(False)
+            result = (model, model.SyntaxTree.GetRoot())
+            Dim invertedIfNode = result.Root.GetAnnotatedNodesAndTokens(s_ifNodeAnnotation).Single().AsNode()
 
-            Return _updatedDocument
+            Dim explicitInvertedIfNode = Simplifier.Expand(invertedIfNode, result.Model, document.Project.Solution.Workspace, cancellationToken:=cancellationToken)
+            result = UpdateSemanticModel(result.Model, result.Root.ReplaceNode(invertedIfNode, explicitInvertedIfNode), cancellationToken)
+
+            Return result.Root
         End Function
 
-        Private Async Function InvertSingleLineIfStatementAsync(originalIfNode As SingleLineIfStatementSyntax, document As Document, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, semanticModel, cancellationToken) _
-                .WithAdditionalAnnotations(Formatter.Annotation)
+        Private Function UpdateSemanticModel(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As (Model As SemanticModel, Root As SyntaxNode)
+            Dim newModel = model.Compilation.ReplaceSyntaxTree(model.SyntaxTree, root.SyntaxTree).GetSemanticModel(root.SyntaxTree)
+            Return (newModel, newModel.SyntaxTree.GetRoot(cancellationToken))
+        End Function
 
-            document = Await document.ReplaceNodeAsync(originalIfNode, invertedIfNode, cancellationToken).ConfigureAwait(False)
+        Private Function InvertSingleLineIfStatement(
+                document As Document,
+                originalIfNode As SingleLineIfStatementSyntax,
+                generator As SyntaxGenerator,
+                syntaxFacts As ISyntaxFactsService,
+                model As SemanticModel,
+                cancellationToken As CancellationToken) As SemanticModel
+            Dim root = model.SyntaxTree.GetRoot()
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, cancellationToken)
+            Dim result = UpdateSemanticModel(model, root.ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
 
             ' Complexify the next statement if there is one.
-            invertedIfNode = DirectCast(Await FindIfNodeAsync(document, cancellationToken).ConfigureAwait(False), SingleLineIfStatementSyntax)
+            invertedIfNode = DirectCast(result.Root.GetAnnotatedNodesAndTokens(s_ifNodeAnnotation).Single().AsNode(), SingleLineIfStatementSyntax)
 
             Dim currentStatement As StatementSyntax = invertedIfNode
             If currentStatement.HasAncestor(Of ExpressionSyntax)() Then
@@ -184,15 +126,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 
             Dim nextStatement = currentStatement.GetNextStatement()
             If nextStatement IsNot Nothing Then
-                Dim explicitNextStatement = Await Simplifier.ExpandAsync(nextStatement, document, cancellationToken:=cancellationToken).ConfigureAwait(False)
-                document = Await document.ReplaceNodeAsync(nextStatement, explicitNextStatement, cancellationToken).ConfigureAwait(False)
+                Dim explicitNextStatement = Simplifier.Expand(nextStatement, result.Model, document.Project.Solution.Workspace, cancellationToken:=cancellationToken)
+                result = UpdateSemanticModel(result.Model, result.Root.ReplaceNode(nextStatement, explicitNextStatement), cancellationToken)
             End If
 
-            Return document
+            Return result.Model
         End Function
 
         Private Function GetInvertedIfNode(
             ifNode As SingleLineIfStatementSyntax,
+            document As Document,
+            generator As SyntaxGenerator,
+            syntaxFacts As ISyntaxFactsService,
             semanticModel As SemanticModel,
             cancellationToken As CancellationToken) As SingleLineIfStatementSyntax
 
@@ -201,12 +146,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             ' If we're moving a single line if from the else body to the if body,
             ' and it is the last statement in the body, we have to introduce an extra
             ' StatementTerminator Colon and Else token.
-
             Dim newIfStatements = elseClause.Statements
 
             If newIfStatements.Count > 0 Then
-                newIfStatements = newIfStatements.Replace(newIfStatements.Last,
-                                                          newIfStatements.Last.WithTrailingTrivia(elseClause.ElseKeyword.GetPreviousToken().TrailingTrivia))
+                newIfStatements = newIfStatements.Replace(
+                    newIfStatements.Last,
+                    newIfStatements.Last.WithTrailingTrivia(elseClause.ElseKeyword.GetPreviousToken().TrailingTrivia))
             End If
 
             If elseClause.Statements.Count > 0 AndAlso
@@ -221,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                     Dim trailing = singleLineIf.GetTrailingTrivia()
                     If trailing.Any(SyntaxKind.EndOfLineTrivia) Then
                         Dim eol = trailing.Last(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
-                        trailing = trailing.Select(Function(t) If(t = eol, SyntaxFactory.ColonTrivia(SyntaxFacts.GetText(SyntaxKind.ColonTrivia)), t)).ToSyntaxTriviaList()
+                        trailing = trailing.Select(Function(t) If(t = eol, SyntaxFactory.ColonTrivia(syntaxFacts.GetText(SyntaxKind.ColonTrivia)), t)).ToSyntaxTriviaList()
                     End If
 
                     Dim withElsePart = singleLineIf.WithTrailingTrivia(trailing).WithElseClause(
@@ -232,9 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 End If
             End If
 
-
-
-            Return ifNode.WithCondition(Negate(ifNode.Condition, semanticModel, cancellationToken)) _
+            Return ifNode.WithCondition(DirectCast(Negate(ifNode.Condition, generator, syntaxFacts, semanticModel, cancellationToken), ExpressionSyntax)) _
                          .WithStatements(newIfStatements) _
                          .WithElseClause(elseClause.WithStatements(ifNode.Statements).WithTrailingTrivia(elseClause.GetTrailingTrivia()))
         End Function
@@ -262,239 +205,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                     originalIfNode,
                     invertedIfNode.WithTrailingTrivia(
                         invertedIfNode.GetTrailingTrivia().Select(
-                            Function(t) If(t.Kind = SyntaxKind.ColonTrivia, SyntaxFactory.CarriageReturnLineFeed, t)))))
+                            Function(t) If(t.Kind = SyntaxKind.ColonTrivia, SyntaxFactory.ElasticCarriageReturnLineFeed, t)))))
         End Function
 #End If
 
-        Private Async Function InvertMultiLineIfBlockAsync(originalIfNode As MultiLineIfBlockSyntax, document As Document, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, semanticModel, cancellationToken) _
-                .WithAdditionalAnnotations(Formatter.Annotation)
+        Private Function InvertMultiLineIfBlock(originalIfNode As MultiLineIfBlockSyntax, document As Document, generator As SyntaxGenerator, syntaxFacts As ISyntaxFactsService, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, cancellationToken)
 
-            Return Await document.ReplaceNodeAsync(originalIfNode, invertedIfNode, cancellationToken).ConfigureAwait(False)
+            Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
+            Return result.Model
         End Function
 
         Private Function GetInvertedIfNode(
             ifNode As MultiLineIfBlockSyntax,
+            document As Document,
+            generator As SyntaxGenerator,
+            syntaxFacts As ISyntaxFactsService,
             semanticModel As SemanticModel,
             cancellationToken As CancellationToken) As MultiLineIfBlockSyntax
 
             Dim ifPart = ifNode
             Dim elseBlock = ifNode.ElseBlock
 
-            If ifNode.ElseIfBlocks.IsEmpty Then
-                ' Since this block has no ElseIf parts, we can simply negate the condition
-                ' and swap the statements in the IfPart and the ElsePart
-                Dim ifStatement = ifNode.IfStatement
+            Dim ifStatement = ifNode.IfStatement
 
-                Return ifNode _
-                    .WithIfStatement(
-                        ifStatement.WithCondition(
-                            Negate(ifStatement.Condition, semanticModel, cancellationToken)
-                        )
-                     ) _
-                    .WithStatements(elseBlock.Statements) _
-                    .WithElseBlock(
-                        elseBlock.WithStatements(ifPart.Statements) _
-                                 .WithLeadingTrivia(ifNode.EndIfStatement.GetLeadingTrivia())
-                     ) _
-                    .WithEndIfStatement(ifNode.EndIfStatement.WithLeadingTrivia(elseBlock.GetLeadingTrivia()))
-            Else
-                ' Since this block has one or more ElseIf parts, we are acting on the last
-                ' ElseIf, which we have to find in the block's list of ElseIf parts to replace,
-                ' and the ElsePart
-                Dim oldElseIfBlock = ifNode.ElseIfBlocks.Last
-                Dim oldElseIfStatement = oldElseIfBlock.ElseIfStatement
+            Dim ifLeadingTrivia = ifNode.GetLeadingTrivia()
+            Dim endifTrailingTrivia = ifNode.EndIfStatement.GetTrailingTrivia()
+            Dim elseBlockLeadingTrivia = elseBlock.GetLeadingTrivia()
+            Dim endifLeadingTrivia = ifNode.EndIfStatement.GetLeadingTrivia()
 
-                Dim newElseIfStatement = oldElseIfStatement.WithCondition(Negate(oldElseIfStatement.Condition, semanticModel, cancellationToken)) _
-                                                           .WithAdditionalAnnotations(Formatter.Annotation)
-
-                Dim newElseIfBlock = oldElseIfBlock.WithElseIfStatement(newElseIfStatement) _
-                                                   .WithStatements(elseBlock.Statements) _
-                                                   .WithAdditionalAnnotations(Formatter.Annotation)
-
-                Return ifNode.ReplaceNode(oldElseIfBlock, newElseIfBlock) _
-                             .WithElseBlock(ifNode.ElseBlock.WithStatements(oldElseIfBlock.Statements) _
-                                                            .WithLeadingTrivia(ifNode.EndIfStatement.GetLeadingTrivia())) _
-                             .WithEndIfStatement(ifNode.EndIfStatement.WithLeadingTrivia(ifNode.ElseBlock.GetLeadingTrivia()))
-            End If
+            Return ifNode _
+                .WithIfStatement(ifStatement.WithCondition(DirectCast(Negate(ifStatement.Condition, generator, syntaxFacts, semanticModel, cancellationToken), ExpressionSyntax))) _
+                .WithStatements(elseBlock.Statements) _
+                .WithElseBlock(elseBlock.WithStatements(ifPart.Statements).WithLeadingTrivia(endifLeadingTrivia)) _
+                .WithEndIfStatement(ifNode.EndIfStatement.WithTrailingTrivia(endifTrailingTrivia).WithLeadingTrivia(elseBlockLeadingTrivia)) _
+                .WithLeadingTrivia(ifLeadingTrivia)
         End Function
 
-        Private Function CanSimplifyToLengthEqualsZeroExpression(
-            binaryExpression As BinaryExpressionSyntax,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken) As Boolean
-
-            Dim canSimplify = False
-
-            If binaryExpression.Kind = SyntaxKind.GreaterThanExpression AndAlso
-               binaryExpression.Right.Kind = SyntaxKind.NumericLiteralExpression Then
-
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Left,
-                    DirectCast(binaryExpression.Right, LiteralExpressionSyntax),
-                    semanticModel,
-                    cancellationToken)
-
-            ElseIf binaryExpression.Kind = SyntaxKind.LessThanExpression AndAlso
-                    binaryExpression.Left.Kind = SyntaxKind.NumericLiteralExpression Then
-
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Right,
-                    DirectCast(binaryExpression.Left, LiteralExpressionSyntax),
-                    semanticModel,
-                    cancellationToken)
-            End If
-
-            Return canSimplify
+        Protected Overrides Function GetTitle() As String
+            Return VBFeaturesResources.Invert_If
         End Function
 
-        Private Function CanSimplifyToLengthEqualsZeroExpression(
-            variableExpression As ExpressionSyntax,
-            numericLiteralExpression As LiteralExpressionSyntax,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken) As Boolean
-
-            Dim value = semanticModel.GetConstantValue(numericLiteralExpression)
-            If value.HasValue AndAlso TypeOf value.Value Is Integer AndAlso DirectCast(value.Value, Integer) = 0 Then
-
-                Dim symbol = semanticModel.GetSymbolInfo(variableExpression, cancellationToken).Symbol
-
-                If symbol IsNot Nothing AndAlso symbol.Name = "Length" Then
-                    Dim containingType = symbol.ContainingType
-                    If containingType IsNot Nothing AndAlso
-                       (containingType.SpecialType = SpecialType.System_Array OrElse
-                        containingType.SpecialType = SpecialType.System_String) Then
-
-                        Return True
-                    End If
-                End If
-            End If
-
-            Return False
-        End Function
-
-        Private Function TryNegateBinaryComparisonExpression(
-            expression As ExpressionSyntax,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken,
-            ByRef result As ExpressionSyntax) As Boolean
-
-            Dim inverses As Tuple(Of SyntaxKind, SyntaxKind) = Nothing
-            If s_comparisonInversesMap.TryGetValue(expression.Kind, inverses) Then
-                Dim binaryExpression = DirectCast(expression, BinaryExpressionSyntax)
-                Dim expressionType = inverses.Item1
-                Dim operatorType = inverses.Item2
-
-                ' Special case negating Length > 0 to Length = 0 and 0 < Length to 0 == Length
-                ' for arrays and strings. We can do this because we know that Length cannot be
-                ' less than 0.
-                If CanSimplifyToLengthEqualsZeroExpression(binaryExpression, semanticModel, cancellationToken) Then
-                    expressionType = SyntaxKind.EqualsExpression
-                    operatorType = SyntaxKind.EqualsToken
-                End If
-
-                result = SyntaxFactory.BinaryExpression(
-                    expressionType,
-                    binaryExpression.Left.Parenthesize(),
-                    SyntaxFactory.Token(
-                        binaryExpression.OperatorToken.LeadingTrivia,
-                        operatorType,
-                        binaryExpression.OperatorToken.TrailingTrivia),
-                    binaryExpression.Right.Parenthesize())
-
-                result = result _
-                    .WithLeadingTrivia(binaryExpression.GetLeadingTrivia()) _
-                    .WithTrailingTrivia(binaryExpression.GetTrailingTrivia())
-
-                Return True
-            End If
-
-            Return False
-        End Function
-
-        Private Function TryNegateBinaryLogicalExpression(
-            expression As ExpressionSyntax,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken,
-            ByRef result As ExpressionSyntax) As Boolean
-
-            Dim inverses As Tuple(Of SyntaxKind, SyntaxKind) = Nothing
-            If s_logicalInversesMap.TryGetValue(expression.Kind, inverses) Then
-                Dim binaryExpression = DirectCast(expression, BinaryExpressionSyntax)
-
-                ' NOTE: result must be parenthesized because And & AndAlso have higher precedence than Or & OrElse
-                result = SyntaxFactory.BinaryExpression(
-                    inverses.Item1,
-                    Negate(binaryExpression.Left, semanticModel, cancellationToken),
-                    SyntaxFactory.Token(
-                        binaryExpression.OperatorToken.LeadingTrivia,
-                        inverses.Item2,
-                        binaryExpression.OperatorToken.TrailingTrivia),
-                    Negate(binaryExpression.Right, semanticModel, cancellationToken))
-
-                result = result _
-                    .Parenthesize() _
-                    .WithLeadingTrivia(binaryExpression.GetLeadingTrivia()) _
-                    .WithTrailingTrivia(binaryExpression.GetTrailingTrivia())
-
-                Return True
-            End If
-
-            Return False
-        End Function
-
-        Protected Function Negate(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
-            Dim result As ExpressionSyntax = Nothing
-
-            If TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, result) OrElse
-               TryNegateBinaryLogicalExpression(expression, semanticModel, cancellationToken, result) Then
-                Return result.WithAdditionalAnnotations(Formatter.Annotation)
-            End If
-
-            Select Case expression.Kind
-                Case SyntaxKind.ParenthesizedExpression
-                    Dim parenthesizedExpression = DirectCast(expression, ParenthesizedExpressionSyntax)
-                    Return parenthesizedExpression _
-                        .WithExpression(Negate(parenthesizedExpression.Expression, semanticModel, cancellationToken)) _
-                        .WithAdditionalAnnotations({Simplifier.Annotation})
-
-                Case SyntaxKind.NotExpression
-                    Dim notExpression = DirectCast(expression, UnaryExpressionSyntax)
-
-                    Dim notToken = notExpression.OperatorToken
-                    Dim nextToken = notExpression.Operand.GetFirstToken(includeZeroWidth:=True, includeSkipped:=True, includeDirectives:=True, includeDocumentationComments:=True)
-                    Dim updatedNextToken = nextToken.WithLeadingTrivia(notToken.LeadingTrivia)
-
-                    Return notExpression.Operand.ReplaceToken(nextToken, updatedNextToken).WithAdditionalAnnotations(Simplifier.Annotation)
-
-                Case SyntaxKind.TrueLiteralExpression
-                    Return SyntaxFactory.FalseLiteralExpression(
-                        SyntaxFactory.Token(expression.GetLeadingTrivia(),
-                                     SyntaxKind.FalseKeyword,
-                                     expression.GetTrailingTrivia()))
-
-                Case SyntaxKind.FalseLiteralExpression
-                    Return SyntaxFactory.TrueLiteralExpression(
-                        SyntaxFactory.Token(expression.GetLeadingTrivia(),
-                                     SyntaxKind.TrueKeyword,
-                                     expression.GetTrailingTrivia()))
-            End Select
-
-            ' Anything else can be negated by adding Not in front of the expression
-            result = SyntaxFactory.UnaryExpression(
-                SyntaxKind.NotExpression,
-                SyntaxFactory.Token(SyntaxKind.NotKeyword),
-                expression.Parenthesize())
-
-            Return result.WithAdditionalAnnotations(Formatter.Annotation)
-        End Function
-
-        Private Class MyCodeAction
-            Inherits CodeAction.DocumentChangeAction
-
-            Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(title, createChangedDocument)
-            End Sub
-        End Class
     End Class
 End Namespace

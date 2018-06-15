@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,6 +30,271 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LocalFunctionResetsLockScopeFlag()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main()
+    {
+        lock (new Object())
+        {
+            async Task localFunc()
+            {
+                Console.Write(""localFunc"");
+                await Task.Yield();
+            }
+
+            localFunc();
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "localFunc");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LocalFunctionResetsTryCatchFinallyScopeFlags()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            IEnumerable<int> localFunc()
+            {
+                yield return 1;
+            }
+
+            foreach (int i in localFunc())
+            {
+                Console.Write(i);
+            }
+
+            throw new Exception();
+        }
+        catch (Exception)
+        {
+            IEnumerable<int> localFunc()
+            {
+                yield return 2;
+            }
+
+            foreach (int i in localFunc())
+            {
+                Console.Write(i);
+            }
+        }
+        finally
+        {
+            IEnumerable<int> localFunc()
+            {
+                yield return 3;
+            }
+
+            foreach (int i in localFunc())
+            {
+                Console.Write(i);
+            }
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "123");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LocalFunctionDoesNotOverwriteInnerLockScopeFlag()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    void M(List<Task> listOfTasks)
+    {
+        lock (new Object())
+        {
+            async Task localFunc()
+            {
+                lock (new Object())
+                {
+                    await Task.Yield();
+                }
+            }
+
+            listOfTasks.Add(localFunc());
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (16,21): error CS1996: Cannot await in the body of a lock statement
+                //                     await Task.Yield();
+                Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await Task.Yield()").WithLocation(16, 21));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LocalFunctionDoesNotOverwriteInnerTryCatchFinallyScopeFlags()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        try
+        {
+            IEnumerable<int> localFunc()
+            {
+                try
+                {
+                    yield return 1;
+                }
+                catch (Exception) {}
+            }
+
+            localFunc();
+        }
+        catch (Exception)
+        {
+            IEnumerable<int> localFunc()
+            {
+                try {}
+                catch (Exception)
+                {
+                    yield return 2;
+                }
+            }
+
+            localFunc();
+        }
+        finally
+        {
+            IEnumerable<int> localFunc()
+            {
+                try {}
+                finally
+                {
+                    yield return 3;
+                }
+            }
+
+            localFunc();
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (15,21): error CS1626: Cannot yield a value in the body of a try block with a catch clause
+                //                     yield return 1;
+                Diagnostic(ErrorCode.ERR_BadYieldInTryOfCatch, "yield").WithLocation(15, 21),
+                // (29,21): error CS1631: Cannot yield a value in the body of a catch clause
+                //                     yield return 2;
+                Diagnostic(ErrorCode.ERR_BadYieldInCatch, "yield").WithLocation(29, 21),
+                // (42,21): error CS1625: Cannot yield in the body of a finally clause
+                //                     yield return 3;
+                Diagnostic(ErrorCode.ERR_BadYieldInFinally, "yield").WithLocation(42, 21));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void RethrowingExceptionsInCatchInsideLocalFuncIsAllowed()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch (Exception)
+        {
+            void localFunc()
+            {
+                try
+                {
+                    throw new Exception();
+                }
+                catch (Exception)
+                {
+                    Console.Write(""localFunc"");
+                    throw;
+                }
+            }
+
+            try
+            {
+                localFunc();
+            }
+            catch (Exception)
+            {
+                Console.Write(""_thrown"");
+            }
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "localFunc_thrown");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void RethrowingExceptionsInLocalFuncInsideCatchIsNotAllowed()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        try {}
+        catch (Exception)
+        {
+            void localFunc()
+            {
+                throw;
+            }
+
+            localFunc();
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
+                //                 throw;
+                Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(13, 17));
+        }
+
         [Fact]
         public void LocalFunctionTypeParametersUseCorrectBinder()
         {
@@ -799,12 +1064,12 @@ class C
                 // (18,26): error CS0692: Duplicate type parameter 'T'
                 //             int Local<T, T>() => 0;
                 Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(18, 26),
-                // (25,23): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C.M2<T>()'
+                // (25,23): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M2<T>()'
                 //             int Local<T>() => 0;
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(25, 23),
-                // (31,28): warning CS0693: Type parameter 'V' has the same name as the type parameter from outer type 'Local1<V>()'
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(25, 23),
+                // (31,28): warning CS8387: Type parameter 'V' has the same name as the type parameter from outer method 'Local1<V>()'
                 //                 int Local2<V>() => 0;
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "V").WithArguments("V", "Local1<V>()").WithLocation(31, 28),
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "V").WithArguments("V", "Local1<V>()").WithLocation(31, 28),
                 // (37,17): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //             int T() => 0;
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(37, 17),
@@ -814,9 +1079,9 @@ class C
                 // (54,25): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                     int T() => 0;
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(54, 25),
-                // (67,32): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C.M2<T>()'
+                // (67,32): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M2<T>()'
                 //                     int Local3<T>() => 0;
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(67, 32));
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(67, 32));
         }
 
         [Fact]
@@ -917,19 +1182,19 @@ class C
     }
 }";
             VerifyDiagnostics(src,
-                // (8,40): error CS1623: Iterators cannot have ref or out parameters
+                // (8,40): error CS1623: Iterators cannot have ref, in or out parameters
                 //         IEnumerable<int> Local(ref int a) { yield break; }
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(8, 40),
-                // (17,44): error CS1623: Iterators cannot have ref or out parameters
+                // (17,44): error CS1623: Iterators cannot have ref, in or out parameters
                 //             IEnumerable<int> Local(ref int x) { yield break; }
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(17, 44),
-                // (27,40): error CS1623: Iterators cannot have ref or out parameters
+                // (27,40): error CS1623: Iterators cannot have ref, in or out parameters
                 //         IEnumerable<int> Local(ref int a) { yield break; }
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(27, 40),
-                // (33,40): error CS1623: Iterators cannot have ref or out parameters
+                // (33,40): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerable<int> M4(ref int a)
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(33, 40),
-                // (37,48): error CS1623: Iterators cannot have ref or out parameters
+                // (37,48): error CS1623: Iterators cannot have ref, in or out parameters
                 //                 IEnumerable<int> Local(ref int b) { yield break; }
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "b").WithLocation(37, 48));
         }
@@ -1538,9 +1803,9 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,21): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Outer<T>()'
+    // (8,21): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'Outer<T>()'
     //             T Inner<T>()
-    Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Outer<T>()").WithLocation(8, 21)
+    Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "Outer<T>()").WithLocation(8, 21)
     );
         }
 
@@ -1901,10 +2166,37 @@ class Program
     }
 }";
             VerifyDiagnostics(source,
-    // (10,31): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
+    // (10,31): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(10, 31)
     );
+        }
+
+        [Fact]
+        public void BadInClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void A(in int x)
+    {
+        void Local()
+        {
+            Console.WriteLine(x);
+        }
+        Local();
+    }
+    static void Main()
+    {
+    }
+}";
+            VerifyDiagnostics(source,
+                // (10,31): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //             Console.WriteLine(x);
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(10, 31)
+                );
         }
 
         [Fact]
@@ -2023,7 +2315,7 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,48): error CS1623: Iterators cannot have ref or out parameters
+    // (8,48): error CS1623: Iterators cannot have ref, in or out parameters
     //         IEnumerable<int> RefEnumerable(ref int x)
     Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(8, 48)
     );
@@ -2050,7 +2342,7 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (9,42): error CS1988: Async methods cannot have ref or out parameters
+    // (9,42): error CS1988: Async methods cannot have ref, in or out parameters
     //         async Task<int> RefAsync(ref int x)
     Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(9, 42)
     );
@@ -2366,7 +2658,7 @@ class Program
     // (10,17): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
     //                 return 2;
     Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(10, 17),
-    // (13,20): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (13,20): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         int Bar => 2;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "2").WithLocation(13, 20),
     // (13,9): warning CS0162: Unreachable code detected
@@ -3452,6 +3744,119 @@ class C<T>
                 Assert.Equal(expected, parameterSymbol.Type.ToTestDisplayString());
                 Assert.Same(symbol, parameterSymbol.Type);
             }
+        }
+
+        public sealed class ScriptGlobals
+        {
+            public int SomeGlobal => 42;
+        }
+
+        [Fact]
+        public void CanAccessScriptGlobalsFromInsideMethod()
+        {
+            var source = @"
+void Method()
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        _ = SomeGlobal;
+    }
+}";
+            CreateSubmission(source, new[] { ScriptTestFixtures.HostRef }, hostObjectType: typeof(ScriptGlobals))
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessScriptGlobalsFromInsideLambda()
+        {
+            var source = @"
+var lambda = new System.Action(() =>
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        _ = SomeGlobal;
+    }
+});";
+            CreateSubmission(source, new[] { ScriptTestFixtures.HostRef }, hostObjectType: typeof(ScriptGlobals))
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessPreviousSubmissionVariablesFromInsideMethod()
+        {
+            var previous = CreateSubmission("int previousSubmissionVariable = 42;")
+                .VerifyEmitDiagnostics();
+
+            var source = @"
+void Method()
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        _ = previousSubmissionVariable;
+    }
+}";
+            CreateSubmission(source, previous: previous)
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessPreviousSubmissionVariablesFromInsideLambda()
+        {
+            var previous = CreateSubmission("int previousSubmissionVariable = 42;")
+                .VerifyEmitDiagnostics();
+
+            var source = @"
+var lambda = new System.Action(() =>
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        _ = previousSubmissionVariable;
+    }
+});";
+            CreateSubmission(source, previous: previous)
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessPreviousSubmissionMethodsFromInsideMethod()
+        {
+            var previous = CreateSubmission("void PreviousSubmissionMethod() { }")
+                .VerifyEmitDiagnostics();
+
+            var source = @"
+void Method()
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        PreviousSubmissionMethod();
+    }
+}";
+            CreateSubmission(source, previous: previous)
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessPreviousSubmissionMethodsFromInsideLambda()
+        {
+            var previous = CreateSubmission("void PreviousSubmissionMethod() { }")
+                .VerifyEmitDiagnostics();
+
+            var source = @"
+var lambda = new System.Action(() =>
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        PreviousSubmissionMethod();
+    }
+});";
+            CreateSubmission(source, previous: previous)
+                .VerifyEmitDiagnostics();
         }
     }
 }

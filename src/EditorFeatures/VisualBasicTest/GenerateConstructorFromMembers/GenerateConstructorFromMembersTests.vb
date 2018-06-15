@@ -308,5 +308,157 @@ Class Program
     End Sub
 End Class")
         End Function
+
+        <WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogNoBackingField() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property F() As Integer
+    [||]
+End Class",
+"
+Class Program
+    Public Property F() As Integer
+
+    Public Sub New(f As Integer{|Navigation:)|}
+        Me.F = f
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogNoParameterizedProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer{|Navigation:)|}
+        Me.P = p
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogNoIndexer() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Default Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Default Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer{|Navigation:)|}
+        Me.P = p
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogSetterOnlyProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer, s As Integer{|Navigation:)|}
+        Me.P = p
+        Me.S = s
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
     End Class
 End Namespace

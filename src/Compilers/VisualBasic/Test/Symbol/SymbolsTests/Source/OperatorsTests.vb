@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub Operators1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -143,7 +143,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, options:=TestOptions.ReleaseExe, additionalRefs:={SystemCoreRef})
+</compilation>, options:=TestOptions.ReleaseExe, references:={SystemCoreRef})
 
             Dim model As VBSemanticModel = GetSemanticModel(compilation, "a.vb")
             Dim operatorSyntax As OperatorStatementSyntax
@@ -256,7 +256,7 @@ op_UnaryPlus - True
 
         <Fact>
         Public Sub Operators2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -468,7 +468,7 @@ BC30371: Module 'A2' cannot be used as a type.
 
         <Fact>
         Public Sub Operators3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -587,7 +587,7 @@ BC33014: Operator 'CType' must have one parameter.
 
         <Fact>
         Public Sub Operators4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -723,7 +723,7 @@ BC33023: Operator 'IsFalse' must have a return type of Boolean.
 
         <Fact>
         Public Sub Operators5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -877,7 +877,7 @@ BC33031: Conversion operators cannot convert from a derived type.
 
         <Fact>
         Public Sub Operators6()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A12
@@ -926,7 +926,7 @@ BC30651: operator parameters cannot be declared 'ByRef'.
 
         <Fact()>
         Public Sub Operators7()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -1126,7 +1126,7 @@ BC30452: Operator '/' is not defined for types 'A14' and 'A14'.
 
         <Fact()>
         Public Sub Operators8()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -1217,7 +1217,7 @@ BC30516: Overload resolution failed because no accessible '+' accepts this numbe
         ''' </summary>
         <Fact()>
         Public Sub UserDefinedShortCircuitingOperators_IsTrueAndIsFalseOnBaseType()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A(Of T)
@@ -1267,7 +1267,7 @@ BC30452: Operator 'OrElse' is not defined for types 'C' and 'C'.
         ''' </summary>
         <Fact()>
         Public Sub UserDefinedShortCircuitingOperators_IsTrueAndIsFalseOnDerivedType()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A(Of T)

@@ -2150,8 +2150,7 @@ class P
                 // using System.Linq;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1)
                 );
-            CompileAndVerify(source, references: new[] { LinqAssemblyRef },
-                expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(543109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543109")]
@@ -2172,8 +2171,7 @@ class P
         return (errCount > 0) ? 1 : 0;
     }
 }";
-            CompileAndVerify(source, references: new[] { LinqAssemblyRef },
-                expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(543377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543377")]
@@ -3760,7 +3758,7 @@ False");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestFloatNegativeZero()
         {
             var text = @"
@@ -3796,7 +3794,7 @@ Infinity");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDoubleNegativeZero()
         {
             var text = @"
@@ -3833,7 +3831,7 @@ Infinity");
         // NOTE: decimal doesn't have infinity, so we convert to double.
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDecimalNegativeZero()
         {
             var text = @"
@@ -4412,7 +4410,7 @@ using System.Security;
     }
 ";
 
-            var comp = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: @"");
+            var comp = CompileAndVerify(new string[] { source }, expectedOutput: @"");
             //            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"

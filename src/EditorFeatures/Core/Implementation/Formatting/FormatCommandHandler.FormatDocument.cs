@@ -1,31 +1,69 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Options.OptionServiceFactory;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
-    internal partial class FormatCommandHandler
+    internal partial class FormatCommandHandler : ForegroundThreadAffinitizedObject
     {
-        public CommandState GetCommandState(FormatDocumentCommandArgs args, Func<CommandState> nextHandler)
+        private bool _infoBarOpen = false;
+        public VSCommanding.CommandState GetCommandState(FormatDocumentCommandArgs args)
         {
-            return GetCommandState(args.SubjectBuffer, nextHandler);
+            return GetCommandState(args.SubjectBuffer);
         }
 
-        public void ExecuteCommand(FormatDocumentCommandArgs args, Action nextHandler)
+        private void ShowGoldBarForCodeCleanupConfiguration(Document document)
         {
-            if (!TryExecuteCommand(args))
+            AssertIsForeground();
+
+            // If the gold bar is already open, do not show
+            if (_infoBarOpen)
             {
-                nextHandler();
+                return;
             }
+
+            _infoBarOpen = true;
+
+            var optionPageService = document.GetLanguageService<IOptionPageService>();
+            var infoBarService = document.Project.Solution.Workspace.Services.GetRequiredService<IInfoBarService>();
+            infoBarService.ShowInfoBarInGlobalView(
+                EditorFeaturesResources.Code_cleanup_is_not_configured,
+                new InfoBarUI(EditorFeaturesResources.Configure_it_now,
+                              kind: InfoBarUI.UIKind.Button,
+                              () =>
+                              {
+                                  optionPageService.ShowFormattingOptionPage();
+                                  _infoBarOpen = false;
+                              }),
+                new InfoBarUI(EditorFeaturesResources.Do_not_show_this_message_again,
+                              kind: InfoBarUI.UIKind.Button,
+                              () =>
+                              {
+                                  var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
+                                  var oldOptions = optionService.GetOptions();
+                                  var newOptions = oldOptions.WithChangedOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain,
+                                      document.Project.Language, true);
+                                  optionService.SetOptions(newOptions);
+                              }));
         }
 
-        private bool TryExecuteCommand(FormatDocumentCommandArgs args)
+        public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {
-            if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
+            if (!CanExecuteCommand(args.SubjectBuffer))
             {
                 return false;
             }
@@ -36,25 +74,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
-            if (formattingService == null || !formattingService.SupportsFormatDocument)
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
             {
-                return false;
+                var cancellationToken = context.OperationContext.UserCancellationToken;
+
+                var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+                using (var transaction = new CaretPreservingEditTransaction(
+                    EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                {
+                    var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+
+                    if (codeCleanupService == null)
+                    {
+                        Format(args.TextView, document, selectionOpt: null, cancellationToken);
+                    }
+                    else
+                    {
+                        if (docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
+                        {
+                            // Code cleanup
+                            var oldDoc = document;
+                            var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, codeCleanupService, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                            if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
+                            {
+                                ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
+                            }
+                        }
+                        else
+                        {
+                            Format(args.TextView, document, selectionOpt: null, cancellationToken);
+
+                            if (!docOptions.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain))
+                            {
+                                ShowGoldBarForCodeCleanupConfiguration(document);
+                            }
+                        }
+
+                    }
+
+                    transaction.Complete();
+                }
             }
 
-            var result = false;
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Format_Document,
-                message: EditorFeaturesResources.Formatting_document,
-                allowCancel: true,
-                action: waitContext =>
-                {
-                    Format(args.TextView, document, null, waitContext.CancellationToken);
-                    result = true;
-                });
+            return true;
+        }
 
-            // We don't call nextHandler, since we have handled this command.
-            return result;
+        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(Document document, ICodeCleanupService codeCleanupService, CancellationToken cancellationToken)
+        {
+            var newDoc = await codeCleanupService.CleanupAsync(document, cancellationToken).ConfigureAwait(false);
+
+            return await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
         }
     }
 }

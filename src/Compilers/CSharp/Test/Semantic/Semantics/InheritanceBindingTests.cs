@@ -375,21 +375,29 @@ class Class : Interface
 
             CreateCompilation(text).VerifyDiagnostics(
                 // (13,9): error CS0120: An object reference is required for the non-static field, method, or property 'Interface.Method(int, long)'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Method").WithArguments("Interface.Method(int, long)"),
+                //         Interface.Method(1, 2);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Method").WithArguments("Interface.Method(int, long)").WithLocation(13, 9),
                 // (18,9): error CS0120: An object reference is required for the non-static field, method, or property 'Interface.Method<T>()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Method<T>").WithArguments("Interface.Method<T>()"),
+                //         Interface.Method<T>();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Method<T>").WithArguments("Interface.Method<T>()").WithLocation(18, 9),
                 // (27,9): error CS0120: An object reference is required for the non-static field, method, or property 'Interface.Property'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Property").WithArguments("Interface.Property"),
+                //         Interface.Property = 2;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Property").WithArguments("Interface.Property").WithLocation(27, 9),
                 // (28,9): error CS0120: An object reference is required for the non-static field, method, or property 'Interface.Event'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Event").WithArguments("Interface.Event"),
+                //         Interface.Event += null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Event").WithArguments("Interface.Event").WithLocation(28, 9),
                 // (31,11): error CS1061: 'Class' does not contain a definition for 'Interface' and no extension method 'Interface' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface"),
+                //         c.Interface.Method(1, 2);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface").WithLocation(31, 11),
                 // (32,11): error CS1061: 'Class' does not contain a definition for 'Interface' and no extension method 'Interface' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface"),
+                //         c.Interface.Method<string>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface").WithLocation(32, 11),
                 // (33,11): error CS1061: 'Class' does not contain a definition for 'Interface' and no extension method 'Interface' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface"),
+                //         c.Interface.Property = 2;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface").WithLocation(33, 11),
                 // (34,11): error CS1061: 'Class' does not contain a definition for 'Interface' and no extension method 'Interface' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface"));
+                //         c.Interface.Event += null;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface").WithLocation(34, 11));
         }
 
         [Fact]

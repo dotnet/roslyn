@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public class OptionalArgumentsTests : CSharpTestBase
     {
         [WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDuplicateConstantAttributesMetadata()
         {
             var ilSource =
@@ -176,7 +176,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 3");
             var comp2b = CreateCompilation(
                 source2,
-                references: new[] { SystemRef, MetadataReference.CreateFromStream(comp1.EmitToStream()) },
+                references: new[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 options: TestOptions.DebugExe);
             comp2b.VerifyDiagnostics();
             CompileAndVerify(comp2b, expectedOutput:

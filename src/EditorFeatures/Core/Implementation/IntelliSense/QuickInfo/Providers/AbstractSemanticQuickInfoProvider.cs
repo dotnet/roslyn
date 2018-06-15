@@ -204,6 +204,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 }
             }
 
+            var capturesTextBuilder = new List<TaggedText>();
+            if (sections.TryGetValue(SymbolDescriptionGroups.Captures, out parts) && !parts.IsDefaultOrEmpty)
+            {
+                capturesTextBuilder.AddRange(parts);
+            }
+
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
             var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
             var documentationContent = GetDocumentationContent(symbols, sections, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
@@ -226,7 +232,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 typeParameterMap: typeParameterMapBuilder,
                 anonymousTypes: anonymousTypesBuilder,
                 usageText: usageTextBuilder,
-                exceptionText: exceptionsTextBuilder);
+                exceptionText: exceptionsTextBuilder,
+                capturesText: capturesTextBuilder);
         }
 
         private IDeferredQuickInfoContent GetDocumentationContent(
@@ -266,18 +273,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return CreateDocumentationCommentDeferredContent(null);
         }
 
+        protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found);
+
         private async Task<ValueTuple<SemanticModel, ImmutableArray<ISymbol>>> BindTokenAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
-            var symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
-                                       .GetSymbols(includeType: true);
+            ImmutableArray<ISymbol> symbols;
+            if (GetBindableNodeForTokenIndicatingLambda(token, out SyntaxNode lambdaSyntax))
+            {
+                symbols = ImmutableArray.Create(semanticModel.GetSymbolInfo(lambdaSyntax).Symbol);
+            }
+            else
+            {
+                symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
+                    .GetSymbols(includeType: true);
+            }
 
-            var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
+            var bindableParent = syntaxFacts.GetBindableParent(token);
             var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
 
             symbols = symbols.Where(IsOk)
@@ -288,33 +306,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             if (symbols.Any())
             {
-                var typeParameter = symbols.First() as ITypeParameterSymbol;
-                return ValueTuple.Create(
-                    semanticModel,
-                    typeParameter != null && typeParameter.TypeParameterKind == TypeParameterKind.Cref
-                        ? ImmutableArray<ISymbol>.Empty
-                        : symbols);
+                var discardSymbols = (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref;
+                return (semanticModel, discardSymbols ? ImmutableArray<ISymbol>.Empty : symbols);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
             // least bind it to a type.
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             if (syntaxFacts.IsOperator(token))
             {
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
                 if (IsOk(typeInfo.Type))
                 {
-                    return ValueTuple.Create(semanticModel,
-                        ImmutableArray.Create<ISymbol>(typeInfo.Type));
+                    return (semanticModel, ImmutableArray.Create<ISymbol>(typeInfo.Type));
                 }
             }
 
-            return ValueTuple.Create(semanticModel, ImmutableArray<ISymbol>.Empty);
+            return (semanticModel, ImmutableArray<ISymbol>.Empty);
         }
 
         private static bool IsOk(ISymbol symbol)
         {
-            return symbol != null && !symbol.IsErrorType() && !symbol.IsAnonymousFunction();
+            return symbol != null && !symbol.IsErrorType();
         }
 
         private static bool IsAccessible(ISymbol symbol, INamedTypeSymbol within)

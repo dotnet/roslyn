@@ -73,6 +73,9 @@ public class ClassA
                             data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
                             9, 10, 11);
 
+            Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetType().Name);
+            Assert.False(((INamedTypeSymbol)info0.Type).IsSerializable);
+
             Assert.Equal(info0.Type, info2.Type);
             Assert.NotEqual(info0.Type, info1.Type);
 
@@ -1812,15 +1815,11 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             };
         }
 
-        private CSharpCompilation Compile(string source)
-        {
-            return (CSharpCompilation)GetCompilationForEmit(
-                new[] { source },
-                new MetadataReference[] { },
-                TestOptions.ReleaseDll,
-                TestOptions.Regular
-            );
-        }
+        private CSharpCompilation Compile(string source) =>
+            CreateCompilationWithMscorlib40(
+                source,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.Regular);
 
         private static List<TextSpan> ExtractTextIntervals(ref string source)
         {

@@ -1000,15 +1000,39 @@ static class S3
 {
     internal static object F3(this N.C x, object y) { return null; }
 }";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef },
+                    parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (10,16): error CS0407: 'void S2.F1(object, object)' has the wrong return type
+                //             M1(c.F1); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadRetType, "c.F1").WithArguments("S2.F1(object, object)", "void").WithLocation(10, 16),
-                // (13,16): error CS0407: 'object S2.F2(N.C, object)' has the wrong return type
+                // (13,16): error CS0407: 'object S2.F2(C, object)' has the wrong return type
+                //             M2(c.F2); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadRetType, "c.F2").WithArguments("S2.F2(N.C, object)", "object").WithLocation(13, 16),
-                // (14,16): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<object, object>'
+                // (14,16): error CS0121: The call is ambiguous between the following methods or properties: 'S2.F3(C, object)' and 'S3.F3(C, object)'
                 //             M1(c.F3); // ambiguous
-                Diagnostic(ErrorCode.ERR_BadArgType, "c.F3").WithArguments("1", "method group", "System.Func<object, object>"));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "c.F3").WithArguments("S2.F3(N.C, object)", "S3.F3(N.C, object)").WithLocation(14, 16));
+            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this particular failure case.
+            // See https://github.com/dotnet/roslyn/issues/24787
+            // It is caused by a combination of two shortcomings  in the computation of diagnostics. First, in `BindExtensionMethod`
+            // when we fail to find an applicable extension method, we only report a diagnostic for the first extension method group
+            // that failed, even if some other extension method group contains a much better candidate. In the case of this test the first
+            // extension method group contains a method with the wrong number of parameters, while the second one has an extension method
+            // that fails only because of its return type mismatch.  Second, in
+            // `OverloadResolutionResult<TMember>.ReportDiagnostics<T>`, we do not report a diagnostic for the failure
+            // `MemberResolutionKind.NoCorrespondingParameter`, leaving it to the caller to notice that we failed to produce a
+            // diagnostic (the caller has to grub through the diagnostic bag to see that there is no error there) and then the caller
+            // has to produce a generic error message, which we see below. It does not appear that all callers have that test, though,
+            // suggesting there may be a latent bug of missing diagnostics.
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+                // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
+                //             M1(c.F1); // wrong return type
+                Diagnostic(ErrorCode.ERR_BadArgType, "c.F1").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(10, 16),
+                // (13,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Action<object>'
+                //             M2(c.F2); // wrong return type
+                Diagnostic(ErrorCode.ERR_BadArgType, "c.F2").WithArguments("1", "method group", "System.Action<object>").WithLocation(13, 16),
+                // (14,16): error CS0121: The call is ambiguous between the following methods or properties: 'S2.F3(C, object)' and 'S3.F3(C, object)'
+                //             M1(c.F3); // ambiguous
+                Diagnostic(ErrorCode.ERR_AmbigCall, "c.F3").WithArguments("S2.F3(N.C, object)", "S3.F3(N.C, object)").WithLocation(14, 16));
         }
 
         [Fact]
@@ -1109,29 +1133,42 @@ static class S
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
+                //         o.E += o.E;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "o.E").WithArguments("E", "method group").WithLocation(5, 9),
                 // (6,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
+                //         if (o.E != null)
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "o.E != null").WithArguments("!=", "method group", "<null>").WithLocation(6, 13),
                 // (8,15): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
+                //             M(o.E);
                 Diagnostic(ErrorCode.ERR_BadArgType, "o.E").WithArguments("1", "method group", "object").WithLocation(8, 15),
-                // (9, 15): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
+                // (9,15): error CS0119: 'S.E(object)' is a method, which is not valid in the given context
+                //             o.E.ToString();
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(9, 15),
                 // (10,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
+                //             o = !o.E;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!o.E").WithArguments("!", "method group").WithLocation(10, 17),
-                // (12,11): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(12, 11),
-                // (12,18): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(12, 18),
-                // (13,15): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(13, 15),
-                // (15,17): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(15, 17),
-                // (16,15): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(16, 15),
-                // (17,20): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(17, 20),
-                // (19, 11): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(19, 11));
+                // (12,11): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         o.F += o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(12, 11),
+                // (12,18): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         o.F += o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(12, 18),
+                // (13,15): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         if (o.F != null)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(13, 15),
+                // (15,17): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             M(o.F);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(15, 17),
+                // (16,15): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             o.F.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(16, 15),
+                // (17,20): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             o = !o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(17, 20),
+                // (19,11): error CS0119: 'S.E(object)' is a method, which is not valid in the given context
+                //         o.E.F();
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(19, 11)
+            );
         }
 
         [Fact]
@@ -1156,14 +1193,19 @@ static class S
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,11): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(6, 11),
-                // (7,13): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(7, 13),
-                // (8,22): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(8, 22),
-                // (9,15): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(9, 15));
+                // (6,11): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         o.F();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(6, 11),
+                // (7,13): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         M(o.F);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(7, 13),
+                // (8,22): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         Action a = o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(8, 22),
+                // (9,15): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         o = o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(9, 15)
+            );
         }
 
         [Fact(Skip = "528425")]
@@ -1360,12 +1402,16 @@ class B
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (15,13): error CS0122: 'S.E(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("S.E(object)").WithLocation(15, 13),
+                // (15,13): error CS1061: 'A' does not contain a definition for 'E' and no extension method 'E' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                //         M(a.E(), A.F(), a.G());
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E").WithArguments("A", "E").WithLocation(15, 13),
                 // (15,20): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         M(a.E(), A.F(), a.G());
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(15, 20),
                 // (15,27): error CS0122: 'A.G()' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("A.G()").WithLocation(15, 27));
+                //         M(a.E(), A.F(), a.G());
+                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("A.G()").WithLocation(15, 27)
+            );
         }
 
         [WorkItem(541330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541330")]
@@ -1422,10 +1468,13 @@ static class S2
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (11,15): error CS0122: 'N.A.F()' is inaccessible due to its protection level
+                // (11,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             a.F(); // instance and extension methods
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("N.A.F()").WithLocation(11, 15),
-                // (12,15): error CS0122: 'N.S1.G(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("N.S1.G(object)").WithLocation(12, 15));
+                // (12,15): error CS1061: 'A' does not contain a definition for 'G' and no extension method 'G' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                //             a.G(); // only extension methods
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "G").WithArguments("N.A", "G").WithLocation(12, 15)
+            );
         }
 
         [WorkItem(868538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868538")]
@@ -1874,7 +1923,7 @@ static class S
     void M()
     {
         this.E<int>(1);
-        this.E<S>(null);
+        this.E<S>();
         this.E<A>(null);
         this.E<int, int>(1);
     }
@@ -1890,9 +1939,9 @@ static class S
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,9): error CS0718: 'S': static types cannot be used as type arguments
-                //         this.E<S>(null);
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "this.E<S>").WithArguments("S").WithLocation(6, 9),
+                // (6,14): error CS0718: 'S': static types cannot be used as type arguments
+                //         this.E<S>();
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "E<S>").WithArguments("S").WithLocation(6, 14),
                 // (7,16): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         this.E<A>(null);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 16),
@@ -3769,9 +3818,9 @@ public class BaseClass<TMember>
 ";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,9): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'BaseClass<long>'.
+                // (7,18): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'BaseClass<long>'.
                 //         Instance.SetMember(32);
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Instance.SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "BaseClass<long>", "BC", "BaseClass<int>").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "BaseClass<long>", "BC", "BaseClass<int>").WithLocation(7, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -3864,9 +3913,9 @@ public class BaseClass<TMember> : I1<TMember>
 ";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,9): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'I1<long>'.
+                // (7,18): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'I1<long>'.
                 //         Instance.SetMember(32);
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Instance.SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "I1<long>", "BC", "BaseClass<int>").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "I1<long>", "BC", "BaseClass<int>").WithLocation(7, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

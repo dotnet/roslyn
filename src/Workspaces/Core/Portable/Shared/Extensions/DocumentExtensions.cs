@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class DocumentExtensions
     {
+        public static TLanguageService GetLanguageService<TLanguageService>(this TextDocument document) where TLanguageService : class, ILanguageService
+            => document?.Project?.LanguageServices?.GetService<TLanguageService>();
+
+        // ⚠ Verify IVTs do not use this method before removing it.
         public static TLanguageService GetLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
             => document?.Project?.LanguageServices?.GetService<TLanguageService>();
 
@@ -44,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             try
             {
-                var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
                 var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
                 if (semanticModelService == null || syntaxFactService == null)
                 {
@@ -80,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
             if (semanticModelService == null || syntaxFactService == null || node == null)
             {

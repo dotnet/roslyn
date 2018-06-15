@@ -4124,36 +4124,36 @@ static class S
 }
 ";
             CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
-// (7,15): error CS0306: The type 'int*' may not be used as a type argument
-//         new C<int*>();
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
-// (8,15): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
-//         new C<ArgIterator>();
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "ArgIterator").WithArguments("System.ArgIterator"),
-// (9,15): error CS0306: The type 'System.RuntimeArgumentHandle' may not be used as a type argument
-//         new C<RuntimeArgumentHandle>();
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle"),
-// (10,15): error CS0306: The type 'System.TypedReference' may not be used as a type argument
-//         new C<TypedReference>();
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference"),
-// (11,9): error CS0306: The type 'int*' may not be used as a type argument
-//         F<int*>();
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*"),
-// (12,9): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
-//         o.E<object, ArgIterator>();
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "o.E<object, ArgIterator>").WithArguments("System.ArgIterator"),
-// (14,13): error CS0306: The type 'System.RuntimeArgumentHandle' may not be used as a type argument
-//         a = F<RuntimeArgumentHandle>;
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<RuntimeArgumentHandle>").WithArguments("System.RuntimeArgumentHandle"),
-// (15,13): error CS0306: The type 'System.TypedReference' may not be used as a type argument
-//         a = o.E<T, TypedReference>;
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "o.E<T, TypedReference>").WithArguments("System.TypedReference"),
-// (16,34): error CS0306: The type 'System.TypedReference' may not be used as a type argument
-//         Console.WriteLine(typeof(TypedReference?));
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference?").WithArguments("System.TypedReference"),
-// (17,43): error CS0306: The type 'System.TypedReference' may not be used as a type argument
-//         Console.WriteLine(typeof(Nullable<TypedReference>));
-Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference"));
+                // (7,15): error CS0306: The type 'int*' may not be used as a type argument
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
+                // (8,15): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                //         new C<ArgIterator>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 15),
+                // (9,15): error CS0306: The type 'RuntimeArgumentHandle' may not be used as a type argument
+                //         new C<RuntimeArgumentHandle>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(9, 15),
+                // (10,15): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         new C<TypedReference>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(10, 15),
+                // (11,9): error CS0306: The type 'int*' may not be used as a type argument
+                //         F<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(11, 9),
+                // (12,11): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                //         o.E<object, ArgIterator>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E<object, ArgIterator>").WithArguments("System.ArgIterator").WithLocation(12, 11),
+                // (14,13): error CS0306: The type 'RuntimeArgumentHandle' may not be used as a type argument
+                //         a = F<RuntimeArgumentHandle>;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<RuntimeArgumentHandle>").WithArguments("System.RuntimeArgumentHandle").WithLocation(14, 13),
+                // (15,13): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         a = o.E<T, TypedReference>;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o.E<T, TypedReference>").WithArguments("System.TypedReference").WithLocation(15, 13),
+                // (16,34): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         Console.WriteLine(typeof(TypedReference?));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference?").WithArguments("System.TypedReference").WithLocation(16, 34),
+                // (17,43): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         Console.WriteLine(typeof(Nullable<TypedReference>));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(17, 43));
         }
 
         /// <summary>
@@ -4180,13 +4180,16 @@ class C<T>
     }
 }";
             CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
-                // (2,7): error CS0306: The type 'int*' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
-                // (3,7): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
+                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                // using COfArgIterator = C<System.ArgIterator>; // unused
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
-                // (10,9): error CS0306: The type 'int*' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfObject.F<int*>").WithArguments("int*").WithLocation(10, 9),
-                // (3,1): info CS8019: Unnecessary using directive.
+                // (2,7): error CS0306: The type 'int*' may not be used as a type argument
+                // using COfIntPtr = C<int*>;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
+                // (10,19): error CS0306: The type 'int*' may not be used as a type argument
+                //         COfObject.F<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(10, 19),
+                // (3,1): hidden CS8019: Unnecessary using directive.
                 // using COfArgIterator = C<System.ArgIterator>; // unused
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
         }
@@ -12311,9 +12314,8 @@ class C
 @"using System;
 interface IA<T> where T : object { }
 interface IB<T> where T : System.Object { }
-interface IC<T, U> where T : ValueType where U : Enum { }
-interface ID<T> where T : Array { }
-interface IE<T, U> where T : Delegate where U : MulticastDelegate { }";
+interface IC<T, U> where T : ValueType { }
+interface ID<T> where T : Array { }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (2,27): error CS0702: Constraint cannot be special class 'object'
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(2, 27),
@@ -12321,14 +12323,8 @@ interface IE<T, U> where T : Delegate where U : MulticastDelegate { }";
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(3, 27),
                 // (4,30): error CS0702: Constraint cannot be special class 'System.ValueType'
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "ValueType").WithArguments("System.ValueType").WithLocation(4, 30),
-                // (4,50): error CS0702: Constraint cannot be special class 'System.Enum'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Enum").WithArguments("System.Enum").WithLocation(4, 50),
                 // (5,27): error CS0702: Constraint cannot be special class 'System.Array'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Array").WithArguments("System.Array").WithLocation(5, 27),
-                // (6,30): error CS0702: Constraint cannot be special class 'System.Delegate'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Delegate").WithArguments("System.Delegate").WithLocation(6, 30),
-                // (6,49): error CS0702: Constraint cannot be special class 'System.MulticastDelegate'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "MulticastDelegate").WithArguments("System.MulticastDelegate").WithLocation(6, 49));
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Array").WithArguments("System.Array").WithLocation(5, 27));
         }
 
         [Fact]
@@ -13822,6 +13818,7 @@ class A : IFace<int>
         }
 
         [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
         public void CS0842ERR_ExplicitLayoutAndAutoImplementedProperty()
         {
             var text = @"
@@ -13832,7 +13829,7 @@ namespace TestNamespace
     [StructLayout(LayoutKind.Explicit)]
     struct Str
     {
-        public int Num // CS0842
+        public int Num // CS0625
         {
             get;
             set;
@@ -13846,8 +13843,10 @@ namespace TestNamespace
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (9,20): error CS0842: 'TestNamespace.Str.Num': Automatically implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)
-                Diagnostic(ErrorCode.ERR_ExplicitLayoutAndAutoImplementedProperty, "Num").WithArguments("TestNamespace.Str.Num"));
+                // (9,20): error CS0625: 'Str.Num': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                //         public int Num // CS0625
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "Num").WithArguments("TestNamespace.Str.Num").WithLocation(9, 20)
+                );
         }
 
         [Fact]
@@ -20096,6 +20095,180 @@ namespace A
                 // (11,13): error CS8329: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             ClassB.MethodB(obj);
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("C.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 13));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_NoneWithRef()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(int i);
+    partial void M(ref int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
+                //     partial void M(ref int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(ref int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_NoneWithIn()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(int i);
+    partial void M(in int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
+                //     partial void M(in int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_NoneWithOut()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(int i);
+    partial void M(out int i) { i = 0; }  
+}").VerifyDiagnostics(
+                // (4,18): error CS0752: A partial method cannot have out parameters
+                //     partial void M(out int i) { i = 0; }  
+                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(4, 18),
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
+                //     partial void M(out int i) { i = 0; }  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(out int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_RefWithNone()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(ref int i);
+    partial void M(int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(int)'
+                //     partial void M(int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_RefWithIn()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(ref int i);
+    partial void M(in int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
+                //     partial void M(in int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_RefWithOut()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(ref int i);
+    partial void M(out int i) { i = 0; }  
+}").VerifyDiagnostics(
+                // (4,18): error CS0752: A partial method cannot have out parameters
+                //     partial void M(out int i) { i = 0; }  
+                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(4, 18),
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
+                //     partial void M(out int i) { i = 0; }  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(out int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_InWithNone()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(in int i);
+    partial void M(int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(int)'
+                //     partial void M(int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_InWithRef()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(in int i);
+    partial void M(ref int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
+                //     partial void M(ref int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(ref int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_InWithOut()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(in int i);
+    partial void M(out int i) { i = 0; }  
+}").VerifyDiagnostics(
+                // (4,18): error CS0752: A partial method cannot have out parameters
+                //     partial void M(out int i) { i = 0; }  
+                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(4, 18),
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
+                //     partial void M(out int i) { i = 0; }  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(out int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_OutWithNone()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(out int i);
+    partial void M(int i) {}  
+}").VerifyDiagnostics(
+                // (3,18): error CS0752: A partial method cannot have out parameters
+                //     partial void M(out int i);
+                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(3, 18),
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(int)'
+                //     partial void M(int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_OutWithRef()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(out int i);
+    partial void M(ref int i) {}  
+}").VerifyDiagnostics(
+                // (3,18): error CS0752: A partial method cannot have out parameters
+                //     partial void M(out int i);
+                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(3, 18),
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
+                //     partial void M(ref int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(ref int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_OutWithIn()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(out int i);
+    partial void M(in int i) {}  
+}").VerifyDiagnostics(
+                // (3,18): error CS0752: A partial method cannot have out parameters
+                //     partial void M(out int i);
+                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(3, 18),
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
+                //     partial void M(in int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));
         }
     }
 }

@@ -171,17 +171,26 @@ abstract Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.Cod
 abstract Microsoft.CodeAnalysis.XmlDocumentationProvider.GetSourceStream(System.Threading.CancellationToken cancellationToken) -> System.IO.Stream
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ClassName = "class name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Comment = "comment" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ConstantName = "constant name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.DelegateName = "delegate name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EnumMemberName = "enum member name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EnumName = "enum name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EventName = "event name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ExcludedCode = "excluded code" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ExtensionMethodName = "extension method name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.FieldName = "field name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Identifier = "identifier" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.InterfaceName = "interface name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Keyword = "keyword" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.LocalName = "local name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.MethodName = "method name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ModuleName = "module name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.NumericLiteral = "number" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Operator = "operator" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ParameterName = "parameter name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.PreprocessorKeyword = "preprocessor keyword" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.PreprocessorText = "preprocessor text" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.PropertyName = "property name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Punctuation = "punctuation" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.StringLiteral = "string" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.StructName = "struct name" -> string
@@ -210,15 +219,6 @@ const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.XmlLiteralEn
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.XmlLiteralName = "xml literal - name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.XmlLiteralProcessingInstruction = "xml literal - processing instruction" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.XmlLiteralText = "xml literal - text" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.FieldName = "field name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EnumFieldName = "enum field name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ConstantName = "constant name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.LocalName = "local name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ParameterName = "parameter name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.MethodName = "method name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ExtensionMethodName = "extension method name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.PropertyName = "property name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EventName = "event name" -> string
 const Microsoft.CodeAnalysis.CodeActions.ConflictAnnotation.Kind = "CodeAction_Conflict" -> string
 const Microsoft.CodeAnalysis.CodeActions.RenameAnnotation.Kind = "CodeAction_Rename" -> string
 const Microsoft.CodeAnalysis.CodeActions.WarningAnnotation.Kind = "CodeAction_Warning" -> string
@@ -682,9 +682,9 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TryCastExpression(Microsoft.CodeA
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TryCatchStatement(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> tryStatements, params Microsoft.CodeAnalysis.SyntaxNode[] catchClauses) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TryFinallyStatement(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> tryStatements, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> finallyStatements) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleElementExpression(Microsoft.CodeAnalysis.ITypeSymbol type, string name = null) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(params Microsoft.CodeAnalysis.SyntaxNode[] elements) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, System.Collections.Generic.IEnumerable<string> elementNames = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> elements) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(params Microsoft.CodeAnalysis.SyntaxNode[] elements) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TypeExpression(Microsoft.CodeAnalysis.ITypeSymbol typeSymbol, bool addImport) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.UsingStatement(string name, Microsoft.CodeAnalysis.SyntaxNode expression, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ValueReturningLambdaExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -882,6 +882,7 @@ Microsoft.CodeAnalysis.Project.LanguageServices.get -> Microsoft.CodeAnalysis.Ho
 Microsoft.CodeAnalysis.Project.MetadataReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference>
 Microsoft.CodeAnalysis.Project.Name.get -> string
 Microsoft.CodeAnalysis.Project.OutputFilePath.get -> string
+Microsoft.CodeAnalysis.Project.OutputRefFilePath.get -> string
 Microsoft.CodeAnalysis.Project.ParseOptions.get -> Microsoft.CodeAnalysis.ParseOptions
 Microsoft.CodeAnalysis.Project.ProjectReferences.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference>
 Microsoft.CodeAnalysis.Project.RemoveAdditionalDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.Project
@@ -942,6 +943,7 @@ Microsoft.CodeAnalysis.ProjectInfo.Language.get -> string
 Microsoft.CodeAnalysis.ProjectInfo.MetadataReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference>
 Microsoft.CodeAnalysis.ProjectInfo.Name.get -> string
 Microsoft.CodeAnalysis.ProjectInfo.OutputFilePath.get -> string
+Microsoft.CodeAnalysis.ProjectInfo.OutputRefFilePath.get -> string
 Microsoft.CodeAnalysis.ProjectInfo.ParseOptions.get -> Microsoft.CodeAnalysis.ParseOptions
 Microsoft.CodeAnalysis.ProjectInfo.ProjectReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.ProjectReference>
 Microsoft.CodeAnalysis.ProjectInfo.Version.get -> Microsoft.CodeAnalysis.VersionStamp
@@ -954,6 +956,7 @@ Microsoft.CodeAnalysis.ProjectInfo.WithFilePath(string filePath) -> Microsoft.Co
 Microsoft.CodeAnalysis.ProjectInfo.WithMetadataReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.ProjectInfo.WithName(string name) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.ProjectInfo.WithOutputFilePath(string outputFilePath) -> Microsoft.CodeAnalysis.ProjectInfo
+Microsoft.CodeAnalysis.ProjectInfo.WithOutputRefFilePath(string outputRefFilePath) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.ProjectInfo.WithParseOptions(Microsoft.CodeAnalysis.ParseOptions parseOptions) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.ProjectInfo.WithProjectReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.ProjectInfo.WithVersion(Microsoft.CodeAnalysis.VersionStamp version) -> Microsoft.CodeAnalysis.ProjectInfo
@@ -1036,6 +1039,7 @@ Microsoft.CodeAnalysis.Solution.WithProjectFilePath(Microsoft.CodeAnalysis.Proje
 Microsoft.CodeAnalysis.Solution.WithProjectMetadataReferences(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithProjectName(Microsoft.CodeAnalysis.ProjectId projectId, string name) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithProjectOutputFilePath(Microsoft.CodeAnalysis.ProjectId projectId, string outputFilePath) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.WithProjectOutputRefFilePath(Microsoft.CodeAnalysis.ProjectId projectId, string outputRefFilePath) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithProjectParseOptions(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.ParseOptions options) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithProjectReferences(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.Workspace.get -> Microsoft.CodeAnalysis.Workspace
@@ -1370,7 +1374,8 @@ static Microsoft.CodeAnalysis.ProjectId.CreateFromSerialized(System.Guid id, str
 static Microsoft.CodeAnalysis.ProjectId.CreateNewId(string debugName = null) -> Microsoft.CodeAnalysis.ProjectId
 static Microsoft.CodeAnalysis.ProjectId.operator !=(Microsoft.CodeAnalysis.ProjectId left, Microsoft.CodeAnalysis.ProjectId right) -> bool
 static Microsoft.CodeAnalysis.ProjectId.operator ==(Microsoft.CodeAnalysis.ProjectId left, Microsoft.CodeAnalysis.ProjectId right) -> bool
-static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath = null, string outputFilePath = null, Microsoft.CodeAnalysis.CompilationOptions compilationOptions = null, Microsoft.CodeAnalysis.ParseOptions parseOptions = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments = null, bool isSubmission = false, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.ProjectInfo
+static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath = null, string outputFilePath = null, Microsoft.CodeAnalysis.CompilationOptions compilationOptions = null, Microsoft.CodeAnalysis.ParseOptions parseOptions = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments = null, bool isSubmission = false, System.Type hostObjectType = null, string outputRefFilePath = null) -> Microsoft.CodeAnalysis.ProjectInfo
+static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath, string outputFilePath, Microsoft.CodeAnalysis.CompilationOptions compilationOptions, Microsoft.CodeAnalysis.ParseOptions parseOptions, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments, bool isSubmission, System.Type hostObjectType) -> Microsoft.CodeAnalysis.ProjectInfo
 static Microsoft.CodeAnalysis.ProjectReference.operator !=(Microsoft.CodeAnalysis.ProjectReference left, Microsoft.CodeAnalysis.ProjectReference right) -> bool
 static Microsoft.CodeAnalysis.ProjectReference.operator ==(Microsoft.CodeAnalysis.ProjectReference left, Microsoft.CodeAnalysis.ProjectReference right) -> bool
 static Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.FilterOutOfScopeLocals.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>

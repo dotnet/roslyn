@@ -1070,7 +1070,7 @@ System.TypedReference c;
             s1.VerifyEmitDiagnostics();
 
             s2.VerifyDiagnostics(
-                // (1,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i* i"));
         }
 
@@ -1372,9 +1372,9 @@ goto Label;");
                 // (1,27): error CS0822: Implicitly-typed variables cannot be constant
                 // string F() => null; const var x = F();
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var").WithLocation(1, 27),
-                // (1,35): error CS0120: An object reference is required for the non-static field, method, or property 'F()'
+                // (1,35): error CS0236: A field initializer cannot reference the non-static field, method, or property 'F()'
                 // string F() => null; const var x = F();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("F()").WithLocation(1, 35)
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "F").WithArguments("F()").WithLocation(1, 35)
                 );
         }
 

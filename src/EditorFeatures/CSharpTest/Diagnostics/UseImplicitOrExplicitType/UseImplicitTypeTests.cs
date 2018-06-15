@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -114,6 +114,21 @@ class Program
     {
         [|Program|] x = null;
     }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]
+        public async Task NotOnRefVar()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    void Method()
+    {
+        ref [|var|] x = Method2();
+    }
+    ref int Method2() => throw null;
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
@@ -445,6 +460,64 @@ class C
         var s = 5;
     }
 }", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]
+        public async Task SuggestVarOnRefIntrinsicType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        ref [|int|] s = Ref();
+    }
+    static ref int Ref() => throw null;
+}",
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        ref var s = Ref();
+    }
+    static ref int Ref() => throw null;
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]
+        public async Task WithRefIntrinsicTypeInForeach()
+        {
+            var before = @"
+class E
+{
+    public ref int Current => throw null;
+    public bool MoveNext() => throw null;
+    public E GetEnumerator() => throw null;
+
+    void M()
+    {
+        foreach (ref [|int|] x in this) { }
+    }
+}";
+            var after = @"
+class E
+{
+    public ref int Current => throw null;
+    public bool MoveNext() => throw null;
+    public E GetEnumerator() => throw null;
+
+    void M()
+    {
+        foreach (ref var x in this) { }
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -2313,6 +2386,56 @@ public class Test
     public void TestIt()
     {
         [|MyAbClass|]  test = new TestInstance();
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [Fact]
+        public async Task DoNoSuggestVarForRefForeachVar()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        unsafe public Span(void* pointer, int length) { }
+
+        public ref SpanEnum GetEnumerator() => throw new Exception();
+
+        public struct SpanEnum
+        {
+            public ref int Current => 0;
+            public bool MoveNext() => false;
+        }
+    }
+}
+class C
+{
+    public void M(Span<int> span)
+    {
+        foreach ([|ref|] var rx in span)
+        {
+        }
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        public async Task NoSuggestionOnForeachCollectionExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach (string arg in [|args|])
+        {
+
+        }
     }
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }

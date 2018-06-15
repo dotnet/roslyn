@@ -642,7 +642,7 @@ End Module
 
         <Fact()>
         Public Sub MemberAccessReceiverNotRValue()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -674,7 +674,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30524: Property 'Q' is 'WriteOnly'.
         o = Q.<x>
@@ -692,7 +692,7 @@ BC30524: Property 'Q' is 'WriteOnly'.
         ' if the receiver is an error type.
         <Fact()>
         Public Sub MemberAccessUnknownReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -706,7 +706,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30002: Type 'C' is not defined.
         Dim x As C = Nothing
@@ -716,7 +716,7 @@ BC30002: Type 'C' is not defined.
 
         <Fact()>
         Public Sub MemberAccessUntypedReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -736,7 +736,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC31168: XML axis properties do not support late binding.
         o = Nothing.<x>
@@ -872,7 +872,7 @@ End Module
 
         <Fact()>
         Public Sub MemberAccessImplicitReceiverLambdaCannotLiftMe()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -912,7 +912,7 @@ Structure S
     End Function
 End Structure
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC36638: Instance members and 'Me' cannot be used within a lambda expression in structures.
             Return (Function() .<y>)()
@@ -965,7 +965,7 @@ End Module
 
         <Fact()>
         Public Sub MemberAccessAssignment()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -987,7 +987,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
         x.<y> = Nothing
@@ -2225,7 +2225,7 @@ End Module
 
         <Fact()>
         Public Sub EmbeddedExpressionConversions()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -2272,7 +2272,7 @@ Class C(Of T)
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30002: Type 'Unknown' is not defined.
     Private Shared F8 As Unknown = Nothing
@@ -2348,7 +2348,7 @@ End Module
 
         <Fact()>
         Public Sub EmbeddedExpressionDelegateConversion()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -2371,7 +2371,7 @@ Module M
     Private F3 As XElement = <x><%= AddressOf M3 %></x>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC31172: An embedded expression cannot be used here.
     Private F0 As D = <%= AddressOf M0 %>
@@ -2475,7 +2475,7 @@ End Module
 
         <Fact()>
         Public Sub EmbeddedExpressionNoXElementConstructor()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -2506,7 +2506,7 @@ Class C(Of T)
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30002: Type 'Unknown' is not defined.
     Private Shared F8 As Unknown = Nothing
@@ -2542,7 +2542,7 @@ BC30518: Overload resolution failed because no accessible 'New' can be called wi
         ' bound, even if outside of an XML expression (error cases).
         <Fact()>
         Public Sub EmbeddedExpressionOutsideXmlExpression()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Class A
@@ -2565,7 +2565,7 @@ Module M
     Private F3 As B = <%= P3 %>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30311: Value of type 'A' cannot be converted to 'B'.
     Private F1 As B = <%= P1 %>
@@ -2592,7 +2592,7 @@ BC30524: Property 'P3' is 'WriteOnly'.
         ' declarations, even if the expression is a string constant.
         <Fact()>
         Public Sub EmbeddedXmlnsExpressions()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System.Xml.Linq
@@ -2602,7 +2602,7 @@ Module M
     Private F3 As XElement = <x:y <%= XName.Get("x", "http://www.w3.org/2000/xmlns/") %>="http://roslyn"/>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC31148: XML namespace prefix 'x' is not defined.
     Private F2 As XElement = <x:y <%= "xmlns:x" %>="http://roslyn"/>
@@ -2639,7 +2639,7 @@ End Class
         <Fact()>
         Public Sub EmbeddedExpressionImportCycle()
             Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=<%= <p:x/>.@y %>>"}))
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports <xmlns:q=<%= <q:x/>.@y %>>
@@ -2647,7 +2647,7 @@ Module M
     Private F As String = <p:x q:y=""/>.@z
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, options:=options)
+</compilation>, references:=XmlReferences, options:=options)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC31172: Error in project-level import '<xmlns:p=<%= <p:x/>.@y %>>' at '<%= <p:x/>.@y %>' : An embedded expression cannot be used here.
 BC31172: An embedded expression cannot be used here.
@@ -2845,7 +2845,7 @@ http://roslyn/p-q
         ' argument. Those cases are not treated as errors in Roslyn.
         <Fact()>
         Public Sub GetXmlNamespaceWithTrivia()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports <xmlns:p="http://roslyn/">
@@ -2855,7 +2855,7 @@ Module M
     Private F3 = GetXmlNamespace( p)
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
         End Sub
 
@@ -3026,7 +3026,7 @@ End Module
 
         <Fact()>
         Public Sub ValueExtensionProperty_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -3086,7 +3086,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30991: Member 'Value' cannot be initialized in an object initializer expression because it is shared.
         Dim _a As New A() With {.Value = .P, .P = .Value}
@@ -3117,7 +3117,7 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 
         <Fact()>
         Public Sub ValueExtensionProperty_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -3138,7 +3138,7 @@ Class C
     End Function
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30469: Reference to a non-shared member requires an object reference.
         Value = F(Value)
@@ -3194,7 +3194,7 @@ End Module
         <Fact()>
         Public Sub ValueExtensionPropertyAndExtensionMethod()
             ' Accessible extension method.
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -3214,14 +3214,14 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC36586: Argument not specified for parameter 'y' of extension method 'Public Function Value(y As Object) As Object' defined in 'M'.
         Dim o = x.Value()
                   ~~~~~
 ]]></errors>)
             ' Inaccessible extension method.
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -3241,7 +3241,7 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30057: Too many arguments to 'Public Property Value As String'.
         x.Value(o)
@@ -3256,7 +3256,7 @@ BC30057: Too many arguments to 'Public Property Value As String'.
         ''' </summary>
         <Fact()>
         Public Sub ValueExtensionPropertyAndInaccessibleMember()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System.Collections
@@ -3279,7 +3279,7 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
         End Sub
 
@@ -3289,7 +3289,7 @@ End Module
         ' only be available if the namespace is imported.
         <Fact()>
         Public Sub ValueAndAttributeValueExtensionProperties()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -3353,7 +3353,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30456: 'AttributeValue' is not a member of 'XElement'.
         o = <x/>.AttributeValue(name)
@@ -4252,7 +4252,7 @@ End Module]]>
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 source,
                 references:={MscorlibRef_v20, SystemRef_v20, MsvbRef, SystemXmlRef, SystemXmlLinqRef, SystemCoreRef},
                 options:=TestOptions.ReleaseExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
@@ -4285,7 +4285,7 @@ End Module
                     ]]></file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 source,
                 references:={MscorlibRef_v20, SystemRef_v20, MsvbRef, SystemXmlRef, SystemXmlLinqRef, SystemCoreRef},
                 options:=TestOptions.ReleaseExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
@@ -4369,7 +4369,7 @@ End Module
         <WorkItem(623035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623035")>
         <Fact()>
         Public Sub Bug623035()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Friend Module Program
@@ -4538,9 +4538,9 @@ Module M
 End Module
     ]]>.Value, identifier)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation><file name="c.vb"><%= source %></file></compilation>,
-                additionalRefs:=XmlReferences, options:=options)
+                references:=XmlReferences, options:=options)
 
             If Not tooLong Then
                 compilation.AssertTheseDiagnostics(<errors/>)
@@ -4965,7 +4965,7 @@ End Class
             Dim refs = refBuilder.ToImmutableAndFree()
 
             CompileAndVerify(
-                CreateCompilationWithReferences(tree, refs, TestOptions.DebugDll),
+                CreateEmptyCompilationWithReferences(tree, refs, TestOptions.DebugDll),
                 symbolValidator:=
                     Sub(moduleSymbol)
                         moduleSymbol.GlobalNamespace.
@@ -4974,7 +4974,7 @@ End Class
                     End Sub)
 
             CompileAndVerify(
-                CreateCompilationWithReferences(tree, refs, TestOptions.DebugDll.WithRootNamespace("Root")),
+                CreateEmptyCompilationWithReferences(tree, refs, TestOptions.DebugDll.WithRootNamespace("Root")),
                 symbolValidator:=
                     Sub(moduleSymbol)
                         moduleSymbol.GlobalNamespace.

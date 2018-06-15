@@ -286,7 +286,9 @@ namespace Microsoft.CodeAnalysis
             StrongNameFileSystem fileSystem,
             string tempDirectory)
         {
-            bool fallback = ParseOptionsCore.Features.ContainsKey("UseLegacyStrongNameProvider") ||
+            bool fallback =
+                !(CoreClrShim.IsRunningOnCoreClr || PlatformInformation.IsRunningOnMono) ||
+                ParseOptionsCore.Features.ContainsKey("UseLegacyStrongNameProvider") ||
                 CompilationOptionsCore.CryptoKeyContainer != null;
             return fallback ?
                 new DesktopStrongNameProvider(KeyFileSearchPaths, tempDirectory, fileSystem) :
