@@ -70,10 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result = New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
 
-            If receiver IsNot Nothing AndAlso Not receiver.WasCompilerGenerated AndAlso result.Syntax Is receiver.Syntax Then
-                result.SetWasCompilerGenerated()
-            End If
-
             Return result
         End Function
 
@@ -109,6 +105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim lateMember = BindLateBoundMemberAccess(memberSyntax, memberName, typeArguments, receiver, containingType, diagnostics,
                                                        suppressLateBindingResolutionDiagnostics:=True) ' BindLateBoundInvocation will take care of the diagnostics.
+
+            If group.WasCompilerGenerated Then
+                lateMember.SetWasCompilerGenerated()
+            End If
 
             If receiver IsNot Nothing AndAlso receiver.Type IsNot Nothing AndAlso receiver.Type.IsInterfaceType Then
                 ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, group), ERRID.ERR_LateBoundOverloadInterfaceCall1, memberName)

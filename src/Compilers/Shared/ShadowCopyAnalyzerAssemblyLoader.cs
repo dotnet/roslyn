@@ -28,13 +28,12 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The directory where this instance of <see cref="ShadowCopyAnalyzerAssemblyLoader"/>
-        /// will shadow-copy assemblies.
+        /// will shadow-copy assemblies, and the mutex created to mark that the owner of it is still active.
         /// </summary>
-        private string _shadowCopyDirectory;
-        private Mutex _shadowCopyDirectoryMutex;
+        private readonly Lazy<(string directory, Mutex)> _shadowCopyDirectoryAndMutex;
 
         /// <summary>
-        /// Used to generate unique names for per-assembly directories.
+        /// Used to generate unique names for per-assembly directories. Should be updated with <see cref="Interlocked.Increment(ref int)"/>.
         /// </summary>
         private int _assemblyDirectoryId;
 
@@ -48,6 +47,9 @@ namespace Microsoft.CodeAnalysis
             {
                 _baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "AnalyzerShadowCopies");
             }
+
+            _shadowCopyDirectoryAndMutex = new Lazy<(string directory, Mutex)>(
+                () => CreateUniqueDirectoryForProcess(), LazyThreadSafetyMode.ExecutionAndPublication);
 
             DeleteLeftoverDirectoriesTask = Task.Run((Action)DeleteLeftoverDirectories);
         }
@@ -95,18 +97,13 @@ namespace Microsoft.CodeAnalysis
 
         protected override Assembly LoadImpl(string fullPath)
         {
-            if (_shadowCopyDirectory == null)
-            {
-                _shadowCopyDirectory = CreateUniqueDirectoryForProcess();
-            }
-
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
 
             return base.LoadImpl(shadowCopyPath);
         }
 
-        private string CopyFileAndResources(string fullPath, string assemblyDirectory)
+        private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
         {
             string fileNameWithExtension = Path.GetFileName(fullPath);
             string shadowCopyPath = Path.Combine(assemblyDirectory, fileNameWithExtension);
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis
             return shadowCopyPath;
         }
 
-        private void CopyFile(string originalPath, string shadowCopyPath)
+        private static void CopyFile(string originalPath, string shadowCopyPath)
         {
             var directory = Path.GetDirectoryName(shadowCopyPath);
             Directory.CreateDirectory(directory);
@@ -150,7 +147,7 @@ namespace Microsoft.CodeAnalysis
             ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
         }
 
-        private void ClearReadOnlyFlagOnFiles(string directoryPath)
+        private static void ClearReadOnlyFlagOnFiles(string directoryPath)
         {
             DirectoryInfo directory = new DirectoryInfo(directoryPath);
 
@@ -160,7 +157,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void ClearReadOnlyFlagOnFile(FileInfo fileInfo)
+        private static void ClearReadOnlyFlagOnFile(FileInfo fileInfo)
         {
             try
             {
@@ -177,24 +174,24 @@ namespace Microsoft.CodeAnalysis
 
         private string CreateUniqueDirectoryForAssembly()
         {
-            int directoryId = _assemblyDirectoryId++;
+            int directoryId = Interlocked.Increment(ref _assemblyDirectoryId);
 
-            string directory = Path.Combine(_shadowCopyDirectory, directoryId.ToString());
+            string directory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, directoryId.ToString());
 
             Directory.CreateDirectory(directory);
             return directory;
         }
 
-        private string CreateUniqueDirectoryForProcess()
+        private (string directory, Mutex mutex) CreateUniqueDirectoryForProcess()
         {
             string guid = Guid.NewGuid().ToString("N").ToLowerInvariant();
             string directory = Path.Combine(_baseDirectory, guid);
 
-            _shadowCopyDirectoryMutex = new Mutex(initiallyOwned: false, name: guid);
+            var mutex = new Mutex(initiallyOwned: false, name: guid);
 
             Directory.CreateDirectory(directory);
 
-            return directory;
+            return (directory, mutex);
         }
     }
 }
