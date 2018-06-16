@@ -82,7 +82,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'switch (Pro ... }')
+ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'switch (Pro ... }')
   Switch expression: 
     IInvalidOperation (OperationKind.Invalid, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
       Children(1):
@@ -90,7 +90,7 @@ ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
   Sections:
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null, IsInvalid) (Syntax: 'case 1: ... break;')
           Clauses:
-              IPatternCaseClauseOperation (Label Symbol: case 1:) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case 1:')
+              IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case 1:')
                 Pattern: 
                   IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1:')
                     Value: 
@@ -101,7 +101,7 @@ ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
                 Guard Expression: 
                   null
           Body:
-              IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+              IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0119: 'Program' is a type, which is not valid in the given context
@@ -139,7 +139,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'switch (x.T ... }')
+ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'switch (x.T ... }')
   Switch expression: 
     IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
       Instance Receiver: 
@@ -148,14 +148,14 @@ ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
   Sections:
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null, IsInvalid) (Syntax: 'case 1: ... break;')
           Clauses:
-              ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case 1:')
+              ISingleValueCaseClauseOperation (Label Id: 1) (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case 1:')
                 Value: 
                   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
           Body:
-              IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+              IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -296,7 +296,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'for (P; x;) ... }')
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'for (P; x;) ... }')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -442,6 +442,69 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'conti
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ContinueStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void InvalidStatementFlow_01()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    /*<bind>*/{
+        switch (args.Length)
+        {
+            case 0:
+                /*<bind>*/goto case 1;/*</bind>*/
+                break;
+        }
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(11,27): error CS0159: No such label 'case 1:' within the scope of the goto statement
+                //                 /*<bind>*/goto case 1;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 1;").WithArguments("case 1:").WithLocation(11, 27)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'args.Length')
+          Value: 
+            IPropertyReferenceOperation: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'args.Length')
+              Instance Receiver: 
+                IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[]) (Syntax: 'args')
+
+    Jump if False (Regular) to Block[B3]
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '0')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'args.Length')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (2)
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto case 1;')
+          Children(0)
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
     }
 }

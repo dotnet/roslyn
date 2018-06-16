@@ -19,7 +19,7 @@
     <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
          moniker listed below -->
     <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
-    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta6</RoslynNuGetMoniker> 
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta7</RoslynNuGetMoniker> 
 
     <!-- This is the base of the NuGet versioning for prerelease packages -->
     <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
@@ -58,10 +58,6 @@
     <!-- NuGet version -->
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' == 'Windows_NT'">$(UserProfile)/.nuget/packages/</NuGetPackageRoot>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/</NuGetPackageRoot>
-    <NuGetPackagesDirectory>$(NuGetPackageRoot)</NuGetPackagesDirectory>
   </PropertyGroup>
 
   <Choose>

@@ -2022,7 +2022,7 @@ Yes, PointerIndirectionOperator '*p' is a non-moveable variable
 Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
 No, AssignmentOperator 's = p[0]' is not a non-moveable variable
 Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-Yes, PointerElementAccess 'p[0]' is a non-moveable variable
+Yes, PointerElementAccess 'p[0]' is a non-moveable variable with underlying symbol 'p'
 Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
 No, Literal '0' is not a non-moveable variable
 No, TypeExpression 'int' is not a non-moveable variable
@@ -2033,8 +2033,8 @@ Yes, PointerIndirectionOperator '*p' is a non-moveable variable
 Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
 No, AssignmentOperator 'j = p[0].i' is not a non-moveable variable
 Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
-Yes, FieldAccess 'p[0].i' is a non-moveable variable
-Yes, PointerElementAccess 'p[0]' is a non-moveable variable
+Yes, FieldAccess 'p[0].i' is a non-moveable variable with underlying symbol 'p'
+Yes, PointerElementAccess 'p[0]' is a non-moveable variable with underlying symbol 'p'
 Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
 No, Literal '0' is not a non-moveable variable
 No, AssignmentOperator 'j = p->i' is not a non-moveable variable
@@ -6662,6 +6662,7 @@ unsafe class C
             {
                 Assert.NotNull(symbol);
                 Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.DeclarationKind);
+                Assert.True(((ILocalSymbol)symbol).IsFixed);
                 TypeSymbol type = symbol.Type;
                 Assert.Equal(TypeKind.Pointer, type.TypeKind);
                 Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
