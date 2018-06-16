@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             Debug.Assert(_experimentationService.IsExperimentEnabled(InternalFlightName) ||
                          _experimentationService.IsExperimentEnabled(ExternalFlightName));
 
-            string message = ServicesVSResources.Disabling_the_extension_0_unbound_your_keyboard_bindings;
+            string message = ServicesVSResources.We_notice_you_suspended_0_Restore_Visual_Studio_keybindings_or_apply_the_0_profile_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
             var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
             infoBarService.ShowInfoBarInGlobalView(
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 new InfoBarUI(title: ServicesVSResources.Restore_Visual_Studio_keybindings,
                               kind: InfoBarUI.UIKind.Button,
                               action: RestoreVsKeybindings),
-                new InfoBarUI(title: ServicesVSResources.Use_Keybindings_for_extensions,
+                new InfoBarUI(title: ServicesVSResources.Apply_0_keyboard_profile,
                               kind: InfoBarUI.UIKind.Button,
                               action: OpenExtensionsHyperlink),
                 new InfoBarUI(title: ServicesVSResources.Never_show_this_again,
@@ -265,6 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private void OpenExtensionsHyperlink()
         {
             ThisCanBeCalledOnAnyThread();
+
             if (!BrowserHelper.TryGetUri(KeybindingsFwLink, out Uri fwLink))
             {
                 // We're providing a constant, known-good link. This should be impossible.
