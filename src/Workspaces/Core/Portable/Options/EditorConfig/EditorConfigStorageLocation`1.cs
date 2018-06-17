@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Options
             _getEditorConfigStringForValue = getEditorConfigStringForValue ?? throw new ArgumentNullException(nameof(getEditorConfigStringForValue));
         }
 
-        public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, string> rawOptions, Type type, out object result)
+        public bool TryGetOption(IReadOnlyDictionary<string, string> rawOptions, Type type, out object result)
         {
             if (rawOptions.TryGetValue(KeyName, out string value))
             {
