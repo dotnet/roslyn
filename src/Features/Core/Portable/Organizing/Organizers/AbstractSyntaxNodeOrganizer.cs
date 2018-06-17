@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Organizing.Organizers
@@ -15,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Organizing.Organizers
             get { return SpecializedCollections.SingletonEnumerable(typeof(TSyntaxNode)); }
         }
 
-        public SyntaxNode OrganizeNode(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public SyntaxNode OrganizeNode(SemanticModel semanticModel, OptionSet optionSet, SyntaxNode node, CancellationToken cancellationToken)
         {
-            return Organize((TSyntaxNode)node, cancellationToken);
+            return Organize((TSyntaxNode)node, optionSet, cancellationToken);
         }
 
-        protected abstract TSyntaxNode Organize(TSyntaxNode node, CancellationToken cancellationToken);
+        protected abstract TSyntaxNode Organize(TSyntaxNode node, OptionSet optionSet, CancellationToken cancellationToken);
     }
 }

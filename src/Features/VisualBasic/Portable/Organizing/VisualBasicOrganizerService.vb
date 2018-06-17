@@ -18,7 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing
 
         Protected Overrides Async Function ProcessAsync(document As Document, organizers As IEnumerable(Of ISyntaxOrganizer), cancellationToken As CancellationToken) As Task(Of Document)
             Dim root = DirectCast(Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False), SyntaxNode)
-            Dim rewriter = New Rewriter(Me, organizers, Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False), cancellationToken)
+            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+            Dim options = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+            Dim rewriter = New Rewriter(Me, organizers, semanticModel, options, cancellationToken)
             Return document.WithSyntaxRoot(rewriter.Visit(root))
         End Function
     End Class

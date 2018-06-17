@@ -3,6 +3,7 @@
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
     {
         protected override FieldDeclarationSyntax Organize(
             FieldDeclarationSyntax syntax,
+            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             return syntax.Update(syntax.AttributeLists,

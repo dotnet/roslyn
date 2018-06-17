@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing
         protected override async Task<Document> ProcessAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, organizers, await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var rewriter = new Rewriter(this, organizers, semanticModel, options, cancellationToken);
             return document.WithSyntaxRoot(rewriter.Visit(root));
         }
     }
