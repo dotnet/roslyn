@@ -4,56 +4,28 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
 {
-    internal partial class ModifiersOrganizer
+    internal partial class ModifiersOrganizer : IComparer<SyntaxToken>
     {
-        private class Comparer : IComparer<SyntaxToken>
+        int IComparer<SyntaxToken>.Compare(SyntaxToken x, SyntaxToken y)
         {
-            // TODO(cyrusn): Allow users to specify the ordering they want
-            private enum Ordering
+            return GetOrdering(x) - GetOrdering(y);
+        }
+
+        private int GetOrdering(SyntaxToken token)
+        {
+            if (_preferredOrder.TryGetValue(token.RawKind, out var order))
             {
-                Accessibility,
-                StaticInstance,
-                Remainder
+                return order;
             }
-
-            public int Compare(SyntaxToken x, SyntaxToken y)
+            else if (token.IsKind(SyntaxKind.PartialKeyword))
             {
-                if (x.Kind() == y.Kind())
-                {
-                    return 0;
-                }
-
-                // partial always goes last.
-                if (x.Kind() == SyntaxKind.PartialKeyword)
-                {
-                    return 1;
-                }
-
-                if (y.Kind() == SyntaxKind.PartialKeyword)
-                {
-                    return -1;
-                }
-
-                var xOrdering = GetOrdering(x);
-                var yOrdering = GetOrdering(y);
-
-                return xOrdering - yOrdering;
+                // 'partial' comes at the end unless explicitly specified in the code style option
+                return int.MaxValue;
             }
-
-            private Ordering GetOrdering(SyntaxToken token)
+            else
             {
-                switch (token.Kind())
-                {
-                    case SyntaxKind.StaticKeyword:
-                        return Ordering.StaticInstance;
-                    case SyntaxKind.PrivateKeyword:
-                    case SyntaxKind.ProtectedKeyword:
-                    case SyntaxKind.InternalKeyword:
-                    case SyntaxKind.PublicKeyword:
-                        return Ordering.Accessibility;
-                    default:
-                        return Ordering.Remainder;
-                }
+                // other unspecified options come at the end except for the special case of 'partial'
+                return int.MaxValue - 1;
             }
         }
     }

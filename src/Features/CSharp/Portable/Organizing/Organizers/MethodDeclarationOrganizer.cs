@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
         {
             return syntax.Update(
                 attributeLists: syntax.AttributeLists,
-                modifiers: ModifiersOrganizer.Organize(syntax.Modifiers),
+                modifiers: ModifiersOrganizer.ForCodeStyle(optionSet).Organize(syntax.Modifiers),
                 returnType: syntax.ReturnType,
                 explicitInterfaceSpecifier: syntax.ExplicitInterfaceSpecifier,
                 identifier: syntax.Identifier,
