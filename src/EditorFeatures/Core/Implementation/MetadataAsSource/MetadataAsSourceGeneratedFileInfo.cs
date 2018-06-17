@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
@@ -21,16 +22,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
         private readonly ParseOptions _parseOptions;
 
-        public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType)
+        public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool allowDecompilation)
         {
             this.SourceProjectId = sourceProject.Id;
-            _parseOptions = sourceProject.ParseOptions;
             this.Workspace = sourceProject.Solution.Workspace;
-            this.LanguageName = sourceProject.Language;
+            if (allowDecompilation && sourceProject.Language != LanguageNames.CSharp)
+            {
+                _parseOptions = Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
+            }
+            else
+            {
+                _parseOptions = sourceProject.ParseOptions;
+            }
+
+            this.LanguageName = allowDecompilation ? LanguageNames.CSharp : sourceProject.Language;
             this.References = sourceProject.MetadataReferences.ToImmutableArray();
             this.AssemblyIdentity = topLevelNamedType.ContainingAssembly.Identity;
 
-            var extension = sourceProject.Language == LanguageNames.CSharp ? ".cs" : ".vb";
+            var extension = LanguageName == LanguageNames.CSharp ? ".cs" : ".vb";
 
             var directoryName = Guid.NewGuid().ToString("N");
             this.TemporaryFilePath = Path.Combine(rootPath, directoryName, topLevelNamedType.Name + extension);

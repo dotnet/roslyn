@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 InitializeWorkspace(project);
 
                 var infoKey = await GetUniqueDocumentKey(project, topLevelNamedType, allowDecompilation, cancellationToken).ConfigureAwait(false);
-                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(allowDecompilation), project, topLevelNamedType));
+                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(allowDecompilation), project, topLevelNamedType, allowDecompilation));
 
                 _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
 
