@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading;
@@ -211,7 +212,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
             finally
             {
-                if (_integrationServiceChannel != null)
+                if (_integrationServiceChannel != null
+                    && ChannelServices.RegisteredChannels.Contains(_integrationServiceChannel))
                 {
                     ChannelServices.UnregisterChannel(_integrationServiceChannel);
                 }
