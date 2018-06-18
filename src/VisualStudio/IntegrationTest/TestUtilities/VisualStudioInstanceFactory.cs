@@ -234,6 +234,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private static ISetupInstance LocateVisualStudioInstance(ImmutableHashSet<string> requiredPackageIds)
         {
             var vsInstallDir = Environment.GetEnvironmentVariable("VSInstallDir");
+            if (vsInstallDir is null)
+            {
+                vsInstallDir = Environment.GetEnvironmentVariable("__UNITTESTEXPLORER_VSINSTALLPATH__");
+                if (vsInstallDir != null)
+                {
+                    vsInstallDir = Path.GetFullPath(Path.Combine(vsInstallDir, "..\\.."));
+                }
+            }
+
             var haveVsInstallDir = !string.IsNullOrEmpty(vsInstallDir);
 
             if (haveVsInstallDir)
