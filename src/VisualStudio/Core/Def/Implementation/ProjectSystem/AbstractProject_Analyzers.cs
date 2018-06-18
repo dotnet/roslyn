@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceAdded(Id, existingReference.GetReference()));
                 }
 
-                GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
+                GetAnalyzerDependencyCheckingService().ReanalyzeSolutionForConflicts();
             }
 
             if (File.Exists(analyzerAssemblyFullPath))
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceRemoved(Id, analyzerReference));
 
-                GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
+                GetAnalyzerDependencyCheckingService().ReanalyzeSolutionForConflicts();
             }
 
             analyzer.Dispose();
