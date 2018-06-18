@@ -351,5 +351,26 @@ class
     end function
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestOnYield() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class 
+    iterator function M() as integer
+        [||]if true
+            yield 0
+        else
+            yield 1
+        end if
+    end function
+end class",
+"
+class 
+    iterator function M() as integer
+        Yield If(true, 0, 1)
+    end function
+end class")
+        End Function
     End Class
 End Namespace

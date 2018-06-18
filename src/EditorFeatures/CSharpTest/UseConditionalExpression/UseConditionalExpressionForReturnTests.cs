@@ -552,5 +552,55 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnYieldReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int M()
+    {
+        [||]if (true)
+        {
+            yield return 0;
+        }
+        else
+        {
+            yield return 1;
+        }
+    }
+}",
+@"
+class C
+{
+    int M()
+    {
+        yield return true ? 0 : 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotOnMixedYields()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int M()
+    {
+        [||]if (true)
+        {
+            yield break;
+        }
+        else
+        {
+            yield return 1;
+        }
+    }
+}");
+        }
     }
 }
