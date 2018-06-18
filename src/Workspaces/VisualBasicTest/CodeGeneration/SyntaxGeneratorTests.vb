@@ -478,7 +478,7 @@ End Class
         <Fact>
         Public Sub TestYieldReturnStatements()
             VerifySyntax(Of YieldStatementSyntax)(Generator.YieldReturnStatement(Generator.LiteralExpression(1)), "Yield 1")
-            VerifySyntax(Of YieldStatementSyntax)(Generator.ReturnStatement(Generator.IdentifierName("x")), "Yield x")
+            VerifySyntax(Of YieldStatementSyntax)(Generator.YieldReturnStatement(Generator.IdentifierName("x")), "Yield x")
         End Sub
 
         <Fact>
