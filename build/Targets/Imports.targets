@@ -321,7 +321,7 @@
     by our test scripts
   -->
   <Target Name="CopyDeterministicBuildDiagnosticFile" Condition="'$(DebugDeterminism)' != ''" AfterTargets="CoreCompile">
-    <Copy Condition="Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
+    <Copy Condition="'$(IsWpfTempProject)' != 'true' and Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
           SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
           DestinationFolder="$(OutDir)" />
   </Target>
