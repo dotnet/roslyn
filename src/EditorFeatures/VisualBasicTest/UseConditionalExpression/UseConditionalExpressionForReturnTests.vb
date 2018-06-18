@@ -352,6 +352,7 @@ class
 end class")
         End Function
 
+        <WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
         Public Async Function TestOnYield() As Task
             Await TestInRegularAndScriptAsync(

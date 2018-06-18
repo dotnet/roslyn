@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
@@ -553,6 +554,7 @@ class C
 }");
         }
 
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnYieldReturn()
         {
@@ -582,6 +584,7 @@ class C
 }");
         }
 
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestNotOnMixedYields()
         {
@@ -599,6 +602,34 @@ class C
         {
             yield return 1;
         }
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestWithNoElseBlockButFollowingYieldReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        [||]if (true)
+        {
+            yield return 0;
+        }
+
+        yield return 1;
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        yield return true ? 0 : 1;
     }
 }");
         }
