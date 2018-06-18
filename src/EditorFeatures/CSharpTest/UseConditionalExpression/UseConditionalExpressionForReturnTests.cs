@@ -586,6 +586,38 @@ class C
 
         [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnYieldReturn_IEnumerableReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        [||]if (true)
+        {
+            yield return 0;
+        }
+        else
+        {
+            yield return 1;
+        }
+    }
+}",
+@"
+class C
+{
+    int M()
+    {
+        yield return true ? 0 : 1;
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestNotOnMixedYields()
         {
             await TestMissingAsync(
@@ -608,6 +640,30 @@ class C
 
         [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotOnMixedYields_IEnumerableReturnType()
+        {
+            await TestMissingAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        [||]if (true)
+        {
+            yield break;
+        }
+        else
+        {
+            yield return 1;
+        }
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestNotWithNoElseBlockButFollowingYieldReturn()
         {
             await TestMissingAsync(
@@ -615,6 +671,28 @@ class C
 class C
 {
     void M()
+    {
+        [||]if (true)
+        {
+            yield return 0;
+        }
+
+        yield return 1;
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotWithNoElseBlockButFollowingYieldReturn_IEnumerableReturnType()
+        {
+            await TestMissingAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
     {
         [||]if (true)
         {
