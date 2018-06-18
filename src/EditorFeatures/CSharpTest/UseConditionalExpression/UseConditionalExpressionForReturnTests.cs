@@ -607,9 +607,11 @@ class C
     }
 }",
 @"
+using System.Collections.Generic;
+
 class C
 {
-    int M()
+    IEnumerable<int> M()
     {
         yield return true ? 0 : 1;
     }

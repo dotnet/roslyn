@@ -373,5 +373,31 @@ class
     end function
 end class")
         End Function
+
+        <WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestOnYield_IEnumerableReturnType() As Task
+            Await TestInRegularAndScriptAsync(
+"
+imports system.collections.generic
+
+class 
+    iterator function M() as IEnumerable(of integer)
+        [||]if true
+            yield 0
+        else
+            yield 1
+        end if
+    end function
+end class",
+"
+imports system.collections.generic
+
+class 
+    iterator function M() as IEnumerable(of integer)
+        Yield If(true, 0, 1)
+    end function
+end class")
+        End Function
     End Class
 End Namespace
