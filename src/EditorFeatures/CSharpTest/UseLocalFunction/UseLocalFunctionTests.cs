@@ -1998,7 +1998,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
-        public async Task TestNotAvaliableIfTypeParameterChanged1()
+        public async Task TestNotAvailableIfTypeParameterChanged1()
         {
             await TestMissingAsync(
 @"using System;
@@ -2021,7 +2021,7 @@ class Enclosing<T>
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
-        public async Task TestNotAvaliableIfTypeParameterChanged2()
+        public async Task TestNotAvailableIfTypeParameterChanged2()
         {
             await TestMissingAsync(
 @"using System;
@@ -2031,7 +2031,7 @@ class Enclosing<T>
     delegate T MyDelegate(T t);
     static void Callee(MyDelegate d) => d(default);
 
-    public class Foo<T>
+    public class Goo<T>
     {
         public class Class
         {
@@ -2047,7 +2047,7 @@ class Enclosing<T>
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
-        public async Task TestNotAvaliableIfTypeParameterChanged3()
+        public async Task TestNotAvailableIfTypeParameterChanged3()
         {
             await TestMissingAsync(
 @"public class Class<T>
@@ -2062,6 +2062,114 @@ class Enclosing<T>
             MyDelegate [||]local = x => x;
             Callee(local);
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestNotAvailableIfTypeParameterChanged4()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Enclosing<T>
+{
+    delegate T MyDelegate(T t);
+    static void Callee(MyDelegate d) => d(default);
+
+    public class Goo<T>
+    {
+        public class Class<U>
+        {
+            public void Caller()
+            {
+                MyDelegate [||]local = x => x;
+                Callee(local);
+            }
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/27950"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestAvailableIfTypeParameterNotChanged1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class DelegateEnclosing<T>
+{
+    protected delegate T MyDelegate(T t);
+}
+
+class Enclosing<T> : DelegateEnclosing<T>
+{
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        MyDelegate [||]local = x => x;
+        Callee(local);
+    }
+}",
+@"using System;
+
+class DelegateEnclosing<T>
+{
+    protected delegate T MyDelegate(T t);
+}
+
+class Enclosing<T> : DelegateEnclosing<T>
+{
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        T local(T x) => x;
+        Callee(local);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestAvailableIfTypeParameterNotChanged2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class DelegateEnclosing<T>
+{
+    protected delegate T MyDelegate(T t);
+}
+
+class Enclosing<U> : DelegateEnclosing<U>
+{
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        MyDelegate [||]local = x => x;
+        Callee(local);
+    }
+}",
+@"using System;
+
+class DelegateEnclosing<T>
+{
+    protected delegate T MyDelegate(T t);
+}
+
+class Enclosing<U> : DelegateEnclosing<U>
+{
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        U local(U x) => x;
+        Callee(local);
     }
 }");
         }

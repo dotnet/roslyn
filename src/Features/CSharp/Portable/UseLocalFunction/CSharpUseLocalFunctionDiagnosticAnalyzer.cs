@@ -384,13 +384,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var typeParams = localEnclosingSymbol.GetTypeParameters();
                 if (typeParams.Any())
                 {
-                    return !typeParams.Any(p => delegateTypeParamNames.Contains(p.Name));
+                    if (typeParams.Any(p => delegateTypeParamNames.Contains(p.Name)))
+                    {
+                        return false;
+                    }
                 }
 
                 localEnclosingSymbol = localEnclosingSymbol.ContainingType;
             }
 
-            return false;
+            return true;
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
