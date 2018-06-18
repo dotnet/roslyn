@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 new InfoBarUI(title: ServicesVSResources.Restore_Visual_Studio_keybindings,
                               kind: InfoBarUI.UIKind.Button,
                               action: RestoreVsKeybindings),
-                new InfoBarUI(title: ServicesVSResources.Apply_0_keyboard_profile,
+                new InfoBarUI(title: string.Format(ServicesVSResources.Apply_0_keyboard_profile, ReSharperExtensionName),
                               kind: InfoBarUI.UIKind.Button,
                               action: OpenExtensionsHyperlink),
                 new InfoBarUI(title: ServicesVSResources.Never_show_this_again,
