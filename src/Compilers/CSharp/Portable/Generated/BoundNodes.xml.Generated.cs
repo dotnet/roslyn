@@ -5205,7 +5205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAnonymousPropertyDeclaration : BoundExpression
     {
-        public BoundAnonymousPropertyDeclaration(SyntaxNode syntax, PropertySymbol property, TypeSymbol type, bool hasErrors)
+        public BoundAnonymousPropertyDeclaration(SyntaxNode syntax, PropertySymbol property, int propertyIndex, TypeSymbol type, bool hasErrors)
             : base(BoundKind.AnonymousPropertyDeclaration, syntax, type, hasErrors)
         {
 
@@ -5213,9 +5213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Property = property;
+            this.PropertyIndex = propertyIndex;
         }
 
-        public BoundAnonymousPropertyDeclaration(SyntaxNode syntax, PropertySymbol property, TypeSymbol type)
+        public BoundAnonymousPropertyDeclaration(SyntaxNode syntax, PropertySymbol property, int propertyIndex, TypeSymbol type)
             : base(BoundKind.AnonymousPropertyDeclaration, syntax, type)
         {
 
@@ -5223,21 +5224,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Property = property;
+            this.PropertyIndex = propertyIndex;
         }
 
 
         public PropertySymbol Property { get; }
+
+        public int PropertyIndex { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitAnonymousPropertyDeclaration(this);
         }
 
-        public BoundAnonymousPropertyDeclaration Update(PropertySymbol property, TypeSymbol type)
+        public BoundAnonymousPropertyDeclaration Update(PropertySymbol property, int propertyIndex, TypeSymbol type)
         {
-            if (property != this.Property || type != this.Type)
+            if (property != this.Property || propertyIndex != this.PropertyIndex || type != this.Type)
             {
-                var result = new BoundAnonymousPropertyDeclaration(this.Syntax, property, type, this.HasErrors);
+                var result = new BoundAnonymousPropertyDeclaration(this.Syntax, property, propertyIndex, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9463,7 +9467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.Property, type);
+            return node.Update(node.Property, node.PropertyIndex, type);
         }
         public override BoundNode VisitNewT(BoundNewT node)
         {
@@ -10959,6 +10963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("anonymousPropertyDeclaration", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("property", node.Property, null),
+                new TreeDumperNode("propertyIndex", node.PropertyIndex, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

@@ -1446,6 +1446,7 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="PropertyIndex" Type="int"/>
   </Node>
   
   <Node Name="BoundNewT" Base="BoundExpression">

@@ -5075,36 +5075,23 @@ oneMoreTime:
             var initializerBuilder = ArrayBuilder<IOperation>.GetInstance(operation.Initializers.Length);
             for (int i = 0; i < operation.Initializers.Length; i++)
             {
-                IOperation initializer = operation.Initializers[i];
+                var simpleAssignment = (ISimpleAssignmentOperation)operation.Initializers[i];
+                var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
                 IPropertySymbol initializedProperty = properties[i];
 
-                // Due to https://github.com/dotnet/roslyn/issues/25266,
-                // the initializer may or may not be a simple assignment to anonymous type property.
-                if (initializer.Kind == OperationKind.SimpleAssignment)
-                {
-                    var simpleAssignment = (ISimpleAssignmentOperation)initializer;
-                    if (simpleAssignment.Target.Kind == OperationKind.PropertyReference)
-                    {
-                        var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                Debug.Assert(propertyReference != null);
+                Debug.Equals(propertyReference.Property, initializedProperty);
+                Debug.Assert(propertyReference.Arguments.IsEmpty);
+                Debug.Assert(propertyReference.Instance != null);
+                Debug.Assert(propertyReference.Instance.Kind == OperationKind.InstanceReference);
+                Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitAnonymousReceiver);
 
-                        // Due to https://github.com/dotnet/roslyn/issues/22736,
-                        // Instance is null for property reference in an anonymous initializer.
-                        if (propertyReference.Instance == null &&
-                            propertyReference.Property == initializedProperty &&
-                            propertyReference.Arguments.IsEmpty)
-                        {
-                            IOperation visitedTarget = new PropertyReferenceExpression(initializedProperty, propertyReference.Instance, ImmutableArray<IArgumentOperation>.Empty,
-                                semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
-                            IOperation visitedValue = visitAndCaptureInitializer(initializedProperty, simpleAssignment.Value);
-                            var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
-                                semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.ConstantValue, IsImplicit(simpleAssignment));
-                            initializerBuilder.Add(visitedAssignment);
-                            continue;
-                        }
-                    }
-                }
-
-                initializerBuilder.Add(visitAndCaptureInitializer(initializedProperty, initializer));
+                IOperation visitedTarget = new PropertyReferenceExpression(initializedProperty, Visit(propertyReference.Instance), ImmutableArray<IArgumentOperation>.Empty,
+                    semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
+                IOperation visitedValue = visitAndCaptureInitializer(initializedProperty, simpleAssignment.Value);
+                var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
+                    semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.ConstantValue, IsImplicit(simpleAssignment));
+                initializerBuilder.Add(visitedAssignment);
             }
 
             _currentImplicitInstance.Free();
@@ -5522,9 +5509,8 @@ oneMoreTime:
         public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, int? captureIdForResult)
         {
             // Check if this is an anonymous type property reference with an implicit receiver within an anonymous object initializer.
-            // Due to https://github.com/dotnet/roslyn/issues/22736,
-            // Instance is null for property reference with implicit instance reference within an anonymous initializer.
-            if (operation.Instance == null &&
+            if (operation.Instance is IInstanceReferenceOperation instanceReference &&
+                instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitAnonymousReceiver &&
                 operation.Property.ContainingType.IsAnonymousType &&
                 operation.Property.ContainingType == _currentImplicitInstance.AnonymousType)
             {

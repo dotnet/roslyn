@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (symbol.Kind == SymbolKind.Property)
                             {
-                                declarators.Add(new BoundAnonymousPropertyDeclaration(fieldSyntaxNodes[i], (PropertySymbol)symbol, field.Type));
+                                declarators.Add(new BoundAnonymousPropertyDeclaration(fieldSyntaxNodes[i], (PropertySymbol)symbol, i, field.Type));
                                 break;
                             }
                         }

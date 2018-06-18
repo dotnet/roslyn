@@ -111,14 +111,14 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 Amount, System.String Message>.Amount { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Amount')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitAnonymousReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 Amount, System.String Message>, IsImplicit) (Syntax: 'new { Amoun ... ello"" + y }')
         Right: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Message = ""Hello"" + y')
         Left: 
           IPropertyReferenceOperation: System.String <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Message')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitAnonymousReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 Amount, System.String Message>, IsImplicit) (Syntax: 'new { Amoun ... ello"" + y }')
         Right: 
           IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '""Hello"" + y')
             Left: 

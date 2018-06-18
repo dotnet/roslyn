@@ -767,7 +767,8 @@ endRegion:
 
                 case OperationKind.InstanceReference:
                     // Implicit instance receivers are expected to have been removed when dealing with creations.
-                    return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
+                    return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance ||
+                        ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ImplicitAnonymousReceiver;
 
                 case OperationKind.None:
                     return !(n is IPlaceholderOperation);
