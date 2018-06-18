@@ -365,9 +365,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
-        protected CSharpCompilation CreatePatternCompilation(string source)
+        protected CSharpCompilation CreatePatternCompilation(string source, CSharpCompilationOptions options = null)
         {
-            return CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            return CreateCompilation(source, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
         }
 
         #endregion helpers

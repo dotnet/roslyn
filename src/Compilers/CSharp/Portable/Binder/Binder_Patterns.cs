@@ -276,6 +276,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
+            else if (inputType.TypeKind == TypeKind.Pointer || patternType.TypeKind == TypeKind.Pointer)
+            {
+                // pattern-matching is not permitted for pointer types
+                diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, typeSyntax.Location);
+                return true;
+            }
             else if (patternType.IsNullableType() && !isVar && patternTypeWasInSource)
             {
                 // It is an error to use pattern-matching with a nullable type, because you'll never get null. Use the underlying type.
@@ -404,16 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
-            if (IsOperatorErrors(typeSyntax, inputType, boundDeclType, diagnostics))
-            {
-                hasErrors = true;
-            }
-            else
-            {
-                hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType,
-                                                   isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
-            }
-
+            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType,
+                                               isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             return boundDeclType;
         }
 

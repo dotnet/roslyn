@@ -365,5 +365,34 @@ class Program
             Assert.Null(ySymbol.Symbol);
             Assert.Equal(0, ySymbol.CandidateSymbols.Length);
         }
+
+        [Fact]
+        public void PatternMatchPointerVsVarPattern()
+        {
+            var source =
+@"class Test
+{
+    unsafe static void Main()
+    {
+        fixed (char *x = string.Empty)
+        {
+            if (x is var y1) { }
+            switch (x)
+            {
+                case var y2: break;
+            }
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                // (7,22): error CS8421: Pattern-matching is not permitted for pointer types.
+                //             if (x is var y1) { }
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var").WithLocation(7, 22),
+                // (10,22): error CS8421: Pattern-matching is not permitted for pointer types.
+                //                 case var y2: break;
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var").WithLocation(10, 22)
+                );
+        }
     }
 }

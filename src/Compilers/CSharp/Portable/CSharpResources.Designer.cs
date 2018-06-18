@@ -4715,6 +4715,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 8.0. Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion8_0 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion8_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_FeatureNotValidInExpressionTree {
@@ -8041,6 +8050,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PointerInAsOrIs {
             get {
                 return ResourceManager.GetString("ERR_PointerInAsOrIs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pattern-matching is not permitted for pointer types..
+        /// </summary>
+        internal static string ERR_PointerTypeInPatternMatching {
+            get {
+                return ResourceManager.GetString("ERR_PointerTypeInPatternMatching", resourceCulture);
             }
         }
         

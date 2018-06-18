@@ -62,6 +62,11 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PointerTypeInPatternMatching">
+        <source>Pattern-matching is not permitted for pointer types.</source>
+        <target state="new">Pattern-matching is not permitted for pointer types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</source>
         <target state="new">A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</target>
