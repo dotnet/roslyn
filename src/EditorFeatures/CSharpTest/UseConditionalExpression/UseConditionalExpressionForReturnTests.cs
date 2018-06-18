@@ -608,9 +608,9 @@ class C
 
         [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestWithNoElseBlockButFollowingYieldReturn()
+        public async Task TestNotWithNoElseBlockButFollowingYieldReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 class C
 {
@@ -622,14 +622,6 @@ class C
         }
 
         yield return 1;
-    }
-}",
-@"
-class C
-{
-    void M()
-    {
-        yield return true ? 0 : 1;
     }
 }");
         }
