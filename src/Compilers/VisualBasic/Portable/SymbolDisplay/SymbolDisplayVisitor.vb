@@ -43,6 +43,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._escapeKeywordIdentifiers = escapeKeywordIdentifiers
         End Sub
 
+        Protected Overrides Function MakeFirstSymbolContainingTypeVisitor() As AbstractSymbolDisplayVisitor
+            If Not isFirstSymbolVisited OrElse format.KindOptions = SymbolDisplayKindOptions.None Then
+                Return Me
+            End If
+
+            Return New SymbolDisplayVisitor(
+                    Me.builder,
+                    Me.format.WithKindOptions(SymbolDisplayKindOptions.None),
+                    Me.semanticModelOpt,
+                    Me.positionOpt,
+                    Me._escapeKeywordIdentifiers,
+                    isFirstSymbolVisited:=True,
+                    inNamespaceOrType)
+        End Function
+
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
         Protected Overrides Function MakeNotFirstVisitor(Optional inNamespaceOrType As Boolean = False) As AbstractSymbolDisplayVisitor
             Return New SymbolDisplayVisitor(

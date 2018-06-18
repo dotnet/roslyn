@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEventHandler() As Task
             Await TestInClassAsync("Dim e As $$EventHandler",
-             MainDescription("Delegate Sub System.EventHandler(sender As Object, e As System.EventArgs)",
+             MainDescription("Delegate Sub System.EventHandler(sender As Object, e As EventArgs)",
               ExpectedClassifications(
                Keyword("Delegate"),
                WhiteSpace(" "),
@@ -308,8 +308,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                WhiteSpace(" "),
                Keyword("As"),
                WhiteSpace(" "),
-               Identifier("System"),
-               Operators.Dot,
                [Class]("EventArgs"),
                Punctuation.CloseParen)))
         End Function
@@ -351,6 +349,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                     End Class
                 </Text>.NormalizedValue,
              MainDescription($"T1 {FeaturesResources.in_} C.Meth1(Of T1 As Class)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(547, "https://github.com/dotnet/roslyn/issues/547")>
+        Public Async Function TestMinimallyQualifiedConstraint() As Task
+            Await TestAsync(<Text>
+                    Class C(Of T As Structure, U As List(Of T))
+                        Sub M()
+                            D$$im x = New C(Of Integer, List(Of Integer))()
+                        End Sub
+                    End Class
+                </Text>.NormalizedValue,
+                MainDescription($"Class C(Of T As Structure, U As List(Of T))"),
+                TypeParameterMap(Lines(
+                    vbCrLf & $"T {FeaturesResources.is_} Integer",
+                    $"U {FeaturesResources.is_} List(Of Integer)")))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(547, "https://github.com/dotnet/roslyn/issues/547")>
+        Public Async Function TestNestedInGeneric() As Task
+            Await TestInMethodAsync(<Text>
+                    Dim e As List(Of Integer).Enu$$merator
+                </Text>.NormalizedValue,
+                MainDescription($"Structure System.Collections.Generic.List(Of T).Enumerator"),
+                TypeParameterMap(vbCrLf & $"T {FeaturesResources.is_} Integer"))
         End Function
 
         <WorkItem(538732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538732")>

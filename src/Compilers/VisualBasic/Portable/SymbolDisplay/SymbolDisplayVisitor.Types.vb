@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
-            If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes) Then
+            If CanUseSpecialTypes Then
                 If AddSpecialTypeKeyword(symbol) Then
                     Return
                 End If
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim containingType = symbol.ContainingType
                 If containingType IsNot Nothing Then
                     visitedParents = True
-                    containingType.Accept(Me.NotFirstVisitor())
+                    containingType.Accept(Me.FirstSymbolContainingTypeVisitor())
                     AddOperator(SyntaxKind.DotToken)
                 End If
             End If

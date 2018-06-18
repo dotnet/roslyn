@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected readonly SemanticModel semanticModelOpt;
         protected readonly int positionOpt;
 
+        private AbstractSymbolDisplayVisitor _lazyFirstSymbolContainingTypeVisitor;
         private AbstractSymbolDisplayVisitor _lazyNotFirstVisitor;
         private AbstractSymbolDisplayVisitor _lazyNotFirstVisitorNamespaceOrType;
 
@@ -45,6 +46,19 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
+        protected AbstractSymbolDisplayVisitor FirstSymbolContainingTypeVisitor
+        {
+            get
+            {
+                if (_lazyFirstSymbolContainingTypeVisitor == null)
+                {
+                    _lazyFirstSymbolContainingTypeVisitor = MakeFirstSymbolContainingTypeVisitor();
+                }
+
+                return _lazyFirstSymbolContainingTypeVisitor;
+            }
+        }
+
         protected AbstractSymbolDisplayVisitor NotFirstVisitor
         {
             get
@@ -70,6 +84,8 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 return _lazyNotFirstVisitorNamespaceOrType;
             }
         }
+
+        protected abstract AbstractSymbolDisplayVisitor MakeFirstSymbolContainingTypeVisitor();
 
         protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false);
 

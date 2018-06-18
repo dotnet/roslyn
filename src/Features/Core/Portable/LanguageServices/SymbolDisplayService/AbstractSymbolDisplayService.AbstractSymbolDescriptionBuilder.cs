@@ -66,12 +66,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                     parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.QualifyFirstSymbol,
                     kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword);
 
             private static readonly SymbolDisplayFormat s_globalNamespaceStyle =
                 new SymbolDisplayFormat(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included);
+                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.QualifyFirstSymbol);
 
             private readonly ISymbolDisplayService _displayService;
             private readonly SemanticModel _semanticModel;
@@ -394,17 +395,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                 }
 
-                if (symbol.TypeKind == TypeKind.Delegate)
-                {
-                    var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-                    AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol.OriginalDefinition, style));
-                }
-                else
-                {
-                    AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol.OriginalDefinition, s_descriptionStyle));
-                }
+                AddToGroup(SymbolDescriptionGroups.MainDescription, ToMinimalDisplayParts(symbol.OriginalDefinition, s_descriptionStyle));
 
                 if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
                 {
@@ -440,12 +431,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (symbol.IsGlobalNamespace)
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol, s_globalNamespaceStyle));
+                        ToMinimalDisplayParts(symbol, s_globalNamespaceStyle));
                 }
                 else
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol, s_descriptionStyle));
+                        ToMinimalDisplayParts(symbol, s_descriptionStyle));
                 }
             }
 
@@ -725,11 +716,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 format = format ?? MinimallyQualifiedFormat;
                 return _displayService.ToMinimalDisplayParts(_semanticModel, _position, symbol, format);
-            }
-
-            protected IEnumerable<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
-            {
-                return _displayService.ToDisplayParts(symbol, format);
             }
 
             private IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)

@@ -12,7 +12,38 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
         protected bool IsMinimizing
         {
-            get { return this.semanticModelOpt != null; }
+            get
+            {
+                if (semanticModelOpt == null)
+                {
+                    return false;
+                }
+
+                if (isFirstSymbolVisited && format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.QualifyFirstSymbol))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        protected bool CanUseSpecialTypes
+        {
+            get
+            {
+                if (!format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes))
+                {
+                    return false;
+                }
+
+                if (isFirstSymbolVisited && format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.QualifyFirstSymbol))
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         protected bool NameBoundSuccessfullyToSameSymbol(INamedTypeSymbol symbol)

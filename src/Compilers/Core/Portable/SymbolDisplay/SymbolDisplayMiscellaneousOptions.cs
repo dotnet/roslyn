@@ -55,5 +55,13 @@ namespace Microsoft.CodeAnalysis
         /// the special question mark syntax.
         /// </summary>
         ExpandNullable = 1 << 5,
+
+        /// <summary>
+        /// Suppresses minimization of the first visited symbol.
+        /// </summary>
+        /// <remarks>
+        /// Has no effect outside <see cref="ISymbol.ToMinimalDisplayString"/>.
+        /// </remarks>
+        QualifyFirstSymbol = 1 << 6,
     }
 }
