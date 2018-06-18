@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -834,6 +836,8 @@ namespace Microsoft.CodeAnalysis
         public sealed class OperationAnalyzer : DiagnosticAnalyzer
         {
             private readonly ActionKind _actionKind;
+            private readonly bool _verifyGetControlFlowGraph;
+            private readonly ConcurrentDictionary<IOperation, ControlFlowGraph> _controlFlowGraphMapOpt;
 
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
                 "ID",
@@ -846,13 +850,22 @@ namespace Microsoft.CodeAnalysis
             public enum ActionKind
             {
                 Operation,
+                OperationInOperationBlockStart,
                 OperationBlock,
                 OperationBlockEnd
             }
 
-            public OperationAnalyzer(ActionKind actionKind)
+            public OperationAnalyzer(ActionKind actionKind, bool verifyGetControlFlowGraph = false)
             {
                 _actionKind = actionKind;
+                _verifyGetControlFlowGraph = verifyGetControlFlowGraph;
+                _controlFlowGraphMapOpt = verifyGetControlFlowGraph ? new ConcurrentDictionary<IOperation, ControlFlowGraph>() : null;
+            }
+
+            public ImmutableArray<ControlFlowGraph> GetControlFlowGraphs()
+            {
+                Assert.True(_verifyGetControlFlowGraph);
+                return _controlFlowGraphMapOpt.Values.OrderBy(flowGraph => flowGraph.OriginalOperation.Syntax.SpanStart).ToImmutableArray();
             }
 
             private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, Location location)
@@ -861,23 +874,109 @@ namespace Microsoft.CodeAnalysis
                 addDiagnostic(diagnostic);
             }
 
+            private void CacheAndVerifyControlFlowGraph(ImmutableArray<IOperation> operationBlocks, Func<IOperation, ControlFlowGraph> getControlFlowGraph)
+            {
+                if (_verifyGetControlFlowGraph)
+                {
+                    foreach (var operationBlock in operationBlocks)
+                    {
+                        var controlFlowGraph = getControlFlowGraph(operationBlock);
+                        Assert.NotNull(controlFlowGraph);
+                        Assert.Same(operationBlock.GetRootOperation(), controlFlowGraph.OriginalOperation);
+
+                        _controlFlowGraphMapOpt.Add(controlFlowGraph.OriginalOperation, controlFlowGraph);
+
+                        // Verify analyzer driver caches the flow graph.
+                        Assert.Same(controlFlowGraph, getControlFlowGraph(operationBlock));
+
+                        // Verify exceptions for invalid inputs.
+                        try
+                        {
+                            _ = getControlFlowGraph(null);
+                        }
+                        catch (ArgumentNullException ex)
+                        {
+                            Assert.Equal(new ArgumentNullException("operationBlock").Message, ex.Message);
+                        }
+
+                        try
+                        {
+                            _ = getControlFlowGraph(operationBlock.Descendants().First());
+                        }
+                        catch (ArgumentException ex)
+                        {
+                            Assert.Equal(new ArgumentException(CodeAnalysisResources.InvalidOperationBlockForAnalysisContext, "operationBlock").Message, ex.Message);
+                        }
+                    }
+                }
+            }
+
+            private void VerifyControlFlowGraph(OperationAnalysisContext operationContext, bool inBlockAnalysisContext)
+            {
+                if (_verifyGetControlFlowGraph)
+                {
+                    var controlFlowGraph = operationContext.GetControlFlowGraph();
+                    Assert.NotNull(controlFlowGraph);
+
+                    // Verify analyzer driver caches the flow graph.
+                    Assert.Same(controlFlowGraph, operationContext.GetControlFlowGraph());
+
+                    var rootOperation = operationContext.Operation.GetRootOperation();
+                    if (inBlockAnalysisContext)
+                    {
+                        // Verify same flow graph returned from containing block analysis context.
+                        Assert.Same(controlFlowGraph, _controlFlowGraphMapOpt[rootOperation]);
+                    }
+                    else
+                    {
+                        _controlFlowGraphMapOpt[rootOperation] = controlFlowGraph;
+                    }
+                }
+            }
+
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context)
             {
-                if (_actionKind == ActionKind.OperationBlockEnd)
+                switch (_actionKind)
                 {
-                    context.RegisterOperationBlockStartAction(oc =>
-                    {
-                        oc.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
-                    });
-                }
-                else if (_actionKind == ActionKind.Operation)
-                {
-                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), OperationKind.VariableDeclarationGroup);
-                }
-                else
-                {
-                    context.RegisterOperationBlockAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
+                    case ActionKind.OperationBlockEnd:
+                        context.RegisterOperationBlockStartAction(blockStartContext =>
+                        {
+                            blockStartContext.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
+                            CacheAndVerifyControlFlowGraph(blockStartContext.OperationBlocks, blockStartContext.GetControlFlowGraph);
+                        });
+
+                        break;
+
+                    case ActionKind.OperationBlock:
+                        context.RegisterOperationBlockAction(blockContext =>
+                        {
+                            ReportDiagnostic(blockContext.ReportDiagnostic, blockContext.OwningSymbol.Locations[0]);
+                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, blockContext.GetControlFlowGraph);
+                        });
+
+                        break;
+
+                    case ActionKind.Operation:
+                        context.RegisterOperationAction(operationContext =>
+                        {
+                            ReportDiagnostic(operationContext.ReportDiagnostic, operationContext.Operation.Syntax.GetLocation());
+                            VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: false);
+                        }, OperationKind.Literal);
+
+                        break;
+
+                    case ActionKind.OperationInOperationBlockStart:
+                        context.RegisterOperationBlockStartAction(blockContext =>
+                        {
+                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, blockContext.GetControlFlowGraph);
+                            blockContext.RegisterOperationAction(operationContext =>
+                            {
+                                ReportDiagnostic(operationContext.ReportDiagnostic, operationContext.Operation.Syntax.GetLocation());
+                                VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: true);                                
+                            }, OperationKind.Literal);
+                        });
+                        break;
                 }
             }
         }

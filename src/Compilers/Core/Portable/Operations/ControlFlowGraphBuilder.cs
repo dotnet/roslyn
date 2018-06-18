@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 Debug.Assert(body.Kind == OperationKind.LocalFunction || body.Kind == OperationKind.AnonymousFunction);
             }
-#endif 
+#endif
 
             var builder = new ControlFlowGraphBuilder(((Operation)body).SemanticModel.Compilation, captureIdDispenser);
             var blocks = ArrayBuilder<BasicBlockBuilder>.GetInstance();
