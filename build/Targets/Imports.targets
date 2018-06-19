@@ -8,6 +8,7 @@
 
   <Import Project="RepoToolset\Workarounds.targets"/>
   <Import Project="RepoToolset\OptimizationData.targets"/>
+  <Import Project="RepoToolset\RepositoryInfo.targets"/>
   <Import Project="VisualStudio.targets"/>
 
   <PropertyGroup>
@@ -34,7 +35,6 @@
 
   <ItemGroup>
     <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" Condition="'$(NonShipping)' != 'true'" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubVersion)" PrivateAssets="All" />
   </ItemGroup>
 
   <Choose>
