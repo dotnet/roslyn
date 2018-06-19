@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 ),
                 Tuple.Create(
                     CodeCleanupOptions.FixFrameworkTypes,
-                    ImmutableArray.Create(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
-                                          IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)
+                    ImmutableArray.Create(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)
                 ),
                 Tuple.Create(
                     CodeCleanupOptions.FixAddRemoveBraces,
