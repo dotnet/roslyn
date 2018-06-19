@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_full_solution_analysis
             => ServicesVSResources.Enable_full_solution_analysis;
 
-        public static string Option_Perform_editor_feature_analysis_in_external_process
-            => ServicesVSResources.Perform_editor_feature_analysis_in_external_process;
+        public static string Option_Perform_editor_feature_analysis_in_external_process_experimental
+            => ServicesVSResources.Perform_editor_feature_analysis_in_external_process_experimental;
 
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;

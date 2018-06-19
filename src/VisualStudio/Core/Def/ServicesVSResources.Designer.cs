@@ -1716,9 +1716,9 @@ namespace Microsoft.VisualStudio.LanguageServices {
         /// <summary>
         ///   Looks up a localized string similar to Perform editor _feature analysis in external process (experimental).
         /// </summary>
-        internal static string Perform_editor_feature_analysis_in_external_process {
+        internal static string Perform_editor_feature_analysis_in_external_process_experimental {
             get {
-                return ResourceManager.GetString("Perform_editor_feature_analysis_in_external_process", resourceCulture);
+                return ResourceManager.GetString("Perform_editor_feature_analysis_in_external_process_experimental", resourceCulture);
             }
         }
         

@@ -1373,7 +1373,7 @@ Zusätzliche Informationen: {1}</target>
         <target state="translated">Vollständige Lösungs_analyse aktivieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
+      <trans-unit id="Perform_editor_feature_analysis_in_external_process_experimental">
         <source>Perform editor _feature analysis in external process (experimental)</source>
         <target state="translated">Editor-_Funktionsanalyse in externem Prozess ausführen (experimentell)</target>
         <note />

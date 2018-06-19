@@ -1373,7 +1373,7 @@ Additional information: {1}</source>
         <target state="translated">Включить полный _анализ решения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
+      <trans-unit id="Perform_editor_feature_analysis_in_external_process_experimental">
         <source>Perform editor _feature analysis in external process (experimental)</source>
         <target state="translated">Выполнить анализ функций редактора во _внешнем процессе (экспериментальная функция)</target>
         <note />

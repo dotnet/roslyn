@@ -113,13 +113,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 return false;
             }
 
-            if (workspace.Options.GetOption(RemoteFeatureOptions.OutOfProcessAllowed))
+            if (!RemoteFeatureOptions.ExperimentalFeatureOptions.Contains(featureOption)
+                || workspace.Options.GetOption(RemoteFeatureOptions.ExperimentalOutOfProcessAllowed))
             {
-                // If the user has explicitly enabled OOP, then the feature is allowed to run in OOP.
+                // If the OOP functionality for the feature is stable, or if the user has enabled experimental OOP
+                // features, then the feature is allowed to run in OOP.
                 return true;
             }
 
-            // Otherwise we check if the user is in the AB experiment enabling OOP.
+            // Otherwise we check if the user is in the AB experiment enabling experimental OOP features.
             var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
             if (!experimentEnabled.IsExperimentEnabled(WellKnownExperimentNames.RoslynFeatureOOP))
             {
