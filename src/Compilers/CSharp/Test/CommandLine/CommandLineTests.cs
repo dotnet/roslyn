@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -99,6 +100,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             sdkDirectory = sdkDirectory ?? s_defaultSdkDirectory;
             var args = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: true);
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
+        }
+
+        [Fact]
+        public void XmlMemoryMapped()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C {}");
+            const string docName = "doc.xml";
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/t:library", "/preferreduilang:en", $"/doc:{docName}", src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+
+            var xmlPath = Path.Combine(dir.Path, docName);
+            using (var fileStream = new FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true))
+            {
+                exitCode = cmd.Run(outWriter);
+                Assert.Equal(1, exitCode);
+                Assert.Equal($"error CS0016: Could not write to output file '{xmlPath}' -- 'The requested operation cannot be performed on a file with a user-mapped section open.'",
+                    outWriter.ToString().Replace(Environment.NewLine, ""));
+            }
         }
 
         // This test should only run when the machine's default encoding is shift-JIS
