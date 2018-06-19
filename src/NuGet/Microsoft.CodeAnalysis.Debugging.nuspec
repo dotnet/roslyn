@@ -21,6 +21,7 @@
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
     <dependencies>
        <dependency id="Microsoft.CodeAnalysis.PooledObjects" version="$version$" />
     </dependencies>
