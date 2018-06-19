@@ -378,37 +378,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ILookup<ITextBuffer, ITagSpan<TTag>> newTagsByBuffer,
                 IEnumerable<DocumentSnapshotSpan> spansTagged)
             {
-                // NOTE: we assume that the following list is already realized and is _not_ lazily
-                // computed. It's not clear what the contract is of this API.
-
-                // common case where we only tagged a single range of a document.
-                if (spansTagged.IsSingle())
-                {
-                    return ConvertToTagTree(oldTagTrees, newTagsByBuffer, spansTagged.Single().SnapshotSpan);
-                }
-
-                // heavy linq case 
-                var spansToInvalidateByBuffer = spansTagged.Select(ss => ss.SnapshotSpan).ToLookup(ss => ss.Snapshot.TextBuffer);
-
-                var buffers = oldTagTrees.Keys.Concat(newTagsByBuffer.Select(g => g.Key))
-                                              .Concat(spansTagged.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer))
-                                              .Distinct();
+                var spansToInvalidateByBuffer = spansTagged.ToLookup(
+                    keySelector: span => span.SnapshotSpan.Snapshot.TextBuffer,
+                    elementSelector: span => span.SnapshotSpan);
 
                 // Walk through each relevant buffer and decide what the interval tree should be
                 // for that buffer.  In general this will work by keeping around old tags that
                 // weren't in the range that was re-tagged, and merging them with the new tags
                 // produced for the range that was re-tagged.
                 var newTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
-                foreach (var buffer in buffers)
+                foreach (var buffer in buffersToTag)
                 {
-                    if (!buffersToTag.Contains(buffer))
-                    {
-                        // Avoid computing a new tag tree for a buffer not requested for tagging. This handles cases
-                        // where oldTagTrees contains tags for a buffer that was removed from the buffers of interest,
-                        // and also cases where one or more taggers produced tags outside the requested context.
-                        continue;
-                    }
-
                     var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsByBuffer[buffer], spansToInvalidateByBuffer[buffer]);
                     if (newTagTree != null)
                     {
