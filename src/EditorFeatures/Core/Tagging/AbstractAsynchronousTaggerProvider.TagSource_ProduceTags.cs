@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
                 await ProduceTagsAsync(context).ConfigureAwait(false);
 
-                ProcessContext(spansToTag, oldTagTrees, context, initialTags);
+                ProcessContext(oldTagTrees, context, initialTags);
             }
 
             private bool ShouldSkipTagProduction()
@@ -617,12 +617,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void ProcessContext(
-                ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 TaggerContext<TTag> context,
                 bool initialTags)
             {
-                var buffersToTag = spansToTag.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer).ToSet();
+                var buffersToTag = context.SpansToTag.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer).ToSet();
 
                 // Ignore any tag spans reported for any buffers we weren't interested in.
                 var newTagsByBuffer = context.tagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
@@ -630,7 +629,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 var newTagTrees = ConvertToTagTrees(oldTagTrees, newTagsByBuffer, context._spansTagged);
                 ProcessNewTagTrees(
-                    spansToTag, oldTagTrees, newTagTrees, 
+                    context.SpansToTag, oldTagTrees, newTagTrees, 
                     context.State, initialTags, context.CancellationToken);
             }
 
@@ -777,7 +776,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     ProduceTagsSynchronously(context);
 
-                    ProcessContext(spansToTag, oldTagTrees, context, initialTags: false);
+                    ProcessContext(oldTagTrees, context, initialTags: false);
                 }
 
                 Debug.Assert(this.UpToDate);
