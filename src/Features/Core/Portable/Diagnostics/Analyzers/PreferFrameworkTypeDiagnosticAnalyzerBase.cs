@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
             if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language,
-                    out var diagnosticSeverity, out var properties))
+                    out var severity, out var properties))
             {
-                var descriptor = GetDescriptorWithSeverity(diagnosticSeverity);
-                context.ReportDiagnostic(Diagnostic.Create(
-                    descriptor, predefinedTypeNode.GetLocation(), properties));
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor, predefinedTypeNode.GetLocation(), 
+                    severity, additionalLocations: null, properties));
             }
         }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         /// </summary>
         private bool ShouldReportDiagnostic(
             TPredefinedTypeSyntax predefinedTypeNode, OptionSet optionSet, string language,
-            out DiagnosticSeverity severity, out ImmutableDictionary<string, string> properties)
+            out ReportDiagnostic severity, out ImmutableDictionary<string, string> properties)
         {
             // we have a predefined type syntax that is either in a member access context or a declaration context. 
             // check the appropriate option and determine if we should report a diagnostic.
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             var option = isMemberAcessOrCref ? GetOptionForMemberAccessContext : GetOptionForDeclarationContext;
             var optionValue = optionSet.GetOption(option, language);
 
-            severity = optionValue.Notification.Value;
+            severity = optionValue.Notification.Severity;
             properties = isMemberAcessOrCref ? MemberAccessEquivalenceKey : DeclarationsEquivalenceKey;
             return OptionSettingPrefersFrameworkType(optionValue, severity);
         }
@@ -124,14 +124,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         private bool IsFrameworkTypePreferred(OptionSet optionSet, PerLanguageOption<CodeStyleOption<bool>> option, string language)
         {
             var optionValue = optionSet.GetOption(option, language);
-            return OptionSettingPrefersFrameworkType(optionValue, optionValue.Notification.Value);
+            return OptionSettingPrefersFrameworkType(optionValue, optionValue.Notification.Severity);
         }
 
         /// <summary>
         /// checks if style is preferred and the enforcement is not None.
         /// </summary>
         /// <remarks>if predefined type is not preferred, it implies the preference is framework type.</remarks>
-        private static bool OptionSettingPrefersFrameworkType(CodeStyleOption<bool> optionValue, DiagnosticSeverity severity)
-            => !optionValue.Value && severity != DiagnosticSeverity.Hidden;
+        private static bool OptionSettingPrefersFrameworkType(CodeStyleOption<bool> optionValue, ReportDiagnostic severity)
+            => !optionValue.Value && severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden;
     }
 }

@@ -37,8 +37,13 @@
 
   <!-- Settings for localization -->
   <ItemGroup>
-    <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" Condition="'$(NonShipping)' != 'true'" />
+    <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Disable localization for non-shipping projects -->
+    <EnableXlfLocalization Condition="'$(NonShipping)' == 'true'">false</EnableXlfLocalization>
+  </PropertyGroup>
 
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
@@ -496,4 +501,5 @@
     <Error Text="PathMap, DeterministicSourceRoot and RepoRoot shall not contain spaces (https://github.com/dotnet/roslyn/issues/22835)" 
            Condition="$(PathMap.Contains(' '))" />
   </Target>
+
 </Project>

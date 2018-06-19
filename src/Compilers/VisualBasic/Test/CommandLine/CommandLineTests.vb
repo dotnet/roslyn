@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.ComponentModel
 Imports System.Globalization
 Imports System.IO
+Imports System.IO.MemoryMappedFiles
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
@@ -54,6 +55,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
             Return VisualBasicCommandLineParser.Script.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         End Function
+
+        <Fact>
+        Public Sub XmlMemoryMapped()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.cs").WriteAllText("
+Class C
+End Class")
+            Dim docName As String = "doc.xml"
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/t:library", "/preferreduilang:en", $"/doc:{docName}", src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal("", outWriter.ToString())
+
+            Dim xmlPath = Path.Combine(dir.Path, docName)
+            Using fileStream = New FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
+                Using mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen:=True)
+                    exitCode = cmd.Run(outWriter)
+                    Assert.Equal(1, exitCode)
+                    Assert.Equal($"vbc : error BC2012: can't open '{xmlPath}' for writing: The requested operation cannot be performed on a file with a user-mapped section open.",
+            outWriter.ToString().Replace(Environment.NewLine, ""))
+                End Using
+            End Using
+        End Sub
 
         <Fact>
         <WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")>
@@ -1779,7 +1806,7 @@ End Module").Path
             InlineData("bad", False, LanguageVersion.Default)>
         Public Sub LanguageVersion_TryParseDisplayString(input As String, success As Boolean, expected As LanguageVersion)
             Dim version As LanguageVersion
-            Assert.Equal(success, input.TryParse(version))
+            Assert.Equal(success, TryParse(input, version))
             Assert.Equal(expected, version)
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added

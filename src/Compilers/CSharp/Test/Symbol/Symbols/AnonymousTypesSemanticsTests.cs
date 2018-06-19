@@ -480,7 +480,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
   Initializers(1):
       IFieldReferenceOperation: System.Func<System.Int32, System.Int32> ClassB.F (OperationKind.FieldReference, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'base.F')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassB) (Syntax: 'base')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: ClassB) (Syntax: 'base')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1672,7 +1672,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Right: 
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassA, IsInvalid, IsImplicit) (Syntax: 'M')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: ClassA, IsInvalid, IsImplicit) (Syntax: 'M')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, IsInvalid) (Syntax: 'f3 = default')
         Left: 
           IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f3 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f3')
@@ -1692,6 +1692,39 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                 //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f3 = default").WithArguments("default").WithLocation(6, 54)
             };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/27338")]
+        public void AnonymousTypeCreation_MixedInitializers()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class ClassA
+{
+    void M(int a)
+    {
+        var o = /*<bind>*/new { a, b = 1 }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 a, System.Int32 b>) (Syntax: 'new { a, b = 1 }')
+  Initializers(2):
+      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'b = 1')
+        Left: 
+          IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 a, System.Int32 b>.b { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+            Instance Receiver: 
+              null
+        Right: 
+           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

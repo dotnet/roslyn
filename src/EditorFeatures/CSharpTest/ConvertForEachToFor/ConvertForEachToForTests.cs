@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
             Workspace workspace, TestParameters parameters)
             => new CSharpConvertForEachToForCodeRefactoringProvider();
 
-        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
 
         private IDictionary<OptionKey, object> ImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task EmptyBlockBody()

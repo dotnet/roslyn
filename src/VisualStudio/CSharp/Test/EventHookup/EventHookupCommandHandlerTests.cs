@@ -965,10 +965,10 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public async Task EventHookupWithQualifiedMethodAccessAndNotificationOptionNone()
+        public async Task EventHookupWithQualifiedMethodAccessAndNotificationOptionSilent()
         {
             // This validates the scenario where the user has stated that they prefer `this.` qualification but the
-            // notification level is `None`, which means existing violations of the rule won't be flagged but newly
+            // notification level is `Silent`, which means existing violations of the rule won't be flagged but newly
             // generated code will conform appropriately.
             var markup = @"
 class C
@@ -979,7 +979,7 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.None)))
+            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Silent)))
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();

@@ -4944,10 +4944,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
   <data name="ERR_BadIteratorLocalType" xml:space="preserve">
-    <value>Iterators cannot have by reference locals</value>
+    <value>Iterators cannot have by-reference locals</value>
   </data>
   <data name="ERR_BadAsyncLocalType" xml:space="preserve">
-    <value>Async methods cannot have by reference locals</value>
+    <value>Async methods cannot have by-reference locals</value>
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>

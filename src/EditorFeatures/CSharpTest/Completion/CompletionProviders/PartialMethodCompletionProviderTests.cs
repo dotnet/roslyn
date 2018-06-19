@@ -489,7 +489,7 @@ partial class Bar
             {
                 workspace.Options = originalOptions.WithChangedOption(
                     CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-                    new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.None));
+                    new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent));
 
                 var text = @"using System;
 partial class Bar
