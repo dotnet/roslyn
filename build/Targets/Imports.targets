@@ -28,9 +28,8 @@
 
     <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
 
-    <!-- Disable the message indicating we are using a preview SDK. That is understood and by design 
-         https://github.com/dotnet/sdk/issues/2033 -->
-    <_NETCoreSdkIsPreview>false</_NETCoreSdkIsPreview>
+    <!-- Disable the message indicating we are using a preview SDK. That is understood and by design -->
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -113,22 +112,6 @@
     </SuggestedBindingRedirects>
   </ItemGroup>
 
-  <!-- It looks like MSBuild has a bug on *nix where they aggressively
-       directory separators from '\'to '/', even when the '\'
-       is being used as an escape character in a define constant in VB.
-       This change works around the bug by removing all quotes from
-       define constants after Microsoft.VisualBasic.CurrentVersion adds
-       them in our build. This should be OK since none of our constants
-       should require quoting. See https://github.com/Microsoft/msbuild/issues/137 -->
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <FinalDefineConstants>$(FinalDefineConstants.Replace('"', ''))</FinalDefineConstants>
-  </PropertyGroup>
-
-  <!-- For our projects that specify multiple targets in the project.json to work around https://github.com/dotnet/roslyn/issues/12458,
-       we need to also silence a NuGet generated warning -->
-  <Target Name="EmitMSBuildWarning">
-  </Target>
-
   <!--
     Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
     UIAComWrapper implementation used by the Roslyn integration tests. This target sets the alias for the slower
@@ -145,14 +128,6 @@
 
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
-
-  <!--
-    Workaround until we can move to a version of MSBuild that includes the change in https://github.com/Microsoft/msbuild/pull/2726.
-    We want to opt into the Microsoft.NET.Sdk approach to generating satellite assemblies, which means we also need to opt out of
-    default approach. We do this by turning GenerateSatelliteAssemblies into a no-op.
-    This should be removed as part of fixing https://github.com/dotnet/roslyn/issues/23566.
-  -->
-  <Target Name="GenerateSatelliteAssemblies" />
 
   <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
 
