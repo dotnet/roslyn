@@ -9,7 +9,7 @@
     <AssemblyName>Roslyn.VisualStudio.Test.Utilities2</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">

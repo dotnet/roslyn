@@ -10,7 +10,7 @@
   <Target Name="ForceGenerationOfBindingRedirects"
           AfterTargets="ResolveAssemblyReferences"
           BeforeTargets="GenerateBindingRedirects"
-          Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
+          Condition="'$(AutoGenerateBindingRedirects)' == 'true'">
     <PropertyGroup>
       <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
       <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>

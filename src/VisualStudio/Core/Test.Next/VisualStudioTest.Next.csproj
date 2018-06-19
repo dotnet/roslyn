@@ -10,7 +10,7 @@
     <AssemblyName>Roslyn.VisualStudio.Next.UnitTests</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <DefineConstants>$(DefineConstants);TESTS</DefineConstants>
   </PropertyGroup>
