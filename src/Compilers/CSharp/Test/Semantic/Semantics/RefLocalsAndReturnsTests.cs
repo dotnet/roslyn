@@ -3859,5 +3859,85 @@ class C
 5
 5");
         }
+
+        [Fact]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
+        public void RefReturnInvocationOfRefLikeTypeRefResult()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+class C
+{
+    public ref long M(S reciever)
+    {
+        long x = 0;
+        ref long y = ref reciever.M(ref x);
+        return ref y;
+    }
+
+    public ref long M2(S reciever)
+    {
+        long x = 0;
+        {
+            ref long y = ref reciever.M(ref x);
+            return ref y;
+        }
+    }
+}
+ref struct S
+{
+    public ref long M(ref long x) => ref x;
+}").VerifyDiagnostics(
+                // (8,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(8, 20),
+                // (16,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //             return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(16, 24));
+        }
+
+        [Fact]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
+        public void RefReturnInvocationOfRefLikeTypeRefResult_Repro()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+  static void Main(string[] args)
+  {
+    ref long x = ref M(default); // get a reference to the stack which will be used for the next method
+    M2(ref x); // break things
+    Console.ReadKey();
+  }
+
+  public static ref long M(S reciever)
+  {
+    Span<long> ls = stackalloc long[0]; // change the length of this stackalloc to move the resulting pointer and break different things
+    long x = 0;
+    ref var y = ref x;
+    {
+      ref var z = ref reciever.M(ref y);
+      return ref z;
+    }
+  }
+
+  static void M2(ref long q)
+  {
+    Span<long> span = stackalloc long[50];
+    var element = span[0]; // it was ok
+    q = -1; // break things
+    element = span[0]; // and not it's broken:
+                       // System.AccessViolationException: 'Attempted to read or write protected memory. This is often an indication that other memory is corrupt.'
+  }
+}
+
+ref struct S
+{
+  public ref long M(ref long x) => ref x;
+}").VerifyDiagnostics(
+                // (19,18): error CS8157: Cannot return 'z' by reference because it was initialized to a value that cannot be returned by reference
+                //       return ref z;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "z").WithArguments("z").WithLocation(19, 18));
+        }
     }
 }
