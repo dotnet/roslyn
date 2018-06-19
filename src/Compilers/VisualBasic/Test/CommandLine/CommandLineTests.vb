@@ -72,7 +72,7 @@ End Class")
             Assert.Equal("", outWriter.ToString())
 
             Dim xmlPath = Path.Combine(dir.Path, docName)
-            Using New EnsureEnglishUICulture()
+            Using New EnsureInvariantCulture()
                 Using fileStream = New FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
                     Using mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen:=True)
                         exitCode = cmd.Run(outWriter)

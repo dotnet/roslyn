@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             Assert.Equal("", outWriter.ToString());
 
             var xmlPath = Path.Combine(dir.Path, docName);
-            using (new EnsureEnglishUICulture())
+            using (new EnsureInvariantCulture())
             using (var fileStream = new FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true))
             {
