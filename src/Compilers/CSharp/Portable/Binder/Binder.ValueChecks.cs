@@ -1248,7 +1248,6 @@ moreArguments:
             BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
-            ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             uint scopeOfTheContainingExpression,
             DiagnosticBag diagnostics)
@@ -1282,8 +1281,8 @@ moreArguments:
                         break;
                     }
 
-                    var refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
-                    if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
+                    var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                    if (parameters[paramIndex].RefKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -1298,7 +1297,7 @@ moreArguments:
                     {
                         var argument = argListArgs[argIndex];
                         var refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
-                        if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
+                        if (refKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
                         {
                             escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                         }

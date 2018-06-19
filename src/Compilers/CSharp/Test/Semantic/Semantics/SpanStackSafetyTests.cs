@@ -1473,5 +1473,95 @@ class C
 10
 10");
         }
+
+        [Fact]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToInParameters_Methods()
+        {
+            CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> s1 = stackalloc int[1];
+        M1(s1);
+    }
+    
+    static void M1(Span<int> s1)
+    {
+		Span<int> s2 = stackalloc int[2];
+
+        M2(s1, s2);
+        M2(s2, s1);
+
+        M2(s1, in s2);
+        M2(s2, in s1);
+
+        M2(x: s1, y: in s2);
+        M2(x: s2, y: in s1);
+
+        M2(y: in s2, x: s1);
+        M2(y: in s1, x: s2);
+  	}
+
+    static void M2(Span<int> x, in Span<int> y)
+    {
+        Console.WriteLine(x.Length + "" - "" + y.Length);
+    }
+}", options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+1 - 2
+2 - 1
+1 - 2
+2 - 1
+1 - 2
+2 - 1
+1 - 2
+2 - 1");
+        }
+
+        [Fact]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToInParameters_Indexers()
+        {
+            CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> s1 = stackalloc int[1];
+        M1(s1);
+    }
+    
+    static void M1(Span<int> s1)
+    {
+		var obj = new C();
+		Span<int> s2 = stackalloc int[2];
+
+        Console.WriteLine(obj[s1, s2]);
+        Console.WriteLine(obj[s2, s1]);
+
+        Console.WriteLine(obj[s1, in s2]);
+        Console.WriteLine(obj[s2, in s1]);
+
+        Console.WriteLine(obj[x: s1, y: in s2]);
+        Console.WriteLine(obj[x: s2, y: in s1]);
+
+        Console.WriteLine(obj[y: in s2, x: s1]);
+        Console.WriteLine(obj[y: in s1, x: s2]);
+  	}
+
+    string this[Span<int> x, in Span<int> y] => x.Length + "" - "" + y.Length;
+}", options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+1 - 2
+2 - 1
+1 - 2
+2 - 1
+1 - 2
+2 - 1
+1 - 2
+2 - 1");
+        }
     }
 }
