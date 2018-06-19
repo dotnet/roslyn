@@ -460,10 +460,6 @@ function Build-NuGetPackages() {
     try {
         $extraArgs = ""
 
-        if ($official) {
-            $extraArgs += " /p:UseRealCommit=true"
-        }
-
         # Empty directory for packing explicit empty items in the nuspec
         $emptyDir = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
         Create-Directory $emptyDir

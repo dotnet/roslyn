@@ -191,6 +191,10 @@ function Run-Test() {
     $altRootDir = Join-Path "$repoDir\Binaries" "q"
     Remove-Item -re -fo $altRootDir -ErrorAction SilentlyContinue
     & robocopy $repoDir $altRootDir /E /XD $binariesDir /XD ".git" /njh /njs /ndl /nc /ns /np /nfl
+
+    # Symlink the .git directory to make SourceLink think Binaries/q is the repo root:
+    & cmd /c mklink /d (Join-Path $altRootDir ".git") (Join-Path $repoDir ".git")
+
     Test-Build -rootDir $altRootDir -dataMap $dataMap -logFile "test2.binlog" -restore
 }
 

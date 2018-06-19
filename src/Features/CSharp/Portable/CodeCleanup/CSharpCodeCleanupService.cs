@@ -45,25 +45,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         {
             return ImmutableArray.Create(
                 Tuple.Create(
-                    CodeCleanupOptions.FixImplicitExplicitType,
+                    CodeCleanupOptions.ApplyImplicitExplicitTypePreferences,
                     ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                                           IDEDiagnosticIds.UseExplicitTypeDiagnosticId)
                 ),
                 Tuple.Create(
-                    CodeCleanupOptions.FixThisQualification,
+                    CodeCleanupOptions.ApplyThisQualificationPreferences,
                     ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId,
                                           IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 ),
                 Tuple.Create(
-                    CodeCleanupOptions.FixFrameworkTypes,
+                    CodeCleanupOptions.ApplyLanguageFrameworkTypePreferences,
                     ImmutableArray.Create(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)
                 ),
                 Tuple.Create(
-                    CodeCleanupOptions.FixAddRemoveBraces,
+                    CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements,
                     ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId)
                 ),
                 Tuple.Create(
-                    CodeCleanupOptions.FixAccessibilityModifiers,
+                    CodeCleanupOptions.AddAccessibilityModifiers,
                     ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)
                 ),
                 Tuple.Create(
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId)
                 ),
                 Tuple.Create(
-                    CodeCleanupOptions.MakeReadonly,
+                    CodeCleanupOptions.MakePrivateFieldReadonlyWhenPossible,
                     ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)
                 ),
                 Tuple.Create(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)
                 ),
                 Tuple.Create(
-                    CodeCleanupOptions.FixExpressionBodiedMembers,
+                    CodeCleanupOptions.ApplyExpressionBlockBodyPreferences,
                     ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
                                           IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
                                           IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                                           IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)
                 ),
                 Tuple.Create(
-                    CodeCleanupOptions.FixInlineVariableDeclarations,
+                    CodeCleanupOptions.ApplyInlineOutVariablePreferences,
                     ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId)
                 ),
                 Tuple.Create(
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                                           CSharpRemoveUnusedVariableCodeFixProvider.CS0219)
                 ),
                 Tuple.Create(
-                    CodeCleanupOptions.FixObjectCollectionInitialization,
+                    CodeCleanupOptions.ApplyObjectCollectionInitializationPreferences,
                     ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
                                           IDEDiagnosticIds.UseCollectionInitializerDiagnosticId)
                 )
