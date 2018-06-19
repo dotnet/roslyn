@@ -103,4 +103,10 @@ namespace Roslyn.Test.Utilities
         public override bool ShouldSkip => !CompilationExtensions.EnableVerifyIOperation;
         public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
     }
+
+    public class OSVersionWin8 : ExecutionCondition
+    {
+        public override bool ShouldSkip => !OSVersion.IsWin8;
+        public override string SkipReason => "Window Version is not at least Win8 (build:9200)";
+    }
 }
