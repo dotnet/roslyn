@@ -3212,34 +3212,34 @@ oneMoreTime:
 
             // If Monitor.Enter(object, ref bool) is available:
             //
-            // L $lock = `LockedValue`;  
-            // bool $lockTaken = false;                   
+            // L $lock = `LockedValue`;
+            // bool $lockTaken = false;
             // try
             // {
             //     Monitor.Enter($lock, ref $lockTaken);
-            //     `body`                               
+            //     `body`
             // }
             // finally
-            // {                                        
-            //     if ($lockTaken) Monitor.Exit($lock);   
+            // {
+            //     if ($lockTaken) Monitor.Exit($lock);
             // }
 
             // If Monitor.Enter(object, ref bool) is not available:
             //
             // L $lock = `LockedValue`;
             // Monitor.Enter($lock);           // NB: before try-finally so we don't Exit if an exception prevents us from acquiring the lock.
-            // try 
+            // try
             // {
             //     `body`
-            // } 
-            // finally 
+            // }
+            // finally
             // {
-            //     Monitor.Exit($lock); 
+            //     Monitor.Exit($lock);
             // }
 
             // If original type of the LockedValue object is System.Object, VB calls runtime helper (if one is available)
-            // Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.CheckForSyncLockOnValueType to ensure no value type is 
-            // used. 
+            // Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.CheckForSyncLockOnValueType to ensure no value type is
+            // used.
             // For simplicity, we will not synthesize this call because its presence is unlikely to affect graph analysis.
 
             IOperation lockedValue = Visit(operation.LockedValue);
@@ -3281,6 +3281,11 @@ oneMoreTime:
                                                           enterMethod.ReturnType, constantValue: default, isImplicit: true));
                 }
             }
+            else
+            {
+                var baseLockStatement = (BaseLockStatement)operation;
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: ImmutableArray.Create(baseLockStatement.LockTakenSymbol)));
+            }
 
             var afterTryFinally = new BasicBlockBuilder(BasicBlockKind.Block);
 
@@ -3291,7 +3296,9 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // Monitor.Enter($lock, ref $lockTaken);
-                lockTaken = new FlowCaptureReference(_captureIdDispenser.GetNextId(), lockedValue.Syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), constantValue: default);
+                var baseLockStatement = (BaseLockStatement)operation;
+                lockTaken = new LocalReferenceExpression(baseLockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
+                                                         baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 AddStatement(new InvocationExpression(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
                                                                 new ArgumentOperation(lockedValue,
@@ -3365,6 +3372,11 @@ oneMoreTime:
             LeaveRegion();
             Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
             LeaveRegion();
+            if (!legacyMode)
+            {
+                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.LocalLifetime);
+                LeaveRegion();
+            }
 
             AppendNewBlock(afterTryFinally, linkToPrevious: false);
 
