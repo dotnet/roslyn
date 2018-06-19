@@ -129,7 +129,7 @@ dotnet_diagnostic.cs0169.severity = suppress");
             Assert.Equal("", outWriter.ToString());
 
             var compilerTreeOptions = Assert.IsType<CompilerPerTreeOptionsProvider>(cmd.TreeOptionsProvider);
-            Assert.Empty(compilerTreeOptions._treeDict);
+            Assert.True(compilerTreeOptions.IsEmpty);
         }
 
         [Fact]
@@ -198,7 +198,7 @@ test.cs(4,9): warning CS0169: The field 'C._f' is never used
 ", outWriter.ToString());
 
             var compilerTreeOptions = Assert.IsType<CompilerPerTreeOptionsProvider>(cmd.TreeOptionsProvider);
-            Assert.Empty(compilerTreeOptions._treeDict);
+            Assert.True(compilerTreeOptions.IsEmpty);
         }
 
         [Fact]

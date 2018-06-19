@@ -620,7 +620,7 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
                 {
                     var compilerSet = Assert.IsType<CompilerOptionSet>(options[i].analyzerOptions);
                     AssertEx.SetEqual(
-                        compilerSet._options,
+                        compilerSet,
                         expected[i].Select(x =>
                             KeyValuePair.Create(
                                 new Option<string>(OptionFeatureName, x.key),
