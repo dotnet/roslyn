@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             var src = dir.CreateFile("temp.cs").WriteAllText("class C {}");
             const string docName = "doc.xml";
 
-            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/t:library", $"/doc:{docName}", src.Path });
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/t:library", "/preferreduilang:en", $"/doc:{docName}", src.Path });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
