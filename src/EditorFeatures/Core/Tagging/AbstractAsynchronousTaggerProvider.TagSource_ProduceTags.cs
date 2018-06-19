@@ -374,6 +374,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTrees(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+                ISet<ITextBuffer> buffersToTag,
                 ILookup<ITextBuffer, ITagSpan<TTag>> newTagsByBuffer,
                 IEnumerable<DocumentSnapshotSpan> spansTagged)
             {
@@ -400,6 +401,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
                 foreach (var buffer in buffers)
                 {
+                    if (!buffersToTag.Contains(buffer))
+                    {
+                        // Avoid computing a new tag tree for a buffer not requested for tagging. This handles cases
+                        // where oldTagTrees contains tags for a buffer that was removed from the buffers of interest,
+                        // and also cases where one or more taggers produced tags outside the requested context.
+                        continue;
+                    }
+
                     var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsByBuffer[buffer], spansToInvalidateByBuffer[buffer]);
                     if (newTagTree != null)
                     {
@@ -627,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagsByBuffer = context.tagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
                                                       .ToLookup(t => t.Span.Snapshot.TextBuffer);
 
-                var newTagTrees = ConvertToTagTrees(oldTagTrees, newTagsByBuffer, context._spansTagged);
+                var newTagTrees = ConvertToTagTrees(oldTagTrees, buffersToTag, newTagsByBuffer, context._spansTagged);
                 ProcessNewTagTrees(
                     context.SpansToTag, oldTagTrees, newTagTrees, 
                     context.State, initialTags, context.CancellationToken);
