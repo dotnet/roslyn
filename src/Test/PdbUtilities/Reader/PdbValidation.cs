@@ -258,6 +258,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     VerifyConvertedPdbMatchesExpectedXml(peStream, pdbStream, qualifiedMethodName, expectedPdb, pdbToXmlOptions, expectedIsXmlLiteral, isPortable);
                 }
+
+                if (isPortable)
+                {
+                    VerifyPortableReadNativelyMatchesExpected(peStream, pdbStream, qualifiedMethodName, expectedPdb, pdbToXmlOptions, expectedIsXmlLiteral);
+                }
             }
         }
 
@@ -394,6 +399,55 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RemoveFormatAttributes(expectedXml);
 
             return (actualXml.ToString(), expectedXml.ToString());
+        }
+
+        public static void VerifyPortableReadNativelyMatchesExpected(
+            Stream peStream,
+            Stream portablePdbStream,
+            string qualifiedMethodName,
+            string expectedPdb,
+            PdbToXmlOptions pdbToXmlOptions,
+            bool expectedIsXmlLiteral)
+        {
+            peStream.Position = 0;
+            portablePdbStream.Position = 0;
+
+            var actualPdb = PdbToXmlConverter.ToXml(portablePdbStream, peStream, pdbToXmlOptions | PdbToXmlOptions.UseNativeReader, methodName: qualifiedMethodName);
+
+            var actual = RemoveElementsNotSupportedByNativeReader(actualPdb);
+            var expected = RemoveElementsNotSupportedByNativeReader(expectedPdb);
+            
+            AssertEx.AssertLinesEqual(
+                expected,
+                actual,
+                $"PDB format: Portable PDB read via native API",
+                expectedValueSourcePath: null,
+                expectedValueSourceLine: 0,
+                escapeQuotes: !expectedIsXmlLiteral);
+        }
+
+        private static string RemoveElementsNotSupportedByNativeReader(string xml)
+        {
+            var element = XElement.Parse(xml);
+
+            RemoveElements(from e in element.DescendantsAndSelf()
+                           where e.Name == "customDebugInfo" ||
+                                 e.Name == "scope" ||
+                                 e.Name == "asyncInfo"
+                           select e);
+
+            foreach (var e in element.DescendantsAndSelf())
+            {
+                if (e.Name == "file")
+                {
+                    e.Attribute("languageVendor")?.Remove();
+                    e.Attribute("documentType")?.Remove();
+                }
+            }
+
+            RemoveEmptyMethods(element);
+
+            return element.ToString();
         }
 
         private static bool RemoveElements(IEnumerable<XElement> elements)
