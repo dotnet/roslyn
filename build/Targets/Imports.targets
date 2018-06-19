@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <Import Project="RepoToolset\Workarounds.targets"/>
+  <Import Project="RepoToolset\OptimizationData.targets"/>
   <Import Project="VisualStudio.targets"/>
 
   <PropertyGroup>
@@ -24,7 +25,6 @@
          but gets included in lots of output items like VSIX. -->
     <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0'">false</GenerateRuntimeConfigurationFiles>
 
-    <IbcMergePath>$(NuGetPackageRoot)\Microsoft.DotNet.IBCMerge\$(MicrosoftDotNetIBCMerge)\lib\net45\ibcmerge.exe</IbcMergePath>
     <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
 
     <!-- Disable the message indicating we are using a preview SDK. That is understood and by design 
@@ -156,23 +156,9 @@
 
   <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
 
-  <!-- ====================================================================================
-
-         Support for in-place modification of the compiled binary.
-         Since there may be more than one post compile modification, we must take care not
-         to break incremental builds. A timestemp file is written out when all modification
-         targets have completed.
-         Note that the targets participating in post compile modification must list the
-         sentinel file as one of their outputs, but they should not modify it.
-
-       ==================================================================================== -->
-
   <PropertyGroup>
     <PrepareForBuildDependsOn>RestoreToolsetCheck;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
-    <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData</OptimizationDataFolderPath>
-    <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
 
   <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true' AND '$(DotNetBuildFromSource)' != 'true'">
@@ -199,20 +185,6 @@
           DestinationFolder="$(OutDir)" />
   </Target>
 
-  <Target Name="PostCompileBinaryModification"
-          AfterTargets="CoreCompile"
-          DependsOnTargets="ApplyOptimizations"
-          Inputs="@(IntermediateAssembly)"
-          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
-
-    <!-- Write out a sentinel timestamp file to prevent unnecessary work in incremental builds. -->
-    <Touch AlwaysCreate="true" Files="$(PostCompileBinaryModificationSentinelFile)" />
-
-    <ItemGroup>
-      <FileWrites Include="$(PostCompileBinaryModificationSentinelFile)" />
-    </ItemGroup>
-  </Target>
-
   <!-- Support for rolling optimization data into assemblies. -->
   <Target Name="ForceGenerationOfBindingRedirects"
           AfterTargets="ResolveAssemblyReferences"
@@ -222,30 +194,6 @@
       <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
       <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     </PropertyGroup>
-  </Target>
-
-  <!-- The IBCMerge tool is internal only and hence only available during official Microbuild runs.  This target is 
-       specifically not gated on the existance of this file.  During an official build it shoudl always be present and 
-       if it's not then an error needs to be raised.
-
-       A local build emulating an official build can pass /p:SkipApplyOptimizations=true to avoid this error.
-       -->
-  <Target Name="ApplyOptimizations"
-          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
-          Inputs="@(IntermediateAssembly)"
-          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
-      <Message Text="Adding optimization data to @(IntermediateAssembly)" />
-
-      <Error Text="IBCMerge not found at $(IbcMergePath). Local developer builds should pass /p:SkipApplyOptimizations=true to avoid this"
-             Condition="!Exists('$(IbcMergePath)')" />
-
-      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -excludeGenmethUnboxingStubs -incremental &quot;$(OptimizationDataFile)&quot;"
-            ConsoleToMSBuild="true"
-            Condition="Exists('$(IbcMergePath)')">
-        <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
-      </Exec>
-
-      <Message Text="$(IbcMergeOutput)" />
   </Target>
 
   <!-- 
