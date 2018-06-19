@@ -193,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
-        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</source>
-        <target state="translated">이 수정 도구에서 만들어진 모든 코드 작업에서 고유하고 null이 아닌 선택적 매개 변수 '{0}'에 대한 명시적 인수를 제공하세요.</target>
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
+        <target state="needs-review-translation">이 수정 도구에서 만들어진 모든 코드 작업에서 고유하고 null이 아닌 선택적 매개 변수 '{0}'에 대한 명시적 인수를 제공하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">

@@ -193,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
-        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</source>
-        <target state="translated">為選擇性參數 '{0}' 提供非 Null 的明確引數，而其在此修正程式建立的所有程式碼動作之間皆不重複。</target>
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
+        <target state="needs-review-translation">為選擇性參數 '{0}' 提供非 Null 的明確引數，而其在此修正程式建立的所有程式碼動作之間皆不重複。</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">

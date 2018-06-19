@@ -193,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
-        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</source>
-        <target state="translated">Forneça um argumento explícito para o parâmetro '{0}' opcional, que é exclusivo e não nulo em todas as ações de código criadas por este reparador.</target>
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
+        <target state="needs-review-translation">Forneça um argumento explícito para o parâmetro '{0}' opcional, que é exclusivo e não nulo em todas as ações de código criadas por este reparador.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">

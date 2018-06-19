@@ -193,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
-        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</source>
-        <target state="translated">Podaj jawny argument dla opcjonalnego parametru „{0}”, który jest niezerowy i unikatowy dla wszystkich akcji kodu utworzonych przez ten program naprawiający.</target>
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
+        <target state="needs-review-translation">Podaj jawny argument dla opcjonalnego parametru „{0}”, który jest niezerowy i unikatowy dla wszystkich akcji kodu utworzonych przez ten program naprawiający.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
