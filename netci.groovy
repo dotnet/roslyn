@@ -238,18 +238,23 @@ commitPullList.each { isPr ->
 
 // Loc status check
 commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "windows_loc_status", isPr)
-  def myJob = job(jobName) {
-    description('Check for untranslated resources')
-    steps {
-      batchFile(""".\\build\\scripts\\check-loc-status.cmd""")
+  // Only add the check to PR builds for now. At some point we'll change this check
+  // to instead look for particular branch names.
+  if (isPr) {
+    def jobName = Utilities.getFullJobName(projectName, "windows_loc_status", isPr)
+    def myJob = job(jobName) {
+      description('Check for untranslated resources')
+      steps {
+        batchFile(""".\\build\\scripts\\check-loc-status.cmd""")
+      }
     }
-  }
 
-  def triggerPhraseOnly = true
-  def triggerPhraseExtra = "loc"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+    // For now we'll only run this when explicitly asked.
+    def triggerPhraseOnly = true
+    def triggerPhraseExtra = "loc"
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+  }
 }
 
 JobReport.Report.generateJobReport(out)
