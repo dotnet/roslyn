@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                     0x00001000 | 0x00002000,
                 IntPtr.Zero, 0x800704c8, 0x0409, sb, sb.Capacity, null);
 
+                Assert.Equal(0, Marshal.GetLastWin32Error());
                 Assert.Equal("The requested operation cannot be performed on a file with a user-mapped section open.", sb.ToString().Trim());
             }
             //var xmlPath = Path.Combine(dir.Path, docName);
