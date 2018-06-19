@@ -10,3 +10,7 @@ phases:
   steps:
     - script: build/scripts/cibuild.cmd -$(configuration) -testDesktop -test32
            
+- phase: Windows_Determinism_Test
+  steps:
+    - script: build/scripts/cibuild.cmd -testDeterminism
+
