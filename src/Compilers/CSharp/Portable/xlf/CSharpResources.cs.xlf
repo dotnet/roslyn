@@ -8041,13 +8041,13 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Iterátory nemůžou mít lokální proměnné podle odkazu.</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Iterátory nemůžou mít lokální proměnné podle odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">Asynchronní metody nemůžou mít lokální proměnné podle odkazu.</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">Asynchronní metody nemůžou mít lokální proměnné podle odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

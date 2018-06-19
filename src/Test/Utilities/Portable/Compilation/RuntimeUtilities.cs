@@ -13,20 +13,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public static partial class RuntimeUtilities
     {
-        internal static BuildPaths CreateBuildPaths(string workingDirectory)
+        internal static BuildPaths CreateBuildPaths(string workingDirectory, string tempDirectory = null)
         {
+            tempDirectory = tempDirectory ?? Path.GetTempPath();
 #if NET46
             return new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(BuildPathsUtil).Assembly.Location),
                 workingDir: workingDirectory,
                 sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
-                tempDir: Path.GetTempPath());
+                tempDir: tempDirectory);
 #else
             return new BuildPaths(
                 clientDir: AppContext.BaseDirectory,
                 workingDir: workingDirectory,
                 sdkDir: null,
-                tempDir: Path.GetTempPath());
+                tempDir: tempDirectory);
 #endif
         }
 
