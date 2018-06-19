@@ -160,17 +160,6 @@
           DestinationFolder="$(OutDir)" />
   </Target>
 
-  <!-- Support for rolling optimization data into assemblies. -->
-  <Target Name="ForceGenerationOfBindingRedirects"
-          AfterTargets="ResolveAssemblyReferences"
-          BeforeTargets="GenerateBindingRedirects"
-          Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
-    <PropertyGroup>
-      <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
-      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-    </PropertyGroup>
-  </Target>
-
   <!-- 
     In order to use Test Explorer in Visual Studio as well as leverage LUT testing we need to have both of the follownig packages in 
     our build.  
@@ -198,18 +187,7 @@
                           PrepareForPublish;
                           ComputeAndCopyFilesToPublishDirectory;
                           GeneratePublishDependencyFile;
-                          GeneratePublishRuntimeConfigurationFile" />                                                           
-
-  <!--
-     Work around to fix Intellisense file generation for XAML projects
-
-     https://github.com/dotnet/project-system/issues/2488
-  -->
-  <Target Name="WorkaroundForXAMLIntellisenseBuildIssue" AfterTargets="_CheckCompileDesignTimePrerequisite">
-    <PropertyGroup>
-       <BuildingProject>false</BuildingProject>
-    </PropertyGroup>
-  </Target>
+                          GeneratePublishRuntimeConfigurationFile" />
 
   <Target Name="PreventProjectReferencesFromBuilding">
     <PropertyGroup>
