@@ -209,13 +209,14 @@ End Class
         <WorkItem(543497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEnterOnSoftSelection1() As Task
+            ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
             Using state = TestState.CreateVisualBasicTestState(
                               <document>
-                                Class Program
-                                    Shared Sub Main(args As String())
-                                        Program.$$
-                                    End Sub
-                                End Class
+Class Program
+    Shared Sub Main(args As String())
+        Program.$$
+    End Sub
+End Class
                               </document>)
 
                 state.SendInvokeCompletionList()
@@ -473,13 +474,14 @@ End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigateOutOfItemChangeSpan() As Task
+            ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
             Using state = TestState.CreateVisualBasicTestState(
                               <document>
-                                Class Program
-                                    Shared Sub Main(args As String())
-                                        Program$$
-                                    End Sub
-                                End Class
+Class Program
+    Shared Sub Main(args As String())
+        Program$$
+    End Sub
+End Class
                               </document>)
 
                 Await state.AssertNoCompletionSession()
@@ -1806,7 +1808,7 @@ End Module</Document>)
         Public Async Function CommitOnEnter() As Task
             Dim expected = <Document>Module M
     Sub Main()
-        Main
+        Main()
 
     End Sub
 End Module</Document>.Value.Replace(vbLf, vbCrLf)
