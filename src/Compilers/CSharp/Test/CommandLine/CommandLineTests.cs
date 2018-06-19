@@ -116,17 +116,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString());
 
-            var xmlPath = Path.Combine(dir.Path, docName);
-            using (new EnsureInvariantCulture())
-            using (var fileStream = new FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true))
+            using (new EnsureEnglishUICulture())
             {
-                exitCode = cmd.Run(outWriter);
-                Assert.Equal(1, exitCode);
-                Assert.Equal($"error CS0016: Could not write to output file '{xmlPath}' -- 'The requested operation cannot be performed on a file with a user-mapped section open.'",
-                    outWriter.ToString().Replace(Environment.NewLine, ""));
+                StringBuilder sb = new StringBuilder(512);
+                int result = CultureHelpers.FormatMessage(0x00000200 |
+                    0x00001000 | 0x00002000,
+                IntPtr.Zero, 0x800704c8, 0x0409, sb, sb.Capacity, null);
+
+                Assert.Equal("The requested operation cannot be performed on a file with a user-mapped section open.", sb.ToString().Trim());
             }
+            //var xmlPath = Path.Combine(dir.Path, docName);
+            //using (var fileStream = new FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            //using (var mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true))
+            //{
+            //    exitCode = cmd.Run(outWriter);
+            //    Assert.Equal(1, exitCode);
+            //    Assert.StartsWith($"error CS0016: Could not write to output file '{xmlPath}' -- 'The requested operation cannot be performed on a file with a user-mapped section open.'",
+            //        outWriter.ToString().Replace(Environment.NewLine, ""));
+            //}
         }
+
 
         // This test should only run when the machine's default encoding is shift-JIS
         [ConditionalFact(typeof(HasShiftJisDefaultEncoding))]
