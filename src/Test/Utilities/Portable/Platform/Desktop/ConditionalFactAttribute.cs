@@ -78,11 +78,6 @@ namespace Roslyn.Test.Utilities
             }
         }
     }
-
-    public sealed class OSVersion
-    {
-        public static readonly bool IsWin8 = System.Environment.OSVersion.Version.Build >= 9200;
-    }
 }
 
 #endif
