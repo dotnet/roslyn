@@ -11,6 +11,16 @@ using Xunit;
 
 namespace Roslyn.Test.Utilities
 {
+    /// <summary>
+    /// Container for common skip reasons. Secondary benefit allows us to use find all ref to 
+    /// discover the set of tests affected by a particular scenario.
+    /// </summary>
+    public static class ConditionalSkipReason
+    {
+        public const string NoPiaNeedsDesktop = "NoPia is only supported on desktop";
+        public const string NetModulesNeedDesktop = "Net Modules are only supported on desktop";
+    }
+
     public class ConditionalFactAttribute : FactAttribute
     {
         public ConditionalFactAttribute(params Type[] skipConditions)
