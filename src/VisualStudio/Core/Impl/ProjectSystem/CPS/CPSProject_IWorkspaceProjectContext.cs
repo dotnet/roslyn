@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             ExecuteForegroundAction(() =>
             {
-                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, _ => folderNames.ToImmutableArrayOrEmpty());
+                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, folderNames.ToImmutableArrayOrEmpty());
             });
         }
 
