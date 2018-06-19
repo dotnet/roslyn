@@ -76,7 +76,7 @@ End Class")
                 Using mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen:=True)
                     exitCode = cmd.Run(outWriter)
                     Assert.Equal(1, exitCode)
-                    Assert.Equal($"vbc : error BC2012: can't open '{xmlPath}' for writing:'The requested operation cannot be performed on a file with a user-mapped section open.'",
+                    Assert.Equal($"vbc : error BC2012: can't open '{xmlPath}' for writing: The requested operation cannot be performed on a file with a user-mapped section open.",
             outWriter.ToString().Replace(Environment.NewLine, ""))
                 End Using
             End Using
