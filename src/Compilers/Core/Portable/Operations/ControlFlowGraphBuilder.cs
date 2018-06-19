@@ -3243,6 +3243,7 @@ oneMoreTime:
             // For simplicity, we will not synthesize this call because its presence is unlikely to affect graph analysis.
 
             IOperation lockedValue = Visit(operation.LockedValue);
+            var baseLockStatement = (BaseLockStatement)operation;
 
             if (!objectType.Equals(lockedValue.Type))
             {
@@ -3258,6 +3259,7 @@ oneMoreTime:
 
             if (legacyMode)
             {
+                Debug.Assert(baseLockStatement.LockTakenSymbol == null);
                 enterMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter);
 
                 // Monitor.Enter($lock);
@@ -3283,7 +3285,6 @@ oneMoreTime:
             }
             else
             {
-                var baseLockStatement = (BaseLockStatement)operation;
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: ImmutableArray.Create(baseLockStatement.LockTakenSymbol)));
             }
 
@@ -3296,8 +3297,7 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // Monitor.Enter($lock, ref $lockTaken);
-                var baseLockStatement = (BaseLockStatement)operation;
-                lockTaken = new LocalReferenceExpression(baseLockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
+                lockTaken = new LocalReferenceExpression(baseLockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
                                                          baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 AddStatement(new InvocationExpression(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
@@ -3337,7 +3337,8 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // if ($lockTaken)
-                IOperation condition = OperationCloner.CloneOperation(lockTaken);
+                IOperation condition = new LocalReferenceExpression(baseLockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
+                                                                    baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 condition = Operation.SetParentOperation(condition, null);
                 LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(endOfFinally));
                 _currentBasicBlock = null;
