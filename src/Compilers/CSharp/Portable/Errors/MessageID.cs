@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionVariablesInQueriesAndInitializers = MessageBase + 12742,
         IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
+        IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12745,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -199,6 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 8.0 features.
+                case MessageID.IDS_FeatureCoalesceAssignmentExpression:
+                    return LanguageVersion.CSharp8;
+
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
                 case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check

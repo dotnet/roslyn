@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         MinusEqualsToken = 8281,
         CaretEqualsToken = 8282,
         PercentEqualsToken = 8283,
+        QuestionQuestionEqualsToken = 8284,
 
         // Keywords
         BoolKeyword = 8304,
@@ -374,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OrAssignmentExpression = 8722,
         LeftShiftAssignmentExpression = 8723,
         RightShiftAssignmentExpression = 8724,
+        CoalesceAssignmentExpression = 8725,
 
         // unary expressions
         UnaryPlusExpression = 8730,
