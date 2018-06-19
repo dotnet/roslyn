@@ -499,14 +499,5 @@
     <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
   </PropertyGroup>
 
-<<<<<<< HEAD
-  <Target Name="_CheckForSpacesInPathMap"
-          BeforeTargets="CoreCompile">
-    <Error Text="PathMap, DeterministicSourceRoot and RepoRoot shall not contain spaces (https://github.com/dotnet/roslyn/issues/22835)" 
-           Condition="$(PathMap.Contains(' '))" />
-  </Target>
-
-=======
   <Import Project="RepoToolset\SymStore.targets" />
->>>>>>> Use Microsoft.SourceLink package
 </Project>
