@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
     {
         ForEachInfo<TForEachStatement, TStatement> ForEachInfo { get; }
 
-        void Convert(SyntaxEditor editor, SemanticModel semanticModel, CancellationToken cancellationToken);
+        void Convert(SyntaxEditor editor, CancellationToken cancellationToken);
     }
 }

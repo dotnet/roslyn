@@ -13,23 +13,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         private readonly YieldStatementSyntax _yieldReturnStatement;
         private readonly YieldStatementSyntax _yieldBreakStatement;
 
-        public YieldReturnConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo, YieldStatementSyntax yieldReturnStatement, YieldStatementSyntax yieldBreakStatement) 
+        public YieldReturnConverter(
+            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo, 
+            YieldStatementSyntax yieldReturnStatement, 
+            YieldStatementSyntax yieldBreakStatement) 
             : base(forEachInfo)
         {
             _yieldReturnStatement = yieldReturnStatement;
             _yieldBreakStatement = yieldBreakStatement;
         }
 
-        public override void Convert(SyntaxEditor editor, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public override void Convert(SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var queryExpression = CreateQueryExpression(
-               _yieldReturnStatement.Expression,
-               leadingTokenForSelect: new[] { _yieldReturnStatement.YieldKeyword, _yieldReturnStatement.ReturnOrBreakKeyword },
-               trailingTokenForSelect: _yieldBreakStatement != null
-                ? new[] { _yieldReturnStatement.SemicolonToken, _yieldBreakStatement.YieldKeyword, _yieldBreakStatement.ReturnOrBreakKeyword, _yieldBreakStatement.SemicolonToken }
-                : new[] { _yieldReturnStatement.SemicolonToken });
+               selectExpression: _yieldReturnStatement.Expression,
+               leadingTokensForSelect: new[] { _yieldReturnStatement.YieldKeyword, _yieldReturnStatement.ReturnOrBreakKeyword },
+               trailingTokensForSelect: _yieldBreakStatement != null
+                                        ? new[] { _yieldReturnStatement.SemicolonToken,
+                                                _yieldBreakStatement.YieldKeyword,
+                                                _yieldBreakStatement.ReturnOrBreakKeyword,
+                                                _yieldBreakStatement.SemicolonToken }
+                                        : new[] { _yieldReturnStatement.SemicolonToken });
 
-            editor.ReplaceNode(ForEachInfo.ForEachStatement, SyntaxFactory.ReturnStatement(queryExpression).WithAdditionalAnnotations(Formatter.Annotation));
+            editor.ReplaceNode(
+                ForEachInfo.ForEachStatement, 
+                SyntaxFactory.ReturnStatement(queryExpression).WithAdditionalAnnotations(Formatter.Annotation));
 
             // Delete the yield break just after the loop.
             if (_yieldBreakStatement != null)

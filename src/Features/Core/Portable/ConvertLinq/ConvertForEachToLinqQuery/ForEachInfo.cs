@@ -8,6 +8,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
     {
         public TForEachStatement ForEachStatement { get; }
 
+        public SemanticModel SemanticModel { get; }
+
         public ImmutableArray<ExtendedSyntaxNode> ConvertingExtendedNodes { get; }
 
         public ImmutableArray<SyntaxToken> Identifiers { get; }
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
         public ForEachInfo(
             TForEachStatement forEachStatement,
+            SemanticModel semanticModel,
             ImmutableArray<ExtendedSyntaxNode> convertingExtendedNodes,
             ImmutableArray<SyntaxToken> identifiers,
             ImmutableArray<TStatement> statements,
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             ImmutableArray<SyntaxToken> trailingTokens)
         {
             ForEachStatement = forEachStatement;
+            SemanticModel = semanticModel;
             ConvertingExtendedNodes = convertingExtendedNodes;
             Identifiers = identifiers;
             Statements = statements;

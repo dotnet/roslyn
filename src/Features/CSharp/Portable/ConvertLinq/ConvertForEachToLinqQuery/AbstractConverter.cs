@@ -4,10 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.SyntaxNodeOrTokenExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
@@ -19,24 +22,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         {
             ForEachInfo = forEachInfo;
         }
+        public abstract void Convert(SyntaxEditor editor, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates a query expression.
         /// </summary>
         /// <param name="selectExpression">expression to be used into the last 'select ...' in the query expression</param>
-        /// <param name="leadingTokenForSelect">extra leading tokens to be added to the select clause</param>
-        /// <param name="trailingTokenForSelect">extra trailing tokens to be added to the select clause</param>
+        /// <param name="leadingTokensForSelect">extra leading tokens to be added to the select clause</param>
+        /// <param name="trailingTokensForSelect">extra trailing tokens to be added to the select clause</param>
         /// <returns></returns>
         protected QueryExpressionSyntax CreateQueryExpression(
             ExpressionSyntax selectExpression,
-            IEnumerable<SyntaxToken> leadingTokenForSelect,
-            IEnumerable<SyntaxToken> trailingTokenForSelect)
+            IEnumerable<SyntaxToken> leadingTokensForSelect,
+            IEnumerable<SyntaxToken> trailingTokensForSelect)
             => SyntaxFactory.QueryExpression(
-                CreateFromClause(ForEachInfo.ForEachStatement, Helpers.GetTrivia(ForEachInfo.LeadingTokens), Enumerable.Empty<SyntaxTrivia>()),
+                CreateFromClause(ForEachInfo.ForEachStatement, ForEachInfo.LeadingTokens.GetTrivia(), Enumerable.Empty<SyntaxTrivia>()),
                 SyntaxFactory.QueryBody(
                     SyntaxFactory.List(ForEachInfo.ConvertingExtendedNodes.Select(node => CreateQueryClause(node))),
                     SyntaxFactory.SelectClause(selectExpression)
-                    .WithComments(leadingTokenForSelect, ForEachInfo.TrailingTokens.Concat(trailingTokenForSelect)),
+                        .WithCommentsFrom(leadingTokensForSelect, ForEachInfo.TrailingTokens.Concat(trailingTokensForSelect)),
                     continuation: null)) // The current coverage of foreach statements to support does not need to use query continuations.                                                                                                           
             .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -46,8 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             {
                 case SyntaxKind.VariableDeclarator:
                     var variable = (VariableDeclaratorSyntax)node.Node;
-                    return SyntaxFactory.LetClause(SyntaxFactory.Token(SyntaxKind.LetKeyword), variable.Identifier, variable.Initializer.EqualsToken, variable.Initializer.Value)
-                        .WithComments(node.ExtraLeadingComments, node.ExtraTrailingComments);
+                    return SyntaxFactory.LetClause(
+                                SyntaxFactory.Token(SyntaxKind.LetKeyword),
+                                variable.Identifier,
+                                variable.Initializer.EqualsToken,
+                                variable.Initializer.Value)
+                            .WithCommentsFrom(node.ExtraLeadingComments, node.ExtraTrailingComments);
 
                 case SyntaxKind.ForEachStatement:
                     return CreateFromClause((ForEachStatementSyntax)node.Node, node.ExtraLeadingComments, node.ExtraTrailingComments);
@@ -55,24 +63,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 case SyntaxKind.IfStatement:
                     var ifStatement = (IfStatementSyntax)node.Node;
                     return SyntaxFactory.WhereClause(
-                                SyntaxFactory.Token(SyntaxKind.WhereKeyword).WithComments(ifStatement.IfKeyword.LeadingTrivia, ifStatement.IfKeyword.TrailingTrivia),
-                                ifStatement.Condition.WithComments(new[] { ifStatement.OpenParenToken }, new[] { ifStatement.CloseParenToken }))
-                                .WithComments(node.ExtraLeadingComments, node.ExtraTrailingComments);
+                                SyntaxFactory.Token(SyntaxKind.WhereKeyword)
+                                    .WithCommentsFrom(ifStatement.IfKeyword.LeadingTrivia, ifStatement.IfKeyword.TrailingTrivia),
+                                ifStatement.Condition.WithCommentsFrom(ifStatement.OpenParenToken, ifStatement.CloseParenToken))
+                            .WithCommentsFrom(node.ExtraLeadingComments, node.ExtraTrailingComments);
             }
 
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static FromClauseSyntax CreateFromClause(ForEachStatementSyntax forEachStatement, IEnumerable<SyntaxTrivia> extraLeadingTrivia, IEnumerable<SyntaxTrivia> extraTrailingTrivia)
+        private static FromClauseSyntax CreateFromClause(
+            ForEachStatementSyntax forEachStatement, 
+            IEnumerable<SyntaxTrivia> extraLeadingTrivia, 
+            IEnumerable<SyntaxTrivia> extraTrailingTrivia)
             => SyntaxFactory.FromClause(
                     fromKeyword: SyntaxFactory.Token(SyntaxKind.FromKeyword)
-                        .WithComments(forEachStatement.ForEachKeyword.LeadingTrivia, forEachStatement.ForEachKeyword.TrailingTrivia, forEachStatement.OpenParenToken).KeepCommentsAndAddElasticMarkers(),
+                                    .WithCommentsFrom(
+                                        forEachStatement.ForEachKeyword.LeadingTrivia,
+                                        forEachStatement.ForEachKeyword.TrailingTrivia,
+                                        forEachStatement.OpenParenToken)
+                                    .KeepCommentsAndAddElasticMarkers(),
                     type: forEachStatement.Type.IsVar ? null : forEachStatement.Type,
-                    identifier: forEachStatement.Type.IsVar ? forEachStatement.Identifier.WithCommentsBeforeLeadingTrivia(Helpers.GetTrivia(forEachStatement.Type.GetFirstToken())) : forEachStatement.Identifier,
+                    identifier: forEachStatement.Type.IsVar ?
+                                forEachStatement.Identifier.WithPrependedLeadingTrivia(
+                                    SyntaxNodeOrTokenExtensions.GetTrivia(forEachStatement.Type.GetFirstToken())
+                                    .FilterComments(addElasticMarker: false)) :
+                                forEachStatement.Identifier,
                     inKeyword: forEachStatement.InKeyword.KeepCommentsAndAddElasticMarkers(),
                     expression: forEachStatement.Expression)
-                .WithComments(extraLeadingTrivia, extraTrailingTrivia, forEachStatement.CloseParenToken);
+                        .WithCommentsFrom(extraLeadingTrivia, extraTrailingTrivia, forEachStatement.CloseParenToken);
 
-        public abstract void Convert(SyntaxEditor editor, SemanticModel semanticModel, CancellationToken cancellationToken);
     }
 }

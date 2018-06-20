@@ -7,19 +7,26 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal sealed class ToCountConterter : AbstractToMethodConverter
+    /// <summary>
+    /// Provides a conversion to query.Count().
+    /// </summary>
+    internal sealed class ToCountConverter : AbstractToMethodConverter
     {
-        public ToCountConterter(
+        public ToCountConverter(
             ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
             ExpressionSyntax selectExpression,
             ExpressionSyntax modifyingExpression,
             SyntaxTrivia[] trivia)
-            : base(forEachInfo, selectExpression, modifyingExpression, trivia) { }
+            : base(forEachInfo, selectExpression, modifyingExpression, trivia)
+        {
+        }
 
         protected override string MethodName => nameof(Enumerable.Count);
 
         // Checks that the expression is "0".
-        protected override bool CanReplaceInitialization(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override bool CanReplaceInitialization(
+            ExpressionSyntax expression, 
+            CancellationToken cancellationToken)
             => expression is LiteralExpressionSyntax literalExpression && literalExpression.Token.ValueText == "0";
 
         /// Input:

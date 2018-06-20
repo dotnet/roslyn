@@ -8,6 +8,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
+    /// <summary>
+    /// Provides a conversion to query.ToList().
+    /// </summary>
     internal sealed class ToToListConverter : AbstractToMethodConverter
     {
         public ToToListConverter(
@@ -15,18 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             ExpressionSyntax selectExpression,
             ExpressionSyntax modifyingExpression,
             SyntaxTrivia[] trivia)
-            : base(forEachInfo, selectExpression, modifyingExpression, trivia) { }
+            : base(forEachInfo, selectExpression, modifyingExpression, trivia)
+        {
+        }
 
         protected override string MethodName => nameof(Enumerable.ToList);
 
         /// Checks that the expression is "new List();"
         /// Exclude "new List(a);" and new List() { 1, 2, 3}
-        protected override bool CanReplaceInitialization(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override bool CanReplaceInitialization(
+            ExpressionSyntax expression, CancellationToken cancellationToken)
             => expression is ObjectCreationExpressionSyntax objectCreationExpression && 
-               semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken).Symbol is ITypeSymbol typeSymbol &&
-               CSharpConvertForEachToLinqQueryProvider.IsList(typeSymbol, semanticModel) &&
-               !objectCreationExpression.ArgumentList.Arguments.Any() &&
-               objectCreationExpression.Initializer == null;
+               ForEachInfo.SemanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken).Symbol is ITypeSymbol typeSymbol &&
+               CSharpConvertForEachToLinqQueryProvider.TypeSymbolOptIsList(typeSymbol, ForEachInfo.SemanticModel) &&
+               (objectCreationExpression.ArgumentList == null || !objectCreationExpression.ArgumentList.Arguments.Any()) &&
+               (objectCreationExpression.Initializer == null || !objectCreationExpression.Initializer.Expressions.Any());
 
         /// Input:
         /// foreach(...)

@@ -60,6 +60,47 @@ class Query
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task QueryWithEscapedSymbols()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public IEnumerable<int> void Main(string[] args)
+    {
+        List<int> c1 = new List<int>{1, 2, 3, 4, 5, 7};
+        List<int> c2 = new List<int>{10, 30, 40, 50, 60, 70};
+        [|foreach (var @object in c1)
+        {
+            foreach (var x2 in c2)
+            {
+                yield return @object + x2;
+            }
+        }|]
+    }
+}
+";
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public IEnumerable<int> void Main(string[] args)
+    {
+        List<int> c1 = new List<int>{1, 2, 3, 4, 5, 7};
+        List<int> c2 = new List<int>{10, 30, 40, 50, 60, 70};
+        return from @object in c1
+               from x2 in c2
+               select @object + x2;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task QueryForVarForWhere()
         {
             string source = @"
@@ -1214,6 +1255,46 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task ToListWithEmptyArgumentList()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        List<int> list = new List<int> { };
+        [|foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                list.Add(n1);
+            }
+        }|]
+
+        return list;
+    }
+}
+";
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        return (from int n1 in nums
+                from int n2 in nums
+                select n1).ToList();
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task ToListNotLastDeclaration()
         {
             string source = @"
@@ -1491,7 +1572,7 @@ class C
             }
         }|]
 
-        return list.Count();
+        return list.Count;
     }
 }
 ";
@@ -1506,7 +1587,7 @@ class C
         list = (from int n1 in nums
                 from int n2 in nums
                 select n1).ToList();
-        return list.Count();
+        return list.Count;
     }
 }
 ";

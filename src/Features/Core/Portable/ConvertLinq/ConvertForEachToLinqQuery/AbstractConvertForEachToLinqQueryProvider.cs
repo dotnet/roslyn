@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
         /// 3) statements that cannot be converted into clauses
         /// 4) trailing comments to be added to the end
         /// </returns>
-        protected abstract ForEachInfo<TForEachStatement, TStatement> CreateForEachInfo(TForEachStatement forEachStatement);
+        protected abstract ForEachInfo<TForEachStatement, TStatement> CreateForEachInfo(
+            TForEachStatement forEachStatement, SemanticModel semanticModel);
 
         /// <summary>
         /// Tries to build a specific converter that covers e.g. Count, ToList, yield return or other similar cases.
@@ -52,9 +53,11 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
         ///        doSomething(); 
         /// }
         /// </summary>
-        protected abstract IConverter<TForEachStatement, TStatement> CreateDefaultConverter(ForEachInfo<TForEachStatement, TStatement> forEachInfo);
+        protected abstract IConverter<TForEachStatement, TStatement> CreateDefaultConverter(
+            ForEachInfo<TForEachStatement, TStatement> forEachInfo);
 
-        protected abstract SyntaxNode AddLinqUsing(IConverter<TForEachStatement, TStatement> converter, SemanticModel semanticModel, SyntaxNode root);
+        protected abstract SyntaxNode AddLinqUsing(
+            IConverter<TForEachStatement, TStatement> converter, SemanticModel semanticModel, SyntaxNode root);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
                 return;
             }
 
-            // Do not try to refactor queries with comments or conditional compilation in them.
+            // Do not try to refactor queries with conditional compilation in them.
             if (forEachStatement.ContainsDirectives)
             {
                 return;
@@ -76,19 +79,32 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            if (TryBuildConverter(forEachStatement, semanticModel, cancellationToken, out IConverter<TForEachStatement, TStatement> converter) &&
-                !semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
+            if (!TryBuildConverter(forEachStatement, semanticModel, cancellationToken, out var converter))
             {
-                context.RegisterRefactoring(new ForEachToLinqQueryCodeAction(FeaturesResources.Convert_to_query, c => ApplyConvesion(converter, semanticModel, document, c)));
+                return;
             }
+
+            if (semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken)
+                .Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
+            {
+                return;
+            }
+
+            context.RegisterRefactoring(
+                new ForEachToLinqQueryCodeAction(
+                    FeaturesResources.Convert_to_query, 
+                    c => ApplyConversion(converter, document, c)));
         }
 
-        private Task<Document> ApplyConvesion(IConverter<TForEachStatement, TStatement> converter, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
+        private Task<Document> ApplyConversion(
+            IConverter<TForEachStatement, TStatement> converter, 
+            Document document, 
+            CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(semanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace);
-            converter.Convert(editor, semanticModel, cancellationToken);
+            var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace);
+            converter.Convert(editor, cancellationToken);
             var newRoot = editor.GetChangedRoot();
-            var rootWithLinqUsing = AddLinqUsing(converter, semanticModel, newRoot);
+            var rootWithLinqUsing = AddLinqUsing(converter, converter.ForEachInfo.SemanticModel, newRoot);
             return Task.FromResult(document.WithSyntaxRoot(rootWithLinqUsing));
         }
 
@@ -101,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             CancellationToken cancellationToken,
             out IConverter<TForEachStatement, TStatement> converter)
         {
-            var forEachInfo = CreateForEachInfo(forEachStatement);
+            var forEachInfo = CreateForEachInfo(forEachStatement, semanticModel);
 
             if (forEachInfo.Statements.Length == 1 &&
                 TryBuildSpecificConverter(forEachInfo, semanticModel, forEachInfo.Statements.Single(), cancellationToken, out converter))
@@ -123,7 +139,9 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
         private class ForEachToLinqQueryCodeAction : CodeAction.DocumentChangeAction
         {
             public ForEachToLinqQueryCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument) { }
+                : base(title, createChangedDocument)
+            {
+            }
         }
     }
 }
