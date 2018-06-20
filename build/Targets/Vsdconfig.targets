@@ -11,7 +11,7 @@
           BeforeTargets="AfterCompile"
           Inputs="@(VsdConfigXml);$(IntermediateOutputPath)\$(AssemblyName).dll"
           Outputs="$(OutDir)\$(AssemblyName).vsdconfig"
-          Condition="'$(BuildingProject)' == 'true' AND '@(VsdConfigXml)' != ''">
+          Condition="'$(BuildingProject)' == 'true' AND '@(VsdConfigXml)' != '' AND '$(IsWpfTempProject)' != 'true'">
     <PropertyGroup>
       <_VsdConfigTool>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\tools\VSSDK\bin\vsdconfigtool.exe</_VsdConfigTool>
     </PropertyGroup>
