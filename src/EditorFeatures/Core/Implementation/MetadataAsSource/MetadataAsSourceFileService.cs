@@ -47,9 +47,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
         /// <summary>
         /// We create a mutex so other processes can see if our directory is still alive. We destroy the mutex when
-        /// we purge our generated files.
+        /// we purge our generated files. This mutex protects files placed under
+        /// <see cref="_rootMetadataTemporaryPathWithGuid"/>.
         /// </summary>
-        private Mutex _mutex;
+        private Mutex _metadataMutex;
+        /// <summary>
+        /// This mutex behaves similarly to <see cref="_metadataMutex"/>, but protects decompiled sources placed under
+        /// <see cref="_rootDecompiledTemporaryPathWithGuid"/>.
+        /// </summary>
+        private Mutex _decompiledMutex;
         private string _rootMetadataTemporaryPathWithGuid;
         private string _rootDecompiledTemporaryPathWithGuid;
         private readonly string _rootTemporaryPath;
@@ -67,11 +73,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         private string GetRootPathWithGuid_NoLock(bool allowDecompilation)
         {
             ref string rootTemporaryPathWithGuid = ref (allowDecompilation ? ref _rootDecompiledTemporaryPathWithGuid : ref _rootMetadataTemporaryPathWithGuid);
+            ref Mutex mutex = ref (allowDecompilation ? ref _decompiledMutex : ref _metadataMutex);
             if (rootTemporaryPathWithGuid == null)
             {
                 var guidString = Guid.NewGuid().ToString("N");
                 rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);
-                _mutex = new Mutex(initiallyOwned: true, name: CreateMutexName(guidString));
+                mutex = new Mutex(initiallyOwned: true, name: CreateMutexName(guidString));
             }
 
             return rootTemporaryPathWithGuid;
@@ -440,12 +447,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                // Release our mutex to indicate we're no longer using our directory and reset state
-                if (_mutex != null)
+                // Release our mutexes to indicate we're no longer using our directory and reset state
+                if (_metadataMutex != null)
                 {
-                    _mutex.Dispose();
-                    _mutex = null;
+                    _metadataMutex.Dispose();
+                    _metadataMutex = null;
                     _rootMetadataTemporaryPathWithGuid = null;
+                }
+
+                if (_decompiledMutex != null)
+                {
+                    _decompiledMutex.Dispose();
+                    _decompiledMutex = null;
                     _rootDecompiledTemporaryPathWithGuid = null;
                 }
 
