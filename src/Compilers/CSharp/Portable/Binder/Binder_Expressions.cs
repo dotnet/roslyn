@@ -6164,7 +6164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var isFixedStatementExpression = SyntaxFacts.IsFixedStatementExpression(node);
                     Symbol accessedLocalOrParameterOpt;
-                    if (IsNonMoveableVariable(receiver, out accessedLocalOrParameterOpt) == isFixedStatementExpression)
+                    if (ExpressionRequiresFixing(receiver, out accessedLocalOrParameterOpt) != isFixedStatementExpression)
                     {
                         if (indexed)
                         {
