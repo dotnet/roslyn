@@ -218,5 +218,27 @@ a: a
 }
 ");
         }
+
+        [Fact]
+        public void ExpressionsAreNotOptimized()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+
+public class Test
+{
+    static void Main()
+    {
+        Expression<Func<string, string>> f = a => $""a: {a}"";
+
+        Console.Write(f);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"a => Format(""a: {0}"", a)");
+
+            comp.VerifyDiagnostics();
+        }
     }
 }
