@@ -1176,6 +1176,140 @@ unsafe class C
 ");
         }
 
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Static()
+        {
+            CompileAndVerify(CreateCompilation(@"
+using System;
+unsafe class C
+{
+    static int* x;
+
+    static void Main()
+    {
+        fixed (int* y = new int[2])
+        {
+            x = y;
+        }
+
+        PrintSum();
+
+        int* first = &x[0];
+        *first = 5;
+        PrintSum();
+
+        int* second = &x[1];
+        *second = 2;
+        PrintSum();
+    }
+
+    static void PrintSum()
+    {
+        int sum = 0;
+        for (var i = 0; i < 2; i++)
+        {
+            sum += x[i];
+        }
+
+        Console.WriteLine(sum);
+    }
+}", options: TestOptions.UnsafeReleaseExe), verify: Verification.Fails, expectedOutput: @"
+0
+5
+7");
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Instance()
+        {
+            CompileAndVerify(CreateCompilation(@"
+using System;
+unsafe class C
+{
+    int* x;
+
+    static void Main()
+    {
+        new C().Calculate();
+    }
+
+    void Calculate()
+    {
+        fixed (int* y = new int[2])
+        {
+            x = y;
+        }
+
+        PrintSum();
+
+        int* first = &x[0];
+        *first = 5;
+        PrintSum();
+
+        int* second = &x[1];
+        *second = 2;
+        PrintSum();
+    }
+
+    void PrintSum()
+    {
+        int sum = 0;
+        for (var i = 0; i < 2; i++)
+        {
+            sum += x[i];
+        }
+
+        Console.WriteLine(sum);
+    }
+}", options: TestOptions.UnsafeReleaseExe), verify: Verification.Fails, expectedOutput: @"
+0
+5
+7");
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Local()
+        {
+            CompileAndVerify(CreateCompilation(@"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        int* x;
+
+        fixed (int* y = new int[2])
+        {
+            x = y;
+        }
+
+        PrintSum(x);
+
+        int* first = &x[0];
+        *first = 5;
+        PrintSum(x);
+
+        int* second = &x[1];
+        *second = 2;
+        PrintSum(x);
+    }
+
+    static void PrintSum(int* x)
+    {
+        int sum = 0;
+        for (var i = 0; i < 2; i++)
+        {
+            sum += x[i];
+        }
+
+        Console.WriteLine(sum);
+    }
+}", options: TestOptions.UnsafeReleaseExe), verify: Verification.Fails, expectedOutput: @"
+0
+5
+7");
+        }
+
         #endregion Pointer element access tests
 
         #region Fixed statement tests

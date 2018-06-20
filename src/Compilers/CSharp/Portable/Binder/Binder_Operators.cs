@@ -2234,8 +2234,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundKind.PointerElementAccess:
                         {
-                            expr = ((BoundPointerElementAccess)expr).Expression;
-                            continue;
+                            BoundExpression underlyingExpr = ((BoundPointerElementAccess)expr).Expression;
+                            if (underlyingExpr.Kind == BoundKind.FieldAccess)
+                            {
+                                FieldSymbol field = ((BoundFieldAccess)underlyingExpr).FieldSymbol;
+                                if (field.IsFixed)
+                                {
+                                    return false;
+                                }
+                            }
+
+                            return true;
                         }
                     case BoundKind.PropertyAccess: // Never a variable.
                     case BoundKind.IndexerAccess: // Never a variable.
