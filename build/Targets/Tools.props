@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <dotnetRuntimeVersion>2.0.0</dotnetRuntimeVersion>
-    <dotnetSdkVersion>2.1.300-preview2-008324</dotnetSdkVersion>
+    <dotnetRuntimeVersion>2.1.0</dotnetRuntimeVersion>
+    <dotnetSdkVersion>2.1.300</dotnetSdkVersion>
     <monoVersion>5.8.0.88</monoVersion>
     <vsMinimumVersion>15.3</vsMinimumVersion>
   </PropertyGroup>
