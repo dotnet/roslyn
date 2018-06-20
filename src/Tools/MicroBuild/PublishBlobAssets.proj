@@ -11,7 +11,6 @@
    -->
 
   <PropertyGroup>
-    <PublishOverwrite Condition="'$(PublishOverwrite)' == ''">false</PublishOverwrite>
     <PublishStableVersions Condition="'$(PublishStableVersions)' == ''">false</PublishStableVersions>
   </PropertyGroup>
 
@@ -51,12 +50,10 @@
     <PushToBlobFeed ExpectedFeedUrl="$(PB_PublishBlobFeedUrl)"
                     AccountKey="$(PB_PublishBlobFeedKey)"
                     ItemsToPush="@(PackagesToPublish);@(SymbolPackagesToPublish)"
-                    Overwrite="$(PublishOverwrite)"
                     ManifestBranch="$(BUILD_SOURCEBRANCH)"
                     ManifestBuildId="$(BUILD_BUILDNUMBER)"
-                    ManifestCommit="$(CommitHashDisplay)"
-                    ManifestName="roslyn"
-                    SkipCreateManifest="false" />
+                    ManifestCommit="$(BUILD_SOURCEVERSION)"
+                    ManifestName="$(BUILD_REPOSITORY_NAME)" />
   </Target>
 
 </Project>
