@@ -30,17 +30,17 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -61,17 +61,17 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 
@@ -92,17 +92,17 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo = 2;
+    private int goo = 2;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -124,17 +124,17 @@ class goo
 class goo
 {
     const int num = 345;
-    private int _goo = 2 * num;
+    private int goo = 2 * num;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -154,17 +154,17 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         private set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -178,7 +178,7 @@ class goo
             var text = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int G[||]oo { get; private set; }
 }
@@ -186,18 +186,18 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
-    private int _goo1;
+    private int goo;
+    private int goo1;
 
     public int Goo
     {
         get
         {
-            return _goo1;
+            return goo1;
         }
         private set
         {
-            _goo1 = value;
+            goo1 = value;
         }
     }
 }
@@ -219,18 +219,18 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     // Comments before
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         private set
         {
-            _goo = value;
+            goo = value;
         }
     } //Comments during
     //Comments after
@@ -251,9 +251,9 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
-    public int Goo { get => _goo; set => _goo = value; }
+    public int Goo { get => goo; set => goo = value; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenPossible);
@@ -271,9 +271,9 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
-    public int Goo { get => _goo; set => _goo = value; }
+    public int Goo { get => goo; set => goo = value; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
@@ -295,12 +295,12 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
-        get => _goo;
-        set => _goo = value;
+        get => goo;
+        set => goo = value;
     }
 }
 ";
@@ -319,9 +319,9 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
-    public int Goo { get /* test */ => _goo; set /* test2 */ => _goo = value; }
+    public int Goo { get /* test */ => goo; set /* test2 */ => goo = value; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenPossible);
@@ -339,16 +339,16 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -368,15 +368,15 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get {
-            return _goo;
+            return goo;
         }
         set {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -396,17 +396,17 @@ class goo
             var expected = @"
 class goo
 {
-    private static int s_goo;
+    private static int goo;
 
     public static int Goo
     {
         get
         {
-            return s_goo;
+            return goo;
         }
         set
         {
-            s_goo = value;
+            goo = value;
         }
     }
 }
@@ -426,17 +426,17 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     protected int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -456,17 +456,17 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     internal int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -487,18 +487,18 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     [A]
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -515,26 +515,26 @@ class goo
     /// <summary>
     /// test stuff here
     /// </summary>
-    public int testg[||]oo { /* test1 */ get /* test2 */; /* test3 */ set /* test4 */; /* test5 */ } /* test6 */
+    public int Testg[||]oo { /* test1 */ get /* test2 */; /* test3 */ set /* test4 */; /* test5 */ } /* test6 */
 }
 ";
             var expected = @"
 class goo
 {
-    private int _testgoo;
+    private int testgoo;
 
     /// <summary>
     /// test stuff here
     /// </summary>
-    public int testgoo
+    public int Testgoo
     { /* test1 */
         get /* test2 */
         {
-            return _testgoo;
+            return testgoo;
         } /* test3 */
         set /* test4 */
         {
-            _testgoo = value;
+            testgoo = value;
         } /* test5 */
     } /* test6 */
 }
@@ -564,17 +564,17 @@ class MyBaseClass
 
 class MyDerivedClass : MyBaseClass
 {
-    private string _name;
+    private string name;
 
     public override string Name
     {
         get
         {
-            return _name;
+            return name;
         }
         set
         {
-            _name = value;
+            name = value;
         }
     }
 }
@@ -594,17 +594,17 @@ class MyClass
             var expected = @"
 class MyClass
 {
-    private string _name;
+    private string name;
 
     public sealed string Name
     {
         get
         {
-            return _name;
+            return name;
         }
         set
         {
-            _name = value;
+            name = value;
         }
     }
 }
@@ -629,17 +629,17 @@ class MyDerivedClass : MyBaseClass
             var expected = @"
 class MyBaseClass
 {
-    private string _name;
+    private string name;
 
     public virtual string Name
     {
         get
         {
-            return _name;
+            return name;
         }
         set
         {
-            _name = value;
+            name = value;
         }
     }
 }
@@ -664,17 +664,17 @@ class MyClass
             var expected = @"
 class MyClass
 {
-    private string _name;
+    private string name;
 
     private string Name
     {
         get
         {
-            return _name;
+            return name;
         }
         set
         {
-            _name = value;
+            name = value;
         }
     }
 }
@@ -723,13 +723,13 @@ class goo
             var expected = @"
 class goo
 {
-    private readonly int _goo;
+    private readonly int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
     }
 }
@@ -749,9 +749,9 @@ class goo
             var expected = @"
 class goo
 {
-    private readonly int _goo;
+    private readonly int goo;
 
-    public int Goo => _goo;
+    public int Goo => goo;
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiesOnAccessorsAndMethods);
@@ -778,9 +778,9 @@ class goo
             var text = @"
 class goo
 {
-   private int _testgoo;
+   private int testgoo;
 
-   public int testg[||]oo {get => _testgoo; set => _testgoo = value; }
+   public int testg[||]oo {get => testgoo; set => testgoo = value; }
 }
 ";
             await TestMissingAsync(text);
@@ -798,17 +798,17 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -828,17 +828,17 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -924,17 +924,17 @@ class goo
             var expected = @"
 class goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -996,17 +996,17 @@ struct goo
             var expected = @"
 struct goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -1037,9 +1037,9 @@ partial class Program
 
 partial class Program
 {
-    private int _q;
+    private int q;
 
-    int Q { get => _q; set => _q = value; }
+    int Q { get => q; set => q = value; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected);
@@ -1062,9 +1062,9 @@ partial class Program
             var file1AfterRefactor = @"
 partial class Program
 {
-    private int _p;
+    private int p;
 
-    int P { get => _p; set => _p = value; }
+    int P { get => p; set => p = value; }
 }";
 
             var xmlString = string.Format(@"
@@ -1108,9 +1108,9 @@ partial class Program
             var file2AfterRefactor = @"
 partial class Program
 {
-    private int _q;
+    private int q;
 
-    int Q { get => _q; set => _q = value; }
+    int Q { get => q; set => q = value; }
 }";
 
             var xmlString = string.Format(@"

@@ -21,22 +21,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
-    internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
-        TParameterSyntax,
-        TStatementSyntax,
-        TExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
-            TParameterSyntax,
-            TStatementSyntax,
-            TExpressionSyntax>
-        where TParameterSyntax : SyntaxNode
-        where TStatementSyntax : SyntaxNode
-        where TExpressionSyntax : SyntaxNode
+    internal static class FallbackNamingRules
     {
         // Standard field/property names we look for when we have a parameter with a given name.
         // We also use the rules to help generate fresh fields/properties.  Note that we always
         // look at these rules *after* the user's own rules.  That way we respect user naming, but
         // also have a reasonably fallback if they don't have any specified preferences.
-        private static readonly ImmutableArray<NamingRule> s_builtInRules = ImmutableArray.Create(
+        internal static readonly ImmutableArray<NamingRule> Rules = ImmutableArray.Create(
                 new NamingRule(new SymbolSpecification(
                     Guid.NewGuid(), "Property",
                     ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property))),
@@ -52,7 +43,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
                     new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
                     enforcementLevel: ReportDiagnostic.Hidden));
+    }
 
+    internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
+        TParameterSyntax,
+        TStatementSyntax,
+        TExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+            TParameterSyntax,
+            TStatementSyntax,
+            TExpressionSyntax>
+        where TParameterSyntax : SyntaxNode
+        where TStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
+    {
         protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
@@ -473,7 +476,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Add our built-in-rules at the end so that we always respect user naming rules 
             // first, but we always have something to fall-back upon if there are no matches.
-            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(s_builtInRules);
+            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(FallbackNamingRules.Rules);
             return rules;
         }
 

@@ -67,33 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             Document document,
             CancellationToken cancellationToken)
         {
-            const string defaultStaticFieldPrefix = "s_";
-            const string defaultFieldPrefix = "_";
-
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var namingPreferencesOption = optionSet.GetOption(SimplificationOptions.NamingPreferences);
             var rules = namingPreferencesOption.CreateRules().NamingRules
-                .AddRange(CreateNewRule(ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsStatic)), defaultStaticFieldPrefix))
-                .AddRange(CreateNewRule(modifiers: default, defaultFieldPrefix));
+                .AddRange(CodeAnalysis.InitializeParameter.FallbackNamingRules.Rules);
             return rules;
-        }
-
-        private static ImmutableArray<NamingRule> CreateNewRule(
-            ImmutableArray<ModifierKind> modifiers,
-            string prefix)
-        {
-            return ImmutableArray.Create(
-                new NamingRule(
-                    new SymbolSpecification(
-                        Guid.NewGuid(),
-                        "Field",
-                        ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
-                        modifiers: modifiers),
-                    new NamingStyles.NamingStyle(
-                        Guid.NewGuid(),
-                        prefix: prefix,
-                        capitalizationScheme: Capitalization.CamelCase),
-                    ReportDiagnostic.Hidden));
         }
 
         private string GenerateFieldName(IPropertySymbol property, ImmutableArray<NamingRule> rules)
