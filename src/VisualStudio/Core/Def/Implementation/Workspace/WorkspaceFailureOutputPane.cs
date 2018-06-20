@@ -58,7 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                     _doNotAccessDirectlyOutputPane = CreateOutputPane(outputWindow);
 
                     if (lastActivePane != Guid.Empty)
+                    {
                         ActivatePane(outputWindow, lastActivePane);
+                    }
                 }
 
                 return _doNotAccessDirectlyOutputPane;
