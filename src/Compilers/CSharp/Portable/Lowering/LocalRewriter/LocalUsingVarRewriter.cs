@@ -11,6 +11,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 {
     class LocalUsingVarRewriter : BoundTreeRewriterWithStackGuard
     {
+        public static BoundNode Rewrite(BoundStatement statement)
+        {
+            var localUsingVarRewriter = new LocalUsingVarRewriter();
+            return (BoundNode)localUsingVarRewriter.Visit(statement);
+        }
+
         public override BoundNode VisitStatementList(BoundStatementList node)
         {
             int current = 0;
