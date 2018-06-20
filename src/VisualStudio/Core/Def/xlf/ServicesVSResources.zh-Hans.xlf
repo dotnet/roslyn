@@ -1374,8 +1374,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">在外部进程中执行编辑器功能分析(_F)(实验)</target>
+        <source>Perform editor _feature analysis in external process</source>
+        <target state="needs-review-translation">在外部进程中执行编辑器功能分析(_F)(实验)</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">

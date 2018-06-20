@@ -1374,8 +1374,8 @@ Ek bilgiler: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">Dış işlemde düzenleyici ö_zellik analizi gerçekleştir (deneysel)</target>
+        <source>Perform editor _feature analysis in external process</source>
+        <target state="needs-review-translation">Dış işlemde düzenleyici ö_zellik analizi gerçekleştir (deneysel)</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
