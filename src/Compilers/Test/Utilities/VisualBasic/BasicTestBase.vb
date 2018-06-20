@@ -321,7 +321,6 @@ Public MustInherit Class BasicTestBase
             verify)
     End Function
 
-
     ''' <summary>
     ''' Compile sources and adds a custom reference using a custom IL
     ''' </summary>
