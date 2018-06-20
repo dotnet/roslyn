@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 documentSpan.Document, documentSpan.SourceSpan, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<ClassifiedTextElement> BuildClassifiedTextElementForSpans(ImmutableArray<TextSpan> spans, ITextSnapshot snapshot, Document document, CancellationToken cancellationToken)
+        public static async Task<ClassifiedTextElement> BuildClassifiedTextElementForSpansAsync(ImmutableArray<TextSpan> spans, ITextSnapshot snapshot, Document document, CancellationToken cancellationToken)
         {
             var classificationService = document.GetLanguageService<IClassificationService>();
 

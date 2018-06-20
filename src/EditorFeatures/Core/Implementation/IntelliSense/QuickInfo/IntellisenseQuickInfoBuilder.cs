@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal static class IntellisenseQuickInfoBuilder
     {
-        internal static async Task<IntellisenseQuickInfoItem> BuildItem(ITrackingSpan trackingSpan,
+        internal static async Task<IntellisenseQuickInfoItem> BuildItemAsync(ITrackingSpan trackingSpan,
             CodeAnalysisQuickInfoItem quickInfoItem,
             ITextSnapshot snapshot,
             Document document,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
             {
-                elements.Add(await ClassifiedSpansAndHighlightSpanFactory.BuildClassifiedTextElementForSpans(quickInfoItem.RelatedSpans, snapshot, document, cancellationToken).ConfigureAwait(false));
+                elements.Add(await ClassifiedSpansAndHighlightSpanFactory.BuildClassifiedTextElementForSpansAsync(quickInfoItem.RelatedSpans, snapshot, document, cancellationToken).ConfigureAwait(false));
             }
 
             var content = new ContainerElement(

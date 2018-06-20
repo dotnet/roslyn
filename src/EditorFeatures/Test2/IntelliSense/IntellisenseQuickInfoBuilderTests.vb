@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 .DefaultValue = DefaultValue.Mock
             }
 
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItem(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, Threading.CancellationToken.None)
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, Threading.CancellationToken.None)
 
             Assert.NotNull(intellisenseQuickInfo)
 
