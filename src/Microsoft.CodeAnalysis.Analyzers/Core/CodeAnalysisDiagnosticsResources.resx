@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -237,10 +237,10 @@
     <value>Only internal implementations of this interface are allowed.</value>
   </data>
   <data name="CodeActionNeedsEquivalenceKeyDescription" xml:space="preserve">
-    <value>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</value>
+    <value>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</value>
   </data>
   <data name="CreateCodeActionWithEquivalenceKeyMessage" xml:space="preserve">
-    <value>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</value>
+    <value>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</value>
   </data>
   <data name="CreateCodeActionWithEquivalenceKeyTitle" xml:space="preserve">
     <value>Create code actions should have a unique EquivalenceKey for FixAll occurrences support.</value>
