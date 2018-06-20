@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return;
             }
 
-            var severity = styleOption.Notification.Value;
+            var severity = styleOption.Notification.Severity;
 
             // look for the form "if (a != null)" or "if (null != a)"
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression,
-            DiagnosticSeverity severity)
+            ReportDiagnostic severity)
         {
             var cancellationToken = syntaxContext.CancellationToken;
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             StatementSyntax firstStatement,
             IfStatementSyntax ifStatement,
             ExpressionStatementSyntax expressionStatement,
-            DiagnosticSeverity severity,
+            ReportDiagnostic severity,
             List<Location> additionalLocations,
             string kind)
         {
@@ -179,9 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 additionalLocations, properties));
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(severity),
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 expressionStatement.GetLocation(),
+                severity,
                 additionalLocations, properties));
 
             // If the if-statement extends past the expression statement, then fade out the rest.
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression,
-            DiagnosticSeverity severity)
+            ReportDiagnostic severity)
         {
             var cancellationToken = syntaxContext.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();

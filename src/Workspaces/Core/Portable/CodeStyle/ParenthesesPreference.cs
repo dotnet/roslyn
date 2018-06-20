@@ -4,7 +4,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal enum ParenthesesPreference
     {
-        Ignore,
         AlwaysForClarity,
         NeverIfUnnecessary,
     }

@@ -70,6 +70,27 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// </summary>
         public readonly ImmutableArray<byte> Signature;
 
+        /// <summary>
+        /// Applicable only to properties and methods, throws otherwise.
+        /// </summary>
+        public int ParametersCount
+        {
+            get
+            {
+                MemberFlags memberKind = Flags & MemberFlags.KindMask;
+                switch (memberKind)
+                {
+                    case MemberFlags.Constructor:
+                    case MemberFlags.Method:
+                    case MemberFlags.PropertyGet:
+                    case MemberFlags.Property:
+                        return Signature[0];
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(memberKind);
+                }
+            }
+        }
+
         public MemberDescriptor(
             MemberFlags Flags,
             short DeclaringTypeId,

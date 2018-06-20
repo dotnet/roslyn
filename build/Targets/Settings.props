@@ -26,6 +26,7 @@
     <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
     <DeveloperBuild>false</DeveloperBuild>
     <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
+    <ContinuousIntegrationBuild Condition="!$(DeveloperBuild)">true</ContinuousIntegrationBuild>
 
     <NuGetToolPath>$(RepoRoot)nuget.exe</NuGetToolPath>
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
@@ -108,22 +109,6 @@
     <RoslynDebugType Condition="'$(RoslynDebugType)' == ''">full</RoslynDebugType>
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
     <RoslynDebugType Condition="'$(JenkinsBuild)' == 'true'">embedded</RoslynDebugType>
-
-    <!-- 
-      The source root path used for deterministic normalization of source paths.
-      
-      If set the value is used in PathMap to instruct the compiler to normalize source paths 
-      emitted to the binary and PDB and as a root for Source Link mapping.
-      If set must end with a directory separator.
-      
-      If unset the PathMap need to be set explicitly to facilitate full determinism.
-      
-      The path can't be just a single '/' due to bug in Roslyn compilers:
-      https://github.com/dotnet/roslyn/issues/22815
-    -->
-    <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
-
-    <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
 
     <ChecksumAlgorithm>SHA256</ChecksumAlgorithm>
 
