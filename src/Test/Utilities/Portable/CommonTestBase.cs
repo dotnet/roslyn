@@ -552,6 +552,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 var clonedOperation = OperationCloner.CloneOperation(operation);
 
+                Assert.Same(model, operation.SemanticModel);
+                Assert.Same(model, clonedOperation.SemanticModel);
+                Assert.NotSame(model, ((Operation)operation).MemberSemanticModelForClone);
+                Assert.Same(((Operation)operation).MemberSemanticModelForClone, ((Operation)clonedOperation).MemberSemanticModelForClone);
+
                 // check whether cloned IOperation is same as original one
                 var original = OperationTreeVerifier.GetOperationTree(model.Compilation, operation);
                 var cloned = OperationTreeVerifier.GetOperationTree(model.Compilation, clonedOperation);

@@ -11,15 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class InitializerSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
+        Private Sub New(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, Optional speculatedPosition As Integer? = Nothing, Optional ignoreAccessibility As Boolean = False)
+            MyBase.New(parentSemanticModel, root, binder, speculatedPosition, ignoreAccessibility)
         End Sub
 
         ''' <summary>
         ''' Creates an InitializerSemanticModel that allows asking semantic questions about an initializer node.
         ''' </summary>
-        Friend Shared Function Create(binder As DeclarationInitializerBinder, Optional ignoreAccessibility As Boolean = False) As InitializerSemanticModel
-            Return New InitializerSemanticModel(binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
+        Friend Shared Function Create(parentSemanticModel As SyntaxTreeSemanticModel, binder As DeclarationInitializerBinder, Optional ignoreAccessibility As Boolean = False) As InitializerSemanticModel
+            Return New InitializerSemanticModel(parentSemanticModel, binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
         End Function
 
         ''' <summary>
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(binder IsNot Nothing)
             Debug.Assert(binder.IsSemanticModelBinder)
 
-            Return New InitializerSemanticModel(root, binder, parentSemanticModel, position)
+            Return New InitializerSemanticModel(parentSemanticModel, root, binder, position)
         End Function
 
         Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode

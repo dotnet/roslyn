@@ -368,6 +368,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// If this is a member semantic model for executable code, then returns the syntax tree semantic model that was used to create this model.
+        /// If this is a syntax tree semantic model, then returns this instance.
+        /// Otherwise, returns null.
+        /// </summary>
+        internal SemanticModel OriginalSyntaxTreeModel => OriginalSyntaxTreeModelCore;
+
+        /// <summary>
+        /// If this is a member semantic model for executable code, then returns the syntax tree semantic model that was used to create this model.
+        /// If this is a syntax tree semantic model, then returns this instance.
+        /// Otherwise, returns null.
+        /// </summary>
+        internal abstract SemanticModel OriginalSyntaxTreeModelCore
+        {
+            get;
+        }
+
+        /// <summary>
         /// Binds the name in the context of the specified location and sees if it resolves to an
         /// alias name. If it does, return the AliasSymbol corresponding to it. Otherwise, return null.
         /// </summary>

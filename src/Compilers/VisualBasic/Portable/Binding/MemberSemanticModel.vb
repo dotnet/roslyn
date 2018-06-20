@@ -18,23 +18,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend MustInherit Class MemberSemanticModel
         Inherits VBSemanticModel
 
+        ' Original syntax tree model that was used to create this member semantic model.
+        Private ReadOnly _parentSemanticModel As SyntaxTreeSemanticModel
         Private ReadOnly _root As SyntaxNode
         Private ReadOnly _rootBinder As Binder
 
-        ' Fields specific to speculative MemberSemanticModel
-        Private ReadOnly _parentSemanticModelOpt As SyntaxTreeSemanticModel
-        Private ReadOnly _speculatedPosition As Integer
+        ' Field specific to speculative MemberSemanticModel
+        Private ReadOnly _speculatedPosition As Integer?
+
         Private ReadOnly _ignoresAccessibility As Boolean
 
         Private ReadOnly _operationFactory As Lazy(Of VisualBasicOperationFactory)
 
-        Friend Sub New(root As SyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional ignoreAccessibility As Boolean = False)
-            Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
+        Friend Sub New(parentSemanticModel As SyntaxTreeSemanticModel, root As SyntaxNode, rootBinder As Binder, speculatedPosition As Integer?, Optional ignoreAccessibility As Boolean = False)
+            Debug.Assert(parentSemanticModel IsNot Nothing)
+            Debug.Assert(Not parentSemanticModel.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
+            _parentSemanticModel = parentSemanticModel
             _root = root
             _ignoresAccessibility = ignoreAccessibility
             _rootBinder = SemanticModelBinder.Mark(rootBinder, ignoreAccessibility)
-            _parentSemanticModelOpt = parentSemanticModelOpt
             _speculatedPosition = speculatedPosition
 
             _operationFactory = New Lazy(Of VisualBasicOperationFactory)(Function() New VisualBasicOperationFactory(Me))
@@ -54,25 +57,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property IsSpeculativeSemanticModel As Boolean
             Get
-                Return _parentSemanticModelOpt IsNot Nothing
+                Return _speculatedPosition.HasValue
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property OriginalPositionForSpeculation As Integer
             Get
-                Return Me._speculatedPosition
+                Return If(_speculatedPosition.HasValue, _speculatedPosition.Value, 0)
             End Get
         End Property
 
-        Public NotOverridable Overrides ReadOnly Property ParentModel As SemanticModel
+        Friend Overrides ReadOnly Property OriginalSyntaxTreeModel As SyntaxTreeSemanticModel
             Get
-                Return Me._parentSemanticModelOpt
+                Return _parentSemanticModel
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
-                Return Me._ignoresAccessibility
+                Return _ignoresAccessibility
             End Get
         End Property
 

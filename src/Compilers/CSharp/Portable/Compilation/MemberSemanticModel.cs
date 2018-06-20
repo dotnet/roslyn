@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal abstract partial class MemberSemanticModel : CSharpSemanticModel
     {
-        private readonly CSharpCompilation _compilation;
+        // Original syntax tree model that was used to create this member semantic model.
+        private readonly SyntaxTreeSemanticModel _parentSemanticModel;
         private readonly Symbol _memberSymbol;
         private readonly CSharpSyntaxNode _root;
         private readonly DiagnosticBag _ignoredDiagnostics = new DiagnosticBag();
@@ -30,25 +31,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly Binder RootBinder;
 
-        // Fields specific to a speculative MemberSemanticModel.
-        private readonly SyntaxTreeSemanticModel _parentSemanticModelOpt;
-        private readonly int _speculatedPosition;
+        // Specific to a speculative MemberSemanticModel.
+        private readonly int? _speculatedPosition;
 
         private readonly Lazy<CSharpOperationFactory> _operationFactory;
 
-        protected MemberSemanticModel(CSharpCompilation compilation, CSharpSyntaxNode root, Symbol memberSymbol, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt, int speculatedPosition)
+        protected MemberSemanticModel(
+            SyntaxTreeSemanticModel parentSemanticModel,
+            CSharpSyntaxNode root,
+            Symbol memberSymbol,
+            Binder rootBinder,
+            int? speculatedPosition)
         {
-            Debug.Assert(compilation != null);
+            Debug.Assert(parentSemanticModel != null);
+            Debug.Assert(!parentSemanticModel.IsSpeculativeSemanticModel, CSharpResources.ChainingSpeculativeModelIsNotSupported);
             Debug.Assert(root != null);
             Debug.Assert((object)memberSymbol != null);
-            Debug.Assert(parentSemanticModelOpt == null || !parentSemanticModelOpt.IsSpeculativeSemanticModel, CSharpResources.ChainingSpeculativeModelIsNotSupported);
-
-            _compilation = compilation;
+            
+            _parentSemanticModel = parentSemanticModel;
             _root = root;
             _memberSymbol = memberSymbol;
-
+            
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
-            _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
@@ -58,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _compilation;
+                return _parentSemanticModel.Compilation;
             }
         }
 
@@ -81,27 +85,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override bool IsSpeculativeSemanticModel
+        public sealed override bool IsSpeculativeSemanticModel
         {
             get
             {
-                return _parentSemanticModelOpt != null;
+                return _speculatedPosition.HasValue;
             }
         }
 
-        public override int OriginalPositionForSpeculation
+        public sealed override int OriginalPositionForSpeculation
         {
             get
             {
-                return _speculatedPosition;
+                return _speculatedPosition.HasValue ? _speculatedPosition.Value : 0;
             }
         }
 
-        public override CSharpSemanticModel ParentModel
+        internal sealed override SyntaxTreeSemanticModel OriginalSyntaxTreeModel
         {
             get
             {
-                return _parentSemanticModelOpt;
+                return _parentSemanticModel;
             }
         }
 

@@ -11,15 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class AttributeSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
+        Private Sub New(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, Optional speculatedPosition As Integer? = Nothing, Optional ignoreAccessibility As Boolean = False)
+            MyBase.New(parentSemanticModel, root, binder, speculatedPosition, ignoreAccessibility)
         End Sub
 
         ''' <summary>
         ''' Creates an AttributeSemanticModel that allows asking semantic questions about an attribute node.
         ''' </summary>
-        Friend Shared Function Create(binder As AttributeBinder, Optional ignoreAccessibility As Boolean = False) As AttributeSemanticModel
-            Return New AttributeSemanticModel(binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
+        Friend Shared Function Create(parentSemanticModel As SyntaxTreeSemanticModel, binder As AttributeBinder, Optional ignoreAccessibility As Boolean = False) As AttributeSemanticModel
+            Return New AttributeSemanticModel(parentSemanticModel, binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
         End Function
 
         ''' <summary>
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(binder IsNot Nothing)
             Debug.Assert(binder.IsSemanticModelBinder)
 
-            Return New AttributeSemanticModel(root, binder, parentSemanticModel, position)
+            Return New AttributeSemanticModel(parentSemanticModel, root, binder, position)
         End Function
 
         Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode

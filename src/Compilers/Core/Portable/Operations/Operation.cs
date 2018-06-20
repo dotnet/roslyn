@@ -17,14 +17,23 @@ namespace Microsoft.CodeAnalysis
     internal abstract class Operation : IOperation
     {
         private static readonly IOperation s_unset = new EmptyStatement(null, null, null, default, isImplicit: true);
+        private readonly SemanticModel _memberSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once
         // but once initialized, will never change
         private IOperation _parentDoNotAccessDirectly;
 
-        protected Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        protected Operation(OperationKind kind, SemanticModel memberSemanticModelOpt, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
         {
-            SemanticModel = semanticModel;
+#if DEBUG
+            if (memberSemanticModelOpt != null)
+            {
+                Debug.Assert(memberSemanticModelOpt.OriginalSyntaxTreeModel != null);
+                Debug.Assert(memberSemanticModelOpt.OriginalSyntaxTreeModel != memberSemanticModelOpt);
+                Debug.Assert(memberSemanticModelOpt.OriginalSyntaxTreeModel.OriginalSyntaxTreeModel == memberSemanticModelOpt.OriginalSyntaxTreeModel);
+            }
+#endif
+            _memberSemanticModelOpt = memberSemanticModelOpt;
 
             Kind = kind;
             Syntax = syntax;
@@ -90,7 +99,15 @@ namespace Microsoft.CodeAnalysis
 
         public abstract IEnumerable<IOperation> Children { get; }
 
-        public SemanticModel SemanticModel { get; }
+        public SemanticModel SemanticModel => _memberSemanticModelOpt?.OriginalSyntaxTreeModel;
+
+        /// <summary>
+        /// Gets the member semantic model that was used to create this operation node.
+        /// This semantic model should only be used by the <see cref="OperationCloner"/>.
+        /// Other clients should use <see cref="SemanticModel"/>, which exposes the original
+        /// syntax tree semantic model from which operation was requested.
+        /// </summary>
+        internal SemanticModel MemberSemanticModelForClone => _memberSemanticModelOpt;
 
         public abstract void Accept(OperationVisitor visitor);
 

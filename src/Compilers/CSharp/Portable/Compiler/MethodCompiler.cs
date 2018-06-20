@@ -1038,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             (rootSyntax) =>
                                                             {
                                                                 Debug.Assert(rootSyntax == forSemanticModelToUseInLambda.Syntax);
-                                                                return MethodBodySemanticModel.Create(_compilation, methodSymbol,
+                                                                return MethodBodySemanticModel.Create(semanticModel, methodSymbol,
                                                                                                       forSemanticModelToUseInLambda.Binder, rootSyntax,
                                                                                                       forSemanticModelToUseInLambda.Body);
                                                             });

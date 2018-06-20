@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _ignoresAccessibility As Boolean
 
         ' maps from a higher-level binder to an appropriate SemanticModel for the construct (such as a method, or initializer).
-        Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of Tuple(Of Binder, Boolean), MemberSemanticModel)()
+        Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of Tuple(Of SyntaxTreeSemanticModel, Binder, Boolean), MemberSemanticModel)()
 
         Friend Sub New(compilation As VisualBasicCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False)
             _compilation = compilation
@@ -135,26 +135,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' PERF: These shared variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
-        Private Shared ReadOnly s_methodBodySemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) MethodBodySemanticModel.Create(DirectCast(key.Item1, SubOrFunctionBodyBinder), key.Item2)
-        Private Shared ReadOnly s_initializerSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) InitializerSemanticModel.Create(DirectCast(key.Item1, DeclarationInitializerBinder), key.Item2)
-        Private Shared ReadOnly s_attributeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) AttributeSemanticModel.Create(DirectCast(key.Item1, AttributeBinder), key.Item2)
+        Private Shared ReadOnly s_methodBodySemanticModelCreator As Func(Of Tuple(Of SyntaxTreeSemanticModel, Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of SyntaxTreeSemanticModel, Binder, Boolean)) MethodBodySemanticModel.Create(key.Item1, DirectCast(key.Item2, SubOrFunctionBodyBinder), key.Item3)
+        Private Shared ReadOnly s_initializerSemanticModelCreator As Func(Of Tuple(Of SyntaxTreeSemanticModel, Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of SyntaxTreeSemanticModel, Binder, Boolean)) InitializerSemanticModel.Create(key.Item1, DirectCast(key.Item2, DeclarationInitializerBinder), key.Item3)
+        Private Shared ReadOnly s_attributeSemanticModelCreator As Func(Of Tuple(Of SyntaxTreeSemanticModel, Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of SyntaxTreeSemanticModel, Binder, Boolean)) AttributeSemanticModel.Create(key.Item1, DirectCast(key.Item2, AttributeBinder), key.Item3)
 
         Public Function GetMemberSemanticModel(binder As Binder) As MemberSemanticModel
 
             If TypeOf binder Is MethodBodyBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(Me, binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
             End If
 
             If TypeOf binder Is DeclarationInitializerBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_initializerSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(Me, binder, IgnoresAccessibility), s_initializerSemanticModelCreator)
             End If
 
             If TypeOf binder Is AttributeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_attributeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(Me, binder, IgnoresAccessibility), s_attributeSemanticModelCreator)
             End If
 
             If TypeOf binder Is TopLevelCodeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(Me, binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
             End If
 
             Return Nothing
@@ -1431,9 +1431,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ParentModel As SemanticModel
+        Friend Overrides ReadOnly Property OriginalSyntaxTreeModel As SyntaxTreeSemanticModel
             Get
-                Return Nothing
+                Return Me
             End Get
         End Property
 

@@ -43,12 +43,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _labelIdMap = new Dictionary<ILabelSymbol, uint>();
         }
 
-        public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
-        {
-            var actual = GetOperationTree(compilation, operation, initialIndent);
-            Assert.Equal(expectedOperationTree, actual);
-        }
-
         public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
             var walker = new OperationTreeVerifier(compilation, operation, initialIndent);

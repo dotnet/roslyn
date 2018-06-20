@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly AliasSymbol _aliasOpt;
 
-        private AttributeSemanticModel(CSharpCompilation compilation, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt = null, int speculatedPosition = 0)
-            : base(compilation, syntax, attributeType, new ExecutableCodeBinder(syntax, rootBinder.ContainingMember(), rootBinder), parentSemanticModelOpt, speculatedPosition)
+        private AttributeSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, int? speculatedPosition = null)
+            : base(parentSemanticModel, syntax, attributeType, new ExecutableCodeBinder(syntax, rootBinder.ContainingMember(), rootBinder), speculatedPosition)
         {
             Debug.Assert(syntax != null);
             _aliasOpt = aliasOpt;
@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates an AttributeSemanticModel that allows asking semantic questions about an attribute node.
         /// </summary>
-        public static AttributeSemanticModel Create(CSharpCompilation compilation, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder)
+        public static AttributeSemanticModel Create(SyntaxTreeSemanticModel parentSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder)
         {
-            return new AttributeSemanticModel(compilation, syntax, attributeType, aliasOpt, rootBinder);
+            return new AttributeSemanticModel(parentSemanticModel, syntax, attributeType, aliasOpt, rootBinder);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new AttributeSemanticModel(parentSemanticModel.Compilation, syntax, attributeType, aliasOpt, rootBinder, parentSemanticModel, position);
+            return new AttributeSemanticModel(parentSemanticModel, syntax, attributeType, aliasOpt, rootBinder, position);
         }
 
         private NamedTypeSymbol AttributeType

@@ -2455,7 +2455,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If this is a speculative semantic model, then returns its parent semantic model.
         /// Otherwise, returns null.
         /// </summary>
-        public new abstract CSharpSemanticModel ParentModel
+        public new CSharpSemanticModel ParentModel =>
+            OriginalSyntaxTreeModel?.IsSpeculativeSemanticModel == true ? OriginalSyntaxTreeModel : null;
+
+        /// <summary>
+        /// If this is a member semantic model for executable code, then returns the syntax tree semantic model that was used to create this model.
+        /// If this is a syntax tree semantic model, then returns this instance.
+        /// Otherwise, returns null.
+        /// </summary>
+        internal new abstract SyntaxTreeSemanticModel OriginalSyntaxTreeModel
         {
             get;
         }
@@ -4511,6 +4519,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.ParentModel;
             }
         }
+
+        internal override SemanticModel OriginalSyntaxTreeModelCore => this.OriginalSyntaxTreeModel;
 
         protected sealed override SyntaxTree SyntaxTreeCore
         {

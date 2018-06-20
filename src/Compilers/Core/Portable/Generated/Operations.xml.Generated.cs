@@ -3291,7 +3291,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public readonly IAnonymousFunctionOperation Original;
 
         public FlowAnonymousFunctionOperation(in ControlFlowGraphBuilder.Context context, IAnonymousFunctionOperation original, bool isImplicit) :
-            base(OperationKind.FlowAnonymousFunction, semanticModel: null, original.Syntax, original.Type, original.ConstantValue, isImplicit)
+            base(OperationKind.FlowAnonymousFunction, memberSemanticModelOpt: null, original.Syntax, original.Type, original.ConstantValue, isImplicit)
         {
             Context = context;
             Original = original;
@@ -6523,13 +6523,13 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class FlowCaptureReference : Operation, IFlowCaptureReferenceOperation
     {
         public FlowCaptureReference(int id, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
+            base(OperationKind.FlowCaptureReference, memberSemanticModelOpt: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
             Id = new CaptureId(id);
         }
 
         public FlowCaptureReference(CaptureId id, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
+            base(OperationKind.FlowCaptureReference, memberSemanticModelOpt: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
             Id = id;
         }
@@ -6557,7 +6557,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class FlowCapture : Operation, IFlowCaptureOperation
     {
         public FlowCapture(int id, SyntaxNode syntax, IOperation value) :
-            base(OperationKind.FlowCapture, semanticModel: null, syntax: syntax, type: null, constantValue: default, isImplicit: true)
+            base(OperationKind.FlowCapture, memberSemanticModelOpt: null, syntax: syntax, type: null, constantValue: default, isImplicit: true)
         {
             Debug.Assert(value != null);
             Id = new CaptureId(id);
@@ -6588,7 +6588,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class IsNullOperation : Operation, IIsNullOperation
     {
         public IsNullOperation(SyntaxNode syntax, IOperation operand, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.IsNull, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
+            base(OperationKind.IsNull, memberSemanticModelOpt: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
             Debug.Assert(operand != null);
             Operand = SetParentOperation(operand, this);
@@ -6617,7 +6617,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class CaughtExceptionOperation : Operation, ICaughtExceptionOperation
     {
         public CaughtExceptionOperation(SyntaxNode syntax, ITypeSymbol type) :
-            base(OperationKind.CaughtException, semanticModel: null, syntax: syntax, type: type, constantValue: default, isImplicit: true)
+            base(OperationKind.CaughtException, memberSemanticModelOpt: null, syntax: syntax, type: type, constantValue: default, isImplicit: true)
         {
         }
 
@@ -6643,7 +6643,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed class StaticLocalInitializationSemaphoreOperation : Operation, IStaticLocalInitializationSemaphoreOperation
     {
         public StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SyntaxNode syntax, ITypeSymbol type) :
-            base(OperationKind.StaticLocalInitializationSemaphore, semanticModel: null, syntax, type, constantValue: default, isImplicit: true)
+            base(OperationKind.StaticLocalInitializationSemaphore, memberSemanticModelOpt: null, syntax, type, constantValue: default, isImplicit: true)
         {
             Local = local;
         }
