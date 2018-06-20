@@ -531,6 +531,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestYieldReturnStatements()
+        {
+            VerifySyntax<YieldStatementSyntax>(Generator.YieldReturnStatement(Generator.LiteralExpression(1)), "yield return 1;");
+            VerifySyntax<YieldStatementSyntax>(Generator.YieldReturnStatement(Generator.IdentifierName("x")), "yield return x;");
+        }
+
+        [Fact]
         public void TestThrowStatements()
         {
             VerifySyntax<ThrowStatementSyntax>(Generator.ThrowStatement(), "throw;");
