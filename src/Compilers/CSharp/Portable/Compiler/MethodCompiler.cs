@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Debugging;
@@ -1244,6 +1245,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
+                BoundNode usingVarLoweredNode = LocalUsingVarRewriter.Rewrite(body);
+                BoundStatement toLower = usingVarLoweredNode == null ? body : (BoundStatement)usingVarLoweredNode;
+
                 bool sawLambdas;
                 bool sawLocalFunctions;
                 bool sawAwaitInExceptionHandler;
@@ -1252,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method,
                     methodOrdinal,
                     method.ContainingType,
-                    body,
+                    toLower,
                     compilationState,
                     previousSubmissionFields: previousSubmissionFields,
                     allowOmissionOfConditionalCalls: true,
