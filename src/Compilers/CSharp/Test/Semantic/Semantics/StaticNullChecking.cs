@@ -818,9 +818,7 @@ class P
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((A)c).F(x, y)").WithLocation(27, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
-        // in PENamedTypeSymbol.MakeDeclaredBaseType.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void UnannotatedAssemblies_10()
         {
             var source0 =
