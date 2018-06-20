@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Helper class for "Fix all occurrences" code fix providers.
     /// </summary>
-    internal partial class BatchFixAllProvider : FixAllProvider, IIntervalIntrospector<TextChange>
+    internal partial class BatchFixAllProvider : FixAllProvider
     {
         public static readonly FixAllProvider Instance = new BatchFixAllProvider();
 
@@ -177,7 +178,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    }
                };
 
-
         protected virtual Task AddProjectFixesAsync(
             Project project, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
@@ -322,35 +322,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // More complex case.  We have multiple changes to the document.  Apply them in order
             // to get the final document.
 
-            var totalChangesIntervalTree = SimpleIntervalTree.Create(this);
-
             var oldDocument = oldSolution.GetDocument(orderedDocuments[0].document.Id);
-            var differenceService = oldSolution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+            var merger = new DocumentTextChangeMerger(oldDocument);
 
             foreach (var (_, currentDocument) in orderedDocuments)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 Debug.Assert(currentDocument.Id == oldDocument.Id);
 
-                await TryAddDocumentMergeChangesAsync(
-                    differenceService,
-                    oldDocument,
+                await merger.TryMergeTextChangeAsync(
                     currentDocument,
-                    totalChangesIntervalTree,
                     cancellationToken).ConfigureAwait(false);
             }
 
             // WithChanges requires a ordered list of TextChanges without any overlap.
-            var changesToApply = totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
-
-            var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = oldText.WithChanges(changesToApply);
+            var newText = await merger.GetFinalDocumentTextAsync(cancellationToken).ConfigureAwait(false);
 
             documentIdToFinalText.TryAdd(oldDocument.Id, newText);
         }
-
-        int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
-        int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
 
         private static Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
             _ => new ConcurrentBag<(CodeAction, Document)>();
@@ -383,30 +372,59 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     (codeAction, changedDocument));
             }
         }
+    }
 
-        /// <summary>
-        /// Try to merge the changes between <paramref name="newDocument"/> and <paramref name="oldDocument"/>
-        /// into <paramref name="cumulativeChanges"/>. If there is any conflicting change in 
-        /// <paramref name="newDocument"/> with existing <paramref name="cumulativeChanges"/>, then no
-        /// changes are added
-        /// </summary>
-        private static async Task TryAddDocumentMergeChangesAsync(
-            IDocumentTextDifferencingService differenceService,
-            Document oldDocument,
-            Document newDocument,
-            SimpleIntervalTree<TextChange> cumulativeChanges,
-            CancellationToken cancellationToken)
+    internal class DocumentTextChangeMerger : IIntervalIntrospector<TextChange>
+    {
+        private readonly Document _originalDocument;
+        private readonly SimpleIntervalTree<TextChange> _totalChangesIntervalTree;
+        private readonly IDocumentTextDifferencingService _differenceService;
+
+        public DocumentTextChangeMerger(Document originalDocument)
         {
-            var currentChanges = await differenceService.GetTextChangesAsync(
-                oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+            _originalDocument = originalDocument;
+            _totalChangesIntervalTree = SimpleIntervalTree.Create(this);
+            _differenceService = originalDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+        }
 
-            if (AllChangesCanBeApplied(cumulativeChanges, currentChanges))
+        int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
+        int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
+
+        public async Task<bool> TryMergeTextChangeAsync(Document currentDocument, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (currentDocument == null || currentDocument == _originalDocument)
             {
-                foreach (var change in currentChanges)
-                {
-                    cumulativeChanges.AddIntervalInPlace(change);
-                }
+                // If they made no change, it's trivial to merge in.
+                return true;
             }
+
+            Debug.Assert(currentDocument.Id == _originalDocument.Id);
+
+            var currentChanges = await _differenceService.GetTextChangesAsync(
+                _originalDocument, currentDocument, cancellationToken).ConfigureAwait(false);
+
+            if (!AllChangesCanBeApplied(_totalChangesIntervalTree, currentChanges))
+            {
+                return false;
+            }
+
+            foreach (var change in currentChanges)
+            {
+                _totalChangesIntervalTree.AddIntervalInPlace(change);
+            }
+
+            return true;
+        }
+
+        public async Task<SourceText> GetFinalDocumentTextAsync(CancellationToken cancellationToken)
+        {
+            var changesToApply = _totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
+
+            var oldText = await _originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var newText = oldText.WithChanges(changesToApply);
+
+            return newText;
         }
 
         private static bool AllChangesCanBeApplied(
@@ -587,6 +605,104 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// <see cref="GetAndMergeChangesAsync"/> is a helper that allows N operators to run in
+        /// parallel against a <see cref="Document"/>, producing new <see cref="Document"/>s.  The
+        /// results of these operations are then merged together in order to produce a final <see
+        /// cref="Document"/>.  If any of these changes cannot be merged, the set of failed
+        /// operations will be rerun and those results will be merged.  This will repeat until there
+        /// is no more work to do.
+        ///
+        /// This works very well when the assumption is that most of the changes will not conflict.
+        /// And thus most of the work can be done and applied in parallel.  If most of the work will
+        /// conflict, this approach is not suitable, and will lead to very expensive costs as first
+        /// N tasks will run, then N-1, then N-2, and so on and so forth.
+        ///
+        /// Ideally, all changes will merge successfully, meaning individual changes are only
+        /// computed once.
+        /// </summary>
+        public static async Task<Document> GetAndMergeChangesAsync<T>(
+            Document document, ImmutableArray<T> operators,
+            Func<Document, T, Task<Document>> getChangedDocumentAsync,
+            CancellationToken cancellationToken)
+        {
+            var remainingOperators = operators.ToList();
+            var iterationCount = 0;
+
+            var currentDocument = document;
+            while (remainingOperators.Count > 0)
+            {
+                iterationCount++;
+
+                var individualDocsAndOperators = await RunOperatorsAsync(
+                    currentDocument, remainingOperators, getChangedDocumentAsync, cancellationToken).ConfigureAwait(false);
+                var totalCleanedDocument = await MergeUpdatedDocumentsAsync(
+                    remainingOperators, currentDocument, individualDocsAndOperators, cancellationToken).ConfigureAwait(false);
+
+                currentDocument = totalCleanedDocument;
+
+                // If we finished merging in all changed, then the list of remainingCleaners
+                // will be empty, and we will finish looping.  Otherwise, we'll take whatever we
+                // were unable to merge and will run that batch.
+            }
+
+            Logger.Log(FunctionId.CodeCleanup_RunAllCodeCleanupProvidersInParallel_IterationCount,
+                KeyValueLogMessage.Create(m => m["IterationCount"] = iterationCount));
+
+            return currentDocument;
+        }
+
+        private static async Task<(T op, Document cleanedDoc)[]> RunOperatorsAsync<T>(
+            Document currentDocument, List<T> operators,
+            Func<Document, T, Task<Document>> getChangedDocumentAsync,
+            CancellationToken cancellationToken)
+        {
+            var root = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Run all the cleanup tasks in parallel.
+            var tasks = operators.Select(
+                async op =>
+                {
+                    var cleanedDoc = await getChangedDocumentAsync(currentDocument, op).ConfigureAwait(false);
+                    return (op, cleanedDoc);
+                }).ToArray();
+
+            return await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        private static async Task<Document> MergeUpdatedDocumentsAsync<T>(
+            List<T> remainingOperators, Document currentDocument,
+            (T, Document)[] changedDocs, CancellationToken cancellationToken)
+        {
+            // Create a text-merger to try to merge the changes reported by all of the cleaners into
+            // a final document.
+            var merger = new DocumentTextChangeMerger(currentDocument);
+            for (var i = 0; i < changedDocs.Length; i++)
+            {
+                var (op, changedDoc) = changedDocs[i];
+                var merged = await merger.TryMergeTextChangeAsync(
+                    changedDoc, cancellationToken).ConfigureAwait(false);
+
+                var first = i == 0;
+                if (first && !merged)
+                {
+                    // Merging the first cleaner should always succeed (as there is nothing for it
+                    // to conflict with).  If it doesn't succeed, that's extremely bad and indicates
+                    // a bad bug somewhere in the merging code.  If that happens still remove this
+                    // cleaner, otherwise we could end up in an infinite loop.
+                    Debug.Fail("We must always be able to merge the first cleaner!");
+                }
+
+                if (merged || first)
+                {
+                    remainingOperators.Remove(op);
+                }
+            }
+
+            var updatedText = await merger.GetFinalDocumentTextAsync(cancellationToken).ConfigureAwait(false);
+            return currentDocument.WithText(updatedText);
         }
     }
 }

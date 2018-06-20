@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeCleanup_Cleanup,
         CodeCleanup_IterateAllCodeCleanupProviders,
         CodeCleanup_IterateOneCodeCleanup,
+        CodeCleanup_RunAllCodeCleanupProvidersSerially,
+        CodeCleanup_RunAllCodeCleanupProvidersInParallel,
+        CodeCleanup_RunAllCodeCleanupProvidersInParallel_IterationCount,
 
         CommandHandler_GetCommandState,
         CommandHandler_ExecuteHandlers,

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 {
@@ -143,32 +145,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return document;
         }
 
-        private async Task<Document> ApplyCodeFixesAsync(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
+        private async Task<Document> ApplyCodeFixesAsync(
+            Document originalDoc, DocumentOptionSet docOptions, CancellationToken cancellationToken)
         {
-            var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+            var fixAllService = originalDoc.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
-            var dummy = new ProgressTracker();
-            foreach (var diagnosticId in GetEnabledDiagnosticIds(docOptions))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            var tracker = new ProgressTracker();
+            var diagnosticIds = GetEnabledDiagnosticIds(docOptions).ToImmutableArray();
 
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var textSpan = new TextSpan(0, syntaxTree.Length);
-
-                var fixCollection = await _codeFixServiceOpt.GetFixesAsync(document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
-                if (fixCollection == null)
+            // Use the DocumentTextChangeMerger so it can run all the fixes for these diagnostic
+            // ids in parallel, and attemp to merge these changes all at once.
+            var updatedDoc = await DocumentTextChangeMerger.GetAndMergeChangesAsync(
+                originalDoc, diagnosticIds,
+                async (currentDoc, diagnosticId) =>
                 {
-                    continue;
-                }
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                var fixAll = fixCollection.FixAllState;
-                var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                    fixAll.CreateFixAllContext(dummy, cancellationToken)).ConfigureAwait(false);
+                    var syntaxTree = await currentDoc.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    var textSpan = new TextSpan(0, syntaxTree.Length);
 
-                document = solution.GetDocument(document.Id);
-            }
+                    var fixCollection = await _codeFixServiceOpt.GetFixesAsync(
+                        currentDoc, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
+                    if (fixCollection == null)
+                    {
+                        return null;
+                    }
 
-            return document;
+                    var fixAll = fixCollection.FixAllState;
+                    var solution = await fixAllService.GetFixAllChangedSolutionAsync(
+                        fixAll.CreateFixAllContext(tracker, cancellationToken)).ConfigureAwait(false);
+
+                    return solution.GetDocument(currentDoc.Id);
+                }, cancellationToken).ConfigureAwait(false);
+
+            return updatedDoc;
         }
 
         private IEnumerable<string> GetEnabledDiagnosticIds(DocumentOptionSet docOptions)
