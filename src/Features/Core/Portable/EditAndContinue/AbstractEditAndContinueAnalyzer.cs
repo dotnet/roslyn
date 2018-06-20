@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         lazyKnownMatches = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
                     }
 
-                    lazyKnownMatches.Add(KeyValuePair.Create(activeNode.OldNode, activeNode.NewTrackedNodeOpt));
+                    lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNodeOpt));
                 }
             }
         }
@@ -1421,7 +1421,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 for (int i = 0; i < oldStateMachineSuspensionPoints.Length; i++)
                 {
-                    lazyKnownMatches.Add(KeyValuePair.Create(oldStateMachineSuspensionPoints[i], newStateMachineSuspensionPoints[i]));
+                    lazyKnownMatches.Add(KeyValuePairUtil.Create(oldStateMachineSuspensionPoints[i], newStateMachineSuspensionPoints[i]));
                 }
             }
             else
@@ -1435,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (editKind == EditKind.Update)
                     {
-                        lazyKnownMatches.Add(KeyValuePair.Create(oldStateMachineSuspensionPoints[edit.OldIndex], newStateMachineSuspensionPoints[edit.NewIndex]));
+                        lazyKnownMatches.Add(KeyValuePairUtil.Create(oldStateMachineSuspensionPoints[edit.OldIndex], newStateMachineSuspensionPoints[edit.NewIndex]));
                     }
                     else
                     {

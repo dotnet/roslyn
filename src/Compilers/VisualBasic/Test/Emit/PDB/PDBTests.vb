@@ -189,7 +189,7 @@ End Class
 </compilation>
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
@@ -3980,7 +3980,7 @@ End Class
 </compilation>
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
@@ -4293,11 +4293,11 @@ End Class
 </compilation>
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(
                 OutputKind.WindowsApplication,
-                KeyValuePair.Create(Of String, Object)("_MyType", "WindowsForms"),
-                KeyValuePair.Create(Of String, Object)("Config", "Debug"),
-                KeyValuePair.Create(Of String, Object)("DEBUG", -1),
-                KeyValuePair.Create(Of String, Object)("TRACE", -1),
-                KeyValuePair.Create(Of String, Object)("PLATFORM", "AnyCPU"))
+                KeyValuePairUtil.Create(Of String, Object)("_MyType", "WindowsForms"),
+                KeyValuePairUtil.Create(Of String, Object)("Config", "Debug"),
+                KeyValuePairUtil.Create(Of String, Object)("DEBUG", -1),
+                KeyValuePairUtil.Create(Of String, Object)("TRACE", -1),
+                KeyValuePairUtil.Create(Of String, Object)("PLATFORM", "AnyCPU"))
 
             Dim parseOptions As VisualBasicParseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(

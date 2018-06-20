@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                                source.IndexOf(s_endSpanMark, start, length, StringComparison.Ordinal))
                 End If
 
-                Yield KeyValuePair.Create(position, span)
+                Yield KeyValuePairUtil.Create(position, span)
                 i = [end] + 1
             End While
         End Function
