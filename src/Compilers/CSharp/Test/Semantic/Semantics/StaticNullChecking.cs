@@ -32538,6 +32538,42 @@ public class C : A<C>
         }
 
         [Fact]
+        public void UnannotatedTypeArgument_Interface_Lookup()
+        {
+            var source0 =
+@"public interface I<T>
+{
+    void F(T t);
+}
+public interface I1 : I<object>
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"interface I2 : I<object>
+{
+}
+class Program
+{
+    static void F(I1 i1, I2 i2, object x, object? y)
+    {
+        i1.F(x);
+        i1.F(y);
+        i2.F(x);
+        i2.F(y); // warn
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,14): warning CS8604: Possible null reference argument for parameter 't' in 'void I<object>.F(object t)'.
+                //         i2.F(y); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("t", "void I<object>.F(object t)").WithLocation(11, 14));
+        }
+
+        [Fact]
         public void UnannotatedTypeArgument_BaseType_Lookup()
         {
             var source0 =
