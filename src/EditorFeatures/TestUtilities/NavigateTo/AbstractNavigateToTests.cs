@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             using (var workspace = SetupWorkspace(content))
             {
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
-                                                     .WithChangedOption(RemoteFeatureOptions.ExperimentalOutOfProcessAllowed, outOfProcess)
                                                      .WithChangedOption(RemoteFeatureOptions.NavigateToEnabled, outOfProcess);
 
                 await body(workspace);

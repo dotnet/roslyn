@@ -10,33 +10,10 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private const string LocalRegistryPath = @"Roslyn\Features\Remote\";
 
-        /// <summary>
-        /// Global switch that determines of OOP can be used for a language feature. Exposed through
-        /// user visible switch to let people opt-in/out of this behavior.
-        /// </summary>
-        public static readonly Option<bool> ExperimentalOutOfProcessAllowed = new Option<bool>(
-            nameof(RemoteFeatureOptions), nameof(OutOfProcessAllowed), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
-
-        /// <summary>
-        /// This field contains the original name of the experimental OOP feature, which is used as the key for saving
-        /// the setting.
-        /// </summary>
-        private static readonly Option<bool> OutOfProcessAllowed = ExperimentalOutOfProcessAllowed;
-
         // Individual feature switches.  Not exposed to the user.  Supplied as an escape hatch for
         // features if necessary.  If all features use OOP then no indices will need to be built
         // within VS.  However, if any features need to run in VS, then we have to build our indices
         // in VS as well.
-
-        #region Experimental out-of-process features
-
-        internal static ImmutableArray<Option<bool>> ExperimentalFeatureOptions { get; } =
-            ImmutableArray<Option<bool>>.Empty;
-
-        #endregion
-
-        #region Stable out-of-process features
 
         public static readonly Option<bool> AddImportEnabled = new Option<bool>(
             nameof(RemoteFeatureOptions), nameof(AddImportEnabled), defaultValue: true,
@@ -62,11 +39,8 @@ namespace Microsoft.CodeAnalysis.Remote
             nameof(RemoteFeatureOptions), nameof(DiagnosticsEnabled), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(DiagnosticsEnabled)));
 
-        #endregion
-
         private static ImmutableArray<Option<bool>> AllFeatureOptions { get; } =
-            ImmutableArray.Create(AddImportEnabled, DocumentHighlightingEnabled, NavigateToEnabled, SymbolSearchEnabled, SymbolFinderEnabled)
-                .AddRange(ExperimentalFeatureOptions);
+            ImmutableArray.Create(AddImportEnabled, DocumentHighlightingEnabled, NavigateToEnabled, SymbolSearchEnabled, SymbolFinderEnabled);
 
         public static bool AnyFeatureRunsInProcess(Workspace workspace)
             => AllFeatureOptions.Any(o => !workspace.IsOutOfProcessEnabled(o));

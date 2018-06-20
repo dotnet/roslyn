@@ -46,7 +46,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             Using workspace = TestWorkspace.Create(element)
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
-                                                      WithChangedOption(RemoteFeatureOptions.ExperimentalOutOfProcessAllowed, outOfProcess).
                                                       WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
 
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
@@ -171,7 +170,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                        outOfProcess As Boolean) As Task
             Using workspace = TestWorkspace.Create(definition)
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
-                                                      WithChangedOption(RemoteFeatureOptions.ExperimentalOutOfProcessAllowed, outOfProcess).
                                                       WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
 
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)

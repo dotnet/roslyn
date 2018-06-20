@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
-                                                      WithChangedOption(RemoteFeatureOptions.ExperimentalOutOfProcessAllowed, outOfProcess).
                                                       WithChangedOption(RemoteFeatureOptions.DocumentHighlightingEnabled, outOfProcess)
 
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
