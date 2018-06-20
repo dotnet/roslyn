@@ -26,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             this.SourceProjectId = sourceProject.Id;
             this.Workspace = sourceProject.Solution.Workspace;
-            if (allowDecompilation && sourceProject.Language != LanguageNames.CSharp)
-            {
-                _parseOptions = Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
-            }
-            else
+            this.LanguageName = allowDecompilation ? LanguageNames.CSharp : sourceProject.Language;
+            if (sourceProject.Language == LanguageName)
             {
                 _parseOptions = sourceProject.ParseOptions;
             }
+            else
+            {
+                _parseOptions = Workspace.Services.GetLanguageServices(LanguageName).GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
+            }
 
-            this.LanguageName = allowDecompilation ? LanguageNames.CSharp : sourceProject.Language;
             this.References = sourceProject.MetadataReferences.ToImmutableArray();
             this.AssemblyIdentity = topLevelNamedType.ContainingAssembly.Identity;
 
