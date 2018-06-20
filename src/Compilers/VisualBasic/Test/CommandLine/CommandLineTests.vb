@@ -72,14 +72,11 @@ End Class")
             Assert.Equal("", outWriter.ToString())
 
             Dim xmlPath = Path.Combine(dir.Path, docName)
-            Using New EnsureInvariantCulture()
-                Using fileStream = New FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                    Using mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen:=True)
-                        exitCode = cmd.Run(outWriter)
-                        Assert.Equal(1, exitCode)
-                        Assert.Equal($"vbc : error BC2012: can't open '{xmlPath}' for writing: The requested operation cannot be performed on a file with a user-mapped section open.",
-                outWriter.ToString().Replace(Environment.NewLine, ""))
-                    End Using
+            Using fileStream = New FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
+                Using mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen:=True)
+                    exitCode = cmd.Run(outWriter)
+                    Assert.Equal(1, exitCode)
+                    Assert.Equal($"vbc : error BC2012: can't open '{xmlPath}' for writing:", outWriter.ToString())
                 End Using
             End Using
         End Sub
