@@ -69,6 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private IVsOutputWindowPane CreateOutputPane(IVsOutputWindow outputWindow)
         {
+            AssertIsForeground();
+
             // Try to get the workspace pane if it has already been registered
             var workspacePaneGuid = s_workspacePaneGuid;
 
@@ -82,8 +84,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             return null;
         }
 
-        private static Guid GetActivePane(IVsOutputWindow outputWindow)
+        private Guid GetActivePane(IVsOutputWindow outputWindow)
         {
+            AssertIsForeground();
+
             if (outputWindow is IVsOutputWindow2 outputWindow2)
             {
                 if (ErrorHandler.Succeeded(outputWindow2.GetActivePaneGUID(out var activePaneGuid)))
@@ -95,8 +99,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             return Guid.Empty;
         }
 
-        public static void ActivatePane(IVsOutputWindow outputWindow, Guid paneGuid)
+        public void ActivatePane(IVsOutputWindow outputWindow, Guid paneGuid)
         {
+            AssertIsForeground();
+
             if (ErrorHandler.Succeeded(outputWindow.GetPane(ref paneGuid, out var pane)))
             {
                 pane.Activate();
