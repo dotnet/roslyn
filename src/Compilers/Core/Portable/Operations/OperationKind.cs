@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
@@ -112,6 +114,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IMemberInitializerOperation"/>.</summary>
         MemberInitializer = 0x33,
         /// <summary>Indicates an <see cref="ICollectionElementInitializerOperation"/>.</summary>
+        [Obsolete("ICollectionElementInitializerOperation has been replaced with " + nameof(IInvocationOperation) + " and " + nameof(IDynamicInvocationOperation), error: true)]
         CollectionElementInitializer = 0x34,
         /// <summary>Indicates an <see cref="INameOfOperation"/>.</summary>
         NameOf = 0x35,
@@ -189,6 +192,19 @@ namespace Microsoft.CodeAnalysis
         ConstructorBodyOperation = 0x59,
         /// <summary>Indicates an <see cref="IDiscardOperation"/>.</summary>
         Discard = 0x5A,
+
+        /// <summary>Indicates an <see cref="IFlowCaptureOperation"/>.</summary>
+        FlowCapture = 0x5B,
+        /// <summary>Indicates an <see cref="IFlowCaptureReferenceOperation"/>.</summary>
+        FlowCaptureReference = 0x5C,
+        /// <summary>Indicates an <see cref="IIsNullOperation"/>.</summary>
+        IsNull = 0x5D,
+        /// <summary>Indicates an <see cref="ICaughtExceptionOperation"/>.</summary>
+        CaughtException = 0x5E,
+        /// <summary>Indicates an <see cref="IStaticLocalInitializationSemaphoreOperation"/>.</summary>
+        StaticLocalInitializationSemaphore = 0x5F,
+        /// <summary>Indicates an <see cref="IFlowAnonymousFunctionOperation"/>.</summary>
+        FlowAnonymousFunction = 0x60,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

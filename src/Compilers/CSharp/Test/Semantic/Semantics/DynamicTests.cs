@@ -2399,18 +2399,27 @@ IInvalidOperation (OperationKind.Invalid, Type: dynamic, IsInvalid) (Syntax: 'ne
         Initializers(2):
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'a = 1')
               Left: 
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'a')
+                IDynamicMemberReferenceOperation (Member Name: ""a"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'a')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'a')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic, IsInvalid) (Syntax: 'b = ... }')
               InitializedMember: 
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'b')
+                IDynamicMemberReferenceOperation (Member Name: ""b"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'b')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'b')
               Initializer: 
                 IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic, IsInvalid) (Syntax: '{ ... }')
                   Initializers(1):
                       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic, IsInvalid) (Syntax: 'c = f()')
                         Left: 
-                          IOperation:  (OperationKind.None, Type: null) (Syntax: 'c')
+                          IDynamicMemberReferenceOperation (Member Name: ""c"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'c')
+                            Type Arguments(0)
+                            Instance Receiver: 
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'c')
                         Right: 
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'f()')
                             Children(1):
@@ -2566,11 +2575,13 @@ class C : List<int>
 		var z = new C()         //-typeExpression: C
 		{
 			{ d },              //-fieldAccess: dynamic
+                                //-implicitReceiver: C
                                 //-dynamicCollectionElementInitializer: dynamic
 
 			{ d, d, d },        //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
+                                //-implicitReceiver: C
                                 //-dynamicCollectionElementInitializer: dynamic
 
 		};                      //-collectionInitializerExpression: C

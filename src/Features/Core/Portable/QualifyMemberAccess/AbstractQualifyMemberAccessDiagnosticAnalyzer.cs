@@ -124,12 +124,15 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             var isQualificationPresent = IsAlreadyQualifiedMemberAccess(simpleName);
             if (shouldOptionBePresent && !isQualificationPresent)
             {
-                var severity = optionValue.Notification.Value;
-                if (severity != DiagnosticSeverity.Hidden)
+                var severity = optionValue.Notification.Severity;
+                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        GetDescriptorWithSeverity(severity),
-                        GetLocation(operation)));
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        Descriptor, 
+                        GetLocation(operation),
+                        severity,
+                        additionalLocations: null,
+                        properties: null));
                 }
             }
         }

@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     continue;
                 }
 
-                var clonedOperation = model.CloneOperation(operation);
+                var clonedOperation = OperationCloner.CloneOperation(operation);
 
                 // check whether cloned IOperation is same as original one
                 var original = OperationTreeVerifier.GetOperationTree(model.Compilation, operation);

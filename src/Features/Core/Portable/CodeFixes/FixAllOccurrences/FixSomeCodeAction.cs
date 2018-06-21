@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
         internal readonly FixAllState FixAllState;
-        private readonly bool _showPreviewChangesDialog;
+        private bool _showPreviewChangesDialog;
 
         internal FixSomeCodeAction(
             FixAllState fixAllState, bool showPreviewChangesDialog)
@@ -83,6 +83,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return names;
+        }
+
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly FixSomeCodeAction _fixSomeCodeAction;
+
+            internal TestAccessor(FixSomeCodeAction fixSomeCodeAction)
+            {
+                _fixSomeCodeAction = fixSomeCodeAction;
+            }
+
+            /// <summary>
+            /// Gets a reference to <see cref="_showPreviewChangesDialog"/>, which can be read or written by test code.
+            /// </summary>
+            public ref bool ShowPreviewChangesDialog
+                => ref _fixSomeCodeAction._showPreviewChangesDialog;
         }
     }
 }
