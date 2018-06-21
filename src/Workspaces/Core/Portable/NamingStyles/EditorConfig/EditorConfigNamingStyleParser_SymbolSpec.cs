@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -59,9 +58,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ParseSymbolKindList(result as string ?? string.Empty);
             }
 
-            return ImmutableArray<SymbolKindOrTypeKind>.Empty;
+            return _all;
         }
 
+        private static readonly SymbolKindOrTypeKind _namespace = new SymbolKindOrTypeKind(SymbolKind.Namespace);
         private static readonly SymbolKindOrTypeKind _class = new SymbolKindOrTypeKind(TypeKind.Class);
         private static readonly SymbolKindOrTypeKind _struct = new SymbolKindOrTypeKind(TypeKind.Struct);
         private static readonly SymbolKindOrTypeKind _interface = new SymbolKindOrTypeKind(TypeKind.Interface);
@@ -73,9 +73,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly SymbolKindOrTypeKind _event = new SymbolKindOrTypeKind(SymbolKind.Event);
         private static readonly SymbolKindOrTypeKind _delegate = new SymbolKindOrTypeKind(TypeKind.Delegate);
         private static readonly SymbolKindOrTypeKind _parameter = new SymbolKindOrTypeKind(SymbolKind.Parameter);
+        private static readonly SymbolKindOrTypeKind _typeParameter = new SymbolKindOrTypeKind(SymbolKind.TypeParameter);
         private static readonly SymbolKindOrTypeKind _local = new SymbolKindOrTypeKind(SymbolKind.Local);
         private static readonly ImmutableArray<SymbolKindOrTypeKind> _all =
             ImmutableArray.Create(
+                _namespace,
                 _class,
                 _struct,
                 _interface,
@@ -87,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 _event,
                 _delegate,
                 _parameter,
+                _typeParameter,
                 _local);
 
         private static ImmutableArray<SymbolKindOrTypeKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
@@ -139,6 +142,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     case "parameter":
                         builder.Add(_parameter);
                         break;
+                    case "type_parameter":
+                        builder.Add(_typeParameter);
+                        break;
+                    case "namespace":
+                        builder.Add(_namespace);
+                        break;
                     case "local":
                         builder.Add(_local);
                         break;
@@ -159,10 +168,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ParseAccessibilityKindList(result as string ?? string.Empty);
             }
 
-            return ImmutableArray<Accessibility>.Empty;
+            return _allAccessibility;
         }
 
-        private static readonly ImmutableArray<Accessibility> _allAccessibility = ImmutableArray.Create(Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal);
+        private static readonly ImmutableArray<Accessibility> _allAccessibility = ImmutableArray.Create(Accessibility.NotApplicable, Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedAndInternal, Accessibility.ProtectedOrInternal);
 
         private static ImmutableArray<Accessibility> ParseAccessibilityKindList(string symbolSpecApplicableAccessibilities)
         {
@@ -197,6 +206,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     case "protected_internal":
                     case "protected_friend":
                         builder.Add(Accessibility.ProtectedOrInternal);
+                        break;
+                    case "private_protected":
+                        builder.Add(Accessibility.ProtectedAndInternal);
+                        break;
+                    case "local":
+                        builder.Add(Accessibility.NotApplicable);
                         break;
                     default:
                         break;

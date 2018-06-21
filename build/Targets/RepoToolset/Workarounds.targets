@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+
+  <PropertyGroup>
+    <IsWpfTempProject>false</IsWpfTempProject>
+    <IsWpfTempProject Condition="'$(MSBuildProjectExtension)' == '.tmp_proj' or $(MSBuildProjectName.EndsWith('_wpftmp'))">true</IsWpfTempProject>
+  </PropertyGroup>
+
+  <!--
+    Workaround for WPF temp projects.
+
+    XAML targets create a temp project with OutDir set, which makes the SDK create an empty directory for it,
+    polluting the output dir. Avoid creating these directories.
+    https://github.com/dotnet/sdk/issues/1367
+
+    WPF temp-projects do not import .props and .targets files from NuGet packages.
+    (see https://github.com/dotnet/sourcelink/issues/91)
+  -->
+  <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
+    <OutDir/>
+    <DeterministicSourcePaths>false</DeterministicSourcePaths>
+  </PropertyGroup>
+</Project>

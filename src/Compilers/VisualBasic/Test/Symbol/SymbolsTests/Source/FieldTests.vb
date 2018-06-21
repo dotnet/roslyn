@@ -451,7 +451,7 @@ End Class]]>,
         ''' </summary>
         <WorkItem(546185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546185")>
         <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly))>
         Public Sub RTSpecialName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

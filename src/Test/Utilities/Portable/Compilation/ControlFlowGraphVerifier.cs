@@ -31,27 +31,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             switch (operationRoot)
             {
                 case IBlockOperation blockOperation:
-                    graph = SemanticModel.GetControlFlowGraph(blockOperation);
+                    graph = ControlFlowGraph.Create(blockOperation);
                     break;
 
                 case IMethodBodyOperation methodBodyOperation:
-                    graph = SemanticModel.GetControlFlowGraph(methodBodyOperation);
+                    graph = ControlFlowGraph.Create(methodBodyOperation);
                     break;
 
                 case IConstructorBodyOperation constructorBodyOperation:
-                    graph = SemanticModel.GetControlFlowGraph(constructorBodyOperation);
+                    graph = ControlFlowGraph.Create(constructorBodyOperation);
                     break;
 
                 case IFieldInitializerOperation fieldInitializerOperation:
-                    graph = SemanticModel.GetControlFlowGraph(fieldInitializerOperation);
+                    graph = ControlFlowGraph.Create(fieldInitializerOperation);
                     break;
 
                 case IPropertyInitializerOperation propertyInitializerOperation:
-                    graph = SemanticModel.GetControlFlowGraph(propertyInitializerOperation);
+                    graph = ControlFlowGraph.Create(propertyInitializerOperation);
                     break;
 
                 case IParameterInitializerOperation parameterInitializerOperation:
-                    graph = SemanticModel.GetControlFlowGraph(parameterInitializerOperation);
+                    graph = ControlFlowGraph.Create(parameterInitializerOperation);
                     break;
 
                 default:
