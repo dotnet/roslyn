@@ -177,18 +177,17 @@ class Program
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
                 Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
-                ' Keep the same item selected when the colon is deleted, but now both items are
-                ' available again.
+                ' Now both items are available again, and we're selecting the initial overload again.
                 state.SendBackspace()
                 Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int third)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function
 
         <WorkItem(545488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545488")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestKeepSelectedItemWhenNoneAreViable() As Task
+        Public Async Function TestForgetSelectedItemWhenNoneAreViable() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
@@ -207,6 +206,8 @@ class Program
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal({"void Program.F(int i)", "void Program.F(string s)"},
+                             state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Select(Function(i) i.ToString()))
 
                 ' We now have a definite symbol (the string overload)
                 state.SendTypeChars("""""")
@@ -214,17 +215,17 @@ class Program
                 Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
-                ' We don't have a definite symbol again, but we stick to our last choice
+                ' We don't have a definite symbol again, so we pick the first by default 
                 state.SendTypeChars(",")
                 Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function
 
         <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestKeepSelectedItemAfterComma() As Task
+        Public Async Function TestKeepUserSelectedItem() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 class C
@@ -248,8 +249,155 @@ class C
                 state.SendUpKey()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
 
-                state.SendTypeChars("1, ")
+                state.SendTypeChars("1")
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+
+                state.SendTypeChars(",")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+
+                state.SendTypeChars("2,")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+            End Using
+        End Function
+
+        <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestKeepUserSelectedItem2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        M$$
+    }
+
+    void M(int i) {  }
+    void M(int i, int j) { }
+    void M(int i, string x) { }
+    void M(int i, int j, int k) { }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void C.M()")
+                Assert.Equal(5, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+
+                state.SendTypeChars("1, ")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
+
+                state.SendDownKey()
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+
+                state.SendTypeChars("1")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+            End Using
+        End Function
+
+        <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestKeepUserSelectedItem3() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        M$$
+    }
+
+    void M(int i) {  }
+    void M(int i, int j) { }
+    void M(int i, string x) { }
+    void M(int i, int j, int k) { }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void C.M()")
+                Assert.Equal(5, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+
+                state.SendTypeChars("1, """" ")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+
+                state.SendUpKey()
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
+
+                state.SendTypeChars(",")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+
+                state.SendBackspace()
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+            End Using
+        End Function
+
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestPathIndependent() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        M$$
+    }
+
+    void M(int i) {  }
+    void M(int i, int j) { }
+    void M(int i, string x) { }
+    void M(int i, int j, int k) { }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void C.M()")
+                Assert.Equal(5, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal({"void C.M()", "void C.M(int i)", "void C.M(int i, int j)", "void C.M(int i, string x)", "void C.M(int i, int j, int k)"},
+                             state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Select(Function(i) i.ToString()))
+
+                state.SendTypeChars("1")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i)")
+
+                state.SendTypeChars(",")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
+
+                state.SendTypeChars(" ""a"" ")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+            End Using
+        End Function
+
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestPathIndependent2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        M$$
+    }
+
+    void M(int i) {  }
+    void M(int i, int j) { }
+    void M(int i, string x) { }
+    void M(int i, int j, int k) { }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void C.M()")
+                Assert.Equal(5, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal({"void C.M()", "void C.M(int i)", "void C.M(int i, int j)", "void C.M(int i, string x)", "void C.M(int i, int j, int k)"},
+                             state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Select(Function(i) i.ToString()))
+
+                state.SendTypeChars("1, ""a"" ")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
             End Using
         End Function
 
