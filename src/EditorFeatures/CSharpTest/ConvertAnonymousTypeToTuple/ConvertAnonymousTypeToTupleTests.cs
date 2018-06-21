@@ -47,6 +47,34 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task NotOnEmptyAnonymousType()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { };
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task NotOnSingleFieldAnonymousType()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1 };
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
         public async Task ConvertSingleAnonymousTypeWithInferredName()
         {
             var text = @"
@@ -158,6 +186,74 @@ class Test
         var t2 = (a: 3, b);
         var t3 = new { a = 4 };
         var t4 = new { b = 5, a = 6 };
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task TestFixAllInSingleMethod()
+        {
+            var text = @"
+class Test
+{
+    void Method(int b)
+    {
+        var t1 = {|FixAllInDocument:|}new { a = 1, b = 2 };
+        var t2 = new { a = 3, b };
+        var t3 = new { a = 4 };
+        var t4 = new { b = 5, a = 6 };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method(int b)
+    {
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 3, b);
+        var t3 = new { a = 4 };
+        var t4 = (b: 5, a: 6);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task TestFixAllAcrossMehtods()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = {|FixAllInDocument:|}new { a = 1, b = 2 };
+        var t2 = new { a = 3, b = 4 };
+    }
+
+    void Method2()
+    {
+        var t1 = new { a = 1, b = 2 };
+        var t2 = new { a = 3, b = 4 };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 3, b: 4);
+    }
+
+    void Method2()
+    {
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 3, b: 4);
     }
 }
 ";

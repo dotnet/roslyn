@@ -6,9 +6,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 {
-    internal abstract class AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer<TSyntaxKind> 
+    internal abstract class AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer<
+        TSyntaxKind,
+        TAnonymousObjectCreationExpressionSyntax> 
         : AbstractCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
+        where TAnonymousObjectCreationExpressionSyntax : SyntaxNode
     {
         protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId,
@@ -18,6 +21,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         }
 
         protected abstract TSyntaxKind GetAnonymousObjectCreationExpressionSyntaxKind();
+        protected abstract int GetInitializerCount(TAnonymousObjectCreationExpressionSyntax anonymousType);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -30,11 +34,20 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                 AnalyzeSyntax,
                 GetAnonymousObjectCreationExpressionSyntaxKind());
 
-        // Analysis is trivial.  All anonymous types are marked as being convertible to a tuple.
+        // Analysis is trivial.  All anonymous types with more than two fields are marked as being
+        // convertible to a tuple.
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-            => context.ReportDiagnostic(
+        {
+            var anonymousType = (TAnonymousObjectCreationExpressionSyntax)context.Node;
+            if (GetInitializerCount(anonymousType) < 2)
+            {
+                return;
+            }
+
+            context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor, context.Node.GetFirstToken().GetLocation(), ReportDiagnostic.Hidden,
                     additionalLocations: null, properties: null));
+        }
     }
 }
