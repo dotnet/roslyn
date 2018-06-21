@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static bool TryGetRuleSeverity(
             string namingRuleName,
             IReadOnlyDictionary<string, object> conventionsDictionary,
-            out DiagnosticSeverity severity)
+            out ReportDiagnostic severity)
         {
             if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.severity", out object result))
             {
@@ -45,18 +45,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return false;
         }
 
-        private static DiagnosticSeverity ParseEnforcementLevel(string ruleSeverity)
+        private static ReportDiagnostic ParseEnforcementLevel(string ruleSeverity)
         {
             switch (ruleSeverity)
             {
                 case EditorConfigSeverityStrings.None:
-                case EditorConfigSeverityStrings.Silent:
-                    return DiagnosticSeverity.Hidden;
+                    return ReportDiagnostic.Suppress;
 
-                case EditorConfigSeverityStrings.Suggestion: return DiagnosticSeverity.Info;
-                case EditorConfigSeverityStrings.Warning: return DiagnosticSeverity.Warning;
-                case EditorConfigSeverityStrings.Error: return DiagnosticSeverity.Error;
-                default: return DiagnosticSeverity.Hidden;
+                case EditorConfigSeverityStrings.Silent:
+                    return ReportDiagnostic.Hidden;
+
+                case EditorConfigSeverityStrings.Suggestion: return ReportDiagnostic.Info;
+                case EditorConfigSeverityStrings.Warning: return ReportDiagnostic.Warn;
+                case EditorConfigSeverityStrings.Error: return ReportDiagnostic.Error;
+                default: return ReportDiagnostic.Hidden;
             }
         }
     }

@@ -374,7 +374,7 @@ class C
         S = s;
     }
 }", parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithNoneEnforcement)));
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -460,6 +460,154 @@ class C
     }
 }", parameters: new TestParameters(options:
     Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement)));
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestUpdateLocalFunctionExpressionBody_NonVoid()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        int F([||]string s) => Init();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        int F(string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return Init();
+        }
+    }
+}");
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestUpdateLocalFunctionExpressionBody_Void()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        void F([||]string s) => Init();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        void F(string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            Init();
+        }
+    }
+}");
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestUpdateLambdaExpressionBody_NonVoid()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Func<string, int> f = [||]s => GetValue();
+
+        int GetValue() => 0;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Func<string, int> f = s =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return GetValue();
+        };
+
+        int GetValue() => 0;
+    }
+}");
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestUpdateLambdaExpressionBody_Void()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Action<string> f = [||]s => NoValue();
+
+        void NoValue() { }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Action<string> f = s =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            NoValue();
+        };
+
+        void NoValue() { }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -623,6 +771,65 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingWithExistingNullCheck6()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException();
+        }
+    }
+}");
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingWithExistingNullCheckInLocalFunction()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        void F([||]string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException();
+            }
+        }
+    }
+}");
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingWithExistingNullCheckInLambda()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Action<string> f = ([||]string s) => { if (s == null) { throw new ArgumentNullException(nameof(s)); } }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithoutParameterName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -693,10 +900,11 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnLambdaParameter()
+        public async Task TestOnSimpleLambdaParameter()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -704,24 +912,179 @@ class C
 {
     public C()
     {
-        Func<string, int> f = ([||]string s) => { return 0; }
+        Func<string, int> f = [||]s => { return 0; };
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = s =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return 0;
+        };
+    }
+}");
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnSimpleLambdaParameter_EmptyBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Action<string> f = [||]s => { };
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Action<string> f = s =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+        };
+    }
+}");
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnParenthesizedLambdaParameter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = ([||]string s) => { return 0; };
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = (string s) =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return 0;
+        };
+    }
+}");
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnAnonymousMethodParameter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = delegate ([||]string s) { return 0; };
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = delegate (string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return 0;
+        };
+    }
+}");
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnLocalFunctionParameter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        void F([||]string s)
+        {
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        void F(string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+        }
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnLocalFunctionParameter()
+        public async Task TestNotOnIndexerParameter()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
-using System;
-
 class C
 {
-    public C()
+    int this[[||]string s]
     {
-        void Goo([||]string s)
+        get
         {
+            return 0;
         }
     }
 }");
@@ -860,7 +1223,7 @@ class C
     }
 }",
     parameters: new TestParameters(options:
-        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithNoneEnforcement)));
+        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]

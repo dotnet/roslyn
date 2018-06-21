@@ -122,12 +122,12 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             // To make this user experience more pleasant, we will place the diagnostic on
             // both *'s.
             AddDiagnostics(
-                context, binaryLike, precedence, preference.Notification.Value,
+                context, binaryLike, precedence, preference.Notification.Severity,
                 additionalLocations, equivalenceKey, includeInFixAll: true);
         }
         private void AddDiagnostics(
             SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt, int precedence,
-            DiagnosticSeverity severity, ImmutableArray<Location> additionalLocations, 
+            ReportDiagnostic severity, ImmutableArray<Location> additionalLocations, 
             string equivalenceKey, bool includeInFixAll)
         {
             if (binaryLikeOpt != null &&
@@ -138,9 +138,10 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
                 var properties = GetProperties(includeInFixAll, equivalenceKey);
 
-                context.ReportDiagnostic(Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity),
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor,
                     operatorToken.GetLocation(),
+                    severity,
                     additionalLocations,
                     properties));
 

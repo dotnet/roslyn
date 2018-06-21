@@ -603,7 +603,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _solutionLoadComplete = true;
 
             // Check that the set of analyzers is complete and consistent.
-            GetAnalyzerDependencyCheckingService()?.CheckForConflictsAsync();
+            GetAnalyzerDependencyCheckingService()?.ReanalyzeSolutionForConflicts();
         }
 
         private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
@@ -644,6 +644,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // remaining information we have to the Workspace.  If DPL is enabled, this is never
             // called.
             FinishLoad();
+        }
+
+        internal void OnBeforeOpenSolution()
+        {
+            AssertIsForeground();
+
+            _solutionLoadComplete = false;
         }
     }
 }

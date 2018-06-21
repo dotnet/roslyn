@@ -1190,6 +1190,15 @@ This version used in: {2}</value>
   <data name="Add_parameter_to_0" xml:space="preserve">
     <value>Add parameter to '{0}'</value>
   </data>
+  <data name="Add_parameter_to_0_and_overrides_implementations" xml:space="preserve">
+    <value>Add parameter to '{0}' (and overrides/implementations)</value>
+  </data>
+  <data name="Add_to_0" xml:space="preserve">
+    <value>Add to '{0}'</value>
+  </data>
+  <data name="Related_method_signatures_found_in_metadata_will_not_be_updated" xml:space="preserve">
+    <value>Related method signatures found in metadata will not be updated.</value>
+  </data>
   <data name="Generate_constructor" xml:space="preserve">
     <value>Generate constructor...</value>
   </data>

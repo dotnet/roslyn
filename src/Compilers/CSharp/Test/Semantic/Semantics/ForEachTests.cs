@@ -1898,7 +1898,7 @@ public class Test
                 // (6,18): error CS0103: The name 'i' does not exist in the current context
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 18),
-                // (6,18): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,18): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i < 5").WithLocation(6, 18),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context
@@ -3195,6 +3195,138 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
         { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
                 );
+        }
+
+        [Fact]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
+        public void ForEachIteratorWithCurrentRefKind_Async_Ref()
+        {
+            CreateCompilation(@"
+using System.Threading.Tasks;
+
+class E
+{
+    public class Enumerator
+    {
+        public ref int Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class C
+{
+    public async static Task Test()
+    {
+        await Task.CompletedTask;
+
+        foreach (ref int x in new E())
+        {
+            System.Console.Write(x);
+        }
+    }
+}").VerifyDiagnostics(
+                // (20,26): error CS8177: Async methods cannot have by-reference locals
+                //         foreach (ref int x in new E())
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(20, 26));
+        }
+
+        [Fact]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
+        public void ForEachIteratorWithCurrentRefKind_Async_RefReadonly()
+        {
+            CreateCompilation(@"
+using System.Threading.Tasks;
+
+class E
+{
+    public class Enumerator
+    {
+        public ref readonly int Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class C
+{
+    public async static Task Test()
+    {
+        await Task.CompletedTask;
+
+        foreach (ref readonly int x in new E())
+        {
+            System.Console.Write(x);
+        }
+    }
+}").VerifyDiagnostics(
+                // (20,35): error CS8177: Async methods cannot have by-reference locals
+                //         foreach (ref readonly int x in new E())
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(20, 35));
+        }
+
+        [Fact]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
+        public void ForEachIteratorWithCurrentRefKind_Iterator_Ref()
+        {
+            CreateCompilation(@"
+using System.Collections.Generic;
+
+class E
+{
+    public class Enumerator
+    {
+        public ref int Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class C
+{
+    public static IEnumerable<int> Test()
+    {
+        foreach (ref int x in new E())
+        {
+            yield return x;
+        }
+    }
+}").VerifyDiagnostics(
+                // (18,26): error CS8176: Iterators cannot have by-reference locals
+                //         foreach (ref int x in new E())
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 26));
+        }
+
+        [Fact]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
+        public void ForEachIteratorWithCurrentRefKind_Iterator_RefReadonly()
+        {
+            CreateCompilation(@"
+using System.Collections.Generic;
+
+class E
+{
+    public class Enumerator
+    {
+        public ref readonly int Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class C
+{
+    public static IEnumerable<int> Test()
+    {
+        foreach (ref readonly int x in new E())
+        {
+            yield return x;
+        }
+    }
+}").VerifyDiagnostics(
+                // (18,35): error CS8176: Iterators cannot have by-reference locals
+                //         foreach (ref readonly int x in new E())
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
         }
     }
 }
