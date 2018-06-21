@@ -1422,11 +1422,18 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundSyncLockStatementOperation(boundSyncLockStatement As BoundSyncLockStatement) As ILockOperation
             Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundSyncLockStatement.LockExpression))
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundSyncLockStatement.Body))
+            Dim legacyMode = _semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2) Is Nothing
+            Dim lockTakenSymbol As ILocalSymbol =
+                If(legacyMode, Nothing,
+                               New SynthesizedLocal(DirectCast(_semanticModel.GetEnclosingSymbol(boundSyncLockStatement.Syntax.SpanStart), Symbol),
+                                                    DirectCast(_semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), TypeSymbol),
+                                                    SynthesizedLocalKind.LockTaken,
+                                                    syntaxOpt:=boundSyncLockStatement.LockExpression.Syntax))
             Dim syntax As SyntaxNode = boundSyncLockStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundSyncLockStatement.WasCompilerGenerated
-            Return New LazyLockStatement(expression, body, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyLockStatement(expression, body, lockTakenSymbol, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundNoOpStatementOperation(boundNoOpStatement As BoundNoOpStatement) As IEmptyOperation

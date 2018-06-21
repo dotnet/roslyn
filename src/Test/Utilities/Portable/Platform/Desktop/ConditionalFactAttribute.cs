@@ -59,30 +59,6 @@ namespace Roslyn.Test.Utilities
 
         public override string SkipReason { get { return "Test currently not supported on Framework 4.5"; } }
     }
-
-    public class OSVersionWin8 : ExecutionCondition
-    {
-        public override bool ShouldSkip
-        {
-            get
-            {
-                return !OSVersion.IsWin8;
-            }
-        }
-
-        public override string SkipReason
-        {
-            get
-            {
-                return "Window Version is not Win8 (build:9200)";
-            }
-        }
-    }
-
-    public sealed class OSVersion
-    {
-        public static readonly bool IsWin8 = System.Environment.OSVersion.Version.Build >= 9200;
-    }
 }
 
 #endif
