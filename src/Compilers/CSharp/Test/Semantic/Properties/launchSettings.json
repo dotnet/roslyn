@@ -1,9 +1,8 @@
 {
   "profiles": {
     "xUnit.net Console": {
-      "commandName": "Executable",
-      "executablePath": "C:\\Program Files\\dotnet\\dotnet.exe",
-      "commandLineArgs": "exec --depsfile E:\\code\\roslyn\\Binaries\\Debug\\UnitTests\\CSharpCompilerSemanticTest\\netcoreapp2.0\\Roslyn.Compilers.CSharp.Semantic.UnitTests.deps.json --runtimeconfig E:\\code\\roslyn\\Binaries\\Debug\\UnitTests\\CSharpCompilerSemanticTest\\netcoreapp2.0\\Roslyn.Compilers.CSharp.Semantic.UnitTests.runtimeconfig.json e:\\nuget\\xunit.runner.console\\2.3.1\\tools\\netcoreapp2.0\\xunit.console.dll E:\\code\\roslyn\\Binaries\\Debug\\UnitTests\\CSharpCompilerSemanticTest\\netcoreapp2.0\\Roslyn.Compilers.CSharp.Semantic.UnitTests.dll -method Microsoft.CodeAnalysis.CSharp.UnitTests.OutVarTests.Query_01"
+      "executablePath": "$(XUnitPath)",
+      "commandLineArgs": "$(XUnitArguments)"
     },
     "xUnit.net WPF Runner": {
       "executablePath": "$(XUnitWpfPath)",
