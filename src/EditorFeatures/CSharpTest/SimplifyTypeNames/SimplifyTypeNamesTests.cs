@@ -1191,7 +1191,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf4()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -1199,6 +1199,20 @@ class Program
     static void Main(string[] args)
     {
         var x = nameof(typeof([|Int32|]));
+    }
+
+    static string nameof(Type t)
+    {
+        return string.Empty;
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = nameof(typeof(int));
     }
 
     static string nameof(Type t)
