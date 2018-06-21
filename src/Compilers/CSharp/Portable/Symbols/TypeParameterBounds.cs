@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
+        // PROTOTYPE(NullableReferenceTypes): Add static Create methods and have Create
+        // return an EarlyEmpty singleton instance for the common case of no constraint types.
+
         /// <summary>
         /// Creates an "early" bound instance that has constraint types set
         /// but no other fields.

@@ -316,25 +316,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early);
             return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early: false);
             return (bounds != null) ? bounds.Interfaces : ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early: false);
             return (bounds != null) ? bounds.EffectiveBaseClass : this.GetDefaultBaseType();
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early: false);
             return (bounds != null) ? bounds.DeducedBaseType : this.GetDefaultBaseType();
         }
 
@@ -356,17 +356,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyCustomAttributes;
         }
 
-        private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)
+        private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
             // PROTOTYPE(NullableReferenceTypes): Re-enable asserts.
             //Debug.Assert(!inProgress.ContainsReference(this));
             //Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
             var currentBounds = _lazyBounds;
-            if (!currentBounds.IsSet(early: false))
+            if (currentBounds == TypeParameterBounds.Unset)
             {
                 var constraintTypes = GetDeclaredConstraintTypes();
                 Debug.Assert(!constraintTypes.IsDefault);
+                var bounds = new TypeParameterBounds(constraintTypes);
+                Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds);
+                currentBounds = _lazyBounds;
+            }
+
+            if (!currentBounds.IsSet(early))
+            {
+                var constraintTypes = currentBounds.ConstraintTypes;
+                if (!ContainingModule.UtilizesNullableReferenceTypes)
+                {
+                    constraintTypes = constraintTypes.SelectAsArray(t => t.SetUnknownNullabilityForReferenceTypes());
+                }
 
                 var diagnostics = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
@@ -401,7 +413,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds);
             }
 
-            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyBounds;
         }
 

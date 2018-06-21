@@ -32650,5 +32650,36 @@ partial class B<T> where T : A? { }";
                 //         (z2 = x2).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2 = x2").WithLocation(12, 10));
         }
+
+        [Fact]
+        public void Constraint_Oblivious()
+        {
+            var source0 =
+@"public interface I<T>
+{
+}
+public class A<T> where T : I<T>
+{
+    public static void F(T t) { }
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class B1 : I<B1> { }
+class B2 : I<B2?> { }
+class C
+{
+    static void Main()
+    {
+        A<B1>.F(new B1());
+        A<B2>.F(new B2());
+        A<B1?>.F(null);
+        A<B2?>.F(null);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+        }
     }
 }
