@@ -20,6 +20,7 @@
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
     <dependencies>
       <dependency id="Microsoft.VisualStudio.LanguageServices" version="$version$" />
       <dependency id="Microsoft.VisualStudio.Setup.Configuration.Interop" version="$MicrosoftVisualStudioSetupConfigurationInteropVersion$" />

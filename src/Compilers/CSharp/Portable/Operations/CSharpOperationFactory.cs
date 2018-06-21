@@ -1726,12 +1726,19 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundLockStatement.Argument));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundLockStatement.Body));
+            // If there is no Enter2 method, then there will be no lock taken reference
+            bool legacyMode = _semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2) == null;
+            ILocalSymbol lockTakenSymbol =
+                legacyMode ? null : new SynthesizedLocal(_semanticModel.GetEnclosingSymbol(boundLockStatement.Syntax.SpanStart) as MethodSymbol,
+                                                         (TypeSymbol)_semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean),
+                                                         SynthesizedLocalKind.LockTaken,
+                                                         syntaxOpt: boundLockStatement.Argument.Syntax);
             SyntaxNode syntax = boundLockStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLockStatement.WasCompilerGenerated;
 
-            return new LazyLockStatement(expression, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyLockStatement(expression, body, lockTakenSymbol, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInvalidOperation CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
