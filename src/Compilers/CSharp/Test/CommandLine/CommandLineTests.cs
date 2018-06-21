@@ -122,10 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             {
                 exitCode = cmd.Run(outWriter);
                 Assert.Equal(1, exitCode);
-                Assert.Equal($"error CS0016: Could not write to output file '{xmlPath}' -- 'The requested operation cannot be performed on a file with a user-mapped section open.'",
-                    outWriter.ToString().Replace(Environment.NewLine, ""));
+                Assert.StartsWith($"error CS0016: Could not write to output file '{xmlPath}' -- ", outWriter.ToString());
             }
         }
+
 
         // This test should only run when the machine's default encoding is shift-JIS
         [ConditionalFact(typeof(HasShiftJisDefaultEncoding))]
