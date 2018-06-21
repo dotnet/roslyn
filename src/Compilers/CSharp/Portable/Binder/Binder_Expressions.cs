@@ -6192,7 +6192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            TypeSymbol fieldType = GetFieldTypeWithAdjustedNullableAnnotations(fieldSymbol, this.FieldsBeingBound);
+            TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).TypeSymbol;
             BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
 
             // Spec 14.3: "Within an enum member initializer, values of other enum members are
@@ -6239,17 +6239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return expr;
-        }
-
-        internal TypeSymbol GetFieldTypeWithAdjustedNullableAnnotations(FieldSymbol fieldSymbol, ConsList<FieldSymbol> fieldsBeingBound)
-        {
-            if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) &&
-                !IsBindingModuleLevelAttribute()) // TODO: It is possible to get into cycle while binding module level attributes because Opt-In/Opt-Out state depends on them
-            {
-                return Compilation.GetFieldTypeWithAdjustedNullableAnnotations(fieldSymbol, fieldsBeingBound).TypeSymbol;
-            }
-
-            return fieldSymbol.GetFieldType(fieldsBeingBound).TypeSymbol;
         }
 
         private bool InEnumMemberInitializer()

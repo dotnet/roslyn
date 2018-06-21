@@ -365,13 +365,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PredefinedType:
                     {
                         var type = BindPredefinedTypeSymbol((PredefinedTypeSyntax)syntax, diagnostics);
-                        if (type.SpecialType == SpecialType.System_Boolean)
-                        {
-                            // PROTOTYPE(NullableReferenceTypes): Aleksey mentioned there may be a better way to recognize the well-known attribute NonNullTypes and avoid a cycle
-                            // Note: for bool type, whether we are in NonNullTypes(true or false) context doesn't matter
-                            // This avoids a cycle in binding `[module:NonNullTypes(true)]`
-                            return TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes: false, type);
-                        }
                         return TypeSymbolWithAnnotations.CreateNonNull(NonNullTypes, type);
                     }
 
