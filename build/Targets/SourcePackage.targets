@@ -34,13 +34,14 @@
   <Target Name="GenerateSourcePackagePropsFile"
           BeforeTargets="Build"
           Condition="'$(TargetFrameworks)' == '' or '$(IsCrossTargetingBuild)' == 'true'"
+          DependsOnTargets="InitializeSourceControlInformation"
           Outputs="$(_SourcePackagePropsFilePath)">
     
     <PropertyGroup>
       <_RelativePath>$([MSBuild]::MakeRelative($(RepoRoot), $(MSBuildProjectDirectory)))</_RelativePath>
       
       <!-- TODO: Proper URL escaping -->
-      <_RawUrl>$(RepositoryRawUrl)/$(GitHeadSha)/$(_RelativePath.Replace('\', '/'))/*</_RawUrl>
+      <_RawUrl>$(RepositoryRawUrl)/$(SourceRevisionId)/$(_RelativePath.Replace('\', '/'))/*</_RawUrl>
       
       <_Content>
         <![CDATA[<?xml version="1.0" encoding="utf-8"?>

@@ -1056,7 +1056,7 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist()").WithLocation(6, 33));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void TestSimpleArglist()
         {
             var source = @"
