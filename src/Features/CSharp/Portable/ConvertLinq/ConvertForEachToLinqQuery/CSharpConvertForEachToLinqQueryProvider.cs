@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.SyntaxNodeOrTokenExtensions;
@@ -28,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             ForEachStatementSyntax forEachStatement,
             SemanticModel semanticModel)
         {
-            var identifiersBuilder = ImmutableArray.CreateBuilder<SyntaxToken>();
+            var identifiersBuilder = ArrayBuilder<SyntaxToken>.GetInstance();
             identifiersBuilder.Add(forEachStatement.Identifier);
-            var convertingNodesBuilder = ImmutableArray.CreateBuilder<ExtendedSyntaxNode>();
+            var convertingNodesBuilder = ArrayBuilder<ExtendedSyntaxNode>.GetInstance();
             IEnumerable<StatementSyntax> statementsCannotBeConverted = null;
-            var trailingTokensBuilder = ImmutableArray.CreateBuilder<SyntaxToken>();
-            var currentLeadingTokens = new List<SyntaxToken>();
+            var trailingTokensBuilder = ArrayBuilder<SyntaxToken>.GetInstance();
+            var currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             var current = forEachStatement.Statement;
             // Traverse descentants of the forEachStatement.
@@ -51,30 +52,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         currentLeadingTokens.Add(block.OpenBraceToken);
                         trailingTokensBuilder.Add(block.CloseBraceToken);
                         var array = block.Statements.ToArray();
-                        if (array.Any())
+                        if (array.Length > 0)
                         {
                             // All except the last one can be local declaration statements like
                             // {
                             //   var a = 0;
                             //   var b = 0;
                             //   if (x != y) <- this is the last one in the block. 
-                            // We can support it to be a copmlex foreach or if or whatever. So, set the current to it.
+                            // We can support it to be a complex foreach or if or whatever. So, set the current to it.
                             //   ...
                             // }
                             for (var i = 0; i < array.Length - 1; i++)
                             {
                                 var statement = array[i];
-                                if (statement is LocalDeclarationStatementSyntax localDeclarationStatement &&
-                                    // Do not support declarations without initialization.
-                                    // int a = 0, b, c = 0;
-                                    localDeclarationStatement.Declaration.Variables.All(variable => variable.Initializer != null))
-                                {
-                                    // Prepare variable declarations to be converted into separate let clauses.
-                                    ProcessLocalDeclarationStatement(localDeclarationStatement);
-                                }
-                                else
-                                {
-                                    // If this one local declaration or has an empty initializer, stop processing.
+                                if (!(statement is LocalDeclarationStatementSyntax localDeclarationStatement &&
+                                    TryProcessLocalDeclarationStatement(localDeclarationStatement)))
+                                {                                 
+                                    // If this one is a local function declaration or has an empty initializer, stop processing.
                                     statementsCannotBeConverted = array.Skip(i).ToArray();
                                     break;
                                 }
@@ -95,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         // foreach can always be converted to a from clause.
                         var currentForEachStatement = (ForEachStatementSyntax)current;
                         identifiersBuilder.Add(currentForEachStatement.Identifier);
-                        convertingNodesBuilder.Add(new ExtendedSyntaxNode(currentForEachStatement, currentLeadingTokens, Enumerable.Empty<SyntaxToken>()));
-                        currentLeadingTokens = new List<SyntaxToken>();
+                        convertingNodesBuilder.Add(new ExtendedSyntaxNode(currentForEachStatement, currentLeadingTokens.ToImmutableAndFree(), Enumerable.Empty<SyntaxToken>()));
+                        currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
                         // Proceed the loop with the nested statement.
                         current = currentForEachStatement.Statement;
                         break;
@@ -108,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         if (ifStatement.Else == null)
                         {
                             convertingNodesBuilder.Add(new ExtendedSyntaxNode(
-                                ifStatement, currentLeadingTokens, Enumerable.Empty<SyntaxToken>()));
-                            currentLeadingTokens = new List<SyntaxToken>();
+                                ifStatement, currentLeadingTokens.ToImmutableAndFree(), Enumerable.Empty<SyntaxToken>()));
+                            currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
                             // Proceed the loop with the nested statement.
                             current = ifStatement.Statement;
                             break;
@@ -121,12 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         }
 
                     case SyntaxKind.LocalDeclarationStatement:
-                        // This is a situation with "var a = something;" s the innermost statements inside the loop.
+                        // This is a situation with "var a = something;" is the innermost statements inside the loop.
                         var localDeclaration = (LocalDeclarationStatementSyntax)current;
-                        if (localDeclaration.Declaration.Variables.All(variable => variable.Initializer != null))
+                        if (TryProcessLocalDeclarationStatement(localDeclaration))
                         {
-                            // Prepare variable declarations to be converted into separate let clauses.
-                            ProcessLocalDeclarationStatement(localDeclaration);
                             statementsCannotBeConverted = Enumerable.Empty<StatementSyntax>();
                         }
                         else
@@ -154,39 +146,48 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 }
             }
 
-            // Trailing tokens are collected in the reverse order: from extrenal block down to internal ones. Reverse them.
-            trailingTokensBuilder.Reverse();
+            // Trailing tokens are collected in the reverse order: from external block down to internal ones. Reverse them.
+            trailingTokensBuilder.ReverseContents();
 
             return new ForEachInfo<ForEachStatementSyntax, StatementSyntax>(
                 forEachStatement,
                 semanticModel,
-                convertingNodesBuilder.ToImmutable(),
-                identifiersBuilder.ToImmutable(),
+                convertingNodesBuilder.ToImmutableAndFree(),
+                identifiersBuilder.ToImmutableAndFree(),
                 statementsCannotBeConverted.ToImmutableArray(),
-                currentLeadingTokens.ToImmutableArray(),
-                trailingTokensBuilder.ToImmutable());
+                currentLeadingTokens.ToImmutableAndFree(),
+                trailingTokensBuilder.ToImmutableAndFree());
 
-            void ProcessLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement)
+            // Try to prepare variable declarations to be converted into separate let clauses.
+            bool TryProcessLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement)
             {
-                var localDeclarationLeadingTrivia = new IEnumerable<SyntaxTrivia>[] {
-                    currentLeadingTokens.GetTrivia(),
+                // Do not support declarations without initialization.
+                // int a = 0, b, c = 0;
+                if (localDeclarationStatement.Declaration.Variables.All(variable => variable.Initializer != null))
+                {
+                    var localDeclarationLeadingTrivia = new IEnumerable<SyntaxTrivia>[] {
+                    currentLeadingTokens.ToImmutableAndFree().GetTrivia(),
                     localDeclarationStatement.Declaration.Type.GetLeadingTrivia(),
                     localDeclarationStatement.Declaration.Type.GetTrailingTrivia() }.Flatten();
-                var localDeclarationTrailingTrivia = SyntaxNodeOrTokenExtensions.GetTrivia(localDeclarationStatement.SemicolonToken);
-                var separators = localDeclarationStatement.Declaration.Variables.GetSeparators().ToArray();
-                for (var i = 0; i < localDeclarationStatement.Declaration.Variables.Count; i++)
-                {
-                    var variable = localDeclarationStatement.Declaration.Variables[i];
-                    convertingNodesBuilder.Add(new ExtendedSyntaxNode(
-                        variable,
-                        i == 0 ? localDeclarationLeadingTrivia : separators[i - 1].TrailingTrivia,
-                        i == localDeclarationStatement.Declaration.Variables.Count - 1
-                            ? (IEnumerable<SyntaxTrivia>)localDeclarationTrailingTrivia
-                            : separators[i].LeadingTrivia));
-                    identifiersBuilder.Add(variable.Identifier);
+                    currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
+                    var localDeclarationTrailingTrivia = SyntaxNodeOrTokenExtensions.GetTrivia(localDeclarationStatement.SemicolonToken);
+                    var separators = localDeclarationStatement.Declaration.Variables.GetSeparators().ToArray();
+                    for (var i = 0; i < localDeclarationStatement.Declaration.Variables.Count; i++)
+                    {
+                        var variable = localDeclarationStatement.Declaration.Variables[i];
+                        convertingNodesBuilder.Add(new ExtendedSyntaxNode(
+                            variable,
+                            i == 0 ? localDeclarationLeadingTrivia : separators[i - 1].TrailingTrivia,
+                            i == localDeclarationStatement.Declaration.Variables.Count - 1
+                                ? (IEnumerable<SyntaxTrivia>)localDeclarationTrailingTrivia
+                                : separators[i].LeadingTrivia));
+                        identifiersBuilder.Add(variable.Identifier);
+                    }
+
+                    return true;
                 }
 
-                currentLeadingTokens = new List<SyntaxToken>();
+                return false;
             }
         }
 

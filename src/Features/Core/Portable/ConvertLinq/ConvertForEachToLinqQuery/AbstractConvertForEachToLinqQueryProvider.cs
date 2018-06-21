@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
                 return;
             }
 
+            if (forEachStatement.ContainsDiagnostics)
+            {
+                return;
+            }
+
             // Do not try to refactor queries with conditional compilation in them.
             if (forEachStatement.ContainsDirectives)
             {
