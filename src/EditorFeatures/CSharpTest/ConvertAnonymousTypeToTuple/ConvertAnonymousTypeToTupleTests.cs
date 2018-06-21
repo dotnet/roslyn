@@ -283,5 +283,29 @@ class Test
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task TestFixAllNestedTypes()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = {|FixAllInDocument:|}new { a = 1, b = new { c = 1, d = 2 } };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: (c: 1, d: 2));
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }
