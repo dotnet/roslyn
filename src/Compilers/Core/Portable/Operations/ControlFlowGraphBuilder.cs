@@ -5081,7 +5081,9 @@ oneMoreTime:
                 Debug.Assert(propertyReference.Instance.Kind == OperationKind.InstanceReference);
                 Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitReceiver);
 
-                IOperation visitedTarget = new PropertyReferenceExpression(propertyReference.Property, Visit(propertyReference.Instance), ImmutableArray<IArgumentOperation>.Empty,
+                var visitedPropertyInstance = new InstanceReferenceExpression(InstanceReferenceKind.ImplicitReceiver, semanticModel: null,
+                    propertyReference.Instance.Syntax, propertyReference.Instance.Type, propertyReference.Instance.ConstantValue, IsImplicit(propertyReference.Instance));
+                IOperation visitedTarget = new PropertyReferenceExpression(propertyReference.Property, visitedPropertyInstance, ImmutableArray<IArgumentOperation>.Empty,
                     semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
                 IOperation visitedValue = visitAndCaptureInitializer(propertyReference.Property, simpleAssignment.Value);
                 var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
@@ -5215,12 +5217,6 @@ oneMoreTime:
                 if (_currentImplicitInstance.ImplicitInstance != null)
                 {
                     return OperationCloner.CloneOperation(_currentImplicitInstance.ImplicitInstance);
-                }
-                else if (operation.Type.IsAnonymousType &&
-                    (object)_currentImplicitInstance.AnonymousType == operation.Type)
-                {
-                    return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, 
-                                                           operation.ConstantValue, IsImplicit(operation));
                 }
                 else
                 {
