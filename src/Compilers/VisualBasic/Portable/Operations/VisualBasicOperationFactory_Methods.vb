@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.AnonymousTypeManager
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Operations
@@ -269,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' For error cases and non-assignment initializers, the binder generates only the argument.
             Debug.Assert(expression.Arguments.Length >= expression.Declarations.Length)
 
-            Dim properties = expression.Type.GetMembers().OfType(Of IPropertySymbol)().ToImmutableArray()
+            Dim properties = DirectCast(expression.Type, AnonymousTypePublicSymbol).Properties
             Debug.Assert(properties.Length = expression.Arguments.Length)
 
             Dim builder = ArrayBuilder(Of IOperation).GetInstance(expression.Arguments.Length)
@@ -282,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
                 ' Find matching declaration for the current argument
                 If currentDeclarationIndex >= expression.Declarations.Length OrElse
-                    i <> expression.Declarations(currentDeclarationIndex).PropertyIndex Then
+                   i <> expression.Declarations(currentDeclarationIndex).PropertyIndex Then
                     ' No matching declaration, synthesize a property reference with an implicit receiver to be assigned.
                     Dim [property] As IPropertySymbol = properties(i)
                     Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)

@@ -787,14 +787,14 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                                 Left: 
                                   IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
                                     Instance Receiver: 
-                                      IInstanceReferenceOperation (ReferenceKind: ImplicitAnonymousReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 in qi')
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 in qi')
                                 Right: 
                                   IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
                               ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 in qi')
                                 Left: 
                                   IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
                                     Instance Receiver: 
-                                      IInstanceReferenceOperation (ReferenceKind: ImplicitAnonymousReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 in qi')
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 in qi')
                                 Right: 
                                   IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
           IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) As ?) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: '')
@@ -819,14 +819,14 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                           Left: 
                             IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $315 As ?, Key $315 As ?>.$315 As ? (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (ReferenceKind: ImplicitAnonymousReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $315 As ?, Key $315 As ?>, IsInvalid, IsImplicit) (Syntax: 'Group ')
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $315 As ?, Key $315 As ?>, IsInvalid, IsImplicit) (Syntax: 'Group ')
                           Right: 
                             IParameterReferenceOperation: $315 (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
                         ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
                           Left: 
                             IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $315 As ?, Key $315 As ?>.$315 As ? (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (ReferenceKind: ImplicitAnonymousReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $315 As ?, Key $315 As ?>, IsInvalid, IsImplicit) (Syntax: 'Group ')
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $315 As ?, Key $315 As ?>, IsInvalid, IsImplicit) (Syntax: 'Group ')
                           Right: 
                             IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: '')
                               Children(1):

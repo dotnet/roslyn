@@ -1651,7 +1651,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(propertySym IsNot Nothing)
             Debug.Assert(syntax IsNot Nothing)
             Return New InstanceReferenceExpression(
-                InstanceReferenceKind.ImplicitAnonymousReceiver,
+                InstanceReferenceKind.ImplicitReceiver,
                 _semanticModel,
                 syntax,
                 propertySym.ContainingType,

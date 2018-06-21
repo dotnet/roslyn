@@ -209,9 +209,6 @@ namespace Microsoft.CodeAnalysis.Operations
             // For error cases and non-assignment initializers, the binder generates only the argument.
             Debug.Assert(expression.Arguments.Length >= expression.Declarations.Length);
 
-            var properties = expression.Type.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
-            Debug.Assert(properties.Length == expression.Arguments.Length);
-
             var builder = ArrayBuilder<IOperation>.GetInstance(expression.Arguments.Length);
             var currentDeclarationIndex = 0;
             for (int i = 0; i < expression.Arguments.Length; i++)
@@ -223,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 // Synthesize an implicit receiver for property reference being assigned.
                 var instance = new InstanceReferenceExpression(
-                        referenceKind: InstanceReferenceKind.ImplicitAnonymousReceiver,
+                        referenceKind: InstanceReferenceKind.ImplicitReceiver,
                         semanticModel: _semanticModel,
                         syntax: expression.Syntax,
                         type: expression.Type,
@@ -231,24 +228,24 @@ namespace Microsoft.CodeAnalysis.Operations
                         isImplicit: true);
 
                 // Find matching declaration for the current argument.
+                IPropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty((NamedTypeSymbol)expression.Type, i);
                 if (currentDeclarationIndex >= expression.Declarations.Length ||
-                    i != expression.Declarations[currentDeclarationIndex].PropertyIndex)
+                    (object)property != expression.Declarations[currentDeclarationIndex].Property)
                 {
                     // No matching declaration, synthesize a property reference to be assigned.
                     target = new PropertyReferenceExpression(
-                        properties[i],
+                        property,
                         instance,
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
                         semanticModel: _semanticModel,
                         syntax: value.Syntax,
-                        type: properties[i].Type,
+                        type: property.Type,
                         constantValue: default,
                         isImplicit: true);
                     isImplicitAssignment = true;
                 }
                 else
                 {
-                    Debug.Assert(i == expression.Declarations[currentDeclarationIndex].PropertyIndex);
                     target = CreateBoundAnonymousPropertyDeclarationOperation(expression.Declarations[currentDeclarationIndex++], instance);
                     isImplicitAssignment = expression.WasCompilerGenerated;
                 }

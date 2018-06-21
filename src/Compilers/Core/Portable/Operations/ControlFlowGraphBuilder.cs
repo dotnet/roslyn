@@ -5067,9 +5067,6 @@ oneMoreTime:
             ImplicitInstanceInfo savedCurrentImplicitInstance = _currentImplicitInstance;
             _currentImplicitInstance = new ImplicitInstanceInfo((INamedTypeSymbol)operation.Type);
 
-            var properties = operation.Type.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
-            Debug.Assert(properties.Length == operation.Initializers.Length);
-
             SpillEvalStack();
 
             var initializerBuilder = ArrayBuilder<IOperation>.GetInstance(operation.Initializers.Length);
@@ -5077,18 +5074,16 @@ oneMoreTime:
             {
                 var simpleAssignment = (ISimpleAssignmentOperation)operation.Initializers[i];
                 var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
-                IPropertySymbol initializedProperty = properties[i];
 
                 Debug.Assert(propertyReference != null);
-                Debug.Equals(propertyReference.Property, initializedProperty);
                 Debug.Assert(propertyReference.Arguments.IsEmpty);
                 Debug.Assert(propertyReference.Instance != null);
                 Debug.Assert(propertyReference.Instance.Kind == OperationKind.InstanceReference);
-                Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitAnonymousReceiver);
+                Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitReceiver);
 
-                IOperation visitedTarget = new PropertyReferenceExpression(initializedProperty, Visit(propertyReference.Instance), ImmutableArray<IArgumentOperation>.Empty,
+                IOperation visitedTarget = new PropertyReferenceExpression(propertyReference.Property, Visit(propertyReference.Instance), ImmutableArray<IArgumentOperation>.Empty,
                     semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
-                IOperation visitedValue = visitAndCaptureInitializer(initializedProperty, simpleAssignment.Value);
+                IOperation visitedValue = visitAndCaptureInitializer(propertyReference.Property, simpleAssignment.Value);
                 var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
                     semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.ConstantValue, IsImplicit(simpleAssignment));
                 initializerBuilder.Add(visitedAssignment);
@@ -5212,7 +5207,8 @@ oneMoreTime:
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
-            if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
+            if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
+                !operation.Type.IsAnonymousType)
             {
                 // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
                 Debug.Assert(operation.IsImplicit);
@@ -5229,6 +5225,9 @@ oneMoreTime:
             }
             else
             {
+                Debug.Assert(operation.ReferenceKind != InstanceReferenceKind.ImplicitReceiver ||
+                    (object)_currentImplicitInstance.AnonymousType == operation.Type);
+
                 return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, 
                                                        operation.ConstantValue, IsImplicit(operation));
             }
@@ -5510,7 +5509,7 @@ oneMoreTime:
         {
             // Check if this is an anonymous type property reference with an implicit receiver within an anonymous object initializer.
             if (operation.Instance is IInstanceReferenceOperation instanceReference &&
-                instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitAnonymousReceiver &&
+                instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
                 operation.Property.ContainingType.IsAnonymousType &&
                 operation.Property.ContainingType == _currentImplicitInstance.AnonymousType)
             {

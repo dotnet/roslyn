@@ -13,12 +13,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ContainingTypeInstance,
         /// <summary>
-        /// Reference to the object being initialized in a C# or VB object or collection initializer, or to the object being referred to in a VB With statement.
+        /// Reference to the object being initialized in C# or VB object or collection initializer,
+        /// anonymous type creation initializer or to the object being referred to in a VB With statement.
         /// </summary>
         ImplicitReceiver,
-        /// <summary>
-        /// Reference to the anonymous object being initialized in a C# or VB anonymous type object initializer, or to the object being referred to in a VB With statement.
-        /// </summary>
-        ImplicitAnonymousReceiver,
     }
 }

@@ -766,9 +766,9 @@ endRegion:
                              !ITypeSymbolHelpers.IsDynamicType(binary.Type));
 
                 case OperationKind.InstanceReference:
-                    // Implicit instance receivers are expected to have been removed when dealing with creations.
+                    // Implicit instance receivers, except for anonymous type creations, are expected to have been removed when dealing with creations.
                     return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance ||
-                        ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ImplicitAnonymousReceiver;
+                        ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ImplicitReceiver && n.Type.IsAnonymousType;
 
                 case OperationKind.None:
                     return !(n is IPlaceholderOperation);
