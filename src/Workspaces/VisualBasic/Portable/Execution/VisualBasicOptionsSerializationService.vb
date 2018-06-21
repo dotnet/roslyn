@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             For i = 0 To count - 1
                 Dim key = reader.ReadString()
                 Dim value = reader.ReadValue()
-                builder.Add(KeyValuePair.Create(key, value))
+                builder.Add(KeyValuePairUtil.Create(key, value))
             Next
             Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.MoveToImmutable())
             Return options.WithFeatures(features)

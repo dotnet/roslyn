@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             foreach (var pair in mapping)
             {
-                yield return KeyValuePair.Create(pair.Value, pair.Key);
+                yield return KeyValuePairUtil.Create(pair.Value, pair.Key);
             }
         }
     }
