@@ -47,17 +47,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
         /// <summary>
         /// We create a mutex so other processes can see if our directory is still alive. We destroy the mutex when
-        /// we purge our generated files. This mutex protects files placed under
-        /// <see cref="_rootMetadataTemporaryPathWithGuid"/>.
+        /// we purge our generated files.
         /// </summary>
-        private Mutex _metadataMutex;
-        /// <summary>
-        /// This mutex behaves similarly to <see cref="_metadataMutex"/>, but protects decompiled sources placed under
-        /// <see cref="_rootDecompiledTemporaryPathWithGuid"/>.
-        /// </summary>
-        private Mutex _decompiledMutex;
-        private string _rootMetadataTemporaryPathWithGuid;
-        private string _rootDecompiledTemporaryPathWithGuid;
+        private Mutex _mutex;
+        private string _rootTemporaryPathWithGuid;
         private readonly string _rootTemporaryPath;
 
         public MetadataAsSourceFileService()
@@ -70,18 +63,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return "MetadataAsSource-" + directoryName;
         }
 
-        private string GetRootPathWithGuid_NoLock(bool allowDecompilation)
+        private string GetRootPathWithGuid_NoLock()
         {
-            ref string rootTemporaryPathWithGuid = ref (allowDecompilation ? ref _rootDecompiledTemporaryPathWithGuid : ref _rootMetadataTemporaryPathWithGuid);
-            ref Mutex mutex = ref (allowDecompilation ? ref _decompiledMutex : ref _metadataMutex);
-            if (rootTemporaryPathWithGuid == null)
+            if (_rootTemporaryPathWithGuid == null)
             {
                 var guidString = Guid.NewGuid().ToString("N");
-                rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);
-                mutex = new Mutex(initiallyOwned: true, name: CreateMutexName(guidString));
+                _rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);
+                _mutex = new Mutex(initiallyOwned: true, name: CreateMutexName(guidString));
             }
 
-            return rootTemporaryPathWithGuid;
+            return _rootTemporaryPathWithGuid;
         }
 
         public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool allowDecompilation, CancellationToken cancellationToken = default)
@@ -113,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 InitializeWorkspace(project);
 
                 var infoKey = await GetUniqueDocumentKey(project, topLevelNamedType, allowDecompilation, cancellationToken).ConfigureAwait(false);
-                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(allowDecompilation), project, topLevelNamedType, allowDecompilation));
+                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType, allowDecompilation));
 
                 _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
 
@@ -447,19 +438,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                // Release our mutexes to indicate we're no longer using our directory and reset state
-                if (_metadataMutex != null)
+                // Release our mutex to indicate we're no longer using our directory and reset state
+                if (_mutex != null)
                 {
-                    _metadataMutex.Dispose();
-                    _metadataMutex = null;
-                    _rootMetadataTemporaryPathWithGuid = null;
-                }
-
-                if (_decompiledMutex != null)
-                {
-                    _decompiledMutex.Dispose();
-                    _decompiledMutex = null;
-                    _rootDecompiledTemporaryPathWithGuid = null;
+                    _mutex.Dispose();
+                    _mutex = null;
+                    _rootTemporaryPathWithGuid = null;
                 }
 
                 // Clone the list so we don't break our own enumeration
