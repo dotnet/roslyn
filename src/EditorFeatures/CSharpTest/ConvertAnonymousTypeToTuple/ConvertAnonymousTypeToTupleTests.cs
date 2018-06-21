@@ -69,5 +69,69 @@ class Test
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task ConvertMultipleInstancesInSameMethod()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, b = 2 };
+        var t2 = new { a = 3, b = 4 };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 3, b: 4);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task ConvertMultipleInstancesAcrossMesthod()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, b = 2 };
+        var t2 = new { a = 3, b = 4 };
+    }
+
+    void Method2()
+    {
+        var t1 = new { a = 1, b = 2 };
+        var t2 = new { a = 3, b = 4 };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 3, b: 4);
+    }
+
+    void Method2()
+    {
+        var t1 = new { a = 1, b = 2 };
+        var t2 = new { a = 3, b = 4 };
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }
