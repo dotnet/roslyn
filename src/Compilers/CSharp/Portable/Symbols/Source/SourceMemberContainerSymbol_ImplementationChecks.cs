@@ -730,8 +730,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                                 overridingMember.NonNullTypes &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
-                                !overridingMemberType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenProperty), 
-                                                             TypeCompareKind.AllIgnoreOptions | 
+                                !overridingMemberType.Equals(overriddenProperty.Type,
+                                                             TypeCompareKind.AllIgnoreOptions |
                                                                 TypeCompareKind.CompareNullableModifiersForReferenceTypes |
                                                                 TypeCompareKind.UnknownNullableModifierMatchesAny))
                             {
@@ -777,8 +777,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                                 overridingMember.NonNullTypes &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
-                                !overridingMemberType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenEvent), 
-                                                             TypeCompareKind.AllIgnoreOptions | 
+                                !overridingMemberType.Equals(overriddenEvent.Type,
+                                                             TypeCompareKind.AllIgnoreOptions |
                                                                 TypeCompareKind.CompareNullableModifiersForReferenceTypes |
                                                                 TypeCompareKind.UnknownNullableModifierMatchesAny))
                             {
@@ -815,8 +815,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
                                 overridingMember.NonNullTypes &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
-                                !overridingMethod.ReturnType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenMethod), 
-                                                                    TypeCompareKind.AllIgnoreOptions | 
+                                !overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType,
+                                                                    TypeCompareKind.AllIgnoreOptions |
                                                                         TypeCompareKind.CompareNullableModifiersForReferenceTypes |
                                                                         TypeCompareKind.UnknownNullableModifierMatchesAny))
                             {
@@ -844,9 +844,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             for (int i = 0; i < overridingParameters.Length; i++)
                             {
-                                var overridenParameterType = compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenParameters[i]);
-                                if (!overridingParameters[i].Type.Equals(overridenParameterType, 
-                                                                         TypeCompareKind.AllIgnoreOptions | 
+                                var overridenParameterType = overriddenParameters[i].Type;
+                                if (!overridingParameters[i].Type.Equals(overridenParameterType,
+                                                                         TypeCompareKind.AllIgnoreOptions |
                                                                             TypeCompareKind.CompareNullableModifiersForReferenceTypes |
                                                                             TypeCompareKind.UnknownNullableModifierMatchesAny) &&
                                     overridingParameters[i].Type.Equals(overridenParameterType, TypeCompareKind.AllIgnoreOptions))

@@ -404,11 +404,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)invokeMethod == null)
             {
-                refKind = Microsoft.CodeAnalysis.RefKind.None;
+                refKind = CodeAnalysis.RefKind.None;
                 return null;
             }
             refKind = invokeMethod.RefKind;
-            return binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(invokeMethod);
+            return invokeMethod.ReturnType;
         }
 
         private bool DelegateNeedsReturn(MethodSymbol invokeMethod)
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var p in invoke.Parameters)
                         {
                             refKindsBuilder.Add(p.RefKind);
-                            typesBuilder.Add(binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(p));
+                            typesBuilder.Add(p.Type);
                         }
 
                         parameterTypes = typesBuilder.ToImmutableAndFree();

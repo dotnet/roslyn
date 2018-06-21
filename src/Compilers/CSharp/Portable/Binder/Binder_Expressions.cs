@@ -2566,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol GetCorrespondingParameterType(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
         {
             int paramNum = result.ParameterFromArgument(arg);
-            var type = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameters[paramNum]).TypeSymbol;
+            var type = parameters[paramNum].Type.TypeSymbol;
 
             if (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
@@ -6273,7 +6273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, GetTypeOrReturnTypeWithAdjustedNullableAnnotations(propertySymbol).TypeSymbol, hasErrors: (hasErrors || hasError));
+            return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type.TypeSymbol, hasErrors: (hasErrors || hasError));
         }
 
         private BoundExpression BindEventAccess(
@@ -6295,7 +6295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, GetTypeOrReturnTypeWithAdjustedNullableAnnotations(eventSymbol).TypeSymbol, hasErrors: (hasErrors || hasError));
+            return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type.TypeSymbol, hasErrors: (hasErrors || hasError));
         }
 
         // Say if the receive is an instance or a type, or could be either (returns null).
@@ -7033,7 +7033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParams,
                     this,
                     false,
-                    GetTypeOrReturnTypeWithAdjustedNullableAnnotations(property).TypeSymbol,
+                    property.Type.TypeSymbol,
                     gotError);
             }
 
