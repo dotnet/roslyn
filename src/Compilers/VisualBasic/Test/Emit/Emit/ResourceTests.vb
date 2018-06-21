@@ -196,7 +196,7 @@ End Class
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("file", CodeAnalysisResources.ResourceDataProviderShouldReturnNonNullStream))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
         Public Sub AddManagedResource()
             ' Use a unique guid as a compilation name to prevent conflicts with other assemblies loaded via Assembly.ReflectionOnlyLoad:
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -393,7 +393,7 @@ End Module
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DuplicateResourceName1).WithArguments("A"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
         Public Sub AddResourceToModule()
             Dim source =
 <compilation><file name="a.vb">

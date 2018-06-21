@@ -1034,13 +1034,13 @@ BC31535: Friend assembly reference 'WantsIVTAccess' is invalid. Strong-name sign
 
 #Region "Signing"
 
-    <Fact>
+    <ConditionalFact(GetType(WindowsDesktopOnly))>
     Public Sub MaxSizeKey()
         Dim pubKey = TestResources.General.snMaxSizePublicKeyString
         Const pubKeyToken = "1540923db30520b2"
         Dim pubKeyTokenBytes As Byte() = {&H15, &H40, &H92, &H3D, &HB3, &H5, &H20, &HB2}
 
-        Dim comp = CreateCompilationWithMscorlib40(
+        Dim comp = CreateCompilation(
 <compilation>
     <file name="c.vb">
 Imports System
@@ -1075,14 +1075,14 @@ End Class
     </file>
 </compilation>
 
-        Dim comp2 = CreateCompilationWithMscorlib40(src, references:={comp.ToMetadataReference()},
+        Dim comp2 = CreateCompilation(src, references:={comp.ToMetadataReference()},
 options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         CompileAndVerify(comp2, expectedOutput:="Called M")
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey)
         Assert.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
 
-        Dim comp3 = CreateCompilationWithMscorlib40(src, references:={comp.EmitToImageReference()},
+        Dim comp3 = CreateCompilation(src, references:={comp.EmitToImageReference()},
 options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         CompileAndVerify(comp3, expectedOutput:="Called M")

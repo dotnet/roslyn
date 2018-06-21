@@ -20,6 +20,8 @@ namespace Roslyn.Test.Utilities
         public const string NoPiaNeedsDesktop = "NoPia is only supported on desktop";
         public const string NetModulesNeedDesktop = "Net Modules are only supported on desktop";
         public const string RestrictedTypesNeedDesktop = "Restricted types are only supported on desktop";
+        public const string TestExecutionNeedsDesktopTypes = "Test execution depends on desktop types";
+        public const string NativePdbRequiresDesktop = "Native PDB tests can only execute on windows desktop";
     }
 
     public class ConditionalFactAttribute : FactAttribute
@@ -42,6 +44,12 @@ namespace Roslyn.Test.Utilities
     {
         public abstract bool ShouldSkip { get; }
         public abstract string SkipReason { get; }
+    }
+
+    public static class ExecutionConditionUtil
+    {
+        public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
+        public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
     }
 
     public class x86 : ExecutionCondition
@@ -87,8 +95,14 @@ namespace Roslyn.Test.Utilities
 
     public class WindowsOnly : ExecutionCondition
     {
-        public override bool ShouldSkip => Path.DirectorySeparatorChar != '\\';
+        public override bool ShouldSkip => !ExecutionConditionUtil.IsWindows;
         public override string SkipReason => "Test not supported on Mac and Linux";
+    }
+
+    public class WindowsDesktopOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => !(ExecutionConditionUtil.IsWindows && ExecutionConditionUtil.IsDesktop);
+        public override string SkipReason => "Test only supported on Windows desktop";
     }
 
     public class UnixLikeOnly : ExecutionCondition
@@ -105,7 +119,7 @@ namespace Roslyn.Test.Utilities
 
     public class DesktopOnly : ExecutionCondition
     {
-        public override bool ShouldSkip => CoreClrShim.AssemblyLoadContext.Type != null;
+        public override bool ShouldSkip => !ExecutionConditionUtil.IsDesktop;
         public override string SkipReason => "Test not supported on CoreCLR";
     }
 
