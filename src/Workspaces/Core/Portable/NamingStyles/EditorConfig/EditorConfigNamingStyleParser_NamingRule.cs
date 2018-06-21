@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 case EditorConfigSeverityStrings.None:
                     return ReportDiagnostic.Suppress;
 
+                case EditorConfigSeverityStrings.Refactoring:
                 case EditorConfigSeverityStrings.Silent:
                     return ReportDiagnostic.Hidden;
 
