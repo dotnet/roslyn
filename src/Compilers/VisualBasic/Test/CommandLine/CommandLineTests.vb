@@ -113,7 +113,7 @@ my_option = my_val")
 
             Dim compilerTreeOptions = Assert.IsType(Of CompilerPerTreeOptionsProvider)(
                 cmd.TreeOptionsProvider)
-            Dim options = compilerTreeOptions.TryGetOptions(comp.SyntaxTrees.Single())
+            Dim options = compilerTreeOptions.GetOptions(comp.SyntaxTrees.Single())
             Assert.NotNull(options)
             Dim val = options.GetOption(
                 New [Option](Of String)(CompilerPerTreeOptionsProvider.OptionFeatureName, "my_option"))

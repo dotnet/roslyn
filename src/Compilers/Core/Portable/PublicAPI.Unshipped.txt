@@ -1,7 +1,7 @@
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
-abstract Microsoft.CodeAnalysis.Diagnostics.PerTreeOptionsProvider.TryGetOptions(Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Options.OptionSet
+abstract Microsoft.CodeAnalysis.Diagnostics.PerTreeOptionsProvider.GetOptions(Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Options.OptionSet
 abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.CommandLineArguments.AnalyzerConfigPaths.get -> System.Collections.Immutable.ImmutableArray<string>

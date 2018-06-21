@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         /// <summary>
         /// Get options for a given <paramref name="tree"/>.
-        /// Null if there are no options registered for the given
-        /// tree.
         /// </summary>
-        public abstract OptionSet TryGetOptions(SyntaxTree tree);
+        public abstract OptionSet GetOptions(SyntaxTree tree);
     }
 }

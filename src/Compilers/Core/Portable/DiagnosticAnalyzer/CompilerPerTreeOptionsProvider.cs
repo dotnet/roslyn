@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _treeDict = treeDict;
         }
 
-        public override OptionSet TryGetOptions(SyntaxTree tree)
-            => _treeDict.TryGetValue(tree, out var options) ? options : null;
+        public override OptionSet GetOptions(SyntaxTree tree)
+            => _treeDict.TryGetValue(tree, out var options) ? options : EmptyCompilerOptionSet;
 
         /// <summary>Used for testing</summary>
         internal bool IsEmpty => _treeDict.IsEmpty;

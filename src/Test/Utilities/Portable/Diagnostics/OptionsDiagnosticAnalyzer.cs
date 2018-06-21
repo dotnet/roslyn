@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public OptionsDiagnosticAnalyzer(AnalyzerOptions expectedOptions)
         {
             _expectedOptions = expectedOptions;
-            Debug.Assert(expectedOptions.PerTreeOptions is CompilerPerTreeOptionsProvider compilerOptions);
+            Debug.Assert(expectedOptions.PerTreeOptions.GetType() == typeof(CompilerPerTreeOptionsProvider));
         }
 
         protected override void OnAbstractMember(string AbstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName]string callerName = null)

@@ -161,7 +161,7 @@ my_option = my_val");
             var comp = cmd.Compilation;
 
             var compilerTreeOptions = Assert.IsType<CompilerPerTreeOptionsProvider>(cmd.TreeOptionsProvider);
-            var options = compilerTreeOptions.TryGetOptions(comp.SyntaxTrees.Single());
+            var options = compilerTreeOptions.GetOptions(comp.SyntaxTrees.Single());
             Assert.NotNull(options);
             var val = options.GetOption(new Option<string>(
                 CompilerPerTreeOptionsProvider.OptionFeatureName, "my_option"));
