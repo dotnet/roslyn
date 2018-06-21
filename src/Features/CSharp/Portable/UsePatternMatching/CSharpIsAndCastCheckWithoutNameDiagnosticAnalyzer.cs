@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             context.ReportDiagnostic(
                 Diagnostic.Create(
-                    this.HiddenDescriptor, isExpression.GetLocation()));
+                    this.Descriptor, isExpression.GetLocation()));
         }
 
         public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(

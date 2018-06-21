@@ -693,6 +693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    [call].MethodGroupOpt,
                                    [call].ReceiverOpt,
                                    newArgs.AsImmutableOrNull,
+                                   [call].DefaultArguments,
                                    [call].ConstantValueOpt,
                                    isLValue:=[call].IsLValue,
                                    suppressObjectClone:=[call].SuppressObjectClone,

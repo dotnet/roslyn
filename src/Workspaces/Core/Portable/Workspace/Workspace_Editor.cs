@@ -725,5 +725,22 @@ namespace Microsoft.CodeAnalysis
 
             return newSolution.GetProject(oldProject.Id);
         }
+
+        /// <summary>
+        /// Update a project as a result of option changes.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly move current solution forward when such event happened
+        /// </summary>
+        internal void OnProjectOptionsChanged(ProjectId projectId)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectOptionsChanged(projectId));
+
+                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
     }
 }
