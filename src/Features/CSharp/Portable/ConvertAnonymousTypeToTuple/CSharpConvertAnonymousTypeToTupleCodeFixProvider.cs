@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,112 +20,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertAnonymousTypeToTupleCodeFixProvider)), Shared]
-    internal class CSharpConvertAnonymousTypeToTupleCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal abstract class CSharpConvertAnonymousTypeToTupleCodeFixProvider 
+        : AbstractConvertAnonymousTypeToTupleCodeFixProvider<
+            ExpressionSyntax,
+            TupleExpressionSyntax,
+            AnonymousObjectCreationExpressionSyntax>
     {
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAllWithEditorAsync(context.Document,
-                    e => FixInCurrentMember(context.Document, e, context.Diagnostics[0], c), c)),
-                context.Diagnostics);
-
-            return SpecializedTasks.EmptyTask;
-        }
-
-        private async Task FixInCurrentMember(
-            Document document, SyntaxEditor editor,
-            Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            // For the standard invocation of the code-fix, we want to fixup all creations of the
-            // "same" anonymous type within the containing method.  We define same-ness as meaning
-            // "they have the type symbol".  this means both have the same member names, in the same
-            // order, with the same member types.  We fix all these up in the method because the
-            // user may be creating several instances of this anonymous type in that method and
-            // then combining them in interesting ways (i.e. checking them for equality, using them
-            // in collections, etc.).  The language guarantees within a method boundary that these
-            // will be the same type and can be used together in this fashion.
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var creationNode = TryGetCreationNode(diagnostic, cancellationToken);
-            if (creationNode == null)
-            {
-                Debug.Fail("We should always be able to find the anonymous creation we were invoked from.");
-                return;
-            }
-
-            var anonymousType = semanticModel.GetTypeInfo(creationNode, cancellationToken).Type;
-            if (anonymousType == null)
-            {
-                Debug.Fail("We should always be able to get an anonymous type for any anonymous creation node.");
-                return;
-            }
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var containingMember = creationNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodLevelMember) ?? creationNode;
-
-            var childCreationNodes = containingMember.DescendantNodesAndSelf()
-                                                     .OfType<AnonymousObjectCreationExpressionSyntax>();
-            foreach (var childCreation in childCreationNodes)
-            {
-                var childType = semanticModel.GetTypeInfo(childCreation, cancellationToken).Type;
-                if (childType == null)
-                {
-                    Debug.Fail("We should always be able to get an anonymous type for any anonymous creation node.");
-                    continue;
-                }
-
-                if (anonymousType.Equals(childType))
-                {
-                    ReplaceWithTuple(editor, childCreation);
-                }
-            }
-        }
-
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            foreach (var diagnostic in diagnostics)
-            {
-                // During a fix-all we don't need to bother with the work to go to the containing
-                // method.  Because it's a fix-all, by definition, we'll always be processing all
-                // the anon-creation nodes for any given method that is within our scope.
-                var node = TryGetCreationNode(diagnostic, cancellationToken);
-                if (node == null)
-                {
-                    Debug.Fail("We should always be able to find the anonymous creation we were invoked from.");
-                    continue;
-                }
-
-                ReplaceWithTuple(editor, node);
-            }
-
-            return SpecializedTasks.EmptyTask;
-        }
-
-        private static void ReplaceWithTuple(SyntaxEditor editor, AnonymousObjectCreationExpressionSyntax node)
-            => editor.ReplaceNode(
-                node, (current, _) =>
-                {
-                    // Use the callback form as anonymous types may be nested, and we want to
-                    // properly replace them even in that case.
-                    var anonCreation = current as AnonymousObjectCreationExpressionSyntax;
-                    if (anonCreation == null)
-                    {
-                        return current;
-                    }
-
-                    return ConvertToTuple(anonCreation).WithAdditionalAnnotations(Formatter.Annotation);
-                });
-
-        private static AnonymousObjectCreationExpressionSyntax TryGetCreationNode(Diagnostic diagnostic, CancellationToken cancellationToken)
-            => diagnostic.Location.FindToken(cancellationToken).Parent as AnonymousObjectCreationExpressionSyntax;
-
-        private static TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
+        protected override TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
             => SyntaxFactory.TupleExpression(
                     SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTriviaFrom(anonCreation.OpenBraceToken),
                     ConvertInitializers(anonCreation.Initializers),
