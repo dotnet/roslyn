@@ -1078,11 +1078,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer &apos;is null&apos; over &apos;object.ReferenceEquals(..., null)&apos;.
+        ///   Looks up a localized string similar to Prefer &apos;is null&apos; for reference equality checks.
         /// </summary>
-        internal static string Prefer_is_null_over_ReferenceEquals {
+        internal static string Prefer_is_null_for_reference_equality_checks {
             get {
-                return ResourceManager.GetString("Prefer_is_null_over_ReferenceEquals", resourceCulture);
+                return ResourceManager.GetString("Prefer_is_null_for_reference_equality_checks", resourceCulture);
             }
         }
         

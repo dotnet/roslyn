@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
-        <target state="new">An out variable cannot be declared as a ref local</target>
+        <target state="translated">out 変数を ref ローカルと宣言することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -389,12 +389,12 @@
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
-        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <target state="translated">型パラメーター '{0}' は、外のメソッドからの型パラメーター '{1}' と同じ名前です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
-        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
+        <target state="translated">型パラメーターの型は、外のメソッドからの型パラメーターと同じ型です。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -4612,7 +4612,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
         <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="needs-review-translation">パラメーター型がデリゲート パラメーター型と一致しないため、{0} をデリゲート型 '{1}' に変換することはできません。</target>
+        <target state="translated">パラメーター型がデリゲート パラメーター型と一致しないため、{0} を型 '{1}' に変換することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -7361,7 +7361,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                               Visual C# Compiler のオプション
 
                         - 出力ファイル -
@@ -8041,13 +8041,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">反復子は参照渡しのローカル変数を持つことができません</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">反復子は参照渡しのローカル変数を持つことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">非同期メソッドは参照渡しのローカル変数を持つことができません</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">非同期メソッドは参照渡しのローカル変数を持つことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

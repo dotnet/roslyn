@@ -215,12 +215,7 @@ csharp_style_expression_bodied_properties = true:warning
             VisualStudio.Editor.Verify.CodeAction(
                 "Use expression body for properties",
                 applyFix: true,
-                fixAllScope: FixAllScope.Project,
-                blockUntilComplete: false);
-
-            var expectedTitle = "Preview Changes - Fix all occurrences";
-            VisualStudio.PreviewChangesDialog.VerifyOpen(expectedTitle, Helper.HangMitigatingTimeout);
-            VisualStudio.PreviewChangesDialog.ClickApplyAndWaitForFeature(expectedTitle, FeatureAttribute.DiagnosticService);
+                fixAllScope: FixAllScope.Project);
 
             Assert.Equal(expectedText, VisualStudio.Editor.GetText());
 
@@ -243,11 +238,7 @@ csharp_style_expression_bodied_properties = true:warning
             VisualStudio.Editor.Verify.CodeAction(
                 "Use block body for properties",
                 applyFix: true,
-                fixAllScope: FixAllScope.Project,
-                blockUntilComplete: false);
-
-            VisualStudio.PreviewChangesDialog.VerifyOpen(expectedTitle, Helper.HangMitigatingTimeout);
-            VisualStudio.PreviewChangesDialog.ClickApplyAndWaitForFeature(expectedTitle, FeatureAttribute.DiagnosticService);
+                fixAllScope: FixAllScope.Project);
 
             expectedText = @"
 class C

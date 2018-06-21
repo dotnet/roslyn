@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
-        <target state="new">An out variable cannot be declared as a ref local</target>
+        <target state="translated">Impossible de déclarer une variable out en tant que variable locale ref</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -389,12 +389,12 @@
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
-        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <target state="translated">Le paramètre de type '{0}' a le même nom que le paramètre de type de la méthode externe '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
-        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
+        <target state="translated">Le paramètre de type a le même type que le paramètre de type de la méthode externe.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -4612,7 +4612,7 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
         <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="needs-review-translation">Impossible de convertir {0} en type délégué '{1}', car les types de paramètre ne correspondent pas aux types de paramètre délégués</target>
+        <target state="translated">Impossible de convertir {0} en type '{1}', car les types de paramètre ne correspondent pas aux types de paramètre délégués</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -7361,7 +7361,7 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                               Options du compilateur Visual C#
 
                         - FICHIERS DE SORTIE -
@@ -8041,13 +8041,13 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Les itérateurs ne peuvent pas avoir de variables locales par référence</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Les itérateurs ne peuvent pas avoir de variables locales par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">Les méthodes async ne peuvent pas avoir de variables locales par référence</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">Les méthodes async ne peuvent pas avoir de variables locales par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

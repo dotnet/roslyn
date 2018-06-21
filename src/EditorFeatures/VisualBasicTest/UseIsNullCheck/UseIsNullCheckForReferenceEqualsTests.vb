@@ -10,11 +10,11 @@ Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseIsNullCheck
-    Partial Public Class UseIsNullCheckTests
+    Partial Public Class UseIsNullCheckForReferenceEqualsTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicUseIsNullCheckDiagnosticAnalyzer(), New VisualBasicUseIsNullCheckCodeFixProvider())
+            Return (New VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), New VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
