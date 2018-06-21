@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             return Guid.Empty;
         }
 
-        public void ActivatePane(IVsOutputWindow outputWindow, Guid paneGuid)
+        private void ActivatePane(IVsOutputWindow outputWindow, Guid paneGuid)
         {
             AssertIsForeground();
 
