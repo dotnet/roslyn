@@ -91,9 +91,12 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 foreach (var symbol in candidateFields)
                 {
-                    var diagnostic = Diagnostic.Create(
-                        GetDescriptorWithSeverity(option.Notification.Value),
-                        symbol.Locations[0]);
+                    var diagnostic = DiagnosticHelper.Create(
+                        Descriptor,
+                        symbol.Locations[0],
+                        option.Notification.Severity,
+                        additionalLocations: null,
+                        properties: null);
                     context.ReportDiagnostic(diagnostic);
                 }
 

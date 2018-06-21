@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -51,6 +52,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns the methodSymbol and any partial parts.
+        /// </summary>
+        public static ImmutableArray<IMethodSymbol> GetAllMethodSymbolsOfPartialParts(this IMethodSymbol method)
+        {
+            if (method.PartialDefinitionPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart == null && method.PartialDefinitionPart != method);
+                return ImmutableArray.Create(method, method.PartialDefinitionPart);
+            }
+            else if (method.PartialImplementationPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart != method);
+                return ImmutableArray.Create(method.PartialImplementationPart, method);
+            }
+            else
+            {
+                return ImmutableArray.Create(method);
+            }
         }
 
         public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, IList<string> newNames)

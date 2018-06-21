@@ -1912,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Don't even call this method if the expression isn't nullable.
             Debug.Assert(
                 (object)exprType == null ||
-                exprType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
+                exprType.IsNullableType() ||
                 !exprType.IsValueType ||
                 exprType.IsPointerType());
 

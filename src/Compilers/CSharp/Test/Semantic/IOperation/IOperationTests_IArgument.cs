@@ -310,7 +310,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(ref a, out b)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'ref a')
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
@@ -346,7 +346,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x: ref a, y: out b)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x: ref a')
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
@@ -382,7 +382,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(y: out b, x: ref a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'y: out b')
         ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'b')
@@ -418,7 +418,7 @@ struct S { }
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([S sobj = default(S)])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         IDefaultValueOperation (OperationKind.DefaultValue, Type: S, IsImplicit) (Syntax: 'M2()')
@@ -450,7 +450,7 @@ struct S { }
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([S sobj = default(S)])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         IDefaultValueOperation (OperationKind.DefaultValue, Type: S, IsImplicit) (Syntax: 'M2()')
@@ -481,7 +481,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Double s = 3.14])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 3.14, IsImplicit) (Syntax: 'M2()')
@@ -518,7 +518,7 @@ IInvocationOperation (void Extensions.E1(this P p, [System.Int32 x = 0], [System
     null
   Arguments(3):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this')
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
@@ -562,7 +562,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
         null
       Arguments(3):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this')
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'y: 1')
@@ -604,7 +604,7 @@ IInvocationOperation (void Extensions.E1(this P p, [System.Int32 x = 0], [System
     null
   Arguments(3):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this')
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'y: 1')
@@ -640,7 +640,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(System.Int32 x, params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -674,7 +674,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(System.Int32 x, params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, 0.1, 0.2)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -715,7 +715,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(System.Int32 x, params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -755,7 +755,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2()')
@@ -795,7 +795,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(array: a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null) (Syntax: 'array: a')
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Double[]) (Syntax: 'a')
@@ -829,7 +829,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(array: 1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(array: 1)')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Double[], IsImplicit) (Syntax: 'M2(array: 1)')
@@ -873,7 +873,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, array: a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -907,7 +907,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, array: 1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -953,7 +953,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
   Expression: 
     IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(array: a, x: 1)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
       Arguments(2):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null) (Syntax: 'array: a')
             ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Double[]) (Syntax: 'a')
@@ -987,7 +987,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(array: 1, x: 10)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Double[], IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
@@ -1036,7 +1036,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M1"", IsImplicit) (Syntax: 'M2()')
@@ -1079,7 +1079,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M1"", IsImplicit) (Syntax: 'M2()')
@@ -1374,7 +1374,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = default(System.Int32)])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, IsImplicit) (Syntax: 'M2()')
@@ -1413,7 +1413,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null) (Syntax: '10')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1448,7 +1448,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null) (Syntax: '10')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1483,7 +1483,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[[System.Int32 i = 1], [System.Int32 j = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[j:10]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: 'j:10')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1522,7 +1522,7 @@ class P
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Children(2):
-      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid) (Syntax: 'this')
+      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid) (Syntax: 'this')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1556,7 +1556,7 @@ class P
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Children(2):
-      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid) (Syntax: 'this')
+      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid) (Syntax: 'this')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ";
 
@@ -1645,7 +1645,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[System.Int32 x, params System.Int32[] y] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1687,7 +1687,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2262,7 +2262,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 5]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -2460,7 +2460,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -2629,7 +2629,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[System.Int32 index, [S s = null]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -3194,7 +3194,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[params System.Int32[] array] { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[1]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this[1]')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'this[1]')
@@ -3228,7 +3228,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[params System.Int32[] array] { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[0, 1]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this[0, 1]')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'this[0, 1]')
@@ -3462,7 +3462,7 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
               Left: 
                 IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 0]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
                   Arguments(2):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -3559,7 +3559,7 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
               Left: 
                 IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
                   Arguments(2):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -3652,7 +3652,7 @@ IObjectCreationOperation (Constructor: P..ctor()) (OperationKind.ObjectCreation,
             Left: 
               IPropertyReferenceOperation: System.Int32 P.this[System.Int32 x, [S s = null]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '[0]')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: '[0]')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: '[0]')
                 Arguments(2):
                     IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')

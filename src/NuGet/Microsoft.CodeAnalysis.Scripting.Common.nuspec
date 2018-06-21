@@ -22,6 +22,7 @@
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
 
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common"    version="[$version$]"/>

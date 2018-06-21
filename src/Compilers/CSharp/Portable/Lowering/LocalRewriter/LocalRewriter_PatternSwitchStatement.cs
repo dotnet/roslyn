@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         forValue.Add(_factory.Goto(noValueMatches));
                     }
 
-                    var section = new BoundSwitchSection(_factory.Syntax, ImmutableArray.Create(switchLabel), forValue.ToImmutableAndFree());
+                    var section = new BoundSwitchSection(_factory.Syntax, locals: ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(switchLabel), forValue.ToImmutableAndFree());
                     switchSections.Add(section);
                 }
 

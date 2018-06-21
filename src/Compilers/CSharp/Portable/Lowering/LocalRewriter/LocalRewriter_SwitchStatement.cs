@@ -235,7 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSwitchSection(BoundSwitchSection node)
         {
-            return node.Update(VisitList(node.SwitchLabels), VisitList(node.Statements));
+            Debug.Assert(node.Locals.IsEmpty);
+            return node.Update(locals: node.Locals, VisitList(node.SwitchLabels), VisitList(node.Statements));
         }
 
         private static int CountLabels(ImmutableArray<BoundSwitchSection> rewrittenSections)

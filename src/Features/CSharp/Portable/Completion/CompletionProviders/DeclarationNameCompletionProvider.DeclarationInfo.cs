@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             public NameDeclarationInfo(
                 ImmutableArray<SymbolKindOrTypeKind> possibleSymbolKinds,
-                Accessibility accessibility,
+                Accessibility? accessibility,
                 DeclarationModifiers declarationModifiers,
                 ITypeSymbol type,
                 IAliasSymbol alias)
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             public DeclarationModifiers Modifiers { get; }
             public ITypeSymbol Type { get; }
             public IAliasSymbol Alias { get; }
-            public Accessibility DeclaredAccessibility { get; }
+            public Accessibility? DeclaredAccessibility { get; }
 
             internal static async Task<NameDeclarationInfo> GetDeclarationInfo(Document document, int position, CancellationToken cancellationToken)
             {
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return declarationModifiers;
             }
 
-            private static Accessibility GetAccessibility(SyntaxTokenList modifiers)
+            private static Accessibility? GetAccessibility(SyntaxTokenList modifiers)
             {
                 for (int i = modifiers.Count - 1; i >= 0; i--)
                 {
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
 
-                return Accessibility.NotApplicable;
+                return null;
             }
 
             private static SyntaxNode GetNodeDenotingTheTypeOfTupleArgument(ArgumentSyntax argumentSyntax)

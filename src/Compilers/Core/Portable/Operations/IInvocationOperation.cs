@@ -9,7 +9,14 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     /// Current usage:
     ///  (1) C# method invocation expression.
-    ///  (2) VB method invocation expression.
+    ///  (2) C# collection element initializer.
+    ///      For example, in the following collection initializer: <code>new C() { 1, 2, 3 }</code>, we will have
+    ///      3 <see cref="IInvocationOperation"/> nodes, each of which will be a call to the corresponding Add method
+    ///      with either 1, 2, 3 as the argument.
+    ///  (3) VB method invocation expression.
+    ///  (4) VB collection element initializer.
+    ///      Similar to the C# example, <code>New C() From {1, 2, 3}</code> will have 3 <see cref="IInvocationOperation"/>
+    ///      nodes with 1, 2, and 3 as their arguments, respectively.
     /// </para>
     /// </summary>
     /// <remarks>
