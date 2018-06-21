@@ -11,6 +11,17 @@ using Xunit;
 
 namespace Roslyn.Test.Utilities
 {
+    /// <summary>
+    /// Container for common skip reasons. Secondary benefit allows us to use find all ref to 
+    /// discover the set of tests affected by a particular scenario.
+    /// </summary>
+    public static class ConditionalSkipReason
+    {
+        public const string NoPiaNeedsDesktop = "NoPia is only supported on desktop";
+        public const string NetModulesNeedDesktop = "Net Modules are only supported on desktop";
+        public const string RestrictedTypesNeedDesktop = "Restricted types are only supported on desktop";
+    }
+
     public class ConditionalFactAttribute : FactAttribute
     {
         public ConditionalFactAttribute(params Type[] skipConditions)
@@ -102,5 +113,11 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => !CompilationExtensions.EnableVerifyIOperation;
         public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
+    }
+
+    public class OSVersionWin8 : ExecutionCondition
+    {
+        public override bool ShouldSkip => !OSVersion.IsWin8;
+        public override string SkipReason => "Window Version is not at least Win8 (build:9200)";
     }
 }
