@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_anonymous_type_to_tuple, createChangedDocument, FeaturesResources.Convert_anonymous_type_to_tuple)
+                : base(FeaturesResources.Convert_to_tuple, createChangedDocument, FeaturesResources.Convert_to_tuple)
             {
             }
         }

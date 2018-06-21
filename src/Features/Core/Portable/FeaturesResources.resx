@@ -1376,7 +1376,7 @@ This version used in: {2}</value>
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
   </data>
-  <data name="Convert_anonymous_type_to_tuple" xml:space="preserve">
-    <value>Convert anonymous type to tuple</value>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
   </data>
 </root>
