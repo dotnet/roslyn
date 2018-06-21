@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider 
-        : AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider<SyntaxKind>
+    internal class CSharpConvertAnonymousTypeToTupleDiagnosticAnalyzer
+        : AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer<SyntaxKind>
     {
         protected override SyntaxKind GetAnonymousObjectCreationExpressionSyntaxKind()
             => SyntaxKind.AnonymousObjectCreationExpression;

@@ -5,10 +5,10 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicConvertAnonymousTypeToTupleCodeRefactoringProvider
-        Inherits AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider(Of SyntaxKind)
+    Friend Class VisualBasicConvertAnonymousTypeToTupleDiagnosticAnalyzer
+        Inherits AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer(Of SyntaxKind)
 
-        Protected Overrides Function GetAnonymousObjectCreationExpressionSyntaxKind() As syntaxkind
+        Protected Overrides Function GetAnonymousObjectCreationExpressionSyntaxKind() As SyntaxKind
             Return SyntaxKind.AnonymousObjectCreationExpression
         End Function
     End Class

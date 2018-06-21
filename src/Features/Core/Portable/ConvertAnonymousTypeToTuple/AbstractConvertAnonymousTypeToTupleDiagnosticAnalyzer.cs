@@ -6,11 +6,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 {
-    internal abstract class AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider<TSyntaxKind> 
+    internal abstract class AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer<TSyntaxKind> 
         : AbstractCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        protected AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider()
+        protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_anonymous_type_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_anonymous_type_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -26,17 +26,9 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
             => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(csac =>
-            {
-                // Only bother to offer to convert to a tuple if we actually know about System.ValueTuple.
-                var valueTupleType = csac.Compilation.GetTypeByMetadataName(typeof(ValueTuple).FullName);
-                if (valueTupleType != null)
-                {
-                    csac.RegisterSyntaxNodeAction(
-                        AnalyzeSyntax,
-                        GetAnonymousObjectCreationExpressionSyntaxKind());
-                }
-            });
+            => context.RegisterSyntaxNodeAction(
+                AnalyzeSyntax,
+                GetAnonymousObjectCreationExpressionSyntaxKind());
 
         // Analysis is trivial.  All anonymous types are marked as being convertible to a tuple.
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
