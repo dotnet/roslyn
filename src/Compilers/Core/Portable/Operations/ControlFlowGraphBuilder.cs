@@ -5225,9 +5225,6 @@ oneMoreTime:
             }
             else
             {
-                Debug.Assert(operation.ReferenceKind != InstanceReferenceKind.ImplicitReceiver ||
-                    (object)_currentImplicitInstance.AnonymousType == operation.Type);
-
                 return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, 
                                                        operation.ConstantValue, IsImplicit(operation));
             }
