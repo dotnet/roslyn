@@ -133,5 +133,35 @@ class Test
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task OnlyConvertMatchingTypesInSameMethod()
+        {
+            var text = @"
+class Test
+{
+    void Method(int b)
+    {
+        var t1 = [||]new { a = 1, b = 2 };
+        var t2 = new { a = 3, b };
+        var t3 = new { a = 4 };
+        var t4 = new { b = 5, a = 6 };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method(int b)
+    {
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 3, b);
+        var t3 = new { a = 4 };
+        var t4 = new { b = 5, a = 6 };
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }
