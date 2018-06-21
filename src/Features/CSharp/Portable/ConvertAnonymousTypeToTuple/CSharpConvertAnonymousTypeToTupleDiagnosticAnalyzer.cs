@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
         // Analysis is trivial.  All anonymous types are marked as being convertible to a tuple.
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
             => context.ReportDiagnostic(
-                Diagnostic.Create(HiddenDescriptor, context.Node.GetFirstToken().GetLocation()));
+                DiagnosticHelper.Create(
+                    Descriptor, context.Node.GetFirstToken().GetLocation(), ReportDiagnostic.Hidden,
+                    additionalLocations: null, properties: null));
     }
 }
