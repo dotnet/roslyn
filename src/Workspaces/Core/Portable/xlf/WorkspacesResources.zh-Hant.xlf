@@ -7,6 +7,11 @@
         <target state="translated">讀取指定的組態檔時發生錯誤: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="new">Refactoring Only</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">符號 "{0}" 非來自來源。</target>

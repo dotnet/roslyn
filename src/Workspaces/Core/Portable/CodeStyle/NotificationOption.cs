@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public static readonly NotificationOption None = new NotificationOption(WorkspacesResources.None, ReportDiagnostic.Suppress);
-        public static readonly NotificationOption Silent = new NotificationOption(WorkspacesResources.None, ReportDiagnostic.Hidden);
+        public static readonly NotificationOption Silent = new NotificationOption(WorkspacesResources.Refactoring_Only, ReportDiagnostic.Hidden);
         public static readonly NotificationOption Suggestion = new NotificationOption(WorkspacesResources.Suggestion, ReportDiagnostic.Info);
         public static readonly NotificationOption Warning = new NotificationOption(WorkspacesResources.Warning, ReportDiagnostic.Warn);
         public static readonly NotificationOption Error = new NotificationOption(WorkspacesResources.Error, ReportDiagnostic.Error);
