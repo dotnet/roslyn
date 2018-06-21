@@ -5207,8 +5207,7 @@ oneMoreTime:
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
-            if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
-                !operation.Type.IsAnonymousType)
+            if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
             {
                 // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
                 Debug.Assert(operation.IsImplicit);
@@ -5216,6 +5215,12 @@ oneMoreTime:
                 if (_currentImplicitInstance.ImplicitInstance != null)
                 {
                     return OperationCloner.CloneOperation(_currentImplicitInstance.ImplicitInstance);
+                }
+                else if (operation.Type.IsAnonymousType &&
+                    (object)_currentImplicitInstance.AnonymousType == operation.Type)
+                {
+                    return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, 
+                                                           operation.ConstantValue, IsImplicit(operation));
                 }
                 else
                 {
