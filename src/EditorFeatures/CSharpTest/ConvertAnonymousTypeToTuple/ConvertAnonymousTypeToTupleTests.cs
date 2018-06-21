@@ -45,5 +45,29 @@ class Test
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task ConvertSingleAnonymousTypeWithInferredName()
+        {
+            var text = @"
+class Test
+{
+    void Method(int b)
+    {
+        var t1 = [||]new { a = 1, b };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method(int b)
+    {
+        var t1 = (a: 1, b);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }
