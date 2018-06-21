@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -27,6 +26,8 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         where TTupleExpressionSyntax : TExpressionSyntax
         where TAnonymousObjectCreationExpressionSyntax : TExpressionSyntax
     {
+        protected abstract TTupleExpressionSyntax ConvertToTuple(TAnonymousObjectCreationExpressionSyntax anonCreation);
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId);
 
@@ -128,8 +129,6 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 
         private static TAnonymousObjectCreationExpressionSyntax TryGetCreationNode(Diagnostic diagnostic, CancellationToken cancellationToken)
             => diagnostic.Location.FindToken(cancellationToken).Parent as TAnonymousObjectCreationExpressionSyntax;
-
-        protected abstract TTupleExpressionSyntax ConvertToTuple(TAnonymousObjectCreationExpressionSyntax anonCreation);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

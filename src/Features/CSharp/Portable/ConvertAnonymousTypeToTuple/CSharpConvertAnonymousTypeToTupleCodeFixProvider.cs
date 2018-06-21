@@ -1,26 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
 {
-    internal abstract class CSharpConvertAnonymousTypeToTupleCodeFixProvider 
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertAnonymousTypeToTupleCodeFixProvider)), Shared]
+    internal class CSharpConvertAnonymousTypeToTupleCodeFixProvider 
         : AbstractConvertAnonymousTypeToTupleCodeFixProvider<
             ExpressionSyntax,
             TupleExpressionSyntax,
@@ -46,13 +36,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
                 : SyntaxFactory.NameColon(
                     nameEquals.Name,
                     SyntaxFactory.Token(SyntaxKind.ColonToken).WithTriviaFrom(nameEquals.EqualsToken));
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_anonymous_type_to_tuple, createChangedDocument, FeaturesResources.Convert_anonymous_type_to_tuple)
-            {
-            }
-        }
     }
 }
