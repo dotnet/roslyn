@@ -256,6 +256,7 @@
   <PropertyGroup>
     <RestoreSources>
       $(RestoreSources);
+      https://api.nuget.org/v3/index.json;
       https://dotnet.myget.org/F/dotnet-coreclr/api/v3/index.json;
       https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
       https://dotnet.myget.org/F/dotnet-corefxtestdata/api/v3/index.json;
