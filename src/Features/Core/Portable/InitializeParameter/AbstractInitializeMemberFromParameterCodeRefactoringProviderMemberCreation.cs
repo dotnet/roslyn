@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -10,41 +8,16 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Naming;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
-    internal static class FallbackNamingRules
-    {
-        // Standard field/property names we look for when we have a parameter with a given name.
-        // We also use the rules to help generate fresh fields/properties.  Note that we always
-        // look at these rules *after* the user's own rules.  That way we respect user naming, but
-        // also have a reasonably fallback if they don't have any specified preferences.
-        internal static readonly ImmutableArray<NamingRule> Rules = ImmutableArray.Create(
-                new NamingRule(new SymbolSpecification(
-                    Guid.NewGuid(), "Property",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property))),
-                    new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
-                    enforcementLevel: ReportDiagnostic.Hidden),
-                new NamingRule(new SymbolSpecification(
-                    Guid.NewGuid(), "Field",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
-                    new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
-                    enforcementLevel: ReportDiagnostic.Hidden),
-                new NamingRule(new SymbolSpecification(
-                    Guid.NewGuid(), "FieldWithUnderscore",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
-                    new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
-                    enforcementLevel: ReportDiagnostic.Hidden));
-    }
-
     internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
         TParameterSyntax,
         TStatementSyntax,
@@ -109,7 +82,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // Get the parts of the parameter name and the appropriate naming rules so
                 // that we can name the field/property accordingly.
                 var parameterNameParts = this.GetParameterWordParts(parameter);
-                var rules = await this.GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
+                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
 
                 var field = CreateField(parameter, rules, parameterNameParts);
                 var property = CreateProperty(parameter, rules, parameterNameParts);
@@ -401,7 +374,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Look for a field/property that really looks like it corresponds to this parameter.
             // Use a variety of heuristics around the name/type to see if this is a match.
 
-            var rules = await GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
             var parameterWords = GetParameterWordParts(parameter);
 
             var containingType = parameter.ContainingType;
@@ -466,18 +439,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             return false;
-        }
-
-        private async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
-            Document document, CancellationToken cancellationToken)
-        {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
-
-            // Add our built-in-rules at the end so that we always respect user naming rules 
-            // first, but we always have something to fall-back upon if there are no matches.
-            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(FallbackNamingRules.Rules);
-            return rules;
         }
 
         /// <summary>
