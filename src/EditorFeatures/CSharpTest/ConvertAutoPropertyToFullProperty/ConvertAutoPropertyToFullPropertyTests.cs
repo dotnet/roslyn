@@ -912,6 +912,37 @@ class goo
             await TestInRegularAndScriptAsync(text, expected, options: UseCustomFieldName);
         }
 
+        [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task UnderscorePrefixedFieldName()
+        {
+            var text = @"
+class goo
+{
+    public int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int _goo;
+
+    public int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+        set
+        {
+            _goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: UseUnderscorePrefixedFieldName);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task NonStaticPropertyWithCustomStaticFieldName()
         {
