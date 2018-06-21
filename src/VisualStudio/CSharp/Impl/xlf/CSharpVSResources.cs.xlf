@@ -67,6 +67,11 @@
         <target state="new">Make private fields readonly when possible</target>
         <note />
       </trans-unit>
+      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
+        <source>Perform additional code cleanup during formatting</source>
+        <target state="new">Perform additional code cleanup during formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="new">Prefer 'is null' for reference equality checks</target>

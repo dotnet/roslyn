@@ -91,7 +91,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     }
                     else
                     {
-                        if (docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
+                        if (!docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured)
+                            && !docOptions.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain))
+                        {
+                            ShowGoldBarForCodeCleanupConfiguration(document);
+                        }
+
+                        if (docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured)
+                            && docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting))
                         {
                             // Code cleanup
                             var oldDoc = document;
@@ -105,11 +112,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         else
                         {
                             Format(args.TextView, document, selectionOpt: null, cancellationToken);
-
-                            if (!docOptions.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain))
-                            {
-                                ShowGoldBarForCodeCleanupConfiguration(document);
-                            }
                         }
 
                     }

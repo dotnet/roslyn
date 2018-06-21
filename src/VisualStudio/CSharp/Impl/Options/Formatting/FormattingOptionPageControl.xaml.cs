@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             FormatDocumentSettingsGroupBox.Header = CSharpVSResources.Format_document_settings;
             AllCSharpFormattingRulesCheckBox.Content = CSharpVSResources.Apply_all_csharp_formatting_rules_indentation_wrapping_spacing;
+            PerformAdditionalCodeCleanupDuringFormattingCheckBox.Content = CSharpVSResources.Perform_additional_code_cleanup_during_formatting;
             RemoveUnusedUsingsCheckBox.Content = CSharpVSResources.Remove_unnecessary_usings;
             SortUsingsCheckBox.Content = CSharpVSResources.Sort_usings;
             AddRemoveBracesForSingleLineControlStatementsCheckBox.Content = CSharpVSResources.Add_remove_braces_for_single_line_control_statements;
@@ -48,6 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             MakePrivateFieldReadonlyWhenPossibleCheckBox.Content = CSharpVSResources.Make_private_field_readonly_when_possible;
             RemoveUnnecessaryCastsCheckBox.Content = CSharpVSResources.Remove_unnecessary_casts;
             RemoveUnusedVariablesCheckBox.Content = CSharpVSResources.Remove_unused_variables;
+
+            BindToOption(PerformAdditionalCodeCleanupDuringFormattingCheckBox, CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, LanguageNames.CSharp);
+            CodeCleanupRulesStackPanel.IsEnabled = (PerformAdditionalCodeCleanupDuringFormattingCheckBox.IsChecked == true);
 
             BindToOption(RemoveUnusedUsingsCheckBox, CodeCleanupOptions.RemoveUnusedImports, LanguageNames.CSharp);
             BindToOption(SortUsingsCheckBox, CodeCleanupOptions.SortImports, LanguageNames.CSharp);
@@ -99,6 +103,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 OptionService.SetOptions(newOptions);
                 OptionLogger.Log(oldOptions, newOptions);
             }
+        }
+
+        private void PerformAdditionalCodeCleanupDuringFormattingCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            CodeCleanupRulesStackPanel.IsEnabled = true;
+        }
+
+        private void PerformAdditionalCodeCleanupDuringFormattingCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            CodeCleanupRulesStackPanel.IsEnabled = false;
         }
     }
 }

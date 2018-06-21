@@ -17,6 +17,15 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             nameof(CodeCleanupOptions), nameof(NeverShowCodeCleanupInfoBarAgain), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Never Show Code Cleanup Info Bar Again"));
 
+        /// <summary>
+        /// Set default value to true for 15.8 Preview to promote this new code cleanup feature
+        /// Will set it back to false for RTM so users are not silently opting into this feature
+        /// https://github.com/dotnet/roslyn/issues/28068
+        /// </summary>
+        public static readonly PerLanguageOption<bool> PerformAdditionalCodeCleanupDuringFormatting = new PerLanguageOption<bool>(
+            nameof(CodeCleanupOptions), nameof(PerformAdditionalCodeCleanupDuringFormatting), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Perform Additional Code Cleanup During Formatting"));
+
         public static readonly PerLanguageOption<bool> RemoveUnusedImports = new PerLanguageOption<bool>(
             nameof(CodeCleanupOptions), nameof(RemoveUnusedImports), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Remove Unused Imports"));
