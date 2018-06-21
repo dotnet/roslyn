@@ -307,5 +307,29 @@ class Test
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task ConvertMultipleNestedInstancesInSameMethod()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, b = (object)new { a = 1, b = default(object) } };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: (object)(a: 1, b: default(object)));
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }
