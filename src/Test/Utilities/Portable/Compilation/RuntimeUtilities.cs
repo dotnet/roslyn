@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #elif NETCOREAPP2_0
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
 #elif NETSTANDARD1_3
-            throw new NotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
 #error Unsupported configuration
 #endif
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #if NET46 || NETCOREAPP2_0
             return type.GetTypeInfo().Assembly.Location;
 #elif NETSTANDARD1_3
-            throw new NotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
 #error Unsupported configuration
 #endif

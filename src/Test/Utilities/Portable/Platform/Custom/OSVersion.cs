@@ -15,7 +15,7 @@ namespace Roslyn.Test.Utilities
 #if NET46 || NETCOREAPP2_0
             System.Environment.OSVersion.Version.Build >= 9200;
 #else
-            throw new InvalidOperationException();
+            throw new PlatformNotSupportedException();
 #endif
     }
 }
