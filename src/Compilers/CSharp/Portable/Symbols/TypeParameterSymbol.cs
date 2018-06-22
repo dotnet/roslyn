@@ -403,7 +403,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (constraint.TypeKind == TypeKind.TypeParameter)
             {
-                return IsReferenceTypeFromConstraintTypes(((TypeParameterSymbol)constraint).ConstraintTypesNoUseSiteDiagnostics, inProgress);
+                var constraints = ((TypeParameterSymbol)constraint).GetConstraintTypesNoUseSiteDiagnostics(inProgress, early: true);
+                return IsReferenceTypeFromConstraintTypes(constraints, inProgress);
             }
             else if (!constraint.IsReferenceType)
             {

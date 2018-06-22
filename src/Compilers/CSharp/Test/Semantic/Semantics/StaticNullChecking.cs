@@ -32652,7 +32652,7 @@ partial class B<T> where T : A? { }";
         }
 
         [Fact]
-        public void Constraint_Oblivious()
+        public void Constraint_Oblivious_01()
         {
             var source0 =
 @"public interface I<T>
@@ -32676,6 +32676,30 @@ class C
         A<B2>.F(new B2());
         A<B1?>.F(null);
         A<B2?>.F(null);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Constraint_Oblivious_02()
+        {
+            var source0 =
+@"public class A<T, U, V>
+    where T : A<T, U, V>
+    where V : U
+{
+    protected interface I { }
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class B : A<B, object, object>
+{
+    static void F(I i)
+    {
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
