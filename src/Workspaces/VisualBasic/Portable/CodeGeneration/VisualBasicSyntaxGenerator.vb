@@ -329,6 +329,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ReturnStatement(DirectCast(expressionOpt, ExpressionSyntax))
         End Function
 
+        Friend Overrides Function YieldReturnStatement(expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.YieldStatement(DirectCast(expression, ExpressionSyntax))
+        End Function
+
         Public Overrides Function ThisExpression() As SyntaxNode
             Return SyntaxFactory.MeExpression()
         End Function

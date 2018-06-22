@@ -81,12 +81,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
                 // Modifier | Type | Parameter | Default
                 var item = gridPattern.GetItem(i, columnToSelect);
-                var name = item.CurrentName;
+                var name = AutomationElementExtensions.RetryIfNotAvailable(element => element.CurrentName, item);
                 if (name == parameterName)
                 {
                     // The parent of a cell is of DataItem control type, which support SelectionItemPattern.
                     var walker = Helper.Automation.ControlViewWalker;
-                    var parent = walker.GetParentElement(item);
+                    var parent = AutomationElementExtensions.RetryIfNotAvailable(element => walker.GetParentElement(element), item);
                     parent.Select();
                     return;
                 }

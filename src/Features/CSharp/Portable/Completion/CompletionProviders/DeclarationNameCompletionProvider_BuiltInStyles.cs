@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(MethodKind.Ordinary));
             var modifiers = ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsAsync));
             return new NamingRule(
-                new SymbolSpecification(Guid.NewGuid(), "endswithasync", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
+                new SymbolSpecification(Guid.NewGuid(), "endswithasync", kinds, accessibilityList: default, modifiers),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "Get", suffix: "Async"),
                 ReportDiagnostic.Info);
         }
@@ -34,9 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static NamingRule CreateCamelCaseFieldsAndParametersRule()
         {
             var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field), new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local));
-            var modifiers = ImmutableArray.Create<ModifierKind>();
             return new NamingRule(
-                new SymbolSpecification(Guid.NewGuid(), "camelcasefields", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
+                new SymbolSpecification(Guid.NewGuid(), "camelcasefields", kinds, accessibilityList: default, modifiers: default),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
                 ReportDiagnostic.Info);
         }
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(MethodKind.Ordinary));
             var modifiers = ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsAsync));
             return new NamingRule(
-                new SymbolSpecification(Guid.NewGuid(), "endswithasynct", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
+                new SymbolSpecification(Guid.NewGuid(), "endswithasynct", kinds, accessibilityList: default, modifiers),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), suffix: "Async"),
                 ReportDiagnostic.Info);
         }
@@ -54,9 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static NamingRule CreateMethodStartsWithGetRule()
         {
             var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(MethodKind.Ordinary));
-            var modifiers = ImmutableArray.Create<ModifierKind>();
             return new NamingRule(
-                new SymbolSpecification(Guid.NewGuid(), "startswithget", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
+                new SymbolSpecification(Guid.NewGuid(), "startswithget", kinds, accessibilityList: default, modifiers: default),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "Get"),
                 ReportDiagnostic.Info);
         }

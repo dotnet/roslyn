@@ -99,8 +99,8 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ISetExtensions.cs">
       <Link>InternalUtilities\ISetExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePair.cs">
-      <Link>InternalUtilities\KeyValuePair.cs</Link>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs">
+      <Link>InternalUtilities\KeyValuePairUtil.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\MultiDictionary.cs">
       <Link>InternalUtilities\MultiDictionary.cs</Link>

@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
             Get
                 If s_defaultPreprocessorSymbols.IsDefaultOrEmpty Then
-                    s_defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePair.Create("_MYTYPE", CObj("Empty")))
+                    s_defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePairUtil.Create("_MYTYPE", CObj("Empty")))
                 End If
 
                 Return s_defaultPreprocessorSymbols

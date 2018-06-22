@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// Property initializers.
+        /// Each initializer is an <see cref="ISimpleAssignmentOperation"/>, with an <see cref="IPropertyReferenceOperation"/>
+        /// as the target whose Instance is an <see cref="IInstanceReferenceOperation"/> with <see cref="InstanceReferenceKind.ImplicitReceiver"/> kind.
         /// </summary>
         ImmutableArray<IOperation> Initializers { get; }
     }

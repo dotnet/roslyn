@@ -61,11 +61,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All C# Formatting Rules (indentation, wrapping and spacing).
+        ///   Looks up a localized string similar to Add accessibility modifiers.
         /// </summary>
-        internal static string All_csharp_formatting_rules {
+        internal static string Add_accessibility_modifiers {
             get {
-                return ResourceManager.GetString("All_csharp_formatting_rules", resourceCulture);
+                return ResourceManager.GetString("Add_accessibility_modifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add/remove braces for single-line control statements.
+        /// </summary>
+        internal static string Add_remove_braces_for_single_line_control_statements {
+            get {
+                return ResourceManager.GetString("Add_remove_braces_for_single_line_control_statements", resourceCulture);
             }
         }
         
@@ -84,6 +93,69 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Always_include_snippets {
             get {
                 return ResourceManager.GetString("Always_include_snippets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply all C# formatting rules (indentation, wrapping, spacing).
+        /// </summary>
+        internal static string Apply_all_csharp_formatting_rules_indentation_wrapping_spacing {
+            get {
+                return ResourceManager.GetString("Apply_all_csharp_formatting_rules_indentation_wrapping_spacing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply expression/block body preferences.
+        /// </summary>
+        internal static string Apply_expression_block_body_preferences {
+            get {
+                return ResourceManager.GetString("Apply_expression_block_body_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply implicit/explicit type preferences.
+        /// </summary>
+        internal static string Apply_implicit_explicit_type_preferences {
+            get {
+                return ResourceManager.GetString("Apply_implicit_explicit_type_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply inline &apos;out&apos; variables preferences.
+        /// </summary>
+        internal static string Apply_inline_out_variable_preferences {
+            get {
+                return ResourceManager.GetString("Apply_inline_out_variable_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply language/framework type preferences.
+        /// </summary>
+        internal static string Apply_language_framework_type_preferences {
+            get {
+                return ResourceManager.GetString("Apply_language_framework_type_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply object/collection initialization preferences.
+        /// </summary>
+        internal static string Apply_object_collection_initialization_preferences {
+            get {
+                return ResourceManager.GetString("Apply_object_collection_initialization_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply &apos;this.&apos; qualification preferences.
+        /// </summary>
+        internal static string Apply_this_qualification_preferences {
+            get {
+                return ResourceManager.GetString("Apply_this_qualification_preferences", resourceCulture);
             }
         }
         
@@ -219,87 +291,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Fade_out_unused_usings {
             get {
                 return ResourceManager.GetString("Fade_out_unused_usings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix accessibility modifiers.
-        /// </summary>
-        internal static string Fix_accessibility_modifiers {
-            get {
-                return ResourceManager.GetString("Fix_accessibility_modifiers", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix add/remove braces.
-        /// </summary>
-        internal static string Fix_add_remove_braces {
-            get {
-                return ResourceManager.GetString("Fix_add_remove_braces", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix expression-bodied members.
-        /// </summary>
-        internal static string Fix_expression_bodied_members {
-            get {
-                return ResourceManager.GetString("Fix_expression_bodied_members", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix framework types (int vs Int32).
-        /// </summary>
-        internal static string Fix_framework_types {
-            get {
-                return ResourceManager.GetString("Fix_framework_types", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix implicit/explicit type.
-        /// </summary>
-        internal static string Fix_implicit_explicit_type {
-            get {
-                return ResourceManager.GetString("Fix_implicit_explicit_type", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix inline variable declarations.
-        /// </summary>
-        internal static string Fix_inline_variable_declarations {
-            get {
-                return ResourceManager.GetString("Fix_inline_variable_declarations", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix language features.
-        /// </summary>
-        internal static string Fix_language_features {
-            get {
-                return ResourceManager.GetString("Fix_language_features", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix object/collection initialization.
-        /// </summary>
-        internal static string Fix_object_collection_initialization {
-            get {
-                return ResourceManager.GetString("Fix_object_collection_initialization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix this. qualification.
-        /// </summary>
-        internal static string Fix_this_qualification {
-            get {
-                return ResourceManager.GetString("Fix_this_qualification", resourceCulture);
             }
         }
         
@@ -745,11 +736,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make readonly.
+        ///   Looks up a localized string similar to Make private fields readonly when possible.
         /// </summary>
-        internal static string Make_readonly {
+        internal static string Make_private_field_readonly_when_possible {
             get {
-                return ResourceManager.GetString("Make_readonly", resourceCulture);
+                return ResourceManager.GetString("Make_private_field_readonly_when_possible", resourceCulture);
             }
         }
         
