@@ -1633,7 +1633,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Function()
                     Return GetAnonymousTypeCreationInitializers(boundAnonymousTypeCreationExpression)
                 End Function)
-
             Dim syntax As SyntaxNode = boundAnonymousTypeCreationExpression.Syntax
             Dim type As ITypeSymbol = boundAnonymousTypeCreationExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypeCreationExpression.ConstantValueOpt)
@@ -1642,14 +1641,29 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess) As IPropertyReferenceOperation
-            Dim instance As Lazy(Of IOperation) = OperationFactory.NullOperation
             Dim [property] As IPropertySymbol = DirectCast(boundAnonymousTypePropertyAccess.ExpressionSymbol, IPropertySymbol)
+            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
+                Function() As IOperation
+                    Return CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], boundAnonymousTypePropertyAccess.Syntax.FirstAncestorOrSelf(Of AnonymousObjectCreationExpressionSyntax))
+                End Function)
             Dim arguments As Lazy(Of ImmutableArray(Of IArgumentOperation)) = New Lazy(Of ImmutableArray(Of IArgumentOperation))(Function() ImmutableArray(Of IArgumentOperation).Empty)
             Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
             Return New LazyPropertyReferenceExpression([property], instance, arguments, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateAnonymousTypePropertyAccessImplicitReceiverOperation(propertySym As IPropertySymbol, syntax As SyntaxNode) As InstanceReferenceExpression
+            Debug.Assert(propertySym IsNot Nothing)
+            Debug.Assert(syntax IsNot Nothing)
+            Return New InstanceReferenceExpression(
+                InstanceReferenceKind.ImplicitReceiver,
+                _semanticModel,
+                syntax,
+                propertySym.ContainingType,
+                constantValue:=Nothing,
+                isImplicit:=True)
         End Function
 
         Private Function CreateBoundQueryExpressionOperation(boundQueryExpression As BoundQueryExpression) As IOperation
