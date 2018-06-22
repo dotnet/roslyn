@@ -299,6 +299,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                         Assert.True(operation.Type == null || !operation.MustHaveNullType(), $"Unexpected non-null type: {operation.Type}");
 
+                        Assert.Same(semanticModel, operation.SemanticModel);
+                        Assert.NotSame(semanticModel, ((Operation)operation).OwningSemanticModel);
+                        Assert.NotNull(((Operation)operation).OwningSemanticModel);
+                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingModelOrSelf);
+                        Assert.Same(semanticModel, semanticModel.ContainingModelOrSelf);
+
                         if (operation.Parent == null)
                         {
                             roots.Add(operation);
