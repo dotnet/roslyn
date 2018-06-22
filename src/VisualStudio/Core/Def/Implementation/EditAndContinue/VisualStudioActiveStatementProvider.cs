@@ -30,16 +30,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 // TODO: return empty outside of debug session.
                 // https://github.com/dotnet/roslyn/issues/24325
 
-                int unexpectedError = 0;
                 var completion = new TaskCompletionSource<ImmutableArray<ActiveStatementDebugInfo>>();
                 var builders = default(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>);
                 int pendingRuntimes = 0;
                 int runtimeCount = 0;
 
-                var workList = DkmWorkList.Create(CompletionRoutine: _ =>
-                {
-                    completion.TrySetException(new InvalidOperationException($"Unexpected error enumerating active statements: 0x{unexpectedError:X8}"));
-                });
+                // No exception should be thrown in case of errors on the debugger side. 
+                // The debugger is responsible to provide telemetry for error cases.
+                var workList = DkmWorkList.Create(CompletionRoutine: _ => { }); 
 
                 void CancelWork()
                 {
@@ -48,11 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         FreeBuilders(builders);
                         builders = null;
 
-                        // TODO: DkmWorkList.Cancel doesn't currently work when invoked on the completion callback.
-                        // We continue execute all the queued callbacks -- they will be no-ops.
-                        // See https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/562781.
-                        // 
-                        // workList.Cancel();
+                        workList.Cancel();
 
                         // make sure we cancel with the token we received from the caller:
                         completion.TrySetCanceled(cancellationToken);
@@ -78,10 +72,19 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                     return;
                                 }
 
-                                if (activeStatementsResult.ErrorCode != 0)
+                                switch (activeStatementsResult.ErrorCode)
                                 {
-                                    unexpectedError = activeStatementsResult.ErrorCode;
-                                    return;
+                                    case 0:
+                                        break;
+
+                                    case VSConstants.S_FALSE:
+                                    case VSConstants.E_FAIL:
+                                    case (int)DkmExceptionCode.E_INSTRUCTION_NO_SOURCE:
+                                        return;
+
+                                    default:
+                                        CancelWork();
+                                        return;
                                 }
 
                                 // group active statement by instruction and aggregate flags and threads:
@@ -106,9 +109,17 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                         }
 
                                         int errorCode = sourcePositionResult.ErrorCode;
-                                        if (errorCode != 0)
+                                        switch(errorCode)
                                         {
-                                            unexpectedError = errorCode;
+                                            case 0:
+                                            case VSConstants.S_FALSE:
+                                            case VSConstants.E_FAIL:
+                                            case (int)DkmExceptionCode.E_INSTRUCTION_NO_SOURCE:
+                                                break;
+
+                                            default:
+                                                CancelWork();
+                                                return;
                                         }
 
                                         DkmSourcePosition position;
