@@ -1189,7 +1189,7 @@ class Program
 
         [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf4()
+        public async Task SimplifyToPredefinedTypeNameShouldBeOfferedInsideFunctionCalledNameOf()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
