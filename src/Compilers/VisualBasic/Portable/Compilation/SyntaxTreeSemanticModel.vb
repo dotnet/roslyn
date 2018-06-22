@@ -1431,7 +1431,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property OriginalSyntaxTreeModel As SyntaxTreeSemanticModel
+        Public Overrides ReadOnly Property ParentModel As SemanticModel
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ContainingModelOrSelf As SemanticModel
             Get
                 Return Me
             End Get

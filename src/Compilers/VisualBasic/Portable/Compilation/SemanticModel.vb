@@ -2297,18 +2297,7 @@ _Default:
         ''' If this is a speculative semantic model, then returns its parent semantic model.
         ''' Otherwise, returns null.
         ''' </summary>
-        Public Shadows ReadOnly Property ParentModel As SemanticModel
-            Get
-                Return If(OriginalSyntaxTreeModel?.IsSpeculativeSemanticModel, OriginalSyntaxTreeModel, Nothing)
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' If this is a member semantic model for executable code, then returns the syntax tree semantic model that was used to create this model.
-        ''' If this is a syntax tree semantic model, then returns this instance.
-        ''' Otherwise, returns null.
-        ''' </summary>
-        Friend MustOverride Shadows ReadOnly Property OriginalSyntaxTreeModel As SyntaxTreeSemanticModel
+        Public MustOverride Shadows ReadOnly Property ParentModel As SemanticModel
 
         ''' <summary>
         ''' Determines what type of conversion, if any, would be used if a given expression was
@@ -3054,12 +3043,6 @@ _Default:
         Protected NotOverridable Overrides ReadOnly Property ParentModelCore As SemanticModel
             Get
                 Return Me.ParentModel
-            End Get
-        End Property
-
-        Friend NotOverridable Overrides ReadOnly Property OriginalSyntaxTreeModelCore As SemanticModel
-            Get
-                Return Me.OriginalSyntaxTreeModel
             End Get
         End Property
 

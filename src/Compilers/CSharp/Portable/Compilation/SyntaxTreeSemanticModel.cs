@@ -588,7 +588,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return 0; }
         }
 
-        internal override SyntaxTreeSemanticModel OriginalSyntaxTreeModel => this;
+        public override CSharpSemanticModel ParentModel
+        {
+            get { return null; }
+        }
+
+        internal override SemanticModel ContainingModelOrSelf
+        {
+            get { return this; }
+        }
 
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
         {

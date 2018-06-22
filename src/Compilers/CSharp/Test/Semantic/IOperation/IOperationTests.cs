@@ -420,5 +420,82 @@ public class Test
             // Verify we return null operation for child nodes of member access expression.
             Assert.Null(model.GetOperation(expr.Name));
         }
+
+        [Fact]
+        public void TestSemanticModelOnOperationAncestors()
+        {
+            var compilation = CreateCompilation(@"
+class C 
+{
+  void M(bool flag)
+  {
+    if (flag)
+    {
+        int y = 1000;
+    }
+  }
+}
+");
+
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var literal = root.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+            IOperation operation = model.GetOperation(literal);
+            SemanticModel memberModel = ((Operation)operation).OwningSemanticModel;
+            while (operation != null)
+            {
+                Assert.Same(model, operation.SemanticModel);
+                Assert.Same(memberModel, ((Operation)operation).OwningSemanticModel);
+                operation = operation.Parent;
+            }
+        }
+
+        [Fact]
+        public void TestGetOperationOnSpeculativeSemanticModel()
+        {
+            var compilation = CreateCompilation(@"
+class C 
+{
+  void M(int x)
+  {
+    int y = 1000;     
+  }
+}
+");
+
+            var statement = (BlockSyntax)SyntaxFactory.ParseStatement(@"
+{ 
+   int z = 0;
+}
+");
+
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var typeDecl = (TypeDeclarationSyntax)root.Members[0];
+            var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            SemanticModel speculativeModel;
+            bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].SpanStart, statement, out speculativeModel);
+            Assert.True(success);
+            Assert.NotNull(speculativeModel);
+
+            var localDecl = (LocalDeclarationStatementSyntax)statement.Statements[0];
+            IOperation operation = speculativeModel.GetOperation(localDecl);
+            Assert.Equal(speculativeModel, operation.SemanticModel);
+
+            speculativeModel.VerifyOperationTree(localDecl, expectedOperationTree: @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int z = 0;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int z = 0')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 z) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'z = 0')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+    Initializer: 
+      null
+");
+        }
     }
 }

@@ -594,6 +594,7 @@ endRegion:
             {
                 visitor.Visit(root);
                 Assert.Null(root.Parent);
+                Assert.Null(((Operation)root).OwningSemanticModel);
                 Assert.Null(root.SemanticModel);
                 Assert.True(CanBeInControlFlowGraph(root), $"Unexpected node kind OperationKind.{root.Kind}");
 
@@ -601,6 +602,7 @@ endRegion:
                 {
                     visitor.Visit(operation);
                     Assert.NotNull(operation.Parent);
+                    Assert.Null(((Operation)operation).OwningSemanticModel);
                     Assert.Null(operation.SemanticModel);
                     Assert.True(CanBeInControlFlowGraph(operation), $"Unexpected node kind OperationKind.{operation.Kind}");
                 }

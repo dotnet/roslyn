@@ -19,12 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // create a SemanticModel for:
         // (a) A true field initializer (field = value) of a named type (incl. Enums) OR
         // (b) A parameter default value
-        private InitializerSemanticModel(SyntaxTreeSemanticModel parentSemanticModel,
-                                     CSharpSyntaxNode syntax,
+        private InitializerSemanticModel(CSharpSyntaxNode syntax,
                                      Symbol symbol,
                                      Binder rootBinder,
-                                     int? speculatedPosition = null) :
-            base(parentSemanticModel, syntax, symbol, rootBinder, speculatedPosition)
+                                     SyntaxTreeSemanticModel containingSemanticModelOpt = null,
+                                     SyntaxTreeSemanticModel parentSemanticModelOpt = null,
+                                     int speculatedPosition = 0) :
+            base(syntax, symbol, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition)
         {
             Debug.Assert(!(syntax is ConstructorInitializerSyntax));
         }
@@ -32,27 +33,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for a true field initializer (field = value) of a named type (incl. Enums).
         /// </summary>
-        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel parentSemanticModel, CSharpSyntaxNode syntax, FieldSymbol fieldSymbol, Binder rootBinder)
+        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, CSharpSyntaxNode syntax, FieldSymbol fieldSymbol, Binder rootBinder)
         {
+            Debug.Assert(containingSemanticModel != null);
             Debug.Assert(syntax.IsKind(SyntaxKind.VariableDeclarator) || syntax.IsKind(SyntaxKind.EnumMemberDeclaration));
-            return new InitializerSemanticModel(parentSemanticModel, syntax, fieldSymbol, rootBinder);
+            return new InitializerSemanticModel(syntax, fieldSymbol, rootBinder, containingSemanticModel);
         }
 
         /// <summary>
         /// Creates a SemanticModel for an autoprop initializer of a named type
         /// </summary>
-        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel parentSemanticModel, CSharpSyntaxNode syntax, PropertySymbol propertySymbol, Binder rootBinder)
+        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, CSharpSyntaxNode syntax, PropertySymbol propertySymbol, Binder rootBinder)
         {
+            Debug.Assert(containingSemanticModel != null);
             Debug.Assert(syntax.IsKind(SyntaxKind.PropertyDeclaration));
-            return new InitializerSemanticModel(parentSemanticModel, syntax, propertySymbol, rootBinder);
+            return new InitializerSemanticModel(syntax, propertySymbol, rootBinder, containingSemanticModel);
         }
 
         /// <summary>
         /// Creates a SemanticModel for a parameter default value.
         /// </summary>
-        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel parentSemanticModel, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder)
+        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder)
         {
-            return new InitializerSemanticModel(parentSemanticModel, syntax, parameterSymbol, rootBinder);
+            Debug.Assert(containingSemanticModel != null);
+            return new InitializerSemanticModel(syntax, parameterSymbol, rootBinder, containingSemanticModel);
         }
 
         /// <summary>
@@ -67,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new InitializerSemanticModel(parentSemanticModel, syntax, owner, rootBinder, position);
+            return new InitializerSemanticModel(syntax, owner, rootBinder, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
         }
 
         internal protected override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)

@@ -18,26 +18,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend MustInherit Class MemberSemanticModel
         Inherits VBSemanticModel
 
-        ' Original syntax tree model that was used to create this member semantic model.
-        Private ReadOnly _parentSemanticModel As SyntaxTreeSemanticModel
         Private ReadOnly _root As SyntaxNode
         Private ReadOnly _rootBinder As Binder
 
-        ' Field specific to speculative MemberSemanticModel
-        Private ReadOnly _speculatedPosition As Integer?
+        ' Field specific to non-speculative MemberSemanticModel
+        Private ReadOnly _containingSemanticModelOpt As SyntaxTreeSemanticModel
+
+        ' Fields specific to speculative MemberSemanticModel
+        Private ReadOnly _parentSemanticModelOpt As SyntaxTreeSemanticModel
+        Private ReadOnly _speculatedPosition As Integer
 
         Private ReadOnly _ignoresAccessibility As Boolean
 
         Private ReadOnly _operationFactory As Lazy(Of VisualBasicOperationFactory)
 
-        Friend Sub New(parentSemanticModel As SyntaxTreeSemanticModel, root As SyntaxNode, rootBinder As Binder, speculatedPosition As Integer?, Optional ignoreAccessibility As Boolean = False)
-            Debug.Assert(parentSemanticModel IsNot Nothing)
-            Debug.Assert(Not parentSemanticModel.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
+        Friend Sub New(root As SyntaxNode,
+                       rootBinder As Binder,
+                       containingSemanticModelOpt As SyntaxTreeSemanticModel,
+                       parentSemanticModelOpt As SyntaxTreeSemanticModel,
+                       speculatedPosition As Integer,
+                       Optional ignoreAccessibility As Boolean = False)
+            Debug.Assert(containingSemanticModelOpt IsNot Nothing Xor parentSemanticModelOpt IsNot Nothing)
+            Debug.Assert(containingSemanticModelOpt Is Nothing OrElse Not containingSemanticModelOpt.IsSpeculativeSemanticModel)
+            Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
-            _parentSemanticModel = parentSemanticModel
             _root = root
             _ignoresAccessibility = ignoreAccessibility
             _rootBinder = SemanticModelBinder.Mark(rootBinder, ignoreAccessibility)
+            _containingSemanticModelOpt = containingSemanticModelOpt
+            _parentSemanticModelOpt = parentSemanticModelOpt
             _speculatedPosition = speculatedPosition
 
             _operationFactory = New Lazy(Of VisualBasicOperationFactory)(Function() New VisualBasicOperationFactory(Me))
@@ -57,25 +66,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property IsSpeculativeSemanticModel As Boolean
             Get
-                Return _speculatedPosition.HasValue
+                Return _parentSemanticModelOpt IsNot Nothing
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property OriginalPositionForSpeculation As Integer
             Get
-                Return If(_speculatedPosition.HasValue, _speculatedPosition.Value, 0)
+                Return Me._speculatedPosition
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property OriginalSyntaxTreeModel As SyntaxTreeSemanticModel
+        Public NotOverridable Overrides ReadOnly Property ParentModel As SemanticModel
             Get
-                Return _parentSemanticModel
+                Return Me._parentSemanticModelOpt
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property ContainingModelOrSelf As SemanticModel
+            Get
+                Return If(Me._containingSemanticModelOpt, DirectCast(Me, SemanticModel))
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
-                Return _ignoresAccessibility
+                Return Me._ignoresAccessibility
             End Get
         End Property
 

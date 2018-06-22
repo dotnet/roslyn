@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal abstract partial class MemberSemanticModel : CSharpSemanticModel
     {
-        // Original syntax tree model that was used to create this member semantic model.
-        private readonly SyntaxTreeSemanticModel _parentSemanticModel;
         private readonly Symbol _memberSymbol;
         private readonly CSharpSyntaxNode _root;
         private readonly DiagnosticBag _ignoredDiagnostics = new DiagnosticBag();
@@ -31,28 +29,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly Binder RootBinder;
 
-        // Specific to a speculative MemberSemanticModel.
-        private readonly int? _speculatedPosition;
+        // Field specific to a non-speculative MemberSemanticModel that must have a containing semantic model.
+        private readonly SyntaxTreeSemanticModel _containingSemanticModelOpt;
+
+        // Fields specific to a speculative MemberSemanticModel.
+        private readonly SyntaxTreeSemanticModel _parentSemanticModelOpt;
+        private readonly int _speculatedPosition;
 
         private readonly Lazy<CSharpOperationFactory> _operationFactory;
 
         protected MemberSemanticModel(
-            SyntaxTreeSemanticModel parentSemanticModel,
             CSharpSyntaxNode root,
             Symbol memberSymbol,
             Binder rootBinder,
-            int? speculatedPosition)
+            SyntaxTreeSemanticModel containingSemanticModelOpt,
+            SyntaxTreeSemanticModel parentSemanticModelOpt,
+            int speculatedPosition)
         {
-            Debug.Assert(parentSemanticModel != null);
-            Debug.Assert(!parentSemanticModel.IsSpeculativeSemanticModel, CSharpResources.ChainingSpeculativeModelIsNotSupported);
             Debug.Assert(root != null);
             Debug.Assert((object)memberSymbol != null);
-            
-            _parentSemanticModel = parentSemanticModel;
+            Debug.Assert(parentSemanticModelOpt == null ^ containingSemanticModelOpt == null);
+            Debug.Assert(containingSemanticModelOpt == null || !containingSemanticModelOpt.IsSpeculativeSemanticModel);
+            Debug.Assert(parentSemanticModelOpt == null || !parentSemanticModelOpt.IsSpeculativeSemanticModel, CSharpResources.ChainingSpeculativeModelIsNotSupported);
+
             _root = root;
             _memberSymbol = memberSymbol;
-            
+
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
+            _containingSemanticModelOpt = containingSemanticModelOpt;
+            _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _parentSemanticModel.Compilation;
+                return (_containingSemanticModelOpt ?? _parentSemanticModelOpt).Compilation;
             }
         }
 
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _speculatedPosition.HasValue;
+                return _parentSemanticModelOpt != null;
             }
         }
 
@@ -97,15 +102,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _speculatedPosition.HasValue ? _speculatedPosition.Value : 0;
+                return _speculatedPosition;
             }
         }
 
-        internal sealed override SyntaxTreeSemanticModel OriginalSyntaxTreeModel
+        public sealed override CSharpSemanticModel ParentModel
         {
             get
             {
-                return _parentSemanticModel;
+                return _parentSemanticModelOpt;
+            }
+        }
+
+        internal sealed override SemanticModel ContainingModelOrSelf
+        {
+            get
+            {
+                return _containingSemanticModelOpt ?? (SemanticModel)this;
             }
         }
 

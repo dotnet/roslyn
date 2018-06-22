@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override SyntaxTreeSemanticModel OriginalSyntaxTreeModel
+        public override CSharpSemanticModel ParentModel
         {
             get
             {

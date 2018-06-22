@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.NotARootOperation, argumentNameForException);
             }
 
-            if (operation.SemanticModel == null)
+            if (((Operation)operation).OwningSemanticModel == null)
             {
                 throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
             }
@@ -368,18 +368,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// If this is a member semantic model for executable code, then returns the syntax tree semantic model that was used to create this model.
-        /// If this is a syntax tree semantic model, then returns this instance.
-        /// Otherwise, returns null.
+        /// If this is a non-speculative member semantic model, then returns the containing semantic model for the entire tree.
+        /// Otherwise, returns this instance of the semantic model.
         /// </summary>
-        internal SemanticModel OriginalSyntaxTreeModel => OriginalSyntaxTreeModelCore;
-
-        /// <summary>
-        /// If this is a member semantic model for executable code, then returns the syntax tree semantic model that was used to create this model.
-        /// If this is a syntax tree semantic model, then returns this instance.
-        /// Otherwise, returns null.
-        /// </summary>
-        internal abstract SemanticModel OriginalSyntaxTreeModelCore
+        internal abstract SemanticModel ContainingModelOrSelf
         {
             get;
         }

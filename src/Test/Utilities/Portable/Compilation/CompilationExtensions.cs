@@ -161,8 +161,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static void VerifyOperationTree(this Compilation compilation, SyntaxNode node, string expectedOperationTree)
         {
-            var actualTextBuilder = new StringBuilder();
             SemanticModel model = compilation.GetSemanticModel(node.SyntaxTree);
+            model.VerifyOperationTree(node, expectedOperationTree);
+        }
+
+        internal static void VerifyOperationTree(this SemanticModel model, SyntaxNode node, string expectedOperationTree)
+        {
+            var actualTextBuilder = new StringBuilder();
             AppendOperationTree(model, node, actualTextBuilder);
             OperationTreeVerifier.Verify(expectedOperationTree, actualTextBuilder.ToString());
         }
