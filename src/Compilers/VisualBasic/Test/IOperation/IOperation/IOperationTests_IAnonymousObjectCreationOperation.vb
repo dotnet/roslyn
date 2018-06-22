@@ -59,14 +59,14 @@ Block[B1] - Block
                             Left: 
                               IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As System.Int32, Key b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key a As System.Int32, Key b As System.Int32>, IsImplicit) (Syntax: 'New With {  ... ey .b = j }')
                             Right: 
                               IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Key .b = j')
                             Left: 
                               IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As System.Int32, Key b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key a As System.Int32, Key b As System.Int32>, IsImplicit) (Syntax: 'New With {  ... ey .b = j }')
                             Right: 
                               IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
 
@@ -135,8 +135,20 @@ Block[B1] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: i As System.Int32, j As System.Int32>) (Syntax: 'New With {i, b.j}')
                       Initializers(2):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
-                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b.j')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, j As System.Int32>.i As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: i As System.Int32, j As System.Int32>, IsImplicit) (Syntax: 'New With {i, b.j}')
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'b.j')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, j As System.Int32>.j As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'b.j')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: i As System.Int32, j As System.Int32>, IsImplicit) (Syntax: 'New With {i, b.j}')
+                            Right: 
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b.j')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -168,7 +180,6 @@ End Class
 
             Dim expectedDiagnostics = String.Empty
 
-            ' Affected by https://github.com/dotnet/roslyn/issues/27338
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
     Statements (0)
@@ -182,12 +193,7 @@ Block[B1] - Block
 
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
           Value: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i')
-              Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsImplicit) (Syntax: 'b')
-                  Children(0)
-              Right: 
-                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'j')
           Value: 
@@ -205,8 +211,20 @@ Block[B1] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: i As System.Int32, b As System.Int32>) (Syntax: 'New With {i, .b = j}')
                       Initializers(2):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
-                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, b As System.Int32>.i As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: i As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {i, .b = j}')
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = j')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: i As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {i, .b = j}')
+                            Right: 
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -307,8 +325,20 @@ Block[B1] - Block
                                             Next (Return) Block[B2#A1]
                                                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.String>, IsImplicit) (Syntax: 'y In b')
                                                   Initializers(2):
-                                                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                                                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'y')
+                                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x In a')
+                                                        Left: 
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.String>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                            Instance Receiver: 
+                                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.String>, IsImplicit) (Syntax: 'y In b')
+                                                        Right: 
+                                                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'y In b')
+                                                        Left: 
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.String>.y As System.String (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'y')
+                                                            Instance Receiver: 
+                                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.String>, IsImplicit) (Syntax: 'y In b')
+                                                        Right: 
+                                                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'y')
                                         Block[B2#A1] - Exit
                                             Predecessors: [B1#A1]
                                             Statements (0)
@@ -392,8 +422,20 @@ Block[B1] - Block
                                             Next (Return) Block[B2#A0]
                                                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y = x')
                                                   Initializers(2):
-                                                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                                                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x In a')
+                                                        Left: 
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                            Instance Receiver: 
+                                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y = x')
+                                                        Right: 
+                                                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'y = x')
+                                                        Left: 
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                            Instance Receiver: 
+                                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y = x')
+                                                        Right: 
+                                                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
                                         Block[B2#A0] - Exit
                                             Predecessors: [B1#A0]
                                             Statements (0)
@@ -480,14 +522,14 @@ Block[B1] - Block
                         Left: 
                           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
                             Instance Receiver: 
-                              null
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {. ... 2, .b = .a}')
                         Right: 
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2')
                       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = .a')
                         Left: 
                           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
                             Instance Receiver: 
-                              null
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {. ... 2, .b = .a}')
                         Right: 
                           IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: '.a')
 
@@ -560,14 +602,14 @@ Block[B1] - Block
                     Left: 
                       IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
                         Instance Receiver: 
-                          null
+                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {. ... 2, .b = .a}')
                     Right: 
                       IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2')
                   ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = .a')
                     Left: 
                       IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
                         Instance Receiver: 
-                          null
+                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {. ... 2, .b = .a}')
                     Right: 
                       IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: '.a')
 
@@ -587,14 +629,14 @@ Block[B1] - Block
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As <anonymous type: a As System.Int32, b As System.Int32>>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As <anonymous type: a As System.Int32, b As System.Int32>>, IsImplicit) (Syntax: 'New With {. ... , .b = .a}}')
                             Right: 
                               IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: '.b = New Wi ... 2, .b = .a}')
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As <anonymous type: a As System.Int32, b As System.Int32>>.b As <anonymous type: a As System.Int32, b As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: 'b')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As <anonymous type: a As System.Int32, b As System.Int32>>, IsImplicit) (Syntax: 'New With {. ... , .b = .a}}')
                             Right: 
                               IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {. ... 2, .b = .a}')
 
@@ -666,14 +708,14 @@ Block[B1] - Block
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As ?, b As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?, b As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... b, .b = .b}')
                             Right: 
                               IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '.b')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.b = .b')
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As ?, b As ?>.b As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'b')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?, b As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... b, .b = .b}')
                             Right: 
                               IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '.b')
 
@@ -794,21 +836,21 @@ Block[B1] - Block
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>.i As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'i')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... 2, .j = .i}')
                             Right: 
                               IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.i = i2')
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>.i As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... 2, .j = .i}')
                             Right: 
                               IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'i2')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.j = .i')
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>.j As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'j')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... 2, .j = .i}')
                             Right: 
                               IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: '.i')
 
@@ -873,7 +915,7 @@ Block[B1] - Block
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {.a = }')
                             Right: 
                               IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: '')
 
@@ -946,7 +988,7 @@ Block[B1] - Block
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: M2 As System.Boolean>.M2 As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsInvalid) (Syntax: 'M2')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: M2 As System.Boolean>, IsInvalid, IsImplicit) (Syntax: 'New With {.M2(i) = j}')
                             Right: 
                               IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '(i) = j')
 
@@ -1016,7 +1058,7 @@ Block[B1] - Block
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As System.Boolean>.a As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsInvalid) (Syntax: 'a')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Boolean>, IsInvalid, IsImplicit) (Syntax: 'New With {.a(i) = j}')
                             Right: 
                               IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '(i) = j')
 
@@ -1107,14 +1149,14 @@ Block[B4] - Block
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {  ... ), .b = j }')
                             Right: 
                               IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = j')
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {  ... ), .b = j }')
                             Right: 
                               IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
 
@@ -1205,14 +1247,14 @@ Block[B4] - Block
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {  ... If(i1, i2)}')
                             Right: 
                               IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = If(i1, i2)')
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {  ... If(i1, i2)}')
                             Right: 
                               IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
 
@@ -1331,14 +1373,14 @@ Block[B7] - Block
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {  ... If(j1, j2)}')
                             Right: 
                               IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = If(j1, j2)')
                             Left: 
                               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {  ... If(j1, j2)}')
                             Right: 
                               IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(j1, j2)')
 
@@ -1455,14 +1497,14 @@ Block[B0] - Entry
                         Left: 
                           IPropertyReferenceOperation: Property <anonymous type: a As C, b As Function <generated method>() As ?>.a As C (OperationKind.PropertyReference, Type: C) (Syntax: 'a')
                             Instance Receiver: 
-                              null
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {  ...  (c2, .a) }')
                         Right: 
                           IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
                       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: Function <generated method>() As ?, IsInvalid) (Syntax: '.b = Functi ... If (c2, .a)')
                         Left: 
                           IPropertyReferenceOperation: Property <anonymous type: a As C, b As Function <generated method>() As ?>.b As <generated method> (OperationKind.PropertyReference, Type: Function <generated method>() As ?) (Syntax: 'b')
                             Instance Receiver: 
-                              null
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {  ...  (c2, .a) }')
                         Right: 
                           IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As ?, IsInvalid, IsImplicit) (Syntax: 'Function() If (c2, .a)')
 
@@ -1536,14 +1578,14 @@ Block[B0] - Entry
                         Left: 
                           IPropertyReferenceOperation: Property <anonymous type: a As C, b As Function <generated method>() As ?>.a As C (OperationKind.PropertyReference, Type: C) (Syntax: 'a')
                             Instance Receiver: 
-                              null
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {  ...  (c2, .a) }')
                         Right: 
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
                       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: Function <generated method>() As ?, IsInvalid) (Syntax: '.b = Functi ... If (c2, .a)')
                         Left: 
                           IPropertyReferenceOperation: Property <anonymous type: a As C, b As Function <generated method>() As ?>.b As <generated method> (OperationKind.PropertyReference, Type: Function <generated method>() As ?) (Syntax: 'b')
                             Instance Receiver: 
-                              null
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {  ...  (c2, .a) }')
                         Right: 
                           IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As ?, IsInvalid, IsImplicit) (Syntax: 'Function() If (c2, .a)')
 

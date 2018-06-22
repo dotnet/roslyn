@@ -3,16 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal partial class NavigateToItemProvider : INavigateToItemProvider
+    internal partial class NavigateToItemProvider : INavigateToItemProvider2
     {
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -32,6 +30,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             _displayFactory = new NavigateToItemDisplayFactory();
         }
 
+        public ISet<string> KindsProvided { get; } = ImmutableHashSet.Create(
+            NavigateToItemKind.Class,
+            NavigateToItemKind.Constant,
+            NavigateToItemKind.Delegate,
+            NavigateToItemKind.Enum,
+            NavigateToItemKind.EnumItem,
+            NavigateToItemKind.Event,
+            NavigateToItemKind.Field,
+            NavigateToItemKind.Interface,
+            NavigateToItemKind.Method,
+            NavigateToItemKind.Module,
+            NavigateToItemKind.Property,
+            NavigateToItemKind.Structure);
+
+        public bool CanFilter => true;
+
         public void StopSearch()
         {
             _cancellationTokenSource.Cancel();
@@ -46,25 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public void StartSearch(INavigateToCallback callback, string searchValue)
         {
-            this.StopSearch();
-
-            if (string.IsNullOrWhiteSpace(searchValue))
-            {
-                callback.Done();
-                return;
-            }
-
-            var searchCurrentDocument = GetSearchCurrentDocumentOption(callback);
-            var searcher = new Searcher(
-                _workspace.CurrentSolution,
-                _asyncListener,
-                _displayFactory,
-                callback,
-                searchValue,
-                searchCurrentDocument,
-                _cancellationTokenSource.Token);
-
-            searcher.Search();
+            StartSearch(callback, searchValue, KindsProvided);
         }
 
         private bool GetSearchCurrentDocumentOption(INavigateToCallback callback)
@@ -87,6 +83,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         {
             var options2 = callback.Options as INavigateToOptions2;
             return options2?.SearchCurrentDocument ?? false;
+        }
+
+        public void StartSearch(INavigateToCallback callback, string searchValue, INavigateToFilterParameters filter)
+        {
+            StartSearch(callback, searchValue, filter.Kinds);
+        }
+
+        private void StartSearch(INavigateToCallback callback, string searchValue, ISet<string> kinds)
+        {
+            this.StopSearch();
+
+            if (string.IsNullOrWhiteSpace(searchValue))
+            {
+                callback.Done();
+                return;
+            }
+
+            if (kinds == null || kinds.Count == 0)
+            {
+                kinds = KindsProvided;
+            }
+
+            var searchCurrentDocument = GetSearchCurrentDocumentOption(callback);
+            var searcher = new Searcher(
+                _workspace.CurrentSolution,
+                _asyncListener,
+                _displayFactory,
+                callback,
+                searchValue,
+                searchCurrentDocument,
+                kinds,
+                _cancellationTokenSource.Token);
+
+            searcher.Search();
         }
     }
 }

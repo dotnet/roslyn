@@ -13,20 +13,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public static partial class RuntimeUtilities
     {
-        internal static BuildPaths CreateBuildPaths(string workingDirectory)
+        internal static BuildPaths CreateBuildPaths(string workingDirectory, string tempDirectory = null)
         {
+            tempDirectory = tempDirectory ?? Path.GetTempPath();
 #if NET46
             return new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(BuildPathsUtil).Assembly.Location),
                 workingDir: workingDirectory,
                 sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
-                tempDir: Path.GetTempPath());
+                tempDir: tempDirectory);
 #else
             return new BuildPaths(
                 clientDir: AppContext.BaseDirectory,
                 workingDir: workingDirectory,
                 sdkDir: null,
-                tempDir: Path.GetTempPath());
+                tempDir: tempDirectory);
 #endif
         }
 
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #elif NETCOREAPP2_0
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
 #elif NETSTANDARD1_3
-            throw new NotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
 #error Unsupported configuration
 #endif
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #if NET46 || NETCOREAPP2_0
             return type.GetTypeInfo().Assembly.Location;
 #elif NETSTANDARD1_3
-            throw new NotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
 #error Unsupported configuration
 #endif

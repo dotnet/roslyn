@@ -685,11 +685,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     if (parent.IsKind(SyntaxKind.Block))
                     {
-                        yield return KeyValuePair.Create(parent, (int)(direction > 0 ? BlockPart.CloseBrace : BlockPart.OpenBrace));
+                        yield return KeyValuePairUtil.Create(parent, (int)(direction > 0 ? BlockPart.CloseBrace : BlockPart.OpenBrace));
                     }
                     else if (parent.IsKind(SyntaxKind.ForEachStatement))
                     {
-                        yield return KeyValuePair.Create(parent, (int)ForEachPart.ForEach);
+                        yield return KeyValuePairUtil.Create(parent, (int)ForEachPart.ForEach);
                     }
 
                     if (direction > 0)
@@ -705,14 +705,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // We don't have any better place where to place the span than the initial field.
                         // Consider: in non-partial classes we could find a single constructor. 
                         // Otherwise, it would be confusing to select one arbitrarily.
-                        yield return KeyValuePair.Create(statement, -1);
+                        yield return KeyValuePairUtil.Create(statement, -1);
                     }
 
                     nodeOrToken = statement = parent;
                     fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
                     direction = +1;
 
-                    yield return KeyValuePair.Create(nodeOrToken.AsNode(), 0);
+                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode(), 0);
                 }
                 else
                 {
@@ -735,14 +735,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     if (node.IsKind(SyntaxKind.Block))
                     {
-                        yield return KeyValuePair.Create(node, (int)(direction > 0 ? BlockPart.OpenBrace : BlockPart.CloseBrace));
+                        yield return KeyValuePairUtil.Create(node, (int)(direction > 0 ? BlockPart.OpenBrace : BlockPart.CloseBrace));
                     }
                     else if (node.IsKind(SyntaxKind.ForEachStatement))
                     {
-                        yield return KeyValuePair.Create(node, (int)ForEachPart.ForEach);
+                        yield return KeyValuePairUtil.Create(node, (int)ForEachPart.ForEach);
                     }
 
-                    yield return KeyValuePair.Create(node, 0);
+                    yield return KeyValuePairUtil.Create(node, 0);
                 }
             }
         }

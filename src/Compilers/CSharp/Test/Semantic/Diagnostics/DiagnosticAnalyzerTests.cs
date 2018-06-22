@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -131,7 +132,7 @@ public class C : NotFound
 }";
             // TODO: Compilation create doesn't accept analyzers anymore.
             var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
-                new[] { KeyValuePair.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Suppress) });
+                new[] { KeyValuePairUtil.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Suppress) });
 
             CreateCompilationWithMscorlib45(source, options: options/*, analyzers: new IDiagnosticAnalyzerFactory[] { new ComplainAboutX() }*/).VerifyDiagnostics(
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
@@ -154,7 +155,7 @@ public class C : NotFound
 }";
             // TODO: Compilation create doesn't accept analyzers anymore.
             var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
-                new[] { KeyValuePair.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Error) });
+                new[] { KeyValuePairUtil.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Error) });
 
             CreateCompilationWithMscorlib45(source, options: options).VerifyDiagnostics(
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
@@ -2437,6 +2438,116 @@ internal class Derived : Base
                     Diagnostic("ID", squiggledText: "protected Base(int i) { }").WithArguments(".ctor").WithLocation(4, 5),
                     Diagnostic("ID", squiggledText: "public Derived() : base(Field) { }").WithArguments(".ctor").WithLocation(11, 5)
                 });
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TestGetControlFlowGraphInOperationAnalyzers()
+        {
+            string source = @"class C { void M(int p = 0) { int x = 1 + 2; } }";
+
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            compilation.VerifyDiagnostics(
+                // (1,35): warning CS0219: The variable 'x' is assigned but its value is never used
+                // class C { void M(int p = 0) { int x = 1 + 2; } }
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 35));
+
+            var expectedFlowGraphs = new[]
+            {
+                // Method body
+                @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 x]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 1 + 2')
+              Left: 
+                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x = 1 + 2')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
+                  Left: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)",
+
+                // Parameter initializer
+                @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 0')
+          Left: 
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: '= 0')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)"
+            };
+
+            // Verify analyzer diagnostics and flow graphs for different kind of operation analyzers.
+
+            var analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.Operation, verifyGetControlFlowGraph: true);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
+                expected: new[] {
+                    Diagnostic("ID", "0").WithArguments("Operation").WithLocation(1, 26),
+                    Diagnostic("ID", "1").WithArguments("Operation").WithLocation(1, 39),
+                    Diagnostic("ID", "2").WithArguments("Operation").WithLocation(1, 43)
+                });
+            verifyFlowGraphs(analyzer.GetControlFlowGraphs());
+
+            analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.OperationInOperationBlockStart, verifyGetControlFlowGraph: true);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
+                expected: new[] {
+                Diagnostic("ID", "0").WithArguments("OperationInOperationBlockStart").WithLocation(1, 26),
+                Diagnostic("ID", "1").WithArguments("OperationInOperationBlockStart").WithLocation(1, 39),
+                Diagnostic("ID", "2").WithArguments("OperationInOperationBlockStart").WithLocation(1, 43)
+            });
+            verifyFlowGraphs(analyzer.GetControlFlowGraphs());
+
+            analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.OperationBlock, verifyGetControlFlowGraph: true);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
+                expected: new[] {
+                    Diagnostic("ID", "M").WithArguments("OperationBlock").WithLocation(1, 16)
+                });
+            verifyFlowGraphs(analyzer.GetControlFlowGraphs());
+
+            analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.OperationBlockEnd, verifyGetControlFlowGraph: true);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
+                expected: new[] {
+                    Diagnostic("ID", "M").WithArguments("OperationBlockEnd").WithLocation(1, 16)
+                });
+            verifyFlowGraphs(analyzer.GetControlFlowGraphs());
+
+            void verifyFlowGraphs(ImmutableArray<ControlFlowGraph> flowGraphs)
+            {
+                for (int i = 0; i < expectedFlowGraphs.Length; i++)
+                {
+                    string expectedFlowGraph = expectedFlowGraphs[i];
+                    ControlFlowGraph actualFlowGraph = flowGraphs[i];
+                    ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph);
+                }
+            }
         }
     }
 }

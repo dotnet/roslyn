@@ -1397,6 +1397,12 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ReturnStatement(SyntaxNode expression = null);
 
         /// <summary>
+        /// Creates a statement that can be used to yield a value from an iterator method.
+        /// </summary>
+        /// <param name="expression">An expression that can be yielded.</param>
+        internal abstract SyntaxNode YieldReturnStatement(SyntaxNode expression);
+
+        /// <summary>
         /// Creates a statement that can be used to throw an exception.
         /// </summary>
         /// <param name="expression">An optional expression that can be thrown.</param>
