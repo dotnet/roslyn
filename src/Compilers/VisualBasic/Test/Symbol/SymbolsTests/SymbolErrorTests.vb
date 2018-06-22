@@ -20443,7 +20443,7 @@ End Module
         ]]></file>
     </compilation>, XmlReferences)
             Dim expectedErrors1 = <errors><![CDATA[
-BC42333: Interface 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' is ambiguous with another implemented interface 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XDocument)' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of Out T)'.
+BC42333: Interface 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' is ambiguous with another implemented interface 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XDocument)' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of T)'.
         Implements System.Collections.Generic.IEnumerable(Of XDocument), System.Collections.Generic.IEnumerable(Of XElement)
                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                  ]]></errors>

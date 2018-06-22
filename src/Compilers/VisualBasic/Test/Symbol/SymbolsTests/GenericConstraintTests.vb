@@ -2946,10 +2946,10 @@ BC36739: Type 'IAI(Of T).IT' does not inherit the generic type parameters of its
 BC36739: Type 'CF(Of T).CT' does not inherit the generic type parameters of its container.
     Inherits CF(Of C).CT ' BC36739
              ~~~~~~~~~~~
-BC36739: Type 'IIn(Of In T).IT' does not inherit the generic type parameters of its container.
+BC36739: Type 'IIn(Of T).IT' does not inherit the generic type parameters of its container.
     Implements IIn(Of Object).IT ' BC36739
                ~~~~~~~~~~~~~~~~~
-BC36739: Type 'IIn(Of In T).IOut' does not inherit the generic type parameters of its container.
+BC36739: Type 'IIn(Of T).IOut' does not inherit the generic type parameters of its container.
     Implements IIn(Of Object).IOut ' BC36739
                ~~~~~~~~~~~~~~~~~~~
 </expected>)

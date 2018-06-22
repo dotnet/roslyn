@@ -17944,7 +17944,7 @@ End Module
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36754: 'Variance(Of Short)' cannot be converted to 'IVariance(Of Double)' because 'Short' is not derived from 'Double', as required for the 'Out' generic parameter 'T' in 'Interface IVariance(Of Out T)'.
+BC36754: 'Variance(Of Short)' cannot be converted to 'IVariance(Of Double)' because 'Short' is not derived from 'Double', as required for the 'Out' generic parameter 'T' in 'Interface IVariance(Of T)'.
             Dim x As IVariance(Of Double) = New Variance(Of Short)
                                             ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -17973,7 +17973,7 @@ BC36754: 'Variance(Of Short)' cannot be converted to 'IVariance(Of Double)' beca
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36755: 'Variance(Of Double)' cannot be converted to 'IVariance2(Of Short)' because 'Short' is not derived from 'Double', as required for the 'In' generic parameter 'T' in 'Interface IVariance2(Of In T)'.
+BC36755: 'Variance(Of Double)' cannot be converted to 'IVariance2(Of Short)' because 'Short' is not derived from 'Double', as required for the 'In' generic parameter 'T' in 'Interface IVariance2(Of T)'.
             Dim x As IVariance2(Of Short) = New Variance(Of Double)
                                             ~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
