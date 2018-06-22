@@ -278,7 +278,7 @@ BC40056: Namespace or type specified in the Imports 'Global.Global' doesn't cont
                     </file>
                 </compilation>)
 
-            CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "Global", {"[Global]", "[Global]", "C1(Of T As [Global])"}, False)
+            CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "Global", {"[Global]", "[Global]", "C1(Of T)"}, False)
             CompilationUtils.AssertTheseDiagnostics(compilation1, <errors>
 BC30182: Type expected.
                         Class C1(Of T As Global)
@@ -312,7 +312,7 @@ BC30183: Keyword is not valid as an identifier.
                     </file>
                 </compilation>)
 
-            CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "Global", "[Global](Of T As Class)", "C1(Of [Global] As Class)")
+            CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "Global", "[Global](Of T)", "C1(Of [Global])")
             CompilationUtils.AssertTheseParseDiagnostics(compilation1, <errors>
 BC30183: Keyword is not valid as an identifier.
 Class Global(Of T As Class)
@@ -334,7 +334,7 @@ BC30183: Keyword is not valid as an identifier.
                     </file>
                 </compilation>)
 
-            CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "C1", "C1(Of T As Class)")
+            CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "C1", "C1(Of T)")
             CompilationUtils.AssertTheseParseDiagnostics(compilation1, <errors>
 BC30188: Declaration expected.
 Global Class C1(of T as class)

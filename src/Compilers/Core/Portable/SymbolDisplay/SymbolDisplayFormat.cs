@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 genericsOptions:
                     SymbolDisplayGenericsOptions.IncludeTypeParameters |
-                    SymbolDisplayGenericsOptions.IncludeTypeConstraints |
                     SymbolDisplayGenericsOptions.IncludeVariance,
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeParameters |
@@ -102,7 +101,6 @@ namespace Microsoft.CodeAnalysis
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 genericsOptions:
                     SymbolDisplayGenericsOptions.IncludeTypeParameters |
-                    SymbolDisplayGenericsOptions.IncludeTypeConstraints |
                     SymbolDisplayGenericsOptions.IncludeVariance,
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeParameters |

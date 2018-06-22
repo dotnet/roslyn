@@ -769,16 +769,16 @@ BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of 
 BC42016: Implicit conversion from 'Module1.I124(Of Module1.S1)' to 'Module1.I124(Of Object)'; this conversion may fail because 'Module1.S1' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
         Dim x4 As I124(Of Object) = i4
                                     ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of V As Module1.S1)'; this conversion may fail because 'V' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of V)'; this conversion may fail because 'V' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
             Dim x3 As I123(Of V) = i3
                                    ~~
-BC42016: Implicit conversion from 'Module1.I124(Of V As Module1.S1)' to 'Module1.I124(Of Object)'; this conversion may fail because 'V' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.I124(Of V)' to 'Module1.I124(Of Object)'; this conversion may fail because 'V' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
             Dim x4 As I124(Of Object) = i4
                                         ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of V2 As Module1.S1?)'; this conversion may fail because 'V2' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of V2)'; this conversion may fail because 'V2' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
             Dim x3 As I123(Of V2) = i3
                                     ~~
-BC42016: Implicit conversion from 'Module1.I124(Of V2 As Module1.S1?)' to 'Module1.I124(Of Object)'; this conversion may fail because 'V2' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.I124(Of V2)' to 'Module1.I124(Of Object)'; this conversion may fail because 'V2' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
             Dim x4 As I124(Of Object) = i4
                                         ~~
 </expected>)
@@ -793,16 +793,16 @@ BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of Modul
 BC36754: 'Module1.I124(Of Module1.S1)' cannot be converted to 'Module1.I124(Of Object)' because 'Module1.S1' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
         Dim x4 As I124(Of Object) = i4
                                     ~~
-BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of V As Module1.S1)' because 'V' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of V)' because 'V' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
             Dim x3 As I123(Of V) = i3
                                    ~~
-BC36754: 'Module1.I124(Of V As Module1.S1)' cannot be converted to 'Module1.I124(Of Object)' because 'V' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC36754: 'Module1.I124(Of V)' cannot be converted to 'Module1.I124(Of Object)' because 'V' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
             Dim x4 As I124(Of Object) = i4
                                         ~~
-BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of V2 As Module1.S1?)' because 'V2' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of V2)' because 'V2' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
             Dim x3 As I123(Of V2) = i3
                                     ~~
-BC36754: 'Module1.I124(Of V2 As Module1.S1?)' cannot be converted to 'Module1.I124(Of Object)' because 'V2' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC36754: 'Module1.I124(Of V2)' cannot be converted to 'Module1.I124(Of Object)' because 'V2' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
             Dim x4 As I124(Of Object) = i4
                                         ~~
 </expected>)
@@ -1451,7 +1451,7 @@ BC30311: Value of type 'Module1.B2' cannot be converted to 'S'.
 BC42016: Conversion from 'T' to 'Module1.I123(Of Module1.B2)' may be ambiguous.
         Dim p1 As I123(Of B2) = x
                                 ~
-BC42016: Implicit conversion from 'Module1.I123(Of S As Class)' to 'Module1.I123(Of Module1.B2)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of S)' to 'Module1.I123(Of Module1.B2)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
         p1 = z
              ~
 BC42016: Conversion from 'T()' to 'Module1.I123(Of Module1.B2)()' may be ambiguous.
@@ -1466,7 +1466,7 @@ BC30311: Value of type 'Module1.B1' cannot be converted to 'S'.
 BC42016: Conversion from 'T' to 'Module1.I124(Of Module1.B1)' may be ambiguous.
         Dim p1 As I124(Of B1) = x
                                 ~
-BC42016: Implicit conversion from 'Module1.I124(Of S As Class)' to 'Module1.I124(Of Module1.B1)'; this conversion may fail because 'S' is not derived from 'Module1.B1', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.I124(Of S)' to 'Module1.I124(Of Module1.B1)'; this conversion may fail because 'S' is not derived from 'Module1.B1', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
         p1 = z
              ~
 BC42016: Conversion from 'T()' to 'Module1.I124(Of Module1.B1)()' may be ambiguous.
@@ -1502,16 +1502,16 @@ BC42016: Implicit conversion from 'Module1.I124(Of S())' to 'Module1.I124(Of Mod
 BC42016: Conversion from 'T()' to 'Module1.I124(Of Module1.B1())()' may be ambiguous.
         Dim a3 As I124(Of B1())() = a1
                                     ~~
-BC42016: Implicit conversion from 'IEnumerable(Of S As Class)' to 'Module1.B2()'.
+BC42016: Implicit conversion from 'IEnumerable(Of S)' to 'Module1.B2()'.
         Dim b2 As B2() = y
                          ~
-BC42016: Implicit conversion from 'Module1.B2()' to 'IEnumerable(Of S As Class)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'Out' generic parameter 'T' in 'Interface IEnumerable(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.B2()' to 'IEnumerable(Of S)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'Out' generic parameter 'T' in 'Interface IEnumerable(Of Out T)'.
         y = b2
             ~~
 BC42016: Conversion from 'T' to 'Module1.I123(Of Module1.B2())' may be ambiguous.
         Dim p1 As I123(Of B2()) = x
                                   ~
-BC42016: Implicit conversion from 'Module1.I123(Of IEnumerable(Of S))' to 'Module1.I123(Of Module1.B2())'; this conversion may fail because 'Module1.B2()' is not derived from 'IEnumerable(Of S As Class)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of IEnumerable(Of S))' to 'Module1.I123(Of Module1.B2())'; this conversion may fail because 'Module1.B2()' is not derived from 'IEnumerable(Of S)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
         p1 = z
              ~
 BC42016: Conversion from 'T()' to 'Module1.I123(Of Module1.B2())()' may be ambiguous.

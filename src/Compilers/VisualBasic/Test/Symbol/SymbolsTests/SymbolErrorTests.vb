@@ -2518,7 +2518,7 @@ BC30301: 'Public Function Goo1(x As Integer) As Boolean' and 'Public Function Go
 BC30301: 'Public Function Goo1(x As Integer) As Decimal' and 'Public Function Goo1(x As Integer) As String' cannot overload each other because they differ only by return types.
                 Public Function Goo1(x as Integer) as Decimal ' 4
                                 ~~~~
-BC30269: 'Public Function Goo2(Of T As C1)(x As Integer) As T' has multiple definitions with identical signatures.
+BC30269: 'Public Function Goo2(Of T)(x As Integer) As T' has multiple definitions with identical signatures.
                 Public Function Goo2(Of T as C1)(x as Integer) as T ' 1
                                 ~~~~
 BC30269: 'Public Function Goo3(x As Integer) As Boolean' has multiple definitions with identical signatures.
@@ -14174,37 +14174,37 @@ End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC32077: 'Friend MustOverride Overrides Sub A1(Of T As Class)()' cannot override 'Friend MustOverride Sub A1(Of T As Structure)()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub A1(Of T)()' cannot override 'Friend MustOverride Sub A1(Of T)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub A1(Of T As Class)()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub A2(Of T As Structure, U As IB)()' cannot override 'Friend MustOverride Sub A2(Of T As Structure, U As IA(Of T))()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub A2(Of T, U)()' cannot override 'Friend MustOverride Sub A2(Of T, U)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub A2(Of T As Structure, U As IB)()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub A3(Of T As IA(Of IA(Of T)))()' cannot override 'Friend MustOverride Sub A3(Of T As IA(Of T))()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub A3(Of T)()' cannot override 'Friend MustOverride Sub A3(Of T)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub A3(Of T As IA(Of IA(Of T)))()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub A4(Of T As {Structure, IA(Of U)}, U)()' cannot override 'Friend MustOverride Sub A4(Of T As {Structure, IA(Of T)}, U)()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub A4(Of T, U)()' cannot override 'Friend MustOverride Sub A4(Of T, U)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub A4(Of T As {Structure, IA(Of U)}, U)()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub B1(Of T As New)()' cannot override 'Friend MustOverride Sub B1(Of T)()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub B1(Of T)()' cannot override 'Friend MustOverride Sub B1(Of T)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub B1(Of T As New)()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub B2(Of T As {Class, New})()' cannot override 'Friend MustOverride Sub B2(Of T As New)()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub B2(Of T)()' cannot override 'Friend MustOverride Sub B2(Of T)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub B2(Of T As {Class, New})()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub B3(Of T As {IB, IA(Of T)}, U)()' cannot override 'Friend MustOverride Sub B3(Of T As IA(Of T), U)()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub B3(Of T, U)()' cannot override 'Friend MustOverride Sub B3(Of T, U)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub B3(Of T As {IB, IA(Of T)}, U)()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub C1(Of T)()' cannot override 'Friend MustOverride Sub C1(Of T As Class)()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub C1(Of T)()' cannot override 'Friend MustOverride Sub C1(Of T)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub C1(Of T)()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub C2(Of T As Class)()' cannot override 'Friend MustOverride Sub C2(Of T As {Class, New})()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub C2(Of T)()' cannot override 'Friend MustOverride Sub C2(Of T)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub C2(Of T As Class)()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub C3(Of T, U As IA(Of T))()' cannot override 'Friend MustOverride Sub C3(Of T, U As {IB, IA(Of T)})()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub C3(Of T, U)()' cannot override 'Friend MustOverride Sub C3(Of T, U)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub C3(Of T, U As IA(Of T))()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub E1(Of T As Class, U)()' cannot override 'Friend MustOverride Sub E1(Of T, U As T)()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub E1(Of T, U)()' cannot override 'Friend MustOverride Sub E1(Of T, U)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub E1(Of T As Class, U)()
                                       ~~
      ]]></errors>
@@ -14286,16 +14286,16 @@ End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC32077: 'Friend MustOverride Overrides Sub AM(Of U As S)()' cannot override 'Friend MustOverride Sub AM(Of U As {Structure, S})()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub AM(Of U)()' cannot override 'Friend MustOverride Sub AM(Of U)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub AM(Of U As S)()
                                       ~~
-BC32077: 'Friend MustOverride Overrides Sub BX(Of U As A)()' cannot override 'Friend MustOverride Sub BX(Of U As {Class, A})()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub BX(Of U)()' cannot override 'Friend MustOverride Sub BX(Of U)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub BX(Of U As A)()
                                       ~~
 BC32071: Constraint type 'T' already specified for this type parameter.
     Friend MustOverride Overrides Sub CM(Of V As {T, T})()
                                                      ~
-BC32077: 'Friend MustOverride Overrides Sub DM(Of V As A)()' cannot override 'Friend MustOverride Sub DM(Of V As {I, A})()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub DM(Of V)()' cannot override 'Friend MustOverride Sub DM(Of V)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub DM(Of V As A)()
                                       ~~
 BC32071: Constraint type 'A' already specified for this type parameter.
@@ -14304,7 +14304,7 @@ BC32071: Constraint type 'A' already specified for this type parameter.
 BC32071: Constraint type 'I' already specified for this type parameter.
     Friend MustOverride Overrides Sub DM(Of V As {A, I, A, I})()
                                                            ~
-BC32077: 'Friend MustOverride Overrides Sub EM(Of U As Structure)()' cannot override 'Friend MustOverride Sub EM(Of V As {Structure, Object, ValueType})()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub EM(Of U)()' cannot override 'Friend MustOverride Sub EM(Of V)()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub EM(Of U As Structure)()
                                       ~~
      ]]></errors>
@@ -14397,16 +14397,16 @@ End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC32078: 'Private Sub AM(Of U As S)()' cannot implement 'IA(Of S).Sub AM(Of U As {Structure, S})()' because they differ by type parameter constraints.
+BC32078: 'Private Sub AM(Of U)()' cannot implement 'IA(Of S).Sub AM(Of U)()' because they differ by type parameter constraints.
     Private Sub AM(Of U As S)() Implements IA(Of S).AM
                                            ~~~~~~~~~~~
-BC32078: 'Private Sub BX(Of U As A)()' cannot implement 'IB(Of A).Sub BX(Of U As {Class, A})()' because they differ by type parameter constraints.
+BC32078: 'Private Sub BX(Of U)()' cannot implement 'IB(Of A).Sub BX(Of U)()' because they differ by type parameter constraints.
     Private Sub BX(Of U As A)() Implements IB(Of A).BX
                                            ~~~~~~~~~~~
 BC32071: Constraint type 'T' already specified for this type parameter.
     Private Sub CM(Of V As {T, T})() Implements IC(Of T, T).CM
                                ~
-BC32078: 'Private Sub DM(Of V As A)()' cannot implement 'ID(Of I, A).Sub DM(Of V As {I, A})()' because they differ by type parameter constraints.
+BC32078: 'Private Sub DM(Of V)()' cannot implement 'ID(Of I, A).Sub DM(Of V)()' because they differ by type parameter constraints.
     Private Sub DM(Of V As A)() Implements ID(Of I, A).DM
                                            ~~~~~~~~~~~~~~
 BC32071: Constraint type 'A' already specified for this type parameter.
@@ -14415,7 +14415,7 @@ BC32071: Constraint type 'A' already specified for this type parameter.
 BC32071: Constraint type 'I' already specified for this type parameter.
     Private Sub DM(Of V As {A, I, A, I})() Implements ID(Of A, I).DM
                                      ~
-BC32078: 'Private Sub EM(Of U As Structure)()' cannot implement 'IE(Of Object, ValueType).Sub EM(Of V As {Structure, Object, ValueType})()' because they differ by type parameter constraints.
+BC32078: 'Private Sub EM(Of U)()' cannot implement 'IE(Of Object, ValueType).Sub EM(Of V)()' because they differ by type parameter constraints.
     Private Sub EM(Of U As Structure)() Implements IE(Of Object, ValueType).EM
                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
      ]]></errors>
@@ -14442,10 +14442,10 @@ End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC32078: 'Public Sub M(Of U As T)()' cannot implement 'IA(Of T).Sub AM(Of U As {Structure, T})()' because they differ by type parameter constraints.
+BC32078: 'Public Sub M(Of U)()' cannot implement 'IA(Of T).Sub AM(Of U)()' because they differ by type parameter constraints.
     Public Sub M(Of U As T)() Implements IA(Of T).AM, IB(Of T).BX
                                          ~~~~~~~~~~~
-BC32078: 'Public Sub M(Of U As T)()' cannot implement 'IB(Of T).Sub BX(Of U As {Class, T})()' because they differ by type parameter constraints.
+BC32078: 'Public Sub M(Of U)()' cannot implement 'IB(Of T).Sub BX(Of U)()' because they differ by type parameter constraints.
     Public Sub M(Of U As T)() Implements IA(Of T).AM, IB(Of T).BX
                                                       ~~~~~~~~~~~
      ]]></errors>
@@ -14477,7 +14477,7 @@ End Class
     </compilation>)
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
-BC32078: 'Private Sub X(Of T)()' cannot implement 'II.Sub m(Of T As I)()' because they differ by type parameter constraints.
+BC32078: 'Private Sub X(Of T)()' cannot implement 'II.Sub m(Of T)()' because they differ by type parameter constraints.
     Private Sub X(Of T)() Implements II.m
                                      ~~~~
 ]]></errors>)
@@ -14508,7 +14508,7 @@ End Class
     </compilation>)
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
-BC32078: 'Private Sub X(Of T)()' cannot implement 'II.Sub m(Of T As I)()' because they differ by type parameter constraints.
+BC32078: 'Private Sub X(Of T)()' cannot implement 'II.Sub m(Of T)()' because they differ by type parameter constraints.
     Private Sub X(Of T)() Implements II.m
                                      ~~~~
 ]]></errors>)
@@ -17212,7 +17212,7 @@ BC30452: Operator '=' is not defined for types 'Integer??' and 'Integer?'.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC36015: 'Private Sub DisposeI(Of T As base)(ByRef Instance As T)' has the same name as a member used for type 'disposei' exposed in a 'My' group. Rename the type or its enclosing namespace.
+BC36015: 'Private Sub DisposeI(Of T)(ByRef Instance As T)' has the same name as a member used for type 'disposei' exposed in a 'My' group. Rename the type or its enclosing namespace.
             <Global.Microsoft.VisualBasic.MyGroupCollection("base", "create", "DisposeI", "Module1.f")> _
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      ]]></errors>
