@@ -1882,6 +1882,59 @@ end class
         End Sub
 
         <Fact()>
+        Public Sub TestNestedAndContainingGenericTypeConstraints()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+        Class C(Of T As C(Of T))
+            Class Nested(Of U as Nested(Of U))
+            End Class
+        End Class
+    </file>
+</compilation>
+            Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetMember(Of NamedTypeSymbol)("C.Nested")
+            Dim format = New SymbolDisplayFormat(
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeTypeConstraints)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "C(Of T).Nested(Of U As C(Of T).Nested(Of U))",
+                {
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation})
+        End Sub
+
+        <Fact()>
         Public Sub TestGenericMethodParameters()
             Dim text =
 <compilation>
