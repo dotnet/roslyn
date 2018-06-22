@@ -181,11 +181,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                         if (advance.Kind == OperationKind.ExpressionStatement)
                                         {
                                             IOperation advanceExpression = ((IExpressionStatementOperation)advance).Operation;
-                                            SemanticModel semanticModel = operationContext.Compilation.GetSemanticModel(advance.Syntax.SyntaxTree);
 
                                             IOperation advanceIncrement;
                                             BinaryOperatorKind? advanceOperationCode;
-                                            GetOperationKindAndValue(semanticModel, testVariable, advanceExpression, out advanceOperationCode, out advanceIncrement);
+                                            GetOperationKindAndValue(testVariable, advanceExpression, out advanceOperationCode, out advanceIncrement);
 
                                             if (advanceIncrement != null && advanceOperationCode.HasValue)
                                             {
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
 
         private void GetOperationKindAndValue(
-            SemanticModel semanticModel, ILocalSymbol testVariable, IOperation advanceExpression,
+            ILocalSymbol testVariable, IOperation advanceExpression,
             out BinaryOperatorKind? advanceOperationCode, out IOperation advanceIncrement)
         {
             advanceIncrement = null;
@@ -274,19 +273,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     ((ILocalReferenceOperation)advanceAssignment.Target).Local == testVariable)
                 {
                     // Advance binary operation is known to involve a reference to the local used in the test and a constant.
-                    advanceIncrement = CreateIncrementOneLiteralExpression(semanticModel, advanceAssignment);
+                    advanceIncrement = CreateIncrementOneLiteralExpression(advanceAssignment);
                     advanceOperationCode = BinaryOperatorKind.Add;
                 }
             }
         }
 
-        private static ILiteralOperation CreateIncrementOneLiteralExpression(SemanticModel semanticModel, IIncrementOrDecrementOperation increment)
+        private static ILiteralOperation CreateIncrementOneLiteralExpression(IIncrementOrDecrementOperation increment)
         {
             string text = increment.Syntax.ToString();
             SyntaxNode syntax = increment.Syntax;
             ITypeSymbol type = increment.Type;
             Optional<object> constantValue = new Optional<object>(1);
-            return new LiteralExpression(semanticModel, syntax, type, constantValue, increment.IsImplicit);
+            return new LiteralExpression(((Operation)increment).OwningSemanticModel, syntax, type, constantValue, increment.IsImplicit);
         }
 
         private static int Abs(int value)
