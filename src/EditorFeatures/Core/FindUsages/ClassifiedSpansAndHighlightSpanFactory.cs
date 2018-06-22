@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -47,45 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 documentSpan.Document, documentSpan.SourceSpan, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<ClassifiedTextElement> BuildClassifiedTextElementForSpansAsync(ImmutableArray<TextSpan> spans, ITextSnapshot snapshot, Document document, CancellationToken cancellationToken)
+        public static ClassifiedTextElement BuildClassifiedTextElementForClassifiedSpans(IEnumerable<ClassifiedSpan> classifiedSpans, ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
-            var classificationService = document.GetLanguageService<IClassificationService>();
-
-            var classifiedSpans = new List<ClassifiedSpan>();
-            var semanticSpans = new List<ClassifiedSpan>();
-
-            foreach (var span in spans)
-            {
-                await classificationService.AddSyntacticClassificationsAsync(document, span, classifiedSpans, cancellationToken).ConfigureAwait(false);
-                await classificationService.AddSemanticClassificationsAsync(document, span, semanticSpans, cancellationToken).ConfigureAwait(false);
-            }
-
-            // replace the spans from SyntacticClassifications with spans from SemanticClassifications
-            classifiedSpans.Sort((a, b) => a.TextSpan.Start.CompareTo(b.TextSpan.Start));
-            semanticSpans.Sort((a, b) => a.TextSpan.Start.CompareTo(b.TextSpan.Start));
-
-            var i = 0;
-            foreach (var semanticSpan in semanticSpans)
-            {
-                var foundMatch = false;
-                for (; i < classifiedSpans.Count; i++)
-                {
-                    if (classifiedSpans[i].TextSpan.Start == semanticSpan.TextSpan.Start
-                        && classifiedSpans[i].TextSpan.Length == semanticSpan.TextSpan.Length)
-                    {
-                        foundMatch = true;
-                        classifiedSpans[i] = semanticSpan;
-                        break;
-                    }
-                }
-
-                // if no match found for the semanticSpan, resets i so the next semanticSpan will start to match from the begining
-                if (!foundMatch)
-                {
-                    i = 0;
-                }
-
-            }
+            Contract.Assert(classifiedSpans != null && classifiedSpans.Any());
 
             // Convert spans to textruns
             var runs = new List<ClassifiedTextRun>();

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -57,7 +58,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
             {
-                elements.Add(await ClassifiedSpansAndHighlightSpanFactory.BuildClassifiedTextElementForSpansAsync(quickInfoItem.RelatedSpans, snapshot, document, cancellationToken).ConfigureAwait(false));
+                IEnumerable<ClassifiedSpan> classifiedSpans = null;
+                foreach (var span in quickInfoItem.RelatedSpans)
+                {
+                    classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
+                }
+
+                elements.Add(ClassifiedSpansAndHighlightSpanFactory.BuildClassifiedTextElementForClassifiedSpans(classifiedSpans, snapshot, cancellationToken));
             }
 
             var content = new ContainerElement(
