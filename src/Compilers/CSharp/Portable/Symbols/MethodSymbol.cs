@@ -943,8 +943,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(IsDefinition);
-
                 switch (MethodKind)
                 {
                     case MethodKind.PropertyGet:
