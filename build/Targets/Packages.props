@@ -79,14 +79,14 @@
     <MicrosoftVisualStudioCodingConventionsVersion>1.1.20180503.2</MicrosoftVisualStudioCodingConventionsVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>15.7.27703</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
-    <MicrosoftVisualStudioCoreUtilityVersion>15.8.27812-alpha</MicrosoftVisualStudioCoreUtilityVersion>
+    <MicrosoftVisualStudioCoreUtilityVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerEngineVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
     <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
     <MicrosoftVisualStudioDebuggerInterop100Version>10.0.30320</MicrosoftVisualStudioDebuggerInterop100Version>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>15.8.27812-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
-    <MicrosoftVisualStudioEditorVersion>15.8.27812-alpha</MicrosoftVisualStudioEditorVersion>
+    <MicrosoftVisualStudioEditorVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>15.8.27812-alpha</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>15.8.27812-alpha</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>15.8.27812-alpha</MicrosoftVisualStudioImagingVersion>
@@ -94,11 +94,11 @@
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageIntellisenseVersion>
-    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
-    <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageStandardClassificationVersion>
+    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioLanguageIntellisenseVersion>
+    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
+    <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6071</MicrosoftVisualStudioOLEInteropVersion>
-    <MicrosoftVisualStudioPlatformVSEditorVersion>15.8.27812-alpha</MicrosoftVisualStudioPlatformVSEditorVersion>
+    <MicrosoftVisualStudioPlatformVSEditorVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
     <MicrosoftVisualStudioProgressionCommonVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCommonVersion>
     <MicrosoftVisualStudioProgressionInterfacesVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionInterfacesVersion>
@@ -125,16 +125,16 @@
     <MicrosoftVisualStudioShellInterop90Version>9.0.30729</MicrosoftVisualStudioShellInterop90Version>
     <MicrosoftVisualStudioTelemetryVersion>15.8.27812-alpha</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
-    <MicrosoftVisualStudioTextDataVersion>15.8.27812-alpha</MicrosoftVisualStudioTextDataVersion>
-    <MicrosoftVisualStudioTextInternalVersion>15.8.27812-alpha</MicrosoftVisualStudioTextInternalVersion>
-    <MicrosoftVisualStudioTextLogicVersion>15.8.27812-alpha</MicrosoftVisualStudioTextLogicVersion>
-    <MicrosoftVisualStudioTextUIVersion>15.8.27812-alpha</MicrosoftVisualStudioTextUIVersion>
-    <MicrosoftVisualStudioTextUIWpfVersion>15.8.27812-alpha</MicrosoftVisualStudioTextUIWpfVersion>
+    <MicrosoftVisualStudioTextDataVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioTextDataVersion>
+    <MicrosoftVisualStudioTextInternalVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioTextInternalVersion>
+    <MicrosoftVisualStudioTextLogicVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioTextLogicVersion>
+    <MicrosoftVisualStudioTextUIVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioTextUIVersion>
+    <MicrosoftVisualStudioTextUIWpfVersion>15.8.425-preview-g75e4b42faf</MicrosoftVisualStudioTextUIWpfVersion>
     <MicrosoftVisualStudioTextManagerInteropVersion>7.10.6071</MicrosoftVisualStudioTextManagerInteropVersion>
     <MicrosoftVisualStudioTextManagerInterop100Version>10.0.30320</MicrosoftVisualStudioTextManagerInterop100Version>
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
     <MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
-    <MicrosoftVisualStudioThreadingVersion>15.8.27812-alpha</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioThreadingVersion>15.8.99-rc</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>15.8.27812-alpha</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioValidationVersion>15.3.23</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioVsInteractiveWindowVersion>
