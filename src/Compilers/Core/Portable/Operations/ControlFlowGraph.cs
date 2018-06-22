@@ -63,6 +63,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
+        /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block root <paramref name="node"/>.
+        /// </summary>
+        /// <param name="node">Root syntax node for an executable code block.</param>
+        /// <param name="semanticModel">Semantic model for the syntax tree containing the <paramref name="node"/>.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        public static ControlFlowGraph Create(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            if (semanticModel == null)
+            {
+                throw new ArgumentNullException(nameof(semanticModel));
+            }
+
+            IOperation operation = semanticModel.GetOperation(node, cancellationToken);
+            return operation == null ? null : CreateCore(operation, nameof(operation));
+        }
+
+        /// <summary>
         /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="body"/>.
         /// </summary>
         /// <param name="body">Root operation block, which must have a null parent.</param>

@@ -272,5 +272,75 @@ class C
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "methodBody").Message, ex.Message);
             }
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TestControlFlowGraphCreateFromSyntax()
+        {
+            var source = @"
+class C
+{
+    void M(int x)
+    {
+        x = 0;
+    }
+}";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("flow-analysis", "true") });
+            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
+            var compilation = CSharpCompilation.Create("c", new[] { tree });
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Last();
+
+            // Verify ArgumentNullException
+            try
+            {
+                _ = ControlFlowGraph.Create(node: null, model);
+            }
+            catch (ArgumentNullException ex)
+            {
+                Assert.Equal(ex, new ArgumentNullException("node"));
+            }
+
+            try
+            {
+                _ = ControlFlowGraph.Create(methodBodySyntax, semanticModel: null);
+            }
+            catch (ArgumentNullException ex)
+            {
+                Assert.Equal(ex, new ArgumentNullException("semanticModel"));
+            }
+
+            // Verify identical CFG from method body syntax and operation. 
+            var cfgFromSyntax = ControlFlowGraph.Create(methodBodySyntax, model);
+            Assert.NotNull(cfgFromSyntax);
+
+            var operation = (IMethodBodyOperation)model.GetOperation(methodBodySyntax);
+            var cfgFromOperation = ControlFlowGraph.Create(operation);
+            Assert.NotNull(cfgFromOperation);
+
+            var expectedCfg = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = 0;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[missing], IsInvalid) (Syntax: 'x = 0')
+              Left: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32[missing]) (Syntax: 'x')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromSyntax);
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromOperation);
+        }
     }
 }
