@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    internal class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
+    internal sealed class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
     {
         private NamespaceSymbol _container;
         private NamespaceExtent _extent;
@@ -64,6 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return (from c in _children
                     where c is NamedTypeSymbol && c.Name == name
                     select (NamedTypeSymbol)c).ToArray().AsImmutableOrNull();
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetForwardedTypes(string name)
+        {
+            return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         public override Symbol ContainingSymbol

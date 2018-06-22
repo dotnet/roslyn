@@ -7,10 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -233,6 +230,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // TODO - This is really inefficient. Creating a new array on each lookup needs to fixed!
             return ImmutableArray.CreateRange<NamedTypeSymbol>(_cachedLookup[name].OfType<NamedTypeSymbol>());
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetForwardedTypes(string name)
+        {
+            Debug.Assert(false);
+            return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         public override Symbol ContainingSymbol

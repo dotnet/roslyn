@@ -1,13 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
@@ -136,6 +131,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
             return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers(name, arity));
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetForwardedTypes(string name)
+        {
+            // TODO: 
+            throw new NotImplementedException();
         }
 
         public override Symbol ContainingSymbol

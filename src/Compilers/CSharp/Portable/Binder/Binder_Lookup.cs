@@ -1071,6 +1071,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return ImmutableArray<Symbol>.Empty;
             }
+            else if ((options & LookupOptions.ForwardedTypesOnly) != 0)
+            {
+                return nsOrType.IsNamespace ?
+                    ((NamespaceSymbol)nsOrType).GetForwardedTypes(name).Cast<NamedTypeSymbol, Symbol>() :
+                    ImmutableArray<Symbol>.Empty;
+            }
             else
             {
                 return nsOrType.GetMembers(name);

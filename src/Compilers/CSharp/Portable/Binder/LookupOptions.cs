@@ -96,6 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Do not consider symbols that are method type parameters.
         /// </summary>
         MustNotBeMethodTypeParameter = 1 << 14,
+
+        /// <summary>
+        /// Consider only forwarded types.
+        /// </summary>
+        ForwardedTypesOnly = 1 << 15,
     }
 
     internal static class LookupOptionExtensions
