@@ -153,4 +153,9 @@
     <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
 collection.
   </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
+    <Rule Id="VSTHRD001" Action="None" /> <!-- Suppress JTF specific rules  -->
+    <Rule Id="VSTHRD002" Action="None" /> <!-- Suppress JTF specific rules  -->
+    <Rule Id="VSTHRD110" Action="None" /> <!-- Allow fire-and-forget methods to exist  -->
+  </Rules>
 </RuleSet>
