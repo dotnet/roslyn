@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -35,7 +36,7 @@ namespace ResetInteractiveTestsDocument
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public void TestResetREPLWithProjectContext()
+        public async Task TestResetREPLWithProjectContext()
         {
             using (var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider()))
             {
@@ -48,14 +49,14 @@ namespace ResetInteractiveTestsDocument
 
                 var expectedReferences = replReferenceCommands.ToList();
                 var expectedUsings = new List<string> { @"using ""System"";", @"using ""ResetInteractiveTestsDocument"";" };
-                AssertResetInteractive(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
+                await AssertResetInteractive(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
 
                 // Test that no submissions are executed if the build fails.
-                AssertResetInteractive(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
+                await AssertResetInteractive(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
             }
         }
 
-        private async void AssertResetInteractive(
+        private async Task AssertResetInteractive(
             TestWorkspace workspace,
             Project project,
             bool buildSucceeds,
