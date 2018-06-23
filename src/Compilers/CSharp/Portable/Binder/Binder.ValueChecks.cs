@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
-            // byval parameters can escape to method's top level. Others can be escape further.
+            // byval parameters can escape to method's top level. Others can escape further.
             // NOTE: "method" here means nearest containing method, lambda or local function.
             if (escapeTo == Binder.ExternalScope && parameterSymbol.RefKind == RefKind.None)
             {
@@ -1743,7 +1743,7 @@ moreArguments:
                 case BoundKind.Parameter:
                     var parameter = ((BoundParameter)expr).ParameterSymbol;
 
-                    // byval parameters can escape to method's top level. Others can be escape further.
+                    // byval parameters can escape to method's top level. Others can escape further.
                     // NOTE: "method" here means nearest containing method, lambda or local function.
                     return parameter.RefKind == RefKind.None ? Binder.TopLevelScope : Binder.ExternalScope;
 
