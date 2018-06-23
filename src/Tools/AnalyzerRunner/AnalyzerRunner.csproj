@@ -17,7 +17,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
   </ItemGroup>
- 
+
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
@@ -38,6 +38,7 @@
     <ProjectReference Include="..\..\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
     <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
   </ItemGroup>
 
   <ItemGroup>
