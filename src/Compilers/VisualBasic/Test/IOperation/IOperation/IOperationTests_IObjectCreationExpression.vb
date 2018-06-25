@@ -483,7 +483,7 @@ BC30456: 'MissingField' is not a member of 'C'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22980"), WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
+        <Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
         Public Sub ObjectCreationWithInvalidCollectionInitializer()
             Dim source = <![CDATA[
 Class C
@@ -504,14 +504,14 @@ IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreat
                 Children(1):
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'MissingField')
                       Children(1):
-                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'New C With  ...  = {x = 1}}')
+                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'New C With  ...  = {x = 1}}')
             Right: 
               IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '{x = 1}')
                 Children(1):
                     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '{x = 1}')
                       Children(2):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{x = 1}')
-                          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{x = 1}')
+                          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: '{x = 1}')
                             Element Values(1):
                                 IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x = 1')
                                   Left: 

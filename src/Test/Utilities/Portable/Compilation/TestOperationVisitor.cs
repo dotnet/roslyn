@@ -44,26 +44,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var type = operation.Type;
                 var constantValue = operation.ConstantValue;
 
-                // operation.Language can throw due to https://github.com/dotnet/roslyn/issues/23819
+                Assert.NotNull(syntax);
+                // operation.Language can throw due to https://github.com/dotnet/roslyn/issues/23821
                 // Conditional logic below should be removed once the issue is fixed
-                if (syntax != null)
+                if (syntax is Microsoft.CodeAnalysis.Syntax.SyntaxList)
                 {
-                    // operation.Language can throw due to https://github.com/dotnet/roslyn/issues/23821
-                    // Conditional logic below should be removed once the issue is fixed
-                    if (syntax is Microsoft.CodeAnalysis.Syntax.SyntaxList)
-                    {
-                        Assert.Equal(OperationKind.None, operation.Kind);
-                        Assert.Equal(LanguageNames.CSharp, operation.Parent.Language);
-                    }
-                    else
-                    {
-                        var language = operation.Language;
-                    }
+                    Assert.Equal(OperationKind.None, operation.Kind);
+                    Assert.Equal(LanguageNames.CSharp, operation.Parent.Language);
                 }
                 else
                 {
-                    Assert.Equal(OperationKind.ConditionalAccessInstance, operation.Kind);
-                    Assert.Equal(LanguageNames.VisualBasic, operation.Parent.Language);
+                    var language = operation.Language;
                 }
 
                 var isImplicit = operation.IsImplicit;
@@ -834,6 +825,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.AnonymousObjectCreation, operation.Kind);
             AssertEx.Equal(operation.Initializers, operation.Children);
+            foreach (var initializer in operation.Initializers)
+            {
+                var simpleAssignment = (ISimpleAssignmentOperation)initializer;
+                var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                Assert.Empty(propertyReference.Arguments);
+                Assert.Equal(OperationKind.InstanceReference, propertyReference.Instance.Kind);
+                Assert.Equal(InstanceReferenceKind.ImplicitReceiver, ((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind);
+            }
         }
 
         public override void VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation)
