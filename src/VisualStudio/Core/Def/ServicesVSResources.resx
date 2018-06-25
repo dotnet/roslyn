@@ -1004,8 +1004,8 @@ Additional information: {1}</value>
   <data name="Sync_Class_View" xml:space="preserve">
     <value>Sync Class View</value>
   </data>
-  <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
-    <value>Restore Visual Studio keybindings</value>
+  <data name="Reset_Visual_Studio_default_keymapping" xml:space="preserve">
+    <value>Reset Visual Studio default keymapping</value>
   </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
     <value>Enable navigation to decompiled sources (experimental)</value>
@@ -1045,10 +1045,10 @@ I agree to all of the foregoing:</value>
   <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with returns</value>
   </data>
-  <data name="Apply_0_keyboard_profile" xml:space="preserve">
-    <value>Apply '{0}' keyboard profile</value>
+  <data name="Apply_0_keymapping_scheme" xml:space="preserve">
+    <value>Apply '{0}' keymapping scheme</value>
   </data>
-  <data name="We_notice_you_suspended_0_Restore_Visual_Studio_keybindings_or_apply_the_0_profile_to_continue_to_navigate_and_refactor" xml:space="preserve">
-    <value>We notice you suspended '{0}'. Restore Visual Studio keybindings or apply the '{0}' profile to continue to navigate and refactor.</value>
+  <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
   </data>
 </root>

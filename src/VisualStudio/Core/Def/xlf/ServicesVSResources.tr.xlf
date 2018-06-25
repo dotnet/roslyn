@@ -7,9 +7,9 @@
         <target state="new">Always for clarity</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_0_keyboard_profile">
-        <source>Apply '{0}' keyboard profile</source>
-        <target state="new">Apply '{0}' keyboard profile</target>
+      <trans-unit id="Apply_0_keymapping_scheme">
+        <source>Apply '{0}' keymapping scheme</source>
+        <target state="new">Apply '{0}' keymapping scheme</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -37,9 +37,14 @@
         <target state="new">Parentheses preferences:</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_notice_you_suspended_0_Restore_Visual_Studio_keybindings_or_apply_the_0_profile_to_continue_to_navigate_and_refactor">
-        <source>We notice you suspended '{0}'. Restore Visual Studio keybindings or apply the '{0}' profile to continue to navigate and refactor.</source>
-        <target state="new">We notice you suspended '{0}'. Restore Visual Studio keybindings or apply the '{0}' profile to continue to navigate and refactor.</target>
+      <trans-unit id="Reset_Visual_Studio_default_keymapping">
+        <source>Reset Visual Studio default keymapping</source>
+        <target state="new">Reset Visual Studio default keymapping</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
+        <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
+        <target state="new">We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1470,11 +1475,6 @@ Geçerli durum için 'basit çözüm yükü' etkin. Hata ayıklama başlatıldı
       <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
         <source>Can't apply changes -- module '{0}' has been unloaded.</source>
         <target state="translated">Değişiklikler uygulanamıyor -- '{0}' modülü kaldırıldı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Restore_Visual_Studio_keybindings">
-        <source>Restore Visual Studio keybindings</source>
-        <target state="translated">Visual Studio anahtar bağlamalarını geri yükleme</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">

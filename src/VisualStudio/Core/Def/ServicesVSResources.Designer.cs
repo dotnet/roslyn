@@ -281,11 +281,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Apply &apos;{0}&apos; keyboard profile.
+        ///   Looks up a localized string similar to Apply &apos;{0}&apos; keymapping scheme.
         /// </summary>
-        internal static string Apply_0_keyboard_profile {
+        internal static string Apply_0_keymapping_scheme {
             get {
-                return ResourceManager.GetString("Apply_0_keyboard_profile", resourceCulture);
+                return ResourceManager.GetString("Apply_0_keymapping_scheme", resourceCulture);
             }
         }
         
@@ -2152,6 +2152,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reset Visual Studio default keymapping.
+        /// </summary>
+        internal static string Reset_Visual_Studio_default_keymapping {
+            get {
+                return ResourceManager.GetString("Reset_Visual_Studio_default_keymapping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resolving breakpoint location....
         /// </summary>
         internal static string Resolving_breakpoint_location {
@@ -2175,15 +2184,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Restore_0 {
             get {
                 return ResourceManager.GetString("Restore_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Restore Visual Studio keybindings.
-        /// </summary>
-        internal static string Restore_Visual_Studio_keybindings {
-            get {
-                return ResourceManager.GetString("Restore_Visual_Studio_keybindings", resourceCulture);
             }
         }
         
@@ -2734,12 +2734,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We notice you suspended &apos;{0}&apos;. Restore Visual Studio keybindings or apply the &apos;{0}&apos; profile to continue to navigate and refactor..
+        ///   Looks up a localized string similar to We notice you suspended &apos;{0}&apos;. Reset keymappings to continue to navigate and refactor..
         /// </summary>
-        internal static string We_notice_you_suspended_0_Restore_Visual_Studio_keybindings_or_apply_the_0_profile_to_continue_to_navigate_and_refactor {
+        internal static string We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor {
             get {
-                return ResourceManager.GetString("We_notice_you_suspended_0_Restore_Visual_Studio_keybindings_or_apply_the_0_profil" +
-                        "e_to_continue_to_navigate_and_refactor", resourceCulture);
+                return ResourceManager.GetString("We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor", resourceCulture);
             }
         }
         

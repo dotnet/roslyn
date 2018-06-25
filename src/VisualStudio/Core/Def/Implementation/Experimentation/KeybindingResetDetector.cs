@@ -44,6 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private const string ExternalFlightName = "keybindgoldbarext";
         private const string KeybindingsFwLink = "https://go.microsoft.com/fwlink/?linkid=864209";
         private const string ReSharperExtensionName = "ReSharper Ultimate";
+        private const string ReSharperKeyboardMappingName = "ReSharper (Visual Studio)";
+        private const string VSCodeKeyboardMappingName = "Visual Studio Code";
 
         // Resharper commands and package
         private const uint ResumeId = 707;
@@ -191,15 +193,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             Debug.Assert(_experimentationService.IsExperimentEnabled(InternalFlightName) ||
                          _experimentationService.IsExperimentEnabled(ExternalFlightName));
 
-            string message = ServicesVSResources.We_notice_you_suspended_0_Restore_Visual_Studio_keybindings_or_apply_the_0_profile_to_continue_to_navigate_and_refactor;
+            string message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
             var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
             infoBarService.ShowInfoBarInGlobalView(
                 string.Format(message, ReSharperExtensionName),
-                new InfoBarUI(title: ServicesVSResources.Restore_Visual_Studio_keybindings,
+                new InfoBarUI(title: ServicesVSResources.Reset_Visual_Studio_default_keymapping,
                               kind: InfoBarUI.UIKind.Button,
                               action: RestoreVsKeybindings),
-                new InfoBarUI(title: string.Format(ServicesVSResources.Apply_0_keyboard_profile, ReSharperExtensionName),
+                new InfoBarUI(title: string.Format(ServicesVSResources.Apply_0_keymapping_scheme, ReSharperKeyboardMappingName),
+                              kind: InfoBarUI.UIKind.Button,
+                              action: OpenExtensionsHyperlink),
+                new InfoBarUI(title: string.Format(ServicesVSResources.Apply_0_keymapping_scheme, VSCodeKeyboardMappingName),
                               kind: InfoBarUI.UIKind.Button,
                               action: OpenExtensionsHyperlink),
                 new InfoBarUI(title: ServicesVSResources.Never_show_this_again,
