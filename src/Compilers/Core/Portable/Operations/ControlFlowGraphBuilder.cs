@@ -1292,9 +1292,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
 #if DEBUG
             // We shouldn't be leaving regions that are still associated with stack frames
-            for (int i = 0; i < _evalStack.Count; i++)
+            foreach ((EvalStackFrame frameOpt, IOperation operationOpt) in _evalStack)
             {
-                (EvalStackFrame frameOpt, IOperation operationOpt) = _evalStack[i];
                 Debug.Assert((frameOpt == null) != (operationOpt == null));
 
                 if (frameOpt != null)
@@ -1557,13 +1556,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     LinkBlocks(CurrentBasicBlock, afterIf);
                     _currentBasicBlock = null;
 
-                    LeaveRegionsUpTo(resultCaptureRegion);
-
                     AppendNewBlock(whenFalse);
 
                     VisitAndCapture(operation.WhenFalse, captureId);
-
-                    LeaveRegionsUpTo(resultCaptureRegion);
 
                     result = GetCaptureReference(captureId, operation);
                 }
@@ -1724,7 +1719,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #if DEBUG
             VerifySpilledStackFrames();
 #endif 
-            RegionBuilder currentSpillRegion = null;
             int currentFrameIndex = -1;
 
             for (int i = _startSpillingAt - 1; i >= 0; i--)
@@ -1733,8 +1727,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 if (frameOpt != null)
                 {
                     currentFrameIndex = i;
-                    currentSpillRegion = frameOpt.RegionBuilderOpt;
-                    Debug.Assert(currentSpillRegion != null);
+                    Debug.Assert(frameOpt.RegionBuilderOpt != null);
                     break;
                 }
             }
@@ -1748,13 +1741,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     currentFrameIndex = i;
                     Debug.Assert(frameOpt.RegionBuilderOpt == null);
-                    currentSpillRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, isStackSpillRegion: true);
-                    EnterRegion(currentSpillRegion, spillingStack: true);
-                    frameOpt.RegionBuilderOpt = currentSpillRegion;
+                    frameOpt.RegionBuilderOpt = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, isStackSpillRegion: true);
+                    EnterRegion(frameOpt.RegionBuilderOpt, spillingStack: true);
                     continue;
                 }
-
-                Debug.Assert(currentSpillRegion != null);
 
                 // Declarations cannot have control flow, so we don't need to spill them.
                 if (operationOpt.Kind != OperationKind.FlowCaptureReference
@@ -1762,6 +1752,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     && operationOpt.Kind != OperationKind.Discard
                     && operationOpt.Kind != OperationKind.OmittedArgument)
                 {
+                    // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
+                    // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
+                    // directly or indirectly nested regions. The operation that we are about to spill is likely to remove references
+                    // to some captures from the stack. Than means that, after the spilling, we should be able to leave the spill
+                    // regions that no longer own captures referenced on the stack. The new capture that we create, should belong to
+                    // the region that will become current after that. Here we are trying to compute what will be that region.
+                    // Obviously, we shouldn’t be leaving the region associated with the frame.
+                    RegionBuilder currentSpillRegion = _evalStack[currentFrameIndex].frameOpt.RegionBuilderOpt;
+                    Debug.Assert(currentSpillRegion != null);
+
                     if (_currentRegion != currentSpillRegion)
                     {
                         var idsStillOnTheStack = PooledHashSet<CaptureId>.GetInstance();
@@ -1773,16 +1773,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             {
                                 if (j < i)
                                 {
-                                    if (operation is IFlowCaptureReferenceOperation refernce)
+                                    if (operation is IFlowCaptureReferenceOperation reference)
                                     {
-                                        idsStillOnTheStack.Add(refernce.Id);
+                                        idsStillOnTheStack.Add(reference.Id);
                                     }
                                 }
                                 else if (j > i)
                                 {
-                                    foreach (IFlowCaptureReferenceOperation refernce in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
+                                    foreach (IFlowCaptureReferenceOperation reference in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
                                     {
-                                        idsStillOnTheStack.Add(refernce.Id);
+                                        idsStillOnTheStack.Add(reference.Id);
                                     }
                                 }
                             }
@@ -2549,9 +2549,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                    ITypeSymbolHelpers.IsBooleanType(binOp.RightOperand.Type);
         }
 
-        /// <summary>
-        /// This function does not change the current region. The stack should be spilled before calling it.
-        /// </summary>
         private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder dest, bool sense)
         {
             SpillEvalStack();
@@ -2564,6 +2561,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #endif
         }
 
+        /// <summary>
+        /// This function does not change the current region. The stack should be spilled before calling it.
+        /// </summary>
         private void VisitConditionalBranchCore(IOperation condition, ref BasicBlockBuilder dest, bool sense)
         {
 oneMoreTime:
