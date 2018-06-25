@@ -812,6 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol.IsAlias)
             {
+                // PROTOTYPE(NullableReferenceTypes): test with different NonNullTypes contexts
                 AliasSymbol discarded;
                 return NamespaceOrTypeSymbolWithAnnotations.CreateNonNull(NonNullTypes, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out discarded, diagnostics, syntax, basesBeingResolved));
             }
@@ -823,6 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol.IsAlias)
             {
+                // PROTOTYPE(NullableReferenceTypes): test with different NonNullTypes contexts
                 return NamespaceOrTypeSymbolWithAnnotations.CreateNonNull(NonNullTypes, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out alias, diagnostics, syntax, basesBeingResolved));
             }
 

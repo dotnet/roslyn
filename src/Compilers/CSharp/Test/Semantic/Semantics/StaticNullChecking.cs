@@ -975,6 +975,42 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
+        public void NonNullTypes_OnParameter()
+        {
+            var lib = @"
+public class List<T> { public T Item { get => throw null; } }
+public class Base
+{
+    public virtual void M([System.Runtime.CompilerServices.NonNullTypes(false)] List<object>? x = default(List<object>))
+    {
+        x /*T:List<object!>!*/ ?.Item.ToString();
+    }
+    void M2()
+    {
+        M(default(List<object>));
+    }
+}
+";
+            var libComp = CreateCompilation(lib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
+            libComp.VerifyDiagnostics();
+            libComp.VerifyTypes(); // PROTOTYPE(NullableReferenceTypes): incorrect type symbol for parameter
+
+            var source = @"
+public class C : Base
+{
+    public override void M(List<object>? x = default(List<object>))
+    {
+        x /*T:List<object!>!*/ ?.Item.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes(); // PROTOTYPE(NullableReferenceTypes): incorrect type symbol for parameter
+        }
+
+        [Fact]
         public void NonNullTypes_OnFields()
         {
             var obliviousLib = @"
@@ -1161,6 +1197,21 @@ public class List2<T> { public T Item { get; set; } = null!; }
                 // (2,55): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 // public class List2<T> { public T Item { get; set; } = null!; }
                 Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null!").WithArguments("T").WithLocation(2, 55)
+                );
+        }
+
+        [Fact]
+        public void TwiceSuppressedNullConvertedToUnconstrainedT()
+        {
+            var source = @"
+public class List2<T> { public T Item { get; set; } = null!!; }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,55): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                // public class List2<T> { public T Item { get; set; } = null!!; }
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null!!").WithArguments("T").WithLocation(2, 55)
                 );
         }
 
@@ -2435,6 +2486,8 @@ public delegate string[] MyDelegate(string[] x);
 [NonNullTypes(false)]
 public delegate string[] MyFalseDelegate(string[] x);
 
+public delegate string[]? MyNullableDelegate(string[]? x);
+
 class C
 {
     void M()
@@ -2442,10 +2495,19 @@ class C
         MyDelegate x1 = Method;
         MyDelegate x2 = FalseMethod;
         MyDelegate x3 = FalseMethod2;
+        MyDelegate x4 = NullableReturnMethod; // warn 1
+        MyDelegate x5 = NullableParameterMethod; // warn 2
         MyFalseDelegate y1 = Method;
         MyFalseDelegate y2 = FalseMethod;
         MyFalseDelegate y3 = FalseMethod2;
-    }
+        MyFalseDelegate y4 = NullableReturnMethod;
+        MyFalseDelegate y5 = NullableParameterMethod;
+        MyNullableDelegate z1 = Method; // warn 3
+        MyNullableDelegate z2 = FalseMethod;
+        MyNullableDelegate z3 = FalseMethod2;
+        MyNullableDelegate z4 = NullableReturnMethod; // warn 4
+        MyNullableDelegate z5 = NullableParameterMethod; // warn 5
+     }
 
     [NonNullTypes(true)]
     public string[] Method(string[] x) => throw null;
@@ -2455,12 +2517,28 @@ class C
 
     [return: NonNullTypes(false)]
     public string[] FalseMethod2([NonNullTypes(false)] string[] x) => throw null;
+
+    public string[]? NullableReturnMethod(string[] x) => throw null;
+    public string[] NullableParameterMethod(string[]? x) => throw null;
 }
 ";
             var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (19,25): warning CS8621: Nullability of reference types in return type of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyDelegate'.
+                //         MyDelegate x4 = NullableReturnMethod; // warn 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("string[]? C.NullableReturnMethod(string[] x)", "MyDelegate").WithLocation(19, 25),
+                // (26,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[] C.Method(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
+                //         MyNullableDelegate z1 = Method; // warn 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Method").WithArguments("x", "string[] C.Method(string[] x)", "MyNullableDelegate").WithLocation(26, 33),
+                // (29,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
+                //         MyNullableDelegate z4 = NullableReturnMethod; // warn 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("x", "string[]? C.NullableReturnMethod(string[] x)", "MyNullableDelegate").WithLocation(29, 33)
+                );
+
+            // PROTOTYPE(NullableReferenceTypes): Missing warnings 2 and 5
+            // PROTOTYPE(NullableReferenceTypes): Test with [NonNullTypes(false)] set independently on method return and method parameter
         }
 
         [Fact]
@@ -2484,20 +2562,27 @@ public class E
     public string[] field = null!;
     [NonNullTypes(false)]
     public string[] obliviousField;
+    public string[]? nullableField;
 
     void M()
     {
         new C(field);
         new C(obliviousField);
+        new C(nullableField); // warn
         new D(field);
         new D(obliviousField);
+        new D(nullableField);
     }
 }
 ";
             var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (25,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C.C(string[] x)'.
+                //         new C(nullableField); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "nullableField").WithArguments("x", "C.C(string[] x)").WithLocation(25, 15)
+                );
         }
 
         [Fact]
@@ -3550,6 +3635,7 @@ class B2 : A
         {
             var source = @"
 using System.Runtime.CompilerServices;
+[module: NonNullTypes(true)]
 public abstract class A
 {
     [NonNullTypes(false)]
@@ -3639,6 +3725,7 @@ public class B2 : A
         {
             var source = @"
 using System.Runtime.CompilerServices;
+[module: NonNullTypes(true)]
 public class List<T> { }
 public class Base<T>
 {
@@ -3659,6 +3746,7 @@ public class Class<T> : Base<T>
         {
             var source = @"
 using System.Runtime.CompilerServices;
+[module: NonNullTypes(true)]
 public class List<T> { }
 public class Base<T> where T : class
 {
@@ -3679,6 +3767,7 @@ public class Class<T> : Base<T> where T : class
         {
             var source = @"
 using System.Runtime.CompilerServices;
+[module: NonNullTypes(true)]
 public class List<T> { }
 public class Base<T> where T : struct
 {
@@ -3699,6 +3788,7 @@ public class Class<T> : Base<T> where T : struct
         {
             var source = @"
 using System.Runtime.CompilerServices;
+[module: NonNullTypes(true)]
 public class List<T> { }
 public class Base
 {
@@ -3723,6 +3813,7 @@ public class Class2 : Base
         {
             var source = @"
 using System.Runtime.CompilerServices;
+[module: NonNullTypes(true)]
 public class List<T> { }
 public class Oblivious
 {
@@ -3742,6 +3833,7 @@ public class Class : Oblivious
         public void Overriding_21()
         {
             var source = @"
+[module: System.Runtime.CompilerServices.NonNullTypes(true)]
 class C
 {
     public static void Main()
@@ -4636,6 +4728,7 @@ class B : A
         public void Overriding_24()
         {
             var source = @"
+[module: System.Runtime.CompilerServices.NonNullTypes(true)]
 class C
 {
     public static void Main()

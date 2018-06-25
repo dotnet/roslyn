@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckModifiers(location, isIndexer, diagnostics);
             if (isIndexer && !isExplicitInterfaceImplementation)
             {
-                // Evaluate the early attributes immediately in case the IndexerName attributes were applied.
+                // Evaluate the attributes immediately in case the IndexerNameAttribute has been applied.
 
                 // NOTE: we want IsExplicitInterfaceImplementation, IsOverride, Locations, and the syntax reference
                 // to be initialized before we pass this symbol to LoadCustomAttributes.

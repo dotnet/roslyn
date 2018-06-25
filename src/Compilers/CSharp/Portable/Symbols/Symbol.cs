@@ -1333,7 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var attribute in attributes)
             {
-                bool? nonNullTypes = SyntaxBasedNonNullTypes(attribute);
+                bool? nonNullTypes = SyntaxBasedNonNullTypes(attribute.Attributes);
                 if (nonNullTypes.HasValue)
                 {
                     return nonNullTypes.Value;
@@ -1376,19 +1376,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected static bool? SyntaxBasedNonNullTypes(SeparatedSyntaxList<AttributeSyntax> attributes)
         {
             foreach (var attribute in attributes)
-            {
-                if (LooksLikeNonNullTypes(attribute, out bool result))
-                {
-                    return result;
-                }
-            }
-            return null;
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
-        protected static bool? SyntaxBasedNonNullTypes(AttributeListSyntax attributes)
-        {
-            foreach (var attribute in attributes.Attributes)
             {
                 if (LooksLikeNonNullTypes(attribute, out bool result))
                 {

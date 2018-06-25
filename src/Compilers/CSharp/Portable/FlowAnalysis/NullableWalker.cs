@@ -2377,7 +2377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref useSiteDiagnostics);
             if (result.Success)
             {
-                // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
+                // PROTOTYPE(NullableReferenceTypes): Check constraints
                 return definition.Construct(result.InferredTypeArguments);
             }
             return method;
@@ -3107,6 +3107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Warnings when assigning to `ref`
                     // or `out` parameters should be regular warnings. Warnings assigning to
                     // other parameters should be W warnings.
+                    // PROTOTYPE(NullableReferenceTypes): Should parameters be non-W warnings?
                     return true;
                 default:
                     return false;
