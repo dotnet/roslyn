@@ -1201,6 +1201,34 @@ class Program
 CodeStyleOptions.QualifyPropertyAccess);
         }
 
+        [WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInStaticContext8()
+        {
+            await TestMissingAsyncWithOption(
+@"class Program
+{
+    [Obsolete(nameof([|Foo|]))]
+    public int Foo { get; set; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInStaticContext9()
+        {
+            await TestMissingAsyncWithOption(
+@"class Program
+{
+    [Obsolete(nameof([|Foo|]))]
+    public int Bar = 0 ;
+
+    public int Foo { get; set; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
         [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_InAccessorExpressionBody()

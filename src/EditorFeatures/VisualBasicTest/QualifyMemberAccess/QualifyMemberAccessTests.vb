@@ -625,10 +625,36 @@ CodeStyleOptions.QualifyFieldAccess)
             Await TestMissingAsyncWithOption("
 <Obsolete(NameOf([|Foo|]))>
 class C
-    Private Foo As String
+    Private Property Foo As String
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions.QualifyPropertyAccess)
+        End Function
+
+        <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InAttribute2() As Task
+            Await TestMissingAsyncWithOption("
+class C
+    <Obsolete(NameOf([|Foo|]))>
+    Private Property Foo As String
+End Class
+",
+CodeStyleOptions.QualifyPropertyAccess)
+        End Function
+
+        <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InAttribute3() As Task
+            Await TestMissingAsyncWithOption("
+class C
+    Private Property Foo As String
+
+    <Obsolete(NameOf([|Foo|]))>
+    Private Bar As String
+End Class
+",
+CodeStyleOptions.QualifyPropertyAccess)
         End Function
     End Class
 End Namespace
