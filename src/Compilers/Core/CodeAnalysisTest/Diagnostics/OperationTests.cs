@@ -299,7 +299,7 @@ class C
             }
             catch (ArgumentNullException ex)
             {
-                Assert.Equal(ex, new ArgumentNullException("node"));
+                Assert.Equal(ex.Message, new ArgumentNullException("node").Message);
             }
 
             try
@@ -308,7 +308,7 @@ class C
             }
             catch (ArgumentNullException ex)
             {
-                Assert.Equal(ex, new ArgumentNullException("semanticModel"));
+                Assert.Equal(ex.Message, new ArgumentNullException("semanticModel").Message);
             }
 
             // Verify identical CFG from method body syntax and operation. 
