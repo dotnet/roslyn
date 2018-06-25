@@ -22,6 +22,6 @@
     -->
     <dotnetSdkVersion>2.1.300-rtm-008866</dotnetSdkVersion>
     <monoVersion>5.8.0.88</monoVersion>
-    <vsMinimumVersion>15.3</vsMinimumVersion>
+    <vsMinimumVersion>15.7</vsMinimumVersion>
   </PropertyGroup>
 </Project>
