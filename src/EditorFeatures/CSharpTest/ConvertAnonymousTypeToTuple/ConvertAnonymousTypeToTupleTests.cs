@@ -118,7 +118,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
-        public async Task ConvertMultipleInstancesAcrossMesthod()
+        public async Task ConvertMultipleInstancesAcrossMethods()
         {
             var text = @"
 class Test
@@ -216,7 +216,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
-        public async Task TestFixAllAcrossMehtods()
+        public async Task TestFixAllAcrossMethods()
         {
             var text = @"
 class Test

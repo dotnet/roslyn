@@ -95,7 +95,7 @@ end class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
-        Public Async Function ConvertMultipleInstancesAcrossMesthod() As Task
+        Public Async Function ConvertMultipleInstancesAcrossMethods() As Task
             Dim text = "
 class Test
     sub Method()
