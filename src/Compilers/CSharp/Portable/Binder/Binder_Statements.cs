@@ -475,7 +475,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (binder == null)
                     {
                         Error(diagnostics, ErrorCode.ERR_InvalidGotoCase, node);
-                        return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, true);
+                        var childNodes = node.Expression != null ?
+                            ImmutableArray.Create<BoundNode>(BindExpression(node.Expression, diagnostics)) :
+                            ImmutableArray<BoundNode>.Empty;
+                        return new BoundBadStatement(node, childNodes, true);
                     }
                     return binder.BindGotoCaseOrDefault(node, this, diagnostics);
 
