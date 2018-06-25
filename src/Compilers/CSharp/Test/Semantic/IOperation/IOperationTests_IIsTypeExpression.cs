@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -357,56 +357,77 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (2)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-          Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+        Entering: {R1}
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
-          Value: 
-            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C.C1) (Syntax: 'c1')
+.locals {R1}
+{
+    CaptureIds: [0] [2]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
-          Operand: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C.C1, IsImplicit) (Syntax: 'c1')
+        Next (Regular) Block[B2]
+            Entering: {R2}
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
-          Value: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C.C1, IsImplicit) (Syntax: 'c1')
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+                  Value: 
+                    IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C.C1) (Syntax: 'c1')
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
-          Value: 
-            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C.C1) (Syntax: 'c2')
-
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = (c1 ?? c2) is C1;')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = (c1 ?? c2) is C1')
-              Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
-              Right: 
-                IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: '(c1 ?? c2) is C1')
+            Jump if True (Regular) to Block[B4]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
                   Operand: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C.C1, IsImplicit) (Syntax: 'c1 ?? c2')
-                  IsType: C.C1
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C.C1, IsImplicit) (Syntax: 'c1')
+                Leaving: {R2}
 
-    Next (Regular) Block[B5]
-Block[B5] - Exit
-    Predecessors: [B4]
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+                  Value: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C.C1, IsImplicit) (Syntax: 'c1')
+
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+              Value: 
+                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C.C1) (Syntax: 'c2')
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = (c1 ?? c2) is C1;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = (c1 ?? c2) is C1')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+                  Right: 
+                    IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: '(c1 ?? c2) is C1')
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C.C1, IsImplicit) (Syntax: 'c1 ?? c2')
+                      IsType: C.C1
+
+        Next (Regular) Block[B6]
+            Leaving: {R1}
+}
+
+Block[B6] - Exit
+    Predecessors: [B5]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
