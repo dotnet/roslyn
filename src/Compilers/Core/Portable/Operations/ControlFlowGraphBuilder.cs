@@ -1521,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // capture for the result because there won't be any result from the throwing branches.
                 if (operation.WhenTrue is IConversionOperation whenTrueConversion && whenTrueConversion.Operand.Kind == OperationKind.Throw)
                 {
-                    IOperation rewrittenThrow = PopStackFrameAndLeaveRegion(PushStackFrame(), Visit(whenTrueConversion.Operand));
+                    IOperation rewrittenThrow = base.Visit(whenTrueConversion.Operand, null);
                     Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
                     Debug.Assert(rewrittenThrow.Children.IsEmpty());
 
@@ -1541,7 +1541,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                     AppendNewBlock(whenFalse);
 
-                    IOperation rewrittenThrow = PopStackFrameAndLeaveRegion(PushStackFrame(), Visit(whenFalseConversion.Operand));
+                    IOperation rewrittenThrow = base.Visit(whenFalseConversion.Operand, null);
                     Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
                     Debug.Assert(rewrittenThrow.Children.IsEmpty());
                 }
@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private void VisitAndCapture(IOperation operation, int captureId)
         {
             EvalStackFrame frame = PushStackFrame();
-            IOperation result = Visit(operation, captureId);
+            IOperation result = base.Visit(operation, captureId);
             PopStackFrame(frame);
             CaptureResultIfNotAlready(operation.Syntax, captureId, result);
             LeaveRegionIfAny(frame);
@@ -1586,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private IOperation VisitAndCapture(IOperation operation)
         {
             EvalStackFrame frame = PushStackFrame();
-            PushOperand(Visit(operation));
+            PushOperand(base.Visit(operation, null));
             SpillEvalStack();
             return PopStackFrame(frame, PopOperand());
         }
@@ -1608,7 +1608,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// track <see cref="CaptureId"/>s used by the stack spilling, etc. 
         /// Do not create instances of this type manually, use <see cref="PushStackFrame"/>
         /// helper instead. Also, do not assign <see cref="RegionBuilderOpt"/> explicitly.
-        /// Let the builder machinary do this when appropriate.
+        /// Let the builder machinery do this when appropriate.
         /// </summary>
         private class EvalStackFrame
         {
@@ -1766,13 +1766,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     {
                         var idsStillOnTheStack = PooledHashSet<CaptureId>.GetInstance();
 
-                        for (int j = currentFrameIndex + 1; j < i; j++)
+                        for (int j = currentFrameIndex + 1; j < _evalStack.Count; j++)
                         {
                             IOperation operation = _evalStack[j].operationOpt;
-                            Debug.Assert(operation != null);
-                            if (operation is IFlowCaptureReferenceOperation refernce)
+                            if (operation != null)
                             {
-                                idsStillOnTheStack.Add(refernce.Id);
+                                if (j < i)
+                                {
+                                    if (operation is IFlowCaptureReferenceOperation refernce)
+                                    {
+                                        idsStillOnTheStack.Add(refernce.Id);
+                                    }
+                                }
+                                else if (j > i)
+                                {
+                                    foreach (IFlowCaptureReferenceOperation refernce in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
+                                    {
+                                        idsStillOnTheStack.Add(refernce.Id);
+                                    }
+                                }
                             }
                         }
 
@@ -2672,7 +2684,7 @@ oneMoreTime:
 
                     if (conversion.Operand.Kind == OperationKind.Throw)
                     {
-                        IOperation rewrittenThrow = PopStackFrameAndLeaveRegion(PushStackFrame(), Visit(conversion.Operand));
+                        IOperation rewrittenThrow = base.Visit(conversion.Operand, null);
                         Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
                         Debug.Assert(rewrittenThrow.Children.IsEmpty());
                         dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
@@ -2778,7 +2790,6 @@ oneMoreTime:
             var conversion = operation.WhenNull as IConversionOperation;
             bool alternativeThrows = conversion?.Operand.Kind == OperationKind.Throw;
 
-            EnsureRegionsForStackFrames();
             RegionBuilder resultCaptureRegion = _currentRegion;
 
             EvalStackFrame frame = PushStackFrame();
@@ -2801,7 +2812,7 @@ oneMoreTime:
                 
                 AppendNewBlock(whenNull);
 
-                IOperation rewrittenThrow = PopStackFrameAndLeaveRegion(PushStackFrame(), Visit(conversion.Operand));
+                IOperation rewrittenThrow = base.Visit(conversion.Operand, null);
                 Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
                 Debug.Assert(rewrittenThrow.Children.IsEmpty());
             }
@@ -3696,11 +3707,8 @@ oneMoreTime:
                                                    ImmutableArray<ILocalSymbol>.Empty);
             EnterRegion(lockRegion);
 
-            EvalStackFrame frame1 = PushStackFrame();
-            EvalStackFrame frame2 = PushStackFrame();
+            EvalStackFrame frame = PushStackFrame();
             IOperation lockedValue = Visit(operation.LockedValue);
-            PopStackFrame(frame2);
-
 
             if (!objectType.Equals(lockedValue.Type))
             {
@@ -3710,7 +3718,7 @@ oneMoreTime:
             PushOperand(lockedValue);
             SpillEvalStack();
             lockedValue = PopOperand();
-            PopStackFrame(frame1);
+            PopStackFrame(frame);
 
             var enterMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2);
             bool legacyMode = (enterMethod == null);
@@ -4213,11 +4221,9 @@ oneMoreTime:
 
                     limitValueId = GetNextCaptureId(loopRegion);
                     VisitAndCapture(operation.LimitValue, limitValueId);
-                    LeaveRegionsUpTo(currentRegion);
 
                     stepValueId = GetNextCaptureId(loopRegion);
                     VisitAndCapture(operation.StepValue, stepValueId);
-                    LeaveRegionsUpTo(currentRegion);
 
                     IOperation stepValue = GetCaptureReference(stepValueId, operation.StepValue);
 
@@ -4237,7 +4243,6 @@ oneMoreTime:
 
                         int positiveFlagId = GetNextCaptureId(loopRegion);
                         VisitAndCapture(userDefinedInfo.GreaterThanOrEqual.Value, positiveFlagId);
-                        LeaveRegionsUpTo(currentRegion);
 
                         positiveFlag = GetCaptureReference(positiveFlagId, userDefinedInfo.GreaterThanOrEqual.Value);
 
@@ -5631,19 +5636,19 @@ oneMoreTime:
             return new AnonymousObjectCreationExpression(initializerBuilder.ToImmutableAndFree(), semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
 
-            FlowCaptureReference visitAndCaptureInitializer(IPropertySymbol initializedProperty, IOperation initializer)
+            IOperation visitAndCaptureInitializer(IPropertySymbol initializedProperty, IOperation initializer)
             {
                 PushOperand(Visit(initializer));
                 SpillEvalStack();
-                int captureId = ((IFlowCaptureReferenceOperation)PeekOperand()).Id.Value; // Keep it on the stack so that we know it is still used.
+                IOperation captured = PeekOperand(); // Keep it on the stack so that we know it is still used.
                 
                 // For VB, previously initialized properties can be referenced in subsequent initializers.
                 // We store the capture Id for the property for such property references.
                 // Note that for VB error cases with duplicate property names, all the property symbols are considered equal.
                 // We use the last duplicate property's capture id and use it in subsequent property references.
-                _currentImplicitInstance.AnonymousTypePropertyCaptureIds[initializedProperty] = captureId;
+                _currentImplicitInstance.AnonymousTypePropertyValues[initializedProperty] = captured;
 
-                return GetCaptureReference(captureId, initializer);
+                return captured;
             }
         }
 
@@ -6064,9 +6069,11 @@ oneMoreTime:
                 operation.Property.ContainingType.IsAnonymousType &&
                 operation.Property.ContainingType == _currentImplicitInstance.AnonymousType)
             {
-                if (_currentImplicitInstance.AnonymousTypePropertyCaptureIds.TryGetValue(operation.Property, out int captureId))
+                if (_currentImplicitInstance.AnonymousTypePropertyValues.TryGetValue(operation.Property, out IOperation captured))
                 {
-                    return GetCaptureReference(captureId, operation);
+                    return captured is IFlowCaptureReferenceOperation reference ? 
+                               GetCaptureReference(reference.Id.Value, operation) :
+                               OperationCloner.CloneOperation(captured);
                 }
                 else
                 {
@@ -6202,6 +6209,7 @@ oneMoreTime:
 
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
         {
+            EvalStackFrame frame = PushStackFrame();
             IOperation visitedEventReference, visitedHandler;
 
             // Get the IEventReferenceOperation, digging through IParenthesizedOperation.
@@ -6230,7 +6238,8 @@ oneMoreTime:
                 visitedHandler = Visit(operation.HandlerValue);
                 visitedEventReference = PopOperand();
             }
-            
+
+            PopStackFrame(frame);
             return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
 
@@ -6260,6 +6269,7 @@ oneMoreTime:
         {
             StartVisitingStatement(operation);
 
+            EvalStackFrame frame = PushStackFrame();
             var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
             if (instance != null)
             {
@@ -6270,6 +6280,8 @@ oneMoreTime:
             IOperation visitedInstance = instance == null ? null : PopOperand();
             var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
                 semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+
+            PopStackFrame(frame);
             return FinishVisitingStatement(operation, new RaiseEventStatement(visitedEventReference, visitedArguments, semanticModel: null,
                                                                               operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
         }
