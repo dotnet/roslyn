@@ -3013,17 +3013,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            Analyze(
-                compilation,
-                node.Symbol,
-                node.Body,
-                Diagnostics,
-                useMethodSignatureReturnType: false,
-                useMethodSignatureParameterTypes: false,
-                methodSignatureOpt: null,
-                returnTypes: null,
-                initialState: GetVariableState(),
-                callbackOpt: null);
+            var body = node.Body;
+            if (body != null)
+            {
+                Analyze(
+                    compilation,
+                    node.Symbol,
+                    body,
+                    Diagnostics,
+                    useMethodSignatureReturnType: false,
+                    useMethodSignatureParameterTypes: false,
+                    methodSignatureOpt: null,
+                    returnTypes: null,
+                    initialState: GetVariableState(),
+                    callbackOpt: null);
+            }
             _result = _invalidType;
             return null;
         }
