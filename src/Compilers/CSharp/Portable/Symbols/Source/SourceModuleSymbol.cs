@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
-                return SyntaxBasedNonNullTypes(((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations()) ?? base.NonNullTypes;
+                return SyntaxBasedNonNullTypes(((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations()) ?? this.UtilizesNullableReferenceTypes;
             }
         }
 

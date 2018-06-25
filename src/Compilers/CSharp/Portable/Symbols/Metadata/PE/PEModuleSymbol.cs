@@ -709,9 +709,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
+                // PROTOTYPE(NullableReferenceTypes): We don't need to use UtilizesNullableReferenceTypes and should instead default to false
                 // The default for PE modules is [NonNullTypes(false)]
                 bool nonNullTypes;
-                return _module.HasNonNullTypesAttribute(EntityHandle.ModuleDefinition, out nonNullTypes) ? nonNullTypes : base.NonNullTypes;
+                return _module.HasNonNullTypesAttribute(EntityHandle.ModuleDefinition, out nonNullTypes) ? nonNullTypes : this.UtilizesNullableReferenceTypes;
             }
         }
     }
