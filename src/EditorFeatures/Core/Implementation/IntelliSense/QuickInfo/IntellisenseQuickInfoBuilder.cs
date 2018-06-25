@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
                 }
 
-                elements.Add(ClassifiedSpansAndHighlightSpanFactory.BuildClassifiedTextElementForClassifiedSpans(classifiedSpans, snapshot, cancellationToken));
+                elements.Add(classifiedSpans.BuildClassifiedTextElementForClassifiedSpans(snapshot, trackingSpan, cancellationToken));
             }
 
             var content = new ContainerElement(
@@ -80,4 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
         }
     }
+
+
 }

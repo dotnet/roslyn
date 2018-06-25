@@ -2,8 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -14,8 +12,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -47,38 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             return await ClassifyAsync(
                 documentSpan.Document, documentSpan.SourceSpan, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static ClassifiedTextElement BuildClassifiedTextElementForClassifiedSpans(IEnumerable<ClassifiedSpan> classifiedSpans, ITextSnapshot snapshot, CancellationToken cancellationToken)
-        {
-            Contract.Assert(classifiedSpans != null && classifiedSpans.Any());
-
-            // Convert spans to textruns
-            var runs = new List<ClassifiedTextRun>();
-            var lastSpanEnd = -1;
-            foreach (var span in classifiedSpans)
-            {
-                // Add whitespace
-                if (lastSpanEnd > 0 && span.TextSpan.Start > lastSpanEnd)
-                {
-                    // find the gap between last span and current span, read the gap text from document
-                    var spanGap = new Span(lastSpanEnd, span.TextSpan.Start - lastSpanEnd);
-                    var spanText = snapshot.GetText(spanGap);
-                    runs.Add(new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, RemoveIndentsAfterNewLine(spanText)));
-                }
-
-                lastSpanEnd = span.TextSpan.End;
-                runs.Add(new ClassifiedTextRun(span.ClassificationType, snapshot.GetText(span.TextSpan.ToSpan())));
-            }
-
-            return new ClassifiedTextElement(runs);
-        }
-
-        private static string RemoveIndentsAfterNewLine(string text)
-        {
-            // use Contains to check new line instead of StartsWith, 
-            // so trailing whitespace(e.g. " \r\n    " from the previous line won't mess up the display
-            return text.Contains("\r\n") ? "\r\n" : text.Contains("\n") ? "\n" : text;
         }
 
         private static async Task<ClassifiedSpansAndHighlightSpan> ClassifyAsync(
