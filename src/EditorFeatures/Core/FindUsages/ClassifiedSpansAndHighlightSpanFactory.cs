@@ -64,22 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     // find the gap between last span and current span, read the gap text from document
                     var spanGap = new Span(lastSpanEnd, span.TextSpan.Start - lastSpanEnd);
                     var spanText = snapshot.GetText(spanGap);
-
-                    // special handling for new line, remove all the whitespace at the begining of the new line before the open brace "{"
-                    if (span.ClassificationType == ClassificationTypeNames.Punctuation)
-                    {
-                        if (spanText.StartsWith("\r\n"))
-                        {
-                            spanText = "\r\n";
-                        }
-                        else if (spanText.StartsWith("\n"))
-                        {
-                            // new line in linux
-                            spanText = "\n";
-                        }
-                    }
-
-                    runs.Add(new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, spanText));
+                    runs.Add(new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, RemoveIndentsAfterNewLine(spanText)));
                 }
 
                 lastSpanEnd = span.TextSpan.End;
@@ -87,6 +72,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             return new ClassifiedTextElement(runs);
+        }
+
+        private static string RemoveIndentsAfterNewLine(string text)
+        {
+            // use Contains to check new line instead of StartsWith, 
+            // so trailing whitespace(e.g. " \r\n    " from the previous line won't mess up the display
+            return text.Contains("\r\n") ? "\r\n" : text.Contains("\n") ? "\n" : text;
         }
 
         private static async Task<ClassifiedSpansAndHighlightSpan> ClassifyAsync(
