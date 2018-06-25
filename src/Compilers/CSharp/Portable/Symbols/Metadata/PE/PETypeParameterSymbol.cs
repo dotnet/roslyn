@@ -375,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (!currentBounds.IsSet(early))
             {
                 var constraintTypes = currentBounds.ConstraintTypes;
+                // PROTOTYPE(NullableReferenceTypes): Update to consider [NonNullTypes].
                 if (!ContainingModule.UtilizesNullableReferenceTypes)
                 {
                     constraintTypes = constraintTypes.SelectAsArray(t => t.SetUnknownNullabilityForReferenceTypes());

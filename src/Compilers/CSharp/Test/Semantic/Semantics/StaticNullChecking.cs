@@ -32359,8 +32359,17 @@ class E<T, U>
             var source =
 @"class A<T> where T : T, T? { }
 class B<U> where U : U?, U { }
-class C<V> where V : V?, V? { }";
+class C<V> where V : V?, V? { }
+delegate void D1<T1, U1>()
+    where U1 : T1, T1?;
+delegate void D2<T2, U2>()
+    where U2 : class, T2?, T2;
+delegate void D3<T3, U3>()
+    where T3 : class
+    where U3 : T3, T3?;";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Report `Duplicate constraint 'V?' ...` rather than `... 'V' ...`.
+            // (Requires allowing TypeSymbolWithAnnotations as Diagnostic argument.)
             comp.VerifyDiagnostics(
                 // (3,26): error CS0405: Duplicate constraint 'V' for type parameter 'V'
                 // class C<V> where V : V?, V? { }
@@ -32421,7 +32430,8 @@ class B
         {
             var source =
 @"#pragma warning disable 8321
-class C
+class A { }
+class B
 {
     static void M()
     {
@@ -32436,24 +32446,21 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
-                //         void F1<T>() where T : T? { }
-                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(6, 17),
                 // (7,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
-                //         void F2<T>() where T : class, T? { }
+                //         void F1<T>() where T : T? { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(7, 17),
-                // (8,40): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // (8,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                //         void F2<T>() where T : class, T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(8, 17),
+                // (9,40): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //         void F3<T>() where T : struct, T? { }
-                Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(8, 40),
-                // (9,32): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(9, 40),
+                // (10,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //         void F4<T>() where T : A, T? { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(9, 32),
-                // (9,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
-                //         void F4<T>() where T : A, T? { }
-                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(9, 17),
-                // (12,52): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(10, 17),
+                // (13,52): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //         void F7<T, U>() where T : struct where U : T? { }
-                Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(12, 52));
+                Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(13, 52));
         }
 
         [Fact]
@@ -32617,6 +32624,131 @@ partial class B<T> where T : A? { }";
                 // (2,15): error CS0265: Partial declarations of 'B<T>' have inconsistent constraints for type parameter 'T'
                 // partial class B<T> where T : A { }
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "B").WithArguments("B<T>", "T").WithLocation(2, 15));
+        }
+
+        [Fact]
+        public void TypeUnification_01()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T, U> : I<T>, I<U> { }
+class C2<T, U> : I<T>, I<U?> { }
+class C3<T, U> : I<T?>, I<U?> { }
+class C4<T, U> : I<T?>, I<U?> { }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
+                // class C1<T, U> : I<T>, I<U> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T, U>", "I<T>", "I<U>").WithLocation(2, 7),
+                // (3,7): error CS0695: 'C2<T, U>' cannot implement both 'I<T>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C2<T, U> : I<T>, I<U?> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T, U>", "I<T>", "I<U?>").WithLocation(3, 7),
+                // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C3<T, U> : I<T?>, I<U?> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T, U>", "I<T?>", "I<U?>").WithLocation(4, 7),
+                // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C4<T, U> : I<T?>, I<U?> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_02()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T, U> : I<T>, I<U> where T : struct { }
+class C2<T, U> : I<T>, I<U?> where T : struct { }
+class C3<T, U> : I<T?>, I<U?> where T : struct { }
+class C4<T, U> : I<T?>, I<U?> where T : struct { }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
+                // class C1<T, U> : I<T>, I<U> where T : struct { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T, U>", "I<T>", "I<U>").WithLocation(2, 7),
+                // (3,7): error CS0695: 'C2<T, U>' cannot implement both 'I<T>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C2<T, U> : I<T>, I<U?> where T : struct { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T, U>", "I<T>", "I<U?>").WithLocation(3, 7),
+                // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C3<T, U> : I<T?>, I<U?> where T : struct { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T, U>", "I<T?>", "I<U?>").WithLocation(4, 7),
+                // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C4<T, U> : I<T?>, I<U?> where T : struct { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_03()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T, U> : I<T>, I<U> where T : class { }
+class C2<T, U> : I<T>, I<U?> where T : class { }
+class C3<T, U> : I<T?>, I<U?> where T : class { }
+class C4<T, U> : I<T?>, I<U?> where T : class { }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
+                // class C1<T, U> : I<T>, I<U> where T : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T, U>", "I<T>", "I<U>").WithLocation(2, 7),
+                // (3,7): error CS0695: 'C2<T, U>' cannot implement both 'I<T>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C2<T, U> : I<T>, I<U?> where T : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T, U>", "I<T>", "I<U?>").WithLocation(3, 7),
+                // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C3<T, U> : I<T?>, I<U?> where T : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T, U>", "I<T?>", "I<U?>").WithLocation(4, 7),
+                // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C4<T, U> : I<T?>, I<U?> where T : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_04()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T, U> : I<T>, I<U> where T : struct where U : class { }
+class C2<T, U> : I<T>, I<U?> where T : struct where U : class { }
+class C3<T, U> : I<T?>, I<U?> where T : struct where U : class { }
+class C4<T, U> : I<T?>, I<U?> where T : struct where U : class { }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
+                // class C1<T, U> : I<T>, I<U> where T : struct where U : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T, U>", "I<T>", "I<U>").WithLocation(2, 7),
+                // (3,7): error CS0695: 'C2<T, U>' cannot implement both 'I<T>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C2<T, U> : I<T>, I<U?> where T : struct where U : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T, U>", "I<T>", "I<U?>").WithLocation(3, 7),
+                // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C3<T, U> : I<T?>, I<U?> where T : struct where U : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T, U>", "I<T?>", "I<U?>").WithLocation(4, 7),
+                // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C4<T, U> : I<T?>, I<U?> where T : struct where U : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_05()
+        {
+            var source =
+@"interface I<T> where T : class { }
+class C1<T, U> : I<T>, I<U> where T : class where U : class { }
+class C2<T, U> : I<T>, I<U?> where T : class where U : class { }
+class C3<T, U> : I<T?>, I<U?> where T : class where U : class { }
+class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
+                // class C1<T, U> : I<T>, I<U> where T : class where U : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T, U>", "I<T>", "I<U>").WithLocation(2, 7),
+                // (3,7): error CS0695: 'C2<T, U>' cannot implement both 'I<T>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C2<T, U> : I<T>, I<U?> where T : class where U : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T, U>", "I<T>", "I<U?>").WithLocation(3, 7),
+                // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C3<T, U> : I<T?>, I<U?> where T : class where U : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T, U>", "I<T?>", "I<U?>").WithLocation(4, 7),
+                // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7));
         }
 
         [Fact]
