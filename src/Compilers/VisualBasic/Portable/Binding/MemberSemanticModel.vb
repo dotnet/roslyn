@@ -21,7 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _root As SyntaxNode
         Private ReadOnly _rootBinder As Binder
 
-        ' Field specific to non-speculative MemberSemanticModel
+        ''' <summary>
+        ''' Field specific to non-speculative MemberSemanticModel
+        ''' </summary>
         Private ReadOnly _containingSemanticModelOpt As SyntaxTreeSemanticModel
 
         ' Fields specific to speculative MemberSemanticModel

@@ -440,15 +440,10 @@ class C
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
             var literal = root.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var methodDeclSyntax = literal.Ancestors().OfType<MethodDeclarationSyntax>().Single();
             var model = compilation.GetSemanticModel(tree);
             IOperation operation = model.GetOperation(literal);
-            SemanticModel memberModel = ((Operation)operation).OwningSemanticModel;
-            while (operation != null)
-            {
-                Assert.Same(model, operation.SemanticModel);
-                Assert.Same(memberModel, ((Operation)operation).OwningSemanticModel);
-                operation = operation.Parent;
-            }
+            VerifyRootAndModelForOperationAncestors(operation, model, expectedRootOperationKind: OperationKind.MethodBodyOperation, expectedRootSyntax: methodDeclSyntax);
         }
 
         [Fact]
@@ -464,7 +459,7 @@ class C
 }
 ");
 
-            var statement = (BlockSyntax)SyntaxFactory.ParseStatement(@"
+            var speculatedBlock = (BlockSyntax)SyntaxFactory.ParseStatement(@"
 { 
    int z = 0;
 }
@@ -477,13 +472,13 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             SemanticModel speculativeModel;
-            bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].SpanStart, statement, out speculativeModel);
+            bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].SpanStart, speculatedBlock, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var localDecl = (LocalDeclarationStatementSyntax)statement.Statements[0];
+            var localDecl = (LocalDeclarationStatementSyntax)speculatedBlock.Statements[0];
             IOperation operation = speculativeModel.GetOperation(localDecl);
-            Assert.Equal(speculativeModel, operation.SemanticModel);
+            VerifyRootAndModelForOperationAncestors(operation, speculativeModel, expectedRootOperationKind: OperationKind.Block, expectedRootSyntax: speculatedBlock);
 
             speculativeModel.VerifyOperationTree(localDecl, expectedOperationTree: @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int z = 0;')
@@ -496,6 +491,29 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
     Initializer: 
       null
 ");
+        }
+
+        private static void VerifyRootAndModelForOperationAncestors(
+            IOperation operation,
+            SemanticModel model,
+            OperationKind expectedRootOperationKind,
+            SyntaxNode expectedRootSyntax)
+        {
+            SemanticModel memberModel = ((Operation)operation).OwningSemanticModel;
+            while (true)
+            {
+                Assert.Same(model, operation.SemanticModel);
+                Assert.Same(memberModel, ((Operation)operation).OwningSemanticModel);
+
+                if (operation.Parent == null)
+                {
+                    Assert.Equal(expectedRootOperationKind, operation.Kind);
+                    Assert.Same(expectedRootSyntax, operation.Syntax);
+                    break;
+                }
+
+                operation = operation.Parent;
+            }
         }
     }
 }

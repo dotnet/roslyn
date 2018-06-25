@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly Binder RootBinder;
 
-        // Field specific to a non-speculative MemberSemanticModel that must have a containing semantic model.
+        /// <summary>
+        /// Field specific to a non-speculative MemberSemanticModel that must have a containing semantic model.
+        /// </summary>
         private readonly SyntaxTreeSemanticModel _containingSemanticModelOpt;
 
         // Fields specific to a speculative MemberSemanticModel.

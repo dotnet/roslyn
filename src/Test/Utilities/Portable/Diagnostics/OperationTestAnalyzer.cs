@@ -182,13 +182,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                         {
                                             IOperation advanceExpression = ((IExpressionStatementOperation)advance).Operation;
 
-                                            IOperation advanceIncrement;
+                                            Optional<object> advanceIncrementOpt;
                                             BinaryOperatorKind? advanceOperationCode;
-                                            GetOperationKindAndValue(testVariable, advanceExpression, out advanceOperationCode, out advanceIncrement);
+                                            GetOperationKindAndValue(testVariable, advanceExpression, out advanceOperationCode, out advanceIncrementOpt);
 
-                                            if (advanceIncrement != null && advanceOperationCode.HasValue)
+                                            if (advanceIncrementOpt.HasValue && advanceOperationCode.HasValue)
                                             {
-                                                int incrementValue = (int)advanceIncrement.ConstantValue.Value;
+                                                var incrementValue = (int)advanceIncrementOpt.Value;
                                                 if (advanceOperationCode.Value == BinaryOperatorKind.Subtract)
                                                 {
                                                     advanceOperationCode = BinaryOperatorKind.Add;
@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private void GetOperationKindAndValue(
             ILocalSymbol testVariable, IOperation advanceExpression,
-            out BinaryOperatorKind? advanceOperationCode, out IOperation advanceIncrement)
+            out BinaryOperatorKind? advanceOperationCode, out Optional<object> advanceIncrementOpt)
         {
-            advanceIncrement = null;
+            advanceIncrementOpt = null;
             advanceOperationCode = null;
 
             if (advanceExpression.Kind == OperationKind.SimpleAssignment)
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         advanceOperation.RightOperand.Type.SpecialType == SpecialType.System_Int32)
                     {
                         // Advance binary operation is known to involve a reference to the local used in the test and a constant.
-                        advanceIncrement = advanceOperation.RightOperand;
+                        advanceIncrementOpt = advanceOperation.RightOperand.ConstantValue;
                         advanceOperationCode = advanceOperation.OperatorKind;
                     }
                 }
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                 {
                     // Advance binary operation is known to involve a reference to the local used in the test and a constant.
-                    advanceIncrement = advanceAssignment.Value;
+                    advanceIncrementOpt = advanceAssignment.Value.ConstantValue;
                     advanceOperationCode = advanceAssignment.OperatorKind;
                 }
             }
@@ -273,19 +273,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     ((ILocalReferenceOperation)advanceAssignment.Target).Local == testVariable)
                 {
                     // Advance binary operation is known to involve a reference to the local used in the test and a constant.
-                    advanceIncrement = CreateIncrementOneLiteralExpression(advanceAssignment);
+                    advanceIncrementOpt = new Optional<object>(1);
                     advanceOperationCode = BinaryOperatorKind.Add;
                 }
             }
-        }
-
-        private static ILiteralOperation CreateIncrementOneLiteralExpression(IIncrementOrDecrementOperation increment)
-        {
-            string text = increment.Syntax.ToString();
-            SyntaxNode syntax = increment.Syntax;
-            ITypeSymbol type = increment.Type;
-            Optional<object> constantValue = new Optional<object>(1);
-            return new LiteralExpression(((Operation)increment).OwningSemanticModel, syntax, type, constantValue, increment.IsImplicit);
         }
 
         private static int Abs(int value)
