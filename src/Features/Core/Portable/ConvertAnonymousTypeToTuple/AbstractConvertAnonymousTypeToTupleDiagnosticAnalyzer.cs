@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         protected abstract int GetInitializerCount(TAnonymousObjectCreationExpressionSyntax anonymousType);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace)
             => false;
