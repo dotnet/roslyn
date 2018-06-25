@@ -72,19 +72,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                     return;
                                 }
 
-                                switch (activeStatementsResult.ErrorCode)
+                                if (activeStatementsResult.ErrorCode != 0)
                                 {
-                                    case 0:
-                                        break;
-
-                                    case VSConstants.S_FALSE:
-                                    case VSConstants.E_FAIL:
-                                    case (int)DkmExceptionCode.E_INSTRUCTION_NO_SOURCE:
-                                        return;
-
-                                    default:
-                                        CancelWork();
-                                        return;
+                                    builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(0);
+                                    completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                    return;
                                 }
 
                                 // group active statement by instruction and aggregate flags and threads:
@@ -108,24 +100,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             return;
                                         }
 
-                                        int errorCode = sourcePositionResult.ErrorCode;
-                                        switch(errorCode)
-                                        {
-                                            case 0:
-                                            case VSConstants.S_FALSE:
-                                            case VSConstants.E_FAIL:
-                                            case (int)DkmExceptionCode.E_INSTRUCTION_NO_SOURCE:
-                                                break;
-
-                                            default:
-                                                CancelWork();
-                                                return;
-                                        }
-
                                         DkmSourcePosition position;
                                         string documentNameOpt;
                                         LinePositionSpan span;
-                                        if (errorCode == 0 && (position = sourcePositionResult.SourcePosition) != null)
+                                        if (sourcePositionResult.ErrorCode == 0 && (position = sourcePositionResult.SourcePosition) != null)
                                         {
                                             documentNameOpt = position.DocumentName;
                                             span = ToLinePositionSpan(position.TextSpan);
