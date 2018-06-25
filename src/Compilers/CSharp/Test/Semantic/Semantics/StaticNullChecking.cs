@@ -32409,7 +32409,7 @@ partial class B<T> where T : A? { }";
 
         [WorkItem(27008, "https://github.com/dotnet/roslyn/issues/27008")]
         [Fact]
-        public void OverriddenMethodNullableValueTypeParameter()
+        public void OverriddenMethodNullableValueTypeParameter_01()
         {
             var source0 =
 @"public abstract class A
@@ -32422,6 +32422,29 @@ partial class B<T> where T : A? { }";
 @"class B : A
 {
     public override void F(int? i) { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverriddenMethodNullableValueTypeParameter_02()
+        {
+            var source0 =
+@"public abstract class A<T> where T : struct
+{
+    public abstract void F(T? t);
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
+            var ref0 = comp0.EmitToImageReference();
+            var source =
+@"class B1<T> : A<T> where T : struct
+{
+    public override void F(T? t) { }
+}
+class B2 : A<int>
+{
+    public override void F(int? t) { }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
             comp.VerifyDiagnostics();
