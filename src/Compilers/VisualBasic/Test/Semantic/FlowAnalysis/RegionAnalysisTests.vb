@@ -923,7 +923,7 @@ End Namespace
             Dim comp = CompileAndGetModelAndSpan(program, startNodes, endNodes, Nothing, Nothing,
                                                  parseOptions:=
                                                     VisualBasicParseOptions.Default.WithPreprocessorSymbols(
-                                                        KeyValuePair.Create("SQLITE_DEBUG", CObj(True))))
+                                                        KeyValuePairUtil.Create("SQLITE_DEBUG", CObj(True))))
 
             Assert.Equal(4, startNodes.Count)
             Assert.Equal(SyntaxKind.DictionaryAccessExpression, startNodes(2).Kind)

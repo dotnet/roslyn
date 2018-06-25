@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitLock(ILockOperation operation, object argument)
         {
-            return new LockStatement(Visit(operation.LockedValue), Visit(operation.Body), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            var baseLockStatement = (BaseLockStatement)operation;
+            return new LockStatement(Visit(operation.LockedValue), Visit(operation.Body), baseLockStatement.LockTakenSymbol, baseLockStatement.OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitTry(ITryOperation operation, object argument)

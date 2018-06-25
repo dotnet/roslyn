@@ -76,13 +76,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var singleLineExpression = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>().ConvertToSingleLine(expression);
                 var nodeString = singleLineExpression.ToString();
 
-                // prevent the display string from being too long
-                const int MaxLength = 40;
-                if (nodeString.Length > MaxLength)
-                {
-                    nodeString = nodeString.Substring(0, MaxLength) + "...";
-                }
-
                 return CreateDisplayText(nodeString);
             }
 

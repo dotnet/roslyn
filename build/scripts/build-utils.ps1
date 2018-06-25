@@ -324,7 +324,7 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 # Locate the xcopy version of MSBuild
 function Get-MSBuildDirXCopy() {
     $p = Ensure-BasicTool "RoslynTools.MSBuild"
-    $p = Join-Path $p "tools\msbuild"
+    $p = Join-Path $p "tools\MSBuild\15.0\Bin"
     return $p
 }
 
@@ -391,8 +391,6 @@ function Clear-PackageCache() {
 
 # Restore a single project
 function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$logFilePath = "") {
-    $nugetConfig = Join-Path $repoDir "nuget.config"
-
     $projectFilePath = $projectFileName
     if (-not (Test-Path $projectFilePath)) {
         $projectFilePath = Join-Path $repoDir $projectFileName
@@ -403,7 +401,7 @@ function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$
         $logArg = " /bl:$logFilePath"
     }
 
-    Exec-Console $dotnet "restore --verbosity quiet --configfile $nugetConfig $projectFilePath $logArg"
+    Exec-Console $dotnet "restore --verbosity quiet $projectFilePath $logArg"
 }
 
 function Unzip-File([string]$zipFilePath, [string]$outputDir) {

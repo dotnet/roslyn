@@ -519,8 +519,9 @@
   <data name="Fade_out_unused_usings" xml:space="preserve">
     <value>Fade out unused usings</value>
   </data>
-  <data name="Prefer_is_null_over_ReferenceEquals" xml:space="preserve">
-    <value>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</value>
+  <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
+    <value>Prefer 'is null' for reference equality checks</value>
+    <comment>'is null' is a C# string and should not be localized.</comment>
   </data>
   <data name="Report_invalid_placeholders_in_string_dot_format_calls" xml:space="preserve">
     <value>Report invalid placeholders in 'string.Format' calls</value>
@@ -549,41 +550,38 @@
   <data name="Format_document_settings" xml:space="preserve">
     <value>Format Document Settings (Experiment) </value>
   </data>
-  <data name="All_csharp_formatting_rules" xml:space="preserve">
-    <value>All C# Formatting Rules (indentation, wrapping and spacing)</value>
+  <data name="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing" xml:space="preserve">
+    <value>Apply all C# formatting rules (indentation, wrapping, spacing)</value>
   </data>
-  <data name="Fix_accessibility_modifiers" xml:space="preserve">
-    <value>Fix accessibility modifiers</value>
+  <data name="Add_accessibility_modifiers" xml:space="preserve">
+    <value>Add accessibility modifiers</value>
   </data>
-  <data name="Fix_add_remove_braces" xml:space="preserve">
-    <value>Fix add/remove braces</value>
+  <data name="Add_remove_braces_for_single_line_control_statements" xml:space="preserve">
+    <value>Add/remove braces for single-line control statements</value>
   </data>
-  <data name="Fix_framework_types" xml:space="preserve">
-    <value>Fix framework types (int vs Int32)</value>
+  <data name="Apply_language_framework_type_preferences" xml:space="preserve">
+    <value>Apply language/framework type preferences</value>
   </data>
-  <data name="Fix_implicit_explicit_type" xml:space="preserve">
-    <value>Fix implicit/explicit type</value>
+  <data name="Apply_implicit_explicit_type_preferences" xml:space="preserve">
+    <value>Apply implicit/explicit type preferences</value>
   </data>
-  <data name="Fix_this_qualification" xml:space="preserve">
-    <value>Fix this. qualification</value>
+  <data name="Apply_this_qualification_preferences" xml:space="preserve">
+    <value>Apply 'this.' qualification preferences</value>
   </data>
   <data name="Sort_accessibility_modifiers" xml:space="preserve">
     <value>Sort accessibility modifiers</value>
   </data>
-  <data name="Fix_expression_bodied_members" xml:space="preserve">
-    <value>Fix expression-bodied members</value>
+  <data name="Apply_expression_block_body_preferences" xml:space="preserve">
+    <value>Apply expression/block body preferences</value>
   </data>
-  <data name="Fix_inline_variable_declarations" xml:space="preserve">
-    <value>Fix inline variable declarations</value>
+  <data name="Apply_inline_out_variable_preferences" xml:space="preserve">
+    <value>Apply inline 'out' variables preferences</value>
   </data>
-  <data name="Fix_language_features" xml:space="preserve">
-    <value>Fix language features</value>
+  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
+    <value>Apply object/collection initialization preferences</value>
   </data>
-  <data name="Fix_object_collection_initialization" xml:space="preserve">
-    <value>Fix object/collection initialization</value>
-  </data>
-  <data name="Make_readonly" xml:space="preserve">
-    <value>Make readonly</value>
+  <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
+    <value>Make private fields readonly when possible</value>
   </data>
   <data name="Remove_unnecessary_casts" xml:space="preserve">
     <value>Remove unnecessary casts</value>

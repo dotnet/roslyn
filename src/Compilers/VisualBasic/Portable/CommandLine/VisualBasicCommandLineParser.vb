@@ -827,7 +827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ElseIf value = "?" Then
                                 displayLangVersions = True
                             Else
-                                If Not value.TryParse(languageVersion) Then
+                                If Not TryParse(value, languageVersion) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End If
                             End If
@@ -1625,7 +1625,7 @@ lVbRuntimePlus:
                 Return Nothing
             End If
 
-            If fullPath Is Nothing OrElse Not PathUtilities.IsValidFilePath(fileName) Then
+            If Not PathUtilities.IsValidFilePath(fullPath) Then
                 AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, filePath)
                 Return Nothing
             End If

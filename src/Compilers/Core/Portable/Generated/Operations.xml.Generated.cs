@@ -3512,9 +3512,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseLockStatement : Operation, ILockOperation
     {
-        protected BaseLockStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseLockStatement(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Lock, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            LockTakenSymbol = lockTakenSymbol;
         }
 
         public override IEnumerable<IOperation> Children
@@ -3539,6 +3540,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
         public abstract IOperation Body { get; }
+        public ILocalSymbol LockTakenSymbol { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLock(this);
@@ -3554,8 +3556,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class LockStatement : BaseLockStatement, ILockOperation
     {
-        public LockStatement(IOperation lockedValue, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LockStatement(IOperation lockedValue, IOperation body, ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LockedValue = SetParentOperation(lockedValue, this);
             Body = SetParentOperation(body, this);
@@ -3573,8 +3575,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyLockedValue;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyLockStatement(Lazy<IOperation> lockedValue, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyLockStatement(Lazy<IOperation> lockedValue, Lazy<IOperation> body, ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLockedValue = lockedValue ?? throw new System.ArgumentNullException(nameof(lockedValue));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));

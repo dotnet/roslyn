@@ -839,6 +839,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.AnonymousObjectCreation, operation.Kind);
             AssertEx.Equal(operation.Initializers, operation.Children);
+            foreach (var initializer in operation.Initializers)
+            {
+                var simpleAssignment = (ISimpleAssignmentOperation)initializer;
+                var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                Assert.Empty(propertyReference.Arguments);
+                Assert.Equal(OperationKind.InstanceReference, propertyReference.Instance.Kind);
+                Assert.Equal(InstanceReferenceKind.ImplicitReceiver, ((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind);
+            }
         }
 
         public override void VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation)

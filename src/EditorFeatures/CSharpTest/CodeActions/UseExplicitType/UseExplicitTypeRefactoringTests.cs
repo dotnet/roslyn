@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExp
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseExplicitTypeCodeRefactoringProvider();
 
-        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
-        private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
+        private readonly CodeStyleOption<bool> offWithSilent = new CodeStyleOption<bool>(false, NotificationOption.Silent);
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
         private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
 
@@ -29,20 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExp
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> PreferExplicitTypeWithNone() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone));
+        private IDictionary<OptionKey, object> PreferExplicitTypeWithSilent() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithSilent));
 
         private IDictionary<OptionKey, object> PreferImplicitTypeWithInfo() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
 
-        private IDictionary<OptionKey, object> PreferImplicitTypeWithNone() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
+        private IDictionary<OptionKey, object> PreferImplicitTypeWithSilent() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
 
         [Fact]
         public async Task TestIntLocalDeclaration()
@@ -65,8 +65,8 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
-            await TestInRegularAndScriptAsync(code, expected, options: PreferExplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithSilent());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferExplicitTypeWithSilent());
             await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
         }
 
@@ -91,7 +91,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithSilent());
         }
 
         [Fact]
@@ -106,8 +106,8 @@ class C
     }
 }";
 
-            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithNone());
-            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithSilent());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithSilent());
             await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
         }
 
@@ -124,8 +124,8 @@ class C
 }";
 
 
-            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithNone());
-            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithSilent());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithSilent());
             await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
         }
 
@@ -165,7 +165,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithSilent());
         }
 
         [Fact]
@@ -189,7 +189,7 @@ class C : System.IDisposable
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithSilent());
         }
 
         [Fact]
@@ -203,7 +203,7 @@ class var
         var[||] i = null;
     }
 }";
-            await TestMissingInRegularAndScriptAsync(code, options: PreferImplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, options: PreferImplicitTypeWithSilent());
         }
 
         [Fact]
@@ -227,7 +227,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithSilent());
         }
 
         [Fact]
@@ -251,7 +251,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithSilent());
         }
 
         [Fact]
@@ -275,8 +275,8 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
-            await TestInRegularAndScriptAsync(code, expected, options: PreferExplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithSilent());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferExplicitTypeWithSilent());
             await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
         }
 
@@ -292,7 +292,7 @@ class C
     }
 }";
 
-            await TestMissingInRegularAndScriptAsync(code, options: PreferImplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, options: PreferImplicitTypeWithSilent());
         }
 
         [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
@@ -313,8 +313,8 @@ class Program
 }";
 
             // We never want to get offered here under any circumstances.
-            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithNone());
-            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithSilent());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithSilent());
             await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithInfo());
             await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
         }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -304,6 +305,22 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return argumentRefKinds[index];
+        }
+
+        /// <summary>
+        /// Gets the root operation for the <see cref="IOperation"/> tree containing the given <paramref name="operation"/>.
+        /// </summary>
+        /// <param name="operation">Operation whose root is requested.</param>
+        internal static IOperation GetRootOperation(this IOperation operation)
+        {
+            Debug.Assert(operation != null);
+
+            while (operation.Parent != null)
+            {
+                operation = operation.Parent;
+            }
+
+            return operation;
         }
     }
 }
