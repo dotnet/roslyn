@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
             // then combining them in interesting ways (i.e. checking them for equality, using them
             // in collections, etc.).  The language guarantees within a method boundary that these
             // will be the same type and can be used together in this fashion.
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var creationNode = TryGetCreationNode(diagnostic, cancellationToken);
             if (creationNode == null)
@@ -62,6 +61,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                 return;
             }
 
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var anonymousType = semanticModel.GetTypeInfo(creationNode, cancellationToken).Type;
             if (anonymousType == null)
             {
