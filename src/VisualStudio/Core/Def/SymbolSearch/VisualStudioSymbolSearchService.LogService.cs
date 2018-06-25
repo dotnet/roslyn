@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             private Task LogAsync(string text, __ACTIVITYLOG_ENTRYTYPE type)
             {
                 Log(text, type);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             private void Log(string text, __ACTIVITYLOG_ENTRYTYPE type)
