@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
 
             // Syntax
+            Assert.NotNull(operation.Syntax);
             LogString($" (Syntax: {GetSnippetFromSyntax(operation.Syntax)})");
 
             LogNewLine();
