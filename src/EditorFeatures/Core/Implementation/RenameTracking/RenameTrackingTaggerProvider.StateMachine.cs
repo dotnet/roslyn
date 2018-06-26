@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
-            internal async Task<IEnumerable<Diagnostic>> GetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+            internal async Task<IEnumerable<Diagnostic>> GetDiagnosticAsync(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
             {
                 try
                 {

@@ -455,6 +455,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return ResetAsyncWorker(initialize);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ExecutionResult> ResetAsyncWorker(bool initialize = true)
         {
             try
@@ -477,6 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 throw ExceptionUtilities.Unreachable;
             }
         }
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         public async Task<ExecutionResult> ExecuteCodeAsync(string text)
         {

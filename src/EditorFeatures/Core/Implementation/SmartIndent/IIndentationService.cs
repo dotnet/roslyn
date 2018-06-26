@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal interface IIndentationService : ILanguageService
     {
-        Task<IndentationResult?> GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
+        Task<IndentationResult?> GetDesiredIndentationAsync(Document document, int lineNumber, CancellationToken cancellationToken);
     }
 
     internal interface ISynchronousIndentationService : ILanguageService

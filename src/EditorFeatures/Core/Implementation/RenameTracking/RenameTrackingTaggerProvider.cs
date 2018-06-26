@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var textBuffer = text.Container.TryGetTextBuffer();
                     if (textBuffer != null && textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
-                        return await stateMachine.GetDiagnostic(tree, diagnosticDescriptor, cancellationToken).ConfigureAwait(false);
+                        return await stateMachine.GetDiagnosticAsync(tree, diagnosticDescriptor, cancellationToken).ConfigureAwait(false);
                     }
                 }
 

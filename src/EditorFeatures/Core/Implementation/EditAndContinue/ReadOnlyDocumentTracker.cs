@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            InvokeBelowInputPriority(() => TrackDocument(e.Document.Id));
+            InvokeBelowInputPriorityAsync(() => TrackDocument(e.Document.Id));
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs e)
         {
             // The buffer is gone by now, so we don't need to remove the read-only region from it, just clean up our dictionary.
-            InvokeBelowInputPriority(() =>
+            InvokeBelowInputPriorityAsync(() =>
             {
                 if (_readOnlyRegions != null)
                 {

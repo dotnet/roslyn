@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private async Task SearchAsyncWorker(Project project)
             {
                 if (_searchCurrentDocument && _currentDocument?.Project != project)
@@ -129,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     }
                 }
             }
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
             {

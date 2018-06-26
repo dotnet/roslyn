@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
         }
 
-        protected override Task<bool> BuildProject()
+        protected override Task<bool> BuildProjectAsync()
         {
             var taskSource = new TaskCompletionSource<bool>();
 
