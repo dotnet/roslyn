@@ -371,8 +371,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ArrayAccess:
+                    if (RequiresRefAssignableVariable(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    }
+
+                    // array elements are readwrite variables
+                    return true;
+
                 case BoundKind.PointerIndirectionOperator:
-                    // array elements and pointer dereferencing are readwrite variables
+                    // pointer dereferencing are readwrite variables
                     return true;
 
                 case BoundKind.PointerElementAccess:

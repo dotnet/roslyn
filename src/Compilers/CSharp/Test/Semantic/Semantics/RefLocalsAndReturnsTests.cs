@@ -3856,5 +3856,22 @@ class C
 5
 5");
         }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRefToArrayElement()
+        {
+            CreateCompilation(@"
+public class C
+{
+    public void M(int[] array, ref int value)
+    {
+        array[0] = ref value;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         array[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "array[0]").WithLocation(6, 9));
+        }
     }
 }
