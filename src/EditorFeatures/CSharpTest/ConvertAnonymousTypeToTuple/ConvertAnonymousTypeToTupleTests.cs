@@ -452,5 +452,29 @@ class Test
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task TestIncompleteAnonymousType()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = , b = };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: , b: );
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }
