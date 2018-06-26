@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // Fext, see if any of the properties ended up using any type parameters from the
+            // Next, see if any of the properties ended up using any type parameters from the
             // containing method/named-type.  If so, we'll need to generate a generic type so we can
             // properly pass these along.
             var capturedTypeParameters =
