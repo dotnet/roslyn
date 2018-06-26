@@ -846,6 +846,14 @@ class Test
 }
 ";
             var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewClass|}(1, 2);
+    }
+}
+
 internal class NewClass
 {
     public int A { get; }
@@ -893,7 +901,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new NewClass(1, 2);
+        var t1 = new {|Rename:NewClass|}(1, 2);
     }
 }
 
@@ -923,8 +931,259 @@ internal class NewClass
         hashCode = hashCode * -1521134295 + B.GetHashCode();
         return hashCode;
     }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task TestInLambda1()
+        {
+            var text = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, b = 2 };
+        Action a = () =>
+        {
+            var t2 = new { a = 3, b = 4 };
+        };
+    }
 }
 ";
+            var expected = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewClass|}(1, 2);
+        Action a = () =>
+        {
+            var t2 = new NewClass(3, 4);
+        };
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        var other = obj as NewClass;
+        return other != null &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task TestInLambda2()
+        {
+            var text = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new { a = 1, b = 2 };
+        Action a = () =>
+        {
+            var t2 = [||]new { a = 3, b = 4 };
+        };
+    }
+}
+";
+            var expected = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewClass(1, 2);
+        Action a = () =>
+        {
+            var t2 = new {|Rename:NewClass|}(3, 4);
+        };
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        var other = obj as NewClass;
+        return other != null &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task TestInLocalFunction1()
+        {
+            var text = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, b = 2 };
+        void Goo()
+        {
+            var t2 = new { a = 3, b = 4 };
+        }
+    }
+}
+";
+            var expected = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewClass|}(1, 2);
+        void Goo()
+        {
+            var t2 = new NewClass(3, 4);
+        }
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        var other = obj as NewClass;
+        return other != null &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task TestInLocalFunction2()
+        {
+            var text = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new { a = 1, b = 2 };
+        void Goo()
+        {
+            var t2 = [||]new { a = 3, b = 4 };
+        }
+    }
+}
+";
+            var expected = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewClass(1, 2);
+        void Goo()
+        {
+            var t2 = new {|Rename:NewClass|}(3, 4);
+        }
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        var other = obj as NewClass;
+        return other != null &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
             await TestInRegularAndScriptAsync(text, expected);
         }
     }
