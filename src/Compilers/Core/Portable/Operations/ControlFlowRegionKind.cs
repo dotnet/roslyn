@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         Root,
 
         /// <summary>
-        /// Region with the only purpose to represent the life-time of locals and nested methods (local functions, lambdas).
+        /// Region with the only purpose to represent the life-time of locals, intermediate results, and nested methods (local functions, lambdas).
         /// The lifetime of a local variable is the portion of program execution during which storage is guaranteed to be reserved for it.
         /// The lifetime of a nested method is the portion of program execution within which the method can be referenced.
+        /// The lifetime of an intermediate result (capture) is the portion of program execution within which the result can be referenced.
         /// </summary>
         LocalLifetime,
 

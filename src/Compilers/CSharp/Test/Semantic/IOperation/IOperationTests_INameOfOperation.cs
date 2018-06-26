@@ -132,6 +132,7 @@ Block[B0] - Entry
 .locals {R1}
 {
     Locals: [System.String test]
+    CaptureIds: [0]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
