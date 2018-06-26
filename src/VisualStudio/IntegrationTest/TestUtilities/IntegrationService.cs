@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public IntegrationService()
         {
+            AppDomain.CurrentDomain.AssemblyResolve += VisualStudioInstanceFactory.AssemblyResolveHandler;
             PortName = GetPortName(Process.GetCurrentProcess().Id);
             BaseUri = "ipc://" + this.PortName;
         }

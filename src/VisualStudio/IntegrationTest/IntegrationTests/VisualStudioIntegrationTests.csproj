@@ -67,7 +67,7 @@
       This is tracked by CPS issue https://devdiv.visualstudio.com/DevDiv/_workitems/edit/547065.
       Remove this reference once it's fixed.
      -->
-    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all"/>
+    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <ItemGroup>
@@ -75,5 +75,8 @@
       <_Parameter1>Microsoft.VisualStudio.IntegrationTest.Utilities.Harness.IdeTestFramework</_Parameter1>
       <_Parameter2>Microsoft.VisualStudio.IntegrationTest.Utilities</_Parameter2>
     </AssemblyVersionAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

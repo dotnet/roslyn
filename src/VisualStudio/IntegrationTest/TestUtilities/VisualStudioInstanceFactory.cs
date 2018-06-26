@@ -12,11 +12,12 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Setup.Configuration;
 using RunTests;
+using Xunit;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
-    public sealed class VisualStudioInstanceFactory : IDisposable
+    public sealed class VisualStudioInstanceFactory : LongLivedMarshalByRefObject, IDisposable
     {
         [ThreadStatic]
         private static bool s_inHandler;
@@ -44,8 +45,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public VisualStudioInstanceFactory()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
-            AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
+            if (Process.GetCurrentProcess().ProcessName != "devenv")
+            {
+                AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
+                AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
+            }
         }
 
         private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
@@ -108,7 +112,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             try
             {
                 bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
-                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
+                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(true);
 
                 return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
             }
@@ -181,7 +185,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 }
 
                 // We wait until the DTE instance is up before we're good
-                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(false);
+                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
             }
             else
             {
@@ -195,7 +199,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Debug.Assert(_currentlyRunningInstance != null);
 
                 hostProcess = _currentlyRunningInstance.HostProcess;
-                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(false);
+                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
                 supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
                 installationPath = _currentlyRunningInstance.InstallationPath;
 
@@ -203,6 +207,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
 
             _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
+            if (shouldStartNewInstance)
+            {
+                var harnessAssemblyDirectory = Path.GetDirectoryName(typeof(VisualStudioInstanceFactory).Assembly.CodeBase);
+                if (harnessAssemblyDirectory.StartsWith("file:"))
+                {
+                    harnessAssemblyDirectory = new Uri(harnessAssemblyDirectory).LocalPath;
+                }
+
+                _currentlyRunningInstance.AddCodeBaseDirectory(harnessAssemblyDirectory);
+            }
         }
 
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()

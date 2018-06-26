@@ -56,10 +56,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                     Helper.Automation.TransactionTimeout = 20000;
                     using (var visualStudioContext = await instanceFactory.GetNewOrUsedInstanceAsync(SharedIntegrationHostFixture.RequiredPackageIds).ConfigureAwait(true))
                     {
-                        visualStudioContext.Instance.TestInvoker.LoadAssembly(typeof(ITest).Assembly.Location);
-                        visualStudioContext.Instance.TestInvoker.LoadAssembly(typeof(Assert).Assembly.Location);
-                        visualStudioContext.Instance.TestInvoker.LoadAssembly(typeof(TheoryAttribute).Assembly.Location);
-                        visualStudioContext.Instance.TestInvoker.LoadAssembly(typeof(TestClass).Assembly.Location);
+                        visualStudioContext.Instance.LoadAssembly(typeof(ITest).Assembly.Location);
+                        visualStudioContext.Instance.LoadAssembly(typeof(TestClassMessage).Assembly.Location);
+                        visualStudioContext.Instance.LoadAssembly(typeof(Assert).Assembly.Location);
+                        visualStudioContext.Instance.LoadAssembly(typeof(TheoryAttribute).Assembly.Location);
+                        visualStudioContext.Instance.LoadAssembly(typeof(TestClass).Assembly.Location);
 
                         Assert.Empty(BeforeAfterAttributes);
                         var result = visualStudioContext.Instance.TestInvoker.InvokeTest(Test, new IpcMessageBus(MessageBus), TestClass, ConstructorArguments, TestMethod, TestMethodArguments);

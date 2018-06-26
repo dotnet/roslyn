@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -22,7 +23,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                     return new IdeTestCase(diagnosticMessageSink, ideTestCase.DefaultMethodDisplay, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.TestMethodArguments);
                 }
 
-                return testCase;
+                return new IdeTestCase(diagnosticMessageSink, TestMethodDisplay.ClassAndMethod, testCase.TestMethod, VisualStudioVersion.VS2017, testCase.TestMethodArguments);
+                //throw new InvalidOperationException($"{testCase.GetType().AssemblyQualifiedName} is not a supported test case type. Expected {typeof(IdeTestCase).AssemblyQualifiedName}.");
             });
 
             _testAssemblyRunner = new XunitTestAssemblyRunner(testAssembly, reconstructedTestCases.ToArray(), diagnosticMessageSink, executionMessageSink, executionOptions);
@@ -55,6 +57,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             {
                 _testAssemblyRunner.Dispose();
             }
+        }
+
+        private class DeserializationExecutor : TestFrameworkExecutor<IXunitTestCase>
+        {
+            public DeserializationExecutor(AssemblyName assemblyName, IMessageSink diagnosticMessageSink)
+                : base(assemblyName, new EmptySourceInformationProvider(), diagnosticMessageSink)
+            {
+            }
+
+            protected override ITestFrameworkDiscoverer CreateDiscoverer() => throw new NotSupportedException();
+
+            protected override void RunTestCases(IEnumerable<IXunitTestCase> testCases, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions) => throw new NotSupportedException();
+        }
+
+        private sealed class EmptySourceInformationProvider : ISourceInformationProvider
+        {
+            void IDisposable.Dispose()
+            {
+            }
+
+            ISourceInformation ISourceInformationProvider.GetSourceInformation(ITestCase testCase) => new SourceInformation();
         }
     }
 }

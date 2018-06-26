@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -13,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -51,19 +51,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VisualStudioMetadataReferenceManager(IServiceProvider serviceProvider, ITemporaryStorageService temporaryStorageService)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             _metadataCache = new MetadataCache();
             _runtimeDirectories = GetRuntimeDirectories();
 
             XmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
+            Assumes.Present(XmlMemberIndexService);
+
             SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
+            Assumes.Present(SmartOpenScopeServiceOpt);
 
             FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-            _temporaryStorageService = temporaryStorageService;
+            Assumes.Present(FileChangeService);
 
-            Debug.Assert(XmlMemberIndexService != null);
-            Debug.Assert(SmartOpenScopeServiceOpt != null);
-            Debug.Assert(FileChangeService != null);
-            Debug.Assert(temporaryStorageService != null);
+            _temporaryStorageService = temporaryStorageService;
+            Assumes.Present(_temporaryStorageService);
         }
 
         internal IEnumerable<ITemporaryStreamStorage> GetStorages(string fullPath, DateTime snapshotTimestamp)

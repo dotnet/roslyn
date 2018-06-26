@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -188,7 +189,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                     Helper.Automation.TransactionTimeout = 20000;
                     using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(SharedIntegrationHostFixture.RequiredPackageIds).ConfigureAwait(true))
                     {
+                        var harnessAssemblyDirectory = Path.GetDirectoryName(typeof(VisualStudioInstanceFactory).Assembly.CodeBase);
+                        if (harnessAssemblyDirectory.StartsWith("file:"))
+                        {
+                            harnessAssemblyDirectory = new Uri(harnessAssemblyDirectory).LocalPath;
+                        }
+
+                        //visualStudioContext.Instance.LoadAssembly(Path.Combine(harnessAssemblyDirectory, "xunit.abstractions.dll"));
+                        visualStudioContext.Instance.LoadAssembly(Path.Combine(harnessAssemblyDirectory, "xunit.runner.utility.net452.dll"));
+                        visualStudioContext.Instance.LoadAssembly(Path.Combine(harnessAssemblyDirectory, "xunit.assert.dll"));
+                        //visualStudioContext.Instance.LoadAssembly(Path.Combine(harnessAssemblyDirectory, "xunit.core.dll"));
+                        //visualStudioContext.Instance.LoadAssembly(Path.Combine(harnessAssemblyDirectory, "xunit.execution.desktop.dll"));
+                        visualStudioContext.Instance.LoadAssembly(Path.Combine(harnessAssemblyDirectory, "Roslyn.VisualStudio.IntegrationTests.dll"));
+
                         var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, completedTestCaseIds, cancellationTokenSource.Token);
+
+                        ////string[] serializedTestCases;
+                        ////using (var discoverer = new SerializationDiscoverer(TestAssembly.Assembly, DiagnosticMessageSink))
+                        ////{
+                        ////    serializedTestCases = testCases.Select(discoverer.Serialize).ToArray();
+                        ////}
+
                         using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, ExecutionOptions))
                         {
                             var result = runner.RunTestCollection(new IpcMessageBus(messageBus), testCollection, testCases.ToArray());
@@ -205,6 +226,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                     }
                 }
             };
+        }
+
+        private class SerializationDiscoverer : TestFrameworkDiscoverer
+        {
+            public SerializationDiscoverer(IAssemblyInfo assemblyInfo, IMessageSink diagnosticMessageSink)
+                : base(assemblyInfo, new EmptySourceInformationProvider(), diagnosticMessageSink)
+            {
+            }
+
+            protected override ITestClass CreateTestClass(ITypeInfo @class) => throw new NotSupportedException();
+
+            protected override bool FindTestsForType(ITestClass testClass, bool includeSourceInformation, IMessageBus messageBus, ITestFrameworkDiscoveryOptions discoveryOptions) => throw new NotSupportedException();
+
+            private sealed class EmptySourceInformationProvider : ISourceInformationProvider
+            {
+                void IDisposable.Dispose() { }
+
+                ISourceInformation ISourceInformationProvider.GetSourceInformation(ITestCase testCase) => new SourceInformation();
+            }
         }
 
         private VisualStudioVersion GetVisualStudioVersionForTestCase(IXunitTestCase testCase)

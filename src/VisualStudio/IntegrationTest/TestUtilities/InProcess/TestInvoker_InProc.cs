@@ -17,16 +17,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private TestInvoker_InProc()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += VisualStudioInstanceFactory.AssemblyResolveHandler;
         }
 
         public static TestInvoker_InProc Create()
             => new TestInvoker_InProc();
-
-        public void LoadAssembly(string codeBase)
-        {
-            _ = Assembly.LoadFrom(codeBase);
-        }
 
         public InProcessIdeTestAssemblyRunner CreateTestAssemblyRunner(ITestAssembly testAssembly, IXunitTestCase[] testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
         {

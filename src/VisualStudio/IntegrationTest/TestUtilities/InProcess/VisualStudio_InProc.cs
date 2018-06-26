@@ -12,7 +12,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal partial class VisualStudio_InProc : InProcComponent
     {
-        private VisualStudio_InProc() { }
+        private VisualStudio_InProc()
+        {
+        }
 
         public static VisualStudio_InProc Create()
             => new VisualStudio_InProc();
@@ -49,18 +51,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return result.ToArray();
         }
 
+        public void LoadAssembly(string codeBase)
+        {
+            _ = Assembly.LoadFrom(codeBase);
+        }
+
         public void AddCodeBaseDirectory(string directory)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
-            {
-                string path = Path.Combine(directory, new AssemblyName(e.Name).Name + ".dll");
-                if (File.Exists(path))
-                {
-                    return Assembly.LoadFrom(path);
-                }
+            ////AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
+            ////{
+            ////    string path = Path.Combine(directory, new AssemblyName(e.Name).Name + ".dll");
+            ////    if (File.Exists(path))
+            ////    {
+            ////        return Assembly.LoadFrom(path);
+            ////    }
 
-                return null;
-            };
+            ////    return null;
+            ////};
         }
 
         public void ActivateMainWindow(bool skipAttachingThreads = false)

@@ -23,11 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             get;
         }
 
-        public void LoadAssembly(string codeBase)
-        {
-            TestInvokerInProc.LoadAssembly(codeBase);
-        }
-
         public InProcessIdeTestAssemblyRunner CreateTestAssemblyRunner(ITestAssembly testAssembly, IXunitTestCase[] testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
         {
             return TestInvokerInProc.CreateTestAssemblyRunner(testAssembly, testCases, diagnosticMessageSink, executionMessageSink, executionOptions);
