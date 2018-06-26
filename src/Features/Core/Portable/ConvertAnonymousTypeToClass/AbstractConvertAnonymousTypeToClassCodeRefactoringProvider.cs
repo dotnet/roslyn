@@ -120,8 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             var className = NameGenerator.GenerateUniqueName(
                 "NewClass", n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
 
-            // First, create the set of properties this class will have based on the properties
-            // the anonymous type has itself.
+            // First, create the set of properties this class will have based on the properties the
+            // anonymous type has itself.  Also, get a mapping of the original anonymous type's
+            // properties to the new name we generated for it (if we converted camelCase to
+            // PascalCase).
             var (properties, propertyMap) = GenerateProperties(anonymousType);
 
             // Next, generate the full class that will be used to replace all instances of this
