@@ -19,11 +19,31 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         /// </summary>
         Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Generates an override of <see cref="object.Equals(object)"/> that works by comparing the
+        /// provided <paramref name="members"/>.
+        /// </summary>
         Task<IMethodSymbol> GenerateEqualsMethodAsync(Document document, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members, string localNameOpt, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Generates an override of <see cref="object.Equals(object)"/> that works by delegating to
+        /// <see cref="IEquatable{T}.Equals(T)"/>.
+        /// </summary>
         Task<IMethodSymbol> GenerateEqualsMethodThroughIEquatableEqualsAsync(Document document, INamedTypeSymbol namedType, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Generates an implementation of <see cref="IEquatable{T}.Equals"/> that works by
+        /// comparing the provided <paramref name="members"/>.
+        /// </summary>
         Task<IMethodSymbol> GenerateIEquatableEqualsMethodAsync(Document document, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Generates an override of <see cref="object.GetHashCode"/> that computes a reasonable
+        /// hash based on the provided <paramref name="members"/>.  The generated function will
+        /// defer to HashCode.Combine if it exists.  Otherwise, it will determine if it should
+        /// generate code directly in-line to compute the hash, or defer to something like 
+        /// <see cref="ValueTuple.GetHashCode"/> to provide a reasonable alternative.
+        /// </summary>
         Task<IMethodSymbol> GenerateGetHashCodeMethodAsync(Document document, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members, CancellationToken cancellationToken);
     }
 }
