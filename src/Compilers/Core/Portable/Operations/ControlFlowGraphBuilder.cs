@@ -1263,21 +1263,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             if (!spillingStack)
             {
                 // Make sure all pending stack spilling regions are realised
-                EnsureRegionsForStackFrames();
+                SpillEvalStack();
+#if DEBUG
+                Debug.Assert(_evalStack.Count == _startSpillingAt);
+                VerifySpilledStackFrames();
+#endif 
             }
 
             _currentRegion?.Add(region);
             _currentRegion = region;
             _currentBasicBlock = null;
-        }
-
-        private void EnsureRegionsForStackFrames()
-        {
-            SpillEvalStack();
-#if DEBUG
-            Debug.Assert(_evalStack.Count == _startSpillingAt);
-            VerifySpilledStackFrames();
-#endif 
         }
 
         private void LeaveRegion()
@@ -1755,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
                     // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
                     // directly or indirectly nested regions. The operation that we are about to spill is likely to remove references
-                    // to some captures from the stack. Than means that, after the spilling, we should be able to leave the spill
+                    // to some captures from the stack. That means that, after the spilling, we should be able to leave the spill
                     // regions that no longer own captures referenced on the stack. The new capture that we create, should belong to
                     // the region that will become current after that. Here we are trying to compute what will be that region.
                     // Obviously, we shouldn’t be leaving the region associated with the frame.
@@ -2725,7 +2720,8 @@ oneMoreTime:
         /// </summary>
         private IOperation NullCheckAndConvertCoalesceValue(ICoalesceOperation operation, BasicBlockBuilder whenNull)
         {
-            Debug.Assert(_evalStack.Last().frameOpt != null && _startSpillingAt >= _evalStack.Count - 1);
+            Debug.Assert(_evalStack.Last().frameOpt != null);
+            Debug.Assert(_startSpillingAt >= _evalStack.Count - 1);
 
             IOperation operationValue = operation.Value;
             SyntaxNode valueSyntax = operationValue.Syntax;

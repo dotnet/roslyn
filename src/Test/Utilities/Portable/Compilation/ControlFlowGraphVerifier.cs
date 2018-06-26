@@ -331,6 +331,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                  d.Code == (int)VisualBasic.ERRID.ERR_GotoIntoSyncLock ||
                                  d.Code == (int)VisualBasic.ERRID.ERR_GotoIntoUsing))
                 {
+                    // Invalid branches like that are often causing reports about
+                    // using captures before they are initialized.
                     doCaptureVerification = false;
                 }
             }
@@ -504,19 +506,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             bool isCSharpEmptyObjectInitializerCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
             {
-                bool firstTime = true;
+                if (graph.OriginalOperation.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
                 foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
                 {
-                    if (firstTime)
-                    {
-                        if (candidate.Language != LanguageNames.CSharp)
-                        {
-                            break;
-                        }
-
-                        firstTime = false;
-                    }
-
                     if (candidate.Id.Equals(id))
                     {
                         CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
@@ -547,19 +543,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             bool isWithStatementTargetCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
             {
-                bool firstTime = true;
+                if (graph.OriginalOperation.Language != LanguageNames.VisualBasic)
+                {
+                    return false;
+                }
+
                 foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
                 {
-                    if (firstTime)
-                    {
-                        if (candidate.Language != LanguageNames.VisualBasic)
-                        {
-                            break;
-                        }
-
-                        firstTime = false;
-                    }
-
                     if (candidate.Id.Equals(id))
                     {
                         VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)candidate.Syntax);
@@ -580,19 +570,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             bool isConditionalXMLAccessReceiverCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
             {
-                bool firstTime = true;
+                if (graph.OriginalOperation.Language != LanguageNames.VisualBasic)
+                {
+                    return false;
+                }
+
                 foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
                 {
-                    if (firstTime)
-                    {
-                        if (candidate.Language != LanguageNames.VisualBasic)
-                        {
-                            break;
-                        }
-
-                        firstTime = false;
-                    }
-
                     if (candidate.Id.Equals(id))
                     {
                         VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)candidate.Syntax);
@@ -696,19 +680,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             
             bool isAggregateGroupCapture(IOperation operation, ControlFlowRegion region, BasicBlock block, CaptureId id)
             {
-                bool firstTime = true;
+                if (graph.OriginalOperation.Language != LanguageNames.VisualBasic)
+                {
+                    return false;
+                }
+
                 foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
                 {
-                    if (firstTime)
-                    {
-                        if (candidate.Language != LanguageNames.VisualBasic)
-                        {
-                            break;
-                        }
-
-                        firstTime = false;
-                    }
-
                     if (candidate.Id.Equals(id))
                     {
                         VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)candidate.Syntax);
@@ -822,8 +800,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     case LanguageNames.CSharp:
                         {
-                            if (captureReferenceSyntax.Parent is CSharp.Syntax.ConditionalAccessExpressionSyntax access &&
-                                access.Expression == captureReferenceSyntax)
+                            CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)captureReferenceSyntax);
+                            if (syntax.Parent is CSharp.Syntax.ConditionalAccessExpressionSyntax access &&
+                                access.Expression == syntax)
                             {
                                 return true;
                             }
@@ -832,8 +811,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     case LanguageNames.VisualBasic:
                         {
-                            if (captureReferenceSyntax.Parent is VisualBasic.Syntax.ConditionalAccessExpressionSyntax access &&
-                                access.Expression == captureReferenceSyntax)
+                            VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)captureReferenceSyntax);
+                            if (syntax.Parent is VisualBasic.Syntax.ConditionalAccessExpressionSyntax access &&
+                                access.Expression == syntax)
                             {
                                 return true;
                             }

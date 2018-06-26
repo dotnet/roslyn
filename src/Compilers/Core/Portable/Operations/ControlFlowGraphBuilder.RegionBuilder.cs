@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
 #if DEBUG
             public void AboutToFree() => _aboutToFree = true;
-#endif 
+#endif
+
             public void AddCaptureId(int captureId)
             {
                 Debug.Assert(Kind != ControlFlowRegionKind.Root);
