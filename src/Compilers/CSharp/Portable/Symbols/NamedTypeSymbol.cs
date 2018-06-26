@@ -617,12 +617,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Combine with other GetDeclaredBaseType overload and make abstract.
-        internal virtual NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNullability)
-        {
-            return GetDeclaredBaseType(basesBeingResolved);
-        }
-
         internal abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved);
 
         internal abstract ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved);

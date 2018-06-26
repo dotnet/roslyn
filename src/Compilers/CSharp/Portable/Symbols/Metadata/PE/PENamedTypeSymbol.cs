@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces = default(ImmutableArray<NamedTypeSymbol>);
-        private NamedTypeSymbol _lazyDeclaredBaseType1 = ErrorTypeSymbol.UnknownResultType;
-        private NamedTypeSymbol _lazyDeclaredBaseType2 = ErrorTypeSymbol.UnknownResultType;
+        private NamedTypeSymbol _lazyDeclaredBaseTypeWithoutNullability = ErrorTypeSymbol.UnknownResultType;
+        private NamedTypeSymbol _lazyDeclaredBaseTypeWithNullability = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyDeclaredInterfaces = default(ImmutableArray<NamedTypeSymbol>);
 
         private Tuple<CultureInfo, string> _lazyDocComment;
@@ -430,29 +430,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return GetDeclaredBaseType(basesBeingResolved, ignoreNullability: false);
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNullability)
+        private NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNullability)
         {
-            if (ReferenceEquals(_lazyDeclaredBaseType1, ErrorTypeSymbol.UnknownResultType))
+            if (ReferenceEquals(_lazyDeclaredBaseTypeWithoutNullability, ErrorTypeSymbol.UnknownResultType))
             {
-                Interlocked.CompareExchange(ref _lazyDeclaredBaseType1, MakeDeclaredBaseType(), ErrorTypeSymbol.UnknownResultType);
+                Interlocked.CompareExchange(ref _lazyDeclaredBaseTypeWithoutNullability, MakeDeclaredBaseType(), ErrorTypeSymbol.UnknownResultType);
             }
 
             if (ignoreNullability)
             {
-                return _lazyDeclaredBaseType1;
+                return _lazyDeclaredBaseTypeWithoutNullability;
             }
 
-            if (ReferenceEquals(_lazyDeclaredBaseType2, ErrorTypeSymbol.UnknownResultType))
+            if (ReferenceEquals(_lazyDeclaredBaseTypeWithNullability, ErrorTypeSymbol.UnknownResultType))
             {
-                var declaredBase = _lazyDeclaredBaseType1;
+                var declaredBase = _lazyDeclaredBaseTypeWithoutNullability;
                 if ((object)declaredBase != null)
                 {
                     declaredBase = (NamedTypeSymbol)NullableTypeDecoder.TransformOrEraseNullability(TypeSymbolWithAnnotations.Create(declaredBase), _handle, ContainingPEModule).TypeSymbol;
                 }
-                Interlocked.CompareExchange(ref _lazyDeclaredBaseType2, declaredBase, ErrorTypeSymbol.UnknownResultType);
+                Interlocked.CompareExchange(ref _lazyDeclaredBaseTypeWithNullability, declaredBase, ErrorTypeSymbol.UnknownResultType);
             }
 
-            return _lazyDeclaredBaseType2;
+            return _lazyDeclaredBaseTypeWithNullability;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
