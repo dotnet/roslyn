@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 AssertIsForeground();
 
                 _newIdentifierBindsTask = _isRenamableIdentifierTask.SafeContinueWithFromAsync(
-                    async t => t.Result != TriggerIdentifierKind.NotRenamable &&
+                    async t => await t.ConfigureAwait(false) != TriggerIdentifierKind.NotRenamable &&
                                TriggerIdentifierKind.RenamableReference ==
                                    await DetermineIfRenamableIdentifierAsync(
                                        TrackingSpan.GetSpan(snapshot),

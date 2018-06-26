@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
 
             _conflictResolutionTask = _allRenameLocationsTask.SafeContinueWithFromAsync(
-               t => t.Result.GetReplacementsAsync(replacementText, optionSet, cancellationToken),
+               async t => await (await t.ConfigureAwait(false)).GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false),
                cancellationToken,
                TaskContinuationOptions.OnlyOnRanToCompletion,
                TaskScheduler.Default);
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(QueueApplyReplacements));
             _conflictResolutionTask
                 .SafeContinueWith(
-                    t => ComputeMergeResultAsync(t.Result, _conflictResolutionTaskCancellationSource.Token),
+                    async t => await ComputeMergeResultAsync(await t.ConfigureAwait(false), _conflictResolutionTaskCancellationSource.Token).ConfigureAwait(false),
                     _conflictResolutionTaskCancellationSource.Token,
                     TaskContinuationOptions.OnlyOnRanToCompletion,
                     TaskScheduler.Default)

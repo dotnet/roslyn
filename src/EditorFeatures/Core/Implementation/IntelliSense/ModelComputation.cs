@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
             // Create the task that will actually run the transformation step.
             var nextTask = _lastTask.SafeContinueWithFromAsync(
-                t => transformModelAsync(t.Result, _stopCancellationToken),
+                async t => await transformModelAsync(await t.ConfigureAwait(false), _stopCancellationToken).ConfigureAwait(false),
                 _stopCancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, _taskScheduler);
 
             // The next task is now the last task in the chain.
