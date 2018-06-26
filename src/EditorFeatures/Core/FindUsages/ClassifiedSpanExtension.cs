@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal static class ClassifiedSpanExtension
     {
-
-        public static ClassifiedTextElement BuildClassifiedTextElementForClassifiedSpans(this IEnumerable<ClassifiedSpan> classifiedSpans, ITextSnapshot snapshot, ITrackingSpan trackingSpan, CancellationToken cancellationToken)
+        public static ClassifiedTextElement BuildClassifiedTextElementForClassifiedSpans(this List<ClassifiedSpan> classifiedSpans, ITextSnapshot snapshot, ITrackingSpan trackingSpan, CancellationToken cancellationToken)
         {
             Contract.Assert(classifiedSpans != null && classifiedSpans.Any());
 
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             snapshot.GetLineAndColumn(trackingSpan.GetStartPoint(snapshot).Position, out _, out var closeBraceColumnIndex);
 
             // sort the spans by the Start to guarantee the order
-            classifiedSpans.ToList().Sort((s1, s2) => s1.TextSpan.Start.CompareTo(s2.TextSpan.Start));
+            classifiedSpans.Sort((s1, s2) => s1.TextSpan.Start.CompareTo(s2.TextSpan.Start));
 
             // Convert spans to textruns
             var runs = new List<ClassifiedTextRun>();

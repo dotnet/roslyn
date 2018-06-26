@@ -58,13 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
             {
-                IEnumerable<ClassifiedSpan> classifiedSpans = null;
+                var classifiedSpanList = new List<ClassifiedSpan>();
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
-                    classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
+                    classifiedSpanList.AddRange(classifiedSpans.ToArray());
                 }
 
-                elements.Add(classifiedSpans.BuildClassifiedTextElementForClassifiedSpans(snapshot, trackingSpan, cancellationToken));
+                elements.Add(classifiedSpanList.BuildClassifiedTextElementForClassifiedSpans(snapshot, trackingSpan, cancellationToken));
             }
 
             var content = new ContainerElement(
