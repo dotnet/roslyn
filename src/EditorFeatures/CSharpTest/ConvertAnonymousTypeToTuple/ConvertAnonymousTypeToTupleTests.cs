@@ -324,5 +324,133 @@ class Test
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task ConvertWithLambda1()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, b = 2 };
+        Action a = () =>
+        {
+            var t2 = new { a = 3, b = 4 };
+        };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+        Action a = () =>
+        {
+            var t2 = (a: 3, b: 4);
+        };
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task ConvertWithLambda2()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new { a = 1, b = 2 };
+        Action a = () =>
+        {
+            var t2 = [||]new { a = 3, b = 4 };
+        };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+        Action a = () =>
+        {
+            var t2 = (a: 3, b: 4);
+        };
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task ConvertWithLocalFunction1()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, b = 2 };
+        void func()
+        {
+            var t2 = new { a = 3, b = 4 };
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+        void func()
+        {
+            var t2 = (a: 3, b: 4);
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
+        public async Task ConvertWithLocalFunction2()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new { a = 1, b = 2 };
+        void func()
+        {
+            var t2 = [||]new { a = 3, b = 4 };
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+        void func()
+        {
+            var t2 = (a: 3, b: 4);
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }
