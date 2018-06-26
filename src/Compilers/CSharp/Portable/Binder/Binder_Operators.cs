@@ -2233,6 +2233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundKind.PointerElementAccess:
                         {
+                            // When using pointers in unsafe code, it is generally left for the user to make sure memory is fixed/pinned correctly.
+                            // Unless for fixed fields, we want to produce appropriate diagnostics if field is not fixed before access.
                             BoundExpression underlyingExpr = ((BoundPointerElementAccess)expr).Expression;
                             if (underlyingExpr.Kind == BoundKind.FieldAccess)
                             {
