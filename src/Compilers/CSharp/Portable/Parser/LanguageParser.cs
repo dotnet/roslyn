@@ -6613,6 +6613,7 @@ tryAgain:
                 case SyntaxKind.GotoKeyword:
                     return this.ParseGotoStatement();
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
                     return this.ParseIfStatement();
                 case SyntaxKind.LockKeyword:
                     return this.ParseLockStatement();
@@ -7250,6 +7251,7 @@ tryAgain:
                 case SyntaxKind.ForEachKeyword:
                 case SyntaxKind.GotoKeyword:
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:
@@ -7845,14 +7847,17 @@ tryAgain:
 
         private IfStatementSyntax ParseIfStatement()
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword || this.CurrentToken.Kind == SyntaxKind.ElseKeyword);
+
             var @if = this.EatToken(SyntaxKind.IfKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = this.ParseEmbeddedStatement();
-            var elseClause = ParseElseClauseOpt();
-
+            // when 'if' is missing, then we parse an expression statement in a standard way (which adds missing syntax properly)
+            // parsing embedded one expects non-null statement to be present
+            var statement = this.CurrentToken.Kind == SyntaxKind.ElseKeyword ? this.ParseExpressionStatement() : this.ParseEmbeddedStatement();
+            var elseClause = this.ParseElseClauseOpt();
+            
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
         }
 
@@ -8687,6 +8692,7 @@ tryAgain:
                 case SyntaxKind.ForEachKeyword:
                 case SyntaxKind.GotoKeyword:
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:
