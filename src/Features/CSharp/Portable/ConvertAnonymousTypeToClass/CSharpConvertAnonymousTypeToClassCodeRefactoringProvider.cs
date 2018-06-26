@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 {
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.ConvertAnonmousTypeToClass)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass)), Shared]
     internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
         AbstractConvertAnonymousTypeToClassCodeRefactoringProvider<
             ExpressionSyntax,

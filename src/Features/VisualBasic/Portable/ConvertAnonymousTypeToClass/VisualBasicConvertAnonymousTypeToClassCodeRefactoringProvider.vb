@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertAnonmousTypeToClass), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass), [Shared]>
     Friend Class VisualBasicConvertAnonymousTypeToClassCodeRefactoringProvider
         Inherits AbstractConvertAnonymousTypeToClassCodeRefactoringProvider(Of
             ExpressionSyntax,

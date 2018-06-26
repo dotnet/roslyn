@@ -832,5 +832,21 @@ internal class NewClass1
 }";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task TestDuplicatedName()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, a = 2 };
+    }
+}
+";
+            var expected = @"";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
 {
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ConvertAnonmousTypeToClass)]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.IntroduceVariable), Shared]
     internal class IntroduceVariableCodeRefactoringProvider : CodeRefactoringProvider
