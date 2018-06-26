@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentException(CodeAnalysisResources.NotARootOperation, argumentNameForException);
             }
 
-            if (((Operation)operation).SemanticModel == null)
+            if (((Operation)operation).OwningSemanticModel == null)
             {
                 throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
             }
