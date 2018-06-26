@@ -13256,39 +13256,66 @@ public class B : A<object>
 {
     static void F(object? x, B b)
     {
-        var y = b.F;
-        (new[] { x, x! })[0].ToString();
-        (new[] { x!, x })[0].ToString();
+        var y = b.F/*T:object*/;
+        (new[] { x, x! })[0].ToString(); // 1
+        (new[] { x!, x })[0].ToString(); // 2
         (new[] { x!, x! })[0].ToString();
         (new[] { y, y! })[0].ToString();
         (new[] { y!, y })[0].ToString();
+        (new[] { x, y })[0].ToString(); // 3
+        (new[] { x, y! })[0].ToString(); // 4
+        (new[] { x!, y })[0].ToString();
+        (new[] { x!, y! })[0].ToString();
     }
     static void F(A<object?> z, B w)
     {
-        (new[] { z, z! })[0].F.ToString();
-        (new[] { z!, z })[0].F.ToString();
-        (new[] { z!, z! })[0].F.ToString();
+        (new[] { z, z! })[0].F.ToString(); // 5
+        (new[] { z!, z })[0].F.ToString(); // 6
+        (new[] { z!, z! })[0].F.ToString(); // 7
         (new[] { w, w! })[0].F.ToString();
         (new[] { w!, w })[0].F.ToString();
+        (new[] { z, w })[0].F.ToString(); // 8
+        (new[] { z, w! })[0].F.ToString(); // 9
+        (new[] { z!, w })[0].F.ToString(); // 10
+        (new[] { z!, w! })[0].F.ToString(); // 11
     }
 }";
             var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { x, x! })[0].ToString();
+                //         (new[] { x, x! })[0].ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, x! })[0]").WithLocation(6, 9),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { x!, x })[0].ToString();
+                //         (new[] { x!, x })[0].ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x!, x })[0]").WithLocation(7, 9),
-                // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { z, z! })[0].F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, z! })[0].F").WithLocation(14, 9),
-                // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { z!, z })[0].F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z })[0].F").WithLocation(15, 9),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { z!, z! })[0].F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z! })[0].F").WithLocation(16, 9));
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { x, y })[0].ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, y })[0]").WithLocation(11, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { x, y! })[0].ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, y! })[0]").WithLocation(12, 9),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z, z! })[0].F.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, z! })[0].F").WithLocation(18, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z!, z })[0].F.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z })[0].F").WithLocation(19, 9),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z!, z! })[0].F.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z! })[0].F").WithLocation(20, 9),
+                // (23,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z, w })[0].F.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, w })[0].F").WithLocation(23, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z, w! })[0].F.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, w! })[0].F").WithLocation(24, 9),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z!, w })[0].F.ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, w })[0].F").WithLocation(25, 9),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z!, w! })[0].F.ToString(); // 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, w! })[0].F").WithLocation(26, 9));
         }
 
         [Fact]
@@ -18970,16 +18997,17 @@ class C
     {
         D<A> d;
         d = Create(x).F;
+        d = Create(y).F; // warning
         x = y;
         d = Create(x).F; // warning
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Report conversion warning for second `d = Create(x).F`.
+            // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
             comp.VerifyDiagnostics(
-                // (14,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = y;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(14, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(15, 13));
         }
 
         [Fact]
