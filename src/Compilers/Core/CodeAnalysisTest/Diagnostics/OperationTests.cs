@@ -187,6 +187,7 @@ class C
 
         private void TestGetFlowGraphInvalidArgumentCore(string argumentExceptionMessage, IOperation parent)
         {
+            bool exceptionThrown = false;
             try
             {
                 IBlockOperation block = new BlockStatement(
@@ -198,7 +199,11 @@ class C
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "body").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -212,7 +217,11 @@ class C
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "initializer").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -226,7 +235,11 @@ class C
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "initializer").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -240,7 +253,11 @@ class C
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "initializer").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -256,7 +273,11 @@ class C
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "constructorBody").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -270,7 +291,11 @@ class C
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "methodBody").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -293,6 +318,7 @@ class C
             var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Last();
 
             // Verify ArgumentNullException
+            bool exceptionThrown = false;
             try
             {
                 _ = ControlFlowGraph.Create(node: null, model);
@@ -300,7 +326,11 @@ class C
             catch (ArgumentNullException ex)
             {
                 Assert.Equal(ex.Message, new ArgumentNullException("node").Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -309,7 +339,11 @@ class C
             catch (ArgumentNullException ex)
             {
                 Assert.Equal(ex.Message, new ArgumentNullException("semanticModel").Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             // Verify argument exception on providing a syntax node in executable code which does not produce root operation.
             try
@@ -320,7 +354,11 @@ class C
             catch (ArgumentException ex)
             {
                 Assert.Equal(ex.Message, new ArgumentException(CodeAnalysisResources.NotARootOperation, "operation").Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             // Verify null return for non-executable code syntax node, which does not produce an operation.
             var classDecl = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
