@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         {
             // For the standard invocation of the code-fix, we want to fixup all creations of the
             // "same" anonymous type within the containing method.  We define same-ness as meaning
-            // "they have the type symbol".  this means both have the same member names, in the same
+            // "they have the type symbol".  This means both have the same member names, in the same
             // order, with the same member types.  We fix all these up in the method because the
             // user may be creating several instances of this anonymous type in that method and
             // then combining them in interesting ways (i.e. checking them for equality, using them
