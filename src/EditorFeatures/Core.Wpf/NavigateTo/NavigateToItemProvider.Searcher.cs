@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
             internal async void Search()
             {
                 try
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     _callback.Done();
                 }
             }
+#pragma warning restore VSTHRD100 // Avoid async void methods
 
             private async Task SearchAsync(Project project)
             {

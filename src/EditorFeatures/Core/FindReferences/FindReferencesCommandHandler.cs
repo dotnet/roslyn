@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             }
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void StreamingFindReferences(
             Document document, int caretPosition,
             IFindUsagesService findUsagesService,
@@ -146,5 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             {
             }
         }
+#pragma warning restore VSTHRD100 // Avoid async void methods
+
     }
 }

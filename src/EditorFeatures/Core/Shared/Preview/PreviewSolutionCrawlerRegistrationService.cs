@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 }
             }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
             public async void Unregister(Workspace workspace, bool blockingShutdown = false)
             {
                 Contract.ThrowIfFalse(workspace == _workspace);
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 // ask it to reset its stages for the given workspace
                 _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
             }
+#pragma warning restore VSTHRD100 // Avoid async void methods
 
             public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
             {

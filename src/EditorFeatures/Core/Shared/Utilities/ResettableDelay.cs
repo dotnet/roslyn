@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _lastSetTime = Environment.TickCount;
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void StartTimer(bool continueOnCapturedContext)
         {
             do
@@ -59,5 +60,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
             _taskCompletionSource.SetResult(null);
         }
+#pragma warning restore VSTHRD100 // Avoid async void methods
     }
 }
