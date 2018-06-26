@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
 
-        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider() : this(null)
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider() 
+            : this(pickMembersService: null)
         {
         }
 
