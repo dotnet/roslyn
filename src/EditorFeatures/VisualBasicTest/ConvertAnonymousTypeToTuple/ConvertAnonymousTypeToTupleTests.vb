@@ -243,5 +243,90 @@ end class
 "
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        Public Async Function TestInLambda1() As Task
+            Dim text = "
+Imports System
+
+class Test
+    sub Method()
+        dim t1 = [||]new with { .a = 1, .b = 2 }
+        dim a as Action =
+            sub()
+                dim t2 = new with { .a = 3, .b = 4 }
+            end sub
+    end sub
+end class
+"
+            Dim expected = "
+Imports System
+
+class Test
+    sub Method()
+        dim t1 = (a:=1, b:=2)
+        dim a as Action =
+            sub()
+                dim t2 = (a:=3, b:=4)
+            end sub
+    end sub
+end class
+"
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        Public Async Function TestInLambda2() As Task
+            Dim text = "
+Imports System
+
+class Test
+    sub Method()
+        dim t1 = new with { .a = 1, .b = 2 }
+        dim a as Action =
+            sub()
+                dim t2 = [||]new with { .a = 3, .b = 4 }
+            end sub
+    end sub
+end class
+"
+            Dim expected = "
+Imports System
+
+class Test
+    sub Method()
+        dim t1 = (a:=1, b:=2)
+        dim a as Action =
+            sub()
+                dim t2 = (a:=3, b:=4)
+            end sub
+    end sub
+end class
+"
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        Public Async Function TestIncomplete() As Task
+            Dim text = "
+Imports System
+
+class Test
+    sub Method()
+        dim t1 = [||]new with { .a = , .b = }
+    end sub
+end class
+"
+            Dim expected = "
+Imports System
+
+class Test
+    sub Method()
+        dim t1 = (a:= , b:= )
+    end sub
+end class
+"
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
     End Class
 End Namespace
