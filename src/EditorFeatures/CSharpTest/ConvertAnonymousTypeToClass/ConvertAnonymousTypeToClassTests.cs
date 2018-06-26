@@ -254,7 +254,7 @@ internal class NewClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
-        public async Task ConvertMultipleInstancesAcrossMesthod()
+        public async Task ConvertMultipleInstancesAcrossMethods()
         {
             var text = @"
 class Test
