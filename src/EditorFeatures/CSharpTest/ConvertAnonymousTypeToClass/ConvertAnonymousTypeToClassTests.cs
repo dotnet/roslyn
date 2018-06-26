@@ -845,7 +845,86 @@ class Test
     }
 }
 ";
-            var expected = @"";
+            var expected = @"
+internal class NewClass
+{
+    public int A { get; }
+    public int $1 { get; }
+
+    public NewClass(int a, int $1)
+    {
+        A = a;
+        this.$1 = $1;
+    }
+
+    public override bool Equals(object obj)
+    {
+        var other = obj as NewClass;
+        return other != null &&
+               A == other.A &&
+               $1 == other.$1;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -715919150;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + $1.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task TestNewSelection()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [|new|] { a = 1, b = 2 };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewClass(1, 2);
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        var other = obj as NewClass;
+        return other != null &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}
+";
             await TestInRegularAndScriptAsync(text, expected);
         }
     }
