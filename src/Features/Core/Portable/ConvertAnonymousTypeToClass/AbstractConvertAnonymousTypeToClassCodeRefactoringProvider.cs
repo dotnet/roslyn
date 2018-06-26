@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             var position = span.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = semanticModel.Compilation;
 
             // Generate a unique name for the class we're creating.  We'll also add a rename
             // annotation so the user can pick the right name for the type afterwards.
