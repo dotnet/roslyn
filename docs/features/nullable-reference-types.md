@@ -146,7 +146,28 @@ The top-level nullability of `x ?? y` is `!` if `x` is `!` and otherwise the top
 A warning is reported if there is a nested nullability mismatch between `x` and `y`.
 
 ## Type parameters
-See [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
-
+A warning is reported for nullable type argument for type parameter with `class` constraint or non-nullable reference type or interface type constraint.
+[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+```c#
+static void F1<T>() where T : class { }
+static void F2<T>() where T : Stream { }
+static void F3<T>() where T : IDisposable { }
+F1<Stream?>(); // warning
+F2<Stream?>(); // warning
+F3<Stream?>(); // warning
+```
+Type parameter constraints may include nullable reference type and interface types.
+[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+```c#
+static void F2<T> where T : Stream? { }
+static void F3<T>() where T : IDisposable? { }
+F2<Stream?>(); // ok
+F3<Stream?>(); // ok
+```
+A warning is reported for inconsistent top-level nullability of constraint types.
+[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+```c#
+static void F4<T> where T : Stream?, IDisposable { } // warning
+```
 ## Compiler switch
 _Describe behavior when feature is disabled._
