@@ -157,5 +157,6 @@ collection.
     <Rule Id="VSTHRD001" Action="None" /> <!-- Suppress JTF specific rules  -->
     <Rule Id="VSTHRD002" Action="None" /> <!-- Suppress JTF specific rules  -->
     <Rule Id="VSTHRD110" Action="None" /> <!-- Allow fire-and-forget methods to exist  -->
+    <Rule Id="VSTHRD200" Action="None" /> <!-- Allow async methods that do not end in async  -->
   </Rules>
 </RuleSet>
