@@ -194,10 +194,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                             var result = runner.RunTestCollection(new IpcMessageBus(messageBus), testCollection, testCases.ToArray());
                             var runSummary = new RunSummary
                             {
-                                Total = result.Item1,
-                                Failed = result.Item2,
-                                Skipped = result.Item3,
-                                Time = result.Item4,
+                                Total = result.total,
+                                Failed = result.failed,
+                                Skipped = result.skipped,
+                                Time = result.time,
                             };
 
                             return Tuple.Create(runSummary, executionMessageSinkFilter.TestAssemblyFinished);
@@ -221,7 +221,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         {
             private readonly IMessageSink _messageSink;
             private readonly CancellationToken _cancellationToken;
-
             private readonly HashSet<string> _completedTestCaseIds;
 
             public IpcMessageSink(IMessageSink messageSink, HashSet<string> completedTestCaseIds, CancellationToken cancellationToken)
@@ -247,7 +246,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                 else if (message is ITestCaseFinished testCaseFinished)
                 {
                     _completedTestCaseIds.Add(testCaseFinished.TestCase.UniqueID);
-                    return !_cancellationToken.IsCancellationRequested;
                 }
                 else if (message is ITestAssemblyStarting
                     || message is ITestCollectionStarting
