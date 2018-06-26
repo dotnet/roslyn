@@ -5200,10 +5200,10 @@ Char: v
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.ConversionsILGenTestSource %>
+        <%= EmitResourceUtil.ConversionsILGenTestSource %>
     </file>
 </compilation>,
-            expectedOutput:=My.Resources.Resource.ConversionsILGenTestBaseline)
+            expectedOutput:=EmitResourceUtil.ConversionsILGenTestBaseline)
 
         End Sub
 
@@ -5213,10 +5213,10 @@ Char: v
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.ConversionsILGenTestSource1 %>
+        <%= EmitResourceUtil.ConversionsILGenTestSource1 %>
     </file>
 </compilation>,
-            expectedOutput:=My.Resources.Resource.ConversionsILGenTestBaseline1)
+            expectedOutput:=EmitResourceUtil.ConversionsILGenTestBaseline1)
 
         End Sub
 
@@ -5226,7 +5226,7 @@ Char: v
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.ConversionsILGenTestSource2 %>
+        <%= EmitResourceUtil.ConversionsILGenTestSource2 %>
     </file>
 </compilation>,
             expectedOutput:=<![CDATA[

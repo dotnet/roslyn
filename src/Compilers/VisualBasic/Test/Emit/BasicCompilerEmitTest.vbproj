@@ -121,6 +121,12 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resource.Designer.vb</LastGenOutput>
     </EmbeddedResource>
+
+    <EmbeddedResource Include="codegen\conversionsilgentestbaseline.txt" />
+    <EmbeddedResource Include="codegen\conversionsilgentestbaseline1.txt" />
+    <EmbeddedResource Include="codegen\conversionsilgentestsource.vb" />
+    <EmbeddedResource Include="codegen\conversionsilgentestsource1.vb" />
+    <EmbeddedResource Include="codegen\conversionsilgentestsource2.vb" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
