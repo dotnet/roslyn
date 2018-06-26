@@ -167,7 +167,8 @@ F3<Stream?>(); // ok
 A warning is reported for inconsistent top-level nullability of constraint types.
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 ```c#
-static void F4<T> where T : Stream?, IDisposable { } // warning
+static void F4<T> where T : class, Stream? { } // warning
+static void F5<T> where T : Stream?, IDisposable { } // warning
 ```
 ## Compiler switch
 _Describe behavior when feature is disabled._
