@@ -11,43 +11,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class EmitResourceUtil
 
-        ' codegen\conversionsilgentestbaseline.txt
+        ' CodeGen\ConversionsILGenTestBaseline.txt
         Private Shared _conversionsILGenTestBaseline As String
         Public Shared ReadOnly Property ConversionsILGenTestBaseline As String
             Get
-                Return GetOrCreate("conversionsilgentestbaseline.txt", _conversionsILGenTestBaseline)
+                Return GetOrCreate("ConversionsILGenTestBaseline.txt", _conversionsILGenTestBaseline)
             End Get
         End Property
 
-        ' codegen\conversionsilgentestbaseline1.txt
+        ' CodeGen\ConversionsILGenTestBaseline1.txt
         Private Shared _conversionsILGenTestBaseline1 As String
         Public Shared ReadOnly Property ConversionsILGenTestBaseline1 As String
             Get
-                Return GetOrCreate("conversionsilgentestbaseline1.txt", _conversionsILGenTestBaseline1)
+                Return GetOrCreate("ConversionsILGenTestBaseline1.txt", _conversionsILGenTestBaseline1)
             End Get
         End Property
 
-        ' codegen\conversionsilgentestsource.vb
+        ' CodeGen\ConversionsILGenTestSource.vb
         Private Shared _conversionsILGenTestSource As String
         Public Shared ReadOnly Property ConversionsILGenTestSource As String
             Get
-                Return GetOrCreate("conversionsilgentestsource.vb", _conversionsILGenTestSource)
+                Return GetOrCreate("ConversionsILGenTestSource.vb", _conversionsILGenTestSource)
             End Get
         End Property
 
-        ' codegen\conversionsilgentestsource1.vb:0
+        ' CodeGen\ConversionsILGenTestSource1.vb
         Private Shared _conversionsILGenTestSource1 As String
         Public Shared ReadOnly Property ConversionsILGenTestSource1 As String
             Get
-                Return GetOrCreate("conversionsilgentestsource1.vb", _conversionsILGenTestSource1)
+                Return GetOrCreate("ConversionsILGenTestSource1.vb", _conversionsILGenTestSource1)
             End Get
         End Property
 
-        ' codegen\conversionsilgentestsource2.vb
+        ' CodeGen\ConversionsILGenTestSource2.vb
         Private Shared _conversionsILGenTestSource2 As String
         Public Shared ReadOnly Property ConversionsILGenTestSource2 As String
             Get
-                Return GetOrCreate("conversionsilgentestsource2.vb", _conversionsILGenTestSource2)
+                Return GetOrCreate("ConversionsILGenTestSource2.vb", _conversionsILGenTestSource2)
             End Get
         End Property
 

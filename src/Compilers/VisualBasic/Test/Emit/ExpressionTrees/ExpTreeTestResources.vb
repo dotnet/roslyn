@@ -11,451 +11,451 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class ExpTreeTestResources
 
-        ' results\checkedarithmeticbinaryoperators.txt                                                                          
+        ' ExpressionTrees\Results\CheckedArithmeticBinaryOperators.txt
         Private Shared _checkedArithmeticBinaryOperators As String
         Public Shared ReadOnly Property CheckedArithmeticBinaryOperators As String
             Get
-                Return GetOrCreate("checkedarithmeticbinaryoperators.txt", _checkedArithmeticBinaryOperators)
+                Return GetOrCreate("CheckedArithmeticBinaryOperators.txt", _checkedArithmeticBinaryOperators)
             End Get
         End Property
 
-        ' results\uncheckedarithmeticbinaryoperators.txt                                                                        
+        ' ExpressionTrees\Results\UncheckedArithmeticBinaryOperators.txt
         Private Shared _uncheckedArithmeticBinaryOperators As String
         Public Shared ReadOnly Property UncheckedArithmeticBinaryOperators As String
             Get
-                Return GetOrCreate("uncheckedarithmeticbinaryoperators.txt", _uncheckedArithmeticBinaryOperators)
+                Return GetOrCreate("UncheckedArithmeticBinaryOperators.txt", _uncheckedArithmeticBinaryOperators)
             End Get
         End Property
 
-        ' results\checkedandorxor.txt                                                                                           
+        ' ExpressionTrees\Results\CheckedAndOrXor.txt
         Private Shared _checkedAndOrXor As String
         Public Shared ReadOnly Property CheckedAndOrXor As String
             Get
-                Return GetOrCreate("checkedandorxor.txt", _checkedAndOrXor)
+                Return GetOrCreate("CheckedAndOrXor.txt", _checkedAndOrXor)
             End Get
         End Property
 
-        ' results\uncheckedandorxor.txt                                                                                         
+        ' ExpressionTrees\Results\UncheckedAndOrXor.txt
         Private Shared _uncheckedAndOrXor As String
         Public Shared ReadOnly Property UncheckedAndOrXor As String
             Get
-                Return GetOrCreate("uncheckedandorxor.txt", _uncheckedAndOrXor)
+                Return GetOrCreate("UncheckedAndOrXor.txt", _uncheckedAndOrXor)
             End Get
         End Property
 
-        ' results\checkedshortcircuit.txt                                                                                       
+        ' ExpressionTrees\Results\CheckedShortCircuit.txt
         Private Shared _checkedShortCircuit As String
         Public Shared ReadOnly Property CheckedShortCircuit As String
             Get
-                Return GetOrCreate("checkedshortcircuit.txt", _checkedShortCircuit)
+                Return GetOrCreate("CheckedShortCircuit.txt", _checkedShortCircuit)
             End Get
         End Property
 
-        ' results\uncheckedshortcircuit.txt                                                                                     
+        ' ExpressionTrees\Results\UncheckedShortCircuit.txt
         Private Shared _uncheckedShortCircuit As String
         Public Shared ReadOnly Property UncheckedShortCircuit As String
             Get
-                Return GetOrCreate("uncheckedshortcircuit.txt", _uncheckedShortCircuit)
+                Return GetOrCreate("UncheckedShortCircuit.txt", _uncheckedShortCircuit)
             End Get
         End Property
 
-        ' results\checkedcomparisonoperators.txt                                                                                
+        ' ExpressionTrees\Results\CheckedComparisonOperators.txt
         Private Shared _checkedComparisonOperators As String
         Public Shared ReadOnly Property CheckedComparisonOperators As String
             Get
-                Return GetOrCreate("checkedcomparisonoperators.txt", _checkedComparisonOperators)
+                Return GetOrCreate("CheckedComparisonOperators.txt", _checkedComparisonOperators)
             End Get
         End Property
 
-        ' results\uncheckedcomparisonoperators.txt                                                                              
+        ' ExpressionTrees\Results\UncheckedComparisonOperators.txt
         Private Shared _uncheckedComparisonOperators As String
         Public Shared ReadOnly Property UncheckedComparisonOperators As String
             Get
-                Return GetOrCreate("uncheckedcomparisonoperators.txt", _uncheckedComparisonOperators)
+                Return GetOrCreate("UncheckedComparisonOperators.txt", _uncheckedComparisonOperators)
             End Get
         End Property
 
-        ' results\checkedanduncheckedisisnotnothing.txt                                                                         
+        ' ExpressionTrees\Results\CheckedAndUncheckedIsIsNotNothing.txt
         Private Shared _checkedAndUncheckedIsIsNotNothing As String
         Public Shared ReadOnly Property CheckedAndUncheckedIsIsNotNothing As String
             Get
-                Return GetOrCreate("checkedanduncheckedisisnotnothing.txt", _checkedAndUncheckedIsIsNotNothing)
+                Return GetOrCreate("CheckedAndUncheckedIsIsNotNothing.txt", _checkedAndUncheckedIsIsNotNothing)
             End Get
         End Property
 
-        ' results\checkedanduncheckedisisnot.txt                                                                                
+        ' ExpressionTrees\Results\CheckedAndUncheckedIsIsNot.txt
         Private Shared _checkedAndUncheckedIsIsNot As String
         Public Shared ReadOnly Property CheckedAndUncheckedIsIsNot As String
             Get
-                Return GetOrCreate("checkedanduncheckedisisnot.txt", _checkedAndUncheckedIsIsNot)
+                Return GetOrCreate("CheckedAndUncheckedIsIsNot.txt", _checkedAndUncheckedIsIsNot)
             End Get
         End Property
 
-        ' results\checkedconcatenate.txt                                                                                        
+        ' ExpressionTrees\Results\CheckedConcatenate.txt
         Private Shared _checkedConcatenate As String
         Public Shared ReadOnly Property CheckedConcatenate As String
             Get
-                Return GetOrCreate("checkedconcatenate.txt", _checkedConcatenate)
+                Return GetOrCreate("CheckedConcatenate.txt", _checkedConcatenate)
             End Get
         End Property
 
-        ' results\uncheckedconcatenate.txt                                                                                      
+        ' ExpressionTrees\Results\UncheckedConcatenate.txt
         Private Shared _uncheckedConcatenate As String
         Public Shared ReadOnly Property UncheckedConcatenate As String
             Get
-                Return GetOrCreate("uncheckedconcatenate.txt", _uncheckedConcatenate)
+                Return GetOrCreate("UncheckedConcatenate.txt", _uncheckedConcatenate)
             End Get
         End Property
 
-        ' results\checkedlike.txt                                                                                               
+        ' ExpressionTrees\Results\CheckedLike.txt
         Private Shared _checkedLike As String
         Public Shared ReadOnly Property CheckedLike As String
             Get
-                Return GetOrCreate("checkedlike.txt", _checkedLike)
+                Return GetOrCreate("CheckedLike.txt", _checkedLike)
             End Get
         End Property
 
-        ' results\uncheckedlike.txt                                                                                             
+        ' ExpressionTrees\Results\UncheckedLike.txt
         Private Shared _uncheckedLike As String
         Public Shared ReadOnly Property UncheckedLike As String
             Get
-                Return GetOrCreate("uncheckedlike.txt", _uncheckedLike)
+                Return GetOrCreate("UncheckedLike.txt", _uncheckedLike)
             End Get
         End Property
 
-        ' results\checkedanduncheckedwithdate.txt                                                                               
+        ' ExpressionTrees\Results\CheckedAndUncheckedWithDate.txt
         Private Shared _checkedAndUncheckedWithDate As String
         Public Shared ReadOnly Property CheckedAndUncheckedWithDate As String
             Get
-                Return GetOrCreate("checkedanduncheckedwithdate.txt", _checkedAndUncheckedWithDate)
+                Return GetOrCreate("CheckedAndUncheckedWithDate.txt", _checkedAndUncheckedWithDate)
             End Get
         End Property
 
-        ' sources\exprlambdautils.vb                                                                                            
+        ' ExpressionTrees\sources\ExprLambdaUtils.vb
         Private Shared _exprLambdaUtils As String
         Public Shared ReadOnly Property ExprLambdaUtils As String
             Get
-                Return GetOrCreate("exprlambdautils.vb", _exprLambdaUtils)
+                Return GetOrCreate("ExprLambdaUtils.vb", _exprLambdaUtils)
             End Get
         End Property
 
-        ' sources\userdefinedbinaryoperators.vb                                                                                 
+        ' ExpressionTrees\sources\UserDefinedBinaryOperators.vb
         Private Shared _userDefinedBinaryOperators As String
         Public Shared ReadOnly Property UserDefinedBinaryOperators As String
             Get
-                Return GetOrCreate("userdefinedbinaryoperators.vb", _userDefinedBinaryOperators)
+                Return GetOrCreate("UserDefinedBinaryOperators.vb", _userDefinedBinaryOperators)
             End Get
         End Property
 
-        ' results\checkeduserdefinedbinaryoperators.txt                                                                         
+        ' ExpressionTrees\Results\CheckedUserDefinedBinaryOperators.txt
         Private Shared _checkedUserDefinedBinaryOperators As String
         Public Shared ReadOnly Property CheckedUserDefinedBinaryOperators As String
             Get
-                Return GetOrCreate("checkeduserdefinedbinaryoperators.txt", _checkedUserDefinedBinaryOperators)
+                Return GetOrCreate("CheckedUserDefinedBinaryOperators.txt", _checkedUserDefinedBinaryOperators)
             End Get
         End Property
 
-        ' results\uncheckeduserdefinedbinaryoperators.txt                                                                       
+        ' ExpressionTrees\Results\UncheckedUserDefinedBinaryOperators.txt
         Private Shared _uncheckedUserDefinedBinaryOperators As String
         Public Shared ReadOnly Property UncheckedUserDefinedBinaryOperators As String
             Get
-                Return GetOrCreate("uncheckeduserdefinedbinaryoperators.txt", _uncheckedUserDefinedBinaryOperators)
+                Return GetOrCreate("UncheckedUserDefinedBinaryOperators.txt", _uncheckedUserDefinedBinaryOperators)
             End Get
         End Property
 
-        ' results\checkedanduncheckednothingconversions.txt                                                                     
+        ' ExpressionTrees\Results\CheckedAndUncheckedNothingConversions.txt
         Private Shared _checkedAndUncheckedNothingConversions As String
         Public Shared ReadOnly Property CheckedAndUncheckedNothingConversions As String
             Get
-                Return GetOrCreate("checkedanduncheckednothingconversions.txt", _checkedAndUncheckedNothingConversions)
+                Return GetOrCreate("CheckedAndUncheckedNothingConversions.txt", _checkedAndUncheckedNothingConversions)
             End Get
         End Property
 
-        ' results\checkedanduncheckedtypeparameters.txt                                                                         
+        ' ExpressionTrees\Results\CheckedAndUncheckedTypeParameters.txt
         Private Shared _checkedAndUncheckedTypeParameters As String
         Public Shared ReadOnly Property CheckedAndUncheckedTypeParameters As String
             Get
-                Return GetOrCreate("checkedanduncheckedtypeparameters.txt", _checkedAndUncheckedTypeParameters)
+                Return GetOrCreate("CheckedAndUncheckedTypeParameters.txt", _checkedAndUncheckedTypeParameters)
             End Get
         End Property
 
-        ' results\checkeddirecttryspecificconversions.txt                                                                       
+        ' ExpressionTrees\Results\CheckedDirectTrySpecificConversions.txt
         Private Shared _checkedDirectTrySpecificConversions As String
         Public Shared ReadOnly Property CheckedDirectTrySpecificConversions As String
             Get
-                Return GetOrCreate("checkeddirecttryspecificconversions.txt", _checkedDirectTrySpecificConversions)
+                Return GetOrCreate("CheckedDirectTrySpecificConversions.txt", _checkedDirectTrySpecificConversions)
             End Get
         End Property
 
-        ' results\uncheckeddirecttryspecificconversions.txt                                                                     
+        ' ExpressionTrees\Results\UncheckedDirectTrySpecificConversions.txt
         Private Shared _uncheckedDirectTrySpecificConversions As String
         Public Shared ReadOnly Property UncheckedDirectTrySpecificConversions As String
             Get
-                Return GetOrCreate("uncheckeddirecttryspecificconversions.txt", _uncheckedDirectTrySpecificConversions)
+                Return GetOrCreate("UncheckedDirectTrySpecificConversions.txt", _uncheckedDirectTrySpecificConversions)
             End Get
         End Property
 
-        ' results\checkedctypeandimplicitconversionseven.txt                                                                    
+        ' ExpressionTrees\Results\CheckedCTypeAndImplicitConversionsEven.txt
         Private Shared _checkedCTypeAndImplicitConversionsEven As String
         Public Shared ReadOnly Property CheckedCTypeAndImplicitConversionsEven As String
             Get
-                Return GetOrCreate("checkedctypeandimplicitconversionseven.txt", _checkedCTypeAndImplicitConversionsEven)
+                Return GetOrCreate("CheckedCTypeAndImplicitConversionsEven.txt", _checkedCTypeAndImplicitConversionsEven)
             End Get
         End Property
 
-        ' results\uncheckedctypeandimplicitconversionseven.txt                                                                  
+        ' ExpressionTrees\Results\UncheckedCTypeAndImplicitConversionsEven.txt
         Private Shared _uncheckedCTypeAndImplicitConversionsEven As String
         Public Shared ReadOnly Property UncheckedCTypeAndImplicitConversionsEven As String
             Get
-                Return GetOrCreate("uncheckedctypeandimplicitconversionseven.txt", _uncheckedCTypeAndImplicitConversionsEven)
+                Return GetOrCreate("UncheckedCTypeAndImplicitConversionsEven.txt", _uncheckedCTypeAndImplicitConversionsEven)
             End Get
         End Property
 
-        ' results\checkedctypeandimplicitconversionsodd.txt                                                                     
+        ' ExpressionTrees\Results\CheckedCTypeAndImplicitConversionsOdd.txt
         Private Shared _checkedCTypeAndImplicitConversionsOdd As String
         Public Shared ReadOnly Property CheckedCTypeAndImplicitConversionsOdd As String
             Get
-                Return GetOrCreate("checkedctypeandimplicitconversionsodd.txt", _checkedCTypeAndImplicitConversionsOdd)
+                Return GetOrCreate("CheckedCTypeAndImplicitConversionsOdd.txt", _checkedCTypeAndImplicitConversionsOdd)
             End Get
         End Property
 
-        ' results\uncheckedctypeandimplicitconversionsodd.txt                                                                   
+        ' ExpressionTrees\Results\UncheckedCTypeAndImplicitConversionsOdd.txt
         Private Shared _uncheckedCTypeAndImplicitConversionsOdd As String
         Public Shared ReadOnly Property UncheckedCTypeAndImplicitConversionsOdd As String
             Get
-                Return GetOrCreate("uncheckedctypeandimplicitconversionsodd.txt", _uncheckedCTypeAndImplicitConversionsOdd)
+                Return GetOrCreate("UncheckedCTypeAndImplicitConversionsOdd.txt", _uncheckedCTypeAndImplicitConversionsOdd)
             End Get
         End Property
 
-        ' tests\testconversion_typematrix_usertypes.vb                                                                          
+        ' ExpressionTrees\Tests\TestConversion_TypeMatrix_UserTypes.vb
         Private Shared _testConversion_TypeMatrix_UserTypes As String
         Public Shared ReadOnly Property TestConversion_TypeMatrix_UserTypes As String
             Get
-                Return GetOrCreate("testconversion_typematrix_usertypes.vb", _testConversion_TypeMatrix_UserTypes)
+                Return GetOrCreate("TestConversion_TypeMatrix_UserTypes.vb", _testConversion_TypeMatrix_UserTypes)
             End Get
         End Property
 
-        ' results\checkedanduncheckedusertypeconversions.txt                                                                    
+        ' ExpressionTrees\Results\CheckedAndUncheckedUserTypeConversions.txt
         Private Shared _checkedAndUncheckedUserTypeConversions As String
         Public Shared ReadOnly Property CheckedAndUncheckedUserTypeConversions As String
             Get
-                Return GetOrCreate("checkedanduncheckedusertypeconversions.txt", _checkedAndUncheckedUserTypeConversions)
+                Return GetOrCreate("CheckedAndUncheckedUserTypeConversions.txt", _checkedAndUncheckedUserTypeConversions)
             End Get
         End Property
 
-        ' tests\testconversion_narrowing_udc.vb                                                                                 
+        ' ExpressionTrees\Tests\TestConversion_Narrowing_UDC.vb
         Private Shared _testConversion_Narrowing_UDC As String
         Public Shared ReadOnly Property TestConversion_Narrowing_UDC As String
             Get
-                Return GetOrCreate("testconversion_narrowing_udc.vb", _testConversion_Narrowing_UDC)
+                Return GetOrCreate("TestConversion_Narrowing_UDC.vb", _testConversion_Narrowing_UDC)
             End Get
         End Property
 
-        ' results\checkedanduncheckednarrowingudc.txt                                                                           
+        ' ExpressionTrees\Results\CheckedAndUncheckedNarrowingUDC.txt
         Private Shared _checkedAndUncheckedNarrowingUDC As String
         Public Shared ReadOnly Property CheckedAndUncheckedNarrowingUDC As String
             Get
-                Return GetOrCreate("checkedanduncheckednarrowingudc.txt", _checkedAndUncheckedNarrowingUDC)
+                Return GetOrCreate("CheckedAndUncheckedNarrowingUDC.txt", _checkedAndUncheckedNarrowingUDC)
             End Get
         End Property
 
-        ' tests\testconversion_widening_udc.vb                                                                                  
+        ' ExpressionTrees\Tests\TestConversion_Widening_UDC.vb
         Private Shared _testConversion_Widening_UDC As String
         Public Shared ReadOnly Property TestConversion_Widening_UDC As String
             Get
-                Return GetOrCreate("testconversion_widening_udc.vb", _testConversion_Widening_UDC)
+                Return GetOrCreate("TestConversion_Widening_UDC.vb", _testConversion_Widening_UDC)
             End Get
         End Property
 
-        ' results\checkedanduncheckedwideningudc.txt                                                                            
+        ' ExpressionTrees\Results\CheckedAndUncheckedWideningUDC.txt
         Private Shared _checkedAndUncheckedWideningUDC As String
         Public Shared ReadOnly Property CheckedAndUncheckedWideningUDC As String
             Get
-                Return GetOrCreate("checkedanduncheckedwideningudc.txt", _checkedAndUncheckedWideningUDC)
+                Return GetOrCreate("CheckedAndUncheckedWideningUDC.txt", _checkedAndUncheckedWideningUDC)
             End Get
         End Property
 
-        ' results\checkedunaryplusminusnot.txt                                                                                  
+        ' ExpressionTrees\Results\CheckedUnaryPlusMinusNot.txt
         Private Shared _checkedUnaryPlusMinusNot As String
         Public Shared ReadOnly Property CheckedUnaryPlusMinusNot As String
             Get
-                Return GetOrCreate("checkedunaryplusminusnot.txt", _checkedUnaryPlusMinusNot)
+                Return GetOrCreate("CheckedUnaryPlusMinusNot.txt", _checkedUnaryPlusMinusNot)
             End Get
         End Property
 
-        ' results\uncheckedunaryplusminusnot.txt                                                                                
+        ' ExpressionTrees\Results\UncheckedUnaryPlusMinusNot.txt
         Private Shared _uncheckedUnaryPlusMinusNot As String
         Public Shared ReadOnly Property UncheckedUnaryPlusMinusNot As String
             Get
-                Return GetOrCreate("uncheckedunaryplusminusnot.txt", _uncheckedUnaryPlusMinusNot)
+                Return GetOrCreate("UncheckedUnaryPlusMinusNot.txt", _uncheckedUnaryPlusMinusNot)
             End Get
         End Property
 
-        ' results\checkedanduncheckedistrueisfalse.txt                                                                          
+        ' ExpressionTrees\Results\CheckedAndUncheckedIsTrueIsFalse.txt
         Private Shared _checkedAndUncheckedIsTrueIsFalse As String
         Public Shared ReadOnly Property CheckedAndUncheckedIsTrueIsFalse As String
             Get
-                Return GetOrCreate("checkedanduncheckedistrueisfalse.txt", _checkedAndUncheckedIsTrueIsFalse)
+                Return GetOrCreate("CheckedAndUncheckedIsTrueIsFalse.txt", _checkedAndUncheckedIsTrueIsFalse)
             End Get
         End Property
 
-        ' results\checkedanduncheckedudounaryplusminusnot.txt                                                                   
+        ' ExpressionTrees\Results\CheckedAndUncheckedUdoUnaryPlusMinusNot.txt
         Private Shared _checkedAndUncheckedUdoUnaryPlusMinusNot As String
         Public Shared ReadOnly Property CheckedAndUncheckedUdoUnaryPlusMinusNot As String
             Get
-                Return GetOrCreate("checkedanduncheckedudounaryplusminusnot.txt", _checkedAndUncheckedUdoUnaryPlusMinusNot)
+                Return GetOrCreate("CheckedAndUncheckedUdoUnaryPlusMinusNot.txt", _checkedAndUncheckedUdoUnaryPlusMinusNot)
             End Get
         End Property
 
-        ' results\checkedcoalescewithnullableboolean.txt                                                                        
+        ' ExpressionTrees\Results\CheckedCoalesceWithNullableBoolean.txt
         Private Shared _checkedCoalesceWithNullableBoolean As String
         Public Shared ReadOnly Property CheckedCoalesceWithNullableBoolean As String
             Get
-                Return GetOrCreate("checkedcoalescewithnullableboolean.txt", _checkedCoalesceWithNullableBoolean)
+                Return GetOrCreate("CheckedCoalesceWithNullableBoolean.txt", _checkedCoalesceWithNullableBoolean)
             End Get
         End Property
 
-        ' tests\testunary_udo_plusminusnot.vb                                                                                   
+        ' ExpressionTrees\Tests\TestUnary_UDO_PlusMinusNot.vb
         Private Shared _testUnary_UDO_PlusMinusNot As String
         Public Shared ReadOnly Property TestUnary_UDO_PlusMinusNot As String
             Get
-                Return GetOrCreate("testunary_udo_plusminusnot.vb", _testUnary_UDO_PlusMinusNot)
+                Return GetOrCreate("TestUnary_UDO_PlusMinusNot.vb", _testUnary_UDO_PlusMinusNot)
             End Get
         End Property
 
-        ' results\checkedanduncheckedudounaryplusminusnot.txt                                                                   
+        ' ExpressionTrees\Results\CheckedAndUncheckedUdoUnaryPlusMinusNot.txt
         Private Shared _checkedAndUncheckedUdoUnaryPlusMinusNot1 As String
         Public Shared ReadOnly Property CheckedAndUncheckedUdoUnaryPlusMinusNot1 As String
             Get
-                Return GetOrCreate("checkedanduncheckedudounaryplusminusnot.txt", _checkedAndUncheckedUdoUnaryPlusMinusNot1)
+                Return GetOrCreate("CheckedAndUncheckedUdoUnaryPlusMinusNot.txt", _checkedAndUncheckedUdoUnaryPlusMinusNot1)
             End Get
         End Property
 
-        ' results\checkedcoalescewithuserdefinedconversions.txt                                                                 
+        ' ExpressionTrees\Results\CheckedCoalesceWithUserDefinedConversions.txt
         Private Shared _checkedCoalesceWithUserDefinedConversions As String
         Public Shared ReadOnly Property CheckedCoalesceWithUserDefinedConversions As String
             Get
-                Return GetOrCreate("checkedcoalescewithuserdefinedconversions.txt", _checkedCoalesceWithUserDefinedConversions)
+                Return GetOrCreate("CheckedCoalesceWithUserDefinedConversions.txt", _checkedCoalesceWithUserDefinedConversions)
             End Get
         End Property
 
-        ' results\checkedobjectinitializers.txt                                                                                 
+        ' ExpressionTrees\Results\CheckedObjectInitializers.txt
         Private Shared _checkedObjectInitializers As String
         Public Shared ReadOnly Property CheckedObjectInitializers As String
             Get
-                Return GetOrCreate("checkedobjectinitializers.txt", _checkedObjectInitializers)
+                Return GetOrCreate("CheckedObjectInitializers.txt", _checkedObjectInitializers)
             End Get
         End Property
 
-        ' results\checkedarrayinitializers.txt                                                                                  
+        ' ExpressionTrees\Results\CheckedArrayInitializers.txt
         Private Shared _checkedArrayInitializers As String
         Public Shared ReadOnly Property CheckedArrayInitializers As String
             Get
-                Return GetOrCreate("checkedarrayinitializers.txt", _checkedArrayInitializers)
+                Return GetOrCreate("CheckedArrayInitializers.txt", _checkedArrayInitializers)
             End Get
         End Property
 
-        ' results\checkedcollectioninitializers.txt                                                                             
+        ' ExpressionTrees\Results\CheckedCollectionInitializers.txt
         Private Shared _checkedCollectionInitializers As String
         Public Shared ReadOnly Property CheckedCollectionInitializers As String
             Get
-                Return GetOrCreate("checkedcollectioninitializers.txt", _checkedCollectionInitializers)
+                Return GetOrCreate("CheckedCollectionInitializers.txt", _checkedCollectionInitializers)
             End Get
         End Property
 
-        ' results\checkedmiscellaneousa.txt                                                                                     
+        ' ExpressionTrees\Results\CheckedMiscellaneousA.txt
         Private Shared _checkedMiscellaneousA As String
         Public Shared ReadOnly Property CheckedMiscellaneousA As String
             Get
-                Return GetOrCreate("checkedmiscellaneousa.txt", _checkedMiscellaneousA)
+                Return GetOrCreate("CheckedMiscellaneousA.txt", _checkedMiscellaneousA)
             End Get
         End Property
 
-        ' tests\testunary_udo_istrueisfalse.vb                                                                                  
+        ' ExpressionTrees\Tests\TestUnary_UDO_IsTrueIsFalse.vb
         Private Shared _testUnary_UDO_IsTrueIsFalse As String
         Public Shared ReadOnly Property TestUnary_UDO_IsTrueIsFalse As String
             Get
-                Return GetOrCreate("testunary_udo_istrueisfalse.vb", _testUnary_UDO_IsTrueIsFalse)
+                Return GetOrCreate("TestUnary_UDO_IsTrueIsFalse.vb", _testUnary_UDO_IsTrueIsFalse)
             End Get
         End Property
 
-        ' sources\queryhelper.vb                                                                                                
+        ' ExpressionTrees\sources\QueryHelper.vb
         Private Shared _queryHelper As String
         Public Shared ReadOnly Property QueryHelper As String
             Get
-                Return GetOrCreate("queryhelper.vb", _queryHelper)
+                Return GetOrCreate("QueryHelper.vb", _queryHelper)
             End Get
         End Property
 
-        ' results\exprtree_legacytests07_result.txt                                                                             
+        ' ExpressionTrees\Results\ExprTree_LegacyTests07_Result.txt
         Private Shared _exprTree_LegacyTests07_Result As String
         Public Shared ReadOnly Property ExprTree_LegacyTests07_Result As String
             Get
-                Return GetOrCreate("exprtree_legacytests07_result.txt", _exprTree_LegacyTests07_Result)
+                Return GetOrCreate("ExprTree_LegacyTests07_Result.txt", _exprTree_LegacyTests07_Result)
             End Get
         End Property
 
-        ' results\exprtree_legacytests08_result.txt                                                                             
+        ' ExpressionTrees\Results\ExprTree_LegacyTests08_Result.txt
         Private Shared _exprTree_LegacyTests08_Result As String
         Public Shared ReadOnly Property ExprTree_LegacyTests08_Result As String
             Get
-                Return GetOrCreate("exprtree_legacytests08_result.txt", _exprTree_LegacyTests08_Result)
+                Return GetOrCreate("ExprTree_LegacyTests08_Result.txt", _exprTree_LegacyTests08_Result)
             End Get
         End Property
 
-        ' results\exprtree_legacytests09_result.txt                                                                             
+        ' ExpressionTrees\Results\ExprTree_LegacyTests09_Result.txt
         Private Shared _exprTree_LegacyTests09_Result As String
         Public Shared ReadOnly Property ExprTree_LegacyTests09_Result As String
             Get
-                Return GetOrCreate("exprtree_legacytests09_result.txt", _exprTree_LegacyTests09_Result)
+                Return GetOrCreate("ExprTree_LegacyTests09_Result.txt", _exprTree_LegacyTests09_Result)
             End Get
         End Property
 
-        ' results\xmlliteralsinexprlambda01_result.txt                                                                          
+        ' ExpressionTrees\Results\XmlLiteralsInExprLambda01_Result.txt
         Private Shared _xmlLiteralsInExprLambda01_Result As String
         Public Shared ReadOnly Property XmlLiteralsInExprLambda01_Result As String
             Get
-                Return GetOrCreate("xmlliteralsinexprlambda01_result.txt", _xmlLiteralsInExprLambda01_Result)
+                Return GetOrCreate("XmlLiteralsInExprLambda01_Result.txt", _xmlLiteralsInExprLambda01_Result)
             End Get
         End Property
 
-        ' results\xmlliteralsinexprlambda02_result.txt                                                                          
+        ' ExpressionTrees\Results\XmlLiteralsInExprLambda02_Result.txt
         Private Shared _xmlLiteralsInExprLambda02_Result As String
         Public Shared ReadOnly Property XmlLiteralsInExprLambda02_Result As String
             Get
-                Return GetOrCreate("xmlliteralsinexprlambda02_result.txt", _xmlLiteralsInExprLambda02_Result)
+                Return GetOrCreate("XmlLiteralsInExprLambda02_Result.txt", _xmlLiteralsInExprLambda02_Result)
             End Get
         End Property
 
-        ' results\xmlliteralsinexprlambda03_result.txt                                                                          
+        ' ExpressionTrees\Results\XmlLiteralsInExprLambda03_Result.txt
         Private Shared _xmlLiteralsInExprLambda03_Result As String
         Public Shared ReadOnly Property XmlLiteralsInExprLambda03_Result As String
             Get
-                Return GetOrCreate("xmlliteralsinexprlambda03_result.txt", _xmlLiteralsInExprLambda03_Result)
+                Return GetOrCreate("XmlLiteralsInExprLambda03_Result.txt", _xmlLiteralsInExprLambda03_Result)
             End Get
         End Property
 
-        ' results\exprtree_legacytests10_result.txt                                                                             
+        ' ExpressionTrees\Results\ExprTree_LegacyTests10_Result.txt
         Private Shared _exprTree_LegacyTests10_Result As String
         Public Shared ReadOnly Property ExprTree_LegacyTests10_Result As String
             Get
-                Return GetOrCreate("exprtree_legacytests10_result.txt", _exprTree_LegacyTests10_Result)
+                Return GetOrCreate("ExprTree_LegacyTests10_Result.txt", _exprTree_LegacyTests10_Result)
             End Get
         End Property
 
-        ' results\exprtree_legacytests02_v40_result.txt                                                                         
+        ' ExpressionTrees\Results\ExprTree_LegacyTests02_v40_Result.txt
         Private Shared _exprTree_LegacyTests02_v40_Result As String
         Public Shared ReadOnly Property ExprTree_LegacyTests02_v40_Result As String
             Get
-                Return GetOrCreate("exprtree_legacytests02_v40_result.txt", _exprTree_LegacyTests02_v40_Result)
+                Return GetOrCreate("ExprTree_LegacyTests02_v40_Result.txt", _exprTree_LegacyTests02_v40_Result)
             End Get
         End Property
 
-        ' results\exprtree_legacytests02_v45_result.txt                                                                         
+        ' ExpressionTrees\Results\ExprTree_LegacyTests02_v45_Result.txt
         Private Shared _exprTree_LegacyTests02_v45_Result As String
         Public Shared ReadOnly Property ExprTree_LegacyTests02_v45_Result As String
             Get
-                Return GetOrCreate("exprtree_legacytests02_v45_result.txt", _exprTree_LegacyTests02_v45_Result)
+                Return GetOrCreate("ExprTree_LegacyTests02_v45_Result.txt", _exprTree_LegacyTests02_v45_Result)
             End Get
         End Property
 
