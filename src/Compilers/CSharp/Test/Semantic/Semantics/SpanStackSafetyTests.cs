@@ -1591,6 +1591,9 @@ class C
 
         M2(y: out s2, x: ref s1);   // five
         M2(y: out s1, x: ref s2);   // six
+
+        M2(ref s1, out s1);         // should be ok
+        M2(ref s2, out s2);         // should be ok
   	}
 
     static void M2(ref Span<int> x, out Span<int> y)
