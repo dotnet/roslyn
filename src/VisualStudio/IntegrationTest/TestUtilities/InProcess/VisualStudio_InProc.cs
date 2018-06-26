@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using EnvDTE;
 using EnvDTE80;
 
@@ -45,6 +47,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             return result.ToArray();
+        }
+
+        public void AddCodeBaseDirectory(string directory)
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
+            {
+                string path = Path.Combine(directory, new AssemblyName(e.Name).Name + ".dll");
+                if (File.Exists(path))
+                {
+                    return Assembly.LoadFrom(path);
+                }
+
+                return null;
+            };
         }
 
         public void ActivateMainWindow(bool skipAttachingThreads = false)

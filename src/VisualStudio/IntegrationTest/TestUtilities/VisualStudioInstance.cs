@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
+using System.Runtime.Serialization.Formatters;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     public class VisualStudioInstance
     {
         private readonly IntegrationService _integrationService;
-        private readonly IpcClientChannel _integrationServiceChannel;
+        private readonly IpcChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
@@ -60,6 +62,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public VisualStudioWorkspace_OutOfProc Workspace { get; }
 
+        public TestInvoker_OutOfProc TestInvoker { get; }
+
         internal DTE Dte { get; }
 
         internal Process HostProcess { get; }
@@ -84,7 +88,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             StartRemoteIntegrationService(dte);
 
-            _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {HostProcess.Id}", sinkProvider: null);
+            string portName = $"IPC channel client for {HostProcess.Id}";
+            _integrationServiceChannel = new IpcChannel(
+                new Hashtable
+                {
+                    { "name", portName },
+                    { "portName", portName },
+                },
+                new BinaryClientFormatterSinkProvider(),
+                new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full });
+
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
@@ -118,6 +131,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
+            TestInvoker = new TestInvoker_OutOfProc(this);
 
             SendKeys = new SendKeys(this);
 
@@ -158,6 +172,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public string[] GetAvailableCommands()
             => _inProc.GetAvailableCommands();
+
+        public void AddCodeBaseDirectory(string directory)
+            => _inProc.AddCodeBaseDirectory(directory);
 
         public int ErrorListErrorCount
             => _inProc.GetErrorListErrorCount();

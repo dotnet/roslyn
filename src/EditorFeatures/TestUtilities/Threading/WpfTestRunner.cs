@@ -24,7 +24,7 @@ namespace Roslyn.Test.Utilities
     /// running on the current thread vs. the STA ones. Just completely wrapping the invocation
     /// here is the best case. 
     /// </summary>
-    public sealed class WpfTestRunner : XunitTestRunner
+    public class WpfTestRunner : XunitTestRunner
     {
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
@@ -101,9 +101,8 @@ namespace Roslyn.Test.Utilities
                     // Reset our flag ensuring that part of this test actually needs WpfFact
                     s_wpfFactRequirementReason = null;
 
-                    // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                    var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
-                    return await invoker.RunAsync();
+                    var invoker = CreateTestInvoker(aggregator);
+                    return await invoker();
                 }
             }, CancellationTokenSource.Token, TaskCreationOptions.None, taskScheduler).Unwrap();
 
@@ -140,6 +139,13 @@ namespace Roslyn.Test.Utilities
             }
 
             s_wpfFactRequirementReason = reason;
+        }
+
+        protected virtual Func<Task<decimal>> CreateTestInvoker(ExceptionAggregator aggregator)
+        {
+            // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
+            var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
+            return invoker.RunAsync;
         }
     }
 }

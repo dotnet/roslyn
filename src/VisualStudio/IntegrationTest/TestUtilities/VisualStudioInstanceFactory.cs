@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         // Depending on the manner in which the assembly was originally loaded, this may end up actually trying to load the assembly a second
         // time and it can fail if the standard assembly resolution logic fails. This ensures that we 'succeed' this secondary load by returning
         // the assembly that is already loaded.
-        private static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs eventArgs)
+        internal static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs eventArgs)
         {
             Debug.WriteLine($"'{eventArgs.RequestingAssembly}' is attempting to resolve '{eventArgs.Name}'");
             var resolvedAssembly = AppDomain.CurrentDomain.GetAssemblies().Where((assembly) => assembly.FullName.Equals(eventArgs.Name)).SingleOrDefault();
