@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             if (!this.IsForeground())
             {
-                this.InvokeBelowInputPriorityAsync(() => OnSourceProviderSourcesChanged(sender, e));
+                this.InvokeBelowInputPriority(() => OnSourceProviderSourcesChanged(sender, e));
                 return;
             }
 

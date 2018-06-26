@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _createImport = createImport;
         }
 
-        internal Task ExecuteAsync(IInteractiveWindow interactiveWindow, string title)
+        internal Task Execute(IInteractiveWindow interactiveWindow, string title)
         {
             ImmutableArray<string> references, referenceSearchPaths, sourceSearchPaths, projectNamespaces;
             string projectDirectory;
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             {
                 // First, start a build.
                 // If the build fails do not reset the REPL.
-                var builtSuccessfully = await BuildProjectAsync().ConfigureAwait(true);
+                var builtSuccessfully = await BuildProject().ConfigureAwait(true);
                 if (!builtSuccessfully)
                 {
                     return;
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         /// A method that should trigger an async project build.
         /// </summary>
         /// <returns>Whether or not the build was successful.</returns>
-        protected abstract Task<bool> BuildProjectAsync();
+        protected abstract Task<bool> BuildProject();
 
         /// <summary>
         /// A method that should trigger a project cancellation.

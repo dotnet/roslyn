@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void OnWorkspaceFailed(object sender, WorkspaceDiagnosticEventArgs e)
         {
-            InvokeBelowInputPriorityAsync(() =>
+            InvokeBelowInputPriority(() =>
             {
                 var outputPane = this.OutputPane;
                 if (outputPane == null)

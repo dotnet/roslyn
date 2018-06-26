@@ -183,12 +183,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         internal Task ProduceTagsAsync_ForTestingPurposesOnly(TaggerContext<TTag> context)
         {
             return ProduceTagsAsync(context);
         }
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         /// <summary>
         /// Produce tags for the given context.

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             {
                 InitializeWorkspace(project);
 
-                var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, cancellationToken).ConfigureAwait(false);
+                var infoKey = await GetUniqueDocumentKey(project, topLevelNamedType, cancellationToken).ConfigureAwait(false);
                 fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType));
 
                 _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 // If we don't have a location yet, then that means we're re-using an existing file. In this case, we'll want to relocate the symbol.
                 if (navigateLocation == null)
                 {
-                    navigateLocation = await RelocateSymbol_NoLockAsync(fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
+                    navigateLocation = await RelocateSymbol_NoLock(fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return string.Join(".", stack);
         }
 
-        private async Task<Location> RelocateSymbol_NoLockAsync(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
+        private async Task<Location> RelocateSymbol_NoLock(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
         {
             // We need to relocate the symbol in the already existing file. If the file is open, we can just
             // reuse that workspace. Otherwise, we have to go spin up a temporary project to do the binding.
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);
         }
 
-        private async Task<UniqueDocumentKey> GetUniqueDocumentKeyAsync(Project project, INamedTypeSymbol topLevelNamedType, CancellationToken cancellationToken)
+        private async Task<UniqueDocumentKey> GetUniqueDocumentKey(Project project, INamedTypeSymbol topLevelNamedType, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var peMetadataReference = compilation.GetMetadataReference(topLevelNamedType.ContainingAssembly) as PortableExecutableReference;

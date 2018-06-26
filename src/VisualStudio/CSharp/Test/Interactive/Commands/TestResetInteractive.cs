@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             CancelBuildProjectCount++;
         }
 
-        protected override Task<bool> BuildProjectAsync()
+        protected override Task<bool> BuildProject()
         {
             BuildProjectCount++;
             return Task.FromResult(_buildSucceeds);

@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             else
             {
-                InvokeBelowInputPriorityAsync(base.Disconnect);
+                InvokeBelowInputPriority(base.Disconnect);
             }
         }
     }

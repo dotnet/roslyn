@@ -51,7 +51,7 @@ namespace Roslyn.VisualStudio.Services.Interactive
                 resetInteractive.ExecutionCompleted -= focusWindow;
             }
 
-            resetInteractive.ExecuteAsync(vsInteractiveWindow.InteractiveWindow, LanguageName + " Interactive");
+            resetInteractive.Execute(vsInteractiveWindow.InteractiveWindow, LanguageName + " Interactive");
             resetInteractive.ExecutionCompleted += focusWindow;
         }
     }

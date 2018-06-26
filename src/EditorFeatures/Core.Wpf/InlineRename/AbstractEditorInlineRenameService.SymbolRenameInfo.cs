@@ -231,10 +231,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
                 }
 
-                return GetLocationSetAsync(renameTask, optionSet, cancellationToken);
+                return GetLocationSet(renameTask, optionSet, cancellationToken);
             }
 
-            private async Task<IInlineRenameLocationSet> GetLocationSetAsync(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
+            private async Task<IInlineRenameLocationSet> GetLocationSet(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var locationSet = await renameTask.ConfigureAwait(false);
                 if (optionSet != null)

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 var asyncService = document?.GetLanguageService<IIndentationService>();
                 if (asyncService != null)
                 {
-                    var result = asyncService.GetDesiredIndentationAsync(document, lineToBeIndented.LineNumber, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var result = asyncService.GetDesiredIndentation(document, lineToBeIndented.LineNumber, cancellationToken).WaitAndGetResult(cancellationToken);
                     return result?.GetIndentation(_textView, lineToBeIndented);
                 }
 

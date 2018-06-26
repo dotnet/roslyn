@@ -92,7 +92,7 @@ namespace ResetInteractiveTestsDocument
                 ProjectDirectory = "pj",
             };
 
-            await resetInteractive.ExecuteAsync(testHost.Window, "Interactive C#");
+            await resetInteractive.Execute(testHost.Window, "Interactive C#");
 
             // Validate that the project was rebuilt.
             Assert.Equal(1, resetInteractive.BuildProjectCount);

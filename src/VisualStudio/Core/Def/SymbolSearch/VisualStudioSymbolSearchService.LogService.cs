@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             {
                 if (!this.IsForeground())
                 {
-                    this.InvokeBelowInputPriorityAsync(() => Log(text, type));
+                    this.InvokeBelowInputPriority(() => Log(text, type));
                     return;
                 }
 
