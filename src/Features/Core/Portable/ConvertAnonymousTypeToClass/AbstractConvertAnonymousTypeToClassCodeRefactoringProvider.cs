@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // passes. First, we create an empty version of the class.  This can then be used to
             // help create members like Equals/GetHashCode.  Then, once we have all the members we
             // create the final type.
-            var namedTypeWithoutMembers = CreateNamedType(className, capturedTypeParameters, default);
+            var namedTypeWithoutMembers = CreateNamedType(className, capturedTypeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var constructor = CreateConstructor(compilation, className, properties, generator);
