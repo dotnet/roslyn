@@ -1,10 +1,11 @@
 use vs
 
 package name=PortableFacades
-        version=1.13.0.0
+        version=1.14.0.0
 
 folder InstallDir:\Common7\IDE\PrivateAssemblies
     file source="$(NuGetPackageRoot)\Microsoft.Win32.Primitives\4.3.0\lib\net46\Microsoft.Win32.Primitives.dll" vs.file.ngen=yes
+    file source="$(NuGetPackageRoot)\StreamJsonRpc\1.3.23\lib\net45\StreamJsonRpc.dll" vs.file.ngen=yes
     file source="$(NuGetPackageRoot)\System.AppContext\4.3.0\lib\net46\System.AppContext.dll" vs.file.ngen=yes
     file source="$(NuGetPackageRoot)\System.Console\4.3.0\lib\net46\System.Console.dll" vs.file.ngen=yes
     file source="$(NuGetPackageRoot)\System.Diagnostics.FileVersionInfo\4.3.0\runtimes\win\lib\net46\System.Diagnostics.FileVersionInfo.dll" vs.file.ngen=yes
