@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    internal abstract class InteractiveEvaluator : IInteractiveEvaluator
+    internal abstract class InteractiveEvaluator : IResettableInteractiveEvaluator
     {
         private const string CommandPrefix = "#";
 
@@ -66,12 +66,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private int _submissionCount = 0;
         private readonly EventHandler<ContentTypeChangedEventArgs> _contentTypeChangedHandler;
 
-        internal InteractiveEvaluatorResetOptions ResetOptions { get; set; } 
+        internal InteractiveEvaluatorResetOptions ResetOptions { get; set; }
             = new InteractiveEvaluatorResetOptions(is64Bit: true);
 
         public ImmutableArray<string> ReferenceSearchPaths { get; private set; }
         public ImmutableArray<string> SourceSearchPaths { get; private set; }
         public string WorkingDirectory { get; private set; }
+
+        InteractiveEvaluatorResetOptions IResettableInteractiveEvaluator.ResetOptions { get => ResetOptions; set => ResetOptions = value; }
 
         internal InteractiveEvaluator(
             IContentType contentType,

@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
         internal ImmutableArray<string> NamespacesToImport { get; set; }
 
+        internal bool? Is64Bit { get; set; }
+
         internal string ProjectDirectory { get; set; }
 
         public TestResetInteractive(
@@ -62,14 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
             out string projectDirectory,
-            out bool? is64bit)
+            out bool? is64Bit)
         {
             references = References;
             referenceSearchPaths = ReferenceSearchPaths;
             sourceSearchPaths = SourceSearchPaths;
             projectNamespaces = ProjectNamespaces;
             projectDirectory = ProjectDirectory;
-            is64bit = null;
+            is64Bit = Is64Bit;
             return true;
         }
 

@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             IWaitContext waitContext)
         {
             // First, open the repl window.
-            var evaluator = (InteractiveEvaluator)interactiveWindow.Evaluator;
+            var evaluator = (IResettableInteractiveEvaluator)interactiveWindow.Evaluator;
 
             // If the user hits the cancel button on the wait indicator, then we want to stop the
             // build.
