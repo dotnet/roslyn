@@ -9298,16 +9298,16 @@ class C {
 
             parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:C:\\goo\\=/", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("C:\\goo\\", "/"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("C:\\goo\\", "/"), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1,K2=V2", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePair.Create("K2\\", "V2\\"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K2\\", "V2\\"), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
             Assert.Equal(4, parsedArgs.Errors.Count());
@@ -9327,17 +9327,17 @@ class C {
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"supporting spaces=is hard\"", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("supporting spaces\\", "is hard\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("supporting spaces\\", "is hard\\"), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1=V 1\",\"K 2=V 2\"", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePair.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1\"=\"V 1\",\"K 2\"=\"V 2\"", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePair.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
         }
 
         [Fact]
@@ -9809,7 +9809,7 @@ class C
                 cscCopy,
                 arguments + " /deterministic",
                 workingDirectory: dir.Path,
-                additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
+                additionalEnvironmentVars: new[] { KeyValuePairUtil.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
 
             Assert.Equal("", result.Output.Trim());
         }
