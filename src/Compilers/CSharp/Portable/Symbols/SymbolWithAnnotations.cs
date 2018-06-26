@@ -618,6 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)typeSymbol != null);
                 Debug.Assert(!customModifiers.IsDefault);
+                Debug.Assert(!typeSymbol.IsNullableType() || isNullable == true);
                 _typeSymbol = typeSymbol;
                 _isNullable = isNullable;
                 _customModifiers = customModifiers;
@@ -652,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
             {
-                return _isNullable == false ?
+                return _isNullable == false || _typeSymbol.IsNullableType() ?
                     this :
                     new NonLazyType(_typeSymbol, isNullable: false, _customModifiers);
             }

@@ -3011,6 +3011,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            var body = node.Body;
+            if (body != null)
+            {
+                Analyze(
+                    compilation,
+                    node.Symbol,
+                    body,
+                    Diagnostics,
+                    useMethodSignatureReturnType: false,
+                    useMethodSignatureParameterTypes: false,
+                    methodSignatureOpt: null,
+                    returnTypes: null,
+                    initialState: GetVariableState(),
+                    callbackOpt: _callbackOpt);
+            }
+            _result = _invalidType;
+            return null;
+        }
+
         public override BoundNode VisitThisReference(BoundThisReference node)
         {
             VisitThisOrBaseReference(node);
