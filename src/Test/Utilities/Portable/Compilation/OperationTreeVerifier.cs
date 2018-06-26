@@ -1443,6 +1443,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" ({operation.ElementValues.Length} elements)");
             LogCommonPropertiesAndNewLine(operation);
 
+            Assert.Null(operation.Type);
             VisitArray(operation.ElementValues, "Element Values", logElementCount: true);
         }
 

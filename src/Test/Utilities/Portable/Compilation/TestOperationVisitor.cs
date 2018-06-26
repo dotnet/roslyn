@@ -937,6 +937,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArrayInitializer(IArrayInitializerOperation operation)
         {
             Assert.Equal(OperationKind.ArrayInitializer, operation.Kind);
+            Assert.Null(operation.Type);
             AssertEx.Equal(operation.ElementValues, operation.Children);
         }
 
