@@ -64,9 +64,7 @@ namespace System.Runtime.CompilerServices
                     AttributeTargets.Interface |
                     AttributeTargets.Method |
                     AttributeTargets.Module |
-                    AttributeTargets.Parameter |
                     AttributeTargets.Property |
-                    AttributeTargets.ReturnValue |
                     AttributeTargets.Struct,
                     AllowMultiple = false)]
     public sealed class NonNullTypesAttribute : Attribute
@@ -972,42 +970,6 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "NonNullTypes")
                     .WithArguments("lib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Runtime.CompilerServices.NonNullTypesAttribute", "lib2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 41)
                 );
-        }
-
-        [Fact]
-        public void NonNullTypes_OnParameter()
-        {
-            var lib = @"
-public class List<T> { public T Item { get => throw null; } }
-public class Base
-{
-    public virtual void M([System.Runtime.CompilerServices.NonNullTypes(false)] List<object>? x = default(List<object>))
-    {
-        x /*T:List<object!>!*/ ?.Item.ToString();
-    }
-    void M2()
-    {
-        M(default(List<object>));
-    }
-}
-";
-            var libComp = CreateCompilation(lib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
-            libComp.VerifyDiagnostics();
-            libComp.VerifyTypes(); // PROTOTYPE(NullableReferenceTypes): incorrect type symbol for parameter
-
-            var source = @"
-public class C : Base
-{
-    public override void M(List<object>? x = default(List<object>))
-    {
-        x /*T:List<object!>!*/ ?.Item.ToString();
-    }
-}
-";
-
-            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-            comp.VerifyTypes(); // PROTOTYPE(NullableReferenceTypes): incorrect type symbol for parameter
         }
 
         [Fact]
@@ -2494,17 +2456,14 @@ class C
     {
         MyDelegate x1 = Method;
         MyDelegate x2 = FalseMethod;
-        MyDelegate x3 = FalseMethod2;
         MyDelegate x4 = NullableReturnMethod; // warn 1
         MyDelegate x5 = NullableParameterMethod; // warn 2
         MyFalseDelegate y1 = Method;
         MyFalseDelegate y2 = FalseMethod;
-        MyFalseDelegate y3 = FalseMethod2;
         MyFalseDelegate y4 = NullableReturnMethod;
         MyFalseDelegate y5 = NullableParameterMethod;
         MyNullableDelegate z1 = Method; // warn 3
         MyNullableDelegate z2 = FalseMethod;
-        MyNullableDelegate z3 = FalseMethod2;
         MyNullableDelegate z4 = NullableReturnMethod; // warn 4
         MyNullableDelegate z5 = NullableParameterMethod; // warn 5
      }
@@ -2515,9 +2474,6 @@ class C
     [NonNullTypes(false)]
     public string[] FalseMethod(string[] x) => throw null;
 
-    [return: NonNullTypes(false)]
-    public string[] FalseMethod2([NonNullTypes(false)] string[] x) => throw null;
-
     public string[]? NullableReturnMethod(string[] x) => throw null;
     public string[] NullableParameterMethod(string[]? x) => throw null;
 }
@@ -2526,19 +2482,18 @@ class C
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
-                // (19,25): warning CS8621: Nullability of reference types in return type of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyDelegate'.
+                // (18,25): warning CS8621: Nullability of reference types in return type of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyDelegate'.
                 //         MyDelegate x4 = NullableReturnMethod; // warn 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("string[]? C.NullableReturnMethod(string[] x)", "MyDelegate").WithLocation(19, 25),
-                // (26,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[] C.Method(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("string[]? C.NullableReturnMethod(string[] x)", "MyDelegate").WithLocation(18, 25),
+                // (24,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[] C.Method(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
                 //         MyNullableDelegate z1 = Method; // warn 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Method").WithArguments("x", "string[] C.Method(string[] x)", "MyNullableDelegate").WithLocation(26, 33),
-                // (29,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Method").WithArguments("x", "string[] C.Method(string[] x)", "MyNullableDelegate").WithLocation(24, 33),
+                // (26,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
                 //         MyNullableDelegate z4 = NullableReturnMethod; // warn 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("x", "string[]? C.NullableReturnMethod(string[] x)", "MyNullableDelegate").WithLocation(29, 33)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("x", "string[]? C.NullableReturnMethod(string[] x)", "MyNullableDelegate").WithLocation(26, 33)
                 );
 
             // PROTOTYPE(NullableReferenceTypes): Missing warnings 2 and 5
-            // PROTOTYPE(NullableReferenceTypes): Test with [NonNullTypes(false)] set independently on method return and method parameter
         }
 
         [Fact]

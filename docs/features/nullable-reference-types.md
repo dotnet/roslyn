@@ -49,9 +49,7 @@ namespace System.Runtime.CompilerServices
                     AttributeTargets.Interface |
                     AttributeTargets.Method |
                     AttributeTargets.Module |
-                    AttributeTargets.Parameter |
                     AttributeTargets.Property |
-                    AttributeTargets.ReturnValue |
                     AttributeTargets.Struct,
                     AllowMultiple = false)]
     public sealed class NonNullTypesAttribute : Attribute
