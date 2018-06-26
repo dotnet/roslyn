@@ -15982,16 +15982,94 @@ static class E
         f();
         z3.ToString();
     }
+    static void F4(object? x4)
+    {
+        f().ToString(); // warning
+        if (x4 != null) f().ToString();
+        object? f() => x4;
+    }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should report warnings as indicated in source above.
             comp.VerifyDiagnostics(
+                // (10,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             z1 = x1; // warning
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(10, 18),
                 // (15,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object z2 = x2; // warning
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(15, 21),
                 // (17,9): warning CS8602: Possible dereference of a null reference.
                 //         z2.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(17, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(17, 9),
+                // (28,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             z3 = x3;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(28, 18),
+                // (36,9): warning CS8602: Possible dereference of a null reference.
+                //         f().ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "f()").WithLocation(36, 9),
+                // (37,25): warning CS8602: Possible dereference of a null reference.
+                //         if (x4 != null) f().ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "f()").WithLocation(37, 25));
+        }
+
+        /// <summary>
+        /// Should report warnings within unused local functions.
+        /// </summary>
+        [Fact]
+        public void LocalFunction_NoCallers()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void F1(object? x1)
+    {
+        void f1()
+        {
+            x1.ToString(); // 1
+        }
+    }
+    static void F2(object? x2)
+    {
+        if (x2 == null) return;
+        void f2()
+        {
+            x2.ToString(); // 2
+        }
+    }
+    static void F3(object? x3)
+    {
+        object? y3 = x3;
+        void f3()
+        {
+            y3.ToString(); // 3
+        }
+        if (y3 == null) return;
+        void g3()
+        {
+            y3.ToString(); // 4
+        }
+    }
+    static void F4()
+    {
+        void f4(object? x4)
+        {
+            x4.ToString(); // 5
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report warnings for `y3.ToString()`.
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             x1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(8, 13),
+                // (16,13): warning CS8602: Possible dereference of a null reference.
+                //             x2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(16, 13),
+                // (36,13): warning CS8602: Possible dereference of a null reference.
+                //             x4.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(36, 13));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Report errors
