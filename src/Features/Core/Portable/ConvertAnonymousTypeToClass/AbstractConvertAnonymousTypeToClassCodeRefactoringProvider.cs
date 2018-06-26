@@ -293,17 +293,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // Generate Equals/GetHashCode.  Only readonly properties are suitable for these
             // methods.  We can defer to our existing language service for this so that we
             // generate the same Equals/GetHashCode that our other IDE features generate.
-            var propertiesForEqualsAndGetHashCode = ImmutableArray<ISymbol>.CastUp(
+            var readonlyProperties = ImmutableArray<ISymbol>.CastUp(
                 properties.WhereAsArray(p => p.SetMethod == null));
 
             var equalsAndGetHashCodeService = document.GetLanguageService<IGenerateEqualsAndGetHashCodeService>();
                         
             var equalsMethod = await equalsAndGetHashCodeService.GenerateEqualsMethodAsync(
-                document, namedTypeWithoutMembers, propertiesForEqualsAndGetHashCode, 
+                document, namedTypeWithoutMembers, readonlyProperties, 
                 localNameOpt: ICodeDefinitionFactoryExtensions.OtherName, cancellationToken).ConfigureAwait(false);
             var getHashCodeMethod = await equalsAndGetHashCodeService.GenerateGetHashCodeMethodAsync(
                 document, namedTypeWithoutMembers,
-                propertiesForEqualsAndGetHashCode, cancellationToken).ConfigureAwait(false);
+                readonlyProperties, cancellationToken).ConfigureAwait(false);
 
             var members = ArrayBuilder<ISymbol>.GetInstance();
             members.AddRange(properties);
