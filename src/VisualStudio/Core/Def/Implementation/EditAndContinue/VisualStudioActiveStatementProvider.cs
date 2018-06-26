@@ -75,7 +75,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                 if (activeStatementsResult.ErrorCode != 0)
                                 {
                                     builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(0);
-                                    completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
+
+                                    // the last active statement of the last runtime has been processed:
+                                    if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                    {
+                                        completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                    }
+
                                     return;
                                 }
 
