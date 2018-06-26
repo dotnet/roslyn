@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     Assert.NotNull(child);
                 }
+
+                if (operation.SemanticModel != null)
+                {
+                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingModelOrSelf);
+                }
             }
             base.Visit(operation);
         }

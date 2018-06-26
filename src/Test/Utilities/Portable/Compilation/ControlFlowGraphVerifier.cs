@@ -594,14 +594,16 @@ endRegion:
             {
                 visitor.Visit(root);
                 Assert.Null(root.Parent);
-                Assert.Null(((Operation)root).SemanticModel);
+                Assert.Null(((Operation)root).OwningSemanticModel);
+                Assert.Null(root.SemanticModel);
                 Assert.True(CanBeInControlFlowGraph(root), $"Unexpected node kind OperationKind.{root.Kind}");
 
                 foreach (var operation in root.Descendants())
                 {
                     visitor.Visit(operation);
                     Assert.NotNull(operation.Parent);
-                    Assert.Null(((Operation)operation).SemanticModel);
+                    Assert.Null(((Operation)operation).OwningSemanticModel);
+                    Assert.Null(operation.SemanticModel);
                     Assert.True(CanBeInControlFlowGraph(operation), $"Unexpected node kind OperationKind.{operation.Kind}");
                 }
             }
