@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
         private SourcePropertySymbol(
-            SourceMemberContainerTypeSymbol containingType,
-            Binder bodyBinder,
-            BasePropertyDeclarationSyntax syntax,
-            string name,
-            Location location,
-            DiagnosticBag diagnostics)
+           SourceMemberContainerTypeSymbol containingType,
+           Binder bodyBinder,
+           BasePropertyDeclarationSyntax syntax,
+           string name,
+           Location location,
+           DiagnosticBag diagnostics)
         {
             // This has the value that IsIndexer will ultimately have, once we've populated the fields of this object.
             bool isIndexer = syntax.Kind() == SyntaxKind.IndexerDeclaration;
@@ -69,16 +69,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRef = syntax.GetReference();
             _refKind = syntax.Type.GetRefKind();
 
-            bool modifierErrors;
             SyntaxTokenList modifiers = syntax.Modifiers;
+            bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
+            bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+
+            bool modifierErrors;
             _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isIndexer, location, diagnostics, out modifierErrors);
             this.CheckAccessibility(location, diagnostics);
 
             this.CheckModifiers(location, isIndexer, diagnostics);
+
             if (isIndexer && !isExplicitInterfaceImplementation)
             {
                 // Evaluate the attributes immediately in case the IndexerNameAttribute has been applied.
-
                 // NOTE: we want IsExplicitInterfaceImplementation, IsOverride, Locations, and the syntax reference
                 // to be initialized before we pass this symbol to LoadCustomAttributes.
 
@@ -98,9 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-
-            bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
-            bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             string aliasQualifierOpt;
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);

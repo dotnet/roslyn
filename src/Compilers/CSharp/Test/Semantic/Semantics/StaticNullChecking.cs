@@ -867,7 +867,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
             VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), false);
@@ -887,7 +887,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
             VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
@@ -907,7 +907,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -944,7 +944,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -1020,7 +1020,7 @@ public class Oblivious
 }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+            var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
 
             var lib = @"
 using System.Runtime.CompilerServices;
@@ -1038,7 +1038,7 @@ public class External
 }
 ";
 
-            var libComp = CreateCompilation(lib + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var libComp = CreateCompilation(lib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
             libComp.VerifyDiagnostics();
             verifyExternal(libComp);
 
@@ -1192,7 +1192,7 @@ class E
 public class List2<T> { public T Item { get; set; } = null!; }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (2,55): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 // public class List2<T> { public T Item { get; set; } = null!; }
@@ -1207,7 +1207,7 @@ public class List2<T> { public T Item { get; set; } = null!; }
 public class List2<T> { public T Item { get; set; } = null!!; }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (2,55): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 // public class List2<T> { public T Item { get; set; } = null!!; }
@@ -1226,9 +1226,9 @@ public class Oblivious
 }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+            var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
 
-   var lib = @"
+            var lib = @"
 using System.Runtime.CompilerServices;
 public class List2<T> { public T Item { get; set; } = default!; }
 public class External
@@ -1243,7 +1243,7 @@ public class External
 }
 ";
 
-            var libComp = CreateCompilation(lib + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var libComp = CreateCompilation(lib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             var source = @"
 using System.Runtime.CompilerServices;
@@ -1342,16 +1342,16 @@ public class Oblivious
 }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+            var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
 
-   var lib = @"
+            var lib = @"
 public class External
 {
     public static (string s, string? ns) t;
 }
 ";
 
-            var libComp = CreateCompilation(lib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var libComp = CreateCompilation(lib, parseOptions: TestOptions.Regular8);
 
             var source = @"
 using System.Runtime.CompilerServices;
@@ -1441,9 +1441,9 @@ public class Oblivious
 }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+            var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
 
-   var lib = @"
+            var lib = @"
 public class External
 {
     public static string[] s;
@@ -1451,7 +1451,7 @@ public class External
 }
 ";
 
-            var libComp = CreateCompilation(lib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var libComp = CreateCompilation(lib, parseOptions: TestOptions.Regular8);
 
             var source = @"
 using System.Runtime.CompilerServices;
@@ -1546,11 +1546,11 @@ public class Oblivious
 }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+            var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
             obliviousComp.VerifyDiagnostics();
             verifyOblivious(obliviousComp);
 
-   var lib = @"
+            var lib = @"
 public class External
 {
     public static string s { get; set; }
@@ -1558,7 +1558,7 @@ public class External
 }
 ";
 
-            var libComp = CreateCompilation(lib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var libComp = CreateCompilation(lib, parseOptions: TestOptions.Regular8);
 
             var source = @"
 using System.Runtime.CompilerServices;
@@ -1735,7 +1735,7 @@ public class Oblivious
 }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+            var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
             verifyOblivious(obliviousComp);
 
             var lib = @"
@@ -1746,7 +1746,7 @@ public class External
 }
 ";
 
-            var libComp = CreateCompilation(lib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var libComp = CreateCompilation(lib, parseOptions: TestOptions.Regular8);
             verifyExternal(libComp);
 
             var source = @"
@@ -1875,7 +1875,7 @@ using System.Runtime.CompilerServices;
 public class Oblivious { }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
             VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), false);
 
             var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
@@ -1894,7 +1894,7 @@ using System.Runtime.CompilerServices;
 public class Oblivious { }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
             obliviousComp.VerifyDiagnostics(
                 // (4,12): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return' declarations.
                 // [assembly: NonNullTypes(false)]
@@ -1913,7 +1913,7 @@ public class Oblivious
 }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+            var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
 
             var source = @"
 using System.Runtime.CompilerServices;
@@ -2002,7 +2002,7 @@ class C
     string?[] FalseNCollection() => throw null;
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2086,7 +2086,7 @@ class C
     string?[] FalseNCollection() => throw null;
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2162,7 +2162,7 @@ class C
     void FalseNOut(out string? ns) => throw null;
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2247,7 +2247,7 @@ class C
     void FalseNOut(out string? ns) => throw null;
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2328,7 +2328,7 @@ public class Base
     public string? FalseNMethod() => throw null;
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2415,7 +2415,7 @@ public class Base
     public string? FalseNMethod() => throw null;
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2464,7 +2464,7 @@ public struct D<T> where T : S
     }
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2522,7 +2522,7 @@ class C
     public string[] NullableParameterMethod(string[]? x) => throw null;
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2575,7 +2575,7 @@ public class E
     }
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2621,7 +2621,7 @@ public struct D<T, NT>
     }
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -2657,7 +2657,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             //var a = compilation.GetTypeByMetadataName("A");
             //var aFoo = a.GetMember<MethodSymbol>("Foo");
@@ -2688,7 +2688,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
         }
 
@@ -2712,7 +2712,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2733,7 +2733,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2756,7 +2756,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2777,7 +2777,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -2789,7 +2789,6 @@ class B : A
 
         // PROTOTYPE(NullableReferenceTypes): Overriding_01 and Overriding_02 were removed
         // because they were subsets of Overriding_03. Renumber Overriding_* to start from _01.
-
         [Fact]
         public void Overriding_03()
         {
@@ -2818,7 +2817,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
 
@@ -2883,7 +2882,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 );
 
@@ -2923,7 +2922,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             // PROTOTYPE(NullableReferenceTypes): The overriding is ambiguous.
             // We simply matched the first candidate. Should this be an error?
@@ -2987,7 +2986,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -3020,7 +3019,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -3048,7 +3047,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     public override void M1<T>(T? x) where T : struct
@@ -3108,7 +3107,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
                 //     public override void M2<T>(T? x)
@@ -3158,7 +3157,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (4,50): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public virtual void M1<T>(System.Nullable<T> x) where T : class
@@ -3196,7 +3195,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (4,42): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                  //     public virtual C<System.Nullable<T>> M1<T>() where T : class
@@ -3272,7 +3271,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (32,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                  //     public override string? M1()
@@ -3357,7 +3356,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (27,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -3455,7 +3454,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (42,25): error CS0508: 'B.M3()': return type must be 'int?' to match overridden member 'A.M3()'
                  //     public override int M3()
@@ -3526,7 +3525,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (35,26): error CS0115: 'B.M3(int)': no suitable method found to override
@@ -3587,7 +3586,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (19,49): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -3669,7 +3668,7 @@ public class B2 : A
     public override System.Action<string> M5(System.Action<string> x) => throw null;
 }
 ";
-            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (17,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
@@ -3715,8 +3714,8 @@ public class B2 : A
             void verifyMethodMatchesOverridden(bool expectMatch, NamedTypeSymbol type, string methodName)
             {
                 var member = type.GetMember<MethodSymbol>(methodName);
-                Assert.Equal(expectMatch, member.ReturnType.Equals(member.OverriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                Assert.Equal(expectMatch, member.Parameters.Single().Type.Equals(member.OverriddenMethod.Parameters.Single().Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.Equal(expectMatch, member.ReturnType.Equals(member.OverriddenMethod.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.Equal(expectMatch, member.Parameters.Single().Type.Equals(member.OverriddenMethod.Parameters.Single().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
         }
 
@@ -3737,7 +3736,7 @@ public class Class<T> : Base<T>
     public override List<T?> P { get; set; } = default;
 }
 ";
-            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -3758,7 +3757,7 @@ public class Class<T> : Base<T> where T : class
     public override List<T?> P { get; set; } = default;
 }
 ";
-            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -3779,7 +3778,7 @@ public class Class<T> : Base<T> where T : struct
     public override List<T?> P { get; set; } = default;
 }
 ";
-            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -3804,7 +3803,7 @@ public class Class2 : Base
     public override List<string[]> this[[NonNullTypes(false)] List<string[]> x] { [return: NonNullTypes(false)] get => throw null; set => throw null; }
 }
 ";
-            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -3825,7 +3824,7 @@ public class Class : Oblivious
     public override List<string[]> this[List<string[]> x] { get => throw null; set => throw null; }
 }
 ";
-            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -3869,7 +3868,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -3914,7 +3913,7 @@ class B2 : IA
 }
 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (26,40): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string>? IA.E2'.
@@ -4007,7 +4006,7 @@ class B2 : IB
     event System.Action<string?>? IB.E3; // 2
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (34,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
@@ -4122,7 +4121,7 @@ class B2 : A2
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (28,31): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -4185,7 +4184,7 @@ abstract class A1
 class B1 : A1
 {
     [System.Runtime.CompilerServices.NonNullTypes(false)]
-    public override string[] P1 {get; set;} // PROTOTYPE(NullableReferenceTypes): I'm expecting a warning here
+    public override string[] P1 {get; set;}
     [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override string[]? P2 {get; set;} 
     
@@ -4204,7 +4203,7 @@ class B1 : A1
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -4257,7 +4256,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,22): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P2'.
@@ -4348,7 +4347,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (22,17): warning CS8615: Nullability of reference types in type doesn't match implemented member 'string?[] IA.P1'.
@@ -4427,7 +4426,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
@@ -4483,7 +4482,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
         }
 
@@ -4523,7 +4522,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,17): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'T[] IA.M2<T>()'.
@@ -4591,7 +4590,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
@@ -4655,7 +4654,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (24,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
@@ -4700,7 +4699,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (22,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -4755,9 +4754,10 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
+            // PROTOTYPE(NullableReferenceTypes): should warn on B.M1 and B.M2
         }
 
         [Fact]
@@ -4911,7 +4911,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (20,17): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'void IA.M2<T>(T[] x)'.
@@ -4974,7 +4974,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (20,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T[] x)'.
@@ -5055,7 +5055,7 @@ class B3 : A3
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (24,25): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -5140,7 +5140,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (32,16): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA2.this[string[] x]'.
@@ -5225,7 +5225,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (24,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA1.this[string?[] x]'.
@@ -5282,7 +5282,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (16,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
@@ -5327,7 +5327,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (10,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
@@ -5364,7 +5364,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -5382,7 +5382,7 @@ class A
     string? Test2(string y2) { return y2; }
 }
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).
                 VerifyDiagnostics(
                  // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
                  //     void Test1(string x2) {}
@@ -5408,7 +5408,7 @@ class A
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
         }
 
@@ -20031,9 +20031,9 @@ class C
             // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceReceiver.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-                //// (7,9): warning CS8602: Possible dereference of a null reference.
-                ////         ((x, _) = t).Item2.ToString();
-                //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((x, _) = t).Item2").WithLocation(7, 9));
+            //// (7,9): warning CS8602: Possible dereference of a null reference.
+            ////         ((x, _) = t).Item2.ToString();
+            //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((x, _) = t).Item2").WithLocation(7, 9));
         }
 
         [Fact]
@@ -23361,7 +23361,7 @@ class C<T> {}
 class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             var b = compilation.GetTypeByMetadataName("B");
             Assert.Equal("System.String? B.F1", b.GetMember("F1").ToTestDisplayString());
@@ -23440,7 +23440,7 @@ public class C<T> {}
 public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (5,33): warning CS0067: The event 'B.E1' is never used
@@ -23589,7 +23589,7 @@ public class C<T> {}
 [Nullable] public class F : C<F>
 {}
 ";
-            var compilation = CreateCompilation(new[] { source, NullableAttributeDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NullableAttributeDefinition }, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (7,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
@@ -23663,7 +23663,7 @@ class C
 
         // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
         // See CSharpCompilation.HaveNullableOptOutForAssembly.
-        [Fact(Skip = "[NonNullTypes(true)] is disabled")]
+        [Fact(Skip = "[NullableOptOutForAssembly] is disabled")]
         public void OptOutFromAssembly_02()
         {
             var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
@@ -23724,7 +23724,7 @@ class C
 
         // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
         // See CSharpCompilation.HaveNullableOptOutForAssembly.
-        [Fact(Skip = "[NonNullTypes(true)] is disabled")]
+        [Fact(Skip = "[NullableOptOutForAssembly] is disabled")]
         public void OptOutFromAssembly_03()
         {
             var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
