@@ -323,7 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 TypeKind.Class, className, capturedTypeParameters, members: members);
         }
 
-        private (ImmutableArray<IPropertySymbol>, ImmutableDictionary<IPropertySymbol, string>) GenerateProperties(INamedTypeSymbol anonymousType)
+        private (ImmutableArray<IPropertySymbol> properties, ImmutableDictionary<IPropertySymbol, string> propertyMap) GenerateProperties(
+            INamedTypeSymbol anonymousType)
         {
             var originalProperties = anonymousType.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
             var newProperties = originalProperties.SelectAsArray(GenerateProperty);
