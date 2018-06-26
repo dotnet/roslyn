@@ -311,6 +311,21 @@ class C
                 Assert.Equal(ex.Message, new ArgumentNullException("semanticModel").Message);
             }
 
+            // Verify argument exception on providing a syntax node in executable code which does not produce root operation.
+            try
+            {
+                var literal = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+                _ = ControlFlowGraph.Create(literal, model);
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.Equal(ex.Message, new ArgumentException(CodeAnalysisResources.NotARootOperation, "operation").Message);
+            }
+
+            // Verify null return for non-executable code syntax node, which does not produce an operation.
+            var classDecl = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            Assert.Null(ControlFlowGraph.Create(classDecl, model));
+
             // Verify identical CFG from method body syntax and operation. 
             var cfgFromSyntax = ControlFlowGraph.Create(methodBodySyntax, model);
             Assert.NotNull(cfgFromSyntax);
