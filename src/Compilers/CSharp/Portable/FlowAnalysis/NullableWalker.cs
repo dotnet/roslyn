@@ -3026,7 +3026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodSignatureOpt: null,
                     returnTypes: null,
                     initialState: GetVariableState(),
-                    callbackOpt: null);
+                    callbackOpt: _callbackOpt);
             }
             _result = _invalidType;
             return null;
