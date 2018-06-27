@@ -32,29 +32,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 var caretPosition = Controller.TextView.GetCaretPoint(Controller.SubjectBuffer).Value;
                 var disconnectedBufferGraph = new DisconnectedBufferGraph(Controller.SubjectBuffer, Controller.TextView.TextBuffer);
 
-                // If this is a retrigger command then update the retrigger-id.  This way
-                // any in-flight retrigger-updates will immediately bail out.
-                if (IsNonTypeCharRetrigger(triggerInfo))
-                {
-                    Interlocked.Increment(ref _retriggerId);
-                }
-
-                var localId = _retriggerId;
-
                 // If we've already computed a model, then just use that.  Otherwise, actually
                 // compute a new model and send that along.
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
                     (model, cancellationToken) => ComputeModelInBackgroundAsync(
-                        localId, model, providers, caretPosition,
-                        disconnectedBufferGraph, triggerInfo, cancellationToken));
+                        model, providers, caretPosition, disconnectedBufferGraph,
+                        triggerInfo, cancellationToken));
             }
 
-            private static bool IsNonTypeCharRetrigger(SignatureHelpTriggerInfo triggerInfo)
-                => triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand &&
-                   triggerInfo.TriggerCharacter == null;
-
             private async Task<Model> ComputeModelInBackgroundAsync(
-                int localRetriggerId,
                 Model currentModel,
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
@@ -91,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         // first try to query the providers that can trigger on the specified character
                         var providerAndItemsOpt = await ComputeItemsAsync(
-                            localRetriggerId, providers, caretPosition,
-                            triggerInfo, document, cancellationToken).ConfigureAwait(false);
+                            providers, caretPosition, triggerInfo,
+                            document, cancellationToken).ConfigureAwait(false);
 
                         if (providerAndItemsOpt == null)
                         {
@@ -196,12 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private static bool CompareParts(TaggedText p1, TaggedText p2)
                 => p1.ToString() == p2.ToString();
 
-            /// <summary>
-            /// Returns <see langword="null"/> if our work was preempted and we want to return the
-            /// previous model we've computed.
-            /// </summary>
             private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
-                int localRetriggerId,
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -217,14 +198,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // to the extension crashing.
                     foreach (var provider in providers)
                     {
-                        // If this is a retrigger command, and another retrigger command has already
-                        // been issued then we can bail out immediately.
-                        if (IsNonTypeCharRetrigger(triggerInfo) &&
-                            localRetriggerId != _retriggerId)
-                        {
-                            return null;
-                        }
-
                         cancellationToken.ThrowIfCancellationRequested();
 
                         var currentItems = await provider.GetItemsAsync(document, caretPosition, triggerInfo, cancellationToken).ConfigureAwait(false);
