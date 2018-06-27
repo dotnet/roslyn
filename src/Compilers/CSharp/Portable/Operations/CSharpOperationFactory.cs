@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.AnonymousObjectCreationExpression:
                     return CreateBoundAnonymousObjectCreationExpressionOperation((BoundAnonymousObjectCreationExpression)boundNode);
                 case BoundKind.AnonymousPropertyDeclaration:
-                    return CreateBoundAnonymousPropertyDeclarationOperation((BoundAnonymousPropertyDeclaration)boundNode);
+                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.ConstantPattern:
                     return CreateBoundConstantPatternOperation((BoundConstantPattern)boundNode);
                 case BoundKind.DeclarationPattern:
@@ -506,10 +506,10 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyAnonymousObjectCreationExpression(memberInitializers, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IPropertyReferenceOperation CreateBoundAnonymousPropertyDeclarationOperation(BoundAnonymousPropertyDeclaration boundAnonymousPropertyDeclaration)
+        private IPropertyReferenceOperation CreateBoundAnonymousPropertyDeclarationOperation(BoundAnonymousPropertyDeclaration boundAnonymousPropertyDeclaration, InstanceReferenceExpression receiver)
         {
             PropertySymbol property = boundAnonymousPropertyDeclaration.Property;
-            Lazy<IOperation> instance = OperationFactory.NullOperation;
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => receiver);
             Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() => ImmutableArray<IArgumentOperation>.Empty);
             SyntaxNode syntax = boundAnonymousPropertyDeclaration.Syntax;
             ITypeSymbol type = boundAnonymousPropertyDeclaration.Type;
@@ -1726,12 +1726,19 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundLockStatement.Argument));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundLockStatement.Body));
+            // If there is no Enter2 method, then there will be no lock taken reference
+            bool legacyMode = _semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2) == null;
+            ILocalSymbol lockTakenSymbol =
+                legacyMode ? null : new SynthesizedLocal(_semanticModel.GetEnclosingSymbol(boundLockStatement.Syntax.SpanStart) as MethodSymbol,
+                                                         (TypeSymbol)_semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean),
+                                                         SynthesizedLocalKind.LockTaken,
+                                                         syntaxOpt: boundLockStatement.Argument.Syntax);
             SyntaxNode syntax = boundLockStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLockStatement.WasCompilerGenerated;
 
-            return new LazyLockStatement(expression, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyLockStatement(expression, body, lockTakenSymbol, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInvalidOperation CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)

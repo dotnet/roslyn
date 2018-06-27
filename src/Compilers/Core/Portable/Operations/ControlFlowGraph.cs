@@ -63,6 +63,97 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
+        /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="body"/>.
+        /// </summary>
+        /// <param name="body">Root operation block, which must have a null parent.</param>
+        public static ControlFlowGraph Create(Operations.IBlockOperation body)
+        {
+            return CreateCore(body, nameof(body));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="initializer"/>.
+        /// </summary>
+        /// <param name="initializer">Root field initializer operation, which must have a null parent.</param>
+        public static ControlFlowGraph Create(Operations.IFieldInitializerOperation initializer)
+        {
+            return CreateCore(initializer, nameof(initializer));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="initializer"/>.
+        /// </summary>
+        /// <param name="initializer">Root property initializer operation, which must have a null parent.</param>
+        public static ControlFlowGraph Create(Operations.IPropertyInitializerOperation initializer)
+        {
+            return CreateCore(initializer, nameof(initializer));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="initializer"/>.
+        /// </summary>
+        /// <param name="initializer">Root parameter initializer operation, which must have a null parent.</param>
+        public static ControlFlowGraph Create(Operations.IParameterInitializerOperation initializer)
+        {
+            return CreateCore(initializer, nameof(initializer));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="constructorBody"/>.
+        /// </summary>
+        /// <param name="constructorBody">Root constructor body operation, which must have a null parent.</param>
+        public static ControlFlowGraph Create(Operations.IConstructorBodyOperation constructorBody)
+        {
+            return CreateCore(constructorBody, nameof(constructorBody));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="methodBody"/>.
+        /// </summary>
+        /// <param name="methodBody">Root method body operation, which must have a null parent.</param>
+        public static ControlFlowGraph Create(Operations.IMethodBodyOperation methodBody)
+        {
+            return CreateCore(methodBody, nameof(methodBody));
+        }
+
+        internal static ControlFlowGraph CreateCore(IOperation operation, string argumentNameForException)
+        {
+            if (operation == null)
+            {
+                throw new ArgumentNullException(argumentNameForException);
+            }
+
+            if (operation.Parent != null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.NotARootOperation, argumentNameForException);
+            }
+
+            if (((Operation)operation).OwningSemanticModel == null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
+            }
+
+            if (!operation.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);
+            }
+
+            try
+            {
+                ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
+                Debug.Assert(controlFlowGraph.OriginalOperation == operation);
+                return controlFlowGraph;
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting flow graph.
+                Debug.Assert(false, "\n" + e.ToString());
+            }
+
+            return default;
+        }
+
+        /// <summary>
         /// Original operation, representing an executable code block, from which this control flow graph was generated.
         /// Note that <see cref="BasicBlock.Operations"/> in the control flow graph are not in the same operation tree as
         /// the original operation.
