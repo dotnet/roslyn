@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using KeyValuePair = Roslyn.Utilities.KeyValuePair;
+using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -620,7 +620,7 @@ if (true)
         public async Task ReturnInLoadedFile()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 42;"));
+                KeyValuePairUtil.Create("a.csx", "return 42;"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create("#load \"a.csx\"", options);
@@ -638,7 +638,7 @@ if (true)
         public async Task ReturnInLoadedFileTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 if (false)
 {
     return 42;
@@ -661,7 +661,7 @@ if (false)
         public void ReturnInLoadedFileTrailingVoidExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 if (false)
 {
     return 1;
@@ -684,8 +684,8 @@ System.Console.WriteLine(42)"));
         public async Task MultipleLoadedFilesWithTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "1"),
-                KeyValuePair.Create("b.csx", @"
+                KeyValuePairUtil.Create("a.csx", "1"),
+                KeyValuePairUtil.Create("b.csx", @"
 #load ""a.csx""
 2"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
@@ -694,8 +694,8 @@ System.Console.WriteLine(42)"));
             Assert.Null(result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "1"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "1"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -704,8 +704,8 @@ System.Console.WriteLine(42)"));
             Assert.Null(result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "1"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "1"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -719,8 +719,8 @@ System.Console.WriteLine(42)"));
         public async Task MultipleLoadedFilesWithReturnAndTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 1;"),
-                KeyValuePair.Create("b.csx", @"
+                KeyValuePairUtil.Create("a.csx", "return 1;"),
+                KeyValuePairUtil.Create("b.csx", @"
 #load ""a.csx""
 2"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
@@ -729,8 +729,8 @@ System.Console.WriteLine(42)"));
             Assert.Equal(1, result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 1;"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "return 1;"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -739,8 +739,8 @@ System.Console.WriteLine(42)"));
             Assert.Equal(1, result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 1;"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "return 1;"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -754,7 +754,7 @@ return 3;", options);
         public async Task LoadedFileWithReturnAndGoto()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 goto EOF;
 NEXT:
 return 1;
@@ -803,7 +803,7 @@ b");
         public async Task LoadedFileWithVoidReturn()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 var i = 42;
 return;
 i = -1;"));

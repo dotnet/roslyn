@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             var namingPreferencesOption = optionSet.GetOption(SimplificationOptions.NamingPreferences);
             var rules = namingPreferencesOption.CreateRules().NamingRules
                 .AddRange(CreateNewRule(ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsStatic)), defaultStaticFieldPrefix))
-                .AddRange(CreateNewRule(ImmutableArray.Create<ModifierKind>(), defaultFieldPrefix));
+                .AddRange(CreateNewRule(modifiers: default, defaultFieldPrefix));
             return rules;
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                         Guid.NewGuid(),
                         prefix: prefix,
                         capitalizationScheme: Capitalization.CamelCase),
-                    DiagnosticSeverity.Hidden));
+                    ReportDiagnostic.Hidden));
         }
 
         private string GenerateFieldName(IPropertySymbol property, ImmutableArray<NamingRule> rules)

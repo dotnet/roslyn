@@ -4,7 +4,8 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -147,6 +148,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw new ArgumentNullException(nameof(valueProvider));
             }
+        }
+
+        internal static ControlFlowGraph GetControlFlowGraph(IOperation operation, Func<IOperation, ControlFlowGraph> getControlFlowGraphOpt)
+        {
+            IOperation rootOperation = operation.GetRootOperation();
+            return getControlFlowGraphOpt != null ?
+                getControlFlowGraphOpt(rootOperation) :
+                ControlFlowGraph.CreateCore(rootOperation, nameof(rootOperation));
         }
     }
 }

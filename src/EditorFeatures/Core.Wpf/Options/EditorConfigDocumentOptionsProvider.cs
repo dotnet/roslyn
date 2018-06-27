@@ -1,20 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    // NOTE: this type depends Microsoft.VisualStudio.CodingConventions, so for now it's living in EditorFeatures.Wpf as that assembly
-    // isn't yet available outside of Visual Studio.
+    // This class is currently linked into both EditorFeatures.Wpf (VS in-process) and RemoteWorkspaces (Roslyn out-of-process).
     internal sealed partial class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
     {
         private readonly object _gate = new object();
@@ -25,17 +26,33 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
+        private readonly Workspace _workspace;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
 
-        internal EditorConfigDocumentOptionsProvider(Workspace workspace)
+        internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
+            _workspace = workspace;
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+            _codingConventionsManager = codingConventionsManager;
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
+
+            // workaround until this is fixed.
+            // https://github.com/dotnet/roslyn/issues/26377
+            // otherwise, we will leak files in _openDocumentContexts
+            workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
         }
+
+        /// <summary>
+        /// This partial method allows implementations of <see cref="EditorConfigDocumentOptionsProvider"/> (which are
+        /// linked into both the in-process and out-of-process implementations as source files) to handle the creation
+        /// of <see cref="ICodingConventionContext"/> in different ways.
+        /// </summary>
+        partial void OnCodingConventionContextCreated(DocumentId documentId, ICodingConventionContext context);
 
         private void Workspace_DocumentClosed(object sender, DocumentEventArgs e)
         {
@@ -44,13 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 if (_openDocumentContexts.TryGetValue(e.Document.Id, out var contextTask))
                 {
                     _openDocumentContexts.Remove(e.Document.Id);
-
-                    // Ensure we dispose the context, which we'll do asynchronously
-                    contextTask.ContinueWith(
-                        t => t.Result.Dispose(),
-                        CancellationToken.None,
-                        TaskContinuationOptions.OnlyOnRanToCompletion,
-                        TaskScheduler.Default);
+                    ReleaseContext_NoLock(contextTask);
                 }
             }
         }
@@ -59,8 +70,67 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         {
             lock (_gate)
             {
-                _openDocumentContexts.Add(e.Document.Id, Task.Run(() => GetConventionContextAsync(e.Document.FilePath, CancellationToken.None)));
+                var documentId = e.Document.Id;
+                var filePath = e.Document.FilePath;
+                _openDocumentContexts.Add(documentId, Task.Run(async () =>
+                {
+                    var context = await GetConventionContextAsync(filePath, CancellationToken.None).ConfigureAwait(false);
+                    OnCodingConventionContextCreated(documentId, context);
+                    return context;
+                }));
             }
+        }
+
+        private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            switch (e.Kind)
+            {
+                case WorkspaceChangeKind.SolutionRemoved:
+                case WorkspaceChangeKind.SolutionCleared:
+                    ClearOpenFileCache();
+                    break;
+
+                case WorkspaceChangeKind.ProjectRemoved:
+                    ClearOpenFileCache(e.ProjectId);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void ClearOpenFileCache(ProjectId projectId = null)
+        {
+            lock (_gate)
+            {
+                var itemsToRemove = new List<DocumentId>();
+                foreach (var (documentId, contextTask) in _openDocumentContexts)
+                {
+                    if (projectId is null || documentId.ProjectId == projectId)
+                    {
+                        itemsToRemove.Add(documentId);
+                        ReleaseContext_NoLock(contextTask);
+                    }
+                }
+
+                // If any items were released due to the Clear operation, we need to remove them from the map.
+                foreach (var documentId in itemsToRemove)
+                {
+                    _openDocumentContexts.Remove(documentId);
+                }
+            }
+        }
+
+        private void ReleaseContext_NoLock(Task<ICodingConventionContext> contextTask)
+        {
+            Debug.Assert(Monitor.IsEntered(_gate));
+
+            // Ensure we dispose the context, which we'll do asynchronously
+            contextTask.ContinueWith(
+                t => t.Result.Dispose(),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnRanToCompletion,
+                TaskScheduler.Default);
         }
 
         public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)

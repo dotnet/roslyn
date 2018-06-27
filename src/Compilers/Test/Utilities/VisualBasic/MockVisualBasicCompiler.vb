@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Friend Class MockVisualBasicCompiler
     Inherits VisualBasicCompiler
@@ -28,17 +29,13 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), RuntimeUtilities.CreateAnalyzerAssemblyLoader())
 
         _analyzers = analyzers
     End Sub
 
     Private Shared Function CreateBuildPaths(workingDirectory As String, tempDirectory As String) As BuildPaths
-        Return New BuildPaths(
-            clientDir:=Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location),
-            workingDir:=workingDirectory,
-            sdkDir:=RuntimeEnvironment.GetRuntimeDirectory(),
-            tempDir:=tempDirectory)
+        Return RuntimeUtilities.CreateBuildPaths(workingDirectory, tempDirectory)
     End Function
 
     Protected Overrides Function ResolveAnalyzersFromArguments(

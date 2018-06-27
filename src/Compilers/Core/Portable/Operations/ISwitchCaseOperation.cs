@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// One or more operations to execute within the switch section.
         /// </summary>
         ImmutableArray<IOperation> Body { get; }
+        /// <summary>
+        /// Locals declared within the switch case section scoped to the section.
+        /// </summary>
+        ImmutableArray<ILocalSymbol> Locals { get; }
     }
 }
 

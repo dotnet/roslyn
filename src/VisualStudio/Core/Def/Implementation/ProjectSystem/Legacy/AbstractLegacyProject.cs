@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -64,7 +65,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         protected void AddFile(string filename, SourceCodeKind sourceCodeKind)
         {
             bool getIsCurrentContext(IVisualStudioHostDocument document) => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
-            AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNamesFromHierarchy);
+            var itemid = Hierarchy?.TryGetItemId(filename) ?? VSConstants.VSITEMID_NIL;
+
+            var folderNames = ImmutableArray<string>.Empty;
+
+            if (itemid != VSConstants.VSITEMID_NIL)
+            {
+                folderNames = GetFolderNamesFromHierarchy(itemid);
+            }
+
+            AddFile(filename, sourceCodeKind, getIsCurrentContext, folderNames);
         }
 
         protected void SetOutputPathAndRelatedData(string objOutputPath)
