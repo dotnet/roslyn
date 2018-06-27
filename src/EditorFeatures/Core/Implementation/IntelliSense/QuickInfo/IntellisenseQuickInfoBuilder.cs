@@ -62,10 +62,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
                     var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
-                    classifiedSpanList.AddRange(classifiedSpans.ToArray());
+                    classifiedSpanList.AddRange(classifiedSpans);
                 }
 
-                elements.Add(classifiedSpanList.BuildClassifiedTextElementForClassifiedSpans(snapshot, trackingSpan, cancellationToken));
+                var closeBraceElement = classifiedSpanList.BuildClassifiedTextElementForClassifiedSpans(snapshot, trackingSpan, cancellationToken);
+                if (closeBraceElement != null)
+                {
+                    elements.Add(closeBraceElement);
+                }
             }
 
             var content = new ContainerElement(
@@ -81,6 +85,4 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
         }
     }
-
-
 }

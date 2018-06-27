@@ -17,7 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     {
         public static ClassifiedTextElement BuildClassifiedTextElementForClassifiedSpans(this List<ClassifiedSpan> classifiedSpans, ITextSnapshot snapshot, ITrackingSpan trackingSpan, CancellationToken cancellationToken)
         {
-            Contract.Assert(classifiedSpans != null && classifiedSpans.Any());
+            if (classifiedSpans == null && !classifiedSpans.Any())
+            {
+                return null;
+            }
 
             // Get column index of current span
             snapshot.GetLineAndColumn(trackingSpan.GetStartPoint(snapshot).Position, out _, out var closeBraceColumnIndex);
