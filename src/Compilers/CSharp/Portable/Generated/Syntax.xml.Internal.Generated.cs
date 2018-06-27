@@ -12284,15 +12284,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
   {
+    internal readonly SyntaxToken usingKeyword;
     internal readonly GreenNode modifiers;
     internal readonly VariableDeclarationSyntax declaration;
     internal readonly SyntaxToken semicolonToken;
-    internal readonly SyntaxToken usingKeyword;
 
-    internal LocalDeclarationStatementSyntax(SyntaxKind kind, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxToken usingKeyword, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 4;
+        if (usingKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+        }
         if (modifiers != null)
         {
             this.AdjustFlagsAndWidth(modifiers);
@@ -12302,19 +12307,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.declaration = declaration;
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
-        if (usingKeyword != null)
-        {
-            this.AdjustFlagsAndWidth(usingKeyword);
-            this.usingKeyword = usingKeyword;
-        }
     }
 
 
-    internal LocalDeclarationStatementSyntax(SyntaxKind kind, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxToken usingKeyword, SyntaxFactoryContext context)
+    internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
         this.SlotCount = 4;
+        if (usingKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+        }
         if (modifiers != null)
         {
             this.AdjustFlagsAndWidth(modifiers);
@@ -12324,18 +12329,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.declaration = declaration;
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
-        if (usingKeyword != null)
-        {
-            this.AdjustFlagsAndWidth(usingKeyword);
-            this.usingKeyword = usingKeyword;
-        }
     }
 
 
-    internal LocalDeclarationStatementSyntax(SyntaxKind kind, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxToken usingKeyword)
+    internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         : base(kind)
     {
         this.SlotCount = 4;
+        if (usingKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+        }
         if (modifiers != null)
         {
             this.AdjustFlagsAndWidth(modifiers);
@@ -12345,27 +12350,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.declaration = declaration;
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
-        if (usingKeyword != null)
-        {
-            this.AdjustFlagsAndWidth(usingKeyword);
-            this.usingKeyword = usingKeyword;
-        }
     }
 
+    public SyntaxToken UsingKeyword { get { return this.usingKeyword; } }
     /// <summary>Gets the modifier list.</summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
     public VariableDeclarationSyntax Declaration { get { return this.declaration; } }
     public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
-    public SyntaxToken UsingKeyword { get { return this.usingKeyword; } }
 
     internal override GreenNode GetSlot(int index)
     {
         switch (index)
         {
-            case 0: return this.modifiers;
-            case 1: return this.declaration;
-            case 2: return this.semicolonToken;
-            case 3: return this.usingKeyword;
+            case 0: return this.usingKeyword;
+            case 1: return this.modifiers;
+            case 2: return this.declaration;
+            case 3: return this.semicolonToken;
             default: return null;
         }
     }
@@ -12385,11 +12385,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitLocalDeclarationStatement(this);
     }
 
-    public LocalDeclarationStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxToken usingKeyword)
+    public LocalDeclarationStatementSyntax Update(SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
-        if (modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken || usingKeyword != this.UsingKeyword)
+        if (usingKeyword != this.UsingKeyword || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.LocalDeclarationStatement(modifiers, declaration, semicolonToken, usingKeyword);
+            var newNode = SyntaxFactory.LocalDeclarationStatement(usingKeyword, modifiers, declaration, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -12404,18 +12404,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new LocalDeclarationStatementSyntax(this.Kind, this.modifiers, this.declaration, this.semicolonToken, this.usingKeyword, diagnostics, GetAnnotations());
+         return new LocalDeclarationStatementSyntax(this.Kind, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new LocalDeclarationStatementSyntax(this.Kind, this.modifiers, this.declaration, this.semicolonToken, this.usingKeyword, GetDiagnostics(), annotations);
+         return new LocalDeclarationStatementSyntax(this.Kind, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
     }
 
     internal LocalDeclarationStatementSyntax(ObjectReader reader)
         : base(reader)
     {
       this.SlotCount = 4;
+      var usingKeyword = (SyntaxToken)reader.ReadValue();
+      if (usingKeyword != null)
+      {
+         AdjustFlagsAndWidth(usingKeyword);
+         this.usingKeyword = usingKeyword;
+      }
       var modifiers = (GreenNode)reader.ReadValue();
       if (modifiers != null)
       {
@@ -12434,21 +12440,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          AdjustFlagsAndWidth(semicolonToken);
          this.semicolonToken = semicolonToken;
       }
-      var usingKeyword = (SyntaxToken)reader.ReadValue();
-      if (usingKeyword != null)
-      {
-         AdjustFlagsAndWidth(usingKeyword);
-         this.usingKeyword = usingKeyword;
-      }
     }
 
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.usingKeyword);
       writer.WriteValue(this.modifiers);
       writer.WriteValue(this.declaration);
       writer.WriteValue(this.semicolonToken);
-      writer.WriteValue(this.usingKeyword);
     }
 
     static LocalDeclarationStatementSyntax()
@@ -36537,11 +36537,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
+      var usingKeyword = (SyntaxToken)this.Visit(node.UsingKeyword);
       var modifiers = this.VisitList(node.Modifiers);
       var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      var usingKeyword = (SyntaxToken)this.Visit(node.UsingKeyword);
-      return node.Update(modifiers, declaration, semicolonToken, usingKeyword);
+      return node.Update(usingKeyword, modifiers, declaration, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitVariableDeclaration(VariableDeclarationSyntax node)
@@ -40374,20 +40374,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new LocalFunctionStatementSyntax(SyntaxKind.LocalFunctionStatement, modifiers.Node, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken, this.context);
     }
 
-    public LocalDeclarationStatementSyntax LocalDeclarationStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxToken usingKeyword)
+    public LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
 #if DEBUG
-      if (declaration == null)
-        throw new ArgumentNullException(nameof(declaration));
-      if (semicolonToken == null)
-        throw new ArgumentNullException(nameof(semicolonToken));
-      switch (semicolonToken.Kind)
-      {
-        case SyntaxKind.SemicolonToken:
-          break;
-        default:
-          throw new ArgumentException("semicolonToken");
-      }
       if (usingKeyword != null)
       {
       switch (usingKeyword.Kind)
@@ -40399,9 +40388,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           throw new ArgumentException("usingKeyword");
       }
       }
+      if (declaration == null)
+        throw new ArgumentNullException(nameof(declaration));
+      if (semicolonToken == null)
+        throw new ArgumentNullException(nameof(semicolonToken));
+      switch (semicolonToken.Kind)
+      {
+        case SyntaxKind.SemicolonToken:
+          break;
+        default:
+          throw new ArgumentException("semicolonToken");
+      }
 #endif
 
-      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, modifiers.Node, declaration, semicolonToken, usingKeyword, this.context);
+      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, usingKeyword, modifiers.Node, declaration, semicolonToken, this.context);
     }
 
     public VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
@@ -47338,20 +47338,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new LocalFunctionStatementSyntax(SyntaxKind.LocalFunctionStatement, modifiers.Node, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken);
     }
 
-    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxToken usingKeyword)
+    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
 #if DEBUG
-      if (declaration == null)
-        throw new ArgumentNullException(nameof(declaration));
-      if (semicolonToken == null)
-        throw new ArgumentNullException(nameof(semicolonToken));
-      switch (semicolonToken.Kind)
-      {
-        case SyntaxKind.SemicolonToken:
-          break;
-        default:
-          throw new ArgumentException("semicolonToken");
-      }
       if (usingKeyword != null)
       {
       switch (usingKeyword.Kind)
@@ -47363,9 +47352,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           throw new ArgumentException("usingKeyword");
       }
       }
+      if (declaration == null)
+        throw new ArgumentNullException(nameof(declaration));
+      if (semicolonToken == null)
+        throw new ArgumentNullException(nameof(semicolonToken));
+      switch (semicolonToken.Kind)
+      {
+        case SyntaxKind.SemicolonToken:
+          break;
+        default:
+          throw new ArgumentException("semicolonToken");
+      }
 #endif
 
-      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, modifiers.Node, declaration, semicolonToken, usingKeyword);
+      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, usingKeyword, modifiers.Node, declaration, semicolonToken);
     }
 
     public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> variables)

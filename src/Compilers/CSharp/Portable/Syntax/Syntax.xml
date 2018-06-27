@@ -1853,6 +1853,9 @@
 
   <Node Name="LocalDeclarationStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalDeclarationStatement"/>
+    <Field Name="UsingKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="UsingKeyword"/>
+    </Field>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
       <PropertyComment>
         <summary>Gets the modifier list.</summary>
@@ -1861,9 +1864,6 @@
     <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
-    </Field>
-    <Field Name="UsingKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="UsingKeyword" Optional="true"/>
     </Field>
   </Node>
 

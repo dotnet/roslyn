@@ -4177,17 +4177,6 @@ tryAgain:
                             mods: mods,
                             localFunction: out localFunction));
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
-                {
-                    variables.Add(
-                        this.ParseVariableDeclarator(
-                            type,
-                            flags,
-                            isFirst: false,
-                            allowLocalFunctions: false,
-                            mods,
-                            out localFunction));
-                }
                 else if (!variableDeclarationsExpected || this.SkipBadVariableListTokens(variables, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                 {
                     break;
@@ -6641,7 +6630,8 @@ tryAgain:
                     }
                     goto default;
                 case SyntaxKind.UsingKeyword:
-                    return this.ParseUsingStatement();
+                    // Indicates a using block
+                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken ? this.ParseUsingStatement() : this.ParseLocalDeclarationStatement();
                 case SyntaxKind.WhileKeyword:
                     return this.ParseWhileStatement();
                 case SyntaxKind.OpenBraceToken:
@@ -8222,6 +8212,9 @@ tryAgain:
             {
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
+
+                var usingKeyword = this.CurrentToken.Kind == SyntaxKind.UsingKeyword ? this.EatToken() : null;
+
                 this.ParseLocalDeclaration(variables,
                     allowLocalFunctions: true,
                     mods: mods.ToList(),
@@ -8254,9 +8247,11 @@ tryAgain:
 
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.LocalDeclarationStatement(
+                    usingKeyword,
                     mods.ToList(),
                     _syntaxFactory.VariableDeclaration(type, variables),
-                    semicolon);
+                    semicolon
+                    );
             }
             finally
             {
