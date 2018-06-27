@@ -1370,7 +1370,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim syntax As SyntaxNode = boundLocalDeclaration.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Dim isImplicit As Boolean = boundLocalDeclaration.WasCompilerGenerated
+            Debug.Assert(boundLocalDeclaration.WasCompilerGenerated)
+            Dim isImplicit As Boolean = True
             Return New LazyVariableDeclarationGroupOperation(declarations, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
