@@ -173,8 +173,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     return (items.Items[items.SelectedItemIndex.Value], false);
                 }
 
-                // Otherwise, just pick the first item we have.
-                return (items.Items.First(), false);
+                SignatureHelpItem lastSelectionOrDefault = null;
+                if (currentModel != null && currentModel.Provider == provider)
+                {
+                    // If the provider did not pick a default, and it's the same provider as the previous
+                    // model we have, then try to return the same item that we had before.
+                    lastSelectionOrDefault = items.Items.FirstOrDefault(i => DisplayPartsMatch(i, currentModel.SelectedItem));
+                }
+
+                if (lastSelectionOrDefault == null)
+                {
+                    // Otherwise, just pick the first item we have.
+                    lastSelectionOrDefault = items.Items.First();
+                }
+
+                return (lastSelectionOrDefault, false);
             }
 
             private static bool DisplayPartsMatch(SignatureHelpItem i1, SignatureHelpItem i2)

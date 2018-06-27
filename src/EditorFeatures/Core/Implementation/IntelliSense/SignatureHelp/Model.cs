@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         public TextSpan TextSpan { get; }
         public IList<SignatureHelpItem> Items { get; }
         public SignatureHelpItem SelectedItem { get; }
-        public bool UserSelected { get; } // true if the SelectedItem is the result of a user selection (up/down arrows)
+
+        /// <summary>UserSelected is true if the SelectedItem is the result of a user selection (up/down arrows).</summary>
+        public bool UserSelected { get; }
         public int ArgumentIndex { get; }
         public int ArgumentCount { get; }
         public string ArgumentName { get; }

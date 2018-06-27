@@ -177,10 +177,10 @@ class Program
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
                 Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
-                ' Now both items are available again, and we're selecting the initial overload again.
+                ' Now both items are available again, and we're sticking with last selection
                 state.SendBackspace()
                 Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("void C.M(int third)")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function
@@ -215,10 +215,10 @@ class Program
                 Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
-                ' We don't have a definite symbol again, so we pick the first by default 
+                ' We don't have a definite symbol again, so we stick with last selection
                 state.SendTypeChars(",")
                 Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function

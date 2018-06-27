@@ -39,10 +39,10 @@ End Class
                 Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
                 Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
-                ' Now both items are available again, so we pick the first overload again.
+                ' Now both items are available again, we're sticking with last selection
                 state.SendBackspace()
                 Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("C.M(third As Integer)")
+                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function
