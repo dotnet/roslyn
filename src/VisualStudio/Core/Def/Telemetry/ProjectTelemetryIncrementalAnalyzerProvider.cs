@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             /// <summary>
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
             {
                 if (!semanticsChanged)
                 {
-                    return Task.CompletedTask;
+                    return SpecializedTasks.EmptyTask;
                 }
 
                 var projectId = project.Id;
@@ -195,27 +195,27 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                     }
                 }
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public void RemoveDocument(DocumentId documentId)

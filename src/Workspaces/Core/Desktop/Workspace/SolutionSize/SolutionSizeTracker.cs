@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SolutionSize
                     _map.Clear();
                 }
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -113,22 +113,22 @@ namespace Microsoft.CodeAnalysis.SolutionSize
             #region Not Used
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.SolutionSize
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public void RemoveProject(ProjectId projectId)

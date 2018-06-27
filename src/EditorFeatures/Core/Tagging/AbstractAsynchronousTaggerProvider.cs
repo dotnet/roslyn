@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected virtual void ProduceTagsSynchronously(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)

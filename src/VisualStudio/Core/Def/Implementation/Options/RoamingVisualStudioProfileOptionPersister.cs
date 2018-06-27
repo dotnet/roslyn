@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
             }
 
-            return System.Threading.Tasks.Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         private object GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)

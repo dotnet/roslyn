@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
                     equivalenceKey),
                 context.Diagnostics);
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected override async Task FixAllAsync(

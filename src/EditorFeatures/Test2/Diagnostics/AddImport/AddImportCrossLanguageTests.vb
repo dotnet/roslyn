@@ -530,7 +530,7 @@ namespace CSAssembly2
                                                    Select p.Name
 
                         Assert.True(newProjectReferences.Contains(addedReference))
-                        Return Task.CompletedTask
+                        Return SpecializedTasks.EmptyTask
                     End Function
             End If
 

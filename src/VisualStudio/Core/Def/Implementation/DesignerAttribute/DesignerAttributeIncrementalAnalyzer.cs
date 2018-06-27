@@ -266,27 +266,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         #region unused
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
         #endregion
     }

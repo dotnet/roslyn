@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected override Task FixAllAsync(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 });
             }
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

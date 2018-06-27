@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         private async Task FixWithEditorAsync(

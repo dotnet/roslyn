@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _processor = processor;
                         _lazyAnalyzers = lazyAnalyzers;
 
-                        _running = Task.CompletedTask;
+                        _running = SpecializedTasks.EmptyTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();

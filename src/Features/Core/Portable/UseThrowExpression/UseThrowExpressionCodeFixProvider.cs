@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
                 diagnostic);
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected override Task FixAllAsync(
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                     generator.ThrowExpression(throwStatementExpression)));
             }
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

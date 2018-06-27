@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected override Task FixAllAsync(

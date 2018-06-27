@@ -752,11 +752,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Sub
 
             Public Function LogExceptionAsync(exception As String, text As String) As Task Implements ISymbolSearchLogService.LogExceptionAsync
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Public Function LogInfoAsync(text As String) As Task Implements ISymbolSearchLogService.LogInfoAsync
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
         End Class
 
@@ -769,19 +769,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Sub
 
             Public Function OnDownloadFullDatabaseStartedAsync(title As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseStartedAsync
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Public Function OnDownloadFullDatabaseSucceededAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseSucceededAsync
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Public Function OnDownloadFullDatabaseCanceledAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseCanceledAsync
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Public Function OnDownloadFullDatabaseFailedAsync(message As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseFailedAsync
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
         End Class
     End Class

@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Me.Definitions.Add(definition)
                 End SyncLock
 
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As Task
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     References.Add(reference)
                 End SyncLock
 
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
         End Class
 

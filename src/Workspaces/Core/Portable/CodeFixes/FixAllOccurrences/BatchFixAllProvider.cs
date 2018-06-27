@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                     // a buggy extension that throws can't bring down the host?
-                    return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
+                    return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
                 }));
             }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
             // a buggy extension that throws can't bring down the host?
-            return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
+            return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
         }
 
         public virtual async Task<CodeAction> TryGetMergedFixAsync(

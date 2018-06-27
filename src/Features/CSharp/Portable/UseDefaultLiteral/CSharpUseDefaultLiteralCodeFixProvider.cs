@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected override async Task FixAllAsync(

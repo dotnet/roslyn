@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
                 FeaturesResources.Remove_Unnecessary_Cast,
                 Function(c) FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics)
-            Return Task.CompletedTask
+            Return SpecializedTasks.EmptyTask
         End Function
 
         Private Shared Function IsUnnecessaryCast(node As ExpressionSyntax, model As SemanticModel, cancellationToken As CancellationToken) As Boolean

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Notification
                 }).CompletesAsyncOperation(asyncToken);
             }
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Notification
                 }).CompletesAsyncOperation(asyncToken);
             }
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         public override event EventHandler Started

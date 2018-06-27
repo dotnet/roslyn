@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // Find the existing task responsible for writing to this queue.
                     var existingWriteTask = keyToWriteTask.TryGetValue(key, out var task)
                         ? task
-                        : Task.CompletedTask;
+                        : SpecializedTasks.EmptyTask;
 
                     if (writesToProcess.Count == 0)
                     {

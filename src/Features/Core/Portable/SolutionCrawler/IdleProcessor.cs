@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (_processorTask == null)
                 {
-                    return Task.CompletedTask;
+                    return SpecializedTasks.EmptyTask;
                 }
 
                 return _processorTask;

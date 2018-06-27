@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Result.Add(definition);
                 }
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
 
