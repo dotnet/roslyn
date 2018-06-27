@@ -81,13 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document, TextSpan narrowSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
         {
-            var result = await GetClassifiedSpansAsync(document, narrowSpan, widenedSpan, WorkspaceClassificationDelegationService.Instance, cancellationToken).ConfigureAwait(false);
-            if (!result.IsDefault)
-            {
-                return result;
-            }
-
-            result = await GetClassifiedSpansAsync(document, narrowSpan, widenedSpan, EditorClassificationDelegationService.Instance, cancellationToken).ConfigureAwait(false);
+            var result = await EditorClassifier.GetClassifiedSpansAsync(
+                document, widenedSpan, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefault)
             {
                 return result;
@@ -101,12 +96,43 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 new ClassifiedSpan(ClassificationTypeNames.Text, narrowSpan),
                 new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(narrowSpan.End, widenedSpan.End)));
         }
+    }
 
+
+    internal static class EditorClassifier
+    {
+        /// <summary>
+        /// Classifies the provided <paramref name="span"/> in the given <paramref name="document"/>.
+        /// This will first try to do this using an appropriate <see cref="IClassificationService"/>
+        /// if it can be found, followed by an appropriate <see cref="IEditorClassificationService"/>
+        /// if that can be found.  <see cref="ImmutableArray{T}.IsDefault"/> will be returned if this
+        /// fails.
+        /// </summary>
+        public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
+            Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var result = await GetClassifiedSpansAsync(
+                WorkspaceClassificationDelegationService.Instance,
+               document, span, cancellationToken).ConfigureAwait(false);
+            if (!result.IsDefault)
+            {
+                return result;
+            }
+
+            result = await GetClassifiedSpansAsync(
+                EditorClassificationDelegationService.Instance,
+                document, span, cancellationToken).ConfigureAwait(false);
+            if (!result.IsDefault)
+            {
+                return result;
+            }
+
+            return default;
+        }
 
         private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync<TClassificationService>(
-            Document document, TextSpan narrowSpan, TextSpan widenedSpan,
             IClassificationDelegationService<TClassificationService> delegationService,
-            CancellationToken cancellationToken) where TClassificationService : class, ILanguageService
+            Document document, TextSpan widenedSpan, CancellationToken cancellationToken) where TClassificationService : class, ILanguageService
         {
             var classificationService = document.GetLanguageService<TClassificationService>();
             if (classificationService == null)
