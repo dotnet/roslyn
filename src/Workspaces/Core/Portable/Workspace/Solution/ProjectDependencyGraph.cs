@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the list of projects (topologically sorted) that this project directly depends on.
+        /// Gets the list of projects that this project directly depends on.
         /// </summary>
         public IImmutableSet<ProjectId> GetProjectsThatThisProjectDirectlyDependsOn(ProjectId projectId)
         {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the list of projects (topologically sorted) that directly depend on this project.
+        /// Gets the list of projects that directly depend on this project.
         /// </summary> 
         public IImmutableSet<ProjectId> GetProjectsThatDirectlyDependOnThisProject(ProjectId projectId)
         {
