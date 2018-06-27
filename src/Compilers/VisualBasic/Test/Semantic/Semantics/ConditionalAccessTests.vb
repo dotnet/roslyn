@@ -2984,6 +2984,7 @@ C1
 
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CodeGen_04()
 
@@ -3034,7 +3035,7 @@ Module Module1
         Call (x(0))?.Test()
     End Sub 
 
-    Sub Test5(Of T As I1)(x as C1(Of T))
+    Sub Test5(Of T As I1)(x as C1(Of T))'BIND:"Sub Test5(Of T As I1)(x as C1(Of T))"
         With x.F2
             ?.Test()
         End With
@@ -3083,6 +3084,32 @@ Test
 Test
 102
 ]]>)
+
+            VerifyOperationTreeForTest(Of MethodBlockSyntax)(compilation, "a.vb", expectedOperationTree:="
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub Test5(O ... End Sub')
+  IWithOperation (OperationKind.None, Type: null) (Syntax: 'With x.F2 ... End With')
+    Value: 
+      IFieldReferenceOperation: C1(Of T).F2 As T (OperationKind.FieldReference, Type: T) (Syntax: 'x.F2')
+        Instance Receiver: 
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1(Of T)) (Syntax: 'x')
+    Body: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'With x.F2 ... End With')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '?.Test()')
+          Expression: 
+            IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Void) (Syntax: '?.Test()')
+              Operation: 
+                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: 'x.F2')
+              WhenNotNull: 
+                IInvocationOperation (virtual Sub I1.Test()) (OperationKind.Invocation, Type: System.Void) (Syntax: '.Test()')
+                  Instance Receiver: 
+                    IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: T, IsImplicit) (Syntax: '?.Test()')
+                  Arguments(0)
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null")
 
         End Sub
 

@@ -69,6 +69,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
+        <WorkItem(27805, "https://github.com/dotnet/roslyn/issues/27805")>
+        <WorkItem(233666, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/233666")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function ContainsChildrenForFileWithIllegalPath() As Task
+            Using testState = ProgressionTestState.Create(<Workspace/>)
+                Dim graph = New Graph
+                graph.Nodes.GetOrCreate(
+                    GraphNodeId.GetNested(GraphNodeId.GetPartial(CodeGraphNodeIdName.File, New Uri("C:\path\to\""some folder\App.config""", UriKind.RelativeOrAbsolute))),
+                    label:=String.Empty,
+                    CodeNodeCategories.File)
+
+                ' Just making sure it doesn't throw.
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(graph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
+            End Using
+        End Function
+
         <WorkItem(789685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789685")>
         <WorkItem(794846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/794846")>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>

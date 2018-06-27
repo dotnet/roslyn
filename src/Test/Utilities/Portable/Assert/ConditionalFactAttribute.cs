@@ -19,6 +19,7 @@ namespace Roslyn.Test.Utilities
     {
         public const string NoPiaNeedsDesktop = "NoPia is only supported on desktop";
         public const string NetModulesNeedDesktop = "Net Modules are only supported on desktop";
+        public const string RestrictedTypesNeedDesktop = "Restricted types are only supported on desktop";
     }
 
     public class ConditionalFactAttribute : FactAttribute

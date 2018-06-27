@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.PatternMatching;
 using Roslyn.Utilities;
 
@@ -26,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
             private readonly bool _searchCurrentDocument;
+            private readonly ISet<string> _kinds;
             private readonly Document _currentDocument;
             private readonly ProgressTracker _progress;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 INavigateToCallback callback,
                 string searchPattern,
                 bool searchCurrentDocument,
+                ISet<string> kinds,
                 CancellationToken cancellationToken)
             {
                 _solution = solution;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _callback = callback;
                 _searchPattern = searchPattern;
                 _searchCurrentDocument = searchCurrentDocument;
+                _kinds = kinds;
                 _cancellationToken = cancellationToken;
                 _progress = new ProgressTracker(callback.ReportProgress);
                 _asyncListener = asyncListener;
@@ -110,8 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         if (service != null)
                         {
                             var searchTask = _currentDocument != null
-                                ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _cancellationToken)
-                                : service.SearchProjectAsync(project, _searchPattern, _cancellationToken);
+                                ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, _cancellationToken)
+                                : service.SearchProjectAsync(project, _searchPattern, _kinds, _cancellationToken);
 
                             var results = await searchTask.ConfigureAwait(false);
                             if (results != null)
@@ -126,7 +128,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-#pragma warning disable CS0618 // MatchKind is obsolete
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
             {
                 var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
@@ -163,7 +164,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     default: throw ExceptionUtilities.UnexpectedValue(matchKind);
                 }
             }
-#pragma warning restore CS0618 // MatchKind is obsolete
 
             /// <summary>
             /// Returns the name for the language used by the old Navigate To providers.

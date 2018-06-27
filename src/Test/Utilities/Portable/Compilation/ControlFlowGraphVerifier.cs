@@ -594,14 +594,16 @@ endRegion:
             {
                 visitor.Visit(root);
                 Assert.Null(root.Parent);
-                Assert.Null(((Operation)root).SemanticModel);
+                Assert.Null(((Operation)root).OwningSemanticModel);
+                Assert.Null(root.SemanticModel);
                 Assert.True(CanBeInControlFlowGraph(root), $"Unexpected node kind OperationKind.{root.Kind}");
 
                 foreach (var operation in root.Descendants())
                 {
                     visitor.Visit(operation);
                     Assert.NotNull(operation.Parent);
-                    Assert.Null(((Operation)operation).SemanticModel);
+                    Assert.Null(((Operation)operation).OwningSemanticModel);
+                    Assert.Null(operation.SemanticModel);
                     Assert.True(CanBeInControlFlowGraph(operation), $"Unexpected node kind OperationKind.{operation.Kind}");
                 }
             }
@@ -766,8 +768,15 @@ endRegion:
                              !ITypeSymbolHelpers.IsDynamicType(binary.Type));
 
                 case OperationKind.InstanceReference:
-                    // Implicit instance receivers are expected to have been removed when dealing with creations.
-                    return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
+                    // Implicit instance receivers, except for anonymous type creations, are expected to have been removed when dealing with creations.
+                    return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance ||
+                        ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
+                        n.Type.IsAnonymousType &&
+                        n.Parent is IPropertyReferenceOperation propertyReference &&
+                        propertyReference.Instance == n &&
+                        propertyReference.Parent is ISimpleAssignmentOperation simpleAssignment &&
+                        simpleAssignment.Target == propertyReference &&
+                        simpleAssignment.Parent.Kind == OperationKind.AnonymousObjectCreation;
 
                 case OperationKind.None:
                     return !(n is IPlaceholderOperation);
