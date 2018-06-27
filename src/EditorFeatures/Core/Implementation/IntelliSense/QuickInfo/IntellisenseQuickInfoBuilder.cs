@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 
@@ -61,14 +63,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var classifiedSpanList = new List<ClassifiedSpan>();
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
-                    var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpans = await EditorClassifier.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
                     classifiedSpanList.AddRange(classifiedSpans);
                 }
 
-                var closeBraceElement = classifiedSpanList.BuildClassifiedTextElementForClassifiedSpans(snapshot, trackingSpan, cancellationToken);
-                if (closeBraceElement != null)
+                var tabSize = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                var text = await document.GetTextAsync().ConfigureAwait(false);
+                var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpanList.ToImmutableArray(), tabSize);
+                var textRuns = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, snapshot.GetText(s.TextSpan.ToSpan())));
+
+                if (textRuns.Any())
                 {
-                    elements.Add(closeBraceElement);
+                    elements.Add(new ClassifiedTextElement(textRuns));
                 }
             }
 
