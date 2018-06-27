@@ -414,5 +414,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync,
         Completion_ExecuteCommand_TypeChar,
         RemoteHostService_SynchronizeTextAsync,
+        Intellisense_Completion_Commit,
     }
 }
