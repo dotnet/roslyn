@@ -201,6 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // Space for `new (` when creating a tuple array (but not a constructor constraint `where T : new()`)
+            if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
+                previousToken.Kind() == SyntaxKind.NewKeyword &&
+                currentToken.Parent.Kind() != SyntaxKind.ConstructorConstraint)
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // some * "(" cases
             if (currentToken.Kind() == SyntaxKind.OpenParenToken)
             {
