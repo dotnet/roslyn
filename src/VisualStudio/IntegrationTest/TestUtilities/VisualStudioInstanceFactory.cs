@@ -233,14 +233,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static ISetupInstance LocateVisualStudioInstance(ImmutableHashSet<string> requiredPackageIds)
         {
-            var vsInstallDir = Environment.GetEnvironmentVariable("VSInstallDir");
+            var vsInstallDir = Environment.GetEnvironmentVariable("__UNITTESTEXPLORER_VSINSTALLPATH__")
+                ?? Environment.GetEnvironmentVariable("VSAPPIDDIR");
+            if (vsInstallDir != null)
+            {
+                vsInstallDir = Path.GetFullPath(Path.Combine(vsInstallDir, @"..\.."));
+            }
+            else
+            {
+                vsInstallDir = Environment.GetEnvironmentVariable("VSInstallDir");
+            }
+
             var haveVsInstallDir = !string.IsNullOrEmpty(vsInstallDir);
 
             if (haveVsInstallDir)
             {
                 vsInstallDir = Path.GetFullPath(vsInstallDir);
                 vsInstallDir = vsInstallDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                Debug.WriteLine($"An environment variable named 'VSInstallDir' was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
+                Debug.WriteLine($"An environment variable named 'VSInstallDir' (or equivalent) was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
             }
 
             var instances = EnumerateVisualStudioInstances().Where((instance) => {

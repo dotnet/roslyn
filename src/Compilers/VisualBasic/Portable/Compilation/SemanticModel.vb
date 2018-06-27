@@ -980,7 +980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If useOfLocalBeforeDeclaration AndAlso Not type.IsErrorType() Then
                                 conversion = New Conversion(Conversions.ClassifyConversion(type, convertedType, Nothing))
                             Else
-                                conversion = New Conversion(KeyValuePair.Create(conversionNode.ConversionKind,
+                                conversion = New Conversion(KeyValuePairUtil.Create(conversionNode.ConversionKind,
                                                                                 TryCast(conversionNode.ExpressionSymbol, MethodSymbol)))
                             End If
                         End If
