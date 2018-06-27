@@ -530,6 +530,18 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return CreateInvalidExpressionForHasArgumentsExpression(null, boundObjectCreationExpression.Arguments, boundObjectCreationExpression.InitializerExpressionOpt, syntax, type, constantValue, isImplicit);
             }
+            else if (boundObjectCreationExpression.Type.IsAnonymousType)
+            {
+                // Workaround for https://github.com/dotnet/roslyn/issues/28157
+                Debug.Assert(isImplicit);
+                var memberInitializers = new Lazy<ImmutableArray<IOperation>>(() => GetAnonymousObjectCreationInitializers(
+                                                                                        boundObjectCreationExpression.Arguments,
+                                                                                        declarations: ImmutableArray<BoundAnonymousPropertyDeclaration>.Empty,
+                                                                                        syntax,
+                                                                                        type,
+                                                                                        isImplicit));
+                return new LazyAnonymousObjectCreationExpression(memberInitializers, _semanticModel, syntax, type, constantValue, isImplicit);
+            }
 
             Lazy<IObjectOrCollectionInitializerOperation> initializer = new Lazy<IObjectOrCollectionInitializerOperation>(() => (IObjectOrCollectionInitializerOperation)Create(boundObjectCreationExpression.InitializerExpressionOpt));
             Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() =>

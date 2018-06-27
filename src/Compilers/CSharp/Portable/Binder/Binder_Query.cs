@@ -785,10 +785,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundExpression MakeConstruction(CSharpSyntaxNode node, NamedTypeSymbol toCreate, ImmutableArray<BoundExpression> args, DiagnosticBag diagnostics)
         {
-            Debug.Assert(toCreate.IsAnonymousType);
-
-            var result = new BoundAnonymousObjectCreationExpression(node, toCreate.InstanceConstructors[0], args, ImmutableArray<BoundAnonymousPropertyDeclaration>.Empty, toCreate);
+            AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
+            analyzedArguments.Arguments.AddRange(args);
+            var result = BindClassCreationExpression(node, toCreate.Name, node, toCreate, analyzedArguments, diagnostics);
             result.WasCompilerGenerated = true;
+            analyzedArguments.Free();
             return result;
         }
     }
