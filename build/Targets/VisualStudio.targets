@@ -65,16 +65,25 @@
           by the NuGet build task. -->
 
   <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolvePackageDependenciesForBuild" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
-    <FindNuGetAssetsForVsix
-      NuGetPackageRoot="$(NuGetPackageRoot)"
-      ReferenceCopyLocalPaths="@(ReferenceCopyLocalPaths)"
-      NuGetPackageToIncludeInVsix="@(NuGetPackageToIncludeInVsix)">
 
-      <Output TaskParameter="NuGetAssetsToIncludeInVsix" ItemName="NuGetAssetsToIncludeInVsix" />
-    </FindNuGetAssetsForVsix>
-
+    <!-- Calculate a list of packages ReferenceCopyLocalPaths originate from whose content should not be included in the VSIX -->
     <ItemGroup>
-      <VSIXCopyLocalReferenceSourceItem Include="@(NuGetAssetsToIncludeInVsix)">
+      <_ExcludedPackageId Include="@(ReferenceCopyLocalPaths->'%(NuGetPackageId)')" />
+      <_ExcludedPackageId Remove="@(NuGetPackageToIncludeInVsix)"/>
+    </ItemGroup>
+
+    <!-- Build a list assets to include in the VSIX keyed by package id -->
+    <ItemGroup>
+      <_AssetsByPackageId Include="@(ReferenceCopyLocalPaths->'%(NuGetPackageId)')">
+        <Path>%(ReferenceCopyLocalPaths.Identity)</Path>
+      </_AssetsByPackageId>
+
+      <_AssetsByPackageId Remove="@(_ExcludedPackageId)" />
+    </ItemGroup>
+
+    <!-- Include the assets in the VSIX -->
+    <ItemGroup>
+      <VSIXCopyLocalReferenceSourceItem Include="@(_AssetsByPackageId->'%(Path)')">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
       </VSIXCopyLocalReferenceSourceItem>
