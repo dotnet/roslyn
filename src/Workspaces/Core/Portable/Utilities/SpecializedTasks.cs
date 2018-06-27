@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -11,6 +12,10 @@ namespace Roslyn.Utilities
     {
         public static readonly Task<bool> True = Task.FromResult(true);
         public static readonly Task<bool> False = Task.FromResult(false);
+
+        // This is being consumed through InternalsVisibleTo by Source-Based test discovery
+        [Obsolete("Use Task.CompletedTask instead which is available in the framework.")]
+        public static readonly Task EmptyTask = Task.CompletedTask;
 
         public static Task<T> Default<T>()
         {
