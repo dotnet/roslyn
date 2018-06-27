@@ -152,7 +152,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_GotoM1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -231,7 +231,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_GotoLabel()
             Dim source =
 <compilation name="ErrorHandling">
@@ -319,7 +319,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_ResumeNext()
             Dim source =
 <compilation name="ErrorHandling">
@@ -561,7 +561,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestResume()
             Dim source =
 <compilation name="ErrorHandling">
@@ -1465,7 +1465,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </expected>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_If_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11958,7 +11958,7 @@ y(0) is Changed = System.Int32[]; Content is preserved]]>
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ReDim_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12477,8 +12477,7 @@ M(3) - 0
             CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
-
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ExitSelect_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13460,7 +13459,7 @@ M(TestInstance.New 2) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_TypeInitialization_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14666,7 +14665,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="Test3googooReturn")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_In_Single_Method_With_Resume_Next()
             Dim source =
 <compilation name="ErrorHandling">
@@ -15218,7 +15217,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="StartHandler")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Error()
             Dim source =
     <compilation name="ErrorHandling">
@@ -15348,7 +15347,7 @@ End Module
         End Sub
 
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Exception_AndLabel_Next()
             'This ensures that the Handler is not called
             Dim source =
@@ -16364,7 +16363,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_GotoMinusBaselineInhandler()
             'The difference on the resetting the error in the handler and the resume is important as this one
             'will resume in the Handler and hence the 2nd error will not be generated
@@ -16900,7 +16899,8 @@ After 2 Exception]]>)
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_WithSyncLock_1()
             'This is the typical scenario documented in the spec to ensure that infinite
             'recursion does not occur
