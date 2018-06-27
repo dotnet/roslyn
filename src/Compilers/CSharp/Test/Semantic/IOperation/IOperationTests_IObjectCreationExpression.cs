@@ -1404,6 +1404,86 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
             VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectCreationCollectionInitializer_InvalidWithTooManyElements()
+        {
+            string source = @"
+public class Class1
+{
+    void M()
+    {
+        var c = new int[2, 2] /*<bind>*/{ { { 3, 4 } }, { 5, 6 } }/*</bind>*/;
+    }
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,45): error CS0623: Array initializers can only be used in a variable or field initializer. Try using a new expression instead.
+                //         var c = new int[2, 2] /*<bind>*/{ { { 3, 4 } }, { 5, 6 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArrayInitInBadPlace, "{ 3, 4 }").WithLocation(6, 45),
+                // file.cs(6,43): error CS0847: An array initializer of length '2' is expected
+                //         var c = new int[2, 2] /*<bind>*/{ { { 3, 4 } }, { 5, 6 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "{ { 3, 4 } }").WithArguments("2").WithLocation(6, 43)
+            };
+
+            string expectedOperationTree = @"
+IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ { { 3, 4  ...  { 5, 6 } }')
+  Element Values(2):
+      IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ { 3, 4 } }')
+        Element Values(1):
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '{ 3, 4 }')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: 
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '{ 3, 4 }')
+                  Children(1):
+                      IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ 3, 4 }')
+                        Element Values(2):
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '3')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '4')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4, IsInvalid) (Syntax: '4')
+      IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 5, 6 }')
+        Element Values(2):
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectCreationCollectionInitializer_InvalidWithTooManyElements_02()
+        {
+            string source = @"
+public class Class1
+{
+    void M()
+    {
+        var c = new int[2, 2] { { { /*<bind>*/3/*</bind>*/, 4 } }, { 5, 6 } };
+    }
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,35): error CS0623: Array initializers can only be used in a variable or field initializer. Try using a new expression instead.
+                //         var c = new int[2, 2] { { { /*<bind>*/3/*</bind>*/, 4 } }, { 5, 6 } };
+                Diagnostic(ErrorCode.ERR_ArrayInitInBadPlace, "{ /*<bind>*/3/*</bind>*/, 4 }").WithLocation(6, 35),
+                // file.cs(6,33): error CS0847: An array initializer of length '2' is expected
+                //         var c = new int[2, 2] { { { /*<bind>*/3/*</bind>*/, 4 } }, { 5, 6 } };
+                Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "{ { /*<bind>*/3/*</bind>*/, 4 } }").WithArguments("2").WithLocation(6, 33)
+            };
+
+            string expectedOperationTree = @"
+ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<LiteralExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void ObjectCreationFlow_01()
