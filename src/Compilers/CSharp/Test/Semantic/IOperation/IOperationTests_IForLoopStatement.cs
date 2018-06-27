@@ -3001,6 +3001,202 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             VerifyOperationTreeAndDiagnosticsForTest<ForStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(23821, "https://github.com/dotnet/roslyn/issues/23821")]
+        public void IForLoopStatement_MultipleIncrements_02()
+        {
+            string source = @"
+class Program
+{
+    public static void Main()
+    {
+        bool f = true;
+
+        /*<bind>*/for(Dummy(f, TakeOutParam((f ? 10 : 20), out var x0), x0); 
+             Dummy(f, TakeOutParam((f ? 1 : 2), out var x1), x1); 
+             Dummy(f, TakeOutParam((f ? 100 : 200), out var x2), x2), Dummy(true, null, x2))
+        {
+        }/*</bind>*/
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            string expectedOperationTree = @"
+IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for(Dummy(f ... }')
+  Locals: Local_1: System.Int32 x0
+  ConditionLocals: Local_1: System.Int32 x1
+  Condition: 
+    IInvocationOperation (System.Boolean Program.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x1), x1)')
+      Instance Receiver: 
+        null
+      Arguments(3):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'f')
+            ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'TakeOutPara ... out var x1)')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TakeOutPara ... out var x1)')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: 
+                IInvocationOperation (System.Boolean Program.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out var x1)')
+                  Instance Receiver: 
+                    null
+                  Arguments(2):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'f ? 1 : 2')
+                        IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'f ? 1 : 2')
+                          Condition: 
+                            ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
+                          WhenTrue: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          WhenFalse: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out var x1')
+                        IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var x1')
+                          ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null) (Syntax: 'x1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x1')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: 
+                ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Before:
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Dummy(f, Ta ... ar x0), x0)')
+        Expression: 
+          IInvocationOperation (System.Boolean Program.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x0), x0)')
+            Instance Receiver: 
+              null
+            Arguments(3):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'f')
+                  ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'TakeOutPara ... out var x0)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TakeOutPara ... out var x0)')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IInvocationOperation (System.Boolean Program.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out var x0)')
+                        Instance Receiver: 
+                          null
+                        Arguments(2):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'f ? 10 : 20')
+                              IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'f ? 10 : 20')
+                                Condition: 
+                                  ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
+                                WhenTrue: 
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                                WhenFalse: 
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out var x0')
+                              IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var x0')
+                                ILocalReferenceOperation: x0 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x0')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null) (Syntax: 'x0')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x0')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILocalReferenceOperation: x0 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x0')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  AtLoopBottom:
+      IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Dummy(f, Ta ... ar x2), x2)')
+        Locals: Local_1: System.Int32 x2
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Dummy(f, Ta ... ar x2), x2)')
+          Expression: 
+            IInvocationOperation (System.Boolean Program.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x2), x2)')
+              Instance Receiver: 
+                null
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'f')
+                    ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'TakeOutPara ... out var x2)')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TakeOutPara ... out var x2)')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        IInvocationOperation (System.Boolean Program.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out var x2)')
+                          Instance Receiver: 
+                            null
+                          Arguments(2):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'f ? 100 : 200')
+                                IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'f ? 100 : 200')
+                                  Condition: 
+                                    ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
+                                  WhenTrue: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
+                                  WhenFalse: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 200) (Syntax: '200')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out var x2')
+                                IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var x2')
+                                  ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null) (Syntax: 'x2')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x2')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Dummy(true, null, x2)')
+          Expression: 
+            IInvocationOperation (System.Boolean Program.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Dummy(true, null, x2)')
+              Instance Receiver: 
+                null
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'true')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'null')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null) (Syntax: 'x2')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x2')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ForStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void ForFlow_01()

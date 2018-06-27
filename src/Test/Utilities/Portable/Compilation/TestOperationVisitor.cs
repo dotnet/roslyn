@@ -45,18 +45,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var constantValue = operation.ConstantValue;
 
                 Assert.NotNull(syntax);
-                // operation.Language can throw due to https://github.com/dotnet/roslyn/issues/23821
-                // Conditional logic below should be removed once the issue is fixed
-                if (syntax is Microsoft.CodeAnalysis.Syntax.SyntaxList)
-                {
-                    Assert.Equal(OperationKind.None, operation.Kind);
-                    Assert.Equal(LanguageNames.CSharp, operation.Parent.Language);
-                }
-                else
-                {
-                    var language = operation.Language;
-                }
+                Assert.False(syntax is Microsoft.CodeAnalysis.Syntax.SyntaxList);
 
+                var language = operation.Language;
                 var isImplicit = operation.IsImplicit;
 
                 foreach (IOperation child in operation.Children)
