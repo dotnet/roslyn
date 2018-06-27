@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService)
         {
-            return (diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>()).ToImmutableArrayOrEmpty();
+            return (diagnosticAnalyzerProviderService?.GetHostDiagnosticAnalyzerPackages()).ToImmutableArrayOrEmpty();
         }
     }
 }
