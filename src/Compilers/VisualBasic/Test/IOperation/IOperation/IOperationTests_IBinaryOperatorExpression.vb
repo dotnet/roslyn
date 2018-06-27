@@ -4726,35 +4726,26 @@ Block[B0] - Entry
                   Value: 
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
-            Jump if False (Regular) to Block[B4]
+            Jump if True (Regular) to Block[B5]
                 IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
                   Arguments(0)
-                Entering: {R3}
 
             Next (Regular) Block[B3]
-        Block[B3] - Block
-            Predecessors: [B2]
-            Statements (1)
-                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
-                  Value: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
-
-            Next (Regular) Block[B7]
-                Leaving: {R2}
+                Entering: {R3}
 
         .locals {R3}
         {
             CaptureIds: [3]
-            Block[B4] - Block
+            Block[B3] - Block
                 Predecessors: [B2]
                 Statements (1)
                     IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
                       Value: 
                         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'b')
 
-                Jump if True (Regular) to Block[B6]
+                Jump if True (Regular) to Block[B5]
                     IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                       Instance Receiver: 
                         IUnaryOperation (UnaryOperatorKind.Not, IsLifted) (OperationKind.UnaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'b')
@@ -4763,31 +4754,31 @@ Block[B0] - Entry
                       Arguments(0)
                     Leaving: {R3}
 
-                Next (Regular) Block[B5]
-            Block[B5] - Block
-                Predecessors: [B4]
+                Next (Regular) Block[B4]
+            Block[B4] - Block
+                Predecessors: [B3]
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
                       Value: 
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'b')
 
-                Next (Regular) Block[B7]
+                Next (Regular) Block[B6]
                     Leaving: {R3} {R2}
         }
 
-        Block[B6] - Block
-            Predecessors: [B4]
+        Block[B5] - Block
+            Predecessors: [B2] [B3]
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
                   Value: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
-            Next (Regular) Block[B7]
+            Next (Regular) Block[B6]
                 Leaving: {R2}
     }
 
-    Block[B7] - Block
-        Predecessors: [B3] [B5] [B6]
+    Block[B6] - Block
+        Predecessors: [B4] [B5]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a OrElse b')
               Expression: 
@@ -4797,12 +4788,12 @@ Block[B0] - Entry
                   Right: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a OrElse b')
 
-        Next (Regular) Block[B8]
+        Next (Regular) Block[B7]
             Leaving: {R1}
 }
 
-Block[B8] - Exit
-    Predecessors: [B7]
+Block[B7] - Exit
+    Predecessors: [B6]
     Statements (0)
 ]]>.Value
 
@@ -4851,68 +4842,59 @@ Block[B0] - Entry
                   Value: 
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
-            Jump if False (Regular) to Block[B4]
+            Jump if True (Regular) to Block[B5]
                 IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Instance Receiver: 
                     IUnaryOperation (UnaryOperatorKind.Not, IsLifted) (OperationKind.UnaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
                       Operand: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
                   Arguments(0)
-                Entering: {R3}
 
             Next (Regular) Block[B3]
-        Block[B3] - Block
-            Predecessors: [B2]
-            Statements (1)
-                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso b')
-                  Value: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
-
-            Next (Regular) Block[B7]
-                Leaving: {R2}
+                Entering: {R3}
 
         .locals {R3}
         {
             CaptureIds: [3]
-            Block[B4] - Block
+            Block[B3] - Block
                 Predecessors: [B2]
                 Statements (1)
                     IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
                       Value: 
                         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'b')
 
-                Jump if True (Regular) to Block[B6]
+                Jump if True (Regular) to Block[B5]
                     IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                       Instance Receiver: 
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'b')
                       Arguments(0)
                     Leaving: {R3}
 
-                Next (Regular) Block[B5]
-            Block[B5] - Block
-                Predecessors: [B4]
+                Next (Regular) Block[B4]
+            Block[B4] - Block
+                Predecessors: [B3]
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso b')
                       Value: 
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'b')
 
-                Next (Regular) Block[B7]
+                Next (Regular) Block[B6]
                     Leaving: {R3} {R2}
         }
 
-        Block[B6] - Block
-            Predecessors: [B4]
+        Block[B5] - Block
+            Predecessors: [B2] [B3]
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso b')
                   Value: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
-            Next (Regular) Block[B7]
+            Next (Regular) Block[B6]
                 Leaving: {R2}
     }
 
-    Block[B7] - Block
-        Predecessors: [B3] [B5] [B6]
+    Block[B6] - Block
+        Predecessors: [B4] [B5]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a AndAlso b')
               Expression: 
@@ -4922,12 +4904,12 @@ Block[B0] - Entry
                   Right: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a AndAlso b')
 
-        Next (Regular) Block[B8]
+        Next (Regular) Block[B7]
             Leaving: {R1}
 }
 
-Block[B8] - Exit
-    Predecessors: [B7]
+Block[B7] - Exit
+    Predecessors: [B6]
     Statements (0)
 ]]>.Value
 
@@ -5026,35 +5008,26 @@ Block[B0] - Entry
         Block[B6] - Block
             Predecessors: [B5]
             Statements (0)
-            Jump if False (Regular) to Block[B8]
+            Jump if True (Regular) to Block[B9]
                 IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(a, b).F')
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'If(a, b).F')
                   Arguments(0)
-                Entering: {R5}
 
             Next (Regular) Block[B7]
-        Block[B7] - Block
-            Predecessors: [B6]
-            Statements (1)
-                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(a, b).F OrElse c')
-                  Value: 
-                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'If(a, b).F')
-
-            Next (Regular) Block[B11]
-                Leaving: {R2}
+                Entering: {R5}
 
         .locals {R5}
         {
             CaptureIds: [5]
-            Block[B8] - Block
+            Block[B7] - Block
                 Predecessors: [B6]
                 Statements (1)
                     IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
                       Value: 
                         IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'c')
 
-                Jump if True (Regular) to Block[B10]
+                Jump if True (Regular) to Block[B9]
                     IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'c')
                       Instance Receiver: 
                         IUnaryOperation (UnaryOperatorKind.Not, IsLifted) (OperationKind.UnaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'c')
@@ -5063,31 +5036,31 @@ Block[B0] - Entry
                       Arguments(0)
                     Leaving: {R5}
 
-                Next (Regular) Block[B9]
-            Block[B9] - Block
-                Predecessors: [B8]
+                Next (Regular) Block[B8]
+            Block[B8] - Block
+                Predecessors: [B7]
                 Statements (1)
                     IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(a, b).F OrElse c')
                       Value: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'c')
 
-                Next (Regular) Block[B11]
+                Next (Regular) Block[B10]
                     Leaving: {R5} {R2}
         }
 
-        Block[B10] - Block
-            Predecessors: [B8]
+        Block[B9] - Block
+            Predecessors: [B6] [B7]
             Statements (1)
                 IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(a, b).F OrElse c')
                   Value: 
                     IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'If(a, b).F')
 
-            Next (Regular) Block[B11]
+            Next (Regular) Block[B10]
                 Leaving: {R2}
     }
 
-    Block[B11] - Block
-        Predecessors: [B7] [B9] [B10]
+    Block[B10] - Block
+        Predecessors: [B8] [B9]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... .F OrElse c')
               Expression: 
@@ -5097,12 +5070,12 @@ Block[B0] - Entry
                   Right: 
                     IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'If(a, b).F OrElse c')
 
-        Next (Regular) Block[B12]
+        Next (Regular) Block[B11]
             Leaving: {R1}
 }
 
-Block[B12] - Exit
-    Predecessors: [B11]
+Block[B11] - Exit
+    Predecessors: [B10]
     Statements (0)
 ]]>.Value
 
@@ -5153,25 +5126,16 @@ Block[B0] - Entry
                   Value: 
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
-            Jump if False (Regular) to Block[B4]
+            Jump if True (Regular) to Block[B9]
                 IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Instance Receiver: 
                     IUnaryOperation (UnaryOperatorKind.Not, IsLifted) (OperationKind.UnaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
                       Operand: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
                   Arguments(0)
-                Entering: {R3} {R4} {R5}
 
             Next (Regular) Block[B3]
-        Block[B3] - Block
-            Predecessors: [B2]
-            Statements (1)
-                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso If(b, c).F')
-                  Value: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
-
-            Next (Regular) Block[B11]
-                Leaving: {R2}
+                Entering: {R3} {R4} {R5}
 
         .locals {R3}
         {
@@ -5182,41 +5146,41 @@ Block[B0] - Entry
                 .locals {R5}
                 {
                     CaptureIds: [3]
-                    Block[B4] - Block
+                    Block[B3] - Block
                         Predecessors: [B2]
                         Statements (1)
                             IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
                               Value: 
                                 IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
 
-                        Jump if True (Regular) to Block[B6]
+                        Jump if True (Regular) to Block[B5]
                             IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                               Operand: 
                                 IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'b')
                             Leaving: {R5}
 
-                        Next (Regular) Block[B5]
-                    Block[B5] - Block
-                        Predecessors: [B4]
+                        Next (Regular) Block[B4]
+                    Block[B4] - Block
+                        Predecessors: [B3]
                         Statements (1)
                             IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
                               Value: 
                                 IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'b')
 
-                        Next (Regular) Block[B7]
+                        Next (Regular) Block[B6]
                             Leaving: {R5}
                 }
 
-                Block[B6] - Block
-                    Predecessors: [B4]
+                Block[B5] - Block
+                    Predecessors: [B3]
                     Statements (1)
                         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
                           Value: 
                             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
 
-                    Next (Regular) Block[B7]
-                Block[B7] - Block
-                    Predecessors: [B5] [B6]
+                    Next (Regular) Block[B6]
+                Block[B6] - Block
+                    Predecessors: [B4] [B5]
                     Statements (1)
                         IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(b, c).F')
                           Value: 
@@ -5224,45 +5188,45 @@ Block[B0] - Entry
                               Instance Receiver: 
                                 IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(b, c)')
 
-                    Next (Regular) Block[B8]
+                    Next (Regular) Block[B7]
                         Leaving: {R4}
             }
 
-            Block[B8] - Block
-                Predecessors: [B7]
+            Block[B7] - Block
+                Predecessors: [B6]
                 Statements (0)
-                Jump if True (Regular) to Block[B10]
+                Jump if True (Regular) to Block[B9]
                     IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(b, c).F')
                       Instance Receiver: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'If(b, c).F')
                       Arguments(0)
                     Leaving: {R3}
 
-                Next (Regular) Block[B9]
-            Block[B9] - Block
-                Predecessors: [B8]
+                Next (Regular) Block[B8]
+            Block[B8] - Block
+                Predecessors: [B7]
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso If(b, c).F')
                       Value: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'If(b, c).F')
 
-                Next (Regular) Block[B11]
+                Next (Regular) Block[B10]
                     Leaving: {R3} {R2}
         }
 
-        Block[B10] - Block
-            Predecessors: [B8]
+        Block[B9] - Block
+            Predecessors: [B2] [B7]
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso If(b, c).F')
                   Value: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
-            Next (Regular) Block[B11]
+            Next (Regular) Block[B10]
                 Leaving: {R2}
     }
 
-    Block[B11] - Block
-        Predecessors: [B3] [B9] [B10]
+    Block[B10] - Block
+        Predecessors: [B8] [B9]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a  ...  If(b, c).F')
               Expression: 
@@ -5272,12 +5236,12 @@ Block[B0] - Entry
                   Right: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a AndAlso If(b, c).F')
 
-        Next (Regular) Block[B12]
+        Next (Regular) Block[B11]
             Leaving: {R1}
 }
 
-Block[B12] - Exit
-    Predecessors: [B11]
+Block[B11] - Exit
+    Predecessors: [B10]
     Statements (0)
 ]]>.Value
 
