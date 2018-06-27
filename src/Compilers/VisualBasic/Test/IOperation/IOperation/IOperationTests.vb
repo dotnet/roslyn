@@ -909,5 +909,42 @@ Option Strict On 'BIND:"Option Strict On"
 
             VerifyNoOperationTreeForTest(Of StatementSyntax)(source)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(23283, "https://github.com/dotnet/roslyn/issues/23283")>
+        <Fact()>
+        Public Sub TestColorColorScenario()
+            Dim source = <![CDATA[
+Enum Color
+    Red
+    Green
+    Yellow
+End Enum
+
+Class Test
+    ReadOnly Property Color() As Color
+        Get
+            Return Color.Red'BIND:"Return Color.Red"
+        End Get
+    End Property
+
+    Shared Function DefaultColor() As Color
+        Return Color.Green
+    End Function
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return Color.Red')
+  ReturnedValue: 
+    IFieldReferenceOperation: Color.Red (Static) (OperationKind.FieldReference, Type: Color, Constant: 0) (Syntax: 'Color.Red')
+      Instance Receiver: 
+        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ReturnStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
