@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
@@ -84,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private readonly HashSet<(AbstractProject, MetadataReferenceProperties)> _projectsReferencingMe = new HashSet<(AbstractProject, MetadataReferenceProperties)>();
-        
+
         /// <summary>
         /// Maps from the output path of a project that was converted to
         /// </summary>
@@ -95,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // PERF: Create these event handlers once to be shared amongst all documents (the sender arg identifies which document and project)
         private static readonly EventHandler<bool> s_documentOpenedEventHandler = OnDocumentOpened;
         private static readonly EventHandler<bool> s_documentClosingEventHandler = OnDocumentClosing;
-        private static readonly EventHandler s_documentUpdatedOnDiskEventHandler = OnDocumentUpdatedOnDisk;
+        private static readonly EventHandler s_documentUpdatedEventHandler = OnDocumentUpdated;
         private static readonly EventHandler<bool> s_additionalDocumentOpenedEventHandler = OnAdditionalDocumentOpened;
         private static readonly EventHandler<bool> s_additionalDocumentClosingEventHandler = OnAdditionalDocumentClosing;
         private static readonly EventHandler s_additionalDocumentUpdatedOnDiskEventHandler = OnAdditionalDocumentUpdatedOnDisk;
@@ -798,7 +799,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // This causes problems because if we then try to create a compilation, we'll fail even though it would have worked with
                 // a metadata reference. If neither supports compilation, we'll let the reference go through on the assumption the
                 // language (TypeScript/F#, etc.) is doing that intentionally.
-                if (this.Language != project.Language && 
+                if (this.Language != project.Language &&
                     this.ProjectTracker.WorkspaceServices.GetLanguageServices(this.Language).GetService<ICompilationFactoryService>() != null &&
                     this.ProjectTracker.WorkspaceServices.GetLanguageServices(project.Language).GetService<ICompilationFactoryService>() == null)
                 {
@@ -898,7 +899,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private static void OnDocumentUpdatedOnDisk(object sender, EventArgs e)
+        private static void OnDocumentUpdated(object sender, EventArgs e)
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
             AbstractProject project = document.Project;
@@ -959,7 +960,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filename,
             SourceCodeKind sourceCodeKind,
             Func<IVisualStudioHostDocument, bool> getIsCurrentContext,
-            ImmutableArray<string> folderNames)
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            IDocumentServiceFactory documentServiceFactory)
+        {
+            AddFile(filename, sourceTextContainer: null, sourceCodeKind, getIsCurrentContext, getFolderNames, documentServiceFactory);
+        }
+
+        protected void AddFile(
+            string filename,
+            SourceTextContainer sourceTextContainer,
+            SourceCodeKind sourceCodeKind,
+            Func<IVisualStudioHostDocument, bool> getIsCurrentContext,
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            IDocumentServiceFactory documentServiceFactory)
         {
             AssertIsForeground();
 
@@ -968,12 +981,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
                 filePath: filename,
+                sourceTextContainer: sourceTextContainer,
                 sourceCodeKind: sourceCodeKind,
                 folderNames: folderNames,
                 canUseTextBuffer: CanUseTextBuffer,
-                updatedOnDiskHandler: s_documentUpdatedOnDiskEventHandler,
+                updatedHandler: s_documentUpdatedEventHandler,
                 openedHandler: s_documentOpenedEventHandler,
-                closingHandler: s_documentClosingEventHandler);
+                closingHandler: s_documentClosingEventHandler,
+                documentServiceFactory: documentServiceFactory);
 
             if (document == null)
             {
@@ -1060,7 +1075,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     document.Opened += s_documentOpenedEventHandler;
                     document.Closing += s_documentClosingEventHandler;
-                    document.UpdatedOnDisk += s_documentUpdatedOnDiskEventHandler;
+                    document.UpdatedOnDisk += s_documentUpdatedEventHandler;
                 }
 
                 DocumentProvider.NotifyDocumentRegisteredToProjectAndStartToRaiseEvents(document);
@@ -1197,7 +1212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         // reloading the solution, or opening a different solution) or when reloading a
                         // project that has changed on disk, or when deleting a project from a
                         // solution.
-                        
+
                         // Clear just so we don't cause a leak
                         _projectsReferencingMe.Clear();
                     }
@@ -1296,7 +1311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string referenceBinPath = referencedProject.BinOutputPath;
             if (referenceBinPath != null && _metadataFileNameToConvertedProjectReference.ContainsKey(referenceBinPath))
             {
-                _metadataFileNameToConvertedProjectReference[referenceBinPath]= newProjectReference;
+                _metadataFileNameToConvertedProjectReference[referenceBinPath] = newProjectReference;
             }
 
             // Remove the existing reference first
@@ -1321,7 +1336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             document.Opened -= s_documentOpenedEventHandler;
             document.Closing -= s_documentClosingEventHandler;
-            document.UpdatedOnDisk -= s_documentUpdatedOnDiskEventHandler;
+            document.UpdatedOnDisk -= s_documentUpdatedEventHandler;
 
             document.Dispose();
         }

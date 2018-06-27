@@ -3,6 +3,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -67,6 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             uint itemid,
             TLanguageService languageService,
             SourceCodeKind sourceCodeKind,
+            IDocumentServiceFactory documentServiceFactory,
             IFormattingRule vbHelperFormattingRule = null,
             Workspace workspace = null)
             : base(project)
@@ -93,7 +95,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             SetDataBuffer(dataBuffer);
 
             this.ContainedDocument = new ContainedDocument(
-                this, sourceCodeKind, this.Workspace, hierarchy, itemid, componentModel, vbHelperFormattingRule);
+                this, sourceCodeKind, this.Workspace, hierarchy, itemid, componentModel,
+                documentServiceFactory, vbHelperFormattingRule);
 
             // TODO: Can contained documents be linked or shared?
             this.Project.AddDocument(this.ContainedDocument, isCurrentContext: true, hookupHandlers: true);

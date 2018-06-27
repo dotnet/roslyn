@@ -3,6 +3,7 @@
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Experiment
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -72,6 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Protected Overrides Function CreateContainedLanguage(
             bufferCoordinator As IVsTextBufferCoordinator,
+            serviceFactory As IDocumentServiceFactory,
             project As AbstractProject,
             hierarchy As IVsHierarchy,
             itemid As UInteger
@@ -83,7 +85,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 project,
                 hierarchy,
                 itemid,
-                Me, SourceCodeKind.Regular)
+                Me, SourceCodeKind.Regular,
+                serviceFactory)
         End Function
     End Class
 End Namespace

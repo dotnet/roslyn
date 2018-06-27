@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -25,7 +26,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     /// <summary>
     /// An IVisualStudioDocument which represents the secondary buffer to the workspace API.
     /// </summary>
-    internal sealed class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
+    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
     {
         private const string ReturnReplacementString = @"{|r|}";
         private const string NewLineReplacementString = @"{|n|}";
@@ -70,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly IFormattingRule _vbHelperFormattingRule;
         private readonly string _itemMoniker;
+        private readonly IDocumentServiceFactory _documentServiceFactory;
 
         public AbstractProject Project { get { return _containedLanguage.Project; } }
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
@@ -86,6 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IVsHierarchy hierarchy,
             uint itemId,
             IComponentModel componentModel,
+            IDocumentServiceFactory documentServiceFactory,
             IFormattingRule vbHelperFormattingRule)
         {
             Contract.ThrowIfNull(containedLanguage);
@@ -116,9 +118,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             this.Id = DocumentId.CreateNewId(Project.Id, filePath);
             this.Folders = containedLanguage.Project.GetFolderNamesFromHierarchy(itemId);
             this.Loader = TextLoader.From(containedLanguage.SubjectBuffer.AsTextContainer(), VersionStamp.Create(), filePath);
+
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(_containedLanguage.SubjectBuffer);
             _vbHelperFormattingRule = vbHelperFormattingRule;
+
+            _documentServiceFactory = documentServiceFactory ?? new DefaultDocumentServiceFactory(this);
         }
 
         private HostType GetHostType()
@@ -162,16 +167,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 folders: this.Folders,
                 sourceCodeKind: _sourceCodeKind,
                 loader: this.Loader,
-                filePath: this.Key.Moniker);
+                filePath: this.Key.Moniker,
+                isGenerated: false,
+                documentServiceFactory: _documentServiceFactory);
         }
 
-        public bool IsOpen
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool IsOpen => true;
 
 #pragma warning disable 67
 
@@ -181,23 +182,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 #pragma warning restore 67
 
-        public ITextBuffer GetOpenTextBuffer()
-        {
-            return _containedLanguage.SubjectBuffer;
-        }
-
-        public SourceTextContainer GetOpenTextContainer()
-        {
-            return this.GetOpenTextBuffer().AsTextContainer();
-        }
-
-        public IContentType ContentType
-        {
-            get
-            {
-                return _containedLanguage.SubjectBuffer.ContentType;
-            }
-        }
+        public ITextBuffer GetOpenTextBuffer() => _containedLanguage.SubjectBuffer;
+        public SourceTextContainer GetOpenTextContainer() => this.GetOpenTextBuffer().AsTextContainer();
+        public IContentType ContentType => _containedLanguage.SubjectBuffer.ContentType;
 
         public string Name
         {
@@ -214,29 +201,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        public SourceCodeKind SourceCodeKind
-        {
-            get
-            {
-                return _sourceCodeKind;
-            }
-        }
-
-        public string FilePath
-        {
-            get
-            {
-                return Key.Moniker;
-            }
-        }
-
-        public AbstractContainedLanguage ContainedLanguage
-        {
-            get
-            {
-                return _containedLanguage;
-            }
-        }
+        public SourceCodeKind SourceCodeKind => _sourceCodeKind;
+        public string FilePath => Key.Moniker;
+        public AbstractContainedLanguage ContainedLanguage => _containedLanguage;
+        public IDocumentServiceFactory DocumentServiceFactory => _documentServiceFactory;
 
         public void Dispose()
         {

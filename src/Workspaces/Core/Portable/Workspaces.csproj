@@ -296,6 +296,9 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToVisualStudio Include="Microsoft.Test.Apex.VisualStudio" />
     <InternalsVisibleToCompletionTests Include="Microsoft.VisualStudio.Completion.Tests" />
+    <InternalsVisibleToRazor Include="Microsoft.CodeAnalysis.Razor.Workspaces" />
+    <InternalsVisibleToRazor Include="Microsoft.VisualStudio.Editor.Razor" />
+    <InternalsVisibleToRazor Include="Microsoft.VisualStudio.LanguageServices.Razor" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">

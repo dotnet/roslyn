@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
+using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -20,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal partial class DocumentProvider
     {
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        private class StandardTextDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
+        internal class StandardTextDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
         {
             /// <summary>
             /// The IDocumentProvider that created us.
@@ -139,6 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return _doNotAccessDirectlyLoader;
                 }
             }
+
+            public IDocumentServiceFactory DocumentServiceFactory => null;
 
             public DocumentInfo GetInitialState()
             {

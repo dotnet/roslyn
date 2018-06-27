@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
+Imports Microsoft.CodeAnalysis.Experiment
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -27,8 +28,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
                 languageService As VisualBasicLanguageService,
-                sourceCodeKind As SourceCodeKind)
-            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, languageService, sourceCodeKind, VisualBasicHelperFormattingRule.Instance)
+                sourceCodeKind As SourceCodeKind,
+                documentServiceFactory As IDocumentServiceFactory)
+            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, languageService, sourceCodeKind, documentServiceFactory, VisualBasicHelperFormattingRule.Instance)
         End Sub
 
         Public Function AddStaticEventBinding(pszClassName As String,

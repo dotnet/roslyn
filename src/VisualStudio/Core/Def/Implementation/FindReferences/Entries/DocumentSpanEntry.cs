@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 var classifiedSpans = _classifiedSpansAndHighlights.ClassifiedSpans;
                 var classifiedTexts = classifiedSpans.SelectAsArray(
-                    cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
+                    cs => new ClassifiedText(cs.ClassificationType, OriginalSourceText.ToString(cs.TextSpan)));
 
                 var inlines = classifiedTexts.ToInlines(
                     Presenter.ClassificationFormatMap,
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var contentType = contentTypeService.GetDefaultContentType();
 
                 var textBuffer = Presenter.TextBufferFactoryService.CreateTextBuffer(
-                    _sourceText.ToString(), contentType);
+                    SourceText.ToString(), contentType);
 
                 // Create an appropriate highlight span on that buffer for the reference.
                 var key = _spanKind == DocumentHighlighting.HighlightSpanKind.Definition
@@ -178,13 +178,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 const int AdditionalLineCountPerSide = 3;
 
                 var referenceSpan = this.SourceSpan;
-                var lineNumber = _sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
+                var lineNumber = SourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
                 var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
-                var lastLineNumber = Math.Min(_sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
+                var lastLineNumber = Math.Min(SourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
 
                 return Span.FromBounds(
-                    _sourceText.Lines[firstLineNumber].Start,
-                    _sourceText.Lines[lastLineNumber].End);
+                    SourceText.Lines[firstLineNumber].Start,
+                    SourceText.Lines[lastLineNumber].End);
             }
         }
     }

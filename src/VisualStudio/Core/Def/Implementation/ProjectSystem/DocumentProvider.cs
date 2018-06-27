@@ -9,8 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiment;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
@@ -44,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The core data structure of this entire class.
         /// </summary>
-        private readonly Dictionary<DocumentKey, StandardTextDocument> _documentMap = new Dictionary<DocumentKey, StandardTextDocument>();
+        private readonly Dictionary<DocumentKey, IVisualStudioHostDocument> _documentMap = new Dictionary<DocumentKey, IVisualStudioHostDocument>();
         private readonly Dictionary<uint, List<DocumentKey>> _docCookiesToOpenDocumentKeys = new Dictionary<uint, List<DocumentKey>>();
         private readonly Dictionary<uint, ITextBuffer> _docCookiesToNonRoslynDocumentBuffers = new Dictionary<uint, ITextBuffer>();
         private readonly Dictionary<string, DocumentId> _documentIdHints = new Dictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
@@ -108,6 +111,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 closingHandler);
         }
 
+        public IVisualStudioHostDocument TryGetDocumentForFile(
+            AbstractProject hostProject,
+            string filePath,
+            SourceCodeKind sourceCodeKind,
+            Func<ITextBuffer, bool> canUseTextBuffer,
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            EventHandler updatedOnDiskHandler = null,
+            EventHandler<bool> openedHandler = null,
+            EventHandler<bool> closingHandler = null,
+            IDocumentServiceFactory documentServiceFactory = null)
+        {
+            return TryGetDocumentForFile(
+                hostProject,
+                filePath,
+                sourceTextContainer: null,
+                sourceCodeKind,
+                canUseTextBuffer,
+                getFolderNames,
+                updatedOnDiskHandler,
+                openedHandler,
+                closingHandler,
+                documentServiceFactory);
+        }
+
         /// <summary>
         /// Gets the <see cref="IVisualStudioHostDocument"/> for the file at the given filePath.
         /// If we are on the foreground thread and this document is already open in the editor,
@@ -118,15 +145,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public IVisualStudioHostDocument TryGetDocumentForFile(
             AbstractProject hostProject,
             string filePath,
+            SourceTextContainer sourceTextContainer,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
-            ImmutableArray<string> folderNames,
-            EventHandler updatedOnDiskHandler = null,
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            EventHandler updatedHandler = null,
             EventHandler<bool> openedHandler = null,
-            EventHandler<bool> closingHandler = null)
+            EventHandler<bool> closingHandler = null,
+            IDocumentServiceFactory documentServiceFactory = null)
         {
             var documentKey = new DocumentKey(hostProject, filePath);
-            StandardTextDocument document;
+            IVisualStudioHostDocument document;
 
             lock (_gate)
             {
@@ -180,18 +209,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // already have a document ID that we should be using here.
                 _documentIdHints.TryGetValue(filePath, out var id);
 
-                document = new StandardTextDocument(
-                    this,
-                    hostProject,
-                    documentKey,
-                    folderNames,
-                    sourceCodeKind,
-                    _fileChangeService,
-                    openTextBuffer,
-                    id,
-                    updatedOnDiskHandler,
-                    openedHandler,
-                    closingHandler);
+                if (documentServiceFactory == null)
+                {
+                    document = new StandardTextDocument(
+                        this,
+                        hostProject,
+                        documentKey,
+                        getFolderNames,
+                        sourceCodeKind,
+                        _fileChangeService,
+                        openTextBuffer,
+                        id,
+                        updatedHandler,
+                        openedHandler,
+                        closingHandler);
+                }
+                else
+                {
+                    // documentServiceFactory probably should be just an general abstraction that standardTextDocument accepts
+                    // along the line, we probabl merge ContainedDocument (open file for razor/venus) and SimplexContainedDocument (closed file for razor/venus) 
+                    // and StandardTextDocument and behavior difference is centralized in the abstraction (DocumentServiceFactory) not the concrete type
+                    // (changing architecture to Strategy pattern from (kind of) abstract factory pattern we use now)
+                    //
+                    // but again, for now, to not touch other parts and needs to think about its impliciation. I simply do bad and simpler thing here. which
+                    // is just add branch :)
+                    document = new SimpleContainedDocument(
+                        this,
+                        hostProject,
+                        documentKey,
+                        getFolderNames,
+                        sourceTextContainer,
+                        sourceCodeKind,
+                        id,
+                        updatedHandler,
+                        documentServiceFactory);
+                }
 
                 // Add this to our document map
                 _documentMap.Add(documentKey, document);
@@ -237,9 +289,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void NewBufferOpened_NoLock(uint docCookie, ITextBuffer textBuffer, DocumentKey documentKey, bool isCurrentContext)
         {
-            if (_documentMap.TryGetValue(documentKey, out var document))
+            if (_documentMap.TryGetValue(documentKey, out var document) && document is StandardTextDocument openDocument)
             {
-                document.ProcessOpen(textBuffer, isCurrentContext);
+                openDocument.ProcessOpen(textBuffer, isCurrentContext);
                 AddCookieOpenDocumentPair_NoLock(docCookie, documentKey);
             }
         }
@@ -527,7 +579,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var documentKey in documentsToClose)
             {
                 var document = _documentMap[documentKey];
-                document.ProcessClose(updateActiveContext);
+
+                ((StandardTextDocument)document).ProcessClose(updateActiveContext);
                 Contract.ThrowIfFalse(documentKeys.Remove(documentKey));
             }
 
@@ -633,7 +686,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // so clone the list so we can mutate while enumerating
                 documents = documentKeys
                     .Where(key => StringComparer.OrdinalIgnoreCase.Equals(key.Moniker, oldMoniker))
-                    .Select(key => _documentMap[key])
+                    .Select(key => _documentMap[key]).Cast<StandardTextDocument>()
                     .ToList();
             }
 
@@ -650,7 +703,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Called by a VisualStudioDocument when that document is disposed.
         /// </summary>
         /// <param name="document">The document to stop tracking.</param>
-        private void StopTrackingDocument(StandardTextDocument document)
+        internal void StopTrackingDocument(IVisualStudioHostDocument document)
         {
             CancelPendingDocumentInitializationTask(document);
 
@@ -664,7 +717,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void StopTrackingDocument_Core(StandardTextDocument document)
+        private void StopTrackingDocument_Core(IVisualStudioHostDocument document)
         {
             AssertIsForeground();
 
@@ -674,7 +727,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void StopTrackingDocument_Core_NoLock(StandardTextDocument document)
+        private void StopTrackingDocument_Core_NoLock(IVisualStudioHostDocument document)
         {
             if (document.IsOpen)
             {
