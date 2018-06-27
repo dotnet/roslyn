@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default(AwaitExpressionInfo);
             }
 
-            return new AwaitExpressionInfo(boundAwait.GetAwaiter, boundAwait.IsCompleted, boundAwait.GetResult, boundAwait.IsDynamic);
+            return new AwaitExpressionInfo(boundAwait.AwaitableInfo);
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
@@ -854,14 +854,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: we're going to list GetEnumerator, etc for array and string
             // collections, even though we know that's not how the implementation
             // actually enumerates them.
+            MethodSymbol disposeMethod = enumeratorInfoOpt.NeedsDisposeMethod
+                ? enumeratorInfoOpt.IsAsync
+                    ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
+                    : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)
+                : null;
+
             return new ForEachStatementInfo(
                 enumeratorInfoOpt.GetEnumeratorMethod,
                 enumeratorInfoOpt.MoveNextMethod,
-                (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
-                enumeratorInfoOpt.NeedsDisposeMethod ? (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose) : null,
+                currentProperty: (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,
+                disposeMethod,
                 enumeratorInfoOpt.ElementType,
                 boundForEach.ElementConversion,
-                enumeratorInfoOpt.CurrentConversion);
+                enumeratorInfoOpt.CurrentConversion,
+                enumeratorInfoOpt.WaitForNextAsyncMethod,
+                enumeratorInfoOpt.TryGetNextMethod);
         }
 
         public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)

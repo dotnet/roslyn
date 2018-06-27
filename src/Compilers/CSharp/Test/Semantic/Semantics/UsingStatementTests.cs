@@ -656,6 +656,9 @@ class C
 }";
 
             CreateEmptyCompilation(source).VerifyDiagnostics(
+                // (11,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
+                //         using (var v = null) ;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(11, 9),
                 // (11,20): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         using (var v = null) ;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = null").WithArguments("<null>").WithLocation(11, 20),

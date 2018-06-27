@@ -160,6 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionVariablesInQueriesAndInitializers = MessageBase + 12742,
         IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
+
+        IDS_FeatureAsyncStreams = MessageBase + 12777, // PROTOTYPE(async-streams) Compact IDs
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -216,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LanguageVersion.CSharp7_3;
 
                 // C# 7.2 features.
+                case MessageID.IDS_FeatureAsyncStreams: // PROTOTYPE(async-streams) Finalize LangVersion
                 case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
                 case MessageID.IDS_FeatureLeadingDigitSeparator:
                 case MessageID.IDS_FeaturePrivateProtected:
