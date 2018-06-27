@@ -97,11 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
-#pragma warning disable VSTHRD103 // Call async methods when in an async method
-            return Formatter.GetFormattedTextChanges(root,
+            return await Formatter.GetFormattedTextChangesAsync(root,
                 SpecializedCollections.SingletonEnumerable(formattingSpan),
-                document.Project.Solution.Workspace, options, cancellationToken);
-#pragma warning restore VSTHRD103 // Call async methods when in an async method
+                document.Project.Solution.Workspace, options, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -119,9 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var rules = new List<IFormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
-#pragma warning disable VSTHRD103 // Call async methods when in an async method
-            return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
-#pragma warning restore VSTHRD103 // Call async methods when in an async method
+            return await Formatter.GetFormattedTextChangesAsync(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken).ConfigureAwait(false);
         }
 
         private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position)
