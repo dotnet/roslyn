@@ -4238,16 +4238,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     For Each expressionSyntax In node.Initializers
 
-                        Dim boundExpression As BoundExpression
-
-                        If expressionSyntax.Kind <> SyntaxKind.CollectionInitializer Then
-                            boundExpression = BindValue(expressionSyntax, diagnostics)
-
-                            If elemType IsNot Nothing Then
-                                boundExpression = ApplyImplicitConversion(expressionSyntax, elemType, boundExpression, diagnostics)
+                        Dim boundExpression As BoundExpression = BindValue(expressionSyntax, diagnostics)
+                        If elemType IsNot Nothing Then
+                            ' Use a dummy diagnostic bag if expression is a collection initializer, as we will report ERR_ArrayInitializerTooManyDimensions for that case below.
+                            Dim diagnosticBag = If(expressionSyntax.Kind = SyntaxKind.CollectionInitializer, CodeAnalysis.DiagnosticBag.GetInstance(), diagnostics)
+                            boundExpression = ApplyImplicitConversion(expressionSyntax, elemType, boundExpression, diagnosticBag)
+                            If expressionSyntax.Kind = SyntaxKind.CollectionInitializer Then
+                                diagnosticBag.Free()
                             End If
-                        Else
-                            boundExpression = ReportDiagnosticAndProduceBadExpression(diagnostics, expressionSyntax, ERRID.ERR_ArrayInitializerTooManyDimensions)
+                        End If
+
+                        If expressionSyntax.Kind = SyntaxKind.CollectionInitializer Then
+                            boundExpression = ReportDiagnosticAndProduceBadExpression(diagnostics, expressionSyntax, ErrorFactory.ErrorInfo(ERRID.ERR_ArrayInitializerTooManyDimensions), boundExpression)
                         End If
 
                         initializers.Add(boundExpression)

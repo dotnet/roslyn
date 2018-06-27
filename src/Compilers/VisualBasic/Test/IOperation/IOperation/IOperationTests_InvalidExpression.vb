@@ -411,8 +411,18 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: X(), IsInvalid) (Syn
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{{1}}')
       Element Values(1):
-          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{1}')
-            Children(0)
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '{1}')
+            Children(1):
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: X, IsInvalid, IsImplicit) (Syntax: '{1}')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsInvalid) (Syntax: '{1}')
+                      Dimension Sizes(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{1}')
+                      Initializer: 
+                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: '{1}')
+                          Element Values(1):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

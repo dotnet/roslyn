@@ -1197,6 +1197,88 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ObjectCreationCollectionInitializer_InvalidWithTooManyElements()
+            Dim source = <![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class Program
+    Private Shared Sub Main(args As String())
+        Dim x = New Integer(1, 1) {{{2, 3}}, {4, 5}}'BIND:"{{{2, 3}}, {4, 5}}"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30567: Array initializer is missing 1 elements.
+        Dim x = New Integer(1, 1) {{{2, 3}}, {4, 5}}'BIND:"{{{2, 3}}, {4, 5}}"
+                                   ~~~~~~~~
+BC30566: Array initializer has too many dimensions.
+        Dim x = New Integer(1, 1) {{{2, 3}}, {4, 5}}'BIND:"{{{2, 3}}, {4, 5}}"
+                                    ~~~~~~
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{{{2, 3}}, {4, 5}}')
+  Element Values(2):
+      IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{{2, 3}}')
+        Element Values(1):
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '{2, 3}')
+              Children(1):
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '{2, 3}')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsInvalid) (Syntax: '{2, 3}')
+                        Dimension Sizes(1):
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: '{2, 3}')
+                        Initializer: 
+                          IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: '{2, 3}')
+                            Element Values(2):
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+      IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{4, 5}')
+        Element Values(2):
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ObjectCreationCollectionInitializer_InvalidWithTooManyElements_02()
+            Dim source = <![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class Program
+    Private Shared Sub Main(args As String())
+        Dim x = New Integer(1, 1) {{{2, 3}}, {4, 5}}'BIND:"2"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30567: Array initializer is missing 1 elements.
+        Dim x = New Integer(1, 1) {{{2, 3}}, {4, 5}}'BIND:"2"
+                                   ~~~~~~~~
+BC30566: Array initializer has too many dimensions.
+        Dim x = New Integer(1, 1) {{{2, 3}}, {4, 5}}'BIND:"2"
+                                    ~~~~~~
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LiteralExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub ObjectCreationFlow_01()
