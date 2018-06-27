@@ -21,6 +21,7 @@ efforts behind them.
 | [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | In Progress | [OmarTawfik](https://github.com/OmarTawfik) | [vsadov](https://github.com/vsadov) | [jaredpar](https://github.com/jaredpar) |
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | Implemented | [jcouv](https://github.com/jcouv) |  | [jcouv](https://github.com/jcouv) |
 | [Relax ordering of `ref` and `partial` modifiers](https://github.com/dotnet/csharplang/issues/946) | [ref-partial](https://github.com/dotnet/roslyn/tree/features/ref-partial) | In Progress | [alrz](https://github.com/alrz) |  | [jcouv](https://github.com/jcouv) |
+| [Null Coalescing Assignment](https://github.com/dotnet/csharplang/issues/34) | [null-operator-enhancements](https://github.com/dotnet/roslyn/tree/features/null-operator-enhancements) | In Progress | [333fred](https://github.com/333fred) | TBD | [gafter](https://github.com/gafter)
 
 # C# 7.3
 
