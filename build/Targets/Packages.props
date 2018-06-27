@@ -176,6 +176,7 @@
     <SystemDiagnosticsToolsVersion>4.3.0</SystemDiagnosticsToolsVersion>
     <SystemDiagnosticsTraceSourceVersion>4.3.0</SystemDiagnosticsTraceSourceVersion>
     <SystemDynamicRuntimeVersion>4.3.0</SystemDynamicRuntimeVersion>
+    <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
     <SystemGlobalizationVersion>4.3.0</SystemGlobalizationVersion>
     <SystemIdentityModelTokensJwtVersion>5.0.0</SystemIdentityModelTokensJwtVersion>
     <SystemIOVersion>4.3.0</SystemIOVersion>
