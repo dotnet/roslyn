@@ -15,27 +15,13 @@ using SystemMetadataReader = System.Reflection.Metadata.MetadataReader;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal sealed class AnalyzerDependencyChecker
+    internal static class AnalyzerDependencyChecker
     {
-        private readonly HashSet<string> _analyzerFilePaths;
-        private readonly List<IIgnorableAssemblyList> _ignorableAssemblyLists;
-        private readonly IBindingRedirectionService _bindingRedirectionService;
-
-        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<IIgnorableAssemblyList> ignorableAssemblyLists, IBindingRedirectionService bindingRedirectionService = null)
-        {
-            Debug.Assert(analyzerFilePaths != null);
-            Debug.Assert(ignorableAssemblyLists != null);
-
-            _analyzerFilePaths = new HashSet<string>(analyzerFilePaths, StringComparer.OrdinalIgnoreCase);
-            _ignorableAssemblyLists = ignorableAssemblyLists.ToList();
-            _bindingRedirectionService = bindingRedirectionService;
-        }
-
-        public AnalyzerDependencyResults Run(CancellationToken cancellationToken = default)
+        public static AnalyzerDependencyResults ComputeDependencyConflicts(IEnumerable<string> analyzerFilePaths, IEnumerable<IIgnorableAssemblyList> ignorableAssemblyLists, IBindingRedirectionService bindingRedirectionService = null, CancellationToken cancellationToken = default)
         {
             List<AnalyzerInfo> analyzerInfos = new List<AnalyzerInfo>();
 
-            foreach (var analyzerFilePath in _analyzerFilePaths)
+            foreach (var analyzerFilePath in analyzerFilePaths)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -47,7 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            _ignorableAssemblyLists.Add(new IgnorableAssemblyIdentityList(analyzerInfos.Select(info => info.Identity)));
+            var allIgnorableAssemblyLists = new List<IIgnorableAssemblyList>(ignorableAssemblyLists);
+            allIgnorableAssemblyLists.Add(new IgnorableAssemblyIdentityList(analyzerInfos.Select(info => info.Identity)));
 
             // First check for analyzers with the same identity but different
             // contents (that is, different MVIDs).
@@ -56,12 +43,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Then check for missing references.
 
-            ImmutableArray<MissingAnalyzerDependency> missingDependencies = FindMissingDependencies(analyzerInfos, cancellationToken);
+            ImmutableArray<MissingAnalyzerDependency> missingDependencies = FindMissingDependencies(analyzerInfos, allIgnorableAssemblyLists, bindingRedirectionService, cancellationToken);
 
             return new AnalyzerDependencyResults(conflicts, missingDependencies);
         }
 
-        private ImmutableArray<MissingAnalyzerDependency> FindMissingDependencies(List<AnalyzerInfo> analyzerInfos, CancellationToken cancellationToken)
+        private static ImmutableArray<MissingAnalyzerDependency> FindMissingDependencies(List<AnalyzerInfo> analyzerInfos, List<IIgnorableAssemblyList> ignorableAssemblyLists, IBindingRedirectionService bindingRedirectionService, CancellationToken cancellationToken)
         {
             ImmutableArray<MissingAnalyzerDependency>.Builder builder = ImmutableArray.CreateBuilder<MissingAnalyzerDependency>();
 
@@ -71,11 +58,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var redirectedReference = _bindingRedirectionService != null
-                        ? _bindingRedirectionService.ApplyBindingRedirects(reference)
+                    var redirectedReference = bindingRedirectionService != null
+                        ? bindingRedirectionService.ApplyBindingRedirects(reference)
                         : reference;
 
-                    if (!_ignorableAssemblyLists.Any(ignorableAssemblyList => ignorableAssemblyList.Includes(redirectedReference)))
+                    if (!ignorableAssemblyLists.Any(ignorableAssemblyList => ignorableAssemblyList.Includes(redirectedReference)))
                     {
                         builder.Add(new MissingAnalyzerDependency(
                             analyzerInfo.Path,

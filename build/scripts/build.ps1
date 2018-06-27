@@ -34,6 +34,7 @@ param (
     [string]$signType = "",
     [switch]$skipBuildExtras = $false,
     [switch]$skipAnalyzers = $false,
+    [switch]$checkLoc = $false,
 
     # Test options
     [switch]$test32 = $false,
@@ -67,6 +68,7 @@ function Print-Usage() {
     Write-Host "  -procdump                 Monitor test runs with procdump"
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
     Write-Host "  -skipBuildExtras          Do not build insertion items"
+    Write-Host "  -checkLoc                 Check that all resources are localized"
     Write-Host ""
     Write-Host "Test options"
     Write-Host "  -test32                   Run unit tests in the 32-bit runner"
@@ -458,10 +460,6 @@ function Build-NuGetPackages() {
     try {
         $extraArgs = ""
 
-        if ($official) {
-            $extraArgs += " /p:UseRealCommit=true"
-        }
-
         # Empty directory for packing explicit empty items in the nuspec
         $emptyDir = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
         Create-Directory $emptyDir
@@ -481,6 +479,10 @@ function Build-NuGetPackages() {
 
 function Build-DeployToSymStore() {
     Run-MSBuild "Roslyn.sln" "/t:DeployToSymStore" -logFileName "RoslynDeployToSymStore"
+}
+
+function Build-CheckLocStatus() {
+    Run-MSBuild "Roslyn.sln" "/t:CheckLocStatus" -logFileName "RoslynCheckLocStatus"
 }
 
 # These are tests that don't follow our standard restore, build, test pattern. They customize
@@ -801,6 +803,10 @@ try {
 
     if ($build -or $pack) {
         Build-Artifacts
+    }
+
+    if ($checkLoc) {
+        Build-CheckLocStatus
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore -or $testIOperation) {

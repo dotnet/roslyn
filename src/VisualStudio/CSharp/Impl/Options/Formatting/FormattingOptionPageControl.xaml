@@ -30,19 +30,19 @@
                     <CheckBox x:Name="AllCSharpFormattingRulesCheckBox" x:Uid="AllCSharpFormattingRulesCheckBox" IsEnabled="False" IsChecked="True"/>
                     <CheckBox x:Name="RemoveUnusedUsingsCheckBox" x:Uid="RemoveUnusedUsingsCheckBox" />
                     <CheckBox x:Name="SortUsingsCheckBox" x:Uid="SortUsingsCheckBox" />
-                    <CheckBox x:Name="FixImplicitExplicitTypeCheckBox" x:Uid="FixImplicitExplicitTypeCheckBox" />
-                    <CheckBox x:Name="FixFrameworkTypesCheckBox" x:Uid="FixFrameworkTypesCheckBox" />
-                    <CheckBox x:Name="FixThisQualificationCheckBox" x:Uid="FixThisQualificationCheckBox" />
-                    <CheckBox x:Name="FixAddRemoveBracesCheckBox" x:Uid="FixAddRemoveBracesCheckBox" />
-                    <CheckBox x:Name="FixAccessibilityModifiersCheckBox" x:Uid="FixAccessibilityModifiersCheckBox" />
+                    <CheckBox x:Name="AddRemoveBracesForSingleLineControlStatementsCheckBox" x:Uid="AddRemoveBracesForSingleLineControlStatementsCheckBox" />
+                    <CheckBox x:Name="AddAccessibilityModifiersCheckBox" x:Uid="AddAccessibilityModifiersCheckBox" />
                     <CheckBox x:Name="SortAccessibilityModifiersCheckBox" x:Uid="SortAccessibilityModifiersCheckBox" />
-                    <CheckBox x:Name="MakeReadonlyCheckBox" x:Uid="MakeReadonlyCheckBox" />
+                    <CheckBox x:Name="ApplyExpressionBlockBodyPreferencesCheckBox" x:Uid="ApplyExpressionBlockBodyPreferencesCheckBox" />
+                    <CheckBox x:Name="ApplyImplicitExplicitTypePreferencesCheckBox" x:Uid="ApplyImplicitExplicitTypePreferencesCheckBox" />
+                    <CheckBox x:Name="ApplyInlineOutVariablePreferencesCheckBox" x:Uid="ApplyInlineOutVariablePreferencesCheckBox" />
+                    <CheckBox x:Name="ApplyLanguageFrameworkTypePreferencesCheckBox" x:Uid="ApplyLanguageFrameworkTypePreferencesCheckBox" />
+                    <CheckBox x:Name="ApplyObjectCollectionInitializationPreferencesCheckBox" x:Uid="ApplyObjectCollectionInitializationPreferencesCheckBox" />
+                    <CheckBox x:Name="ApplyThisQualificationPreferencesCheckBox" x:Uid="ApplyThisQualificationPreferencesCheckBox" />
+                    <CheckBox x:Name="MakePrivateFieldReadonlyWhenPossibleCheckBox" x:Uid="MakePrivateFieldReadonlyWhenPossibleCheckBox" />
                     <CheckBox x:Name="RemoveUnnecessaryCastsCheckBox" x:Uid="RemoveUnnecessaryCastsCheckBox" />
-                    <CheckBox x:Name="FixExpressionBodiedMembersCheckBox" x:Uid="FixExpressionBodiedMembersCheckBox" />
-                    <CheckBox x:Name="FixInlineVariableDeclarationsCheckBox" x:Uid="FixInlineVariableDeclarationsCheckBox" />
                     <CheckBox x:Name="RemoveUnusedVariablesCheckBox" x:Uid="RemoveUnusedVariablesCheckBox" />
-                    <CheckBox x:Name="FixObjectCollectionInitializationCheckBox" x:Uid="FixObjectCollectionInitializationCheckBox" />
-                    <CheckBox x:Name="FixLanguageFeaturesCheckBox" x:Uid="FixLanguageFeaturesCheckBox" />
+
                 </StackPanel>
             </GroupBox>
         </StackPanel>
