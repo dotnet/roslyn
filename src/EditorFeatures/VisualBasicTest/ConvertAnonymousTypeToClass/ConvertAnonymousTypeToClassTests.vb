@@ -711,5 +711,48 @@ End Class
 "
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        Public Async Function TestDuplicatedName() As Task
+            Dim text = "
+class Test
+    sub Method()
+        dim t1 = [||]new with { key .a = 1, key .a = 2 }
+    end sub
+end class
+"
+            Dim expected = "
+class Test
+    sub Method()
+        dim t1 = New {|Rename:NewClass|}(1, 2)
+    end sub
+end class
+
+Friend Class NewClass
+    Public ReadOnly Property A As Integer
+    Public ReadOnly Property A As Integer
+
+    Public Sub New(a As Integer, a As Integer)
+        Me.A = a
+        Me.A = a
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim other = TryCast(obj, NewClass)
+        Return other IsNot Nothing AndAlso
+               Me.A = other.A AndAlso
+               Me.A = other.A
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode As Long = -1868285576
+        hashCode = (hashCode * -1521134295 + Me.A.GetHashCode()).GetHashCode()
+        hashCode = (hashCode * -1521134295 + Me.A.GetHashCode()).GetHashCode()
+        Return hashCode
+    End Function
+End Class
+"
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
     End Class
 End Namespace

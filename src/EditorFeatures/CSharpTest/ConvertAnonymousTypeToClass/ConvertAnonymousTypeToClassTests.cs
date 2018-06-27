@@ -857,12 +857,12 @@ class Test
 internal class NewClass
 {
     public int A { get; }
-    public int $1 { get; }
+    public int Item { get; }
 
-    public NewClass(int a, int $1)
+    public NewClass(int a, int item)
     {
         A = a;
-        this.$1 = $1;
+        Item = item;
     }
 
     public override bool Equals(object obj)
@@ -870,14 +870,14 @@ internal class NewClass
         var other = obj as NewClass;
         return other != null &&
                A == other.A &&
-               $1 == other.$1;
+               Item == other.Item;
     }
 
     public override int GetHashCode()
     {
-        var hashCode = -715919150;
+        var hashCode = -335756622;
         hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + $1.GetHashCode();
+        hashCode = hashCode * -1521134295 + Item.GetHashCode();
         return hashCode;
     }
 }";
