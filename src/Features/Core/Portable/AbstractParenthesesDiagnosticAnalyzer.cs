@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                     return CodeStyleOptions.ArithmeticBinaryParentheses;
                 case PrecedenceKind.Relational:
                 case PrecedenceKind.Equality:
+                    return CodeStyleOptions.RelationalBinaryParentheses;
                 case PrecedenceKind.Logical:
                 case PrecedenceKind.Coalesce:
                     return CodeStyleOptions.OtherBinaryParentheses;

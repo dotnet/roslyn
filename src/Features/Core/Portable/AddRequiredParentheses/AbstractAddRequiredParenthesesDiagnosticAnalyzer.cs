@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,8 +16,41 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
     {
-        private static ImmutableDictionary<string, string> IncludeInFixAll =
-            ImmutableDictionary<string, string>.Empty.Add(AddRequiredParenthesesConstants.IncludeInFixAll, "");
+        private static Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>> s_cachedProperties =
+            new Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>>();
+
+        static AbstractAddRequiredParenthesesDiagnosticAnalyzer()
+        {
+            var options = new[]
+            {
+                CodeStyleOptions.ArithmeticBinaryParentheses, CodeStyleOptions.OtherBinaryParentheses,
+                CodeStyleOptions.OtherParentheses, CodeStyleOptions.RelationalBinaryParentheses
+            };
+
+            var includeArray = new[] { false, true };
+
+            foreach (var option in options)
+            {
+                foreach (var includeInFixAll in includeArray)
+                {
+                    var properties = ImmutableDictionary<string, string>.Empty;
+                    if (includeInFixAll)
+                    {
+                        properties = properties.Add(AddRequiredParenthesesConstants.IncludeInFixAll, "");
+                    }
+
+                    var equivalenceKey = GetEquivalenceKey(option);
+                    properties = properties.Add(AddRequiredParenthesesConstants.EquivalenceKey, equivalenceKey);
+                    s_cachedProperties.Add((includeInFixAll, equivalenceKey), properties);
+                }
+            }
+        }
+
+        private static string GetEquivalenceKey(Options.PerLanguageOption<CodeStyleOption<ParenthesesPreference>> parentPrecedence)
+            => parentPrecedence.Name;
+
+        private static ImmutableDictionary<string, string> GetProperties(bool includeInFixAll, string equivalenceKey)
+            => s_cachedProperties[(includeInFixAll, equivalenceKey)];
 
         protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract PrecedenceKind GetPrecedenceKind(TBinaryLikeExpressionSyntax binaryLike);
@@ -64,9 +99,16 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var precedenceKind = GetPrecedenceKind(parentBinaryLike);
+            var childPrecedence = GetLanguageOption(GetPrecedenceKind(binaryLike));
+            var parentPrecedence = GetLanguageOption(GetPrecedenceKind(parentBinaryLike));
 
-            var preference = optionSet.GetOption(GetLanguageOption(precedenceKind), binaryLike.Language);
+            // only add parentheses within the same precedence band.
+            if (parentPrecedence != childPrecedence)
+            {
+                return;
+            }
+
+            var preference = optionSet.GetOption(parentPrecedence, binaryLike.Language);
             if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;
@@ -74,18 +116,19 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
             var additionalLocations = ImmutableArray.Create(binaryLike.GetLocation());
             var precedence = GetPrecedence(binaryLike);
+            var equivalenceKey = GetEquivalenceKey(parentPrecedence);
 
             // In a case like "a + b * c * d", we'll add parens to make "a + (b * c * d)".
             // To make this user experience more pleasant, we will place the diagnostic on
             // both *'s.
             AddDiagnostics(
-                context, binaryLike, precedence, preference.Notification.Value,
-                additionalLocations, includeInFixAll: true);
+                context, binaryLike, precedence, preference.Notification.Severity,
+                additionalLocations, equivalenceKey, includeInFixAll: true);
         }
-
         private void AddDiagnostics(
             SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt, int precedence,
-            DiagnosticSeverity severity, ImmutableArray<Location> additionalLocations, bool includeInFixAll)
+            ReportDiagnostic severity, ImmutableArray<Location> additionalLocations, 
+            string equivalenceKey, bool includeInFixAll)
         {
             if (binaryLikeOpt != null &&
                 IsBinaryLike(binaryLikeOpt) &&
@@ -93,13 +136,12 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             {
                 var (left, operatorToken, right) = GetPartsOfBinaryLike(binaryLikeOpt);
 
-                var properties = includeInFixAll
-                    ? IncludeInFixAll
-                    : ImmutableDictionary<string, string>.Empty;
+                var properties = GetProperties(includeInFixAll, equivalenceKey);
 
-                context.ReportDiagnostic(Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity),
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor,
                     operatorToken.GetLocation(),
+                    severity,
                     additionalLocations,
                     properties));
 
@@ -107,8 +149,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 // lightbulb on any of the operator tokens.  However, we don't actually want to
                 // 'fix' all of these if the user does a fix-all.  if we did, we'd end up adding far
                 // too many parens to the same expr.
-                AddDiagnostics(context, left as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, includeInFixAll: false);
-                AddDiagnostics(context, right as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, includeInFixAll: false);
+                AddDiagnostics(context, left as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, equivalenceKey, includeInFixAll: false);
+                AddDiagnostics(context, right as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, equivalenceKey, includeInFixAll: false);
             }
         }
     }

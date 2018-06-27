@@ -686,7 +686,7 @@ class Base
 {
     public string name = null;
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
+            CompileAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -714,7 +714,7 @@ class Base
 {
     public string name = null;
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
+            CompileAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1597,7 +1597,7 @@ partial class Class
         return null;
     }
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
+            CompileAndVerify(source).VerifyDiagnostics();
         }
 
         [WorkItem(543045, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543045")]

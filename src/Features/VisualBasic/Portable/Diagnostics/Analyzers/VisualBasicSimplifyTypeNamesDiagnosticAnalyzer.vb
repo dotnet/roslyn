@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Return s_kindsOfInterest.Contains(node.Kind)
         End Function
 
-        Friend Shared Function IsCandidate(node As SyntaxNode) As Boolean
+        Friend Overrides Function IsCandidate(node As SyntaxNode) As Boolean
             Return node IsNot Nothing AndAlso IsNodeKindInteresting(node)
         End Function
 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Return CanSimplifyTypeNameExpression(model, node, optionSet, issueSpan, diagnosticId, cancellationToken)
         End Function
 
-        Friend Shared Function CanSimplifyTypeNameExpression(model As SemanticModel, node As SyntaxNode, optionSet As OptionSet, ByRef issueSpan As TextSpan, ByRef diagnosticId As String, cancellationToken As CancellationToken) As Boolean
+        Friend Overrides Function CanSimplifyTypeNameExpression(model As SemanticModel, node As SyntaxNode, optionSet As OptionSet, ByRef issueSpan As TextSpan, ByRef diagnosticId As String, cancellationToken As CancellationToken) As Boolean
             issueSpan = Nothing
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId
 

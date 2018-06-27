@@ -5640,5 +5640,70 @@ Imports TestAssembly.BothObsoleteParent.BothObsoleteChild
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
         End Sub
+
+        <Fact>
+        <WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")>
+        Public Sub WellKnownTypeAsStruct_DefaultConstructor_ParamArrayAttribute()
+            Dim code = <compilation><file name="a.vb"><![CDATA[
+Namespace System
+	public Structure ParamArrayAttribute
+	End Structure
+End Namespace
+Public Class C
+    Public Sub Test(ByVal ParamArray args() As Double)
+    End Sub
+End Class
+]]></file></compilation>
+
+            CreateCompilationWithMscorlib40AndVBRuntime(code).VerifyDiagnostics().AssertTheseEmitDiagnostics(<expected><![CDATA[
+BC31503: 'ParamArrayAttribute' cannot be used as an attribute because it is not a class.
+]]></expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")>
+        Public Sub WellKnownTypeAsStruct_NonDefaultConstructor_TupleElementNamesAttribute()
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="errors.vb"><![CDATA[
+Imports System
+
+Namespace System.Runtime.CompilerServices
+    Public Structure TupleElementNamesAttribute
+        Public Sub New(transformNames As String())
+        End Sub
+    End Structure
+End Namespace
+
+Module Program
+    Public Sub Main(args As String())
+        Test(("first", "second"))
+    End Sub
+
+    Public Sub Test(tuple As (a As String, b As String))
+        Console.WriteLine(tuple.a)
+        Console.WriteLine(tuple.b)
+    End Sub
+End Module
+]]></file>
+</compilation>,
+                references:={ValueTupleRef, SystemRuntimeFacadeRef},
+                options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(
+                compilation,
+                expectedOutput:="
+first
+second",
+                symbolValidator:=
+                    Sub([module] As ModuleSymbol)
+                        Dim attribute = [module].ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("Test").Parameters.Single().GetAttributes().Single()
+
+                        Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute", attribute.AttributeClass.ToTestDisplayString())
+                        Assert.True(attribute.AttributeClass.IsStructureType())
+                        Assert.Equal([module].ContainingAssembly, attribute.AttributeClass.ContainingAssembly)
+                        Assert.Equal("transformNames", attribute.AttributeConstructor.Parameters.Single().Name)
+                    End Sub)
+        End Sub
     End Class
 End Namespace

@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
             }
+            ReportDiagnosticsIfObsolete(diagnostics, analysisResult.LeftConversion, left.Syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, analysisResult.RightConversion, right.Syntax, hasBaseReceiver: false);
 
             PrepareBoolConversionAndTruthOperator(signature.ReturnType, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
 
@@ -134,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsImplicit)
             {
+                ReportDiagnosticsIfObsolete(diagnostics, conversion, node, hasBaseReceiver: false);
                 conversionForBool = conversion;
                 boolOperator = default;
                 return;

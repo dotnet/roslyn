@@ -1547,7 +1547,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source, references: new[] { SystemCoreRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,13): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
                 //     [field: System.Runtime.CompilerServices.DynamicAttribute()]

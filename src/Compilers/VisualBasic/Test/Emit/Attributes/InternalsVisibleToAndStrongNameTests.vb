@@ -132,7 +132,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         other.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey))
@@ -285,7 +285,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         other.VerifyDiagnostics()
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
@@ -303,7 +303,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         other.VerifyDiagnostics()
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
@@ -603,7 +603,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
@@ -640,7 +640,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
@@ -1405,7 +1405,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1428,7 +1428,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1455,7 +1455,7 @@ End Class
 
         Dim other = CreateCompilationWithMscorlib40(
             source,
-            TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+            options:=TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1504,7 +1504,7 @@ End Class
     ]]></file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         AssertTheseDiagnostics(other,
 <expected>
@@ -1630,7 +1630,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         AssertTheseDiagnostics(other,
 <expected>

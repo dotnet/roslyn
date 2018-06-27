@@ -122,7 +122,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -164,7 +164,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -554,7 +554,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
             Assert.True(runtimeAssemblies.Any());
 
@@ -597,7 +597,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI");
             Assert.True(runtimeAssemblies.Any());
 

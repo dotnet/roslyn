@@ -8534,7 +8534,7 @@
                                   Derleyici tarafından kaynak yolu adları çıkışı için bir eşleme
                                   belirt.
 /platform:&lt;string&gt;                Bu kodun çalışabileceği platformları sınırla; 
-                                  x86, x64, Itanium, arm, AnyCPU32BitPreferred
+                                  x86, x64, Itanium, arm, arm64, AnyCPU32BitPreferred
                                   veya anycpu (varsayılan) olmalıdır.
 /preferreduilang                  Tercih edilen çıkış dilini belirt.
 /sdkpath:&lt;path&gt;                   .NET Framework SDK (mscorlib.dll) dizininin

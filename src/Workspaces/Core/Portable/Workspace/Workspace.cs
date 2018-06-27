@@ -1352,18 +1352,18 @@ namespace Microsoft.CodeAnalysis
             // added documents
             foreach (var documentId in projectChanges.GetAddedDocuments())
             {
-                var doc = projectChanges.NewProject.GetDocument(documentId);
-                var text = this.GetTextForced(doc);
-                var info = this.CreateDocumentInfoWithoutText(doc);
+                var document = projectChanges.NewProject.GetDocument(documentId);
+                var text = document.GetTextSynchronously(CancellationToken.None);
+                var info = this.CreateDocumentInfoWithoutText(document);
                 this.ApplyDocumentAdded(info, text);
             }
 
             // added additional documents
             foreach (var documentId in projectChanges.GetAddedAdditionalDocuments())
             {
-                var doc = projectChanges.NewProject.GetAdditionalDocument(documentId);
-                var text = this.GetTextForced(doc);
-                var info = this.CreateDocumentInfoWithoutText(doc);
+                var document = projectChanges.NewProject.GetAdditionalDocument(documentId);
+                var text = document.GetTextSynchronously(CancellationToken.None);
+                var info = this.CreateDocumentInfoWithoutText(document);
                 this.ApplyAdditionalDocumentAdded(info, text);
             }
 
@@ -1380,7 +1380,7 @@ namespace Microsoft.CodeAnalysis
                 var newDoc = projectChanges.NewProject.GetAdditionalDocument(documentId);
 
                 // We don't understand the text of additional documents and so we just replace the entire text.
-                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                var currentText = newDoc.GetTextSynchronously(CancellationToken.None); // needs wait
                 this.ApplyAdditionalDocumentTextChanged(documentId, currentText);
             }
         }
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis
                     // If we don't have easy access to the old text, then either it was never observed or it was kicked out of memory.
                     // Either way, the new text cannot possibly hold knowledge of the changes, and any new syntax tree will not likely be able to derive them.
                     // So just use whatever new text we have without preserving text changes.
-                    var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                    var currentText = newDoc.GetTextSynchronously(CancellationToken.None); // needs wait
                     this.ApplyDocumentTextChanged(documentId, currentText);
                 }
                 else if (!newDoc.TryGetText(out var newText))
@@ -1458,14 +1458,9 @@ namespace Microsoft.CodeAnalysis
                 project.OutputRefFilePath);
         }
 
-        internal SourceText GetTextForced(TextDocument doc)
-        {
-            return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait (called during TryApplyChanges)
-        }
-
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
         {
-            return CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(GetTextForced(doc), VersionStamp.Create(), doc.FilePath)));
+            return CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
         }
 
         internal DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)

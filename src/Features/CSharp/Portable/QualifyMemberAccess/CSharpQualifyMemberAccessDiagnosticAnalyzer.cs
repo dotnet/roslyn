@@ -39,5 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 
         private bool IsInFieldInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
             => declarationSyntax.GetAncestorsOrThis(n => n.IsKind(SyntaxKind.FieldDeclaration) && n.Contains(node)).Any();
+
+        protected override Location GetLocation(IOperation operation) => operation.Syntax.GetLocation();
     }
 }

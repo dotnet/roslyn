@@ -11505,7 +11505,7 @@ Class Program
     End Property
 End Class
     ]]></file>
-</compilation>, TestOptions.ReleaseExe)
+</compilation>, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 In get
 1

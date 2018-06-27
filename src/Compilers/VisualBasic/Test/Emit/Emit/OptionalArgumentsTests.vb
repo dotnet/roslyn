@@ -1256,7 +1256,7 @@ End Module
         End Sub
 
         <WorkItem(543093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543093")>
-        <Fact()>
+        <NoIOperationValidationFact> ' Disabling for IOperation run due to https://github.com/dotnet/roslyn/issues/26895
         Public Sub TestStringWithOptionalDateTimeValue()
             ' Error when option strict is on
             ' No error when option strict is off

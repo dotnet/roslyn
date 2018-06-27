@@ -22,6 +22,7 @@
     <licenseUrl>$licenseUrlNonRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
     <dependencies>
       <group targetFramework="netcoreapp1.1">
         <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />

@@ -59,34 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
         }
 
-        public void GetNonIntersectingSpans(SnapshotSpan snapshotSpan, List<ITagSpan<TTag>> beforeSpans, List<ITagSpan<TTag>> afterSpans)
-        {
-            var snapshot = snapshotSpan.Snapshot;
-            Contract.Requires(snapshot.TextBuffer == _textBuffer);
-
-            var introspector = new IntervalIntrospector(snapshot);
-
-            var beforeSpan = new SnapshotSpan(snapshot, 0, snapshotSpan.Start);
-            AddNonIntersectingSpans(beforeSpan, introspector, beforeSpans);
-
-            var afterSpan = new SnapshotSpan(snapshot, snapshotSpan.End, snapshot.Length - snapshotSpan.End);
-            AddNonIntersectingSpans(afterSpan, introspector, afterSpans);
-        }
-
-        private void AddNonIntersectingSpans(
-            SnapshotSpan span, IntervalIntrospector introspector, List<ITagSpan<TTag>> spans)
-        {
-            var snapshot = span.Snapshot;
-            foreach (var tagNode in _tree.GetIntervalsThatIntersectWith(span.Start, span.Length, introspector))
-            {
-                var tagNodeSpan = tagNode.Span.GetSpan(snapshot);
-                if (span.Contains(tagNodeSpan))
-                {
-                    spans.Add(new TagSpan<TTag>(tagNodeSpan, tagNode.Tag));
-                }
-            }
-        }
-
         public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
         {
             return _tree.Select(tn => new TagSpan<TTag>(tn.Span.GetSpan(snapshot), tn.Tag));

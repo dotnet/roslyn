@@ -236,7 +236,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to In arithmetic expressions:  ^  *  /  \  Mod  +  -  &amp;  &lt;&lt;  &gt;&gt;.
+        '''  Looks up a localized string similar to In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;.
         '''</summary>
         Friend Shared ReadOnly Property In_arithmetic_binary_operators() As String
             Get
@@ -245,11 +245,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to In other binary operators:  =  &lt;&gt;  &lt;  &gt;  &lt;=  &gt;=  Like Is  And  Or  .
+        '''  Looks up a localized string similar to In other binary operators:  And   AndAlso   Or   OrElse.
         '''</summary>
         Friend Shared ReadOnly Property In_other_binary_operators() As String
             Get
                 Return ResourceManager.GetString("In_other_binary_operators", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is.
+        '''</summary>
+        Friend Shared ReadOnly Property In_relational_binary_operators() As String
+            Get
+                Return ResourceManager.GetString("In_relational_binary_operators", resourceCulture)
             End Get
         End Property
         
@@ -398,11 +407,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Prefer &apos;Is Nothing&apos; over &apos;Object.ReferenceEquals(..., Nothing)&apos;.
+        '''  Looks up a localized string similar to Prefer &apos;Is Nothing&apos; for reference equality checks.
         '''</summary>
-        Friend Shared ReadOnly Property Prefer_Is_Nothing_over_ReferenceEquals() As String
+        Friend Shared ReadOnly Property Prefer_Is_Nothing_for_reference_equality_checks() As String
             Get
-                Return ResourceManager.GetString("Prefer_Is_Nothing_over_ReferenceEquals", resourceCulture)
+                Return ResourceManager.GetString("Prefer_Is_Nothing_for_reference_equality_checks", resourceCulture)
             End Get
         End Property
         

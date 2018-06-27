@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         /// things quickly, even if it's going against their stated style.
         /// </summary>
         public readonly bool IsStylePreferred;
-        public readonly DiagnosticSeverity Severity;
+        public readonly ReportDiagnostic Severity;
 
-        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, bool isStylePreferred, DiagnosticSeverity severity, CancellationToken cancellationToken) : this()
+        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, bool isStylePreferred, ReportDiagnostic severity, CancellationToken cancellationToken) : this()
         {
             _helper = helper;
             _typeName = typeName;

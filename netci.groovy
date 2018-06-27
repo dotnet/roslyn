@@ -229,10 +229,31 @@ commitPullList.each { isPr ->
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.DevEx.Open')
+      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.Open')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
+  }
+}
+
+// Loc status check
+commitPullList.each { isPr ->
+  // Only add the check to PR builds for now. At some point we'll change this check
+  // to instead look for particular branch names.
+  if (isPr) {
+    def jobName = Utilities.getFullJobName(projectName, "windows_loc_status", isPr)
+    def myJob = job(jobName) {
+      description('Check for untranslated resources')
+      steps {
+        batchFile(""".\\build\\scripts\\check-loc-status.cmd""")
+      }
+    }
+
+    // For now we'll only run this when explicitly asked.
+    def triggerPhraseOnly = true
+    def triggerPhraseExtra = "loc"
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }
 

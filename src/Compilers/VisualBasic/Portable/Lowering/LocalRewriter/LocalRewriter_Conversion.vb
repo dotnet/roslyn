@@ -760,6 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       Nothing,
                                                                       operatorCall.ReceiverOpt,
                                                                       ImmutableArray.Create(inputToOperatorMethod),
+                                                                      Nothing,
                                                                       operatorCall.ConstantValueOpt,
                                                                       isLValue:=operatorCall.IsLValue,
                                                                       suppressObjectClone:=operatorCall.SuppressObjectClone,
@@ -1294,14 +1295,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function RewriteFloatingToIntegralConversion(node As BoundConversion, typeFrom As TypeSymbol, underlyingTypeTo As TypeSymbol) As BoundExpression
             Debug.Assert(typeFrom.IsFloatingType() AndAlso underlyingTypeTo.IsIntegralType())
+            Debug.Assert(Not _inExpressionLambda)
             Dim result As BoundExpression = node
             Dim operand = node.Operand
 
-            ' CInt(Fix(number)) and the like can be simplified to just truncate the number to the integral type
             If operand.Kind = BoundKind.Call Then
                 Dim callOperand = DirectCast(operand, BoundCall)
-                If IsFixInvocation(callOperand) Then
+                If IsFloatingTruncation(callOperand) Then
+                    ' CInt(Fix(number)) and the like can be simplified to just truncate the number to the integral type
                     Return New BoundConversion(node.Syntax, callOperand.Arguments(0), node.ConversionKind, node.Checked, node.ExplicitCastInCode, node.Type)
+                ElseIf ReturnsWholeNumberDouble(callOperand) Then
+                    ' CInt(Math.Floor(number)) and the like can omit rounding the result of Floor, which is already a whole number
+                    Return node
                 End If
             End If
 
@@ -1339,20 +1344,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Function IsFixInvocation(node As BoundCall) As Boolean
-            ' Quick test to eliminate most calls to something other that Conversion.Fix
-            If Not "Fix".Equals(node.Method.Name) Then
-                Return False
+        ''' <summary>
+        ''' Is this a floating-point operation that results in a whole number, rendering a following rounding operation redundant?
+        ''' </summary>
+        Private Function ReturnsWholeNumberDouble(node As BoundCall) As Boolean
+            Dim methodName As String = node.Method.Name
+            If "Ceiling".Equals(methodName) Then
+                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__CeilingDouble)
+            ElseIf "Floor".Equals(methodName) Then
+                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__FloorDouble)
+            ElseIf "Round".Equals(methodName) Then
+                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble)
+            ElseIf "Int".Equals(methodName) Then
+                Select Case node.Type.SpecialType
+                    Case SpecialType.System_Single
+                        Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__IntSingle)
+                    Case SpecialType.System_Double
+                        Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__IntDouble)
+                    Case Else
+                        Return False
+                End Select
             End If
 
-            Select Case node.Type.SpecialType
-                Case SpecialType.System_Single
-                    Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__FixSingle)
-                Case SpecialType.System_Double
-                    Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__FixDouble)
-                Case Else
-                    Return False
-            End Select
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Is this a floating-point truncation operation that would be redundant if followed by a truncation to an integral type?
+        ''' </summary>
+        Private Function IsFloatingTruncation(node As BoundCall) As Boolean
+            Dim methodName As String = node.Method.Name
+            If "Fix".Equals(methodName) Then
+                Select Case node.Type.SpecialType
+                    Case SpecialType.System_Single
+                        Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__FixSingle)
+                    Case SpecialType.System_Double
+                        Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__FixDouble)
+                    Case Else
+                        Return False
+                End Select
+            ElseIf "Truncate".Equals(methodName) Then
+                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__TruncateDouble)
+            End If
+
+            Return False
         End Function
 
 #End Region
