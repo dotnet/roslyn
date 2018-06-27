@@ -120,6 +120,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await Workspace.CleanUpWaitingServiceAsync();
             await Workspace.CleanUpWorkspaceAsync();
             await SolutionExplorer.CleanUpOpenSolutionAsync();
+            await Workspace.WaitForAllAsyncOperationsAsync();
 
             // Close any windows leftover from previous (failed) tests
 #if false

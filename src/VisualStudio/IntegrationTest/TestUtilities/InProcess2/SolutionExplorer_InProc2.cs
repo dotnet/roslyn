@@ -109,12 +109,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
-            ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+            await CloseSolutionAsync();
 
             var solutionPath = IntegrationHelper.CreateTemporaryPath();
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
 
+            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
             ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
 
             var dte = await GetDTEAsync();
@@ -371,12 +371,118 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 }
             }
 
-            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
-            ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+            await CloseSolutionAsync();
 
             foreach (var directoryToDelete in directoriesToDelete)
             {
                 IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
+            }
+        }
+
+        private async Task CloseSolutionAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
+            ErrorHandler.ThrowOnFailure(solution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out var isOpen));
+            if (!(bool)isOpen)
+            {
+                return;
+            }
+
+            using (var semaphore = new SemaphoreSlim(1))
+            using (var solutionEvents = new SolutionEvents(JoinableTaskFactory, solution))
+            {
+                await semaphore.WaitAsync();
+                void HandleAfterCloseSolution(object sender, EventArgs e) => semaphore.Release();
+                solutionEvents.AfterCloseSolution += HandleAfterCloseSolution;
+                try
+                {
+                    ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+                    await semaphore.WaitAsync();
+                }
+                finally
+                {
+                    solutionEvents.AfterCloseSolution -= HandleAfterCloseSolution;
+                }
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
+
+        private sealed class SolutionEvents : IVsSolutionEvents, IDisposable
+        {
+            private readonly JoinableTaskFactory _joinableTaskFactory;
+            private readonly IVsSolution _solution;
+            private readonly uint _cookie;
+
+            public SolutionEvents(JoinableTaskFactory joinableTaskFactory, IVsSolution solution)
+            {
+                _joinableTaskFactory = joinableTaskFactory;
+                _solution = solution;
+                ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _cookie));
+            }
+
+            public event EventHandler AfterCloseSolution;
+
+            public void Dispose()
+            {
+                _joinableTaskFactory.Run(async () =>
+                {
+                    await _joinableTaskFactory.SwitchToMainThreadAsync();
+                    ErrorHandler.ThrowOnFailure(_solution.UnadviseSolutionEvents(_cookie));
+                });
+            }
+
+            public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnBeforeCloseSolution(object pUnkReserved)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnAfterCloseSolution(object pUnkReserved)
+            {
+                AfterCloseSolution?.Invoke(this, EventArgs.Empty);
+                return VSConstants.S_OK;
             }
         }
 
