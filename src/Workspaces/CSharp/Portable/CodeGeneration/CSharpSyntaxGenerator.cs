@@ -3565,14 +3565,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)
-        {
-            return SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
-        }
+            => SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
+
+        internal override SyntaxNode YieldReturnStatement(SyntaxNode expressionOpt = null)
+            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expressionOpt);
 
         public override SyntaxNode ThrowStatement(SyntaxNode expressionOpt = null)
-        {
-            return SyntaxFactory.ThrowStatement((ExpressionSyntax)expressionOpt);
-        }
+            => SyntaxFactory.ThrowStatement((ExpressionSyntax)expressionOpt);
 
         public override SyntaxNode ThrowExpression(SyntaxNode expression)
         {

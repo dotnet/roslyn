@@ -983,7 +983,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 filePath: filename,
                 sourceTextContainer: sourceTextContainer,
                 sourceCodeKind: sourceCodeKind,
-                getFolderNames: getFolderNames,
+                folderNames: folderNames,
                 canUseTextBuffer: CanUseTextBuffer,
                 updatedHandler: s_documentUpdatedEventHandler,
                 openedHandler: s_documentOpenedEventHandler,
@@ -1551,9 +1551,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #region FolderNames
         private readonly List<string> _tmpFolders = new List<string>();
-        private readonly Dictionary<uint, IReadOnlyList<string>> _folderNameMap = new Dictionary<uint, IReadOnlyList<string>>();
+        private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = new Dictionary<uint, ImmutableArray<string>>();
 
-        public IReadOnlyList<string> GetFolderNamesFromHierarchy(uint documentItemID)
+        public ImmutableArray<string> GetFolderNamesFromHierarchy(uint documentItemID)
         {
             AssertIsForeground();
 
@@ -1566,10 +1566,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            return SpecializedCollections.EmptyReadOnlyList<string>();
+            return ImmutableArray<string>.Empty;
         }
 
-        private IReadOnlyList<string> GetFolderNamesForFolder(uint folderItemID)
+        private ImmutableArray<string> GetFolderNamesForFolder(uint folderItemID)
         {
             AssertIsForeground();
 

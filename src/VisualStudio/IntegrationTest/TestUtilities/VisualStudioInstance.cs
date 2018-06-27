@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading;
@@ -24,6 +25,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
+
+        public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
 
         public Debugger_OutOfProc Debugger { get; }
 
@@ -99,6 +102,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
             Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
@@ -171,6 +175,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
+            ObjectBrowserWindow.CloseWindow();
             ChangeSignatureDialog.CloseWindow();
             GenerateTypeDialog.CloseWindow();
             ExtractInterfaceDialog.CloseWindow();
@@ -207,7 +212,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
             finally
             {
-                if (_integrationServiceChannel != null)
+                if (_integrationServiceChannel != null
+                    && ChannelServices.RegisteredChannels.Contains(_integrationServiceChannel))
                 {
                     ChannelServices.UnregisterChannel(_integrationServiceChannel);
                 }

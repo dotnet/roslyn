@@ -31,27 +31,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             switch (operationRoot)
             {
                 case IBlockOperation blockOperation:
-                    graph = SemanticModel.GetControlFlowGraph(blockOperation);
+                    graph = ControlFlowGraph.Create(blockOperation);
                     break;
 
                 case IMethodBodyOperation methodBodyOperation:
-                    graph = SemanticModel.GetControlFlowGraph(methodBodyOperation);
+                    graph = ControlFlowGraph.Create(methodBodyOperation);
                     break;
 
                 case IConstructorBodyOperation constructorBodyOperation:
-                    graph = SemanticModel.GetControlFlowGraph(constructorBodyOperation);
+                    graph = ControlFlowGraph.Create(constructorBodyOperation);
                     break;
 
                 case IFieldInitializerOperation fieldInitializerOperation:
-                    graph = SemanticModel.GetControlFlowGraph(fieldInitializerOperation);
+                    graph = ControlFlowGraph.Create(fieldInitializerOperation);
                     break;
 
                 case IPropertyInitializerOperation propertyInitializerOperation:
-                    graph = SemanticModel.GetControlFlowGraph(propertyInitializerOperation);
+                    graph = ControlFlowGraph.Create(propertyInitializerOperation);
                     break;
 
                 case IParameterInitializerOperation parameterInitializerOperation:
-                    graph = SemanticModel.GetControlFlowGraph(parameterInitializerOperation);
+                    graph = ControlFlowGraph.Create(parameterInitializerOperation);
                     break;
 
                 default:
@@ -594,14 +594,16 @@ endRegion:
             {
                 visitor.Visit(root);
                 Assert.Null(root.Parent);
-                Assert.Null(((Operation)root).SemanticModel);
+                Assert.Null(((Operation)root).OwningSemanticModel);
+                Assert.Null(root.SemanticModel);
                 Assert.True(CanBeInControlFlowGraph(root), $"Unexpected node kind OperationKind.{root.Kind}");
 
                 foreach (var operation in root.Descendants())
                 {
                     visitor.Visit(operation);
                     Assert.NotNull(operation.Parent);
-                    Assert.Null(((Operation)operation).SemanticModel);
+                    Assert.Null(((Operation)operation).OwningSemanticModel);
+                    Assert.Null(operation.SemanticModel);
                     Assert.True(CanBeInControlFlowGraph(operation), $"Unexpected node kind OperationKind.{operation.Kind}");
                 }
             }
@@ -766,8 +768,15 @@ endRegion:
                              !ITypeSymbolHelpers.IsDynamicType(binary.Type));
 
                 case OperationKind.InstanceReference:
-                    // Implicit instance receivers are expected to have been removed when dealing with creations.
-                    return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
+                    // Implicit instance receivers, except for anonymous type creations, are expected to have been removed when dealing with creations.
+                    return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance ||
+                        ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
+                        n.Type.IsAnonymousType &&
+                        n.Parent is IPropertyReferenceOperation propertyReference &&
+                        propertyReference.Instance == n &&
+                        propertyReference.Parent is ISimpleAssignmentOperation simpleAssignment &&
+                        simpleAssignment.Target == propertyReference &&
+                        simpleAssignment.Parent.Kind == OperationKind.AnonymousObjectCreation;
 
                 case OperationKind.None:
                     return !(n is IPlaceholderOperation);

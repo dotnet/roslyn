@@ -130,11 +130,11 @@ class C
 
                 if (expectException)
                 {
-                    Assert.Throws<InvalidOperationException>(() => SemanticModel.GetControlFlowGraph(operation));
+                    Assert.Throws<InvalidOperationException>(() => ControlFlowGraph.Create(operation));
                 }
                 else
                 {
-                    ControlFlowGraph graph = SemanticModel.GetControlFlowGraph(operation);
+                    ControlFlowGraph graph = ControlFlowGraph.Create(operation);
                     Assert.NotNull(graph);
                     Assert.NotEmpty(graph.Blocks);
                 }
@@ -160,12 +160,12 @@ class C
         [Fact]
         public void TestGetFlowGraphNullArgument()
         {
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IBlockOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IFieldInitializerOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IPropertyInitializerOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IParameterInitializerOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IConstructorBodyOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IMethodBodyOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IBlockOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IFieldInitializerOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IPropertyInitializerOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IParameterInitializerOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IConstructorBodyOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IMethodBodyOperation)null));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -193,7 +193,7 @@ class C
                     ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
                     semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
                 block = Operation.SetParentOperation(block, parent);
-                _ = SemanticModel.GetControlFlowGraph(block);
+                _ = ControlFlowGraph.Create(block);
             }
             catch (ArgumentException ex)
             {
@@ -207,7 +207,7 @@ class C
                     value: null, kind: OperationKind.FieldInitializer,
                     semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
-                _ = SemanticModel.GetControlFlowGraph(initializer);
+                _ = ControlFlowGraph.Create(initializer);
             }
             catch (ArgumentException ex)
             {
@@ -221,7 +221,7 @@ class C
                     value: null, kind: OperationKind.PropertyInitializer,
                     semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
-                _ = SemanticModel.GetControlFlowGraph(initializer);
+                _ = ControlFlowGraph.Create(initializer);
             }
             catch (ArgumentException ex)
             {
@@ -235,7 +235,7 @@ class C
                                     value: null, kind: OperationKind.ParameterInitializer,
                                     semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
-                _ = SemanticModel.GetControlFlowGraph(initializer);
+                _ = ControlFlowGraph.Create(initializer);
             }
             catch (ArgumentException ex)
             {
@@ -251,7 +251,7 @@ class C
                                     expressionBody: null,
                                     semanticModel: null, syntax: null);
                 constructorBody = Operation.SetParentOperation(constructorBody, parent);
-                _ = SemanticModel.GetControlFlowGraph(constructorBody);
+                _ = ControlFlowGraph.Create(constructorBody);
             }
             catch (ArgumentException ex)
             {
@@ -265,7 +265,7 @@ class C
                                                     expressionBody: null,
                                                     semanticModel: null, syntax: null);
                 methodBody = Operation.SetParentOperation(methodBody, parent);
-                _ = SemanticModel.GetControlFlowGraph(methodBody);
+                _ = ControlFlowGraph.Create(methodBody);
             }
             catch (ArgumentException ex)
             {

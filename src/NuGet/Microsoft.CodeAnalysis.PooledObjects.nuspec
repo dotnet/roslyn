@@ -21,6 +21,8 @@
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
+
     <contentFiles>
       <files include="**/*.cs" buildAction="Compile" />
     </contentFiles>
