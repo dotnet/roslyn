@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -10,30 +11,30 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpErrorListNetCore : CSharpErrorListCommon
     {
-        public CSharpErrorListNetCore(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+        public CSharpErrorListNetCore()
+            : base(WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18996"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public override void ErrorList()
+        public override async Task ErrorListAsync()
         {
-            base.ErrorList();
+            await base.ErrorListAsync();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18996"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public override void ErrorLevelWarning()
+        public override async Task ErrorLevelWarningAsync()
         {
-            base.ErrorLevelWarning();
+            await base.ErrorLevelWarningAsync();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19090"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public override void ErrorsDuringMethodBodyEditing()
+        public override async Task ErrorsDuringMethodBodyEditingAsync()
         {
-            base.ErrorsDuringMethodBodyEditing();
+            await base.ErrorsDuringMethodBodyEditingAsync();
         }
     }
 }

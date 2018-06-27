@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 using ServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
@@ -15,6 +16,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
     [Collection(nameof(SharedIntegrationHostFixture))]
     public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
     {
+        protected readonly string ProjectName = "TestProj";
+        protected readonly string SolutionName = "TestSolution";
+
         private JoinableTaskContext _joinableTaskContext;
         private JoinableTaskCollection _joinableTaskCollection;
         private JoinableTaskFactory _joinableTaskFactory;
@@ -23,6 +27,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var componentModel = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
             JoinableTaskContext = componentModel.GetExtensions<JoinableTaskContext>().SingleOrDefault() ?? new JoinableTaskContext();
+
+            SolutionExplorer = new SolutionExplorer_InProc2(JoinableTaskFactory);
+            Workspace = new VisualStudioWorkspace_InProc2(JoinableTaskFactory);
+            SendKeys = new SendKeys_InProc2(JoinableTaskFactory);
+
+            Editor = new Editor_InProc2(JoinableTaskFactory, Workspace, SendKeys);
+            ErrorList = new ErrorList_InProc2(JoinableTaskFactory, Workspace);
         }
 
         protected JoinableTaskContext JoinableTaskContext
@@ -56,9 +67,36 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected JoinableTaskFactory JoinableTaskFactory => _joinableTaskFactory ?? throw new InvalidOperationException();
 
-        public virtual Task InitializeAsync()
+        protected Editor_InProc2 Editor
         {
-            return Task.CompletedTask;
+            get;
+        }
+
+        protected ErrorList_InProc2 ErrorList
+        {
+            get;
+        }
+
+        protected SendKeys_InProc2 SendKeys
+        {
+            get;
+        }
+
+        protected SolutionExplorer_InProc2 SolutionExplorer
+        {
+            get;
+        }
+
+        protected VisualStudioWorkspace_InProc2 Workspace
+        {
+            get;
+        }
+
+        public virtual async Task InitializeAsync()
+        {
+            await Workspace.InitializeAsync();
+
+            await CleanUpAsync();
         }
 
         public virtual async Task DisposeAsync()
@@ -75,6 +113,22 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected virtual void Dispose(bool disposing)
         {
+        }
+
+        protected virtual async Task CleanUpAsync()
+        {
+            await Workspace.CleanUpWaitingServiceAsync();
+            await Workspace.CleanUpWorkspaceAsync();
+            await SolutionExplorer.CleanUpOpenSolutionAsync();
+
+            // Close any windows leftover from previous (failed) tests
+#if false
+            InteractiveWindow.CloseInteractiveWindow();
+            ObjectBrowserWindow.CloseWindow();
+            ChangeSignatureDialog.CloseWindow();
+            GenerateTypeDialog.CloseWindow();
+            ExtractInterfaceDialog.CloseWindow();
+#endif
         }
     }
 }

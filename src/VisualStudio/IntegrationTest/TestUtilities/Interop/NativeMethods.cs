@@ -81,6 +81,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 
         public const uint WM_GETTEXT = 0x000D;
         public const uint WM_GETTEXTLENGTH = 0x000E;
+        public const uint WM_KEYDOWN = 0x0100;
+        public const uint WM_KEYUP = 0x0101;
 
         [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 8)]
         public struct INPUT
@@ -169,6 +171,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 
         [DllImport(User32, SetLastError = true)]
         public static extern uint SendInput(uint nInputs, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] INPUT[] pInputs, int cbSize);
+
+        [DllImport(User32, CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern int PostMessage(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
 
         [DllImport(User32, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr SendMessage(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);

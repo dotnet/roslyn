@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -44,6 +45,28 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             GC.KeepAlive(featureWaiter);
         }
 
+        public async Task WaitForAsyncOperationsAsync(string featureName, bool waitForWorkspaceFirst = true)
+        {
+            var workspaceWaiter = _provider.GetWaiter(FeatureAttribute.Workspace);
+            var featureWaiter = _provider.GetWaiter(featureName);
+            Contract.ThrowIfNull(featureWaiter);
+
+            // wait for each of the features specified in the featuresToWaitFor string
+            if (waitForWorkspaceFirst)
+            {
+                // at least wait for the workspace to finish processing everything.
+                await workspaceWaiter.CreateWaitTask().ConfigureAwait(true);
+            }
+
+            await featureWaiter.CreateWaitTask().ConfigureAwait(true);
+
+            // Debugging trick: don't let the listeners collection get optimized away during execution.
+            // This means if the process is killed during integration tests and the test was waiting, you can
+            // easily look at the listeners and see what is going on. This is not actually needed to
+            // affect the GC, nor is it needed for correctness.
+            GC.KeepAlive(featureWaiter);
+        }
+
         public void WaitForAllAsyncOperations(params string[] featureNames)
         {
             var task = _provider.WaitAllAsync(
@@ -51,6 +74,11 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
                 eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle));
 
             WaitForTask(task);
+        }
+
+        public async Task WaitForAllAsyncOperationsAsync(params string[] featureNames)
+        {
+            await _provider.WaitAllAsync(featureNames, eventProcessingAction: null).ConfigureAwait(true);
         }
 
         public void EnableActiveTokenTracking(bool enable)
@@ -63,7 +91,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             AsynchronousOperationListenerProvider.Enable(enable);
         }
 
-        private void WaitForTask(System.Threading.Tasks.Task task)
+        private void WaitForTask(Task task)
         {
             while (!task.Wait(100))
             {

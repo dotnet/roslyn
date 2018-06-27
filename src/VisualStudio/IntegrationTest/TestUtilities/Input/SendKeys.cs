@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
             var result = NativeMethods.VkKeyScan(ch);
             if (result == -1)
             {
-                // This is a unicode character that must be handled differently.
+                // This is a Unicode character that must be handled differently.
 
                 AddUnicodeInputs(inputs, ch);
                 return;

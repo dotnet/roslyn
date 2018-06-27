@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -10,27 +11,27 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpErrorListDesktop : CSharpErrorListCommon
     {
-        public CSharpErrorListDesktop(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
+        public CSharpErrorListDesktop()
+            : base(WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18996"), Trait(Traits.Feature, Traits.Features.ErrorList)]
-        public override void ErrorList()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        public override async Task ErrorListAsync()
         {
-            base.ErrorList();
+            await base.ErrorListAsync();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18996"), Trait(Traits.Feature, Traits.Features.ErrorList)]
-        public override void ErrorLevelWarning()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        public override async Task ErrorLevelWarningAsync()
         {
-            base.ErrorLevelWarning();
+            await base.ErrorLevelWarningAsync();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
-        public override void ErrorsDuringMethodBodyEditing()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        public override async Task ErrorsDuringMethodBodyEditingAsync()
         {
-            base.ErrorsDuringMethodBodyEditing();
+            await base.ErrorsDuringMethodBodyEditingAsync();
         }
     }
 }

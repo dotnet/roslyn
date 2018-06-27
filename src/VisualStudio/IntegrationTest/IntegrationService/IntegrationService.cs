@@ -27,7 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public IntegrationService()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += VisualStudioInstanceFactory.AssemblyResolveHandler;
             PortName = GetPortName(Process.GetCurrentProcess().Id);
             BaseUri = "ipc://" + this.PortName;
         }
@@ -42,6 +41,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var uri = $"ipc://{GetPortName(hostProcess.Id)}/{typeof(IntegrationService).FullName}";
             return (IntegrationService)Activator.GetObject(typeof(IntegrationService), uri);
+        }
+
+        public void AddAssemblyResolver(IAssemblyResolver resolver)
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
+            {
+                var location = resolver.TryResolveAssembly(new AssemblyName(e.Name));
+                if (location == null)
+                {
+                    return null;
+                }
+
+                return Assembly.LoadFrom(location);
+            };
         }
 
         public string Execute(string assemblyFilePath, string typeFullName, string methodName)

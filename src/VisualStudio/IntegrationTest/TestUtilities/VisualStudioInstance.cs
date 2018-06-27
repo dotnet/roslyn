@@ -11,6 +11,7 @@ using System.Runtime.Serialization.Formatters;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -117,6 +118,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
             _integrationService = IntegrationService.GetInstanceFromHostProcess(hostProcess);
+            _integrationService.AddAssemblyResolver(new CrossProcessAssemblyResolver());
 
             // Create marshal-by-ref object that runs in host-process.
             _inProc = ExecuteInHostProcess<VisualStudio_InProc>(

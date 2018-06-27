@@ -71,14 +71,11 @@
       <Name>VisualStudioSetup</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\TestUtilities\VisualStudioIntegrationTestUtilities.csproj">
-      <Name>VisualStudioIntegrationTestUtilities</Name>
+    <ProjectReference Include="..\IntegrationService\IntegrationService.csproj">
+      <Name>IntegrationService</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Diagnostics.Runtime.dll" />
-    <VSIXSourceItem Include="$(OutputPath)xunit.abstractions.dll" />
-    <VSIXSourceItem Include="$(OutputPath)xunit.core.dll" />
-    <VSIXSourceItem Include="$(OutputPath)xunit.execution.desktop.dll" />
   </ItemGroup>
 </Project>
