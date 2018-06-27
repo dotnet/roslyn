@@ -812,6 +812,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Given operation block does not belong to the current analysis context..
+        /// </summary>
+        internal static string InvalidOperationBlockForAnalysisContext {
+            get {
+                return ResourceManager.GetString("InvalidOperationBlockForAnalysisContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid output kind for submission. DynamicallyLinkedLibrary expected..
         /// </summary>
         internal static string InvalidOutputKindForSubmission {
@@ -1059,7 +1068,7 @@ namespace Microsoft.CodeAnalysis {
         /// </summary>
         internal static string OperationHasNullSemanticModel {
             get {
-                return ResourceManager.GetString("OperationHasNoSemanticModel", resourceCulture);
+                return ResourceManager.GetString("OperationHasNullSemanticModel", resourceCulture);
             }
         }
         

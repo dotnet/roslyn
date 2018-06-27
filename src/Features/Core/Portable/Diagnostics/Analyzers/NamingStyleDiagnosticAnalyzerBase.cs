@@ -34,10 +34,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             SymbolKind.Method,
             SymbolKind.NamedType,
             SymbolKind.Namespace,
-            SymbolKind.Property,
-            SymbolKind.Parameter);
+            SymbolKind.Property);
 
-        // Workaround: RegisterSymbolAction doesn't work with locals & local functions,
+        // Workaround: RegisterSymbolAction doesn't work with locals, local functions, parameters, or type parameters.
         // see https://github.com/dotnet/roslyn/issues/14061
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
 

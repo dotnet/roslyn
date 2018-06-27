@@ -1546,8 +1546,8 @@ class Configuration
                     id: null,
                     symbolSpecName: suffix,
                     ImmutableArray.Create(kind),
-                    ImmutableArray<Accessibility>.Empty,
-                    ImmutableArray<ModifierKind>.Empty);
+                    accessibilityList: default,
+                    modifiers: default);
 
                 var namingStyle = new NamingStyle(
                     Guid.NewGuid(),

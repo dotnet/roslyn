@@ -59,6 +59,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                             isEnabledByDefault: true,
                                                             customTags: DiagnosticCustomTags.Unnecessary);
 
+        internal abstract bool IsCandidate(SyntaxNode node);
+        internal abstract bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
             = ImmutableArray.Create(
                     s_descriptorSimplifyNames,
