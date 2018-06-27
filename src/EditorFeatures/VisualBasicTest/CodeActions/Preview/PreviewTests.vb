@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Public NotOverridable Overrides Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
                 Dim codeAction = New MyCodeAction(context.Document)
                 context.RegisterRefactoring(codeAction)
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Private Class MyCodeAction : Inherits CodeAction

@@ -82,26 +82,26 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // don't generate all the tags then the user will cycle through an incorrect subset.
             if (context.CaretPosition == null)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             var caretPosition = context.CaretPosition.Value;
             if (!Workspace.TryGetWorkspace(caretPosition.Snapshot.AsText().Container, out var workspace))
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             // GetSpansToTag may have produced no actual spans to tag.  Be resilient to that.
             var document = context.SpansToTag.FirstOrDefault(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
             if (document == null)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             // Don't produce tags if the feature is not enabled.
             if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             var existingTags = context.GetExistingTags(new SnapshotSpan(caretPosition, 0));
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                 // tag to another.  In this case we don't want to recompute anything.  Let our caller
                 // know that we should preserve all tags.
                 context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             // Otherwise, we need to go produce all tags.

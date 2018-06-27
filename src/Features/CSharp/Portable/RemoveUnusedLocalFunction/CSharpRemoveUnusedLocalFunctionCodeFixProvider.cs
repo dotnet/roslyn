@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
                 editor.RemoveNode(localFunction);
             }
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

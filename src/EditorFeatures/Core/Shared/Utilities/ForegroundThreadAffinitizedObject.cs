@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 // and there's no pending user input.
                 action();
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
             else
             {

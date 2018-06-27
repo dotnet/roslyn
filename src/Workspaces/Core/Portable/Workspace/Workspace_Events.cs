@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldSolution == newSolution)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             if (projectId == null && documentId != null)
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
     }

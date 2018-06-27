@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected override Task FixAllAsync(
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 ReplaceTypeWithVar(editor, node);
             }
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         internal static void ReplaceTypeWithVar(SyntaxEditor editor, SyntaxNode node)

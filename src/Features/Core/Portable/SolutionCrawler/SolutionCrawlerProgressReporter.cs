@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return RaiseStarted().CompletesAsyncOperation(asyncToken);
                 }
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task Stop()
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return RaiseStopped().CompletesAsyncOperation(asyncToken);
                 }
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             private Task RaiseStarted()
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     });
                 }
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
 

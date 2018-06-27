@@ -3859,7 +3859,7 @@ class C
                 context.AddItem(CompletionItem.Create(
                     "CustomItem",
                     rules:=CompletionItemRules.Default.WithMatchPriority(1000)))
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean

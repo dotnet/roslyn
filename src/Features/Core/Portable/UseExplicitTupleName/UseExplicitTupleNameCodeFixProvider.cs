@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected override Task FixAllAsync(
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 editor.ReplaceNode(oldNameNode, newNameNode);
             }
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

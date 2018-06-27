@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
             {
                 editAction(e, d);
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             },
             cancellationToken);
         }
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
                 {
                     editAction(e, d);
-                    return Task.CompletedTask;
+                    return SpecializedTasks.EmptyTask;
                 },
                 cancellationToken);
         }
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
                 {
                     editAction(e, d);
-                    return Task.CompletedTask;
+                    return SpecializedTasks.EmptyTask;
                 },
                 cancellationToken);
         }
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
                 {
                     editAction(e, d);
-                    return Task.CompletedTask;
+                    return SpecializedTasks.EmptyTask;
                 },
                 cancellationToken);
         }

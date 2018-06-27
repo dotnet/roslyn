@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
 
             // Initialize so we don't have to check for null below. Force the background task to run
             // on the threadpool. 
-            _currentBackgroundTask = Task.CompletedTask;
+            _currentBackgroundTask = SpecializedTasks.EmptyTask;
         }
 
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;

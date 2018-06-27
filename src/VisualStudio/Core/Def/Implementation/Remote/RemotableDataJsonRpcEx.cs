@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private Task WriteNoAssetAsync(ObjectWriter writer)
         {
             writer.WriteInt32(0);
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         private async Task WriteOneAssetAsync(ObjectWriter writer, int scopeId, Checksum checksum, CancellationToken cancellationToken)

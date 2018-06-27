@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // no closed file diagnostic and file is not opened, remove any existing diagnostics
                 RemoveDocument(document.Id);
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
@@ -146,17 +146,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public void RemoveProject(ProjectId projectId)

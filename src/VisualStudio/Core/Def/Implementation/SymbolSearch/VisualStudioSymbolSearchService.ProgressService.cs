@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var handler = _taskCenterServiceOpt.Value?.PreRegister(options, data);
             handler?.RegisterTask(localTaskCompletionSource.Task);
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         private static TaskHandlerOptions GetOptions(string title)
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             lock (_gate)
             {
                 _taskCompletionSource?.TrySetResult(true);
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
 
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             lock (_gate)
             {
                 _taskCompletionSource?.TrySetCanceled();
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             lock (_gate)
             {
                 _taskCompletionSource?.TrySetException(new Exception(message));
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
     }

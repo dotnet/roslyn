@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Execution
             public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
             {
                 _serializer.Serialize(_value, writer, cancellationToken);
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
 

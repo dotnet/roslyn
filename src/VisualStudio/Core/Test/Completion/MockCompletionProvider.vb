@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
             Dim item = CommonCompletionItem.Create("DisplayText", rules:=CompletionItemRules.Default)
             context.AddItem(item)
 
-            Return Task.CompletedTask
+            Return SpecializedTasks.EmptyTask
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean

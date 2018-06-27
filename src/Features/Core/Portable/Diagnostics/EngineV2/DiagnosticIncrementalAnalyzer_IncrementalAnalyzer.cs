@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _stateManager.OnDocumentReset(stateSets, document);
             }
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         public void RemoveDocument(DocumentId documentId)
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // let other components knows about this event
             _compilationManager.OnNewSolution();
 
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         private static bool AnalysisEnabled(Document document)

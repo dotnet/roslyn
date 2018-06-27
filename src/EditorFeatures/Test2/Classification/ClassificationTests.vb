@@ -91,11 +91,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Sub
 
             Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSemanticClassificationsAsync
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSyntacticClassificationsAsync
-                Return Task.CompletedTask
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IEditorClassificationService.AdjustStaleClassification

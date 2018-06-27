@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             context.RegisterCodeFix(
                 new MyCodeAction(priority, c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return Task.CompletedTask;
+            return SpecializedTasks.EmptyTask;
         }
 
         protected sealed override async Task FixAllAsync(

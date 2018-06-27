@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 action();
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public override Task<T> StartNew<T>(Func<T> action, CancellationToken cancellationToken)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 nextAction(previousTask);
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             public override void ForEach<T>(IEnumerable<T> source, Action<T> action, CancellationToken cancellationToken)

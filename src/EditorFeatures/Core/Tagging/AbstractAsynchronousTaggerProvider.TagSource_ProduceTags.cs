@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (ShouldSkipTagProduction())
                 {
                     // If the feature is disabled, then just produce no tags.
-                    return Task.CompletedTask;
+                    return SpecializedTasks.EmptyTask;
                 }
 
                 return _dataSource.ProduceTagsAsync(context);

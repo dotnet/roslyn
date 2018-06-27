@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             var document = documentSnapshotSpan.Document;
             if (!caretPosition.HasValue || document == null)
             {
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
 
             return ProduceTagsAsync(context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value);

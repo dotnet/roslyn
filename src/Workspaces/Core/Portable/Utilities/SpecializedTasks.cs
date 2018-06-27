@@ -9,8 +9,9 @@ namespace Roslyn.Utilities
 {
     internal static class SpecializedTasks
     {
-        public static readonly Task<bool> True = Task.FromResult(true);
-        public static readonly Task<bool> False = Task.FromResult(false);
+        public static readonly Task<bool> True = Task.FromResult<bool>(true);
+        public static readonly Task<bool> False = Task.FromResult<bool>(false);
+        public static readonly Task EmptyTask = Task.CompletedTask;
 
         public static Task<T> Default<T>()
         {

@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         context, documentSpan, delegationService, classificationService, typeMap);
                 }
 
-                return Task.CompletedTask;
+                return SpecializedTasks.EmptyTask;
             }
         }
     }

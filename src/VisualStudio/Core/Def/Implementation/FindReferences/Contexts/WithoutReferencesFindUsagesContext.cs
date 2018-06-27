@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             // Nothing to do on completion.
             protected override Task OnCompletedAsyncWorkerAsync()
-                => Task.CompletedTask;
+                => SpecializedTasks.EmptyTask;
 
             protected override async Task OnDefinitionFoundWorkerAsync(DefinitionItem definition)
             {
