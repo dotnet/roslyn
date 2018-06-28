@@ -136,3 +136,4 @@ Example:
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27803 pattern matching now will produce errors when trying to return a stack bound value to an invalid escape scope.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26743 C# will now reject expressions such as `public int* M => &this.Bar[0];` if `Bar` is a fixed field of the containing type.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27772 invocation receivers will be checked for escape scope errors now in nested scope expressions.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/28117 C# will now reject ref assignments to byval parameters.
