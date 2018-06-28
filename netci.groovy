@@ -227,7 +227,8 @@ commitPullList.each { isPr ->
         }
       }
 
-      def triggerPhraseOnly = false
+      // Disable automatic triggering until the image is updated to a new VS build with upgraded SCI/SRM
+      def triggerPhraseOnly = true
       def triggerPhraseExtra = ""
       Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.Open')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
