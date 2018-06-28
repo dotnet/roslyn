@@ -549,6 +549,59 @@ internal class NewClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task TestTrivia2()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = /*1*/ [||]new /*2*/ { /*3*/ a /*4*/ = /*5*/ 1 /*7*/ , /*8*/ b /*9*/ = /*10*/ 2 /*11*/ } /*12*/ ;
+        var t2 = /*1*/ new /*2*/ { /*3*/ a /*4*/ = /*5*/ 1 /*7*/ , /*8*/ b /*9*/ = /*10*/ 2 /*11*/ } /*12*/ ;
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = /*1*/ new {|Rename:NewClass|}( /*3*/ 1 /*7*/ , /*8*/ 2 /*11*/ ) /*12*/ ;
+        var t2 = /*1*/ new NewClass( /*3*/ 1 /*7*/ , /*8*/ 2 /*11*/ ) /*12*/ ;
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        var other = obj as NewClass;
+        return other != null &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
         public async Task NotIfReferencesAnonymousTypeInternally()
         {
             var text = @"
