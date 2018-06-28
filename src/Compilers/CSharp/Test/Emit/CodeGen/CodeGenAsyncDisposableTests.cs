@@ -14,35 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncDisposableTests : CSharpTestBase
     {
-        public static CSharpCompilation CreateCompilationWithTasksExtensions(
-            CSharpTestSource source,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            string assemblyName = "",
-            string sourceFileName = "")
-        {
-            IEnumerable<MetadataReference> allReferences = CoreClrShim.IsRunningOnCoreClr
-                ? TargetFrameworkUtil.NetStandard20References
-                : TargetFrameworkUtil.Mscorlib461ExtendedReferences.Add(TestReferences.Net461.netstandardRef);
-
-            allReferences = allReferences.Concat(new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef });
-
-            if (references != null)
-            {
-                allReferences = allReferences.Concat(references);
-            }
-
-            return CreateCompilation(
-                source,
-                allReferences,
-                options,
-                parseOptions,
-                TargetFramework.Empty,
-                assemblyName,
-                sourceFileName);
-        }
-
         private static readonly string s_interfaces = @"
 namespace System
 {

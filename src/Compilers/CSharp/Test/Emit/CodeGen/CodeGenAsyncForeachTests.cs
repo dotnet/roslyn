@@ -18,18 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
         }
 
-        public static CSharpCompilation CreateCompilationWithTasksExtensions(
-            CSharpTestSource source,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            TargetFramework targetFramework = TargetFramework.Standard,
-            string assemblyName = "",
-            string sourceFileName = "")
-            => CreateCompilation(source,
-                (references ?? ImmutableArray<MetadataReference>.Empty).Concat( new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef }),
-                options, parseOptions, targetFramework, assemblyName, sourceFileName);
-
         private static readonly string s_interfaces = @"
 namespace System.Collections.Generic
 {
