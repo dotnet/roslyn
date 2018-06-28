@@ -3867,18 +3867,18 @@ class C
             CreateCompilationWithMscorlibAndSpan(@"
 class C
 {
-    public ref long M(S reciever)
+    public ref long M(S receiver)
     {
         long x = 0;
-        ref long y = ref reciever.M(ref x);
+        ref long y = ref receiver.M(ref x);
         return ref y;
     }
 
-    public ref long M2(S reciever)
+    public ref long M2(S receiver)
     {
         long x = 0;
         {
-            ref long y = ref reciever.M(ref x);
+            ref long y = ref receiver.M(ref x);
             return ref y;
         }
     }
@@ -3910,13 +3910,13 @@ class C
     Console.ReadKey();
   }
 
-  public static ref long M(S reciever)
+  public static ref long M(S receiver)
   {
     Span<long> ls = stackalloc long[0]; // change the length of this stackalloc to move the resulting pointer and break different things
     long x = 0;
     ref var y = ref x;
     {
-      ref var z = ref reciever.M(ref y);
+      ref var z = ref receiver.M(ref y);
       return ref z;
     }
   }
