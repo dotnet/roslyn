@@ -13,7 +13,6 @@ using ServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     [CaptureTestName]
-    [Collection(nameof(SharedIntegrationHostFixture))]
     public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
     {
         protected readonly string ProjectName = "TestProj";

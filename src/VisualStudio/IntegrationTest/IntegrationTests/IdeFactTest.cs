@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
@@ -16,6 +17,7 @@ using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
+    [Collection(nameof(SharedIntegrationHostFixture))]
     public class IdeFactTest : AbstractIdeIntegrationTest
     {
         [IdeFact]
