@@ -92,8 +92,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 
         protected virtual Task<Tuple<RunSummary, ITestAssemblyFinished>> RunTestCollectionForVersionAsync(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
-            if (visualStudioVersion == VisualStudioVersion.Unspecified
-                || !IdeTestCase.IsInstalled(visualStudioVersion))
+            if (visualStudioVersion == VisualStudioVersion.Unspecified)
             {
                 return RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource);
             }

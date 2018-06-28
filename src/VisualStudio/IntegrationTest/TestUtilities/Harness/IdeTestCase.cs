@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -24,11 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         {
             SharedData = WpfTestSharedData.Instance;
             VisualStudioVersion = visualStudioVersion;
-
-            if (!IsInstalled(visualStudioVersion))
-            {
-                SkipReason = $"{visualStudioVersion} is not installed";
-            }
         }
 
         public VisualStudioVersion VisualStudioVersion
@@ -76,35 +70,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         {
             base.Serialize(data);
             data.AddValue(nameof(VisualStudioVersion), (int)VisualStudioVersion);
-            data.AddValue(nameof(SkipReason), SkipReason);
         }
 
         public override void Deserialize(IXunitSerializationInfo data)
         {
             base.Deserialize(data);
             VisualStudioVersion = (VisualStudioVersion)data.GetValue<int>(nameof(VisualStudioVersion));
-            SkipReason = data.GetValue<string>(nameof(SkipReason));
             SharedData = WpfTestSharedData.Instance;
-        }
-
-        internal static bool IsInstalled(VisualStudioVersion visualStudioVersion)
-        {
-            string dteKey;
-
-            switch (visualStudioVersion)
-            {
-                case VisualStudioVersion.VS2017:
-                    dteKey = "VisualStudio.DTE.15.0";
-                    break;
-
-                default:
-                    throw new ArgumentException();
-            }
-
-            using (var key = Registry.ClassesRoot.OpenSubKey(dteKey))
-            {
-                return key != null;
-            }
         }
     }
 }
