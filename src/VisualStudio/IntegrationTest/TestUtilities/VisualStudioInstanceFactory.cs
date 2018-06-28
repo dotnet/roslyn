@@ -207,16 +207,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
 
             _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
-            if (shouldStartNewInstance)
-            {
-                var harnessAssemblyDirectory = Path.GetDirectoryName(typeof(VisualStudioInstanceFactory).Assembly.CodeBase);
-                if (harnessAssemblyDirectory.StartsWith("file:"))
-                {
-                    harnessAssemblyDirectory = new Uri(harnessAssemblyDirectory).LocalPath;
-                }
-
-                _currentlyRunningInstance.AddCodeBaseDirectory(harnessAssemblyDirectory);
-            }
         }
 
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()

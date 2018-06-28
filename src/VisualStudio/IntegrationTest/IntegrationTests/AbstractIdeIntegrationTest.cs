@@ -34,6 +34,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             Editor = new Editor_InProc2(JoinableTaskFactory, Workspace, SendKeys);
             ErrorList = new ErrorList_InProc2(JoinableTaskFactory, Workspace);
+
+            ChangeSignatureDialog = new ChangeSignatureDialog_InProc2(JoinableTaskFactory, Editor);
         }
 
         protected JoinableTaskContext JoinableTaskContext
@@ -66,6 +68,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected JoinableTaskFactory JoinableTaskFactory => _joinableTaskFactory ?? throw new InvalidOperationException();
+
+        protected ChangeSignatureDialog_InProc2 ChangeSignatureDialog
+        {
+            get;
+        }
 
         protected Editor_InProc2 Editor
         {
@@ -126,7 +133,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
 #if false
             InteractiveWindow.CloseInteractiveWindow();
             ObjectBrowserWindow.CloseWindow();
-            ChangeSignatureDialog.CloseWindow();
+#endif
+            await ChangeSignatureDialog.CloseWindowAsync();
+#if false
             GenerateTypeDialog.CloseWindow();
             ExtractInterfaceDialog.CloseWindow();
 #endif

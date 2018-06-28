@@ -82,5 +82,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
   </ItemGroup>
 </Project>

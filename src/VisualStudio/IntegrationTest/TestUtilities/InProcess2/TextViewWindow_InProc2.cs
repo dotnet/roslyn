@@ -4,10 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
+using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -17,9 +24,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             : base(joinableTaskFactory)
         {
             Verify = new Verifier<TextViewWindow_InProc2>(this, workspace);
+            Workspace = workspace;
         }
 
         public Verifier<TextViewWindow_InProc2> Verify
+        {
+            get;
+        }
+
+        protected VisualStudioWorkspace_InProc2 Workspace
         {
             get;
         }
@@ -63,12 +76,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 var selectedCompletionSet = sessions[0].SelectedCompletionSet;
                 return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
             });
+#endif
 
-        public void ShowLightBulb()
+        public async Task ShowLightBulbAsync()
         {
-            InvokeOnUIThread(() =>
+            await InvokeOnUIThreadAsync(async () =>
             {
-                var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
+                var shell = await GetGlobalServiceAsync<SVsUIShell, IVsUIShell>();
                 var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
                 var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
 
@@ -79,18 +93,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             });
         }
 
-        public void WaitForLightBulbSession()
+        public async Task WaitForLightBulbSessionAsync()
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                var view = GetActiveTextView();
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view);
-            });
+            var view = await GetActiveTextViewAsync();
+            var broker = (await GetComponentModelAsync()).GetService<ILightBulbBroker>();
+            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view);
         }
 
+#if false
         /// <remarks>
         /// This method does not wait for async operations before
         /// querying the editor
@@ -267,41 +279,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 throw new Exception($"Failed to verify {tagTypeName} tags. Expected count: {expectedCount}, Actual count: {actualCount}. All tags: {tagsTypesString}");
             }
         });
+#endif
 
-        public bool IsLightBulbSessionExpanded()
-       => ExecuteOnActiveView(view =>
-       {
-           var broker = GetComponentModel().GetService<ILightBulbBroker>();
-
-           if (!broker.IsLightBulbSessionActive(view))
-           {
-               return false;
-           }
-
-           var session = broker.GetSession(view);
-           if (session == null || !session.IsExpanded)
-           {
-               return false;
-           }
-
-           return true;
-       });
-
-        public string[] GetLightBulbActions()
-        {
-            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+        public async Task<bool> IsLightBulbSessionExpandedAsync()
+            => await ExecuteOnActiveViewAsync(async view =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var broker = (await GetComponentModelAsync()).GetService<ILightBulbBroker>();
+                if (!broker.IsLightBulbSessionActive(view))
+                {
+                    return false;
+                }
 
-                var view = GetActiveTextView();
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                return (await GetLightBulbActionsAsync(broker, view)).Select(a => a.DisplayText).ToArray();
+                var session = broker.GetSession(view);
+                if (session == null || !session.IsExpanded)
+                {
+                    return false;
+                }
+
+                return true;
             });
+
+        public async Task<string[]> GetLightBulbActionsAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var broker = (await GetComponentModelAsync()).GetService<ILightBulbBroker>();
+            return (await GetLightBulbActionsAsync(broker, view)).Select(a => a.DisplayText).ToArray();
         }
 
         private async Task<IEnumerable<ISuggestedAction>> GetLightBulbActionsAsync(ILightBulbBroker broker, IWpfTextView view)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             if (!broker.IsLightBulbSessionActive(view))
             {
@@ -324,36 +333,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return await SelectActionsAsync(actionSets);
         }
 
-        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
+        public async Task ApplyLightBulbActionAsync(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {
-            var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, blockUntilComplete);
-            var task = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, willBlockUntilComplete);
 
-                var activeTextView = GetActiveTextView();
-                await lightBulbAction(activeTextView);
-            });
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            if (blockUntilComplete)
-            {
-                task.Join();
-            }
+            var activeTextView = await GetActiveTextViewAsync();
+            await lightBulbAction(activeTextView);
         }
 
+#if false
         /// <summary>
         /// Non-blocking version of <see cref="ExecuteOnActiveView"/>
         /// </summary>
         private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
             => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
+#endif
 
         private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {
             return async view =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                var broker = (await GetComponentModelAsync()).GetService<ILightBulbBroker>();
 
                 var actions = (await GetLightBulbActionsAsync(broker, view)).ToArray();
                 var action = actions.FirstOrDefault(a => a.DisplayText == actionName);
@@ -410,7 +414,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         private async Task<IEnumerable<ISuggestedAction>> SelectActionsAsync(IEnumerable<SuggestedActionSet> actionSets)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var actions = new List<ISuggestedAction>();
 
@@ -434,9 +438,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return actions;
         }
 
-        private static async Task<FixAllSuggestedAction> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
+        private async Task<FixAllSuggestedAction> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             foreach (var actionSet in actionSets)
             {
@@ -466,6 +470,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return null;
         }
 
+#if false
         public void DismissLightBulbSession()   
             => ExecuteOnActiveView(view =>
             {
@@ -475,5 +480,41 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 #endif
 
         protected abstract Task<IWpfTextView> GetActiveTextViewAsync();
+
+#if false
+        public void InvokeCompletionList()
+        {
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+        }
+#endif
+
+        public async Task InvokeCodeActionListAsync()
+        {
+            await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler);
+            await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService);
+
+            await ShowLightBulbAsync();
+            await WaitForLightBulbSessionAsync();
+            await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb);
+        }
+
+#if false
+        /// <summary>
+        /// Invokes the lightbulb without waiting for diagnostics
+        /// Compare to <see cref="InvokeCodeActionList"/>
+        /// </summary>
+        public void InvokeCodeActionListWithoutWaiting()
+        {
+            ShowLightBulb();
+            WaitForLightBulbSession();
+        }
+
+        public void InvokeQuickInfo()
+        {
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
+        }
+#endif
     }
 }

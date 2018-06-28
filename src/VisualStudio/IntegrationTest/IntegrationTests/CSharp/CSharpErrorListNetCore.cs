@@ -16,21 +16,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task ErrorListAsync()
         {
             await base.ErrorListAsync();
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task ErrorLevelWarningAsync()
         {
             await base.ErrorLevelWarningAsync();
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task ErrorsDuringMethodBodyEditingAsync()
         {

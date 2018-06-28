@@ -212,6 +212,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 UpdateOrAddFile(projectName, fileName, contents: documentElement.Value);
             }
         }
+#endif
 
         public void AddProjectReference(string projectName, string projectToReferenceName)
         {
@@ -220,6 +221,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             ((VSProject)project.Object).References.AddProject(projectToReference);
         }
 
+#if false
         public void AddReference(string projectName, string fullyQualifiedAssemblyName)
         {
             var project = GetProject(projectName);
@@ -486,12 +488,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-#if false
         private EnvDTE.Project GetProject(string nameOrFileName)
             => _solution.Projects.OfType<EnvDTE.Project>().First(p
                 => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
 
+#if false
         /// <summary>
         /// Update the given file if it already exists in the project, otherwise add a new file to the project.
         /// </summary>
@@ -847,19 +849,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 Thread.Yield();
             }
         }
+#endif
 
-        public void OpenFile(string projectName, string relativeFilePath)
+        public async Task OpenFileAsync(string projectName, string relativeFilePath)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
             VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Code_guid, out _, out _, out _, out var view);
 
             // Reliably set focus using NavigateToLineAndColumn
-            var textManager = GetGlobalService<SVsTextManager, IVsTextManager>();
+            var textManager = await GetGlobalServiceAsync<SVsTextManager, IVsTextManager>();
             ErrorHandler.ThrowOnFailure(view.GetBuffer(out var textLines));
             ErrorHandler.ThrowOnFailure(view.GetCaretPos(out var line, out var column));
             ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
         }
 
+#if false
         public void CloseFile(string projectName, string relativeFilePath, bool saveFile)
         {
             var document = GetOpenDocument(projectName, relativeFilePath);
@@ -928,6 +934,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 throw new InvalidOperationException("The text that we thought we were saving isn't what we saved!");
             }
         }
+#endif
 
         private string GetAbsolutePathForProjectRelativeFilePath(string projectName, string relativeFilePath)
         {
@@ -936,6 +943,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return Path.Combine(projectPath, relativeFilePath);
         }
 
+#if false
         public void ReloadProject(string projectRelativePath)
         {
             var solutionPath = Path.GetDirectoryName(_solution.FullName);
@@ -945,10 +953,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         public void RestoreNuGetPackages()
             => ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages);
+#endif
 
-        public void SaveAll()
-            => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
+        public async Task SaveAllAsync()
+            => await ExecuteCommandAsync(WellKnownCommandNames.File_SaveAll);
 
+#if false
         public void ShowErrorList()
             => ExecuteCommand(WellKnownCommandNames.View_ErrorList);
 

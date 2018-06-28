@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
@@ -23,38 +25,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 _workspace = workspace;
             }
 
-#if false
-            public void CodeAction(
+            public async Task CodeActionAsync(
                 string expectedItem,
                 bool applyFix = false,
                 bool verifyNotShowing = false,
                 bool ensureExpectedItemsAreOrdered = false,
                 FixAllScope? fixAllScope = null,
-                bool blockUntilComplete = true)
+                bool willBlockUntilComplete = true)
             {
                 var expectedItems = new[] { expectedItem };
-                CodeActions(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
-                    ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
+                await CodeActionsAsync(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
+                    ensureExpectedItemsAreOrdered, fixAllScope, willBlockUntilComplete);
             }
 
-            public void CodeActions(
+            public async Task CodeActionsAsync(
                 IEnumerable<string> expectedItems,
                 string applyFix = null,
                 bool verifyNotShowing = false,
                 bool ensureExpectedItemsAreOrdered = false,
                 FixAllScope? fixAllScope = null,
-                bool blockUntilComplete = true)
+                bool willBlockUntilComplete = true)
             {
-                _textViewWindow.ShowLightBulb();
-                _textViewWindow.WaitForLightBulbSession();
+                await _textViewWindow.ShowLightBulbAsync();
+                await _textViewWindow.WaitForLightBulbSessionAsync();
 
                 if (verifyNotShowing)
                 {
-                    CodeActionsNotShowing();
+                    await CodeActionsNotShowingAsync();
                     return;
                 }
 
-                var actions = _textViewWindow.GetLightBulbActions();
+                var actions = await _textViewWindow.GetLightBulbActionsAsync();
 
                 if (expectedItems != null && expectedItems.Any())
                 {
@@ -74,24 +75,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
                 if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
                 {
-                    _textViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
+                    await _textViewWindow.ApplyLightBulbActionAsync(applyFix, fixAllScope, willBlockUntilComplete);
 
-                    if (blockUntilComplete)
-                    {
-                        // wait for action to complete
-                        _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-                    }
+                    // wait for action to complete
+                    await _workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb);
                 }
             }
 
-            public void CodeActionsNotShowing()
+            public async Task CodeActionsNotShowingAsync()
             {
-                if (_textViewWindow.IsLightBulbSessionExpanded())
+                if (await _textViewWindow.IsLightBulbSessionExpandedAsync())
                 {
                     throw new InvalidOperationException("Expected no light bulb session, but one was found.");
                 }
             }
 
+#if false
             public void CurrentTokenType(string tokenType)
             {
                 _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);

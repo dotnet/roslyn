@@ -193,9 +193,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void LoadAssembly(string codeBase)
             => _inProc.LoadAssembly(codeBase);
 
-        public void AddCodeBaseDirectory(string directory)
-            => _inProc.AddCodeBaseDirectory(directory);
-
         public int ErrorListErrorCount
             => _inProc.GetErrorListErrorCount();
 
