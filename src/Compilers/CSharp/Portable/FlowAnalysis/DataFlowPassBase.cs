@@ -202,9 +202,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case BoundKind.ThisReference:
-                    return (object)MethodThisParameter != null ? GetOrCreateSlot(MethodThisParameter) : -1;
                 case BoundKind.BaseReference:
-                    return GetOrCreateSlot(MethodThisParameter);
+                    // PROTOTYPE(NullableReferenceTypes): Not handling `this` or `base` in lambda.
+                    // See StaticNullChecking.ThisAndBaseMemberInLambda unit test.
+                    return (object)MethodThisParameter != null ? GetOrCreateSlot(MethodThisParameter) : -1;
                 case BoundKind.Local:
                     return GetOrCreateSlot(((BoundLocal)node).LocalSymbol);
                 case BoundKind.Parameter:
