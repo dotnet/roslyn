@@ -17,7 +17,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
-    public class SolutionExplorer_InProc2 : InProcComponent2
+    public partial class SolutionExplorer_InProc2 : InProcComponent2
     {
         private Solution2 _solution;
         private string _fileName;
@@ -31,6 +31,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             var localeID = JoinableTaskFactory.Run(GetDTEAsync).LocaleID;
             _csharpProjectTemplates = InitializeCSharpProjectTemplates(localeID);
             _visualBasicProjectTemplates = InitializeVisualBasicProjectTemplates(localeID);
+
+            Verify = new Verifier(this);
+        }
+
+        public Verifier Verify
+        {
+            get;
         }
 
         private static IDictionary<string, string> InitializeCSharpProjectTemplates(int localeID)
@@ -549,6 +556,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 OpenFile(projectName, fileName);
             }
         }
+#endif
 
         /// <summary>
         /// Add new file to project.
@@ -557,7 +565,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         /// <param name="fileName">The name of the file to add.</param>
         /// <param name="contents">The contents of the file to overwrite. An empty file is create if null is passed.</param>
         /// <param name="open">Whether to open the file after it has been updated.</param>
-        public void AddFile(string projectName, string fileName, string contents = null, bool open = false)
+        public async Task AddFileAsync(string projectName, string fileName, string contents = null, bool open = false)
         {
             var project = GetProject(projectName);
             var projectDirectory = Path.GetDirectoryName(project.FullName);
@@ -578,10 +586,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             if (open)
             {
-                OpenFile(projectName, fileName);
+                await OpenFileAsync(projectName, fileName);
             }
         }
 
+#if false
         /// <summary>
         /// Adds a new standalone file to the Miscellaneous Files workspace.
         /// </summary>
@@ -621,6 +630,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             File.WriteAllText(filePath, contents);
         }
+#endif
 
         public string GetFileContents(string projectName, string relativeFilePath)
         {
@@ -630,7 +640,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             return File.ReadAllText(filePath);
         }
-#endif 
 
         public async Task BuildSolutionAsync(bool waitForBuildToFinish)
         {
