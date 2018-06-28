@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.YieldReturnStatement:
                     case BoundKind.AwaitExpression:
                     case BoundKind.UsingStatement:
+                    case BoundKind.ForEachStatement when ((BoundForEachStatement)pending.Branch).AwaitOpt != null:
                         // We don't do anything with yield return statements, async using statement, or await expressions;
                         // they are treated as if they are not jumps.
                         continue;
