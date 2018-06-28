@@ -3076,48 +3076,54 @@ Block[B0] - Entry
                 Leaving: {R2} {R1}
 
             Next (Regular) Block[B4]
-        Block[B4] - Block
-            Predecessors: [B3]
-            Statements (1)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
-                  Value: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
-
-            Jump if False (Regular) to Block[B6]
-                ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'b')
-
-            Next (Regular) Block[B5]
-        Block[B5] - Block
-            Predecessors: [B4]
-            Statements (1)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-                  Value: 
-                    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
-
-            Next (Regular) Block[B7]
-        Block[B6] - Block
-            Predecessors: [B4]
-            Statements (1)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
-                  Value: 
-                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
-
-            Next (Regular) Block[B7]
-        Block[B7] - Block
-            Predecessors: [B5] [B6]
-            Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = b ? a : i;')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'result = b ? a : i')
-                      Left: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'result')
-                      Right: 
-                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ? a : i')
-
-            Next (Regular) Block[B8]
                 Entering: {R3}
 
         .locals {R3}
+        {
+            CaptureIds: [0] [1]
+            Block[B4] - Block
+                Predecessors: [B3]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+                      Value: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
+
+                Jump if False (Regular) to Block[B6]
+                    ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'b')
+
+                Next (Regular) Block[B5]
+            Block[B5] - Block
+                Predecessors: [B4]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                      Value: 
+                        ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+
+                Next (Regular) Block[B7]
+            Block[B6] - Block
+                Predecessors: [B4]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+                      Value: 
+                        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+
+                Next (Regular) Block[B7]
+            Block[B7] - Block
+                Predecessors: [B5] [B6]
+                Statements (1)
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = b ? a : i;')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'result = b ? a : i')
+                          Left: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'result')
+                          Right: 
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ? a : i')
+
+                Next (Regular) Block[B8]
+                    Leaving: {R3}
+                    Entering: {R4}
+        }
+        .locals {R4}
         {
             Locals: [System.Int32 c]
             Block[B8] - Block
@@ -3142,7 +3148,7 @@ Block[B0] - Entry
                             ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 
                 Next (Regular) Block[B2]
-                    Leaving: {R3} {R2}
+                    Leaving: {R4} {R2}
         }
     }
 }
@@ -3176,52 +3182,62 @@ public sealed class MyClass
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+        Entering: {R1} {R2}
 
 .locals {R1}
 {
     Locals: [System.Int32 i] [System.Int32 j]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (0)
-        Jump if False (Regular) to Block[B3]
-            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Jump if False (Regular) to Block[B3]
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+
+            Next (Regular) Block[B4]
+        Block[B3] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B2] [B3]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = c ? a : b')
+                  Left: 
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = c ? a : b')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c ? a : b')
+
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+
+    Block[B5] - Block
+        Predecessors: [B4]
         Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-              Value: 
-                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-
-        Next (Regular) Block[B4]
-    Block[B3] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-              Value: 
-                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-
-        Next (Regular) Block[B4]
-    Block[B4] - Block
-        Predecessors: [B2] [B3]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = c ? a : b')
-              Left: 
-                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = c ? a : b')
-              Right: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c ? a : b')
-
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j = 0')
               Left: 
                 ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'j = 0')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 
-        Next (Regular) Block[B5]
-    Block[B5] - Block
-        Predecessors: [B4] [B5]
+        Next (Regular) Block[B6]
+    Block[B6] - Block
+        Predecessors: [B5] [B6]
         Statements (2)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i;')
               Expression: 
@@ -3237,10 +3253,10 @@ Block[B0] - Entry
                   Target: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
 
-        Next (Regular) Block[B5]
+        Next (Regular) Block[B6]
 }
 
-Block[B6] - Exit [UnReachable]
+Block[B7] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
@@ -3274,44 +3290,56 @@ public sealed class MyClass
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
+        Entering: {R1}
+
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+              Value: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+              Value: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = c ? a : b')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = c ? a : b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c ? a : b')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
+Block[B5] - Block
+    Predecessors: [B4]
     Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
-          Value: 
-            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
-
-    Jump if False (Regular) to Block[B3]
-        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-          Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (2)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = c ? a : b')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = c ? a : b')
-              Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
-              Right: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c ? a : b')
-
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = 0')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = 0')
@@ -3320,20 +3348,20 @@ Block[B4] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 
-    Next (Regular) Block[B5]
-Block[B5] - Block
-    Predecessors: [B4] [B7]
-    Statements (0)
     Next (Regular) Block[B6]
-        Entering: {R1}
+Block[B6] - Block
+    Predecessors: [B5] [B8]
+    Statements (0)
+    Next (Regular) Block[B7]
+        Entering: {R2}
 
-.locals {R1}
+.locals {R2}
 {
     Locals: [System.Int32 k]
-    Block[B6] - Block
-        Predecessors: [B5]
+    Block[B7] - Block
+        Predecessors: [B6]
         Statements (0)
-        Jump if False (Regular) to Block[B8]
+        Jump if False (Regular) to Block[B9]
             IInvocationOperation (System.Boolean MyClass.Get(out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Get(out var k)')
               Instance Receiver: 
                 null
@@ -3343,11 +3371,11 @@ Block[B5] - Block
                       ILocalReferenceOperation: k (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Leaving: {R1}
+            Leaving: {R2}
 
-        Next (Regular) Block[B7]
-    Block[B7] - Block
-        Predecessors: [B6]
+        Next (Regular) Block[B8]
+    Block[B8] - Block
+        Predecessors: [B7]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = k;')
               Expression: 
@@ -3357,12 +3385,12 @@ Block[B5] - Block
                   Right: 
                     ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
 
-        Next (Regular) Block[B5]
-            Leaving: {R1}
+        Next (Regular) Block[B6]
+            Leaving: {R2}
 }
 
-Block[B8] - Exit
-    Predecessors: [B6]
+Block[B9] - Exit
+    Predecessors: [B7]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
@@ -3470,9 +3498,9 @@ Block[B0] - Entry
 
         Next (Regular) Block[B2]
     Block[B2] - Block
-        Predecessors: [B1] [B6]
+        Predecessors: [B1] [B7]
         Statements (0)
-        Jump if False (Regular) to Block[B7]
+        Jump if False (Regular) to Block[B8]
             IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 3')
               Left: 
                 ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
@@ -3483,7 +3511,7 @@ Block[B0] - Entry
         Next (Regular) Block[B3]
     Block[B3] - Block
         Predecessors: [B2]
-        Statements (2)
+        Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i;')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'result = i')
@@ -3492,47 +3520,65 @@ Block[B0] - Entry
                   Right: 
                     ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-              Value: 
-                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: MyClass) (Syntax: 'a')
-
-        Jump if True (Regular) to Block[B5]
-            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-              Operand: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'a')
-
         Next (Regular) Block[B4]
-    Block[B4] - Block
-        Predecessors: [B3]
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-              Value: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'a')
+            Entering: {R2} {R3}
 
-        Next (Regular) Block[B6]
-    Block[B5] - Block
-        Predecessors: [B3]
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-              Value: 
-                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: MyClass) (Syntax: 'b')
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        .locals {R3}
+        {
+            CaptureIds: [0]
+            Block[B4] - Block
+                Predecessors: [B3]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                      Value: 
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: MyClass) (Syntax: 'a')
 
-        Next (Regular) Block[B6]
-    Block[B6] - Block
-        Predecessors: [B4] [B5]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: '(a ?? b).f++')
-              Expression: 
-                IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: '(a ?? b).f++')
-                  Target: 
-                    IFieldReferenceOperation: System.Int32 MyClass.f (OperationKind.FieldReference, Type: System.Int32) (Syntax: '(a ?? b).f')
-                      Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'a ?? b')
+                Jump if True (Regular) to Block[B6]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'a')
+                    Leaving: {R3}
 
-        Next (Regular) Block[B2]
+                Next (Regular) Block[B5]
+            Block[B5] - Block
+                Predecessors: [B4]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'a')
+
+                Next (Regular) Block[B7]
+                    Leaving: {R3}
+        }
+
+        Block[B6] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: MyClass) (Syntax: 'b')
+
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B5] [B6]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: '(a ?? b).f++')
+                  Expression: 
+                    IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: '(a ?? b).f++')
+                      Target: 
+                        IFieldReferenceOperation: System.Int32 MyClass.f (OperationKind.FieldReference, Type: System.Int32) (Syntax: '(a ?? b).f')
+                          Instance Receiver: 
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'a ?? b')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
-Block[B7] - Exit
+Block[B8] - Exit
     Predecessors: [B2]
     Statements (0)
 ";

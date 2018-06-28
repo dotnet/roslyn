@@ -71,7 +71,7 @@
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>
     <MicrosoftServiceHubClientVersion>1.1.122-rc</MicrosoftServiceHubClientVersion>
-    <MicrosoftSourceLinkGitHubVersion>1.0.0-beta-63001-01</MicrosoftSourceLinkGitHubVersion>
+    <MicrosoftSourceLinkVersion>1.0.0-beta-63001-01</MicrosoftSourceLinkVersion>
     <MicrosoftTplDataflowVersion>4.5.24</MicrosoftTplDataflowVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.0.26730-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
@@ -176,6 +176,7 @@
     <SystemDiagnosticsToolsVersion>4.3.0</SystemDiagnosticsToolsVersion>
     <SystemDiagnosticsTraceSourceVersion>4.3.0</SystemDiagnosticsTraceSourceVersion>
     <SystemDynamicRuntimeVersion>4.3.0</SystemDynamicRuntimeVersion>
+    <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
     <SystemGlobalizationVersion>4.3.0</SystemGlobalizationVersion>
     <SystemIdentityModelTokensJwtVersion>5.0.0</SystemIdentityModelTokensJwtVersion>
     <SystemIOVersion>4.3.0</SystemIOVersion>

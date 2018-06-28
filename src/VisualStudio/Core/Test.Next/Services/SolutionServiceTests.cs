@@ -403,7 +403,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
                 {
                     _source.SetResult(true);
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 }
 
                 public Task<bool> Called => _source.Task;

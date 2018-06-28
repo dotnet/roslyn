@@ -21,27 +21,62 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             public ArrayBuilder<RegionBuilder> Regions = null;
             public ImmutableArray<ILocalSymbol> Locals;
             public ArrayBuilder<(IMethodSymbol, ILocalFunctionOperation)> LocalFunctions = null;
+            public ArrayBuilder<CaptureId> CaptureIds = null;
+            public readonly bool IsStackSpillRegion;
 #if DEBUG
             private bool _aboutToFree = false;
 #endif 
 
-            public RegionBuilder(ControlFlowRegionKind kind, ITypeSymbol exceptionType = null, ImmutableArray<ILocalSymbol> locals = default)
+            public RegionBuilder(ControlFlowRegionKind kind, ITypeSymbol exceptionType = null, ImmutableArray<ILocalSymbol> locals = default, bool isStackSpillRegion = false)
             {
+                Debug.Assert(!isStackSpillRegion || (kind == ControlFlowRegionKind.LocalLifetime && locals.IsDefaultOrEmpty));
                 Kind = kind;
                 ExceptionType = exceptionType;
                 Locals = locals.NullToEmpty();
+                IsStackSpillRegion = isStackSpillRegion;
             }
 
             public bool IsEmpty => FirstBlock == null;
             public bool HasRegions => Regions?.Count > 0;
             public bool HasLocalFunctions => LocalFunctions?.Count > 0;
+            public bool HasCaptureIds => CaptureIds?.Count > 0;
 
 #if DEBUG
             public void AboutToFree() => _aboutToFree = true;
-#endif 
+#endif
+
+            public void AddCaptureId(int captureId)
+            {
+                Debug.Assert(Kind != ControlFlowRegionKind.Root);
+
+                if (CaptureIds == null)
+                {
+                    CaptureIds = ArrayBuilder<CaptureId>.GetInstance();
+                }
+
+                CaptureIds.Add(new CaptureId(captureId));
+            }
+
+            public void AddCaptureIds(ArrayBuilder<CaptureId> others)
+            {
+                Debug.Assert(Kind != ControlFlowRegionKind.Root);
+
+                if (others == null)
+                {
+                    return;
+                }
+
+                if (CaptureIds == null)
+                {
+                    CaptureIds = ArrayBuilder<CaptureId>.GetInstance();
+                }
+
+                CaptureIds.AddRange(others);
+            }
 
             public void Add(IMethodSymbol symbol, ILocalFunctionOperation operation)
             {
+                Debug.Assert(!IsStackSpillRegion);
                 Debug.Assert(Kind != ControlFlowRegionKind.Root);
                 Debug.Assert(symbol.MethodKind == MethodKind.LocalFunction);
 
@@ -231,6 +266,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Regions = null;
                 LocalFunctions?.Free();
                 LocalFunctions = null;
+                CaptureIds?.Free();
+                CaptureIds = null;
             }
 
             public ControlFlowRegion ToImmutableRegionAndFree(ArrayBuilder<BasicBlockBuilder> blocks,
@@ -272,8 +309,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     subRegions = ImmutableArray<ControlFlowRegion>.Empty;
                 }
 
+                CaptureIds?.Sort((x, y) => x.Value.CompareTo(y.Value));
+
                 var result = new ControlFlowRegion(Kind, FirstBlock.Ordinal, LastBlock.Ordinal, subRegions,
-                                                   Locals, LocalFunctions?.SelectAsArray(((IMethodSymbol, ILocalFunctionOperation) tuple) => tuple.Item1) ?? default,
+                                                   Locals, 
+                                                   LocalFunctions?.SelectAsArray(((IMethodSymbol, ILocalFunctionOperation) tuple) => tuple.Item1) ?? default,
+                                                   CaptureIds?.ToImmutable() ?? default,
                                                    ExceptionType,
                                                    enclosing);
 
