@@ -4843,6 +4843,28 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInTupleArrayCreation2()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new(
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new (
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
         {
             var code = @"static class Class5

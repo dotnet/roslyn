@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // new (int, int)[]
             if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
                 previousToken.Kind() == SyntaxKind.NewKeyword &&
-                currentToken.Parent.Kind() == SyntaxKind.ObjectCreationExpression)
+                previousToken.Parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression))
             {
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
