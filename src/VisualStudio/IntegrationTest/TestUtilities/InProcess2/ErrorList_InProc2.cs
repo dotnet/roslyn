@@ -12,11 +12,17 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
-    public class ErrorList_InProc2 : InProcComponent2
+    public partial class ErrorList_InProc2 : InProcComponent2
     {
         public ErrorList_InProc2(TestServices testServices)
             : base(testServices)
         {
+            Verify = new Verifier(this);
+        }
+
+        public Verifier Verify
+        {
+            get;
         }
 
         public async Task ShowErrorListAsync()
@@ -57,24 +63,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             ErrorHandler.ThrowOnFailure(errorItems.ElementAt(itemIndex).NavigateTo());
         }
 
-#if false
-        public int GetErrorCount()
+        public async Task<int> GetErrorCountAsync(__VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
         {
-            var errorItems = GetErrorItems();
+            var errorItems = await GetErrorItemsAsync();
             try
             {
                 return errorItems
                     .AsEnumerable()
+                    .Where(e => ((IVsErrorItem)e).GetCategory() <= minimumSeverity)
                     .Count();
             }
             catch (IndexOutOfRangeException)
             {
                 // It is entirely possible that the items in the error list are modified
                 // after we start iterating, in which case we want to try again.
-                return GetErrorCount();
+                return await GetErrorCountAsync(minimumSeverity);
             }
         }
-#endif
 
         public async Task<ErrorListItem[]> GetErrorListContentsAsync(__VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
         {

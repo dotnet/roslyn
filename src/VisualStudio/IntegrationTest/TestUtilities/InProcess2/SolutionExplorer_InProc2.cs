@@ -839,20 +839,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-#if false
-        public void OpenFileWithDesigner(string projectName, string relativeFilePath)
+        public async Task OpenFileWithDesignerAsync(string projectName, string relativeFilePath)
         {
-            var projectItem = GetProjectItem(projectName, relativeFilePath);
-            var window = projectItem.Open(EnvDTE.Constants.vsViewKindDesigner);
-            window.Activate();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(projectItem.Name))
-            {
-                Thread.Yield();
-            }
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+            VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Designer_guid, out _, out _, out var windowFrame, out _);
+
+            ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
-#endif
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath)
         {
@@ -868,10 +863,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
         }
 
-#if false
-        public void CloseFile(string projectName, string relativeFilePath, bool saveFile)
+        public async Task CloseFileAsync(string projectName, string relativeFilePath, bool saveFile)
         {
-            var document = GetOpenDocument(projectName, relativeFilePath);
+            var document = await GetOpenDocumentAsync(projectName, relativeFilePath);
             if (saveFile)
             {
                 SaveFileWithExtraValidation(document);
@@ -883,10 +877,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-        private EnvDTE.Document GetOpenDocument(string projectName, string relativeFilePath)
+        private async Task<EnvDTE.Document> GetOpenDocumentAsync(string projectName, string relativeFilePath)
         {
             var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
-            var documents = GetDTE().Documents.Cast<EnvDTE.Document>();
+            var documents = (await GetDTEAsync()).Documents.Cast<EnvDTE.Document>();
             var document = documents.FirstOrDefault(d => d.FullName == filePath);
 
             if (document == null)
@@ -921,9 +915,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return document;
         }
 
-        public void SaveFile(string projectName, string relativeFilePath)
+        public async Task SaveFile(string projectName, string relativeFilePath)
         {
-            SaveFileWithExtraValidation(GetOpenDocument(projectName, relativeFilePath));
+            SaveFileWithExtraValidation(await GetOpenDocumentAsync(projectName, relativeFilePath));
         }
 
         private static void SaveFileWithExtraValidation(EnvDTE.Document document)
@@ -937,7 +931,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 throw new InvalidOperationException("The text that we thought we were saving isn't what we saved!");
             }
         }
-#endif
 
         private string GetAbsolutePathForProjectRelativeFilePath(string projectName, string relativeFilePath)
         {

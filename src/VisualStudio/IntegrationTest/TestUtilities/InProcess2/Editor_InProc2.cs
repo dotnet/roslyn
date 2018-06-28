@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -19,6 +21,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using WinForms = System.Windows.Forms;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -488,12 +491,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
             while (true);
         }
+#endif
 
-        public void AddWinFormButton(string buttonName)
+        public async Task AddWinFormButtonAsync(string buttonName)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             using (var waitHandle = new ManualResetEvent(false))
             {
-                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+                var designerHost = (IDesignerHost)(await GetDTEAsync()).ActiveWindow.Object;
                 var componentChangeService = (IComponentChangeService)designerHost;
                 void ComponentAdded(object sender, ComponentEventArgs e)
                 {
@@ -508,13 +514,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
                 try
                 {
-                    var mainForm = (Form)designerHost.RootComponent;
-                    InvokeOnUIThread(() =>
-                    {
-                        var newControl = (System.Windows.Forms.Button)designerHost.CreateComponent(typeof(System.Windows.Forms.Button), buttonName);
-                        newControl.Parent = mainForm;
-                    });
-                    waitHandle.WaitOne();
+                    var mainForm = (WinForms.Form)designerHost.RootComponent;
+                    var newControl = (WinForms.Button)designerHost.CreateComponent(typeof(WinForms.Button), buttonName);
+                    newControl.Parent = mainForm;
+                    await waitHandle;
                 }
                 finally
                 {
@@ -523,15 +526,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-        public void DeleteWinFormButton(string buttonName)
+        public async Task DeleteWinFormButtonAsync(string buttonName)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             using (var waitHandle = new ManualResetEvent(false))
             {
-                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+                var designerHost = (IDesignerHost)(await GetDTEAsync()).ActiveWindow.Object;
                 var componentChangeService = (IComponentChangeService)designerHost;
                 void ComponentRemoved(object sender, ComponentEventArgs e)
                 {
-                    var control = (System.Windows.Forms.Control)e.Component;
+                    var control = (WinForms.Control)e.Component;
                     if (control.Name == buttonName)
                     {
                         waitHandle.Set();
@@ -542,11 +547,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
                 try
                 {
-                    InvokeOnUIThread(() =>
-                    {
-                        designerHost.DestroyComponent(designerHost.Container.Components[buttonName]);
-                    });
-                    waitHandle.WaitOne();
+                    designerHost.DestroyComponent(designerHost.Container.Components[buttonName]);
+
+                    await waitHandle;
                 }
                 finally
                 {
@@ -555,11 +558,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
+        public async Task EditWinFormButtonPropertyAsync(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             using (var waitHandle = new ManualResetEvent(false))
             {
-                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+                var designerHost = (IDesignerHost)(await GetDTEAsync()).ActiveWindow.Object;
                 var componentChangeService = (IComponentChangeService)designerHost;
 
                 object GetEnumPropertyValue(string typeName, string value)
@@ -594,22 +599,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    var button = designerHost.Container.Components[buttonName];
+                    var properties = TypeDescriptor.GetProperties(button);
+                    var property = properties[propertyName];
+                    if (propertyTypeName == null)
                     {
-                        var button = designerHost.Container.Components[buttonName];
-                        var properties = TypeDescriptor.GetProperties(button);
-                        var property = properties[propertyName];
-                        if (propertyTypeName == null)
-                        {
-                            property.SetValue(button, propertyValue);
-                        }
-                        else
-                        {
-                            var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
-                            property.SetValue(button, enumPropertyValue);
-                        }
-                    });
-                    waitHandle.WaitOne();
+                        property.SetValue(button, propertyValue);
+                    }
+                    else
+                    {
+                        var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
+                        property.SetValue(button, enumPropertyValue);
+                    }
+
+                    await waitHandle;
                 }
                 finally
                 {
@@ -618,11 +621,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-        public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
+        public async Task EditWinFormButtonEventAsync(string buttonName, string eventName, string eventHandlerName)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             using (var waitHandle = new ManualResetEvent(false))
             {
-                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+                var designerHost = (IDesignerHost)(await GetDTEAsync()).ActiveWindow.Object;
                 var componentChangeService = (IComponentChangeService)designerHost;
                 void ComponentChanged(object sender, ComponentChangedEventArgs e)
                 {
@@ -636,15 +641,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
                 try
                 {
-                    InvokeOnUIThread(() =>
-                    {
-                        var button = designerHost.Container.Components[buttonName];
-                        var eventBindingService = (IEventBindingService)button.Site.GetService(typeof(IEventBindingService));
-                        var events = TypeDescriptor.GetEvents(button);
-                        var eventProperty = eventBindingService.GetEventProperty(events.Find(eventName, ignoreCase: true));
-                        eventProperty.SetValue(button, eventHandlerName);
-                    });
-                    waitHandle.WaitOne();
+                    var button = designerHost.Container.Components[buttonName];
+                    var eventBindingService = (IEventBindingService)button.Site.GetService(typeof(IEventBindingService));
+                    var events = TypeDescriptor.GetEvents(button);
+                    var eventProperty = eventBindingService.GetEventProperty(events.Find(eventName, ignoreCase: true));
+                    eventProperty.SetValue(button, eventHandlerName);
+
+                    await waitHandle;
                 }
                 finally
                 {
@@ -653,14 +656,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+        public async Task<string> GetWinFormButtonPropertyValueAsync(string buttonName, string propertyName)
         {
-            var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+            var designerHost = (IDesignerHost)(await GetDTEAsync()).ActiveWindow.Object;
             var button = designerHost.Container.Components[buttonName];
             var properties = TypeDescriptor.GetProperties(button);
             return properties[propertyName].GetValue(button) as string;
         }
 
+#if false
         public void Undo()
             => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Undo);
 #endif
@@ -763,13 +767,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             NavigateToSendKeys(text);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigateTo);
         }
+#endif
 
-        public void SelectTextInCurrentDocument(string text)
+        public async Task SelectTextInCurrentDocumentAsync(string text)
         {
-            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
-            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
+            await PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
+            await PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
+#if false
         public void DeleteText(string text)
         {
             SelectTextInCurrentDocument(text);
