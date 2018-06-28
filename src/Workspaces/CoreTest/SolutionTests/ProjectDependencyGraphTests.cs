@@ -76,6 +76,54 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "A", new string[] { });
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTransitiveReferencesIncrementalUpdateInMiddle()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C -> D
+            //
+            // but we will add the B -> C link last, to verify that when we add the B to C link we update the references of A.
+
+            var solution = CreateSolutionFromReferenceMap("A B C D");
+            VerifyTransitiveReferences(solution, "A", new string[] { });
+            VerifyTransitiveReferences(solution, "B", new string[] { });
+            VerifyTransitiveReferences(solution, "C", new string[] { });
+            VerifyTransitiveReferences(solution, "D", new string[] { });
+
+            solution = AddProjectReferences(solution, "A", new string[] { "B" });
+            solution = AddProjectReferences(solution, "C", new string[] { "D" });
+
+            VerifyDirectReferences(solution, "A", new string[] { "B" });
+            VerifyDirectReferences(solution, "C", new string[] { "D" });
+
+            VerifyTransitiveReferences(solution, "A", new string[] { "B" });
+            VerifyTransitiveReferences(solution, "B", new string[] { });
+            VerifyTransitiveReferences(solution, "C", new string[] { "D" });
+            VerifyTransitiveReferences(solution, "D", new string[] { });
+
+            solution = AddProjectReferences(solution, "B", new string[] { "C" });
+
+            VerifyDirectReferences(solution, "B", new string[] { "C" });
+
+            VerifyTransitiveReferences(solution, "A", new string[] { "B", "C", "D" });
+            VerifyTransitiveReferences(solution, "B", new string[] { "C", "D" });
+            VerifyTransitiveReferences(solution, "C", new string[] { "D" });
+            VerifyTransitiveReferences(solution, "D", new string[] { });
+        }
+
+        private void VerifyDirectReferences(Solution solution, string project, string[] expectedResults)
+        {
+            var projectDependencyGraph = solution.GetProjectDependencyGraph();
+            var projectId = solution.GetProjectsByName(project).Single().Id;
+            var projectIds = projectDependencyGraph.GetProjectsThatThisProjectDirectlyDependsOn(projectId);
+
+            var actualResults = projectIds.Select(id => solution.GetProject(id).Name);
+            Assert.Equal<string>(
+                expectedResults.OrderBy(n => n),
+                actualResults.OrderBy(n => n));
+        }
+
         private void VerifyTransitiveReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
@@ -83,7 +131,6 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projectIds = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
 
             var actualResults = projectIds.Select(id => solution.GetProject(id).Name);
-
             Assert.Equal<string>(
                 expectedResults.OrderBy(n => n),
                 actualResults.OrderBy(n => n));
@@ -101,6 +148,37 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "A", new string[] { "B", "C" });
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "C", new string[] { });
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("D:C,B B:A C A"), "A", new string[] { "D", "B" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestReverseTransitiveReferencesIncrementalUpdateInMiddle()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C -> D
+            //
+            // but we will add the B -> C link last, to verify that when we add the B to C link we update the reverse references of D.
+
+            var solution = CreateSolutionFromReferenceMap("A B C D");
+            VerifyReverseTransitiveReferences(solution, "A", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "B", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { });
+
+            solution = AddProjectReferences(solution, "A", new string[] { "B" });
+            solution = AddProjectReferences(solution, "C", new string[] { "D" });
+
+            VerifyReverseTransitiveReferences(solution, "A", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { "C"});
+
+            solution = AddProjectReferences(solution, "B", new string[] { "C" });
+
+            VerifyReverseTransitiveReferences(solution, "A", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { "A", "B" });
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { "A", "B", "C" });
         }
 
         private void VerifyReverseTransitiveReferences(Solution solution, string project, string[] expectedResults)
