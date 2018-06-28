@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
             var bufferGraph = _bufferGraphFactoryService.CreateBufferGraph(_projectionBuffer);
 
-            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, this.InImmediateWindow);
+            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, _debuggerTextLines, InImmediateWindow);
             return true;
         }
 

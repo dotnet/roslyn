@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -23,15 +24,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         /// The actual debugger view of the watch or immediate window that we're wrapping
         /// </summary>
         private readonly IWpfTextView _innerTextView;
+        private readonly IVsTextLines _debuggerTextLines;
 
         public DebuggerTextView(
             IWpfTextView innerTextView,
             IBufferGraph bufferGraph,
+            IVsTextLines debuggerTextLines,
             bool isImmediateWindow)
         {
             _innerTextView = innerTextView;
-            this.BufferGraph = bufferGraph;
-            this.IsImmediateWindow = isImmediateWindow;
+            _debuggerTextLines = debuggerTextLines;
+            BufferGraph = bufferGraph;
+            IsImmediateWindow = isImmediateWindow;
         }
 
         /// <summary>
@@ -58,6 +62,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         public bool IsImmediateWindow
         {
             get;
+        }
+
+        public uint StartBufferUpdate()
+        {
+            _debuggerTextLines.GetStateFlags(out var bufferFlags);
+            _debuggerTextLines.SetStateFlags((uint)((BUFFERSTATEFLAGS)bufferFlags & ~BUFFERSTATEFLAGS.BSF_USER_READONLY));
+
+            return bufferFlags;
+        }
+
+        public void EndBufferUpdate(uint cookie)
+        {
+            _debuggerTextLines.SetStateFlags(cookie);
         }
 
         public ITextCaret Caret
