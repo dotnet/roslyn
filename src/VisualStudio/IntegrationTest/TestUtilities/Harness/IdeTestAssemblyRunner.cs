@@ -63,7 +63,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 
                             var test = new XunitTest(testCase, testCase.DisplayName);
                             ExecutionMessageSink.OnMessage(new TestStarting(test));
-                            ExecutionMessageSink.OnMessage(new TestFailed(test, 0, null, new InvalidOperationException("Test did not run due to a harness failure.", ex)));
+
+                            if (!string.IsNullOrEmpty(testCase.SkipReason))
+                            {
+                                ExecutionMessageSink.OnMessage(new TestSkipped(test, testCase.SkipReason));
+                            }
+                            else
+                            {
+                                ExecutionMessageSink.OnMessage(new TestFailed(test, 0, null, new InvalidOperationException("Test did not run due to a harness failure.", ex)));
+                            }
+
                             ExecutionMessageSink.OnMessage(new TestFinished(test, 0, null));
 
                             ExecutionMessageSink.OnMessage(new TestCaseFinished(testCase, 0, 1, 1, 0));
@@ -209,7 +218,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 
         private VisualStudioVersion GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
         {
-            if (testCase is IdeTestCase ideTestCase)
+            if (testCase is IdeTestCase ideTestCase && string.IsNullOrEmpty(testCase.SkipReason))
             {
                 return ideTestCase.VisualStudioVersion;
             }
