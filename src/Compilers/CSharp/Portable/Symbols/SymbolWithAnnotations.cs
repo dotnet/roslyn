@@ -348,6 +348,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsSZArray() => TypeSymbol.IsSZArray();
         public TypeSymbolWithAnnotations GetNullableUnderlyingType() => TypeSymbol.GetNullableUnderlyingTypeWithAnnotations();
 
+        internal abstract bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress);
+        internal abstract bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress);
+
         public abstract override string ToDisplayString(SymbolDisplayFormat format = null);
         internal string GetDebuggerDisplay() => ToDisplayString(DebuggerDisplayFormat);
 
@@ -641,6 +644,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public sealed override bool? IsNullable => _isNullable;
             public override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
 
+            internal override bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress)
+            {
+                if (_typeSymbol.TypeKind == TypeKind.TypeParameter)
+                {
+                    return ((TypeParameterSymbol)_typeSymbol).GetIsReferenceType(inProgress);
+                }
+                return _typeSymbol.IsReferenceType;
+            }
+
+            internal override bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress)
+            {
+                if (_typeSymbol.TypeKind == TypeKind.TypeParameter)
+                {
+                    return ((TypeParameterSymbol)_typeSymbol).GetIsValueType(inProgress);
+                }
+                return _typeSymbol.IsValueType;
+            }
+
             public override TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers)
             {
                 return new NonLazyType(_typeSymbol, _isNullable, customModifiers);
@@ -744,6 +765,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return _resolved;
                 }
+            }
+
+            internal override bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress)
+            {
+                return _underlying.GetIsReferenceType(inProgress);
+            }
+
+            internal override bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress)
+            {
+                return _underlying.GetIsValueType(inProgress);
             }
 
             public override TypeSymbol NullableUnderlyingTypeOrSelf => _underlying.TypeSymbol;

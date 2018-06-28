@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private bool _lazyIsVarArg;
+        // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbolWithAnnotations _lazyReturnType;
         private TypeSymbol _iteratorElementType;
@@ -423,33 +424,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
         {
-            get
+            var clauses = _lazyTypeParameterConstraints;
+            if (clauses.IsDefault)
             {
-                if (_lazyTypeParameterConstraints.IsDefault)
+                // Early step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var constraints = this.MakeTypeParameterConstraintsEarly(
+                    _binder,
+                    TypeParameters,
+                    _syntax.ConstraintClauses,
+                    _syntax.Identifier.GetLocation(),
+                    diagnostics);
+                lock (_declarationDiagnostics)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    var constraints = this.MakeTypeParameterConstraints(
-                        _binder,
-                        TypeParameters,
-                        _syntax.ConstraintClauses,
-                        _syntax.Identifier.GetLocation(),
-                        diagnostics);
-
-                    lock (_declarationDiagnostics)
+                    if (_lazyTypeParameterConstraints.IsDefault)
                     {
-                        if (_lazyTypeParameterConstraints.IsDefault)
-                        {
-                            _declarationDiagnostics.AddRange(diagnostics);
-                            _lazyTypeParameterConstraints = constraints;
-                        }
+                        _declarationDiagnostics.AddRange(diagnostics);
+                        _lazyTypeParameterConstraints = constraints;
                     }
-                    diagnostics.Free();
                 }
-
-                return _lazyTypeParameterConstraints;
+                diagnostics.Free();
+                clauses = _lazyTypeParameterConstraints;
             }
+
+            if (!early && clauses.IsEarly())
+            {
+                // Late step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var constraints = this.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
+                Debug.Assert(!constraints.IsEarly());
+                lock (_declarationDiagnostics)
+                {
+                    if (_lazyTypeParameterConstraints.IsEarly())
+                    {
+                        _declarationDiagnostics.AddRange(diagnostics);
+                        _lazyTypeParameterConstraints = constraints;
+                    }
+                }
+                diagnostics.Free();
+            }
+
+            return _lazyTypeParameterConstraints;
         }
 
         public override int GetHashCode()

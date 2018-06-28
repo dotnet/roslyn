@@ -463,13 +463,119 @@ public class B : I<(object X, object? Y)>
         // PROTOTYPE(NullableReferenceTypes): Execute some of these same tests with feature disabled.
 
         [Fact]
-        public void EmitAttribute_Constraint()
+        public void EmitAttribute_Constraint_Nullable()
+        {
+            var source =
+@"public class A
+{
+}
+public class C<T> where T : A?
+{
+}
+public class D<T> where T : A
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "C`1");
+                var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
+                var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor()");
+                typeDef = GetTypeDefinitionByName(reader, "D`1");
+                typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
+                constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                AssertAttributes(reader, constraint.GetCustomAttributes());
+            });
+
+            var source2 =
+@"class B : A { }
+class Program
+{
+    static void Main()
+    {
+        new C<A?>();
+        new C<A>();
+        new C<B?>();
+        new C<B>();
+        new D<A?>();
+        new D<A>();
+        new D<B?>();
+        new D<B>();
+    }
+}";
+            var comp2 = CreateCompilation(new[] { source, source2 }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Report warning for `new D<A?>()` and `new D<B?>()`:
+            comp2.VerifyEmitDiagnostics();
+
+            comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            // PROTOTYPE(NullableReferenceTypes): Report warning for `new D<A?>()` and `new D<B?>()`:
+            comp2.VerifyEmitDiagnostics();
+
+            var type = comp2.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("A?", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            type = comp2.GetMember<NamedTypeSymbol>("D");
+            Assert.Equal("A!", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Test with [NonNullTypes].
+        [Fact]
+        public void EmitAttribute_Constraint_Oblivious()
+        {
+            var source =
+@"public class A<T>
+{
+}
+public class C<T> where T : A<object>
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "C`1");
+                var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
+                var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                AssertAttributes(reader, constraint.GetCustomAttributes());
+            });
+
+            var source2 =
+@"class B1 : A<object?> { }
+class B2 : A<object> { }
+class Program
+{
+    static void Main()
+    {
+        new C<A<object?>>();
+        new C<A<object>>();
+        new C<A<object?>?>();
+        new C<A<object>?>();
+        new C<B1>();
+        new C<B2>();
+        new C<B1?>();
+        new C<B2?>();
+    }
+}";
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyDiagnostics();
+
+            var type = comp2.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("A<System.Object>", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+        }
+
+        [WorkItem(27742, "https://github.com/dotnet/roslyn/issues/27742")]
+        [Fact]
+        public void EmitAttribute_Constraint_Nested()
         {
             var source =
 @"public class A<T>
 {
 }
 public class B<T> where T : A<object?>
+{
+}
+public class C<T> where T : A<object>
 {
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -480,6 +586,10 @@ public class B<T> where T : A<object?>
                 var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
                 AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                typeDef = GetTypeDefinitionByName(reader, "C`1");
+                typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
+                constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                AssertAttributes(reader, constraint.GetCustomAttributes());
             });
 
             var source2 =
@@ -488,16 +598,65 @@ public class B<T> where T : A<object?>
     static void Main()
     {
         new B<A<object?>>();
-        new B<A<object>>();
+        new B<A<object>>(); // warning
+        new C<A<object?>>(); // warning
+        new C<A<object>>();
     }
 }";
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            // PROTOTYPE(NullableReferenceTypes): Report warning for `new B<A<object>>()`:
-            // https://github.com/dotnet/roslyn/issues/27742.
+            var comp2 = CreateCompilation(new[] { source, source2 }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Report warning for `new B<A<object>>()` and `new C<A<object?>>()`.
+            comp2.VerifyEmitDiagnostics();
+
+            comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            // PROTOTYPE(NullableReferenceTypes): Report warning for `new B<A<object>>()` and `new C<A<object?>>()`.
             comp2.VerifyDiagnostics();
 
             var type = comp2.GetMember<NamedTypeSymbol>("B");
-            Assert.Equal("A<System.Object?>", type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
+            Assert.Equal("A<System.Object?>!", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            type = comp2.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("A<System.Object!>!", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Test `class C<T> where T : class? { }`.
+
+        [Fact]
+        public void EmitAttribute_Constraint_TypeParameter()
+        {
+            var source =
+@"public class C<T, U>
+    where T : class
+    where U : T?
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "C`2");
+                var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[1]);
+                var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor()");
+            });
+
+            var source2 =
+@"class Program
+{
+    static void Main()
+    {
+        new C<object?, string?>();
+        new C<object?, string>();
+        new C<object, string?>();
+        new C<object, string>();
+    }
+}";
+            var comp2 = CreateCompilation(new[] { source, source2 }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyEmitDiagnostics();
+
+            comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyEmitDiagnostics();
+
+            var type = comp2.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("T?", type.TypeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
         }
 
         [Fact]
@@ -1328,7 +1487,7 @@ public class B<T> :
                 type.Interfaces()[0].ToTestDisplayString());
             Assert.Equal(
                 "A<(System.Object? _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)>",
-                type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
+                type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
             Assert.Equal(
                 "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9)",
                 type.GetMember<FieldSymbol>("Field").Type.ToTestDisplayString());

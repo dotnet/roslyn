@@ -136,11 +136,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         case TypeKind.TypeParameter:
                             {
-                                var containingSymbol = typeParameter.ContainingSymbol;
                                 var constraintTypeParameter = (TypeParameterSymbol)constraintType.TypeSymbol;
                                 ConsList<TypeParameterSymbol> constraintsInProgress;
 
-                                if (constraintTypeParameter.ContainingSymbol == containingSymbol)
+                                if (constraintTypeParameter.ContainingSymbol == typeParameter.ContainingSymbol)
                                 {
                                     // The constraint type parameter is from the same containing type or method.
                                     if (inProgress.ContainsReference(constraintTypeParameter))
@@ -223,6 +222,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                         case TypeKind.Struct:
+                            if (constraintType.IsNullableType())
+                            {
+                                var underlyingType = constraintType.GetNullableUnderlyingType();
+                                if (underlyingType.TypeKind == TypeKind.TypeParameter)
+                                {
+                                    var underlyingTypeParameter = (TypeParameterSymbol)underlyingType.TypeSymbol;
+                                    if (underlyingTypeParameter.ContainingSymbol == typeParameter.ContainingSymbol)
+                                    {
+                                        // The constraint type parameter is from the same containing type or method.
+                                        if (inProgress.ContainsReference(underlyingTypeParameter))
+                                        {
+                                            // "Circular constraint dependency involving '{0}' and '{1}'"
+                                            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(underlyingTypeParameter, new CSDiagnosticInfo(ErrorCode.ERR_CircularConstraint, underlyingTypeParameter, typeParameter)));
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
                             Debug.Assert(inherited || currentCompilation == null);
                             constraintEffectiveBase = corLibrary.GetSpecialType(SpecialType.System_ValueType);
                             constraintDeducedBase = constraintType.TypeSymbol;
@@ -309,36 +326,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return bounds;
         }
 
-        internal static void CheckConstraintTypesVisibility(
+        private static void CheckConstraintTypeVisibility(
             this Symbol containingSymbol,
             Location location,
-            ImmutableArray<TypeParameterConstraintClause> constraintClauses,
+            TypeSymbolWithAnnotations constraintType,
             DiagnosticBag diagnostics)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-            foreach (var clause in constraintClauses)
+            if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteDiagnostics))
             {
-                if (clause == null)
-                {
-                    continue;
-                }
-
-                foreach (var constraintType in clause.ConstraintTypes)
-                {
-                    if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteDiagnostics))
-                    {
-                        // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
-                        diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.TypeSymbol);
-                    }
-                }
+                // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
+                diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.TypeSymbol);
             }
-
             diagnostics.Add(location, useSiteDiagnostics);
         }
 
-        internal static ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(
-            this SourceMethodSymbol containingSymbol,
+        /// <summary>
+        /// The "early" phase for resolving constraint clauses where constraint types are bound.
+        /// Diagnostics are reported for binding types only, and the returned constraint clauses
+        /// will contain any invalid or duplicate types that were in the source.
+        /// The "early" phase is sufficient to support TypeParameterSymbol.IsValueType and
+        /// IsReferenceType without causing cycles.
+        /// </summary>
+        internal static ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsEarly(
+            this Symbol containingSymbol,
             Binder binder,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
@@ -355,9 +366,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
             binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
-            var result = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, constraintClauses, diagnostics);
-            containingSymbol.CheckConstraintTypesVisibility(location, result, diagnostics);
-            return result;
+            return binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, constraintClauses, diagnostics);
+        }
+
+        /// <summary>
+        /// The "late" phase for resolving constraint clauses where the constraints from the
+        /// "early" phase are checked for invalid types, duplicate types, and accessibility. 
+        /// </summary>
+        internal static ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsLate(
+            this Symbol containingSymbol,
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            ImmutableArray<TypeParameterConstraintClause> constraintClauses,
+            DiagnosticBag diagnostics)
+        {
+            Debug.Assert(typeParameters.Length > 0);
+            Debug.Assert(typeParameters.Length == constraintClauses.Length);
+            int n = typeParameters.Length;
+            var builder = ArrayBuilder<TypeParameterConstraintClause>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                builder.Add(MakeTypeParameterConstraintsLate(containingSymbol, typeParameters[i], constraintClauses[i], diagnostics));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        private static TypeParameterConstraintClause MakeTypeParameterConstraintsLate(
+            Symbol containingSymbol,
+            TypeParameterSymbol typeParameter,
+            TypeParameterConstraintClause constraintClause,
+            DiagnosticBag diagnostics)
+        {
+            var constraintTypeBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var constraintTypes = constraintClause.ConstraintTypes;
+            int n = constraintTypes.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var constraintType = constraintTypes[i];
+                var syntax = constraintClause.Syntax[i];
+                // Only valid constraint types are included in ConstraintTypes
+                // since, in general, it may be difficult to support all invalid types.
+                // In the future, we may want to include some invalid types
+                // though so the public binding API has the most information.
+                if (Binder.IsValidConstraint(typeParameter.Name, syntax, constraintType, constraintClause.Constraints, constraintTypeBuilder, diagnostics))
+                {
+                    containingSymbol.CheckConstraintTypeVisibility(syntax.Location, constraintType, diagnostics);
+                    constraintTypeBuilder.Add(constraintType);
+                }
+            }
+            if (constraintTypeBuilder.Count < n)
+            {
+                constraintTypes = constraintTypeBuilder.ToImmutable();
+            }
+            constraintTypeBuilder.Free();
+            // Verify constraints on any other partial declarations.
+            foreach (var otherClause in constraintClause.OtherPartialDeclarations)
+            {
+                MakeTypeParameterConstraintsLate(containingSymbol, typeParameter, otherClause, diagnostics);
+            }
+            return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypes);
         }
 
         // Based on SymbolLoader::SetOverrideConstraints.
@@ -978,12 +1044,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsReferenceType(TypeParameterSymbol typeParameter, ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
         {
-            return typeParameter.HasReferenceTypeConstraint || TypeParameterSymbol.IsReferenceTypeFromConstraintTypes(constraintTypes);
+            return typeParameter.HasReferenceTypeConstraint || typeParameter.IsReferenceTypeFromConstraintTypes(constraintTypes, ConsList<TypeParameterSymbol>.Empty);
         }
 
         private static bool IsValueType(TypeParameterSymbol typeParameter, ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
         {
-            return typeParameter.HasValueTypeConstraint || TypeParameterSymbol.IsValueTypeFromConstraintTypes(constraintTypes);
+            return typeParameter.HasValueTypeConstraint || typeParameter.IsValueTypeFromConstraintTypes(constraintTypes, ConsList<TypeParameterSymbol>.Empty);
         }
 
         private static TypeParameterDiagnosticInfo GenerateConflictingConstraintsError(TypeParameterSymbol typeParameter, TypeSymbol deducedBase, bool classConflict)
