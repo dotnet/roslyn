@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             var completedTestCaseIds = new HashSet<string>();
             try
             {
-                ExecutionMessageSink.OnMessage(new TestAssemblyStarting(testCases, TestAssembly, DateTime.Now, GetTestFrameworkEnvironment(), GetTestFrameworkDisplayName()));
                 ExecutionMessageSink.OnMessage(new TestCollectionStarting(testCases, testCollection));
 
                 foreach (var testCasesByTargetVersion in testCases.GroupBy(GetVisualStudioVersionForTestCase))
@@ -93,7 +92,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                 var testsFailed = testAssemblyFinishedMessages.Sum(message => message.TestsFailed);
                 var testsSkipped = testAssemblyFinishedMessages.Sum(message => message.TestsSkipped);
                 ExecutionMessageSink.OnMessage(new TestCollectionFinished(testCases, testCollection, totalExecutionTime, testsRun, testsFailed, testsSkipped));
-                ExecutionMessageSink.OnMessage(new TestAssemblyFinished(testCases, TestAssembly, totalExecutionTime, testsRun, testsFailed, testsSkipped));
             }
 
             return result;
