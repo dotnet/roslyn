@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int numDeclarations = declarations.Length;
                 for (int i = numDeclarations - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
                 {
-                    result = RewriteDeclarationUsingStatement(usingSyntax, declarations[i], result, idisposableConversion);
+                    result = RewriteDeclarationUsingStatement(usingSyntax, declarations[i], result, idisposableConversion, node.DisposeMethodOpt);
                 }
 
                 // Declare all locals in a single, top-level block so that the scope is correct in the debugger
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
-            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
+            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, node.DisposeMethodOpt);
 
             // { ResourceType temp = expr; try { ... } finally { ... } }
             return new BoundBlock(
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.
         /// Assumes that using statements with multiple locals have already been split up into multiple using statements.
         /// </remarks>
-        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion idisposableConversion)
+        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion idisposableConversion, MethodSymbol methodSymbol)
         {
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator tempAssignment;
                 BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
 
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, methodSymbol);
 
                 return new BoundBlock(
                     syntax: usingSyntax,
@@ -197,14 +197,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundLocal);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundLocal, methodSymbol);
 
                 // localSymbol will be declared by an enclosing block
                 return BoundBlock.SynthesizedNoLocals(usingSyntax, rewrittenDeclaration, tryFinally);
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local)
+        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local, MethodSymbol methodOpt)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -290,11 +290,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // local.Dispose()
             BoundExpression disposeCall;
-
-            MethodSymbol disposeMethodSymbol;
-            if (Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out disposeMethodSymbol))
+            
+            if ((!(methodOpt is null)) || Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out methodOpt))
             {
-                disposeCall = BoundCall.Synthesized(syntax, disposedExpression, disposeMethodSymbol);
+                disposeCall = BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
             }
             else
             {

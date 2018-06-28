@@ -521,18 +521,18 @@ After");
   IL_000c:  ldstr      ""A""
   IL_0011:  call       ""DisposableStruct..ctor(string)""
   .try
-{
-  IL_0016:  ldstr      ""In""
-  IL_001b:  call       ""void System.Console.WriteLine(string)""
-  IL_0020:  leave.s    IL_0030
-}
+  {
+    IL_0016:  ldstr      ""In""
+    IL_001b:  call       ""void System.Console.WriteLine(string)""
+    IL_0020:  leave.s    IL_0030
+  }
   finally
-{
-  IL_0022:  ldloca.s   V_0
-  IL_0024:  constrained. ""DisposableStruct""
-  IL_002a:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_002f:  endfinally
-}
+  {
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""DisposableStruct""
+    IL_002a:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002f:  endfinally
+  }
   IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
   IL_003a:  ret
@@ -703,8 +703,8 @@ After");
   // Code size       96 (0x60)
   .maxstack  1
   .locals init (DisposableClass V_0, //d1
-  DisposableClass V_1, //d2
-  DisposableClass V_2) //d3
+                DisposableClass V_1, //d2
+                DisposableClass V_2) //d3
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
   IL_000a:  ldstr      ""A""
@@ -791,52 +791,52 @@ After");
   // Code size      109 (0x6d)
   .maxstack  2
   .locals init (DisposableStruct V_0, //d1
-  DisposableStruct V_1, //d2
-  DisposableStruct V_2) //d3
+                DisposableStruct V_1, //d2
+                DisposableStruct V_2) //d3
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
   IL_000a:  ldloca.s   V_0
   IL_000c:  ldstr      ""A""
   IL_0011:  call       ""DisposableStruct..ctor(string)""
   .try
-{
-  IL_0016:  ldstr      ""B""
-  IL_001b:  newobj     ""DisposableStruct..ctor(string)""
-  IL_0020:  stloc.1
-  .try
-{
-  IL_0021:  ldstr      ""C""
-  IL_0026:  newobj     ""DisposableStruct..ctor(string)""
-  IL_002b:  stloc.2
-  .try
-{
-  IL_002c:  ldstr      ""In""
-  IL_0031:  call       ""void System.Console.WriteLine(string)""
-  IL_0036:  leave.s    IL_0062
-}
+  {
+    IL_0016:  ldstr      ""B""
+    IL_001b:  newobj     ""DisposableStruct..ctor(string)""
+    IL_0020:  stloc.1
+    .try
+    {
+      IL_0021:  ldstr      ""C""
+      IL_0026:  newobj     ""DisposableStruct..ctor(string)""
+      IL_002b:  stloc.2
+      .try
+      {
+        IL_002c:  ldstr      ""In""
+        IL_0031:  call       ""void System.Console.WriteLine(string)""
+        IL_0036:  leave.s    IL_0062
+      }
+      finally
+      {
+        IL_0038:  ldloca.s   V_2
+        IL_003a:  constrained. ""DisposableStruct""
+        IL_0040:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_0045:  endfinally
+      }
+    }
+    finally
+    {
+      IL_0046:  ldloca.s   V_1
+      IL_0048:  constrained. ""DisposableStruct""
+      IL_004e:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0053:  endfinally
+    }
+  }
   finally
-{
-  IL_0038:  ldloca.s   V_2
-  IL_003a:  constrained. ""DisposableStruct""
-  IL_0040:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0045:  endfinally
-}
-}
-  finally
-{
-  IL_0046:  ldloca.s   V_1
-  IL_0048:  constrained. ""DisposableStruct""
-  IL_004e:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0053:  endfinally
-}
-}
-  finally
-{
-  IL_0054:  ldloca.s   V_0
-  IL_0056:  constrained. ""DisposableStruct""
-  IL_005c:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0061:  endfinally
-}
+  {
+    IL_0054:  ldloca.s   V_0
+    IL_0056:  constrained. ""DisposableStruct""
+    IL_005c:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0061:  endfinally
+  }
   IL_0062:  ldstr      ""After""
   IL_0067:  call       ""void System.Console.WriteLine(string)""
   IL_006c:  ret
@@ -875,7 +875,7 @@ After");
   // Code size       75 (0x4b)
   .maxstack  1
   .locals init (DisposableClass V_0, //d1
-  DisposableClass V_1) //d3
+                DisposableClass V_1) //d3
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
   IL_000a:  ldstr      ""A""
@@ -1011,20 +1011,153 @@ class Program
   IL_0000:  newobj     ""Program.MyManagedClass..ctor()""
   IL_0005:  stloc.0
   .try
-{
-  IL_0006:  ldloc.0
-  IL_0007:  callvirt   ""void Program.MyManagedClass.Use()""
-  IL_000c:  leave.s    IL_0018
-}
+  {
+    IL_0006:  ldloc.0
+    IL_0007:  callvirt   ""void Program.MyManagedClass.Use()""
+    IL_000c:  leave.s    IL_0018
+  }
   finally
-{
-  IL_000e:  ldloc.0
-  IL_000f:  brfalse.s  IL_0017
-  IL_0011:  ldloc.0
-  IL_0012:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0017:  endfinally
-}
+  {
+    IL_000e:  ldloc.0
+    IL_000f:  brfalse.s  IL_0017
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0017:  endfinally
+  }
   IL_0018:  ret
+}");
+        }
+
+        [Fact]
+        public void UsingPatternTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C2.Main()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C1 V_0) //c
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  callvirt   ""void C1.Dispose()""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void UsingPatternDiffParameterOverloadTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+    public void Dispose(int x) { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C2.Main()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C1 V_0) //c
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  callvirt   ""void C1.Dispose()""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
+}"
+            );
+        }
+
+        [Fact]
+        public void UsingPatternInheritedTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+}
+
+class C2 : C1
+{
+    internal void Dispose(int x) { } 
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C2 c = new C2())
+        {
+        }
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C3.Main()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C2 V_0) //c
+  IL_0000:  newobj     ""C2..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  callvirt   ""void C1.Dispose()""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
 }");
         }
 
@@ -1183,10 +1316,10 @@ class Gen<T> where T : new()
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (13,16): error CS1674: 'T': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (13,16): error CS1674: 'T': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using (val)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "val").WithArguments("T"),
-                // (24,16): error CS1674: 'T': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (24,16): error CS1674: 'T': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using (T disp = new T()) // Invalid
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "T disp = new T()").WithArguments("T"));
         }
@@ -1240,7 +1373,7 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1263,7 +1396,7 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         // Implicit implement IDisposable
@@ -2482,13 +2615,13 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'lambda expression': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using (x => x)     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "x => x").WithArguments("lambda expression"),
-                // (9,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (9,16): error CS1674: 'lambda expression': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using (() => { })     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "() => { }").WithArguments("lambda expression"),
-                // (12,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (12,16): error CS1674: 'lambda expression': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using ((int @int) => { return @int; })     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "(int @int) => { return @int; }").WithArguments("lambda expression"));
         }
@@ -2522,19 +2655,19 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-    // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must have a public void-returning Dispose() instance method.
     //         using (var a = new { })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var a = new { }").WithArguments("<empty anonymous type>"),
-    // (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    // (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must have a public void-returning Dispose() instance method.
     //         using (var b = new { p1 = 10 })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var b = new { p1 = 10 }").WithArguments("<anonymous type: int p1>"),
-    // (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    // (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must have a public void-returning Dispose() instance method.
     //         using (var c = new { p1 = 10.0, p2 = 'a' })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var c = new { p1 = 10.0, p2 = 'a' }").WithArguments("<anonymous type: double p1, char p2>"),
-    // (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    // (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must have a public void-returning Dispose() instance method.
     //         using (new { })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new { }").WithArguments("<empty anonymous type>"),
-    // (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    // (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must have a public void-returning Dispose() instance method.
     //         using (new { f1 = "12345", f2 = 'S' })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, @"new { f1 = ""12345"", f2 = 'S' }").WithArguments("<anonymous type: string f1, char f2>")
     );
