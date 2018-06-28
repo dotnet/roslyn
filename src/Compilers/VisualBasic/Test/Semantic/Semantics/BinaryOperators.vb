@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class BinaryOperators
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test1()
 
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
@@ -28,10 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 Dim compilationDef =
 <compilation name="VBBinaryOperators1">
     <file name="lib.vb">
-        <%= My.Resources.Resource.PrintResultTestSource %>
+        <%= SemanticResourceUtil.PrintResultTestSource %>
     </file>
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource1 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource1 %>
     </file>
 </compilation>
 
@@ -39,13 +39,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                 Assert.True(compilation.Options.CheckOverflow)
 
-                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
+                CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline1)
 
                 compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
 
                 Assert.False(compilation.Options.CheckOverflow)
 
-                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
+                CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline1)
 
             Catch ex As Exception
                 Assert.Null(ex)
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 Dim compilationDef =
 <compilation name="VBBinaryOperators11">
     <file name="lib.vb">
-        <%= My.Resources.Resource.PrintResultTestSource %>
+        <%= SemanticResourceUtil.PrintResultTestSource %>
     </file>
     <file name="a.vb">
         <![CDATA[
@@ -236,13 +236,13 @@ End Module
             Dim compilationDef =
 <compilation name="VBBinaryOperators2">
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource2 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource2 %>
     </file>
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation, My.Resources.Resource.BinaryOperatorsTestBaseline2)
+            CompilationUtils.AssertTheseDiagnostics(compilation, SemanticResourceUtil.BinaryOperatorsTestBaseline2)
 
         End Sub
 
@@ -328,13 +328,13 @@ False
             Dim compilationDef =
 <compilation name="VBBinaryOperators3">
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource3 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource3 %>
     </file>
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation, My.Resources.Resource.BinaryOperatorsTestBaseline3)
+            CompilationUtils.AssertTheseDiagnostics(compilation, SemanticResourceUtil.BinaryOperatorsTestBaseline3)
 
         End Sub
 
@@ -344,35 +344,35 @@ False
             Dim compilationDef =
 <compilation name="VBBinaryOperators4">
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource4 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource4 %>
     </file>
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline4)
+            CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline4)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test5()
 
             Dim compilationDef =
 <compilation name="VBBinaryOperators52">
     <file name="lib.vb">
-        <%= My.Resources.Resource.PrintResultTestSource %>
+        <%= SemanticResourceUtil.PrintResultTestSource %>
     </file>
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource5 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource5 %>
     </file>
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             Assert.True(compilation.Options.CheckOverflow)
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline5)
+            CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline5)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
             Assert.False(compilation.Options.CheckOverflow)
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline5)
+            CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline5)
 
         End Sub
 
@@ -387,7 +387,7 @@ False
                 Dim compilationDef =
     <compilation name="VBBinaryOperators52">
         <file name="lib.vb">
-            <%= My.Resources.Resource.PrintResultTestSource %>
+            <%= SemanticResourceUtil.PrintResultTestSource %>
         </file>
         <file name="a.vb">
             <![CDATA[

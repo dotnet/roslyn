@@ -595,58 +595,68 @@ unsafe public class MyClass
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+        Entering: {R1} {R2}
 
 .locals {R1}
 {
     Locals: [System.Int32* p]
-    Block[B1] - Block
-        Predecessors: [B0]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Jump if False (Regular) to Block[B3]
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '&i1')
+                  Value: 
+                    IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*, IsInvalid) (Syntax: '&i1')
+                      Reference: 
+                        IFieldReferenceOperation: System.Int32 MyClass.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'i1')
+                          Instance Receiver: 
+                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i1')
+
+            Next (Regular) Block[B4]
+        Block[B3] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '&i2')
+                  Value: 
+                    IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*, IsInvalid) (Syntax: '&i2')
+                      Reference: 
+                        IFieldReferenceOperation: System.Int32 MyClass.i2 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'i2')
+                          Instance Receiver: 
+                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i2')
+
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B2] [B3]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'p = b ? &i1 : &i2')
+                  Left: 
+                    ILocalReferenceOperation: p (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'p = b ? &i1 : &i2')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'b ? &i1 : &i2')
+
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+
+    Block[B5] - Block
+        Predecessors: [B4]
         Statements (0)
-        Jump if False (Regular) to Block[B3]
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '&i1')
-              Value: 
-                IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*, IsInvalid) (Syntax: '&i1')
-                  Reference: 
-                    IFieldReferenceOperation: System.Int32 MyClass.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'i1')
-                      Instance Receiver: 
-                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i1')
-
-        Next (Regular) Block[B4]
-    Block[B3] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '&i2')
-              Value: 
-                IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*, IsInvalid) (Syntax: '&i2')
-                  Reference: 
-                    IFieldReferenceOperation: System.Int32 MyClass.i2 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'i2')
-                      Instance Receiver: 
-                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i2')
-
-        Next (Regular) Block[B4]
-    Block[B4] - Block
-        Predecessors: [B2] [B3]
-        Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'p = b ? &i1 : &i2')
-              Left: 
-                ILocalReferenceOperation: p (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'p = b ? &i1 : &i2')
-              Right: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'b ? &i1 : &i2')
-
-        Jump if False (Regular) to Block[B6]
+        Jump if False (Regular) to Block[B7]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
             Leaving: {R1}
 
-        Next (Regular) Block[B5]
-    Block[B5] - Block
-        Predecessors: [B4]
+        Next (Regular) Block[B6]
+    Block[B6] - Block
+        Predecessors: [B5]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ...  is {*p}"");')
               Expression: 
@@ -672,12 +682,12 @@ Block[B0] - Entry
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
-        Next (Regular) Block[B6]
+        Next (Regular) Block[B7]
             Leaving: {R1}
 }
 
-Block[B6] - Exit
-    Predecessors: [B4] [B5]
+Block[B7] - Exit
+    Predecessors: [B5] [B6]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
@@ -715,7 +725,7 @@ Block[B0] - Entry
     Locals: [System.Int32* p]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*, IsImplicit) (Syntax: 'p = &i')
               Left: 
                 ILocalReferenceOperation: p (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsImplicit) (Syntax: 'p = &i')
@@ -728,33 +738,43 @@ Block[B0] - Entry
                             Instance Receiver: 
                               IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'i')
 
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-              Value: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
-
-        Jump if True (Regular) to Block[B3]
-            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Operand: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'x')
-            Leaving: {R1}
-
         Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x?.ToString();')
-              Expression: 
-                IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
-                  Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'x')
-                  Arguments(0)
+            Entering: {R2}
 
-        Next (Regular) Block[B3]
-            Leaving: {R1}
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                  Value: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
+
+            Jump if True (Regular) to Block[B4]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'x')
+                Leaving: {R2} {R1}
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x?.ToString();')
+                  Expression: 
+                    IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'x')
+                      Arguments(0)
+
+            Next (Regular) Block[B4]
+                Leaving: {R2} {R1}
+    }
 }
 
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+Block[B4] - Exit
+    Predecessors: [B2] [B3]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -795,7 +815,7 @@ Block[B0] - Entry
     Locals: [System.Int32* p1] [System.Int32* p2]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
+        Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*, IsImplicit) (Syntax: 'p1 = &i')
               Left: 
                 ILocalReferenceOperation: p1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsImplicit) (Syntax: 'p1 = &i')
@@ -808,47 +828,70 @@ Block[B0] - Entry
                             Instance Receiver: 
                               IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'i')
 
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
-              Value: 
-                IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: P) (Syntax: 'input')
-
-        Jump if True (Regular) to Block[B3]
-            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
-              Operand: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: 'input')
-
         Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
+            Entering: {R2} {R3}
+
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        .locals {R3}
+        {
+            CaptureIds: [0]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+                      Value: 
+                        IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: P) (Syntax: 'input')
+
+                Jump if True (Regular) to Block[B4]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: 'input')
+                    Leaving: {R3}
+
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: 'input')
+
+                Next (Regular) Block[B5]
+                    Leaving: {R3}
+        }
+
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'this')
+                  Value: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*, IsImplicit) (Syntax: 'p2 = &(input ?? this).j')
+                  Left: 
+                    ILocalReferenceOperation: p2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsImplicit) (Syntax: 'p2 = &(input ?? this).j')
+                  Right: 
+                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&(input ?? this).j')
+                      Children(1):
+                          IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&(input ?? this).j')
+                            Reference: 
+                              IFieldReferenceOperation: System.Int32 P.j (OperationKind.FieldReference, Type: System.Int32) (Syntax: '(input ?? this).j')
+                                Instance Receiver: 
+                                  IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: 'input ?? this')
+
+            Next (Regular) Block[B6]
+                Leaving: {R2}
+    }
+
+    Block[B6] - Block
+        Predecessors: [B5]
         Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
-              Value: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: 'input')
-
-        Next (Regular) Block[B4]
-    Block[B3] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'this')
-              Value: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
-
-        Next (Regular) Block[B4]
-    Block[B4] - Block
-        Predecessors: [B2] [B3]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*, IsImplicit) (Syntax: 'p2 = &(input ?? this).j')
-              Left: 
-                ILocalReferenceOperation: p2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsImplicit) (Syntax: 'p2 = &(input ?? this).j')
-              Right: 
-                IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&(input ?? this).j')
-                  Children(1):
-                      IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&(input ?? this).j')
-                        Reference: 
-                          IFieldReferenceOperation: System.Int32 P.j (OperationKind.FieldReference, Type: System.Int32) (Syntax: '(input ?? this).j')
-                            Instance Receiver: 
-                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: 'input ?? this')
-
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true;')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'x = true')
@@ -857,12 +900,12 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-        Next (Regular) Block[B5]
+        Next (Regular) Block[B7]
             Leaving: {R1}
 }
 
-Block[B5] - Exit
-    Predecessors: [B4]
+Block[B7] - Exit
+    Predecessors: [B6]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

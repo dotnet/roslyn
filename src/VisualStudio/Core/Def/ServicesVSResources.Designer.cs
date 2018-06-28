@@ -281,6 +281,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Apply &apos;{0}&apos; keymapping scheme.
+        /// </summary>
+        internal static string Apply_0_keymapping_scheme {
+            get {
+                return ResourceManager.GetString("Apply_0_keymapping_scheme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying remove suppressions fix....
         /// </summary>
         internal static string Applying_remove_suppressions_fix {
@@ -704,15 +713,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Determining_current_block {
             get {
                 return ResourceManager.GetString("Determining_current_block", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Disabling the extension &apos;{0}&apos; unbound your keyboard bindings..
-        /// </summary>
-        internal static string Disabling_the_extension_0_unbound_your_keyboard_bindings {
-            get {
-                return ResourceManager.GetString("Disabling_the_extension_0_unbound_your_keyboard_bindings", resourceCulture);
             }
         }
         
@@ -2152,6 +2152,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reset Visual Studio default keymapping.
+        /// </summary>
+        internal static string Reset_Visual_Studio_default_keymapping {
+            get {
+                return ResourceManager.GetString("Reset_Visual_Studio_default_keymapping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resolving breakpoint location....
         /// </summary>
         internal static string Resolving_breakpoint_location {
@@ -2175,15 +2184,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Restore_0 {
             get {
                 return ResourceManager.GetString("Restore_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Restore Visual Studio keybindings.
-        /// </summary>
-        internal static string Restore_Visual_Studio_keybindings {
-            get {
-                return ResourceManager.GetString("Restore_Visual_Studio_keybindings", resourceCulture);
             }
         }
         
@@ -2698,15 +2698,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use keybindings for ReSharper/IntelliJ/Vim/etc..
-        /// </summary>
-        internal static string Use_Keybindings_for_extensions {
-            get {
-                return ResourceManager.GetString("Use_Keybindings_for_extensions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Validating breakpoint location....
         /// </summary>
         internal static string Validating_breakpoint_location {
@@ -2739,6 +2730,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread {
             get {
                 return ResourceManager.GetString("VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We notice you suspended &apos;{0}&apos;. Reset keymappings to continue to navigate and refactor..
+        /// </summary>
+        internal static string We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor {
+            get {
+                return ResourceManager.GetString("We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor", resourceCulture);
             }
         }
         
