@@ -1,25 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    public class BasicErrorListCommon : AbstractEditorTest
+    public class BasicErrorListCommon : AbstractIdeEditorTest
     {
-        public BasicErrorListCommon(VisualStudioInstanceFactory instanceFactor, string templateName)
-            : base(instanceFactor, nameof(BasicErrorListCommon), templateName)
+        public BasicErrorListCommon(string templateName)
+            : base(nameof(BasicErrorListCommon), templateName)
         {
         }
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public virtual void ErrorList()
+        public virtual async Task ErrorListAsync()
         {
-            VisualStudio.Editor.SetText(@"
+            await Editor.SetTextAsync(@"
 Module Module1
 
     Function Good() As P
@@ -32,7 +32,7 @@ Module Module1
 
 End Module
 ");
-            VisualStudio.ErrorList.ShowErrorList();
+            await ErrorList.ShowErrorListAsync();
             var expectedContents = new[] {
                 new ErrorListItem(
                     severity: "Error",
@@ -49,19 +49,19 @@ End Module
                     line: 9,
                     column: 9)
             };
-            var actualContents = VisualStudio.ErrorList.GetErrorListContents();
+            var actualContents = await ErrorList.GetErrorListContentsAsync();
             Assert.Equal(expectedContents, actualContents);
-            VisualStudio.ErrorList.NavigateToErrorListItem(0);
-            VisualStudio.Editor.Verify.CaretPosition(43);
-            VisualStudio.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
-            VisualStudio.ErrorList.ShowErrorList();
-            actualContents = VisualStudio.ErrorList.GetErrorListContents();
+            await ErrorList.NavigateToErrorListItemAsync(0);
+            await Editor.Verify.CaretPositionAsync(43);
+            await SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            await ErrorList.ShowErrorListAsync();
+            actualContents = await ErrorList.GetErrorListContentsAsync();
             Assert.Equal(expectedContents, actualContents);
         }
 
-        public virtual void ErrorsDuringMethodBodyEditing()
+        public virtual async Task ErrorsDuringMethodBodyEditingAsync()
         {
-            VisualStudio.Editor.SetText(@"
+            await Editor.SetTextAsync(@"
 Namespace N
     Class C
         Private F As Integer
@@ -71,17 +71,17 @@ Namespace N
     End Class
 End Namespace
 ");
-            VisualStudio.Editor.PlaceCaret(" Comment", charsOffset: -2);
-            VisualStudio.SendKeys.Send("F = 0");
-            VisualStudio.ErrorList.ShowErrorList();
+            await Editor.PlaceCaretAsync(" Comment", charsOffset: -2);
+            await SendKeys.SendAsync("F = 0");
+            await ErrorList.ShowErrorListAsync();
             var expectedContents = new ErrorListItem[] { };
-            var actualContents = VisualStudio.ErrorList.GetErrorListContents();
+            var actualContents = await ErrorList.GetErrorListContentsAsync();
             Assert.Equal(expectedContents, actualContents);
 
-            VisualStudio.Editor.Activate();
-            VisualStudio.Editor.PlaceCaret("F = 0 ' Comment", charsOffset: -1);
-            VisualStudio.Editor.SendKeys("F");
-            VisualStudio.ErrorList.ShowErrorList();
+            await Editor.ActivateAsync();
+            await Editor.PlaceCaretAsync("F = 0 ' Comment", charsOffset: -1);
+            await Editor.SendKeysAsync("F");
+            await ErrorList.ShowErrorListAsync();
             expectedContents = new ErrorListItem[] {
                 new ErrorListItem(
                     severity: "Error",
@@ -91,15 +91,15 @@ End Namespace
                     line: 6,
                     column: 13)
             };
-            actualContents = VisualStudio.ErrorList.GetErrorListContents();
+            actualContents = await ErrorList.GetErrorListContentsAsync();
             Assert.Equal(expectedContents, actualContents);
 
-            VisualStudio.Editor.Activate();
-            VisualStudio.Editor.PlaceCaret("FF = 0 ' Comment", charsOffset: -1);
-            VisualStudio.Editor.SendKeys(VirtualKey.Delete);
-            VisualStudio.ErrorList.ShowErrorList();
+            await Editor.ActivateAsync();
+            await Editor.PlaceCaretAsync("FF = 0 ' Comment", charsOffset: -1);
+            await Editor.SendKeysAsync(VirtualKey.Delete);
+            await ErrorList.ShowErrorListAsync();
             expectedContents = new ErrorListItem[] { };
-            actualContents = VisualStudio.ErrorList.GetErrorListContents();
+            actualContents = await ErrorList.GetErrorListContentsAsync();
             Assert.Equal(expectedContents, actualContents);
         }
     }
