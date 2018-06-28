@@ -26,15 +26,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var componentModel = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
             JoinableTaskContext = componentModel.GetExtensions<JoinableTaskContext>().SingleOrDefault() ?? new JoinableTaskContext();
-
-            SolutionExplorer = new SolutionExplorer_InProc2(JoinableTaskFactory);
-            Workspace = new VisualStudioWorkspace_InProc2(JoinableTaskFactory);
-            SendKeys = new SendKeys_InProc2(JoinableTaskFactory);
-
-            Editor = new Editor_InProc2(JoinableTaskFactory, Workspace, SendKeys);
-            ErrorList = new ErrorList_InProc2(JoinableTaskFactory, Workspace);
-
-            ChangeSignatureDialog = new ChangeSignatureDialog_InProc2(JoinableTaskFactory, Editor);
         }
 
         protected JoinableTaskContext JoinableTaskContext
@@ -68,39 +59,29 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected JoinableTaskFactory JoinableTaskFactory => _joinableTaskFactory ?? throw new InvalidOperationException();
 
-        protected ChangeSignatureDialog_InProc2 ChangeSignatureDialog
+        protected TestServices TestServices
         {
             get;
+            private set;
         }
 
-        protected Editor_InProc2 Editor
-        {
-            get;
-        }
+        protected TestServices VisualStudioInstance => TestServices;
 
-        protected ErrorList_InProc2 ErrorList
-        {
-            get;
-        }
+        protected ChangeSignatureDialog_InProc2 ChangeSignatureDialog => TestServices.ChangeSignatureDialog;
 
-        protected SendKeys_InProc2 SendKeys
-        {
-            get;
-        }
+        protected Editor_InProc2 Editor => TestServices.Editor;
 
-        protected SolutionExplorer_InProc2 SolutionExplorer
-        {
-            get;
-        }
+        protected ErrorList_InProc2 ErrorList => TestServices.ErrorList;
 
-        protected VisualStudioWorkspace_InProc2 Workspace
-        {
-            get;
-        }
+        protected SendKeys_InProc2 SendKeys => TestServices.SendKeys;
+
+        protected SolutionExplorer_InProc2 SolutionExplorer => TestServices.SolutionExplorer;
+
+        protected VisualStudioWorkspace_InProc2 Workspace => TestServices.Workspace;
 
         public virtual async Task InitializeAsync()
         {
-            await Workspace.InitializeAsync();
+            TestServices = await CreateTestServicesAsync();
 
             await CleanUpAsync();
         }
@@ -121,22 +102,27 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
         }
 
+        protected virtual async Task<TestServices> CreateTestServicesAsync()
+        {
+            return await TestServices.CreateAsync(JoinableTaskFactory);
+        }
+
         protected virtual async Task CleanUpAsync()
         {
-            await Workspace.CleanUpWaitingServiceAsync();
-            await Workspace.CleanUpWorkspaceAsync();
-            await SolutionExplorer.CleanUpOpenSolutionAsync();
-            await Workspace.WaitForAllAsyncOperationsAsync();
+            await VisualStudioInstance.Workspace.CleanUpWaitingServiceAsync();
+            await VisualStudioInstance.Workspace.CleanUpWorkspaceAsync();
+            await VisualStudioInstance.SolutionExplorer.CleanUpOpenSolutionAsync();
+            await VisualStudioInstance.Workspace.WaitForAllAsyncOperationsAsync();
 
             // Close any windows leftover from previous (failed) tests
 #if false
-            InteractiveWindow.CloseInteractiveWindow();
-            ObjectBrowserWindow.CloseWindow();
+            VisualStudioInstance.InteractiveWindow.CloseInteractiveWindow();
+            VisualStudioInstance.ObjectBrowserWindow.CloseWindow();
 #endif
-            await ChangeSignatureDialog.CloseWindowAsync();
+            await VisualStudioInstance.ChangeSignatureDialog.CloseWindowAsync();
 #if false
-            GenerateTypeDialog.CloseWindow();
-            ExtractInterfaceDialog.CloseWindow();
+            VisualStudioInstance.GenerateTypeDialog.CloseWindow();
+            VisualStudioInstance.ExtractInterfaceDialog.CloseWindow();
 #endif
         }
     }

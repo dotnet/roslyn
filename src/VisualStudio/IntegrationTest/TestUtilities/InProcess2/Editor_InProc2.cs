@@ -25,14 +25,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
-        private readonly SendKeys_InProc2 _sendKeys;
-
-        public Editor_InProc2(JoinableTaskFactory joinableTaskFactory, VisualStudioWorkspace_InProc2 workspace, SendKeys_InProc2 sendKeys)
-            : base(joinableTaskFactory, workspace)
+        public Editor_InProc2(TestServices testServices)
+            : base(testServices)
         {
-            Verify = new Verifier(this, workspace);
-
-            _sendKeys = sendKeys;
+            Verify = new Verifier(this);
         }
 
         public new Verifier Verify
@@ -386,7 +382,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         public async Task SendKeysAsync(params object[] keys)
         {
             await ActivateAsync();
-            await _sendKeys.SendAsync(keys);
+            await TestServices.SendKeys.SendAsync(keys);
         }
 
 #if false

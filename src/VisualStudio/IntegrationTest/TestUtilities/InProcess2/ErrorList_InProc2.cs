@@ -1,8 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
@@ -13,12 +14,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
     public class ErrorList_InProc2 : InProcComponent2
     {
-        private readonly VisualStudioWorkspace_InProc2 _workspace;
-
-        public ErrorList_InProc2(JoinableTaskFactory joinableTaskFactory, VisualStudioWorkspace_InProc2 workspace)
-            : base(joinableTaskFactory)
+        public ErrorList_InProc2(TestServices testServices)
+            : base(testServices)
         {
-            _workspace = workspace;
         }
 
         public async Task ShowErrorListAsync()
@@ -109,10 +107,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         private async Task WaitForErrorListAsync()
         {
-            await _workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler);
-            await _workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService);
-            await _workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ErrorSquiggles);
-            await _workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ErrorList);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ErrorSquiggles);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ErrorList);
         }
     }
 

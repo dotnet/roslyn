@@ -17,15 +17,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
     public abstract class InProcComponent2
     {
-        protected InProcComponent2(JoinableTaskFactory joinableTaskFactory)
+        protected InProcComponent2(TestServices testServices)
         {
-            JoinableTaskFactory = joinableTaskFactory ?? throw new ArgumentNullException(nameof(joinableTaskFactory));
+            TestServices = testServices ?? throw new ArgumentNullException(nameof(testServices));
         }
 
-        protected JoinableTaskFactory JoinableTaskFactory
+        protected TestServices TestServices
         {
             get;
         }
+
+        protected JoinableTaskFactory JoinableTaskFactory => TestServices.JoinableTaskFactory;
 
         protected async Task<TInterface> GetGlobalServiceAsync<TService, TInterface>()
             where TService : class

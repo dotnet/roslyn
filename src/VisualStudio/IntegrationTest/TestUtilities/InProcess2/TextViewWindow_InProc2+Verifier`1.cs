@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -17,12 +16,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             where TTextViewWindow : TextViewWindow_InProc2
         {
             protected readonly TTextViewWindow _textViewWindow;
-            VisualStudioWorkspace_InProc2 _workspace;
 
-            public Verifier(TTextViewWindow textViewWindow, VisualStudioWorkspace_InProc2 workspace)
+            public Verifier(TTextViewWindow textViewWindow)
             {
                 _textViewWindow = textViewWindow;
-                _workspace = workspace;
             }
 
             public async Task CodeActionAsync(
@@ -78,7 +75,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                     await _textViewWindow.ApplyLightBulbActionAsync(applyFix, fixAllScope, willBlockUntilComplete);
 
                     // wait for action to complete
-                    await _workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb);
+                    await _textViewWindow.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb);
                 }
             }
 

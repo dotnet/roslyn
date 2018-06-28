@@ -12,8 +12,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
     {
         public class Verifier : Verifier<Editor_InProc2>
         {
-            public Verifier(Editor_InProc2 editor, VisualStudioWorkspace_InProc2 workspace)
-                : base(editor, workspace)
+            public Verifier(Editor_InProc2 editor)
+                : base(editor)
             {
             }
 

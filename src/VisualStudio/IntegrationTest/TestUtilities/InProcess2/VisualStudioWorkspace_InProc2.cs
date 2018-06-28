@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -20,8 +17,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         private static readonly Guid RoslynPackageId = new Guid("6cf2e545-6109-4730-8883-cf43d7aec3e1");
         private VisualStudioWorkspace _visualStudioWorkspace;
 
-        public VisualStudioWorkspace_InProc2(JoinableTaskFactory joinableTaskFactory)
-            : base(joinableTaskFactory)
+        public VisualStudioWorkspace_InProc2(TestServices testServices)
+            : base(testServices)
         {
         }
 

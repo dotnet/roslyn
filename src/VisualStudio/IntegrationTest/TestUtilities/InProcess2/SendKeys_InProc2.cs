@@ -2,9 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
@@ -16,8 +13,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
     public class SendKeys_InProc2 : InProcComponent2
     {
-        public SendKeys_InProc2(JoinableTaskFactory joinableTaskFactory)
-            : base(joinableTaskFactory)
+        public SendKeys_InProc2(TestServices testService)
+            : base(testService)
         {
         }
 

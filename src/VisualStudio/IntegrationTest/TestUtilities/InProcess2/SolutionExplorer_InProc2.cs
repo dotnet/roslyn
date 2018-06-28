@@ -2,20 +2,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using VSLangProj;
@@ -31,8 +25,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         private readonly IDictionary<string, string> _csharpProjectTemplates;
         private readonly IDictionary<string, string> _visualBasicProjectTemplates;
 
-        public SolutionExplorer_InProc2(JoinableTaskFactory joinableTaskFactory)
-            : base(joinableTaskFactory)
+        public SolutionExplorer_InProc2(TestServices testServices)
+            : base(testServices)
         {
             var localeID = JoinableTaskFactory.Run(GetDTEAsync).LocaleID;
             _csharpProjectTemplates = InitializeCSharpProjectTemplates(localeID);

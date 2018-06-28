@@ -14,16 +14,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
     public class ChangeSignatureDialog_InProc2 : InProcComponent2
     {
-        public ChangeSignatureDialog_InProc2(JoinableTaskFactory joinableTaskFactory, Editor_InProc2 editor)
-            : base(joinableTaskFactory)
+        public ChangeSignatureDialog_InProc2(TestServices testServices)
+            : base(testServices)
         {
-            Editor = editor;
         }
 
-        private Editor_InProc2 Editor
-        {
-            get;
-        }
+        private Editor_InProc2 Editor => TestServices.Editor;
 
         internal async Task<ChangeSignatureDialog> VerifyOpenAsync()
         {

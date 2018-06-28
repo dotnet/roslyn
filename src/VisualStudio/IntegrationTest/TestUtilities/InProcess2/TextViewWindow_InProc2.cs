@@ -20,11 +20,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
     public abstract partial class TextViewWindow_InProc2 : InProcComponent2
     {
-        protected TextViewWindow_InProc2(JoinableTaskFactory joinableTaskFactory, VisualStudioWorkspace_InProc2 workspace)
-            : base(joinableTaskFactory)
+        protected TextViewWindow_InProc2(TestServices testServices)
+            : base(testServices)
         {
-            Verify = new Verifier<TextViewWindow_InProc2>(this, workspace);
-            Workspace = workspace;
+            Verify = new Verifier<TextViewWindow_InProc2>(this);
         }
 
         public Verifier<TextViewWindow_InProc2> Verify
@@ -32,10 +31,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             get;
         }
 
-        protected VisualStudioWorkspace_InProc2 Workspace
-        {
-            get;
-        }
+        protected VisualStudioWorkspace_InProc2 Workspace => TestServices.Workspace;
 
 #if false
         /// <remarks>
