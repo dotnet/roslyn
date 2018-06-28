@@ -9,6 +9,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
+    [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicErrorListNetCore : BasicErrorListCommon
     {
         public BasicErrorListNetCore()
