@@ -64,12 +64,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         public async Task SetPrettyListingAsync(string languageName, bool value)
         {
-            await InvokeOnUIThreadAsync(() =>
-            {
-                _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
-                    FeatureOnOffOptions.PrettyListing, languageName, value);
-                return Task.CompletedTask;
-            });
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
+                FeatureOnOffOptions.PrettyListing, languageName, value);
         }
 
 #if false
@@ -149,24 +147,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public async Task CleanUpWorkspaceAsync()
-            => await InvokeOnUIThreadAsync(async () =>
-            {
-                await LoadRoslynPackageAsync();
-                _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
-            });
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            await LoadRoslynPackageAsync();
+            _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
+        }
 
         public async Task CleanUpWaitingServiceAsync()
-            => await InvokeOnUIThreadAsync(async () =>
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var provider = (await GetComponentModelAsync()).DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+
+            if (provider == null)
             {
-                var provider = (await GetComponentModelAsync()).DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+                throw new InvalidOperationException("The test waiting service could not be located.");
+            }
 
-                if (provider == null)
-                {
-                    throw new InvalidOperationException("The test waiting service could not be located.");
-                }
-
-                (await GetWaitingServiceAsync()).EnableActiveTokenTracking(true);
-            });
+            (await GetWaitingServiceAsync()).EnableActiveTokenTracking(true);
+        }
 
 #if false
         public void SetFeatureOption(string feature, string optionName, string language, string valueString)

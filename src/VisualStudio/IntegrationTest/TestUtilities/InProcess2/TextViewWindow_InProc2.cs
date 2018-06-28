@@ -80,17 +80,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         public async Task ShowLightBulbAsync()
         {
-            await InvokeOnUIThreadAsync(async () =>
-            {
-                var shell = await GetGlobalServiceAsync<SVsUIShell, IVsUIShell>();
-                var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
-                var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
-                var cmdID = ECMD_SMARTTASKS;
-                object obj = null;
-                shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
-            });
+            var shell = await GetGlobalServiceAsync<SVsUIShell, IVsUIShell>();
+            var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
+            var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
+
+            const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
+            var cmdID = ECMD_SMARTTASKS;
+            object obj = null;
+            shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
         }
 
         public async Task WaitForLightBulbSessionAsync()
@@ -229,21 +228,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             });
 
         protected async Task<T> ExecuteOnActiveViewAsync<T>(Func<IWpfTextView, Task<T>> action)
-            => await InvokeOnUIThreadAsync(async () =>
-            {
-                var view = await GetActiveTextViewAsync();
-                return await action(view);
-            });
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            var view = await GetActiveTextViewAsync();
+            return await action(view);
+        }
 
         protected async Task ExecuteOnActiveViewAsync(Func<IWpfTextView, Task> action)
-            => await InvokeOnUIThreadAsync(GetExecuteOnActionViewCallback(action));
-
-        protected Func<Task> GetExecuteOnActionViewCallback(Func<IWpfTextView, Task> action)
-            => async () =>
-            {
-                var view = await GetActiveTextViewAsync();
-                await action(view);
-            };
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            var view = await GetActiveTextViewAsync();
+            await action(view);
+        }
 
 #if false
         public string GetQuickInfo()

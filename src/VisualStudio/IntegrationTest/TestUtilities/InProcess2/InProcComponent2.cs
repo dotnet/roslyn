@@ -27,27 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             get;
         }
 
-        protected void BeginInvokeOnUIThread(Func<Task> action)
-        {
-            JoinableTaskFactory.RunAsync(async () =>
-            {
-                await JoinableTaskFactory.SwitchToMainThreadAsync();
-                await action();
-            });
-        }
-
-        protected async Task InvokeOnUIThreadAsync(Func<Task> action)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
-            await action();
-        }
-
-        protected async Task<T> InvokeOnUIThreadAsync<T>(Func<Task<T>> action)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
-            return await action();
-        }
-
         protected async Task<TInterface> GetGlobalServiceAsync<TService, TInterface>()
             where TService : class
             where TInterface : class
