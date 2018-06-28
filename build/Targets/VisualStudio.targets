@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
+
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
+    
+    <DisableTransitiveProjectReferences Condition="'$(RoslynProjectType)' == 'Vsix'">true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <VSIXSourceItem>
+      <Visible>false</Visible>
+    </VSIXSourceItem>
+    
+    <NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible>
+    </NuGetPackageToIncludeInVsix>
+  </ItemDefinitionGroup>
+
+  <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true'">
+    <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
+    <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" />
+  </ImportGroup>
+
+  <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true' AND '$(CreateVsixContainer)' == 'false'">
+    <Import Project="DisableVsixManifestTargets.targets" />
+  </ImportGroup>
+  
+  <!-- CPS doesn't show these items by default, but we want to show them. -->
+  <ItemGroup>
+    <None Include="@(VSCTCompile)" />
+  </ItemGroup>
+
+  <Target Name="IncludeVsixLocalOnlyItems">
+    <!-- This is shamelessly ripped from Microsoft.VsSDK.targets -->
+    <ItemGroup>
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' == ''">
+        <!-- Sets VSIXSubPath for content items that are nonlinked files -->
+        <VSIXSubPath Condition="'%(Content.Link)' == ''">%(Content.RelativeDir)</VSIXSubPath>
+        <!-- Sets VSIXSubPath for content items that are linked files -->
+        <VSIXSubPath Condition="'%(Content.Link)' != ''">$([System.IO.Path]::GetDirectoryName(%(Content.Link)))</VSIXSubPath>
+      </VSIXSourceItemLocalOnly>
+
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' != ''" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Include some of our NuGet-consumed assets into VSIX projects
+
+       This exists for two reasons:
+
+       1) In some cases, we need to include the contents of a NuGet package that is otherwise
+          contained within the SuppressFromVsix list, because we're actually the component
+          inside Visual Studio that ships that component
+
+       2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
+          by the NuGet build task. -->
+
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolvePackageDependenciesForBuild" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+
+    <!-- Calculate a list of packages ReferenceCopyLocalPaths originate from whose content should not be included in the VSIX -->
+    <ItemGroup>
+      <_ExcludedPackageId Include="@(ReferenceCopyLocalPaths->'%(NuGetPackageId)')" />
+      <_ExcludedPackageId Remove="@(NuGetPackageToIncludeInVsix)"/>
+    </ItemGroup>
+
+    <!-- Build a list assets to include in the VSIX keyed by package id -->
+    <ItemGroup>
+      <_AssetsByPackageId Include="@(ReferenceCopyLocalPaths->'%(NuGetPackageId)')">
+        <Path>%(ReferenceCopyLocalPaths.Identity)</Path>
+      </_AssetsByPackageId>
+
+      <_AssetsByPackageId Remove="@(_ExcludedPackageId)" />
+    </ItemGroup>
+
+    <!-- Include the assets in the VSIX -->
+    <ItemGroup>
+      <VSIXCopyLocalReferenceSourceItem Include="@(_AssetsByPackageId->'%(Path)')">
+        <ForceIncludeInVsix>true</ForceIncludeInVsix>
+        <Private>true</Private>
+      </VSIXCopyLocalReferenceSourceItem>
+    </ItemGroup>
+  </Target>
+
+  <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
+       assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
+       strange since we actually _implement_ DTE and use it as an exchange type with generics in a few places. -->
+  <Target Name="LinkVSSDKEmbeddableAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences" >
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable' OR
+                                '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0' OR
+                                '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime' OR
+                                '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime' OR
+                                '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime' OR
+                                '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime' OR
+                                '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime' OR
+                                '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime' OR
+                                '%(FileName)' == 'Microsoft.VisualStudio.ProjectSystem.Interop' OR
+                                '%(FileName)' == 'stdole' OR
+                                '%(FileName)' == 'Microsoft.VisualStudio.CommandBars'">
+        <EmbedInteropTypes>true</EmbedInteropTypes>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+  
+  <!--
+    This is a workaround for allowing neutral CTO resource produced from *.vsct to go in the main assembly.
+    We move the neutral *.cto file to be categorized as WithCulture=true,Culture=en to prevent the tools from falsely reporting:
+      error VSSDK1006: Two CTO files have the same Menus.ctmenu resource name.
+     Note that this categorization does not apply to the items that actually produce the .resources.dll and so it will
+     not cause an English satellite to be generated.
+     The documented way around this is to put all resources (including neutral/en) in satellites:
+       https://msdn.microsoft.com/en-us/library/ee943168.aspx
+       However, that has consequences we do not want:
+        - It breaks resx code-gen to *.designer.cs
+        - It causes extra dll loads in en case
+        - If we ever split satellites in to language packs, the english fallback satellites would become a special case.
+  -->
+  <Target Name="AssignEnCultureToNeutralCto" BeforeTargets="MergeCtoResource">
+    <ItemGroup>
+      <_GeneratedCTOFilesWithCulture Include="@(_GeneratedCTOFilesWithNoCulture)">
+        <Culture>en</Culture>
+        <WithCulture>true</WithCulture>
+      </_GeneratedCTOFilesWithCulture>
+      <_GeneratedCTOFilesWithNoCulture Remove="@(_GeneratedCTOFilesWithNoCulture)" />
+      <_ResourcesToMergeWithCTOWithCultureMetadata Condition="'%(WithCulture)' != 'true'">
+        <Culture>en</Culture>
+        <WithCulture>true</WithCulture>
+      </_ResourcesToMergeWithCTOWithCultureMetadata>
+    </ItemGroup>
+  </Target>
+
+  <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
+  <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
+  
+</Project>

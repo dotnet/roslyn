@@ -783,7 +783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
 
                     If propertyOrFieldModifiers.HasValue Then
-                        Yield KeyValuePair.Create(statement, -1)
+                        Yield KeyValuePairUtil.Create(statement, -1)
                     End If
 
                     nodeOrToken = parent
@@ -806,7 +806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
                 End If
 
-                Yield KeyValuePair.Create(node, 0)
+                Yield KeyValuePairUtil.Create(node, 0)
             End While
         End Function
 
