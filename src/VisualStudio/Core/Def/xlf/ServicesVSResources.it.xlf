@@ -7,6 +7,11 @@
         <target state="new">Always for clarity</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_0_keymapping_scheme">
+        <source>Apply '{0}' keymapping scheme</source>
+        <target state="new">Apply '{0}' keymapping scheme</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">L'elemento non è valido.</target>
@@ -30,6 +35,16 @@
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="new">Parentheses preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_Visual_Studio_default_keymapping">
+        <source>Reset Visual Studio default keymapping</source>
+        <target state="new">Reset Visual Studio default keymapping</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
+        <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
+        <target state="new">We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1462,16 +1477,6 @@ L'opzione 'Caricamento leggero soluzioni' è abilitata per la soluzione corrente
         <target state="translated">Non è possibile applicare le modifiche. Il modulo '{0}' è stato scaricato.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Restore_Visual_Studio_keybindings">
-        <source>Restore Visual Studio keybindings</source>
-        <target state="translated">Ripristina i tasti di scelta rapida di Visual Studio</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Keybindings_for_extensions">
-        <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="translated">Usa i tasti di scelta rapida per ReSharper/IntelliJ/Vim e così via.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Abilita lo spostamento in origini decompilate (sperimentale)</target>
@@ -1502,11 +1507,6 @@ L'utente accetta le condizioni sopra riportate:</target>
         <source>Decompiler Legal Notice</source>
         <target state="translated">Note legali sul decompilatore</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
-        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
-        <target state="translated">In seguito alla disabilitazione dell'estensione '{0}' i binding di tastiera sono stati annullati.</target>
-        <note>0 is an extension name</note>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>

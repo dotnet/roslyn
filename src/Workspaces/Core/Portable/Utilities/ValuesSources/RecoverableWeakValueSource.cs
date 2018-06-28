@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Host
         protected abstract T Recover(CancellationToken cancellationToken);
 
         // enforce saving in a queue so save's don't overload the thread pool.
-        private static Task s_latestTask = SpecializedTasks.EmptyTask;
+        private static Task s_latestTask = Task.CompletedTask;
         private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
