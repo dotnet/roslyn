@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var textSpan = new TextSpan(0, syntaxTree.Length);
 
-                var fixCollection = await _codeFixServiceOpt.GetFixesAsync(document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
+                var fixCollection = await _codeFixServiceOpt.GetFixesInProcAsync(document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
                 if (fixCollection == null)
                 {
                     continue;
