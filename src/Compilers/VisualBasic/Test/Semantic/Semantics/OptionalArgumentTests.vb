@@ -165,7 +165,7 @@ End Module
         End Sub
 
         <WorkItem(543227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543227")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestMultipleEnumDefaultValues()
             Dim source =
 <compilation>

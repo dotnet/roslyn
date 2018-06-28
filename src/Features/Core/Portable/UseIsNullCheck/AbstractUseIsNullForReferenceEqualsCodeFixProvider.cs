@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             context.RegisterCodeFix(
                 new MyCodeAction(title, c => this.FixAsync(context.Document, diagnostic, c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     replacement.WithTriviaFrom(toReplace));
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

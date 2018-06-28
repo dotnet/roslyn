@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     },
                     cancellationToken);
 
-                var task = provider.ComputeRefactoringsAsync(context) ?? SpecializedTasks.EmptyTask;
+                var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
                 await task.ConfigureAwait(false);
 
                 var result = actions.Count > 0

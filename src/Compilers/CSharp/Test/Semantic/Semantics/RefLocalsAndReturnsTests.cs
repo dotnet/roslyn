@@ -527,21 +527,24 @@ class C
     void M(ref Span<int> s)
     {
         Span<int> s2 = new Span<int>(new int[10]);
-        s = ref s2; // OK
+        s = ref s2; // Illegal, narrower escape scope
 
         s2 = stackalloc int[10]; // Illegal, narrower lifetime
 
         Span<int> s3 = stackalloc int[10];
-        s = ref s3; // Illegal, narrower lifetime
+        s = ref s3; // Illegal, narrower escape scope
     }
 }");
             comp.VerifyDiagnostics(
+                // (8,9): error CS8374: Cannot ref-assign 's2' to 's' because 's2' has a narrower escape scope than 's'.
+                //         s = ref s2; // Illegal, narrower escape scope
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s2").WithArguments("s", "s2").WithLocation(8, 9),
                 // (10,14): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         s2 = stackalloc int[10]; // Illegal, narrower lifetime
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(10, 14),
-                // (13,17): error CS8352: Cannot use local 's3' in this context because it may expose referenced variables outside of their declaration scope
-                //         s = ref s3; // Illegal, narrower lifetime
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s3").WithArguments("s3").WithLocation(13, 17));
+                // (13,9): error CS8374: Cannot ref-assign 's3' to 's' because 's3' has a narrower escape scope than 's'.
+                //         s = ref s3; // Illegal, narrower escape scope
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9));
         }
 
         [Fact]
