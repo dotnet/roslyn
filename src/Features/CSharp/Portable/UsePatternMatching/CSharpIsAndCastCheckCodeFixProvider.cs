@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 AddEdits(editor, diagnostic, cancellationToken);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private void AddEdits(

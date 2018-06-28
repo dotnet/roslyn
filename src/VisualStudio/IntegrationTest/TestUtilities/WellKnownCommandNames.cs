@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_Delete = "Edit.Delete";
         public const string Edit_LineUp = "Edit.LineUp";
         public const string Edit_LineDown = "Edit.LineDown";
+        public const string Edit_FormatDocument = "Edit.FormatDocument";
 
         public const string File_OpenFile = "File.OpenFile";
         public const string File_SaveAll = "File.SaveAll";

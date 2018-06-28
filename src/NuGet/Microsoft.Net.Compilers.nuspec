@@ -24,6 +24,7 @@
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
     <developmentDependency>true</developmentDependency>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <file src="$additionalFilesPath$/Microsoft.Net.Compilers.props" target="build" />

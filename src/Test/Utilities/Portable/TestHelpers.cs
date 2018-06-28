@@ -9,8 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
-using KeyValuePair = Roslyn.Utilities.KeyValuePair;
+using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Roslyn.Test.Utilities
 {

@@ -141,10 +141,11 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 properties = properties.Add(AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider.Negated, "");
             }
 
-            var severity = option.Notification.Value;
+            var severity = option.Notification.Severity;
             context.ReportDiagnostic(
-                Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity), nameNode.GetLocation(),
+                DiagnosticHelper.Create(
+                    Descriptor, nameNode.GetLocation(),
+                    severity,
                     additionalLocations, properties));
         }
 
