@@ -65,7 +65,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             private set;
         }
 
-        protected TestServices VisualStudioInstance => TestServices;
+        protected TestServices VisualStudio => TestServices;
 
         protected ChangeSignatureDialog_InProc2 ChangeSignatureDialog => TestServices.ChangeSignatureDialog;
 
@@ -109,20 +109,20 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected virtual async Task CleanUpAsync()
         {
-            await VisualStudioInstance.Workspace.CleanUpWaitingServiceAsync();
-            await VisualStudioInstance.Workspace.CleanUpWorkspaceAsync();
-            await VisualStudioInstance.SolutionExplorer.CleanUpOpenSolutionAsync();
-            await VisualStudioInstance.Workspace.WaitForAllAsyncOperationsAsync();
+            await VisualStudio.Workspace.CleanUpWaitingServiceAsync();
+            await VisualStudio.Workspace.CleanUpWorkspaceAsync();
+            await VisualStudio.SolutionExplorer.CleanUpOpenSolutionAsync();
+            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync();
 
             // Close any windows leftover from previous (failed) tests
 #if false
-            VisualStudioInstance.InteractiveWindow.CloseInteractiveWindow();
-            VisualStudioInstance.ObjectBrowserWindow.CloseWindow();
+            VisualStudio.InteractiveWindow.CloseInteractiveWindow();
+            VisualStudio.ObjectBrowserWindow.CloseWindow();
 #endif
-            await VisualStudioInstance.ChangeSignatureDialog.CloseWindowAsync();
+            await VisualStudio.ChangeSignatureDialog.CloseWindowAsync();
 #if false
-            VisualStudioInstance.GenerateTypeDialog.CloseWindow();
-            VisualStudioInstance.ExtractInterfaceDialog.CloseWindow();
+            VisualStudio.GenerateTypeDialog.CloseWindow();
+            VisualStudio.ExtractInterfaceDialog.CloseWindow();
 #endif
         }
     }
