@@ -51,8 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VisualStudioMetadataReferenceManager(IServiceProvider serviceProvider, ITemporaryStorageService temporaryStorageService)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             _metadataCache = new MetadataCache();
             _runtimeDirectories = GetRuntimeDirectories();
 
