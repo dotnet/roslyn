@@ -418,7 +418,9 @@ namespace Microsoft.CodeAnalysis
 
             var newProjectIds = _projectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
-            var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+            var newDependencyGraph = _dependencyGraph
+                                        .WithAdditionalProjects(SpecializedCollections.SingletonEnumerable(projectId))
+                                        .WithAdditionalProjectReferences(projectId, projectState.ProjectReferences.Select(r => r.ProjectId).ToList());
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
 
@@ -830,8 +832,9 @@ namespace Microsoft.CodeAnalysis
 
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.AddProjectReferences(projectReferences);
+            var newDependencyGraph = _dependencyGraph.WithAdditionalProjectReferences(projectId, projectReferences.Select(r => r.ProjectId).ToList());
 
-            return this.ForkProject(newProject, withProjectReferenceChange: true);
+            return this.ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
@@ -856,7 +859,7 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.RemoveProjectReference(projectReference);
 
-            return this.ForkProject(newProject, withProjectReferenceChange: true);
+            return this.ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, newProject.ProjectReferences.Select(p => p.ProjectId)));
         }
 
         /// <summary>
@@ -880,7 +883,7 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.WithProjectReferences(projectReferences);
 
-            return this.ForkProject(newProject, withProjectReferenceChange: true);
+            return this.ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, projectReferences.Select(p => p.ProjectId)));
         }
 
         /// <summary>
@@ -1480,14 +1483,14 @@ namespace Microsoft.CodeAnalysis
         private SolutionState ForkProject(
             ProjectState newProjectState,
             CompilationTranslationAction translate = null,
-            bool withProjectReferenceChange = false,
+            ProjectDependencyGraph newDependencyGraph = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> newLinkedFilesMap = null,
             bool forkTracker = true)
         {
             var projectId = newProjectState.Id;
 
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
-            var newDependencyGraph = withProjectReferenceChange ? CreateDependencyGraph(_projectIds, newStateMap) : _dependencyGraph;
+            newDependencyGraph = newDependencyGraph ?? _dependencyGraph;
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             // If we have a tracker for this project, then fork it as well (along with the
             // translation action and store it in the tracker map.
