@@ -69,24 +69,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).
         /// </summary>
-        protected static async Task WaitForApplicationIdleAsync()
+        protected static async Task WaitForApplicationIdleAsync(CancellationToken cancellationToken)
         {
             var synchronizationContext = new DispatcherSynchronizationContext(Application.Current.Dispatcher, DispatcherPriority.ApplicationIdle);
             var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);
             await Task.Factory.StartNew(
                 () => { },
-                CancellationToken.None,
+                cancellationToken,
                 TaskCreationOptions.None,
                 taskScheduler);
         }
 
-        protected static async Task WaitForSystemIdleAsync()
+        protected static async Task WaitForSystemIdleAsync(CancellationToken cancellationToken)
         {
             var synchronizationContext = new DispatcherSynchronizationContext(Application.Current.Dispatcher, DispatcherPriority.ApplicationIdle);
             var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);
             await Task.Factory.StartNew(
                 () => { },
-                CancellationToken.None,
+                cancellationToken,
                 TaskCreationOptions.None,
                 taskScheduler);
         }

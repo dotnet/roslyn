@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls.Primitives;
@@ -23,31 +24,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         internal async Task<ChangeSignatureDialog> VerifyOpenAsync()
         {
-            while (true)
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
             {
-                var window = await TryGetDialogAsync();
-                if (window is null)
+                while (true)
                 {
-                    await Task.Yield();
-                    continue;
-                }
+                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                    var window = await TryGetDialogAsync();
+                    if (window is null)
+                    {
+                        await Task.Yield();
+                        continue;
+                    }
 
-                await WaitForApplicationIdleAsync();
-                return window;
+                    await WaitForApplicationIdleAsync(cancellationTokenSource.Token);
+                    return window;
+                }
             }
         }
 
         internal async Task VerifyClosedAsync()
         {
-            while (true)
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
             {
-                var window = Application.Current.Windows.OfType<ChangeSignatureDialog>().SingleOrDefault();
-                if (window is null)
+                while (true)
                 {
-                    return;
-                }
+                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                    var window = Application.Current.Windows.OfType<ChangeSignatureDialog>().SingleOrDefault();
+                    if (window is null)
+                    {
+                        return;
+                    }
 
-                await Task.Yield();
+                    await Task.Yield();
+                }
             }
         }
 
