@@ -197,6 +197,7 @@
     "Nerdbank.FullDuplexStream.dll",
     "Newtonsoft.Json.dll",
     "NuGet.CommandLine.2.8.5.nupkg",
+    "RoslynDeployment.dll",
     "SQLitePCLRaw.batteries_green.dll",
     "SQLitePCLRaw.batteries_v2.dll",
     "SQLitePCLRaw.core.dll",
