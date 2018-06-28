@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             }
             else
             {
-                return new IdeTestRunner(SharedData, VisualStudioVersion, test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource);
+                throw new NotSupportedException($"{nameof(IdeFactAttribute)} can only be used with the {nameof(IdeTestFramework)} test framework");
             }
         }
     }

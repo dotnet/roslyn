@@ -50,11 +50,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return result.ToArray();
         }
 
-        public void LoadAssembly(string codeBase)
-        {
-            _ = Assembly.LoadFrom(codeBase);
-        }
-
         public void ActivateMainWindow(bool skipAttachingThreads = false)
             => InvokeOnUIThread(() => {
                 var dte = GetDTE();

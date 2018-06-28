@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -189,9 +188,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public string[] GetAvailableCommands()
             => _inProc.GetAvailableCommands();
-
-        public void LoadAssembly(string codeBase)
-            => _inProc.LoadAssembly(codeBase);
 
         public int ErrorListErrorCount
             => _inProc.GetErrorListErrorCount();
