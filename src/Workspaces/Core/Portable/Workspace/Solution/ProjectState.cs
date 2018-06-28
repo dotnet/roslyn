@@ -471,14 +471,6 @@ namespace Microsoft.CodeAnalysis
             return project1.LanguageServices == project2.LanguageServices;
         }
 
-        public ProjectState AddProjectReference(ProjectReference projectReference)
-        {
-            Contract.Requires(!this.ProjectReferences.Contains(projectReference));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.ToImmutableArray().Add(projectReference)).WithVersion(this.Version.GetNewerVersion()));
-        }
-
         public ProjectState RemoveProjectReference(ProjectReference projectReference)
         {
             Contract.Requires(this.ProjectReferences.Contains(projectReference));
