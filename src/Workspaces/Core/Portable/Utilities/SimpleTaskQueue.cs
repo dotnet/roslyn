@@ -26,7 +26,7 @@ namespace Roslyn.Utilities
             _taskScheduler = taskScheduler;
 
             _taskCount = 0;
-            _latestTask = SpecializedTasks.EmptyTask;
+            _latestTask = Task.CompletedTask;
         }
 
         private TTask ScheduleTaskWorker<TTask>(Func<int, TTask> taskCreator, CancellationToken cancellationToken)
