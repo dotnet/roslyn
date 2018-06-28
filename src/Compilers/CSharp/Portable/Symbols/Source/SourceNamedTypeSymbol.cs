@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// A collection of type parameter constraints, populated when
         /// constraints for the first type parameter are requested.
+        /// Initialized in two steps. Hold a copy if accessing during initialization.
         /// </summary>
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
 

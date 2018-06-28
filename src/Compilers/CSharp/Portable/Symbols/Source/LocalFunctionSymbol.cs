@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private bool _lazyIsVarArg;
+        // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbolWithAnnotations _lazyReturnType;
         private TypeSymbol _iteratorElementType;
