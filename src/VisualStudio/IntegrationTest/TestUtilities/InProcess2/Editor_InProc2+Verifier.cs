@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -151,26 +152,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 var currentSignature = _textViewWindow.GetCurrentSignature();
                 Assert.Equal(expectedSignature, currentSignature);
             }
+#endif
 
-            public void CurrentSignature(string content)
+            public async Task CurrentSignatureAsync(string content)
             {
-                var currentSignature = _textViewWindow.GetCurrentSignature();
+                var currentSignature = await _textViewWindow.GetCurrentSignatureAsync();
                 Assert.Equal(content, currentSignature.Content);
             }
 
-            public void CurrentParameter(
+            public async Task CurrentParameterAsync(
                 string name,
                 string documentation)
             {
-                var currentParameter = _textViewWindow.GetCurrentSignature().CurrentParameter;
+                var currentParameter = (await _textViewWindow.GetCurrentSignatureAsync()).CurrentParameter;
                 Assert.Equal(name, currentParameter.Name);
                 Assert.Equal(documentation, currentParameter.Documentation);
             }
 
-            public void Parameters(
+            public async Task ParametersAsync(
                 params (string name, string documentation)[] parameters)
             {
-                var currentParameters = _textViewWindow.GetCurrentSignature().Parameters;
+                var currentParameters = (await _textViewWindow.GetCurrentSignatureAsync()).Parameters;
                 for (var i = 0; i < parameters.Length; i++)
                 {
                     var (expectedName, expectedDocumentation) = parameters[i];
@@ -179,6 +181,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 }
             }
 
+#if false
             public void Dialog(
                 string dialogName,
                 bool isOpen)

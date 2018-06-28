@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -188,18 +189,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 return Task.CompletedTask;
             });
 
-#if false
         /// <remarks>
         /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
-        public bool IsSignatureHelpActive()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ISignatureHelpBroker>();
-                return broker.IsSignatureHelpActive(view);
-            });
+        public async Task<bool> IsSignatureHelpActiveAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            var view = await GetActiveTextViewAsync();
+
+            var broker = await GetComponentModelServiceAsync<ISignatureHelpBroker>();
+            return broker.IsSignatureHelpActive(view);
+        }
+
+#if false
         public string[] GetErrorTags()
             => GetTags<IErrorTag>();
 
@@ -249,25 +253,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
                 return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
             });
+#endif
 
         /// <remarks>
         /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
-        public Signature GetCurrentSignature()
-            => ExecuteOnActiveView(view =>
+        public async Task<Signature> GetCurrentSignatureAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var broker = await GetComponentModelServiceAsync<ISignatureHelpBroker>();
+
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
             {
-                var broker = GetComponentModelService<ISignatureHelpBroker>();
+                throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
+            }
 
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-                }
+            return new Signature(sessions[0].SelectedSignature);
+        }
 
-                return new Signature(sessions[0].SelectedSignature);
-            });
-
+#if false
         public bool IsCaretOnScreen()
             => ExecuteOnActiveView(view =>
             {
@@ -740,6 +748,61 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 var view = GetActiveVsTextView();
                 view.SendExplicitFocus();
             });
+#endif
+
+        public async Task InvokeSignatureHelpAsync()
+        {
+            await ExecuteCommandAsync(WellKnownCommandNames.Edit_ParameterInfo);
+            await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp);
+        }
+
+#if false
+        public void InvokeNavigateTo(string text)
+        {
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
+            NavigateToSendKeys(text);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigateTo);
+        }
+
+        public void SelectTextInCurrentDocument(string text)
+        {
+            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
+            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
+        }
+
+        public void DeleteText(string text)
+        {
+            SelectTextInCurrentDocument(text);
+            SendKeys(VirtualKey.Delete);
+        }
+
+        public void FormatDocument()
+        {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
+        }
+
+        public void FormatDocumentViaCommand()
+        {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Dte.ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
+        }
+
+        public void FormatSelection()
+        {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
+        }
+
+        public void Paste(string text)
+        {
+            var thread = new Thread(() => Clipboard.SetText(text));
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
+        }
 #endif
     }
 }

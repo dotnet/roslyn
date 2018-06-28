@@ -1,16 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicSignatureHelp : AbstractEditorTest
+    public class BasicSignatureHelp : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
@@ -63,43 +66,43 @@ Class C
 End Class
 ";
 
-        public BasicSignatureHelp(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicSignatureHelp))
+        public BasicSignatureHelp()
+            : base(nameof(BasicSignatureHelp))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void MethodSignatureHelp()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task MethodSignatureHelpAsync()
         {
-            SetUpEditor(Baseline);
+            await SetUpEditorAsync(Baseline);
 
-            VisualStudio.Editor.SendKeys("Dim m=Method(1,");
-            VisualStudio.Editor.InvokeSignatureHelp();
-            VisualStudio.Editor.Verify.CurrentSignature("C.Method(i As Integer, i2 As Integer) As C\r\nHello World 2.0!");
-            VisualStudio.Editor.Verify.CurrentParameter("i2", "an integer, anything you like.");
-            VisualStudio.Editor.Verify.Parameters(
+            await VisualStudio.Editor.SendKeysAsync("Dim m=Method(1,");
+            await VisualStudio.Editor.InvokeSignatureHelpAsync();
+            await VisualStudio.Editor.Verify.CurrentSignatureAsync("C.Method(i As Integer, i2 As Integer) As C\r\nHello World 2.0!");
+            await VisualStudio.Editor.Verify.CurrentParameterAsync("i2", "an integer, anything you like.");
+            await VisualStudio.Editor.Verify.ParametersAsync(
                 ("i", "an integer, preferably 42."),
                 ("i2", "an integer, anything you like."));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void GenericMethodSignatureHelp1()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task GenericMethodSignatureHelp1Async()
         {
-            SetUpEditor(Baseline);
+            await SetUpEditorAsync(Baseline);
 
-            VisualStudio.Editor.SendKeys("Dim gm = GenericMethod");
-            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-            VisualStudio.Editor.SendKeys("(");
-            VisualStudio.Editor.Verify.CurrentSignature("C.GenericMethod(Of T1)(i As T1) As C\r\nHello Generic World!");
-            VisualStudio.Editor.Verify.CurrentParameter("i", "Param 1 of type T1");
-            VisualStudio.Editor.Verify.Parameters(
+            await VisualStudio.Editor.SendKeysAsync("Dim gm = GenericMethod");
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Escape);
+            await VisualStudio.Editor.SendKeysAsync("(");
+            await VisualStudio.Editor.Verify.CurrentSignatureAsync("C.GenericMethod(Of T1)(i As T1) As C\r\nHello Generic World!");
+            await VisualStudio.Editor.Verify.CurrentParameterAsync("i", "Param 1 of type T1");
+            await VisualStudio.Editor.Verify.ParametersAsync(
                 ("i", "Param 1 of type T1"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void GenericMethodSignatureHelp2()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task GenericMethodSignatureHelp2Async()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Imports System
 Class C(Of T, R)
     Sub M()
@@ -128,19 +131,19 @@ Class C(Of T, R)
     End Function
 End Class");
 
-            VisualStudio.Editor.SendKeys("GenericMethod");
-            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-            VisualStudio.Editor.SendKeys("(Of ");
-            VisualStudio.Editor.Verify.CurrentSignature("C(Of T, R).GenericMethod(Of T1)(i As T1)\r\nGeneric Method with 1 Type Param");
-            VisualStudio.Editor.Verify.CurrentParameter("T1", "Type Parameter");
-            VisualStudio.Editor.Verify.Parameters(
+            await VisualStudio.Editor.SendKeysAsync("GenericMethod");
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Escape);
+            await VisualStudio.Editor.SendKeysAsync("(Of ");
+            await VisualStudio.Editor.Verify.CurrentSignatureAsync("C(Of T, R).GenericMethod(Of T1)(i As T1)\r\nGeneric Method with 1 Type Param");
+            await VisualStudio.Editor.Verify.CurrentParameterAsync("T1", "Type Parameter");
+            await VisualStudio.Editor.Verify.ParametersAsync(
                 ("T1", "Type Parameter"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void GenericMethodSignatureHelp_InvokeSighelp()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task GenericMethodSignatureHelp_InvokeSighelpAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Imports System
 Class C
     Sub M()
@@ -156,36 +159,37 @@ Class C
     End Function
 End Class");
 
-            VisualStudio.Editor.InvokeSignatureHelp();
-            VisualStudio.Editor.Verify.CurrentSignature("C.GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C");
-            VisualStudio.Editor.Verify.CurrentParameter("T2", "");
-            VisualStudio.Editor.Verify.Parameters(
+            await VisualStudio.Editor.InvokeSignatureHelpAsync();
+            await VisualStudio.Editor.Verify.CurrentSignatureAsync("C.GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C");
+            await VisualStudio.Editor.Verify.CurrentParameterAsync("T2", "");
+            await VisualStudio.Editor.Verify.ParametersAsync(
                 ("T1", ""),
                 ("T2", ""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void VerifyActiveParameterChanges()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task VerifyActiveParameterChangesAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Module M
     Sub Method(a As Integer, b As Integer)
         $$
     End Sub
 End Module");
 
-            VisualStudio.Editor.SendKeys("Method(");
-            VisualStudio.Editor.Verify.CurrentSignature("M.Method(a As Integer, b As Integer)");
-            VisualStudio.Editor.Verify.CurrentParameter("a", "");
-            VisualStudio.Editor.SendKeys("1, ");
-            VisualStudio.Editor.Verify.CurrentParameter("b", "");
+            await VisualStudio.Editor.SendKeysAsync("Method(");
+            await Task.Delay(1000);
+            await VisualStudio.Editor.Verify.CurrentSignatureAsync("M.Method(a As Integer, b As Integer)");
+            await VisualStudio.Editor.Verify.CurrentParameterAsync("a", "");
+            await VisualStudio.Editor.SendKeysAsync("1, ");
+            await VisualStudio.Editor.Verify.CurrentParameterAsync("b", "");
         }
 
         [WorkItem(741415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void HandleBufferTextChangesDuringComputation()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task HandleBufferTextChangesDuringComputationAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
     End Sub
@@ -194,25 +198,25 @@ Class C
     End Sub
 End Class");
 
-            VisualStudio.Editor.SendKeys("Goo(");
-            VisualStudio.Editor.Verify.CurrentSignature("C.Goo()");
+            await VisualStudio.Editor.SendKeysAsync("Goo(");
+            await VisualStudio.Editor.Verify.CurrentSignatureAsync("C.Goo()");
 
-            VisualStudio.Editor.SetText(@"
+            await VisualStudio.Editor.SetTextAsync(@"
 Class C
     'Marker");
 
-            Assert.False(VisualStudio.Editor.IsSignatureHelpActive());
+            Assert.False(await VisualStudio.Editor.IsSignatureHelpActiveAsync());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void JaggedMultidimensionalArray()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task JaggedMultidimensionalArrayAsync()
         {
-            SetUpEditor(Baseline);
+            await SetUpEditorAsync(Baseline);
 
-            VisualStudio.Editor.SendKeys("Dim op = OutAndParam(");
-            VisualStudio.Editor.Verify.CurrentSignature("C.OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)\r\nComplex Method Params");
-            VisualStudio.Editor.Verify.CurrentParameter("strings", "Jagged MultiDimensional Array");
-            VisualStudio.Editor.Verify.Parameters(
+            await VisualStudio.Editor.SendKeysAsync("Dim op = OutAndParam(");
+            await VisualStudio.Editor.Verify.CurrentSignatureAsync("C.OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)\r\nComplex Method Params");
+            await VisualStudio.Editor.Verify.CurrentParameterAsync("strings", "Jagged MultiDimensional Array");
+            await VisualStudio.Editor.Verify.ParametersAsync(
                 ("strings", "Jagged MultiDimensional Array"),
                 ("outArr", "Out Array"),
                 ("d", "Dynamic and Params param"));

@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Roslyn.Test.Utilities;
@@ -69,6 +70,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await Workspace.SetPrettyListingAsync(LanguageName, false);
             try
             {
+                await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
                 await Editor.SetTextAsync(code);
                 await Editor.MoveCaretAsync(caretPosition);
                 await Editor.ActivateAsync();
