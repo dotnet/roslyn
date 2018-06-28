@@ -173,9 +173,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         public static extern uint SendInput(uint nInputs, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] INPUT[] pInputs, int cbSize);
 
         [DllImport(User32, CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern int PostMessage(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
-
-        [DllImport(User32, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr SendMessage(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
 
         [DllImport(User32, CharSet = CharSet.Unicode, SetLastError = true)]

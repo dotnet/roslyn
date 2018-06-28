@@ -75,10 +75,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public async Task InvokeAsync()
-        {
-            await Task.Yield();
-            await ExecuteCommandAsync("Refactor.RemoveParameters");
-        }
+            => await Editor.SendKeysAsync(new KeyPress(VirtualKey.R, ShiftState.Ctrl), new KeyPress(VirtualKey.V, ShiftState.Ctrl));
 
         public async Task ClickOkAsync()
             => await ClickAsync(testAccessor => testAccessor.OKButton);

@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         public async Task SendAsync(params object[] keys)
         {
-            var inputs = new List<MSG>(keys.Length * 2);
+            var inputs = new List<NativeMethods.INPUT>(keys.Length);
 
             foreach (var key in keys)
             {
@@ -58,10 +58,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 }
             }
 
-            await SendInputsAsync(inputs);
+            await SendInputsAsync(inputs.ToArray());
         }
 
-        private void AddInputs(List<MSG> inputs, char ch)
+        private static void AddInputs(List<NativeMethods.INPUT> inputs, char ch)
         {
             var result = NativeMethods.VkKeyScan(ch);
             if (result == -1)
@@ -78,10 +78,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             AddInputs(inputs, virtualKey, shiftState);
         }
 
-        private void AddUnicodeInputs(List<MSG> inputs, char ch)
+        private static void AddUnicodeInputs(List<NativeMethods.INPUT> inputs, char ch)
         {
-            throw new NotImplementedException();
-#if false
             var keyDownInput = new NativeMethods.INPUT
             {
                 Type = NativeMethods.INPUT_KEYBOARD,
@@ -110,53 +108,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             inputs.Add(keyDownInput);
             inputs.Add(keyUpInput);
-#endif
         }
 
-        private void AddKeyDown(List<MSG> inputs, VirtualKey virtualKey)
+        private static void AddInputs(List<NativeMethods.INPUT> inputs, VirtualKey virtualKey, uint dwFlags)
         {
-            const uint KeyPreviouslyUp = 0;
-            const uint KeyNowDown = 0;
-
-            var repeatCount = 1U;
-
-            var scanCode = NativeMethods.MapVirtualKey((uint)virtualKey, NativeMethods.MAPVK_VK_TO_VSC);
-            scanCode = (scanCode & 0xFFU) << 16;
-
-            var extendedKey = IsExtendedKey(virtualKey) ? (1U << 24) : 0;
-
-            var keyDown = new MSG
+            var input = new NativeMethods.INPUT
             {
-                hwnd = MainWindowHandle,
-                message = (int)NativeMethods.WM_KEYDOWN,
-                wParam = (IntPtr)(int)virtualKey,
-                lParam = (IntPtr)(int)(repeatCount | scanCode | extendedKey | KeyPreviouslyUp | KeyNowDown),
+                Type = NativeMethods.INPUT_KEYBOARD,
+                ki = new NativeMethods.KEYBDINPUT
+                {
+                    wVk = (ushort)virtualKey,
+                    wScan = 0,
+                    dwFlags = dwFlags,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
             };
 
-            inputs.Add(keyDown);
-        }
-
-        private void AddKeyUp(List<MSG> inputs, VirtualKey virtualKey)
-        {
-            const uint KeyPreviouslyDown = 1U << 30;
-            const uint KeyNowUp = 1U << 31;
-
-            var repeatCount = 1U;
-
-            var scanCode = NativeMethods.MapVirtualKey((uint)virtualKey, NativeMethods.MAPVK_VK_TO_VSC);
-            scanCode = (scanCode & 0xFFU) << 16;
-
-            var extendedKey = IsExtendedKey(virtualKey) ? (1U << 24) : 0;
-
-            var keyUp = new MSG
+            if (IsExtendedKey(virtualKey))
             {
-                hwnd = MainWindowHandle,
-                message = (int)NativeMethods.WM_KEYUP,
-                wParam = (IntPtr)(int)virtualKey,
-                lParam = (IntPtr)(int)(repeatCount | scanCode | extendedKey | KeyPreviouslyDown | KeyNowUp),
-            };
+                input.ki.dwFlags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
+            }
 
-            inputs.Add(keyUp);
+            inputs.Add(input);
         }
 
         private static bool IsExtendedKey(VirtualKey virtualKey)
@@ -164,52 +138,72 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             || virtualKey == VirtualKey.Insert
             || virtualKey == VirtualKey.Delete;
 
-        private void AddInputs(List<MSG> inputs, KeyPress keyPress)
+        private static void AddInputs(List<NativeMethods.INPUT> inputs, KeyPress keyPress)
             => AddInputs(inputs, keyPress.VirtualKey, keyPress.ShiftState);
 
-        private void AddInputs(List<MSG> inputs, VirtualKey virtualKey, ShiftState shiftState = 0)
+        private static void AddInputs(List<NativeMethods.INPUT> inputs, VirtualKey virtualKey, ShiftState shiftState = 0)
         {
             if ((shiftState & ShiftState.Shift) != 0)
             {
-                AddKeyDown(inputs, VirtualKey.Shift);
+                AddInputs(inputs, VirtualKey.Shift, NativeMethods.KEYEVENTF_NONE);
             }
 
             if ((shiftState & ShiftState.Ctrl) != 0)
             {
-                AddKeyDown(inputs, VirtualKey.Control);
+                AddInputs(inputs, VirtualKey.Control, NativeMethods.KEYEVENTF_NONE);
             }
 
             if ((shiftState & ShiftState.Alt) != 0)
             {
-                AddKeyDown(inputs, VirtualKey.Alt);
+                AddInputs(inputs, VirtualKey.Alt, NativeMethods.KEYEVENTF_NONE);
             }
 
-            AddKeyDown(inputs, virtualKey);
-            AddKeyUp(inputs, virtualKey);
-
-            if ((shiftState & ShiftState.Alt) != 0)
-            {
-                AddKeyUp(inputs, VirtualKey.Alt);
-            }
-
-            if ((shiftState & ShiftState.Ctrl) != 0)
-            {
-                AddKeyUp(inputs, VirtualKey.Control);
-            }
+            AddInputs(inputs, virtualKey, NativeMethods.KEYEVENTF_NONE);
+            AddInputs(inputs, virtualKey, NativeMethods.KEYEVENTF_KEYUP);
 
             if ((shiftState & ShiftState.Shift) != 0)
             {
-                AddKeyUp(inputs, VirtualKey.Shift);
+                AddInputs(inputs, VirtualKey.Shift, NativeMethods.KEYEVENTF_KEYUP);
+            }
+
+            if ((shiftState & ShiftState.Ctrl) != 0)
+            {
+                AddInputs(inputs, VirtualKey.Control, NativeMethods.KEYEVENTF_KEYUP);
+            }
+
+            if ((shiftState & ShiftState.Alt) != 0)
+            {
+                AddInputs(inputs, VirtualKey.Alt, NativeMethods.KEYEVENTF_KEYUP);
             }
         }
 
-        private async Task SendInputsAsync(IEnumerable<MSG> inputs)
+        private async Task SendInputsAsync(NativeMethods.INPUT[] inputs)
         {
             await TaskScheduler.Default;
 
-            foreach (var operation in inputs)
+            var foregroundWindow = IntPtr.Zero;
+            var inputBlocked = false;
+
+            try
             {
-                NativeMethods.PostMessage(operation.hwnd, (uint)operation.message, operation.wParam, operation.lParam);
+                inputBlocked = IntegrationHelper.BlockInput();
+                foregroundWindow = IntegrationHelper.GetForegroundWindow();
+
+                await TestServices.VisualStudio.ActivateMainWindowAsync();
+
+                IntegrationHelper.SendInput(inputs);
+            }
+            finally
+            {
+                if (foregroundWindow != IntPtr.Zero)
+                {
+                    IntegrationHelper.SetForegroundWindow(foregroundWindow);
+                }
+
+                if (inputBlocked)
+                {
+                    IntegrationHelper.UnblockInput();
+                }
             }
 
             await WaitForApplicationIdleAsync();

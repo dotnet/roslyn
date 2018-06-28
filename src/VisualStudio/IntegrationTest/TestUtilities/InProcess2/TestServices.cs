@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             JoinableTaskFactory = joinableTaskFactory;
 
+            VisualStudio = new VisualStudio_InProc2(this);
             SolutionExplorer = new SolutionExplorer_InProc2(this);
             Workspace = new VisualStudioWorkspace_InProc2(this);
             SendKeys = new SendKeys_InProc2(this);
@@ -47,6 +48,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public SolutionExplorer_InProc2 SolutionExplorer
+        {
+            get;
+        }
+
+        public VisualStudio_InProc2 VisualStudio
         {
             get;
         }
