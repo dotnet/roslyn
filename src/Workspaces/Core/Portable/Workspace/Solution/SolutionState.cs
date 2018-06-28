@@ -1482,7 +1482,7 @@ namespace Microsoft.CodeAnalysis
                     state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                     .ToImmutableDictionary();
 
-            return new ProjectDependencyGraph(projectIds.ToImmutableArray(), map);
+            return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
         }
 
         private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId projectId, ProjectDependencyGraph dependencyGraph)
