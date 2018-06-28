@@ -967,6 +967,45 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_CastCollectionToIEnumerable()
+        {
+            string source = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(List<string> args)
+    {
+        /*<bind>*/foreach (string x in (IEnumerable<string>)args) { }/*</bind>*/
+    }
+}
+";
+            // Affected by https://github.com/dotnet/roslyn/issues/20756
+            string expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... >)args) { }')
+  Locals: Local_1: System.String x
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: System.String x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
+      Initializer: 
+        null
+  Collection: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: '(IEnumerabl ... tring>)args')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: '(IEnumerabl ... tring>)args')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.Collections.Generic.List<System.String>) (Syntax: 'args')
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+  NextVariables(0)
+";
+
+            VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithThrow()
         {
             string source = @"

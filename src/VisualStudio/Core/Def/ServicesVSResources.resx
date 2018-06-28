@@ -1004,11 +1004,8 @@ Additional information: {1}</value>
   <data name="Sync_Class_View" xml:space="preserve">
     <value>Sync Class View</value>
   </data>
-  <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
-    <value>Restore Visual Studio keybindings</value>
-  </data>
-  <data name="Use_Keybindings_for_extensions" xml:space="preserve">
-    <value>Use keybindings for ReSharper/IntelliJ/Vim/etc.</value>
+  <data name="Reset_Visual_Studio_default_keymapping" xml:space="preserve">
+    <value>Reset Visual Studio default keymapping</value>
   </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
     <value>Enable navigation to decompiled sources (experimental)</value>
@@ -1026,10 +1023,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
     <value>Decompiler Legal Notice</value>
-  </data>
-  <data name="Disabling_the_extension_0_unbound_your_keyboard_bindings" xml:space="preserve">
-    <value>Disabling the extension '{0}' unbound your keyboard bindings.</value>
-    <comment>0 is an extension name</comment>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
@@ -1051,5 +1044,11 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with returns</value>
+  </data>
+  <data name="Apply_0_keymapping_scheme" xml:space="preserve">
+    <value>Apply '{0}' keymapping scheme</value>
+  </data>
+  <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
   </data>
 </root>

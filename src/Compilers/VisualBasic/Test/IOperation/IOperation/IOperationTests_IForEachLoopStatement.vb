@@ -621,8 +621,6 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
             VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Multidimensional()
@@ -1104,6 +1102,96 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
       IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'c.X')
         Instance Receiver: 
           IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        Public Sub IForEachLoopStatement_CastArrayToIEnumerable()
+            Dim source = <![CDATA[
+Option Infer On
+Imports System.Collections
+
+Class Program
+    Public Shared Sub Main(args As String(), i As String)
+        For Each arg As String In DirectCast(args, IEnumerable)'BIND:"For Each arg As String In DirectCast(args, IEnumerable)"
+            i = arg
+        Next
+    End Sub
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each ar ... Next')
+  Locals: Local_1: arg As System.String
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: arg As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'arg As String')
+      Initializer: 
+        null
+  Collection: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable) (Syntax: 'DirectCast( ... Enumerable)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'args')
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each ar ... Next')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = arg')
+        Expression: 
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'i = arg')
+            Left: 
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.String) (Syntax: 'i')
+            Right: 
+              ILocalReferenceOperation: arg (OperationKind.LocalReference, Type: System.String) (Syntax: 'arg')
+  NextVariables(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        Public Sub IForEachLoopStatement_CastCollectionToIEnumerable()
+            Dim source = <![CDATA[
+Option Infer On
+Imports System.Collections.Generic
+
+Class Program
+    Public Shared Sub Main(args As List(Of String), i As String)
+        For Each arg As String In DirectCast(args, IEnumerable(Of String))'BIND:"For Each arg As String In DirectCast(args, IEnumerable(Of String))"
+            i = arg
+        Next
+    End Sub
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each ar ... Next')
+  Locals: Local_1: arg As System.String
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: arg As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'arg As String')
+      Initializer: 
+        null
+  Collection: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'DirectCast( ... Of String))')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'args')
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each ar ... Next')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = arg')
+        Expression: 
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'i = arg')
+            Left: 
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.String) (Syntax: 'i')
+            Right: 
+              ILocalReferenceOperation: arg (OperationKind.LocalReference, Type: System.String) (Syntax: 'arg')
+  NextVariables(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
