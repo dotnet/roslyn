@@ -76,51 +76,59 @@ struct S2
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p3')
-          Value: 
-            IParameterReferenceOperation: p3 (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'p3')
+        Entering: {R1}
 
-    Jump if False (Regular) to Block[B3]
-        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p3')
+              Value: 
+                IParameterReferenceOperation: p3 (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'p3')
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p1')
-          Value: 
-            IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: S2*) (Syntax: 'p1')
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p2')
-          Value: 
-            IParameterReferenceOperation: p2 (OperationKind.ParameterReference, Type: S2*) (Syntax: 'p2')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p1')
+              Value: 
+                IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: S2*) (Syntax: 'p1')
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p3 = &(x ? p1 : p2)->i;')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*) (Syntax: 'p3 = &(x ? p1 : p2)->i')
-              Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: 'p3')
-              Right: 
-                IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&(x ? p1 : p2)->i')
-                  Reference: 
-                    IFieldReferenceOperation: System.Int32 S2.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: '(x ? p1 : p2)->i')
-                      Instance Receiver: 
-                        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '(x ? p1 : p2)')
-                          Children(1):
-                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S2*, IsImplicit) (Syntax: 'x ? p1 : p2')
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p2')
+              Value: 
+                IParameterReferenceOperation: p2 (OperationKind.ParameterReference, Type: S2*) (Syntax: 'p2')
 
-    Next (Regular) Block[B5]
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p3 = &(x ? p1 : p2)->i;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*) (Syntax: 'p3 = &(x ? p1 : p2)->i')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: 'p3')
+                  Right: 
+                    IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&(x ? p1 : p2)->i')
+                      Reference: 
+                        IFieldReferenceOperation: System.Int32 S2.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: '(x ? p1 : p2)->i')
+                          Instance Receiver: 
+                            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '(x ? p1 : p2)')
+                              Children(1):
+                                  IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S2*, IsImplicit) (Syntax: 'x ? p1 : p2')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)

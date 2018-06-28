@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.InvalidOperationBlockForAnalysisContext, nameof(operationBlock));
             }
 
-            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraphOpt);
+            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraphOpt, _cancellationToken);
         }
     }
 
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.InvalidOperationBlockForAnalysisContext, nameof(operationBlock));
             }
 
-            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraphOpt);
+            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraphOpt, _cancellationToken);
         }
     }
 
@@ -1314,6 +1314,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Gets a <see cref="ControlFlowGraph"/> for the operation block containing the <see cref="Operation"/>.
         /// </summary>
-        public ControlFlowGraph GetControlFlowGraph() => DiagnosticAnalysisContextHelpers.GetControlFlowGraph(Operation, _getControlFlowGraphOpt);
+        public ControlFlowGraph GetControlFlowGraph() => DiagnosticAnalysisContextHelpers.GetControlFlowGraph(Operation, _getControlFlowGraphOpt, _cancellationToken);
     }
 }

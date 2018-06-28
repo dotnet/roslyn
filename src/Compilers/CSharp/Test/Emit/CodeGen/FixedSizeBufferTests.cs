@@ -1016,5 +1016,56 @@ public unsafe struct Test
                     });
             }
         }
+
+        [Fact, WorkItem(26688, "https://github.com/dotnet/roslyn/issues/26688")]
+        public void FixedFieldDoesNotRequirePinningWithThis()
+        {
+            CompileAndVerify(@"
+using System;
+unsafe struct Foo
+{
+    public fixed int Bar[2];
+
+    public Foo(int value1, int value2)
+    {
+        this.Bar[0] = value1;
+        this.Bar[1] = value2;
+    }
+
+    public int M1 => this.Bar[0];
+    public int M2 => Bar[1];
+}
+class Program
+{
+    static void Main()
+    {
+        Foo foo = new Foo(1, 2);
+
+        Console.WriteLine(foo.M1);
+        Console.WriteLine(foo.M2);
+    }
+}", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: @"
+1
+2");
+        }
+
+        [Fact, WorkItem(26743, "https://github.com/dotnet/roslyn/issues/26743")]
+        public void FixedFieldDoesNotAllowAddressOfOperator()
+        {
+            CreateCompilation(@"
+unsafe struct Foo
+{
+    private fixed int Bar[2];
+
+    public int* M1 => &this.Bar[0];
+    public int* M2 => &Bar[1];
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M1 => &this.Bar[0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&this.Bar[0]").WithLocation(6, 23),
+                // (7,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M2 => &Bar[1];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&Bar[1]").WithLocation(7, 23));
+        }
     }
 }
