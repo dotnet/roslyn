@@ -771,35 +771,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include
-        /// the specified project reference.
-        /// </summary>
-        public SolutionState AddProjectReference(ProjectId projectId, ProjectReference projectReference)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (projectReference == null)
-            {
-                throw new ArgumentNullException(nameof(projectReference));
-            }
-
-            CheckContainsProject(projectId);
-            CheckContainsProject(projectReference.ProjectId);
-            CheckNotContainsProjectReference(projectId, projectReference);
-            CheckNotContainsTransitiveReference(projectReference.ProjectId, projectId);
-
-            CheckNotSecondSubmissionReference(projectId, projectReference.ProjectId);
-
-            var oldProject = this.GetProjectState(projectId);
-            var newProject = oldProject.AddProjectReference(projectReference);
-
-            return this.ForkProject(newProject, withProjectReferenceChange: true);
-        }
-
-        /// <summary>
-        /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>
         public SolutionState AddProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences)
