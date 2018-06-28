@@ -12349,18 +12349,24 @@ public class C2 : C1
         where V : A<A<V>> { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,26): error CS0703: Inconsistent accessibility: constraint type 'C1.A<T>' is less accessible than 'C1.D<T>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "D").WithArguments("C1.D<T>", "C1.A<T>").WithLocation(5, 26),
-                // (5,26): error CS0703: Inconsistent accessibility: constraint type 'C1.I<T>' is less accessible than 'C1.D<T>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "D").WithArguments("C1.D<T>", "C1.I<T>").WithLocation(5, 26),
-                // (13,19): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.I<T>>' is less accessible than 'C2.M<T, U, V>()'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "M").WithArguments("C2.M<T, U, V>()", "C1.A<C1.I<T>>").WithLocation(13, 19),
-                // (13,19): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.I<U>>' is less accessible than 'C2.M<T, U, V>()'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "M").WithArguments("C2.M<T, U, V>()", "C1.I<C1.I<U>>").WithLocation(13, 19),
-                // (9,22): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.A<T>>' is less accessible than 'C2.S<T, U, V>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "S").WithArguments("C2.S<T, U, V>", "C1.I<C1.A<T>>").WithLocation(9, 22),
-                // (9,22): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.A<V>>' is less accessible than 'C2.S<T, U, V>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "S").WithArguments("C2.S<T, U, V>", "C1.A<C1.A<V>>").WithLocation(9, 22));
+                // (5,43): error CS0703: Inconsistent accessibility: constraint type 'C1.A<T>' is less accessible than 'C1.D<T>'
+                //     public delegate void D<T>() where T : A<T>, I<T>;
+                Diagnostic(ErrorCode.ERR_BadVisBound, "A<T>").WithArguments("C1.D<T>", "C1.A<T>").WithLocation(5, 43),
+                // (5,49): error CS0703: Inconsistent accessibility: constraint type 'C1.I<T>' is less accessible than 'C1.D<T>'
+                //     public delegate void D<T>() where T : A<T>, I<T>;
+                Diagnostic(ErrorCode.ERR_BadVisBound, "I<T>").WithArguments("C1.D<T>", "C1.I<T>").WithLocation(5, 49),
+                // (14,19): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.I<T>>' is less accessible than 'C2.M<T, U, V>()'
+                //         where T : A<I<T>>
+                Diagnostic(ErrorCode.ERR_BadVisBound, "A<I<T>>").WithArguments("C2.M<T, U, V>()", "C1.A<C1.I<T>>").WithLocation(14, 19),
+                // (15,19): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.I<U>>' is less accessible than 'C2.M<T, U, V>()'
+                //         where U : I<I<U>>
+                Diagnostic(ErrorCode.ERR_BadVisBound, "I<I<U>>").WithArguments("C2.M<T, U, V>()", "C1.I<C1.I<U>>").WithLocation(15, 19),
+                // (10,19): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.A<T>>' is less accessible than 'C2.S<T, U, V>'
+                //         where T : I<A<T>>
+                Diagnostic(ErrorCode.ERR_BadVisBound, "I<A<T>>").WithArguments("C2.S<T, U, V>", "C1.I<C1.A<T>>").WithLocation(10, 19),
+                // (12,19): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.A<V>>' is less accessible than 'C2.S<T, U, V>'
+                //         where V : A<A<V>> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "A<A<V>>").WithArguments("C2.S<T, U, V>", "C1.A<C1.A<V>>").WithLocation(12, 19));
         }
 
         [Fact]
@@ -12381,16 +12387,24 @@ public partial class C
     public partial void M<T>() where T : IA<T> { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,26): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "B").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(6, 26),
+                // (6,44): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
+                //     public partial class B<T, U> where U : IB<U, IA<T>> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(6, 44),
+                // (7,44): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
+                //     public partial class B<T, U> where U : IB<U, IA<T>> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(7, 44),
                 // (11,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     public partial void M<T>() where T : IA<T>;
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(11, 25),
                 // (12,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     public partial void M<T>() where T : IA<T> { }
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(12, 25),
-                // (11,25): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "M").WithArguments("C.M<T>()", "IA<T>").WithLocation(11, 25),
-                // (12,25): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "M").WithArguments("C.M<T>()", "IA<T>").WithLocation(12, 25));
+                // (11,42): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
+                //     public partial void M<T>() where T : IA<T>;
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(11, 42),
+                // (12,42): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
+                //     public partial void M<T>() where T : IA<T> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(12, 42));
         }
 
         [Fact]

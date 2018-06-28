@@ -1549,15 +1549,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
-            this TypeSymbol type,
+            this TypeSymbolWithAnnotations type,
             Microsoft.CodeAnalysis.CSharp.Emit.PEModuleBuilder moduleBuilder,
             CSharpCompilation declaringCompilation,
             Cci.ITypeReference typeRef)
         {
             var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
-            if (type.ContainsTupleNames())
+            if (type.TypeSymbol.ContainsTupleNames())
             {
-                SynthesizedAttributeData attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
+                SynthesizedAttributeData attr = declaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol);
                 if (attr != null)
                 {
                     builder.Add(attr);
@@ -1565,8 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             if (type.ContainsNullableReferenceTypes())
             {
-                // PROTOTYPE(NullableReferenceTypes): Not including top-level nullability.
-                SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(type, TypeSymbolWithAnnotations.Create(type, isNullableIfReferenceType: null));
+                SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(type.TypeSymbol, type);
                 if (attr != null)
                 {
                     builder.Add(attr);

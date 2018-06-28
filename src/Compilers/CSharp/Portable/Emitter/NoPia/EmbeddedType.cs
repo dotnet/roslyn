@@ -104,7 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     context.Diagnostics);
 
-                yield return @interface.GetTypeRefWithAttributes(
+                var type = TypeSymbolWithAnnotations.Create(@interface, isNullableIfReferenceType: null);
+                yield return type.GetTypeRefWithAttributes(
                     moduleBeingBuilt,
                     UnderlyingNamedType.DeclaringCompilation,
                     typeRef);
