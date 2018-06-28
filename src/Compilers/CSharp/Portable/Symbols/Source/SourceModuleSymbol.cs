@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool _hasBadAttributes;
 
+        private ModuleEarlyWellKnownAttributeData _lazyEarlyAttributeData;
+
         /// This maps from assembly name to a set of public keys. It uses concurrent dictionaries because it is built,
         /// one attribute at a time, in the callback that validates an attribute's application to a symbol. It is assumed
         /// to be complete after a call to GetAttributes(). 
@@ -522,6 +524,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        {
+            bool hasAnyDiagnostics;
+            CSharpAttributeData boundAttribute;
+
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NonNullTypesAttribute))
+            {
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    bool value = boundAttribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                    arguments.GetOrCreateData<ModuleEarlyWellKnownAttributeData>().NonNullTypes = value;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
+            }
+
+            return base.EarlyDecodeWellKnownAttribute(ref arguments);
+        }
+
         private void DecodeOneNullableOptOutForAssemblyAttribute(
             AttributeSyntax node,
             CSharpAttributeData attrData,
@@ -587,9 +613,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
-                return SyntaxBasedNonNullTypes(((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations()) ?? this.UtilizesNullableReferenceTypes;
+                if (_lazyEarlyAttributeData == null)
+                {
+                    Interlocked.CompareExchange(ref _lazyEarlyAttributeData, ComputeEarlyAttributes(), null);
+                }
+                // PROTOTYPE(NullableReferenceTypes): REVIEW when no early attributes are there, _lazyEarlyAttributeData remains null and we re-do a bit of un-necessary work on every call
+                return _lazyEarlyAttributeData?.NonNullTypes ?? UtilizesNullableReferenceTypes;
             }
+        }
+
+        private ModuleEarlyWellKnownAttributeData ComputeEarlyAttributes()
+        {
+            CustomAttributesBag<CSharpAttributeData> bag = null;
+            var mergedAttributes = ((SourceAssemblySymbol)ContainingAssembly).GetAttributeDeclarations();
+            LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), ref bag, earlyDecodingOnly: true);
+            if (bag != null)
+            {
+                Debug.Assert(bag.IsEarlyDecodedWellKnownAttributeDataComputed);
+                return (ModuleEarlyWellKnownAttributeData)bag.EarlyDecodedWellKnownAttributeData;
+            }
+
+            return null;
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
