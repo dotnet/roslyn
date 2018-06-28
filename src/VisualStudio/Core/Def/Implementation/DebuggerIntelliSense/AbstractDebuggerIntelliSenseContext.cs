@@ -64,7 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         // Constructor for testing
-        protected AbstractDebuggerIntelliSenseContext(IWpfTextView wpfTextView,
+        protected AbstractDebuggerIntelliSenseContext(
+            IWpfTextView wpfTextView,
             ITextBuffer contextBuffer,
             Microsoft.VisualStudio.TextManager.Interop.TextSpan[] currentStatementSpan,
             IComponentModel componentModel,
