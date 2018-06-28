@@ -928,7 +928,7 @@ End Class
         End Function
 
         <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27692"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusiveNamedParameterCompletion2() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -951,7 +951,7 @@ End Class
 
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession(numberOfItems:=3)
-                Assert.True(state.CompletionItemsContainsAll({"b:=", "num:=", "str:=", "dbl:="}))
+                Assert.True(state.CompletionItemsContainsAll({"b:=", "num:=", "str:="}))
             End Using
         End Function
 
