@@ -194,10 +194,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                             var result = runner.RunTestCollection(new IpcMessageBus(messageBus), testCollection, testCases.ToArray());
                             var runSummary = new RunSummary
                             {
-                                Total = result.total,
-                                Failed = result.failed,
-                                Skipped = result.skipped,
-                                Time = result.time,
+                                Total = result.Item1,
+                                Failed = result.Item2,
+                                Skipped = result.Item3,
+                                Time = result.Item4,
                             };
 
                             return Tuple.Create(runSummary, executionMessageSinkFilter.TestAssemblyFinished);

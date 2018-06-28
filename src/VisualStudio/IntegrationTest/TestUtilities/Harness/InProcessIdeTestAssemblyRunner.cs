@@ -29,12 +29,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             _testAssemblyRunner = new XunitTestAssemblyRunner(testAssembly, reconstructedTestCases.ToArray(), diagnosticMessageSink, executionMessageSink, executionOptions);
         }
 
-        public (int total, int failed, int skipped, decimal time) RunTestCollection(IMessageBus messageBus, ITestCollection testCollection, IXunitTestCase[] testCases)
+        public Tuple<int, int, int, decimal> RunTestCollection(IMessageBus messageBus, ITestCollection testCollection, IXunitTestCase[] testCases)
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
                 var result = _testAssemblyRunner.RunAsync().GetAwaiter().GetResult();
-                return (result.Total, result.Failed, result.Skipped, result.Time);
+                return Tuple.Create(result.Total, result.Failed, result.Skipped, result.Time);
             }
         }
 
