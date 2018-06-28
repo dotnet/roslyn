@@ -427,10 +427,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
         {
-            return GetDeclaredBaseType(basesBeingResolved, ignoreNullability: false);
+            return GetDeclaredBaseType(ignoreNullability: false);
         }
 
-        private NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNullability)
+        private NamedTypeSymbol GetDeclaredBaseType(bool ignoreNullability)
         {
             if (ReferenceEquals(_lazyDeclaredBaseTypeWithoutNullability, ErrorTypeSymbol.UnknownResultType))
             {
@@ -1635,7 +1635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        TypeSymbol @base = GetDeclaredBaseType(null, ignoreNullability: true);
+                        TypeSymbol @base = GetDeclaredBaseType(ignoreNullability: true);
 
                         result = TypeKind.Class;
 
