@@ -65,11 +65,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// information as the search is undertaken.</param>
         /// <param name="documents">An optional set of documents to be searched. If documents is null, then that means "all documents".</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
-        public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
             IFindReferencesProgress progress,
             IImmutableSet<Document> documents,
+            CancellationToken cancellationToken = default)
+        {
+            return FindReferencesAsync(symbol, solution, progress, documents, SymbolFinderOptions.Default);
+        }
+        
+        internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            ISymbol symbol,
+            Solution solution,
+            IFindReferencesProgress progress,
+            IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken = default)
         {
             progress = progress ?? FindReferencesProgress.Instance;
@@ -80,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution,
                 streamingProgress,
                 documents,
-                SymbolFinderOptions.Default,
+                options,
                 cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();
         }
