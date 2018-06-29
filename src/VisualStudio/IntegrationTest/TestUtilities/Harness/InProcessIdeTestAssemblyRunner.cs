@@ -2,7 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
+using System.Runtime.Remoting;
+using System.Runtime.Serialization;
 using System.Threading;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -11,6 +15,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 {
     public class InProcessIdeTestAssemblyRunner : MarshalByRefObject, IDisposable
     {
+        [ThreadStatic]
+        private static bool s_inHandler;
+
         private readonly TestAssemblyRunner<IXunitTestCase> _testAssemblyRunner;
 
         public InProcessIdeTestAssemblyRunner(ITestAssembly testAssembly, IEnumerable<IXunitTestCase> testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
@@ -31,10 +38,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 
         public Tuple<int, int, int, decimal> RunTestCollection(IMessageBus messageBus, ITestCollection testCollection, IXunitTestCase[] testCases)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource())
+            try
             {
-                var result = _testAssemblyRunner.RunAsync().GetAwaiter().GetResult();
-                return Tuple.Create(result.Total, result.Failed, result.Skipped, result.Time);
+                AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
+                using (var cancellationTokenSource = new CancellationTokenSource())
+                {
+                    var result = _testAssemblyRunner.RunAsync().GetAwaiter().GetResult();
+                    return Tuple.Create(result.Total, result.Failed, result.Skipped, result.Time);
+                }
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
             }
         }
 
@@ -56,6 +71,53 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             {
                 _testAssemblyRunner.Dispose();
             }
+        }
+
+        private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
+        {
+            if (s_inHandler)
+            {
+                // An exception was thrown from within the handler, resulting in a recursive call to the handler.
+                // Bail out now we so don't recursively throw another exception and overflow the stack.
+                return;
+            }
+
+            try
+            {
+                s_inHandler = true;
+
+                switch (eventArgs.Exception)
+                {
+                    case XunitException _:
+                    case RemotingException _:
+                    case SerializationException _:
+                        break;
+
+                    default:
+                        return;
+                }
+
+                var assemblyDirectory = GetAssemblyDirectory();
+                var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
+                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+                var baseFileName = $"{DateTime.Now:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
+                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
+
+                var exception = eventArgs.Exception;
+                File.WriteAllText(
+                    Path.Combine(logDir, $"{baseFileName}.log"),
+                    exception.ToString());
+            }
+            finally
+            {
+                s_inHandler = false;
+            }
+        }
+
+        private static string GetAssemblyDirectory()
+        {
+            var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
+            return Path.GetDirectoryName(assemblyPath);
         }
     }
 }
