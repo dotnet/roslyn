@@ -8,8 +8,20 @@
 
   <PropertyGroup>
     <dotnetRuntimeVersion>2.0.0</dotnetRuntimeVersion>
+
+    <!--
+        When changing this value ensure that you do not exceed the LKG used by source build. This is necessary
+        to ensure we maintain our ability to build from source. The LKG is stored here.
+
+        https://github.com/dotnet/source-build/blob/master/DotnetCLIVersion.txt  
+
+        Also when changing this also make sure to:
+
+        - Update links and version numbers in docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md
+        - Email the team to ask them to upgrade to the new SDK
+    -->
     <dotnetSdkVersion>2.1.300-rtm-008866</dotnetSdkVersion>
     <monoVersion>5.8.0.88</monoVersion>
-    <vsMinimumVersion>15.3</vsMinimumVersion>
+    <vsMinimumVersion>15.7</vsMinimumVersion>
   </PropertyGroup>
 </Project>

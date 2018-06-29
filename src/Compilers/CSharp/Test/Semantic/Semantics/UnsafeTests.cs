@@ -1620,10 +1620,10 @@ class C : I
 
         #endregion Unsafe regions
 
-        #region Non-moveable variables
+        #region Variables that need fixing
 
         [Fact]
-        public void NonMoveableVariables_Parameters()
+        public void FixingVariables_Parameters()
         {
             var text = @"
 class C
@@ -1635,19 +1635,19 @@ class C
 }
 ";
             var expected = @"
-No, Call 'M(x, ref y, out z, p)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
-No, Parameter 'y' is not a non-moveable variable
-No, Parameter 'z' is not a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
+Yes, Call 'M(x, ref y, out z, p)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
+Yes, Parameter 'y' requires fixing.
+Yes, Parameter 'z' requires fixing.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Locals()
+        public void FixingVariables_Locals()
         {
             var text = @"
 class C
@@ -1661,24 +1661,24 @@ class C
 }
 ";
             var expected = @"
-No, TypeExpression 'C' is not a non-moveable variable
-No, Conversion 'null' is not a non-moveable variable
-No, Literal 'null' is not a non-moveable variable
-No, TypeExpression 'int' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
-No, Call 'M(c, x)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'c' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'x' is not a non-moveable variable
-Yes, Local 'x' is a non-moveable variable with underlying symbol 'x'
+Yes, TypeExpression 'C' requires fixing.
+Yes, Conversion 'null' requires fixing.
+Yes, Literal 'null' requires fixing.
+Yes, TypeExpression 'int' requires fixing.
+Yes, Literal '0' requires fixing.
+Yes, Call 'M(c, x)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'c' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'x' requires fixing.
+No, Local 'x' does not require fixing. It has an underlying symbol 'x'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Fields1()
+        public void FixingVariables_Fields1()
         {
             var text = @"
 class C
@@ -1709,74 +1709,74 @@ struct S2
 }
 ";
             var expected = @"
-No, TypeExpression 'C' is not a non-moveable variable
-No, ObjectCreationExpression 'new C()' is not a non-moveable variable
-No, TypeExpression 'S1' is not a non-moveable variable
-No, ObjectCreationExpression 'new S1()' is not a non-moveable variable
-No, Call 'M(this, this.s, this.s.s, this.s.c, this.c.s, this.c.c)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'this' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.s' is not a non-moveable variable
-No, FieldAccess 'this.s' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.s.s' is not a non-moveable variable
-No, FieldAccess 'this.s.s' is not a non-moveable variable
-No, FieldAccess 'this.s' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.s.c' is not a non-moveable variable
-No, FieldAccess 'this.s.c' is not a non-moveable variable
-No, FieldAccess 'this.s' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.c.s' is not a non-moveable variable
-No, FieldAccess 'this.c.s' is not a non-moveable variable
-No, FieldAccess 'this.c' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.c.c' is not a non-moveable variable
-No, FieldAccess 'this.c.c' is not a non-moveable variable
-No, FieldAccess 'this.c' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Call 'M(c, c.s, c.s.s, c.s.c, c.c.s, c.c.c)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'c' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.s' is not a non-moveable variable
-No, FieldAccess 'c.s' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.s.s' is not a non-moveable variable
-No, FieldAccess 'c.s.s' is not a non-moveable variable
-No, FieldAccess 'c.s' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.s.c' is not a non-moveable variable
-No, FieldAccess 'c.s.c' is not a non-moveable variable
-No, FieldAccess 'c.s' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.c.s' is not a non-moveable variable
-No, FieldAccess 'c.c.s' is not a non-moveable variable
-No, FieldAccess 'c.c' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.c.c' is not a non-moveable variable
-No, FieldAccess 'c.c.c' is not a non-moveable variable
-No, FieldAccess 'c.c' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Call 'M(s, s.s, s.s.i)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 's' is not a non-moveable variable
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-No, Conversion 's.s' is not a non-moveable variable
-Yes, FieldAccess 's.s' is a non-moveable variable with underlying symbol 's'
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-No, Conversion 's.s.i' is not a non-moveable variable
-Yes, FieldAccess 's.s.i' is a non-moveable variable with underlying symbol 's'
-Yes, FieldAccess 's.s' is a non-moveable variable with underlying symbol 's'
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
+Yes, TypeExpression 'C' requires fixing.
+Yes, ObjectCreationExpression 'new C()' requires fixing.
+Yes, TypeExpression 'S1' requires fixing.
+Yes, ObjectCreationExpression 'new S1()' requires fixing.
+Yes, Call 'M(this, this.s, this.s.s, this.s.c, this.c.s, this.c.c)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'this' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.s' requires fixing.
+Yes, FieldAccess 'this.s' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.s.s' requires fixing.
+Yes, FieldAccess 'this.s.s' requires fixing.
+Yes, FieldAccess 'this.s' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.s.c' requires fixing.
+Yes, FieldAccess 'this.s.c' requires fixing.
+Yes, FieldAccess 'this.s' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.c.s' requires fixing.
+Yes, FieldAccess 'this.c.s' requires fixing.
+Yes, FieldAccess 'this.c' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.c.c' requires fixing.
+Yes, FieldAccess 'this.c.c' requires fixing.
+Yes, FieldAccess 'this.c' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Call 'M(c, c.s, c.s.s, c.s.c, c.c.s, c.c.c)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'c' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.s' requires fixing.
+Yes, FieldAccess 'c.s' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.s.s' requires fixing.
+Yes, FieldAccess 'c.s.s' requires fixing.
+Yes, FieldAccess 'c.s' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.s.c' requires fixing.
+Yes, FieldAccess 'c.s.c' requires fixing.
+Yes, FieldAccess 'c.s' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.c.s' requires fixing.
+Yes, FieldAccess 'c.c.s' requires fixing.
+Yes, FieldAccess 'c.c' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.c.c' requires fixing.
+Yes, FieldAccess 'c.c.c' requires fixing.
+Yes, FieldAccess 'c.c' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Call 'M(s, s.s, s.s.i)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 's' requires fixing.
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+Yes, Conversion 's.s' requires fixing.
+No, FieldAccess 's.s' does not require fixing. It has an underlying symbol 's'
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+Yes, Conversion 's.s.i' requires fixing.
+No, FieldAccess 's.s.i' does not require fixing. It has an underlying symbol 's'
+No, FieldAccess 's.s' does not require fixing. It has an underlying symbol 's'
+No, Local 's' does not require fixing. It has an underlying symbol 's'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Fields2()
+        public void FixingVariables_Fields2()
         {
             var text = @"
 class Base
@@ -1793,17 +1793,17 @@ class Derived : Base
 }
 ";
             var expected = @"
-No, AssignmentOperator 'base.i = 0' is not a non-moveable variable
-No, FieldAccess 'base.i' is not a non-moveable variable
-No, BaseReference 'base' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
+Yes, AssignmentOperator 'base.i = 0' requires fixing.
+Yes, FieldAccess 'base.i' requires fixing.
+Yes, BaseReference 'base' requires fixing.
+Yes, Literal '0' requires fixing.
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Fields3()
+        public void FixingVariables_Fields3()
         {
             var text = @"
 struct S
@@ -1817,17 +1817,17 @@ struct S
 }
 ";
             var expected = @"
-No, AssignmentOperator 'S.i = 0' is not a non-moveable variable
-No, FieldAccess 'S.i' is not a non-moveable variable
-No, TypeExpression 'S' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
+Yes, AssignmentOperator 'S.i = 0' requires fixing.
+Yes, FieldAccess 'S.i' requires fixing.
+Yes, TypeExpression 'S' requires fixing.
+Yes, Literal '0' requires fixing.
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Fields4()
+        public void FixingVariables_Fields4()
         {
             var text = @"
 struct S
@@ -1836,7 +1836,7 @@ struct S
 
     void M(params object[] p)
     {
-        // rvalues are never non-moveable.
+        // rvalues always require fixing.
         M(new S().i, default(S).i, MakeS().i, (new S[1])[0].i);
     }
 
@@ -1847,31 +1847,31 @@ struct S
 }
 ";
             var expected = @"
-No, Call 'M(new S().i, default(S).i, MakeS().i, (new S[1])[0].i)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'new S().i' is not a non-moveable variable
-No, FieldAccess 'new S().i' is not a non-moveable variable
-No, ObjectCreationExpression 'new S()' is not a non-moveable variable
-No, Conversion 'default(S).i' is not a non-moveable variable
-No, FieldAccess 'default(S).i' is not a non-moveable variable
-No, DefaultExpression 'default(S)' is not a non-moveable variable
-No, Conversion 'MakeS().i' is not a non-moveable variable
-No, FieldAccess 'MakeS().i' is not a non-moveable variable
-No, Call 'MakeS()' is not a non-moveable variable
-No, ThisReference 'MakeS' is not a non-moveable variable
-No, Conversion '(new S[1])[0].i' is not a non-moveable variable
-No, FieldAccess '(new S[1])[0].i' is not a non-moveable variable
-No, ArrayAccess '(new S[1])[0]' is not a non-moveable variable
-No, ArrayCreation 'new S[1]' is not a non-moveable variable
-No, Literal '1' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
+Yes, Call 'M(new S().i, default(S).i, MakeS().i, (new S[1])[0].i)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'new S().i' requires fixing.
+Yes, FieldAccess 'new S().i' requires fixing.
+Yes, ObjectCreationExpression 'new S()' requires fixing.
+Yes, Conversion 'default(S).i' requires fixing.
+Yes, FieldAccess 'default(S).i' requires fixing.
+Yes, DefaultExpression 'default(S)' requires fixing.
+Yes, Conversion 'MakeS().i' requires fixing.
+Yes, FieldAccess 'MakeS().i' requires fixing.
+Yes, Call 'MakeS()' requires fixing.
+Yes, ThisReference 'MakeS' requires fixing.
+Yes, Conversion '(new S[1])[0].i' requires fixing.
+Yes, FieldAccess '(new S[1])[0].i' requires fixing.
+Yes, ArrayAccess '(new S[1])[0]' requires fixing.
+Yes, ArrayCreation 'new S[1]' requires fixing.
+Yes, Literal '1' requires fixing.
+Yes, Literal '0' requires fixing.
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Events()
+        public void FixingVariables_Events()
         {
             var text = @"
 struct S
@@ -1896,43 +1896,43 @@ class C
 }
 ";
             var expected = @"
-No, TypeExpression 'C' is not a non-moveable variable
-No, ObjectCreationExpression 'new C()' is not a non-moveable variable
-No, TypeExpression 'S' is not a non-moveable variable
-No, ObjectCreationExpression 'new S()' is not a non-moveable variable
-No, Call 'M(c.E, c.F)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'c.E' is not a non-moveable variable
-No, BadExpression 'c.E' is not a non-moveable variable
-No, EventAccess 'c.E' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.F' is not a non-moveable variable
-No, BadExpression 'c.F' is not a non-moveable variable
-No, EventAccess 'c.F' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Call 'M(s.E, s.F)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 's.E' is not a non-moveable variable
-Yes, EventAccess 's.E' is a non-moveable variable with underlying symbol 's'
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-No, Conversion 's.F' is not a non-moveable variable
-No, BadExpression 's.F' is not a non-moveable variable
-No, EventAccess 's.F' is not a non-moveable variable
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
+Yes, TypeExpression 'C' requires fixing.
+Yes, ObjectCreationExpression 'new C()' requires fixing.
+Yes, TypeExpression 'S' requires fixing.
+Yes, ObjectCreationExpression 'new S()' requires fixing.
+Yes, Call 'M(c.E, c.F)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'c.E' requires fixing.
+Yes, BadExpression 'c.E' requires fixing.
+Yes, EventAccess 'c.E' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.F' requires fixing.
+Yes, BadExpression 'c.F' requires fixing.
+Yes, EventAccess 'c.F' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Call 'M(s.E, s.F)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 's.E' requires fixing.
+No, EventAccess 's.E' does not require fixing. It has an underlying symbol 's'
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+Yes, Conversion 's.F' requires fixing.
+Yes, BadExpression 's.F' requires fixing.
+Yes, EventAccess 's.F' requires fixing.
+No, Local 's' does not require fixing. It has an underlying symbol 's'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected, expectError: true);
+            CheckIfVariablesNeedFixing(text, expected, expectError: true);
         }
 
         [Fact]
-        public void NonMoveableVariables_Lambda1()
+        public void FixingVariables_Lambda1()
         {
             var text = @"
 class C
 {
     void M(params object[] p)
     {
-        int i = 0; // NOTE: considered non-moveable even though it will be hoisted - lambdas handled separately.
+        int i = 0; // NOTE: does not require fixing even though it will be hoisted - lambdas handled separately.
         i++;
         System.Action a = () =>
         {
@@ -1943,58 +1943,58 @@ class C
 }
 ";
             var expected = string.Format(@"
-No, TypeExpression 'int' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
-No, IncrementOperator 'i++' is not a non-moveable variable
-Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
-No, TypeExpression 'System.Action' is not a non-moveable variable
-No, Conversion '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' is not a non-moveable variable
-No, Lambda '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' is not a non-moveable variable
-No, TypeExpression 'int' is not a non-moveable variable
-Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
-No, IncrementOperator 'j++' is not a non-moveable variable
-Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
+Yes, TypeExpression 'int' requires fixing.
+Yes, Literal '0' requires fixing.
+Yes, IncrementOperator 'i++' requires fixing.
+No, Local 'i' does not require fixing. It has an underlying symbol 'i'
+Yes, TypeExpression 'System.Action' requires fixing.
+Yes, Conversion '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' requires fixing.
+Yes, Lambda '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' requires fixing.
+Yes, TypeExpression 'int' requires fixing.
+No, Local 'i' does not require fixing. It has an underlying symbol 'i'
+Yes, IncrementOperator 'j++' requires fixing.
+No, Local 'j' does not require fixing. It has an underlying symbol 'j'
 ", GetEscapedNewLine()).Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Lambda2()
+        public void FixingVariables_Lambda2()
         {
             var text = @"
 class C
 {
     void M()
     {
-        int i = 0; // NOTE: considered non-moveable even though it will be hoisted - lambdas handled separately.
+        int i = 0; // NOTE: does not require fixing even though it will be hoisted - lambdas handled separately.
         i++;
         System.Func<int, System.Func<int, int>> a = p => q => p + q + i;
     }
 }
 ";
             var expected = @"
-No, TypeExpression 'int' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
-No, IncrementOperator 'i++' is not a non-moveable variable
-Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
-No, TypeExpression 'System.Func<int, System.Func<int, int>>' is not a non-moveable variable
-No, Conversion 'p => q => p + q + i' is not a non-moveable variable
-No, Lambda 'p => q => p + q + i' is not a non-moveable variable
-No, Conversion 'q => p + q + i' is not a non-moveable variable
-No, Lambda 'q => p + q + i' is not a non-moveable variable
-No, BinaryOperator 'p + q + i' is not a non-moveable variable
-No, BinaryOperator 'p + q' is not a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-Yes, Parameter 'q' is a non-moveable variable with underlying symbol 'q'
-Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
+Yes, TypeExpression 'int' requires fixing.
+Yes, Literal '0' requires fixing.
+Yes, IncrementOperator 'i++' requires fixing.
+No, Local 'i' does not require fixing. It has an underlying symbol 'i'
+Yes, TypeExpression 'System.Func<int, System.Func<int, int>>' requires fixing.
+Yes, Conversion 'p => q => p + q + i' requires fixing.
+Yes, Lambda 'p => q => p + q + i' requires fixing.
+Yes, Conversion 'q => p + q + i' requires fixing.
+Yes, Lambda 'q => p + q + i' requires fixing.
+Yes, BinaryOperator 'p + q + i' requires fixing.
+Yes, BinaryOperator 'p + q' requires fixing.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+No, Parameter 'q' does not require fixing. It has an underlying symbol 'q'
+No, Local 'i' does not require fixing. It has an underlying symbol 'i'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Dereference()
+        public void FixingVariables_Dereference()
         {
             var text = @"
 struct S
@@ -2015,40 +2015,40 @@ struct S
 }
 ";
             var expected = @"
-No, TypeExpression 'S' is not a non-moveable variable
-No, AssignmentOperator 's = *p' is not a non-moveable variable
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-Yes, PointerIndirectionOperator '*p' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-No, AssignmentOperator 's = p[0]' is not a non-moveable variable
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-Yes, PointerElementAccess 'p[0]' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-No, Literal '0' is not a non-moveable variable
-No, TypeExpression 'int' is not a non-moveable variable
-No, AssignmentOperator 'j = (*p).i' is not a non-moveable variable
-Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
-Yes, FieldAccess '(*p).i' is a non-moveable variable
-Yes, PointerIndirectionOperator '*p' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-No, AssignmentOperator 'j = p[0].i' is not a non-moveable variable
-Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
-Yes, FieldAccess 'p[0].i' is a non-moveable variable
-Yes, PointerElementAccess 'p[0]' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-No, Literal '0' is not a non-moveable variable
-No, AssignmentOperator 'j = p->i' is not a non-moveable variable
-Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
-Yes, FieldAccess 'p->i' is a non-moveable variable
-Yes, PointerIndirectionOperator 'p' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
+Yes, TypeExpression 'S' requires fixing.
+Yes, AssignmentOperator 's = *p' requires fixing.
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+No, PointerIndirectionOperator '*p' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+Yes, AssignmentOperator 's = p[0]' requires fixing.
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+No, PointerElementAccess 'p[0]' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+Yes, Literal '0' requires fixing.
+Yes, TypeExpression 'int' requires fixing.
+Yes, AssignmentOperator 'j = (*p).i' requires fixing.
+No, Local 'j' does not require fixing. It has an underlying symbol 'j'
+No, FieldAccess '(*p).i' does not require fixing. It has no underlying symbol.
+No, PointerIndirectionOperator '*p' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+Yes, AssignmentOperator 'j = p[0].i' requires fixing.
+No, Local 'j' does not require fixing. It has an underlying symbol 'j'
+No, FieldAccess 'p[0].i' does not require fixing. It has no underlying symbol.
+No, PointerElementAccess 'p[0]' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+Yes, Literal '0' requires fixing.
+Yes, AssignmentOperator 'j = p->i' requires fixing.
+No, Local 'j' does not require fixing. It has an underlying symbol 'j'
+No, FieldAccess 'p->i' does not require fixing. It has no underlying symbol.
+No, PointerIndirectionOperator 'p' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_StackAlloc()
+        public void FixingVariables_StackAlloc()
         {
             var text = @"
 struct S
@@ -2060,16 +2060,16 @@ struct S
 }
 ";
             var expected = @"
-No, TypeExpression 'int*' is not a non-moveable variable
-Yes, ConvertedStackAllocExpression 'stackalloc int[1]' is a non-moveable variable
-No, Literal '1' is not a non-moveable variable
+Yes, TypeExpression 'int*' requires fixing.
+No, ConvertedStackAllocExpression 'stackalloc int[1]' does not require fixing. It has no underlying symbol.
+Yes, Literal '1' requires fixing.
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_TypeParameters1()
+        public void FixingVariables_TypeParameters1()
         {
             var text = @"
 class C
@@ -2083,18 +2083,18 @@ class C
 }
 ";
             var expected = @"
-No, Call 'M(t, t.c)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-Yes, Parameter 't' is a non-moveable variable with underlying symbol 't'
-No, FieldAccess 't.c' is not a non-moveable variable
-Yes, Parameter 't' is a non-moveable variable with underlying symbol 't'
+Yes, Call 'M(t, t.c)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+No, Parameter 't' does not require fixing. It has an underlying symbol 't'
+Yes, FieldAccess 't.c' requires fixing.
+No, Parameter 't' does not require fixing. It has an underlying symbol 't'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_TypeParameters2()
+        public void FixingVariables_TypeParameters2()
         {
             var text = @"
 class D : C<S>
@@ -2116,18 +2116,18 @@ struct S
 }
 ";
             var expected = @"
-No, Call 'M(u, u.i)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-Yes, Parameter 'u' is a non-moveable variable with underlying symbol 'u'
-No, BadExpression 'u.i' is not a non-moveable variable
-Yes, Parameter 'u' is a non-moveable variable with underlying symbol 'u'
+Yes, Call 'M(u, u.i)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+No, Parameter 'u' does not require fixing. It has an underlying symbol 'u'
+Yes, BadExpression 'u.i' requires fixing.
+No, Parameter 'u' does not require fixing. It has an underlying symbol 'u'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected, expectError: true);
+            CheckIfVariablesNeedFixing(text, expected, expectError: true);
         }
 
         [Fact]
-        public void NonMoveableVariables_RangeVariables1()
+        public void FixingVariables_RangeVariables1()
         {
             var text = @"
 using System.Linq;
@@ -2144,33 +2144,33 @@ class C
 }
 ";
             var expected = string.Format(@"
-No, TypeExpression 'var' is not a non-moveable variable
-No, QueryClause 'from i in array {0}            from j in array {0}            select i + j' is not a non-moveable variable
-No, QueryClause 'select i + j' is not a non-moveable variable
-No, QueryClause 'from j in array' is not a non-moveable variable
-No, Call 'from j in array' is not a non-moveable variable
-No, Conversion 'from i in array' is not a non-moveable variable
-No, QueryClause 'from i in array' is not a non-moveable variable
-Yes, Parameter 'array' is a non-moveable variable with underlying symbol 'array'
-No, QueryClause 'from j in array' is not a non-moveable variable
-No, Conversion 'array' is not a non-moveable variable
-No, Lambda 'array' is not a non-moveable variable
-No, Conversion 'array' is not a non-moveable variable
-Yes, Parameter 'array' is a non-moveable variable with underlying symbol 'array'
-No, Conversion 'i + j' is not a non-moveable variable
-No, Lambda 'i + j' is not a non-moveable variable
-No, BinaryOperator 'i + j' is not a non-moveable variable
-Yes, RangeVariable 'i' is a non-moveable variable with underlying symbol 'i'
-Yes, Parameter 'i' is a non-moveable variable with underlying symbol 'i'
-Yes, RangeVariable 'j' is a non-moveable variable with underlying symbol 'j'
-Yes, Parameter 'j' is a non-moveable variable with underlying symbol 'j'
+Yes, TypeExpression 'var' requires fixing.
+Yes, QueryClause 'from i in array {0}            from j in array {0}            select i + j' requires fixing.
+Yes, QueryClause 'select i + j' requires fixing.
+Yes, QueryClause 'from j in array' requires fixing.
+Yes, Call 'from j in array' requires fixing.
+Yes, Conversion 'from i in array' requires fixing.
+Yes, QueryClause 'from i in array' requires fixing.
+No, Parameter 'array' does not require fixing. It has an underlying symbol 'array'
+Yes, QueryClause 'from j in array' requires fixing.
+Yes, Conversion 'array' requires fixing.
+Yes, Lambda 'array' requires fixing.
+Yes, Conversion 'array' requires fixing.
+No, Parameter 'array' does not require fixing. It has an underlying symbol 'array'
+Yes, Conversion 'i + j' requires fixing.
+Yes, Lambda 'i + j' requires fixing.
+Yes, BinaryOperator 'i + j' requires fixing.
+No, RangeVariable 'i' does not require fixing. It has an underlying symbol 'i'
+No, Parameter 'i' does not require fixing. It has an underlying symbol 'i'
+No, RangeVariable 'j' does not require fixing. It has an underlying symbol 'j'
+No, Parameter 'j' does not require fixing. It has an underlying symbol 'j'
 ", GetEscapedNewLine()).Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_RangeVariables2()
+        public void FixingVariables_RangeVariables2()
         {
             var text = @"
 using System;
@@ -2212,41 +2212,41 @@ static class Extensions
 ";
 
             var expected = string.Format(@"
-No, TypeExpression 'var' is not a non-moveable variable
-No, QueryClause 'from x in c{0}                     where x > 0 //int{0}                     where x.Length < 2 //string{0}                     select char.IsLetter(x)' is not a non-moveable variable
-No, QueryClause 'select char.IsLetter(x)' is not a non-moveable variable
-No, Call 'select char.IsLetter(x)' is not a non-moveable variable
-No, QueryClause 'where x.Length < 2' is not a non-moveable variable
-No, Call 'where x.Length < 2' is not a non-moveable variable
-No, QueryClause 'where x > 0' is not a non-moveable variable
-No, Call 'where x > 0' is not a non-moveable variable
-No, QueryClause 'from x in c' is not a non-moveable variable
-Yes, Parameter 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'x > 0' is not a non-moveable variable
-No, Lambda 'x > 0' is not a non-moveable variable
-No, BinaryOperator 'x > 0' is not a non-moveable variable
-Yes, RangeVariable 'x' is a non-moveable variable with underlying symbol 'x'
-Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
-No, Literal '0' is not a non-moveable variable
-No, Conversion 'x.Length < 2' is not a non-moveable variable
-No, Lambda 'x.Length < 2' is not a non-moveable variable
-No, BinaryOperator 'x.Length < 2' is not a non-moveable variable
-No, PropertyAccess 'x.Length' is not a non-moveable variable
-Yes, RangeVariable 'x' is a non-moveable variable with underlying symbol 'x'
-Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
-No, Literal '2' is not a non-moveable variable
-No, Conversion 'char.IsLetter(x)' is not a non-moveable variable
-No, Lambda 'char.IsLetter(x)' is not a non-moveable variable
-No, Call 'char.IsLetter(x)' is not a non-moveable variable
-No, TypeExpression 'char' is not a non-moveable variable
-Yes, RangeVariable 'x' is a non-moveable variable with underlying symbol 'x'
-Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
+Yes, TypeExpression 'var' requires fixing.
+Yes, QueryClause 'from x in c{0}                     where x > 0 //int{0}                     where x.Length < 2 //string{0}                     select char.IsLetter(x)' requires fixing.
+Yes, QueryClause 'select char.IsLetter(x)' requires fixing.
+Yes, Call 'select char.IsLetter(x)' requires fixing.
+Yes, QueryClause 'where x.Length < 2' requires fixing.
+Yes, Call 'where x.Length < 2' requires fixing.
+Yes, QueryClause 'where x > 0' requires fixing.
+Yes, Call 'where x > 0' requires fixing.
+Yes, QueryClause 'from x in c' requires fixing.
+No, Parameter 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'x > 0' requires fixing.
+Yes, Lambda 'x > 0' requires fixing.
+Yes, BinaryOperator 'x > 0' requires fixing.
+No, RangeVariable 'x' does not require fixing. It has an underlying symbol 'x'
+No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
+Yes, Literal '0' requires fixing.
+Yes, Conversion 'x.Length < 2' requires fixing.
+Yes, Lambda 'x.Length < 2' requires fixing.
+Yes, BinaryOperator 'x.Length < 2' requires fixing.
+Yes, PropertyAccess 'x.Length' requires fixing.
+No, RangeVariable 'x' does not require fixing. It has an underlying symbol 'x'
+No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
+Yes, Literal '2' requires fixing.
+Yes, Conversion 'char.IsLetter(x)' requires fixing.
+Yes, Lambda 'char.IsLetter(x)' requires fixing.
+Yes, Call 'char.IsLetter(x)' requires fixing.
+Yes, TypeExpression 'char' requires fixing.
+No, RangeVariable 'x' does not require fixing. It has an underlying symbol 'x'
+No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
 ", GetEscapedNewLine()).Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
-        private static void CheckNonMoveableVariables(string text, string expected, bool expectError = false)
+        private static void CheckIfVariablesNeedFixing(string text, string expected, bool expectError = false)
         {
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
             var compilationDiagnostics = compilation.GetDiagnostics();
@@ -2271,7 +2271,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
 
             var builder = ArrayBuilder<string>.GetInstance();
 
-            NonMoveableVariableVisitor.Process(block, binder, builder);
+            CheckFixingVariablesVisitor.Process(block, binder, builder);
 
 
             var actual = string.Join(Environment.NewLine, builder);
@@ -2281,12 +2281,12 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
             builder.Free();
         }
 
-        private class NonMoveableVariableVisitor : BoundTreeWalkerWithStackGuard
+        private class CheckFixingVariablesVisitor : BoundTreeWalkerWithStackGuard
         {
             private readonly Binder _binder;
             private readonly ArrayBuilder<string> _builder;
 
-            private NonMoveableVariableVisitor(Binder binder, ArrayBuilder<string> builder)
+            private CheckFixingVariablesVisitor(Binder binder, ArrayBuilder<string> builder)
             {
                 _binder = binder;
                 _builder = builder;
@@ -2294,7 +2294,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
 
             public static void Process(BoundBlock block, Binder binder, ArrayBuilder<string> builder)
             {
-                var visitor = new NonMoveableVariableVisitor(binder, builder);
+                var visitor = new CheckFixingVariablesVisitor(binder, builder);
                 visitor.Visit(block);
             }
 
@@ -2306,20 +2306,17 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
                     var text = node.Syntax.ToString();
                     if (!string.IsNullOrEmpty(text))
                     {
-                        text = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(text, quote: false);
-                        Symbol accessedLocalOrParameterOpt;
-                        bool isNonMoveableVariable = _binder.IsNonMoveableVariable(expr, out accessedLocalOrParameterOpt);
+                        text = SymbolDisplay.FormatLiteral(text, quote: false);
 
-                        if (isNonMoveableVariable)
+                        if (_binder.ExpressionRequiresFixing(expr, out Symbol accessedLocalOrParameterOpt))
                         {
-                            _builder.Add(string.Format("Yes, {0} '{1}' is a non-moveable variable{2}",
-                                expr.Kind,
-                                text,
-                                accessedLocalOrParameterOpt == null ? "" : string.Format(" with underlying symbol '{0}'", accessedLocalOrParameterOpt.Name)));
+                            _builder.Add($"Yes, {expr.Kind} '{text}' requires fixing.");
                         }
                         else
                         {
-                            _builder.Add(string.Format("No, {0} '{1}' is not a non-moveable variable", expr.Kind, text));
+                            _builder.Add(string.Concat($"No, {expr.Kind} '{text}' does not require fixing.", accessedLocalOrParameterOpt is null
+                                ? " It has no underlying symbol."
+                                : $" It has an underlying symbol '{accessedLocalOrParameterOpt.Name}'"));
                         }
                     }
                 }
@@ -2333,7 +2330,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
             }
         }
 
-        #endregion Non-moveable variables
+        #endregion Variables that need fixing
 
         #region IsManagedType
 
@@ -3452,7 +3449,7 @@ public struct S
         }
 
         [Fact]
-        public void AddressOfMoveableVariable()
+        public void AddressOfVariablesThatRequireFixing()
         {
             var text = @"
 class Base
@@ -3770,7 +3767,7 @@ unsafe public struct Test
         }
 
         [Fact]
-        public void AddressOfCapturedMoveable1()
+        public void AddressOfCapturedFixed1()
         {
             var text = @"
 unsafe class C
@@ -3779,7 +3776,7 @@ unsafe class C
 
     void M(System.Action a)
     {
-        fixed(int* p = &x) //fine - error only applies to non-moveable variables
+        fixed(int* p = &x) //fine - error only applies to variables that require fixing
         {
             M(() => x++);
         }
@@ -3790,14 +3787,14 @@ unsafe class C
         }
 
         [Fact]
-        public void AddressOfCapturedMoveable2()
+        public void AddressOfCapturedFixed2()
         {
             var text = @"
 unsafe class C
 {
     void M(ref int x, System.Action a)
     {
-        fixed (int* p = &x) //fine - error only applies to non-moveable variables
+        fixed (int* p = &x) //fine - error only applies to variables that require fixing
         {
             M(ref x, () => x++);
         }

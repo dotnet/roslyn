@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var classificationService = document?.GetLanguageService<TClassificationService>();
             if (classificationService == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             return SemanticClassificationUtilities.ProduceTagsAsync(

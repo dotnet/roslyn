@@ -129,7 +129,9 @@ Example:
 - Visutal Studio 2017 version 15.7: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/tuple-equality.md#compatibility The "tuple equality" features (in C# 7.3) introduces built-in operators `==` and `!=` on tuple types. Those built-in operators take precedence over user-defined comparison operators on a custom `ValueTuple` type.
 
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/22455 C# compiler will now produce errors if there was an "in" or an "out" argument to an "__arglist" call. "out" was always allowed, and "in" was introduced in 15.5.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27882 C# compiler will now produce errors on ref assigning a local to a parameter with a wider escape scope if it was a ref-like type.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26418 C# compiler will now produce errors on out variable declarations that have "ref" or "ref readonly" ref kinds. Example: M(out ref int x);
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27047 The C# compiler will now produce diagnostics for operators marked as obsolete when they are used as part of a tuple comparison.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27461 The method `LanguaguageVersionFacts.TryParse` is no longer an extension method.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27803 pattern matching now will produce errors when trying to return a stack bound value to an invalid escape scope.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26743 C# will now reject expressions such as `public int* M => &this.Bar[0];` if `Bar` is a fixed field of the containing type.

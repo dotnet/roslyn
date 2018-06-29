@@ -757,7 +757,7 @@ class C
 {
     void [|M|]()
     {
-        foreach (var (a, b) in new(int, int)[] { })
+        foreach (var (a, b) in new (int, int)[] { })
         {
         }
     }
