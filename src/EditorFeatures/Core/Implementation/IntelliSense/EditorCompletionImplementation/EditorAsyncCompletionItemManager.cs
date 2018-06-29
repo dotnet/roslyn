@@ -311,8 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return new EditorCompletion.FilteredCompletionModel(highlightedList, 0, updatedFilters, isHardSelection ? EditorCompletion.UpdateSelectionHint.Selected : EditorCompletion.UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
             }
 
-            // TODO: Better conversion between Roslyn/Editor completion items
-            var selectedItemIndex = itemsInList.IndexOf(i => i.CompletionItem.DisplayText == bestItem.DisplayText);
+            var selectedItemIndex = itemsInList.IndexOf(i => Equals(GetOrCreateRoslynItem(i.CompletionItem), bestItem));
 
             EditorCompletion.CompletionItem uniqueItem = null;
             if (bestItem != null && matchingItems.Length == 1 && filterText.Length > 0)
