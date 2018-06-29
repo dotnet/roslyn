@@ -934,6 +934,7 @@
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
+    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">

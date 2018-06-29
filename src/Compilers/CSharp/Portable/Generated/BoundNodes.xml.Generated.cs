@@ -3344,7 +3344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUsingStatement : BoundStatement
     {
-        public BoundUsingStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarationsOpt, BoundExpression expressionOpt, Conversion iDisposableConversion, BoundStatement body, bool hasErrors = false)
+        public BoundUsingStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarationsOpt, BoundExpression expressionOpt, Conversion iDisposableConversion, BoundStatement body, MethodSymbol disposeMethodOpt, bool hasErrors = false)
             : base(BoundKind.UsingStatement, syntax, hasErrors || declarationsOpt.HasErrors() || expressionOpt.HasErrors() || body.HasErrors())
         {
 
@@ -3356,6 +3356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ExpressionOpt = expressionOpt;
             this.IDisposableConversion = iDisposableConversion;
             this.Body = body;
+            this.DisposeMethodOpt = disposeMethodOpt;
         }
 
 
@@ -3369,16 +3370,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement Body { get; }
 
+        public MethodSymbol DisposeMethodOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitUsingStatement(this);
         }
 
-        public BoundUsingStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarationsOpt, BoundExpression expressionOpt, Conversion iDisposableConversion, BoundStatement body)
+        public BoundUsingStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarationsOpt, BoundExpression expressionOpt, Conversion iDisposableConversion, BoundStatement body, MethodSymbol disposeMethodOpt)
         {
-            if (locals != this.Locals || declarationsOpt != this.DeclarationsOpt || expressionOpt != this.ExpressionOpt || iDisposableConversion != this.IDisposableConversion || body != this.Body)
+            if (locals != this.Locals || declarationsOpt != this.DeclarationsOpt || expressionOpt != this.ExpressionOpt || iDisposableConversion != this.IDisposableConversion || body != this.Body || disposeMethodOpt != this.DisposeMethodOpt)
             {
-                var result = new BoundUsingStatement(this.Syntax, locals, declarationsOpt, expressionOpt, iDisposableConversion, body, this.HasErrors);
+                var result = new BoundUsingStatement(this.Syntax, locals, declarationsOpt, expressionOpt, iDisposableConversion, body, disposeMethodOpt, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9166,7 +9169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundMultipleLocalDeclarations declarationsOpt = (BoundMultipleLocalDeclarations)this.Visit(node.DeclarationsOpt);
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.Locals, declarationsOpt, expressionOpt, node.IDisposableConversion, body);
+            return node.Update(node.Locals, declarationsOpt, expressionOpt, node.IDisposableConversion, body, node.DisposeMethodOpt);
         }
         public override BoundNode VisitFixedStatement(BoundFixedStatement node)
         {
@@ -10442,7 +10445,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("declarationsOpt", null, new TreeDumperNode[] { Visit(node.DeclarationsOpt, null) }),
                 new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) }),
                 new TreeDumperNode("iDisposableConversion", node.IDisposableConversion, null),
-                new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+                new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
+                new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null)
             }
             );
         }

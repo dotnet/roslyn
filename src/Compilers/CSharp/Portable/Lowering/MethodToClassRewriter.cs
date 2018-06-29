@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
-            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body);
+            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.DisposeMethodOpt);
         }
 
         private Conversion RewriteConversion(Conversion conversion)

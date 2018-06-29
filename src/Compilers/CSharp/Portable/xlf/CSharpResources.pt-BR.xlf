@@ -7,6 +7,11 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_Disposable">
+        <source>disposable</source>
+        <target state="new">disposable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;nulo&gt;</target>
@@ -4691,8 +4696,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'</source>
-        <target state="translated">'"{0}": tipo usado em uma instrução using deve ser implicitamente conversível para "System. IDisposable"</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.</source>
+        <target state="needs-review-translation">'"{0}": tipo usado em uma instrução using deve ser implicitamente conversível para "System. IDisposable"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">

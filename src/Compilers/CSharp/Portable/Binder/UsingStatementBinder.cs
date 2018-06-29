@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -67,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false;
             BoundMultipleLocalDeclarations declarationsOpt = null;
             BoundExpression expressionOpt = null;
+            MethodSymbol disposeMethod = null;
             Conversion iDisposableConversion = Conversion.NoConversion;
             TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable); // no need for diagnostics, so use the Compilation version
             Debug.Assert((object)iDisposable != null);
@@ -79,18 +79,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
+                TypeSymbol expressionType = expressionOpt.Type;
+                
                 if (!iDisposableConversion.IsImplicit)
                 {
-                    TypeSymbol expressionType = expressionOpt.Type;
-                    if ((object)expressionType == null || !expressionType.IsErrorType())
+                    if (!(expressionType is null))
                     {
-                        Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
+                        disposeMethod = TryFindDisposePatternMethod(expressionType, diagnostics);
                     }
-                    hasErrors = true;
+                    if (disposeMethod is null)
+                    {
+                        if (expressionType is null || !expressionType.IsErrorType())
+                        {
+                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
+                        } 
+                        hasErrors = true;
+                    }       
                 }
             }
             else
             {
+
                 ImmutableArray<BoundLocalDeclaration> declarations;
                 originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
 
@@ -112,12 +121,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!iDisposableConversion.IsImplicit)
                     {
-                        if (!declType.IsErrorType())
+                        disposeMethod = TryFindDisposePatternMethod(declType, diagnostics);
+                        if (disposeMethod is null)
                         {
-                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                            if (!declType.IsErrorType())
+                            {
+                                Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                            }
+                            hasErrors = true;
                         }
-
-                        hasErrors = true;
                     }
                 }
             }
@@ -132,9 +144,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt,
                 iDisposableConversion,
                 boundBody,
+                disposeMethod,
                 hasErrors);
         }
 
+        /// <summary>
+        /// Checks for a Dispose method on exprType in the case that there is no explicit
+        /// IDisposable conversion.
+        /// </summary>
+        /// <param name="exprType">Type of the expression over which to iterate</param>
+        /// <param name="diagnostics">Populated with warnings if there are near misses</param>
+        /// <returns>True if a matching method is found with correct return type.</returns>
+        private MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, DiagnosticBag diagnostics)
+        {
+            LookupResult lookupResult = LookupResult.GetInstance();
+            SyntaxNode syntax = _syntax.Expression != null ? (SyntaxNode)_syntax.Expression : (SyntaxNode)_syntax.Declaration;
+            MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.DisposeMethodName, lookupResult, syntax, warningsOnly: true, diagnostics, _syntax.SyntaxTree, MessageID.IDS_Disposable);
+            lookupResult.Free();
+
+            if (disposeMethod?.ReturnsVoid == false)
+            {
+                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntax.Location, exprType, MessageID.IDS_Disposable.Localize(), disposeMethod);
+                disposeMethod = null;
+            }
+
+            return disposeMethod;
+        }
+        
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
