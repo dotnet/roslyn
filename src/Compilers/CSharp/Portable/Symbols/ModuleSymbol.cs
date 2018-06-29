@@ -197,12 +197,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
-                // We are in by default.
-                return false;
+                return this.UtilizesNullableReferenceTypes;
             }
         }
 
@@ -330,6 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasAssemblyRuntimeCompatibilityAttribute { get; }
 
         // PROTOTYPE(NullableReferenceTypes): Remove property if all implementations return true.
+        // PROTOTYPE(NullableReferenceTypes): Consider consolidating property into NonNullTypes 
         internal abstract bool UtilizesNullableReferenceTypes { get; }
 
         /// <summary>

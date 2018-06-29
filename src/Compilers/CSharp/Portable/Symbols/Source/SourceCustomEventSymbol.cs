@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     EventSymbol overriddenEvent = this.OverriddenEvent;
                     if ((object)overriddenEvent != null)
                     {
-                        CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly);
+                        CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly, NonNullTypes);
                     }
                 }
             }
             else if ((object)explicitlyImplementedEvent != null)
             {
-                CopyEventCustomModifiers(explicitlyImplementedEvent, ref _type, ContainingAssembly);
+                CopyEventCustomModifiers(explicitlyImplementedEvent, ref _type, ContainingAssembly, NonNullTypes);
 
                 TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, explicitlyImplementedEvent, true, diagnostics);
             }

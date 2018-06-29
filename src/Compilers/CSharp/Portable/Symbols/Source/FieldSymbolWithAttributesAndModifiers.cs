@@ -336,6 +336,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool NonNullTypes
+        {
+            get
+            {
+                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
+                return SyntaxBasedNonNullTypes(this.AttributeDeclarationSyntaxList) ?? base.NonNullTypes; 
+            }
+        }
+
         internal sealed override bool IsNotSerialized
         {
             get

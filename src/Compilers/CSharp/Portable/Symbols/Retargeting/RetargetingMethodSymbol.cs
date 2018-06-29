@@ -311,11 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
-                return _underlyingMethod.NullableOptOut;
+                return _underlyingMethod.NonNullTypes;
             }
         }
     }

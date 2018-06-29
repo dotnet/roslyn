@@ -140,15 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.Name == WellKnownMemberNames.EnumBackingFieldName;
             }
         }
-
-        internal override bool NullableOptOut
-        {
-            get
-            {
-                var data = GetDecodedWellKnownAttributeData() as FieldWellKnownAttributeData;
-                return data?.NullableOptOut ?? base.NullableOptOut;
-            }
-        }
     }
 
     internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol

@@ -1975,6 +1975,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
+            while (operand.Kind == BoundKind.SuppressNullableWarningExpression)
+            {
+                operand = ((BoundSuppressNullableWarningExpression)operand).Expression;
+            }
 
             switch (operand.Kind)
             {

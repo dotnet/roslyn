@@ -2398,6 +2398,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): This method should be removed
         internal bool UtilizesNullableReferenceTypes()
         {
             if (_lazyUtilizesNullableReferenceTypes == ThreeState.Unknown)
@@ -2442,9 +2443,9 @@ namespace Microsoft.CodeAnalysis
             return TryExtractBoolArrayValueFromAttribute(info.Handle, out nullableTransforms);
         }
 
-        internal bool HasNullableOptOutAttribute(EntityHandle token, out bool value)
+        internal bool HasNonNullTypesAttribute(EntityHandle token, out bool value)
         {
-            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableOptOutAttribute);
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NonNullTypesAttribute);
             Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
 
             if (info.HasValue && TryExtractValueFromAttribute(info.Handle, out value, s_attributeBooleanValueExtractor))
