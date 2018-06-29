@@ -472,11 +472,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
 
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
             _conflictResolutionTask = _allRenameLocationsTask.SafeContinueWithFromAsync(
-               async t => await (await t.ConfigureAwait(false)).GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false),
+               t => t.Result.GetReplacementsAsync(replacementText, optionSet, cancellationToken),
                cancellationToken,
                TaskContinuationOptions.OnlyOnRanToCompletion,
                TaskScheduler.Default);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
 
             _conflictResolutionTask.CompletesAsyncOperation(asyncToken);
         }
