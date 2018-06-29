@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We still have to determine if it passes final validation.
 
             var methodResult = result.ValidResult;
-            var returnType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(methodResult.Member).TypeSymbol;
+            var returnType = methodResult.Member.ReturnType.TypeSymbol;
             this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
 
             var method = methodResult.Member;
@@ -996,9 +996,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
                     Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                    receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), 
-                                                                     GetTypeOrReturnTypeWithAdjustedNullableAnnotations(receiverParameter).TypeSymbol, 
-                                                                     diagnostics);
+                    receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0),
+                        receiverParameter.Type.TypeSymbol, diagnostics);
                 }
 
                 if (receiverParameter.RefKind == RefKind.Ref)
@@ -1116,17 +1115,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                             argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
             }
-        }
-
-        internal TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
-        {
-            if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) &&
-                !IsBindingModuleLevelAttribute()) // TODO: It is possible to get into cycle while binding module level attributes because Opt-In/Opt-Out state depends on them
-            {
-                return Compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(symbol);
-            }
-
-            return symbol.GetTypeOrReturnType();
         }
 
         private bool IsBindingModuleLevelAttribute()

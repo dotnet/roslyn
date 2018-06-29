@@ -832,13 +832,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Is module/type/method/field/property/event/parameter definition opted out of nullable warnings. Not valid to call on non-definitions.
+        /// Is module/type/method/field/property/event/parameter definition opted-in/out of treating un-annotated types as non-null.
+        /// This is determined by the presence of the `[NonNullTypes]` attribute.
+        /// PROTOTYPE(NullableReferenceTypes): presumably whether the feature is turned on or off will affect NonNullTypes default value on source module.
+        /// Not valid to call on non-definitions.
         /// </summary>
-        internal virtual bool NullableOptOut
+        internal virtual bool NonNullTypes
         {
             get
             {
-                Debug.Assert(false);
+                Debug.Assert(false); // PROTOTYPE(NullableReferenceTypes): Can we reach this?
                 return false;
             }
         }
@@ -1323,6 +1326,83 @@ namespace Microsoft.CodeAnalysis.CSharp
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
         {
             return ToString();
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool? SyntaxBasedNonNullTypes(SyntaxList<AttributeListSyntax> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                bool? nonNullTypes = SyntaxBasedNonNullTypes(attribute.Attributes);
+                if (nonNullTypes.HasValue)
+                {
+                    return nonNullTypes.Value;
+                }
+            }
+            return null;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool? SyntaxBasedNonNullTypes(ImmutableArray<SyntaxList<AttributeListSyntax>> attributeLists)
+        {
+            foreach (var attributeList in attributeLists)
+            {
+                bool? nonNullTypes = SyntaxBasedNonNullTypes(attributeList);
+                if (nonNullTypes.HasValue)
+                {
+                    return nonNullTypes.Value;
+                }
+            }
+
+            return null;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool? SyntaxBasedNonNullTypes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeLists)
+        {
+            for (int i = 0; i < attributeLists.Count; i++)
+            {
+                bool? nonNullTypes = SyntaxBasedNonNullTypes(attributeLists[i]);
+                if (nonNullTypes.HasValue)
+                {
+                    return nonNullTypes.Value;
+                }
+            }
+
+            return null;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool? SyntaxBasedNonNullTypes(SeparatedSyntaxList<AttributeSyntax> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                if (LooksLikeNonNullTypes(attribute, out bool result))
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
+        protected static bool LooksLikeNonNullTypes(AttributeSyntax attribute, out bool value)
+        {
+            switch (attribute.ToString())
+            {
+                case "NonNullTypes":
+                case "NonNullTypes(true)":
+                case "System.Runtime.CompilerServices.NonNullTypes(true)":
+                    value = true;
+                    return true;
+                case "NonNullTypes(false)":
+                case "System.Runtime.CompilerServices.NonNullTypes(false)":
+                    value = false;
+                    return true;
+            }
+
+            value = false;
+            return false;
         }
     }
 }

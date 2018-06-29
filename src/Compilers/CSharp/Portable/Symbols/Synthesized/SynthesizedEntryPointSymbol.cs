@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var systemVoid = Binder.GetSpecialType(compilation, SpecialType.System_Void, DummySyntax(), diagnostics);
-                return new ScriptEntryPoint(containingType, TypeSymbolWithAnnotations.Create(compilation, systemVoid));
+                return new ScriptEntryPoint(containingType, TypeSymbolWithAnnotations.CreateNonNull(containingType.NonNullTypes, systemVoid));
             }
         }
 

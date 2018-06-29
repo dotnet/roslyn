@@ -186,11 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return null; }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
-                return _underlyingEvent.NullableOptOut;
+                return _underlyingEvent.NonNullTypes;
             }
         }
     }

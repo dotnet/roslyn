@@ -295,11 +295,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public override ModuleMetadata GetMetadata() => _underlyingModule.GetMetadata();
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
-                return _underlyingModule.NullableOptOut;
+                return _underlyingModule.NonNullTypes;
             }
         }
     }

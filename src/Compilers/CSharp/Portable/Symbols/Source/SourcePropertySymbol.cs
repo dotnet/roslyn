@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
         private SourcePropertySymbol(
-            SourceMemberContainerTypeSymbol containingType,
-            Binder bodyBinder,
-            BasePropertyDeclarationSyntax syntax,
-            string name,
-            Location location,
-            DiagnosticBag diagnostics)
+           SourceMemberContainerTypeSymbol containingType,
+           Binder bodyBinder,
+           BasePropertyDeclarationSyntax syntax,
+           string name,
+           Location location,
+           DiagnosticBag diagnostics)
         {
             // This has the value that IsIndexer will ultimately have, once we've populated the fields of this object.
             bool isIndexer = syntax.Kind() == SyntaxKind.IndexerDeclaration;
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (_lazyType.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
                         _lazyType = _lazyType.Update(
-                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, _lazyType.TypeSymbol, this.ContainingAssembly),
+                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, _lazyType.TypeSymbol, this.ContainingAssembly, this.NonNullTypes),
                             overriddenPropertyType.CustomModifiers);
                     }
 
@@ -1202,10 +1202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return boundAttribute;
             }
 
-            bool hasAnyDiagnostics;
-
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.IndexerNameAttribute))
             {
+                bool hasAnyDiagnostics;
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
@@ -1265,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
@@ -1294,10 +1293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutAttribute))
-            {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().NullableOptOut = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
@@ -1516,12 +1511,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (syntax.Kind() == SyntaxKind.IndexerDeclaration) ? ((IndexerDeclarationSyntax)syntax).ParameterList : null;
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData() as PropertyWellKnownAttributeData;
-                return data?.NullableOptOut ?? base.NullableOptOut;
+                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
+                return SyntaxBasedNonNullTypes(this.CSharpSyntaxNode.AttributeLists) ?? base.NonNullTypes;
             }
         }
     }

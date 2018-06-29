@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol returnTypeWithCustomModifiers = sourceMethodReturnType.TypeSymbol;
             if (returnTypeSymbol.Equals(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptions))
             {
-                returnType = returnType.Update(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, destinationMethod.ContainingAssembly),
+                returnType = returnType.Update(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, destinationMethod.ContainingAssembly, destinationMethod.NonNullTypes),
                                                sourceMethodReturnType.CustomModifiers);
             }
         }
@@ -61,8 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="sourceType">Type that already has custom modifiers.</param>
         /// <param name="destinationType">Same as <paramref name="sourceType"/>, but without custom modifiers.  May differ in object/dynamic.</param>
         /// <param name="containingAssembly">The assembly containing the signature referring to the destination type.</param>
+        /// <param name="destinationUsesNonNullTypes">If the destination is in a context with NonNullTypes set. If true, unannotated references types are treated as non-nullable, otherwise as null-oblivious.</param>
         /// <returns><paramref name="destinationType"/> with custom modifiers copied from <paramref name="sourceType"/>.</returns>
-        internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, AssemblySymbol containingAssembly)
+        internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, AssemblySymbol containingAssembly, bool destinationUsesNonNullTypes)
         {
             Debug.Assert(sourceType.Equals(destinationType, TypeCompareKind.AllIgnoreOptions));
 
@@ -87,7 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 resultType = typeWithDynamic;
             }
 
-
             // Preserve nullable modifiers as well.
             // PROTOTYPE(NullableReferenceTypes): Set unknown nullability otherwise.
             if (containingAssembly.Modules[0].UtilizesNullableReferenceTypes)
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 destinationType.AddNullableTransforms(flagsBuilder);
                 int position = 0;
                 int length = flagsBuilder.Count;
-                bool transformResult = resultType.ApplyNullableTransforms(flagsBuilder.ToImmutableAndFree(), ref position, out resultType);
+                bool transformResult = resultType.ApplyNullableTransforms(flagsBuilder.ToImmutableAndFree(), destinationUsesNonNullTypes, ref position, out resultType);
                 Debug.Assert(transformResult && position == length);
 
                 Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames)); // Same custom modifiers as source type.
