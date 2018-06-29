@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             int position = 0;
             TypeSymbolWithAnnotations result;
-
-            if (metadataType.ApplyNullableTransforms(nullableTransformFlags, ref position, out result) &&
+            // PROTOTYPE(NullableReferenceTypes): handle NonNullTypes from metadata
+            if (metadataType.ApplyNullableTransforms(nullableTransformFlags, useNonNullTypes: true, ref position, out result) &&
                 (nullableTransformFlags.IsDefault || position == nullableTransformFlags.Length))
             {
                 return result;

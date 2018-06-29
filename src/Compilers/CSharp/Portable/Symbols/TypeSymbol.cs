@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);
 
-        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result);
+        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbol result);
 
         internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
 
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 TypeSymbolWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
-                TypeSymbolWithAnnotations implementedMemberType = compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(implementedMember);
+                TypeSymbolWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
 
                 if (!implementingMemberType.Equals(implementedMemberType, 
                                                    TypeCompareKind.AllIgnoreOptions | 
@@ -1165,16 +1165,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 for (int i = 0; i < implementingParameters.Length; i++)
                 {
-                    var implementedParameterType = compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(implementedParameters[i]);
+                    var implementedParameterType = implementedParameters[i].Type;
 
-                    if (!implementingParameters[i].Type.Equals(implementedParameterType, 
-                                                               TypeCompareKind.AllIgnoreOptions | 
+                    if (!implementingParameters[i].Type.Equals(implementedParameterType,
+                                                               TypeCompareKind.AllIgnoreOptions |
                                                                    TypeCompareKind.CompareNullableModifiersForReferenceTypes |
                                                                    TypeCompareKind.UnknownNullableModifierMatchesAny) &&
                         implementingParameters[i].Type.Equals(implementedParameterType, TypeCompareKind.AllIgnoreOptions))
                     {
-                        diagnostics.Add(isExplicit ? 
-                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation : 
+                        diagnostics.Add(isExplicit ?
+                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation :
                                             ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, 
                                         implementingMember.Locations[0],
                                         new FormattedSymbol(implementingParameters[i], SymbolDisplayFormat.ShortFormat),

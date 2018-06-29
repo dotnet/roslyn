@@ -446,6 +446,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitRvalue(node);
                     break;
             }
+
+            if (_callbackOpt != null)
+            {
+                _callbackOpt(node, _result.Type);
+            }
         }
 
         private Result VisitRvalueWithResult(BoundExpression node)
@@ -477,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (useLegacyWarnings)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, value.Syntax);
+                    ReportWWarning(value.Syntax);
                 }
                 else if (!ReportNullAsNonNullableReferenceIfNecessary(value))
                 {
@@ -531,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 this.State[targetSlot] = isByRefTarget ?
                     // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
-                    // regardless of what value is being assigned. 
+                    // regardless of what value is being assigned.
                     (targetType.IsNullable == true) ? (bool?)false : null :
                     !valueType?.IsNullable;
 
@@ -588,6 +593,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private void ReportWWarning(SyntaxNode syntax)
+        {
+            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, syntax);
+        }
+
         private void ReportStaticNullCheckingDiagnostics(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
         {
             if (!_disableDiagnostics)
@@ -614,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(valueContainerSlot <= slotWatermark);
 
-            TypeSymbolWithAnnotations fieldOrPropertyType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(fieldOrProperty);
+            TypeSymbolWithAnnotations fieldOrPropertyType = fieldOrProperty.GetTypeOrReturnType();
 
             if (fieldOrPropertyType.IsReferenceType)
             {
@@ -1081,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Result result = VisitRvalueWithResult(node);
                     if ((object)containingSymbol != null)
                     {
-                        var type = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(containingSymbol);
+                        var type = containingSymbol.GetTypeOrReturnType();
                         ReportAssignmentWarnings(node, type, result.Type, useLegacyWarnings: false);
                         TrackNullableStateForAssignment(node, type, containingSlot, result.Type, result.Slot);
                     }
@@ -2367,7 +2377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref useSiteDiagnostics);
             if (result.Success)
             {
-                // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
+                // PROTOTYPE(NullableReferenceTypes): Check constraints
                 return definition.Construct(result.InferredTypeArguments);
             }
             return method;
@@ -2638,7 +2648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (reportNullable)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.Syntax);
+                    ReportWWarning(node.Syntax);
                 }
             }
 
@@ -3097,6 +3107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Warnings when assigning to `ref`
                     // or `out` parameters should be regular warnings. Warnings assigning to
                     // other parameters should be W warnings.
+                    // PROTOTYPE(NullableReferenceTypes): Should parameters be non-W warnings?
                     return true;
                 default:
                     return false;
@@ -3163,7 +3174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ReportArgumentWarnings(node.Operand, resultOfOperandConversionType, incrementOperator.Parameters[0]);
 
-                    resultOfIncrementType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(incrementOperator);
+                    resultOfIncrementType = incrementOperator.ReturnType;
                 }
 
                 resultOfIncrementType = ApplyConversion(node, node.ResultConversion, node.Type, resultOfIncrementType);
@@ -3311,18 +3322,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): If support for [NullableOptOut] or [NullableOptOutForAssembly]
-        // is re-enabled, we'll need to call this helper for method symbols before inferring nullability of
-        // arguments to avoid warnings when nullability checking of the method is suppressed.
-        // (See all uses of this helper for method symbols.)
-        private TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
-        {
-            Debug.Assert(symbol.Kind != SymbolKind.Local); // Handled in VisitLocal.
-            Debug.Assert(symbol.Kind != SymbolKind.Parameter); // Handled in VisitParameter.
-
-            return compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(symbol);
-        }
-
         private Result GetDeclaredLocalResult(LocalSymbol local)
         {
             var slot = GetOrCreateSlot(local);
@@ -3372,7 +3371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): Update indexer based on inferred receiver type.
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Indexer, node.ArgsToParamsOpt, node.Expanded);
 
-            _result = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.Indexer);
+            _result = node.Indexer.Type;
             return null;
         }
 
@@ -3434,7 +3433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbolWithAnnotations result = ApplyConversion(node.IterationVariableType, operandOpt: null, conversion, destinationType.TypeSymbol, sourceType, checkConversion: false, fromExplicitCast: true, out bool canConvertNestedNullability);
                     if (destinationType.IsReferenceType && destinationType.IsNullable == false && sourceType.IsNullable == true)
                     {
-                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.IterationVariableType.Syntax);
+                        ReportWWarning(node.IterationVariableType.Syntax);
                     }
                     isNullableIfReferenceType = result.IsNullable;
                 }
@@ -3492,7 +3491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if ((object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
                 {
                     ReportArgumentWarnings(node.Operand, _result.Type, node.MethodOpt.Parameters[0]);
-                    resultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.MethodOpt);
+                    resultType = node.MethodOpt.ReturnType;
                 }
             }
 
@@ -3545,7 +3544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand types.
             if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
             {
-                return GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.LogicalOperator);
+                return node.LogicalOperator.ReturnType;
             }
             else
             {
@@ -3636,7 +3635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
-                _result = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.GetResult);
+                _result = node.GetResult.ReturnType;
             }
             return result;
         }

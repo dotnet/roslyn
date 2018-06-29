@@ -3097,12 +3097,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
-        {
-            // PROTOTYPE(NullableReferenceTypes): Review whether method can simply be removed
-            return symbol.GetTypeOrReturnType();
-        }
-
         internal bool ShouldSuppressNullableAnnotations(Symbol definition)
         {
             Debug.Assert(definition.IsDefinition);

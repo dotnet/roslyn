@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
         {
-            var type = _binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter).TypeSymbol;
+            var type = parameter.Type.TypeSymbol;
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
                 parameter.IsParams && type.IsSZArray())
             {

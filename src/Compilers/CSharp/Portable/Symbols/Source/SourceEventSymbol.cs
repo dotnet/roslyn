@@ -285,11 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<EventWellKnownAttributeData>().HasSpecialNameAttribute = true;
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutAttribute))
-            {
-                arguments.GetOrCreateData<EventWellKnownAttributeData>().NullableOptOut = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
@@ -342,12 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData() as EventWellKnownAttributeData;
-                return data?.NullableOptOut ?? base.NullableOptOut;
+                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
+                return SyntaxBasedNonNullTypes(this.AttributeDeclarationSyntaxList) ?? base.NonNullTypes;
             }
         }
 
@@ -556,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
         }
 
-        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type, AssemblySymbol containingAssembly)
+        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type, AssemblySymbol containingAssembly, bool nonNullTypes)
         {
             Debug.Assert((object)eventWithCustomModifiers != null);
 
@@ -567,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we want to retain the original (incorrect) type to avoid hiding the type given in source.
             if (type.TypeSymbol.Equals(overriddenEventType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
             {
-                type = type.Update(CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type.TypeSymbol, containingAssembly),
+                type = type.Update(CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type.TypeSymbol, containingAssembly, nonNullTypes),
                                    eventWithCustomModifiers.Type.CustomModifiers);
             }
         }

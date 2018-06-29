@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                type = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(method).TypeSymbol;
+                type = method.ReturnType.TypeSymbol;
                 if (!this.IsAccessible(method, ref useSiteDiagnostics, this.GetAccessThroughType(receiverOpt)))
                 {
                     // CONSIDER: depending on the accessibility (e.g. if it's private), dev10 might just report the whole event bogus.

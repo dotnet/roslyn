@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PropertySymbol associatedProperty = _property;
                 var type = associatedProperty.Type;
                 _lazyReturnType = _lazyReturnType.Update(
-                    CustomModifierUtils.CopyTypeCustomModifiers(type.TypeSymbol, _lazyReturnType.TypeSymbol, this.ContainingAssembly),
+                    CustomModifierUtils.CopyTypeCustomModifiers(type.TypeSymbol, _lazyReturnType.TypeSymbol, this.ContainingAssembly, NonNullTypes),
                     type.CustomModifiers);
                 _lazyRefCustomModifiers = associatedProperty.RefCustomModifiers;
             }

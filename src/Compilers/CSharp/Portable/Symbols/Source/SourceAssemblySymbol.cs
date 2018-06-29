@@ -871,6 +871,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (SourceModuleSymbol)this.Modules[0]; }
         }
 
+        internal override bool NonNullTypes
+        {
+            get
+            {
+                return SourceModule.UtilizesNullableReferenceTypes;
+            }
+        }
+
         internal override bool RequiresCompletion
         {
             get { return true; }

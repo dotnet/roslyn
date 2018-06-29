@@ -259,12 +259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PointedAtType.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbol result)
         {
             TypeSymbolWithAnnotations oldPointedAtType = PointedAtType;
             TypeSymbolWithAnnotations newPointedAtType;
 
-            if (!oldPointedAtType.ApplyNullableTransforms(transforms, ref position, out newPointedAtType))
+            if (!oldPointedAtType.ApplyNullableTransforms(transforms, useNonNullTypes, ref position, out newPointedAtType))
             {
                 result = this;
                 return false;

@@ -390,12 +390,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ElementType.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbol result)
         {
             TypeSymbolWithAnnotations oldElementType = ElementType;
             TypeSymbolWithAnnotations newElementType;
 
-            if (!oldElementType.ApplyNullableTransforms(transforms, ref position, out newElementType))
+            if (!oldElementType.ApplyNullableTransforms(transforms, useNonNullTypes, ref position, out newElementType))
             {
                 result = this;
                 return false; 

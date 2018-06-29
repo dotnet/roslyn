@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes);
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case SymbolKind.Property:
                         case SymbolKind.Event:
-                            return associatedSymbol.NullableOptOut;
+                            return associatedSymbol.NonNullTypes;
                     }
 
                 }
 
-                return ContainingType?.NullableOptOut == true;
+                return ContainingType?.NonNullTypes == true;
             }
         }
 

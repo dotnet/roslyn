@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (isVar)
                 {
                     diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
-                    type = TypeSymbolWithAnnotations.Create(compilation, binder.CreateErrorType("var"));
+                    type = TypeSymbolWithAnnotations.CreateNonNull(binder.NonNullTypes, binder.CreateErrorType("var"));
                 }
 
                 SetType(compilation, diagnostics, type);

@@ -714,14 +714,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
-                bool optOut;
-
-                return moduleSymbol.Module.HasNullableOptOutAttribute(_handle, out optOut) ? optOut : base.NullableOptOut;
+                bool nonNullTypes;
+                return moduleSymbol.Module.HasNonNullTypesAttribute(_handle, out nonNullTypes) ? nonNullTypes : base.NonNullTypes;
             }
         }
 

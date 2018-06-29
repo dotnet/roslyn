@@ -506,23 +506,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCharSetAttribute))
             {
                 CharSet charSet = attribute.GetConstructorArgument<CharSet>(0, SpecialType.System_Enum);
-                if (!ModuleWellKnownAttributeData.IsValidCharSet(charSet))
+                if (!CommonModuleWellKnownAttributeData.IsValidCharSet(charSet))
                 {
                     CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
-                    arguments.GetOrCreateData<ModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
+                    arguments.GetOrCreateData<CommonModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutForAssemblyAttribute))
             {
                 DecodeOneNullableOptOutForAssemblyAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutAttribute))
-            {
-                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().NullableOptOut = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
             }
         }
 
@@ -587,12 +583,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData() as ModuleWellKnownAttributeData;
-                return data?.NullableOptOut ?? base.NullableOptOut;
+                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
+                return SyntaxBasedNonNullTypes(((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations()) ?? this.UtilizesNullableReferenceTypes;
             }
         }
 
