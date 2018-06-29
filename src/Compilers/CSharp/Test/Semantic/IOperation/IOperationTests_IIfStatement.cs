@@ -1078,6 +1078,87 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        public void IIfstatementWithIfKeywordMissingAndDoubleElseKeywordsPresent()
+        {
+            string source = @"
+using System;
+
+class P
+{
+    private void Op()
+    {
+    }
+
+    private void M()
+    {
+        /*<bind>*/else
+        {
+        }
+        else
+        {
+            Op();
+        }
+/*</bind>*/    }
+}
+";
+            string expectedOperationTree = @"
+IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: '/*<bind>*/e ... }')
+  Condition: 
+    IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+      Children(0)
+  WhenTrue: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
+      Expression: 
+        IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+          Children(0)
+  WhenFalse: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                
+                // file.cs(11,6): error CS1003: Syntax error, 'if' expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("if", "else").WithLocation(11, 6),
+                // file.cs(11,6): error CS1003: Syntax error, '(' expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(11, 6),
+                // file.cs(11,6): error CS1525: Invalid expression term 'else'
+                //     {
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(11, 6),
+                // file.cs(11,6): error CS1026: ) expected
+                //     {
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(11, 6),
+                // file.cs(11,6): error CS1525: Invalid expression term 'else'
+                //     {
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(11, 6),
+                // file.cs(11,6): error CS1002: ; expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 6),
+                // file.cs(14,10): error CS1003: Syntax error, 'if' expected
+                //         }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("if", "else").WithLocation(14, 10),
+                // file.cs(14,10): error CS1003: Syntax error, '(' expected
+                //         }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(14, 10),
+                // file.cs(14,10): error CS1525: Invalid expression term 'else'
+                //         }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(14, 10),
+                // file.cs(14,10): error CS1026: ) expected
+                //         }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(14, 10),
+                // file.cs(14,10): error CS1525: Invalid expression term 'else'
+                //         }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(14, 10),
+                // file.cs(14,10): error CS1002: ; expected
+                //         }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 10)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithElseMissing()
         {

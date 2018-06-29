@@ -2830,6 +2830,110 @@ System.Console.WriteLine(true)";
 
         [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
         [Fact]
+        public void ParseElseAndElseWithoutPrecedingIfStatement()
+        {
+            UsingStatement("{ else {} else {} }",
+                // (1,3): error CS1003: Syntax error, 'if' expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("if", "else").WithLocation(1, 3),
+                // (1,3): error CS1003: Syntax error, '(' expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 3),
+                // (1,3): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 3),
+                // (1,3): error CS1026: ) expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 3),
+                // (1,3): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 3),
+                // (1,3): error CS1002: ; expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 3),
+                // (1,11): error CS1003: Syntax error, 'if' expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("if", "else").WithLocation(1, 11),
+                // (1,11): error CS1003: Syntax error, '(' expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 11),
+                // (1,11): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 11),
+                // (1,11): error CS1026: ) expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 11),
+                // (1,11): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 11),
+                // (1,11): error CS1002: ; expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 11)
+                );
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact]
         public void ParseSubsequentElseWithoutPrecedingIfStatement()
         {
             UsingStatement("{ if (a) { } else { } else { } }",
