@@ -599,5 +599,66 @@ Block[B3] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub WithFlow_07()
+            Dim source = <![CDATA[
+Class C
+    Public I, J As Integer
+End Class
+
+Class D
+    Sub M() 'BIND:"Sub M"
+        With New With { .I = 0 }
+            .I = 1
+        End With
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '0')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New With { .I = 0 }')
+          Value: 
+            IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: I As System.Int32>) (Syntax: 'New With { .I = 0 }')
+              Initializers(1):
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 0) (Syntax: '.I = 0')
+                    Left: 
+                      IPropertyReferenceOperation: Property <anonymous type: I As System.Int32>.I As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'I')
+                        Instance Receiver: 
+                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: I As System.Int32>, IsImplicit) (Syntax: 'New With { .I = 0 }')
+                    Right: 
+                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '0')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '.I = 1')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsImplicit) (Syntax: '.I = 1')
+              Left: 
+                IPropertyReferenceOperation: Property <anonymous type: I As System.Int32>.I As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.I')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: <anonymous type: I As System.Int32>, IsImplicit) (Syntax: 'New With { .I = 0 }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

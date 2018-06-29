@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public static ControlFlowGraph Create(IOperation body, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
         {
             Debug.Assert(body != null);
-            Debug.Assert(((Operation)body).SemanticModel != null);
+            Debug.Assert(((Operation)body).OwningSemanticModel != null);
 
 #if DEBUG
             if (enclosing == null)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 #endif
 
-            var builder = new ControlFlowGraphBuilder(((Operation)body).SemanticModel.Compilation, captureIdDispenser);
+            var builder = new ControlFlowGraphBuilder(((Operation)body).OwningSemanticModel.Compilation, captureIdDispenser);
             var blocks = ArrayBuilder<BasicBlockBuilder>.GetInstance();
             builder._blocks = blocks;
             builder._evalStack = ArrayBuilder<IOperation>.GetInstance();
@@ -1290,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private IOperation FinishVisitingStatement(IOperation originalOperation, IOperation result = null)
         {
-            Debug.Assert(((Operation)originalOperation).SemanticModel != null, "Not an original node.");
+            Debug.Assert(((Operation)originalOperation).OwningSemanticModel != null, "Not an original node.");
             Debug.Assert(_currentStatement == originalOperation);
             Debug.Assert(_evalStack.Count == 0);
 
@@ -5080,44 +5080,28 @@ oneMoreTime:
             ImplicitInstanceInfo savedCurrentImplicitInstance = _currentImplicitInstance;
             _currentImplicitInstance = new ImplicitInstanceInfo((INamedTypeSymbol)operation.Type);
 
-            var properties = operation.Type.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
-            Debug.Assert(properties.Length == operation.Initializers.Length);
-
             SpillEvalStack();
 
             var initializerBuilder = ArrayBuilder<IOperation>.GetInstance(operation.Initializers.Length);
             for (int i = 0; i < operation.Initializers.Length; i++)
             {
-                IOperation initializer = operation.Initializers[i];
-                IPropertySymbol initializedProperty = properties[i];
+                var simpleAssignment = (ISimpleAssignmentOperation)operation.Initializers[i];
+                var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
 
-                // Due to https://github.com/dotnet/roslyn/issues/25266,
-                // the initializer may or may not be a simple assignment to anonymous type property.
-                if (initializer.Kind == OperationKind.SimpleAssignment)
-                {
-                    var simpleAssignment = (ISimpleAssignmentOperation)initializer;
-                    if (simpleAssignment.Target.Kind == OperationKind.PropertyReference)
-                    {
-                        var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                Debug.Assert(propertyReference != null);
+                Debug.Assert(propertyReference.Arguments.IsEmpty);
+                Debug.Assert(propertyReference.Instance != null);
+                Debug.Assert(propertyReference.Instance.Kind == OperationKind.InstanceReference);
+                Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitReceiver);
 
-                        // Due to https://github.com/dotnet/roslyn/issues/22736,
-                        // Instance is null for property reference in an anonymous initializer.
-                        if (propertyReference.Instance == null &&
-                            propertyReference.Property == initializedProperty &&
-                            propertyReference.Arguments.IsEmpty)
-                        {
-                            IOperation visitedTarget = new PropertyReferenceExpression(initializedProperty, propertyReference.Instance, ImmutableArray<IArgumentOperation>.Empty,
-                                semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
-                            IOperation visitedValue = visitAndCaptureInitializer(initializedProperty, simpleAssignment.Value);
-                            var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
-                                semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.ConstantValue, IsImplicit(simpleAssignment));
-                            initializerBuilder.Add(visitedAssignment);
-                            continue;
-                        }
-                    }
-                }
-
-                initializerBuilder.Add(visitAndCaptureInitializer(initializedProperty, initializer));
+                var visitedPropertyInstance = new InstanceReferenceExpression(InstanceReferenceKind.ImplicitReceiver, semanticModel: null,
+                    propertyReference.Instance.Syntax, propertyReference.Instance.Type, propertyReference.Instance.ConstantValue, IsImplicit(propertyReference.Instance));
+                IOperation visitedTarget = new PropertyReferenceExpression(propertyReference.Property, visitedPropertyInstance, ImmutableArray<IArgumentOperation>.Empty,
+                    semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
+                IOperation visitedValue = visitAndCaptureInitializer(propertyReference.Property, simpleAssignment.Value);
+                var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
+                    semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.ConstantValue, IsImplicit(simpleAssignment));
+                initializerBuilder.Add(visitedAssignment);
             }
 
             _currentImplicitInstance.Free();
@@ -5535,9 +5519,8 @@ oneMoreTime:
         public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, int? captureIdForResult)
         {
             // Check if this is an anonymous type property reference with an implicit receiver within an anonymous object initializer.
-            // Due to https://github.com/dotnet/roslyn/issues/22736,
-            // Instance is null for property reference with implicit instance reference within an anonymous initializer.
-            if (operation.Instance == null &&
+            if (operation.Instance is IInstanceReferenceOperation instanceReference &&
+                instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
                 operation.Property.ContainingType.IsAnonymousType &&
                 operation.Property.ContainingType == _currentImplicitInstance.AnonymousType)
             {
@@ -5911,7 +5894,7 @@ oneMoreTime:
         public IOperation Visit(IOperation operation)
         {
             // We should never be revisiting nodes we've already visited, and we don't set SemanticModel in this builder.
-            Debug.Assert(operation == null || ((Operation)operation).SemanticModel.Compilation == _compilation);
+            Debug.Assert(operation == null || ((Operation)operation).OwningSemanticModel.Compilation == _compilation);
             return Visit(operation, argument: null);
         }
 
