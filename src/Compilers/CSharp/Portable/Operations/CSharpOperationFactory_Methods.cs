@@ -206,14 +206,24 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(BoundAnonymousObjectCreationExpression expression)
         {
-            // For error cases and non-assignment initializers, the binder generates only the argument.
-            Debug.Assert(expression.Arguments.Length >= expression.Declarations.Length);
+            return GetAnonymousObjectCreationInitializers(expression.Arguments, expression.Declarations, expression.Syntax, expression.Type, expression.WasCompilerGenerated);
+        }
 
-            var builder = ArrayBuilder<IOperation>.GetInstance(expression.Arguments.Length);
+        private ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<BoundAnonymousPropertyDeclaration> declarations,
+            SyntaxNode syntax,
+            ITypeSymbol type,
+            bool isImplicit)
+        {
+            // For error cases and non-assignment initializers, the binder generates only the argument.
+            Debug.Assert(arguments.Length >= declarations.Length);
+
+            var builder = ArrayBuilder<IOperation>.GetInstance(arguments.Length);
             var currentDeclarationIndex = 0;
-            for (int i = 0; i < expression.Arguments.Length; i++)
+            for (int i = 0; i < arguments.Length; i++)
             {
-                IOperation value = Create(expression.Arguments[i]);
+                IOperation value = Create(arguments[i]);
 
                 IOperation target;
                 bool isImplicitAssignment;
@@ -222,15 +232,15 @@ namespace Microsoft.CodeAnalysis.Operations
                 var instance = new InstanceReferenceExpression(
                         referenceKind: InstanceReferenceKind.ImplicitReceiver,
                         semanticModel: _semanticModel,
-                        syntax: expression.Syntax,
-                        type: expression.Type,
+                        syntax: syntax,
+                        type: type,
                         constantValue: default,
                         isImplicit: true);
 
                 // Find matching declaration for the current argument.
-                IPropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty((NamedTypeSymbol)expression.Type, i);
-                if (currentDeclarationIndex >= expression.Declarations.Length ||
-                    (object)property != expression.Declarations[currentDeclarationIndex].Property)
+                IPropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty((NamedTypeSymbol)type, i);
+                if (currentDeclarationIndex >= declarations.Length ||
+                    (object)property != declarations[currentDeclarationIndex].Property)
                 {
                     // No matching declaration, synthesize a property reference to be assigned.
                     target = new PropertyReferenceExpression(
@@ -246,19 +256,19 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
                 else
                 {
-                    target = CreateBoundAnonymousPropertyDeclarationOperation(expression.Declarations[currentDeclarationIndex++], instance);
-                    isImplicitAssignment = expression.WasCompilerGenerated;
+                    target = CreateBoundAnonymousPropertyDeclarationOperation(declarations[currentDeclarationIndex++], instance);
+                    isImplicitAssignment = isImplicit;
                 }
 
-                SyntaxNode syntax = value.Syntax?.Parent ?? expression.Syntax;
-                ITypeSymbol type = target.Type;
+                var assignmentSyntax = value.Syntax?.Parent ?? syntax;
+                ITypeSymbol assignmentType = target.Type;
                 Optional<object> constantValue = value.ConstantValue;
                 bool isRef = false;
-                var assignment = new SimpleAssignmentExpression(target, isRef, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment);
+                var assignment = new SimpleAssignmentExpression(target, isRef, value, _semanticModel, assignmentSyntax, assignmentType, constantValue, isImplicitAssignment);
                 builder.Add(assignment);
             }
 
-            Debug.Assert(currentDeclarationIndex == expression.Declarations.Length);
+            Debug.Assert(currentDeclarationIndex == declarations.Length);
             return builder.ToImmutableAndFree();
         }
 
