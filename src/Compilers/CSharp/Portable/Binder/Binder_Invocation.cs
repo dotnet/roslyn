@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.IdentifierName:
                 case SyntaxKind.GenericName:
-                    return BindIdentifier((SimpleNameSyntax)node, invoked, diagnostics);
+                    return BindIdentifier((SimpleNameSyntax)node, invoked, indexed, diagnostics);
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
                     return BindMemberAccess((MemberAccessExpressionSyntax)node, invoked, indexed, diagnostics);
@@ -1092,7 +1092,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver,
                     method.Parameters,
                     args,
-                    argRefKinds,
                     argsToParams,
                     this.LocalScopeDepth,
                     diagnostics);

@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
         {
             // have this to avoid error on async
-            await SpecializedTasks.EmptyTask.ConfigureAwait(false);
+            await Task.CompletedTask.ConfigureAwait(false);
 
 #if DEBUG
             var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);

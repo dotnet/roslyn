@@ -3293,7 +3293,7 @@ End Class
                 Dim compilationDef =
     <compilation name="VBExplicitConversions1">
         <file name="lib.vb">
-            <%= My.Resources.Resource.PrintResultTestSource %>
+            <%= SemanticResourceUtil.PrintResultTestSource %>
         </file>
         <file name="a.vb">
 Option Strict Off
@@ -3465,7 +3465,7 @@ UShort: 12
         Public Sub DirectCast1()
             Dim compilationDef =
 <compilation name="DirectCast1">
-    <file name="helper.vb"><%= My.Resources.Resource.PrintResultTestSource %></file>
+    <file name="helper.vb"><%= SemanticResourceUtil.PrintResultTestSource %></file>
     <file name="a.vb">
 Option Strict Off
 
@@ -3704,7 +3704,7 @@ Decimal: 24
         Public Sub TryCast1()
             Dim compilationDef =
 <compilation name="TryCast1">
-    <file name="helper.vb"><%= My.Resources.Resource.PrintResultTestSource %></file>
+    <file name="helper.vb"><%= SemanticResourceUtil.PrintResultTestSource %></file>
     <file name="a.vb">
 Option Strict Off
 

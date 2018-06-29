@@ -69,7 +69,9 @@ do
     echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
-        if [[ "${file_name[@]}" == *'Roslyn.Compilers.CSharp.Emit.UnitTests.dll' ]] || [[ "${file_name[@]}" == *'Roslyn.Compilers.VisualBasic.Symbol.UnitTests.dll' ]] || [[ "${file_name[@]}" == *'Roslyn.Compilers.CSharp.Semantic.UnitTests.dll' ]]
+        if [[ "${file_name[@]}" == *'Roslyn.Compilers.CSharp.Emit.UnitTests.dll' ]] || [[ "${file_name[@]}" == *'Roslyn.Compilers.VisualBasic.Symbol.UnitTests.dll' ]] || [[ "${file_name[@]}" == *'Roslyn.Compilers.CSharp.Semantic.UnitTests.dll' ]] || [[ "${file_name[@]}" == *'Roslyn.Compilers.VisualBasic.Emit.UnitTests.dll' ]] || [[ "${file_name[@]}" == *'Roslyn.Compilers.VisualBasic.Semantic.UnitTests.dll' ]] || [[ "${file_name[@]}" == *'Roslyn.Compilers.VisualBasic.IOperation.UnitTests.dll' ]] 
+
+
         then
             echo "Skipping ${file_name[@]}"
             continue

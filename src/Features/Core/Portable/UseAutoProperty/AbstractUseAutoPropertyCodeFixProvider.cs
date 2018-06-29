@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     diagnostic);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private async Task<Solution> ProcessResultAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
