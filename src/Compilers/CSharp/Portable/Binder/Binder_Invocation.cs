@@ -997,8 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
                     Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
                     receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0),
-                                                                     receiverParameter.Type.TypeSymbol,
-                                                                     diagnostics);
+                        receiverParameter.Type.TypeSymbol, diagnostics);
                 }
 
                 if (receiverParameter.RefKind == RefKind.Ref)
