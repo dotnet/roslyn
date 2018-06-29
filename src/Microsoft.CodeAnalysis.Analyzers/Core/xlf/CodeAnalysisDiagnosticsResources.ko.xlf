@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="needs-review-translation">모든 발생 수정을 지원하는 CodeFixProvider에 이 수정 도구에서 만들어진 등록된 모든 코드에서 고유한 명시적이고 null이 아닌 동등 키를 할당하여 등록된 코드 작업을 동등 클래스로 분류해야 합니다. 이렇게 하면 FixAllProvider가 트리거 코드 작업의 동등 클래스에 있는 수정 도구의 코드 작업을 적용하여 필수 범위에서 모든 진단을 수정할 수 있습니다.</target>
+        <target state="translated">모든 발생 수정을 지원하는 CodeFixProvider에 이 수정 도구에서 만들어진 각 종류의 코드 작업에 대해 고유한 명시적이고 null이 아닌 동등 키를 할당하여 등록된 코드 작업을 동등 클래스로 분류해야 합니다. 이렇게 하면 FixAllProvider가 트리거 코드 작업의 동등 클래스에 있는 수정 도구의 코드 작업을 적용하여 필수 범위에서 모든 진단을 수정할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="needs-review-translation">이 수정 도구에서 만들어진 모든 코드 작업에서 고유하고 null이 아닌 선택적 매개 변수 '{0}'에 대한 명시적 인수를 제공하세요.</target>
+        <target state="translated">이 수정 도구에서 만들어진 각 종류의 코드 작업에 대해 고유하고 null이 아닌 선택적 매개 변수 '{0}'에 대한 명시적 인수를 제공하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">

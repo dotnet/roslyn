@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="needs-review-translation">Tüm örnekleri düzeltme desteği sunmayı hedefleyen bir CodeFixProvider’ın, kayıtlı kod eylemlerine bu düzeltici tarafından yayımlanan tüm kayıtlı kod eylemlerinde benzersiz olan açık, null olmayan bir eşdeğerlik anahtarı atayarak eşdeğerlik sınıflarına ayırması gerekir. Bu, FixAllProvider’ın bu düzelticiden tetikleyici kod eyleminin eşdeğerlik sınıfında olan kod eylemlerini uygulayarak gerekli kapsamdaki tüm tanılamaları düzeltmesine olanak sağlar.</target>
+        <target state="translated">Tüm örnekleri düzeltme desteği sunmayı hedefleyen bir CodeFixProvider’ın, kayıtlı kod eylemlerine bu düzeltici tarafından oluşturulan her kod eylemi türü için benzersiz olan açık, null olmayan bir eşdeğerlik anahtarı atayarak bu kod eylemlerini eşdeğerlik sınıflarına ayırması gerekir. Bu, FixAllProvider’ın bu düzelticiden tetikleyici kod eyleminin eşdeğerlik sınıfında olan kod eylemlerini uygulayarak gerekli kapsamdaki tüm tanılamaları düzeltmesine olanak sağlar.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="needs-review-translation">İsteğe bağlı '{0}' parametresi için null olmayan ve bu düzelticideki tüm kod eylemleri arasında benzersiz bir açık bağımsız değişken sağlayın.</target>
+        <target state="translated">İsteğe bağlı '{0}' parametresi için, null olmayan ve bu düzeltici tarafından oluşturulan her kod eylemi için benzersiz olan bir açık bağımsız değişken sağlayın.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">

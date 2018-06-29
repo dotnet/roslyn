@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="needs-review-translation">CodeFixProvider 若想支援修正所有出現之處，必須將註冊的程式碼動作分類為等價類別，方法是為其指派明確且非 Null 的等價索引鍵，而其在此修正程式建立的所有註冊之程式碼動作之間皆不重複。如此可讓 FixAllProvider 能藉由套用來自此修正程式中位於觸發程式碼動作之等價類別內程式碼動作，來修正必要範圍內的所有診斷。</target>
+        <target state="translated">CodeFixProvider 若想支援修正所有出現之處，必須將註冊的程式碼動作分類為相等類別，方法是為其指派明確且非 Null 的相等索引鍵，而其在此修正程式建立的每一種程式碼動作之間皆不重複。如此可讓 FixAllProvider 能藉由套用來自此修正程式中位於觸發程式碼動作之相等類別內的程式碼動作，來修正所需範圍內的所有診斷。</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="needs-review-translation">為選擇性參數 '{0}' 提供非 Null 的明確引數，而其在此修正程式建立的所有程式碼動作之間皆不重複。</target>
+        <target state="translated">為選擇性參數 '{0}' 提供非 Null 的明確引數，而其在此修正程式所建立的每一種程式碼間皆不重複。</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">

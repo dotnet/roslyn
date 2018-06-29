@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="needs-review-translation">Un elemento CodeFixProvider che intende supportare la correzione di tutte le occorrenze deve classificare le azioni codice registrate nelle classi di equivalenza assegnando una chiave di equivalenza non Null che sia univoca in tutte le azioni codice registrate di questa utilità di correzione. In questo modo FixAllProvider potrà correggere tutte le diagnostiche nell'ambito richiesto applicando codici azioni di questa utilità di correzione che sono inclusi nella classe di equivalenza dell'azione codice di attivazione.</target>
+        <target state="translated">Un elemento CodeFixProvider che intende supportare la correzione di tutte le occorrenze deve classificare le azioni codice registrate nelle classi di equivalenza assegnando una chiave di equivalenza non Null che sia univoca per ogni tipo di azione codice creata da questa utilità di correzione. In questo modo FixAllProvider potrà correggere tutte le diagnostiche nell'ambito richiesto applicando codici azioni di questa utilità di correzione che sono inclusi nella classe di equivalenza dell'azione codice di attivazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="needs-review-translation">Fornire un argomento esplicito per il parametro facoltativo '{0}', che sia non Null e univoco in tutte le azioni codice create da questa utilità di correzione.</target>
+        <target state="translated">Fornire un argomento esplicito per il parametro facoltativo '{0}', che sia non Null e univoco per ogni tipo di azione codice creata da questa utilità di correzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
