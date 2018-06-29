@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="AlreadyExists">
         <source>An .editorconfig file already exist in this location</source>
-        <target state="new">.editorconfig 파일은이 위치에 이미 있습니다.</target>
+        <target state="translated">이 위치에 .editorconfig 파일이 이미 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MoreAbout">
         <source>To learn more about .editorconfig see</source>
-        <target state="new">.editorconfig에 대한 자세한 내용은</target>
+        <target state="translated">.editorconfig에 대해 자세히 알아보려면 다음을 참조하세요.</target>
         <note />
       </trans-unit>
     </body>
