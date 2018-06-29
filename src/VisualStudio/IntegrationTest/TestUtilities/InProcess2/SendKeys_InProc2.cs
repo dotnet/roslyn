@@ -183,14 +183,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await TaskScheduler.Default;
 
             var foregroundWindow = IntPtr.Zero;
-            var inputBlocked = false;
 
             try
             {
-                inputBlocked = IntegrationHelper.BlockInput();
                 foregroundWindow = IntegrationHelper.GetForegroundWindow();
 
-                await TestServices.VisualStudio.ActivateMainWindowAsync();
+                await TestServices.VisualStudio.ActivateMainWindowAsync(skipAttachingThreads: true);
 
                 IntegrationHelper.SendInput(inputs);
             }
@@ -199,11 +197,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 if (foregroundWindow != IntPtr.Zero)
                 {
                     IntegrationHelper.SetForegroundWindow(foregroundWindow);
-                }
-
-                if (inputBlocked)
-                {
-                    IntegrationHelper.UnblockInput();
                 }
             }
 
