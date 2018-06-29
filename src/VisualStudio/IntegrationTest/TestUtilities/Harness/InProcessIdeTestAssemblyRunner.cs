@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Remoting;
 using System.Runtime.Serialization;
@@ -86,32 +87,45 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             {
                 s_inHandler = true;
 
-                switch (eventArgs.Exception)
+                if (!IsCapturedFirstChangeException(eventArgs.Exception))
                 {
-                    case XunitException _:
-                    case RemotingException _:
-                    case SerializationException _:
-                        break;
-
-                    default:
-                        return;
+                    return;
                 }
 
-                var assemblyDirectory = GetAssemblyDirectory();
-                var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
-                var baseFileName = $"{DateTime.Now:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
-                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
-
-                var exception = eventArgs.Exception;
-                File.WriteAllText(
-                    Path.Combine(logDir, $"{baseFileName}.log"),
-                    exception.ToString());
+                SaveScreenshot(eventArgs.Exception);
             }
             finally
             {
                 s_inHandler = false;
             }
+        }
+
+        internal static bool IsCapturedFirstChangeException(Exception ex)
+        {
+            switch (ex)
+            {
+                case XunitException _:
+                case RemotingException _:
+                case SerializationException _:
+                case TargetInvocationException _:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        internal static void SaveScreenshot(Exception ex)
+        {
+            var assemblyDirectory = GetAssemblyDirectory();
+            var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
+            var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+            var baseFileName = $"{DateTime.Now:HH.mm.ss}-{testName}-{ex.GetType().Name}";
+            ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
+
+            File.WriteAllText(
+                Path.Combine(logDir, $"{baseFileName}.log"),
+                ex.ToString());
         }
 
         private static string GetAssemblyDirectory()

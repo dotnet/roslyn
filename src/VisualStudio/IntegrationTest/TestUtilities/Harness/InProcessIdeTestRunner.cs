@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             var synchronizationContext = new DispatcherSynchronizationContext(Application.Current.Dispatcher, DispatcherPriority.Background);
             var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);
             return Task.Factory.StartNew(
-                () => base.InvokeTestMethodAsync(aggregator),
+                () => new IdeTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource).RunAsync(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 taskScheduler).Unwrap();
