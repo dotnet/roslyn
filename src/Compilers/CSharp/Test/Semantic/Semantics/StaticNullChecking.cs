@@ -35039,5 +35039,51 @@ class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ThisAndBaseMemberInLambda()
+        {
+            var source =
+@"delegate void D();
+class A
+{
+    internal string? F;
+}
+class B : A
+{
+    void M()
+    {
+        D d;
+        d = () =>
+        {
+            int n = this.F.Length; // 1
+            this.F = string.Empty;
+            n = this.F.Length;
+        };
+        d = () =>
+        {
+            int n = base.F.Length; // 2
+            base.F = string.Empty;
+            n = base.F.Length;
+        };
+    }
+}";
+            // PROTOTYPE(NullableReferenceTypes): Should not report warning for
+            // dereference of `this.F` or `base.F` after assignment.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,21): warning CS8602: Possible dereference of a null reference.
+                //             int n = this.F.Length; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.F").WithLocation(13, 21),
+                // (15,17): warning CS8602: Possible dereference of a null reference.
+                //             n = this.F.Length;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.F").WithLocation(15, 17),
+                // (19,21): warning CS8602: Possible dereference of a null reference.
+                //             int n = base.F.Length; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "base.F").WithLocation(19, 21),
+                // (21,17): warning CS8602: Possible dereference of a null reference.
+                //             n = base.F.Length;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "base.F").WithLocation(21, 17));
+        }
     }
 }
