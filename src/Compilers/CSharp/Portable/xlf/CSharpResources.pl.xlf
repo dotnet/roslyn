@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">Jako instrukcji można używać tylko wyrażeń przypisania, wywołania, zwiększenia, zmniejszenia oraz utworzenia nowego obiektu.</target>
+        <target state="translated">Jako instrukcji można używać tylko wyrażeń przypisania, wywołania, zwiększenia, zmniejszenia, oczekiwania oraz utworzenia nowego obiektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">Dostęp do przyjaznego zestawu został udzielony przez „{0}”, ale klucz publiczny zestawu wyjściowego nie jest zgodny z kluczem określonym przez atrybut w zestawie udzielającym dostępu.</target>
+        <target state="translated">Dostęp do przyjaznego zestawu został udzielony przez „{0}”, ale klucz publiczny zestawu wyjściowego („{1}”) nie jest zgodny z kluczem określonym przez atrybut InternalsVisibleTo w zestawie udzielającym dostępu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -8042,12 +8042,12 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">Iteratory nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
+        <target state="translated">Iteratory nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">Metody asynchroniczne nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
+        <target state="translated">Metody asynchroniczne nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

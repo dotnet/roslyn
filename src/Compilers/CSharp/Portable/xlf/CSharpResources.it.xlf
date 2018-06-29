@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">Si possono usare come istruzioni solo le assegnazioni, le chiamate, gli incrementi, i decrementi e le nuove espressioni dell'oggetto</target>
+        <target state="translated">È possibile usare come istruzione solo le espressioni di assegnazione, chiamata, incremento, decremento, attesa e nuovo oggetto</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">L'accesso a Friend è stato concesso da '{0}', ma la chiave pubblica dell'assembly di output non corrisponde a quella specificata dall'attributo nell'assembly che ha concesso l'accesso.</target>
+        <target state="translated">L'accesso a Friend è stato concesso da '{0}', ma la chiave pubblica dell'assembly di output ('{1}') non corrisponde a quella specificata dall'attributo InternalsVisibleTo nell'assembly che ha concesso l'accesso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7362,7 +7362,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
         <target state="translated">
-                              Opzioni del compilatore Visual C#
+                             Opzioni del compilatore Visual C#
 
                         - FILE DI OUTPUT -
  /out:&lt;file&gt;                   Consente di specificare il nome del file di output (impostazione predefinita:
@@ -7501,8 +7501,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
                                contenente le impostazioni di binding dell'assembly
  /moduleassemblyname:&lt;stringa&gt;  Nome dell'assembly di cui farà parte
                                questo modulo
- /modulename:&lt;stringa&gt;          Consente di specificare il nome del modulo di origine
-</target>
+ /modulename:&lt;stringa&gt;          Consente di specificare il nome del modulo di origine</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -8042,12 +8041,12 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">Gli iteratori non possono avere variabili locali per riferimento</target>
+        <target state="translated">Gli iteratori non possono includere variabili locali per riferimento</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">I metodi Async non possono avere variabili locali per riferimento</target>
+        <target state="translated">I metodi Async non possono includere variabili locali per riferimento</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">只有 assignment、call、increment、decrement 和 new 对象表达式可用作语句</target>
+        <target state="translated">只有 assignment、call、increment、decrement、await 和 new 对象表达式可用作语句</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">友元访问权限由“{0}”授予，但是输出程序集的公钥与授予程序集中特性指定的公钥不匹配。</target>
+        <target state="translated">友元访问权限由“{0}”授予，但是输出程序集('{1}')的公钥与授予程序集中 InternalsVisibleTo 特性指定的公钥不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -8042,12 +8042,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">迭代器不能有按引用局部变量</target>
+        <target state="translated">迭代器不能有按引用局部变量</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">异步方法不能有按引用局部变量</target>
+        <target state="translated">异步方法不能有按引用局部变量</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

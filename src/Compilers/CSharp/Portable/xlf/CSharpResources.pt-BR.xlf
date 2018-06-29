@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">Somente expressões de atribuição, chamada, incremento, diminuição e novo objeto podem ser usadas como uma instrução</target>
+        <target state="translated">Somente as expressões de atribuição, chamada, incremento, diminuição, espera e novo objeto podem ser utilizadas como uma instrução</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">O acesso Friend foi concedido por "{0}", mas a chave pública do assembly de saída não corresponde àquela especificada pelo atributo no assembly de concessão.</target>
+        <target state="translated">O acesso Friend foi concedido por '{0}', mas a chave pública do assembly de saída ('{1}') não corresponde àquela especificada pelo atributo InternalsVisibleTo no assembly de concessão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -8042,12 +8042,12 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">Os iteradores não podem ter locais por referência</target>
+        <target state="translated">Os iteradores não podem ter locais por referência</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">Os métodos assíncronos não podem ter locais por referência</target>
+        <target state="translated">Os métodos assíncronos não podem ter locais por referência</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
