@@ -3321,16 +3321,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbolWithAnnotations GetDeclaredLocalResult(LocalSymbol local)
         {
-            TypeSymbolWithAnnotations type;
-            return _variableTypes.TryGetValue(local, out type) ?
+            return _variableTypes.TryGetValue(local, out TypeSymbolWithAnnotations type) ?
                 type :
                 local.Type;
         }
 
         private TypeSymbolWithAnnotations GetDeclaredParameterResult(ParameterSymbol parameter)
         {
-            TypeSymbolWithAnnotations type;
-            return _variableTypes.TryGetValue(parameter, out type) ?
+            return _variableTypes.TryGetValue(parameter, out TypeSymbolWithAnnotations type) ?
                 type :
                 parameter.Type;
         }
