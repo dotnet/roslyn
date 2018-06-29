@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
             return (BoundNode)localUsingVarRewriter.Visit(statement);
         }
 
-        public override BoundNode VisitStatementList(BoundStatementList node)
+        public override BoundNode VisitBlock(BoundBlock node)
         {
             int current = 0;
             ImmutableArray<BoundStatement> statements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 
                         BoundBlock boundBlock = new BoundBlock(
                             syntax: boundAssignment.Syntax,
-                            locals: locals,
+                            locals: ImmutableArray.Create<LocalSymbol>(),
                             statements: followingStatements.ToImmutableArray<BoundStatement>()
                             );
 
