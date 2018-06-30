@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixNodeAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private const string AsyncSuffix = "Async";

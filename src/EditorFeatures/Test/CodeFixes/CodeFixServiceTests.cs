@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 Called = true;
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 

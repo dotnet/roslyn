@@ -97,8 +97,16 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Function Me ... nd Function')
+IBlockOperation (5 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Function Me ... nd Function')
   Locals: Local_1: Method As System.Boolean
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'Function Me ...  As Boolean')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Function Me ...  As Boolean')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: Method As System.Boolean) (OperationKind.VariableDeclarator, Type: null, IsImplicit) (Syntax: 'Function Me ...  As Boolean')
+            Initializer: 
+              null
+      Initializer: 
+        null
   IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
       IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
@@ -140,8 +148,16 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Get'BIND:"G ... End Get')
+IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Get'BIND:"G ... End Get')
   Locals: Local_1: Prop As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'Get')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Get')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: Prop As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsImplicit) (Syntax: 'Get')
+            Initializer: 
+              null
+      Initializer: 
+        null
   IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
       IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
@@ -364,8 +380,16 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Public Shar ... nd Operator')
+IBlockOperation (5 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Public Shar ... nd Operator')
   Locals: Local_1: <anonymous local> As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'Public Shar ...  As Integer')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Public Shar ...  As Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: <anonymous local> As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsImplicit) (Syntax: 'Public Shar ...  As Integer')
+            Initializer: 
+              null
+      Initializer: 
+        null
   IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
       IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')

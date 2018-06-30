@@ -34,7 +34,14 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             // if wrong compilation is given, GetSemanticModel will throw due to tree not belong to the given compilation.
-            var model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            var model = operation.SemanticModel ?? compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            if (model.IsSpeculativeSemanticModel)
+            {
+                // GetDiagnostics not supported for speculative semantic model.
+                // https://github.com/dotnet/roslyn/issues/28075
+                return false;
+            }
+
             return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 

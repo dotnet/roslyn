@@ -85,7 +85,6 @@
       <NuspecProperties>$(NuspecProperties);SystemResourcesResourceManagerVersion=$(SystemResourcesResourceManagerVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);SystemRuntimeVersion=$(SystemRuntimeVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);SystemRuntimeExtensionsVersion=$(SystemRuntimeExtensionsVersion)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);SystemRuntimeLoaderVersion=$(SystemRuntimeLoaderVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);SystemRuntimeInteropServicesVersion=$(SystemRuntimeInteropServicesVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);SystemRuntimeNumericsVersion=$(SystemRuntimeNumericsVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);SystemSecurityAccessControlVersion=$(SystemSecurityAccessControlVersion)</NuspecProperties>

@@ -17,10 +17,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
-    <Reference Include="$(NuGetPackageRoot)\system.runtime.loader\$(SystemRuntimeLoaderVersion)\ref\netstandard1.5\System.Runtime.Loader.dll">
-      <Private>False</Private>
-    </Reference>
+    <!-- 
+      Workaround for https://github.com/NuGet/Home/issues/1471.
+
+      RoslynTools.LightUp.System.Runtime.Loader distributes System.Runtime.Loader in ref/netstandard1.3 directory,
+      so that it can be referenced in libraries targeting netstandard1.3 once they check that the executing runtime 
+      is .NET Core.
+    -->
+    <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" />
     <PackageReference Include="System.Diagnostics.StackTrace" Version="$(SystemDiagnosticsStackTraceVersion)" />
   </ItemGroup>
   <ItemGroup>

@@ -43,12 +43,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _labelIdMap = new Dictionary<ILabelSymbol, uint>();
         }
 
-        public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
-        {
-            var actual = GetOperationTree(compilation, operation, initialIndent);
-            Assert.Equal(expectedOperationTree, actual);
-        }
-
         public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
             var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
@@ -1097,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Indent();
             LogConversion(operation.Conversion);
 
-            if (((Operation)operation).SemanticModel == null)
+            if (((Operation)operation).OwningSemanticModel == null)
             {
                 LogNewLine();
                 Indent();
@@ -1444,6 +1438,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" ({operation.ElementValues.Length} elements)");
             LogCommonPropertiesAndNewLine(operation);
 
+            Assert.Null(operation.Type);
             VisitArray(operation.ElementValues, "Element Values", logElementCount: true);
         }
 
