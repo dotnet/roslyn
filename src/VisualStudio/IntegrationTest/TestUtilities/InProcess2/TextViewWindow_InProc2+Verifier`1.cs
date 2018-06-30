@@ -98,25 +98,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 Assert.Contains(tokenType, actualTokenTypes[0]);
                 Assert.NotEqual("text", tokenType);
             }
+#endif
 
-            public void CompletionItemsExist(params string[] expectedItems)
+            public async Task CompletionItemsExistAsync(params string[] expectedItems)
             {
-                var completionItems = _textViewWindow.GetCompletionItems();
+                var completionItems = await _textViewWindow.GetCompletionItemsAsync();
                 foreach (var expectedItem in expectedItems)
                 {
                     Assert.Contains(expectedItem, completionItems);
                 }
             }
 
-            public void CompletionItemsDoNotExist( params string[] unexpectedItems)
+            public async Task CompletionItemsDoNotExistAsync( params string[] unexpectedItems)
             {
-                var completionItems = _textViewWindow.GetCompletionItems();
+                var completionItems = await _textViewWindow.GetCompletionItemsAsync();
                 foreach (var unexpectedItem in unexpectedItems)
                 {
                     Assert.DoesNotContain(unexpectedItem, completionItems);
                 }
             }
-#endif
 
             public async Task CaretPositionAsync(int expectedCaretPosition)
             {

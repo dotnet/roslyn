@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -127,16 +123,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
                 var caretPosition = _textViewWindow.GetCaretPosition();
                 Assert.Equal(caretStartIndex + index, caretPosition);
-            }
-
-            public void CompletionItemDoNotExist(
-                params string[] expectedItems)
-            {
-                var completionItems = _textViewWindow.GetCompletionItems();
-                foreach (var expectedItem in expectedItems)
-                {
-                    Assert.DoesNotContain(expectedItem, completionItems);
-                }
             }
 
             public void CurrentCompletionItem(

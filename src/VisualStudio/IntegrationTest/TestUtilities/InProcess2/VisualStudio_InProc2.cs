@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
@@ -100,5 +97,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         public void Quit()
             => GetDTE().Quit();
 #endif
+
+        public new async Task ExecuteCommandAsync(string commandName, string args = "")
+        {
+            await base.ExecuteCommandAsync(commandName, args);
+        }
     }
 }

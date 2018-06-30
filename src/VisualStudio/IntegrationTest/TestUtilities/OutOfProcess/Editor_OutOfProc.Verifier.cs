@@ -129,16 +129,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 Assert.Equal(caretStartIndex + index, caretPosition);
             }
 
-            public void CompletionItemDoNotExist(
-                params string[] expectedItems)
-            {
-                var completionItems = _textViewWindow.GetCompletionItems();
-                foreach (var expectedItem in expectedItems)
-                {
-                    Assert.DoesNotContain(expectedItem, completionItems);
-                }
-            }
-
             public void CurrentCompletionItem(
                 string expectedItem)
             {
