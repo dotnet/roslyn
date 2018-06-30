@@ -1586,9 +1586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsAwaitExpression(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.AwaitExpression);
-        }
+            => node.IsKind(SyntaxKind.AwaitExpression);
 
         public bool IsExpressionOfAwaitExpression(SyntaxNode node)
         {

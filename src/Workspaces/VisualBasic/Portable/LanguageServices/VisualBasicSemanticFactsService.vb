@@ -257,12 +257,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Public Function GetAwaitExpressionMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFactsService.GetAwaitExpressionMethod
+        Public Function GetGetAwaiterMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFactsService.GetGetAwaiterMethod
             If node.IsKind(SyntaxKind.AwaitExpression) Then
                 Dim awaitExpression = DirectCast(node, AwaitExpressionSyntax)
-                Dim builder = ArrayBuilder(Of IMethodSymbol).GetInstance()
                 Dim info = model.GetAwaitExpressionInfo(awaitExpression)
-
                 Return info.GetAwaiterMethod
             End If
 

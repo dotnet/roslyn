@@ -231,11 +231,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public IMethodSymbol GetAwaitExpressionMethod(SemanticModel semanticModel, SyntaxNode node)
+        public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
         {
             if (node is AwaitExpressionSyntax awaitExpression)
             {
-                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
                 var info = semanticModel.GetAwaitExpressionInfo(awaitExpression);
                 return info.GetAwaiterMethod;
             }

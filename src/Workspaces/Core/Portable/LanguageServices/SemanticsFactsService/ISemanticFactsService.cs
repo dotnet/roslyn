@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement);
 
-        IMethodSymbol GetAwaitExpressionMethod(SemanticModel semanticModel, SyntaxNode node);
+        IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node);
 
         ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node);
 
