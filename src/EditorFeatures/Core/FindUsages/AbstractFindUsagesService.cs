@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService : IFindUsagesService
     {
+        public static SymbolFinderOptions DefaultSymbolFinderOptions = new SymbolFinderOptions(searchAccessorsAsContainingMember: false, includeImplicitAccessorUsages: true);
+
         public async Task FindImplementationsAsync(
             Document document, int position, IFindUsagesContext context)
         {
@@ -143,7 +145,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 project.Solution,
                 progressAdapter,
                 documents: null,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                DefaultSymbolFinderOptions,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<bool> TryFindLiteralReferencesAsync(

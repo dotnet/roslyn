@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var symbol = symbolAndProjectId.Symbol;
                         var finder = symbolAndFinder.finder;
 
-                        var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _cancellationToken).ConfigureAwait(false);
+                        var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _options, _cancellationToken).ConfigureAwait(false);
                         foreach (var document in documents.Distinct().WhereNotNull())
                         {
                             if (_documents == null || _documents.Contains(document))
@@ -116,44 +116,46 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var searchSymbol = searchSymbolAndProjectId.Symbol;
-            if (searchSymbol != null && result.Add(searchSymbolAndProjectId))
+            if (searchSymbol == null || !result.Add(searchSymbolAndProjectId))
             {
-                await _progress.OnDefinitionFoundAsync(searchSymbolAndProjectId).ConfigureAwait(false);
-
-                // get project to search
-                var projects = GetProjectScope();
-
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                List<Task> finderTasks = new List<Task>();
-                foreach (var f in _finders)
-                {
-                    finderTasks.Add(Task.Run(async () =>
-                    {
-                        var symbolTasks = new List<Task>();
-
-                        var symbols = await f.DetermineCascadedSymbolsAsync(
-                            searchSymbolAndProjectId, _solution, projects, _cancellationToken).ConfigureAwait(false);
-                        AddSymbolTasks(result, symbols, symbolTasks);
-
-                        // Defer to the language to see if it wants to cascade here in some special way.
-                        var symbolProject = _solution.GetProject(searchSymbol.ContainingAssembly);
-                        var service = symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>();
-                        if (service != null)
-                        {
-                            symbols = await service.DetermineCascadedSymbolsAsync(
-                                searchSymbolAndProjectId, symbolProject, _cancellationToken).ConfigureAwait(false);
-                            AddSymbolTasks(result, symbols, symbolTasks);
-                        }
-
-                        _cancellationToken.ThrowIfCancellationRequested();
-
-                        await Task.WhenAll(symbolTasks).ConfigureAwait(false);
-                    }, _cancellationToken));
-                }
-
-                await Task.WhenAll(finderTasks).ConfigureAwait(false);
+                return;
             }
+
+            await _progress.OnDefinitionFoundAsync(searchSymbolAndProjectId).ConfigureAwait(false);
+
+            // get project to search
+            var projects = GetProjectScope();
+
+            _cancellationToken.ThrowIfCancellationRequested();
+
+            List<Task> finderTasks = new List<Task>();
+            foreach (var f in _finders)
+            {
+                finderTasks.Add(Task.Run(async () =>
+                {
+                    var symbolTasks = new List<Task>();
+
+                    var symbols = await f.DetermineCascadedSymbolsAsync(
+                        searchSymbolAndProjectId, _solution, projects, _options, _cancellationToken).ConfigureAwait(false);
+                    AddSymbolTasks(result, symbols, symbolTasks);
+
+                    // Defer to the language to see if it wants to cascade here in some special way.
+                    var symbolProject = _solution.GetProject(searchSymbol.ContainingAssembly);
+                    var service = symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>();
+                    if (service != null)
+                    {
+                        symbols = await service.DetermineCascadedSymbolsAsync(
+                            searchSymbolAndProjectId, symbolProject, _cancellationToken).ConfigureAwait(false);
+                        AddSymbolTasks(result, symbols, symbolTasks);
+                    }
+
+                    _cancellationToken.ThrowIfCancellationRequested();
+
+                    await Task.WhenAll(symbolTasks).ConfigureAwait(false);
+                }, _cancellationToken));
+            }
+
+            await Task.WhenAll(finderTasks).ConfigureAwait(false);
         }
 
         private void AddSymbolTasks(

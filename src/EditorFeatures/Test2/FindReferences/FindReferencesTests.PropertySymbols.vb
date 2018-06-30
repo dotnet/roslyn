@@ -893,5 +893,51 @@ End Class
 </Workspace>
             Await TestAPIAndFeature(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_GetterReferences() As Task
+            Await TestAPIAndFeature(
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+    public int P { {|Definition:$$get|}; set; }
+    
+    public void M()
+    {
+        _ = nameof(P); // References neither accessor
+        _ = [|P|];     // References getter only
+        P = 0;         // References setter only
+        [|P|]++;       // References both accessors
+    }
+}
+        </Document>
+    </Project>
+</Workspace>)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_SetterReferences() As Task
+            Await TestAPIAndFeature(
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+    public int P { get; {|Definition:$$set|}; }
+    
+    public void M()
+    {
+        _ = nameof(P); // References neither accessor
+        _ = P;         // References getter only
+        [|P|] = 0;     // References setter only
+        [|P|]++;       // References both accessors
+    }
+}
+        </Document>
+    </Project>
+</Workspace>)
+        End Function
     End Class
 End Namespace

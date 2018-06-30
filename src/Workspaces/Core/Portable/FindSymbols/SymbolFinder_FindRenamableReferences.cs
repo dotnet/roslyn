@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     documents,
                     ReferenceFinders.DefaultRenameReferenceFinders,
                     streamingProgress,
+                    SymbolFinderOptions.Default,
                     cancellationToken);
 
                 await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);

@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -24,6 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamespaceSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol, project));
@@ -40,6 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamespaceSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var identifierName = GetNamespaceIdentifierName(symbol, document.Project);

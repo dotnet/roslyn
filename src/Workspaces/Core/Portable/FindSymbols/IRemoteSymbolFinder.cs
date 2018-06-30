@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface IRemoteSymbolFinder
     {
-        Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs, CancellationToken cancellationToken);
+        Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs, SymbolFinderOptions options, CancellationToken cancellationToken);
         Task FindLiteralReferencesAsync(object value, TypeCode typeCode, CancellationToken cancellationToken);
 
         Task<IList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(

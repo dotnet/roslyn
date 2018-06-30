@@ -188,7 +188,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                         Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(Of Document)(document), Nothing)
 
-                        result = result.Concat(Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=scope))
+                        result = result.Concat(
+                            Await SymbolFinder.FindReferencesAsync(
+                                symbol,
+                                document.Project.Solution,
+                                progress:=Nothing,
+                                documents:=scope,
+                                options:=AbstractFindUsagesService.DefaultSymbolFinderOptions))
                     End If
 
                     Dim actualDefinitions =
