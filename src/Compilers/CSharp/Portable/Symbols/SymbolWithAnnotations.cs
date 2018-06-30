@@ -198,20 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
         // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
-        public static TypeSymbolWithAnnotations CreateNullableReferenceType(TypeSymbol typeSymbol)
-        {
-            if (typeSymbol is null)
-            {
-                return null;
-            }
-
-            // PROTOTYPE(NullableReferenceTypes): Consider if it makes
-            // sense to cache and reuse instances, at least for definitions.
-            return new NonLazyType(typeSymbol, isNullable: true, ImmutableArray<CustomModifier>.Empty);
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
-        // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
         {
             if (typeSymbol is null)
@@ -252,17 +238,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new NonLazyType(typeSymbol, isNullable, customModifiers);
         }
 
-        public TypeSymbolWithAnnotations AsNullableReferenceOrValueType(CSharpCompilation compilation, SyntaxReference nullableTypeSyntax)
+        public TypeSymbolWithAnnotations AsNullableReferenceOrValueType(CSharpCompilation compilation)
         {
-            var typeSymbol = this.TypeSymbol;
-
+            Debug.Assert(compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
             Debug.Assert(CustomModifiers.IsEmpty);
+
+            var typeSymbol = this.TypeSymbol;
 
             // It is not safe to check if a type parameter is a reference type right away, this can send us into a cycle.
             // In this case we delay asking this question as long as possible.
             if (typeSymbol.TypeKind != TypeKind.TypeParameter)
             {
-                if (typeSymbol.IsReferenceType && ((CSharpParseOptions)nullableTypeSyntax.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
+                if (typeSymbol.IsReferenceType)
                 {
                     return new NonLazyType(typeSymbol, isNullable: true, this.CustomModifiers);
                 }
@@ -272,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new LazyNullableType(compilation, nullableTypeSyntax, this);
+            return new LazyNullableType(compilation, this);
         }
 
         /// <summary>
@@ -744,17 +731,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class LazyNullableType : TypeSymbolWithAnnotations
         {
             private readonly CSharpCompilation _compilation;
-            private readonly SyntaxReference _nullableTypeSyntax;
             private readonly TypeSymbolWithAnnotations _underlying;
             private TypeSymbol _resolved;
 
-            public LazyNullableType(CSharpCompilation compilation, SyntaxReference nullableTypeSyntax, TypeSymbolWithAnnotations underlying)
+            public LazyNullableType(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
             {
+                Debug.Assert(compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
                 Debug.Assert(underlying.IsNullable != true);
                 Debug.Assert(underlying.TypeKind == TypeKind.TypeParameter);
                 Debug.Assert(underlying.CustomModifiers.IsEmpty);
                 _compilation = compilation;
-                _nullableTypeSyntax = nullableTypeSyntax;
                 _underlying = underlying;
             }
 
@@ -769,15 +755,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if ((object)_resolved == null)
                     {
-                        if (!_underlying.IsValueType && ((CSharpParseOptions)_nullableTypeSyntax.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
+                        if (!_underlying.IsValueType)
                         {
                             _resolved = _underlying.TypeSymbol;
                         }
                         else
                         {
                             Interlocked.CompareExchange(ref _resolved, 
-                                _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(
-                                    ImmutableArray.Create(_underlying)), 
+                                _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(_underlying)), 
                                 null);
                         }
                     }
@@ -890,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
                         newUnderlying.CustomModifiers.IsEmpty)
                     {
-                        return new LazyNullableType(_compilation, _nullableTypeSyntax, newUnderlying);
+                        return new LazyNullableType(_compilation, newUnderlying);
                     }
 
                     return base.SubstituteType(typeMap);
@@ -915,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
                         newUnderlying.CustomModifiers.IsEmpty)
                     {
-                        return new LazyNullableType(_compilation, _nullableTypeSyntax, newUnderlying);
+                        return new LazyNullableType(_compilation, newUnderlying);
                     }
 
                     return base.SubstituteTypeWithTupleUnification(typeMap);

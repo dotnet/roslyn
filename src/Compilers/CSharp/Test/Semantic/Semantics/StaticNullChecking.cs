@@ -819,9 +819,7 @@ class P
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((A)c).F(x, y)").WithLocation(27, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
-        // in PENamedTypeSymbol.MakeDeclaredBaseType.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void UnannotatedAssemblies_10()
         {
             var source0 =
@@ -15129,55 +15127,87 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { w, z })[0]").WithLocation(31, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Update this method to use types from unannotated assemblies
-        // rather than `x!`, particularly because `x!` results in IsNullable=false rather than IsNullable=null.
         [Fact]
         public void IdentityConversion_ArrayInitializer_IsNullableNull()
         {
-            var source =
-@"#pragma warning disable 0649
-#pragma warning disable 8618
-class A<T>
+            var source0 =
+@"#pragma warning disable 8618
+public class A<T>
 {
-    internal T F;
+    public T F;
 }
-class B
+public class B : A<object>
 {
-    static void F(object? x, object y)
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static void F(object? x, B b)
     {
-        (new[] { x, x! })[0].ToString();
-        (new[] { x!, x })[0].ToString();
+        var y = b.F/*T:object*/;
+        (new[] { x, x! })[0].ToString(); // 1
+        (new[] { x!, x })[0].ToString(); // 2
         (new[] { x!, x! })[0].ToString();
         (new[] { y, y! })[0].ToString();
         (new[] { y!, y })[0].ToString();
+        (new[] { x, y })[0].ToString(); // 3
+        (new[] { x, y! })[0].ToString(); // 4
+        (new[] { x!, y })[0].ToString();
+        (new[] { x!, y! })[0].ToString();
     }
-    static void F(A<object?> z, A<object> w)
+    static void F(A<object?> z, B w)
     {
-        (new[] { z, z! })[0].F.ToString();
-        (new[] { z!, z })[0].F.ToString();
-        (new[] { z!, z! })[0].F.ToString();
+        (new[] { z, z! })[0].F.ToString(); // 5
+        (new[] { z!, z })[0].F.ToString(); // 6
+        (new[] { z!, z! })[0].F.ToString(); // 7
         (new[] { w, w! })[0].F.ToString();
         (new[] { w!, w })[0].F.ToString();
+        (new[] { z, w })[0].F.ToString(); // 8
+        (new[] { z, w! })[0].F.ToString(); // 9
+        (new[] { z!, w })[0].F.ToString(); // 10
+        (new[] { z!, w! })[0].F.ToString(); // 11
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyTypes();
             comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { x, x! })[0].ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, x! })[0]").WithLocation(6, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { x!, x })[0].ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x!, x })[0]").WithLocation(7, 9),
                 // (11,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { x, x! })[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, x! })[0]").WithLocation(11, 9),
+                //         (new[] { x, y })[0].ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, y })[0]").WithLocation(11, 9),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { x!, x })[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x!, x })[0]").WithLocation(12, 9),
+                //         (new[] { x, y! })[0].ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, y! })[0]").WithLocation(12, 9),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z, z! })[0].F.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, z! })[0].F").WithLocation(18, 9),
                 // (19,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { z, z! })[0].F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, z! })[0].F").WithLocation(19, 9),
+                //         (new[] { z!, z })[0].F.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z })[0].F").WithLocation(19, 9),
                 // (20,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { z!, z })[0].F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z })[0].F").WithLocation(20, 9),
-                // (21,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { z!, z! })[0].F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z! })[0].F").WithLocation(21, 9)
-                );
+                //         (new[] { z!, z! })[0].F.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z! })[0].F").WithLocation(20, 9),
+                // (23,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z, w })[0].F.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, w })[0].F").WithLocation(23, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z, w! })[0].F.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, w! })[0].F").WithLocation(24, 9),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z!, w })[0].F.ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, w })[0].F").WithLocation(25, 9),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z!, w! })[0].F.ToString(); // 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, w! })[0].F").WithLocation(26, 9));
         }
 
         [Fact]
@@ -20918,6 +20948,36 @@ class CL0<T>
 
             c.VerifyDiagnostics(
                 );
+        }
+
+        [Fact]
+        public void MethodGroupConversion_06()
+        {
+            var source =
+@"delegate void D<T>(T t) where T : A;
+class A { }
+class B<T>
+{
+    internal void F(T t) { }
+}
+class C
+{
+    static B<T> Create<T>(T t) => new B<T>();
+    static void G(A x, A? y)
+    {
+        D<A> d;
+        d = Create(x).F;
+        d = Create(y).F; // warning
+        x = y;
+        d = Create(x).F; // warning
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = y;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(15, 13));
         }
 
         [Fact]
@@ -32243,31 +32303,55 @@ class C
         [Fact]
         public void TypeInference_04()
         {
+            var source0 =
+@"public class A
+{
+}
+public class B
+{
+    public A F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // PROTOTYPE(NullableReferenceTypes): The result of type inference with null-oblivious
+            // depends on the order possible type arguments are considered. For instance,
+            // the type inferred for F(x, z) is A? and the type inferred for F(z, x) is A.
+            // See https://github.com/dotnet/roslyn/issues/27961.
             var source =
 @"class C
 {
     static T F<T>(T x, T y) => x;
-    static void G(C? x, C y)
+    static void G(A? x, A y, B b)
     {
-        F(x, x).ToString();
-        F(x, y).ToString();
-        F(y, x).ToString();
-        F(y, y).ToString();
+        var z = b.F;
+        F(x, x)/*T:A?*/.ToString(); // 1
+        F(x, y)/*T:A?*/.ToString(); // 2
+        F(x, z)/*T:A?*/.ToString(); // 3
+        F(y, x)/*T:A?*/.ToString(); // 4
+        F(y, y)/*T:A!*/.ToString();
+        F(y, z)/*T:A!*/.ToString();
+        F(z, x)/*T:A*/.ToString(); // 5
+        F(z, y)/*T:A*/.ToString();
+        F(z, z)/*T:A*/.ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (6,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, x)").WithLocation(6, 9),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, y)").WithLocation(7, 9),
+                //         F(x, x)/*T:A?*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, x)").WithLocation(7, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, x)").WithLocation(8, 9));
+                //         F(x, y)/*T:A?*/.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, y)").WithLocation(8, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         F(x, z)/*T:A?*/.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, z)").WithLocation(9, 9),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         F(y, x)/*T:A?*/.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, x)").WithLocation(10, 9));
         }
 
         [Fact]
@@ -34982,6 +35066,204 @@ class B2 : A<int>
     public override void F(int? t) { }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(27967, "https://github.com/dotnet/roslyn/issues/27967")]
+        [Fact]
+        public void UnannotatedTypeArgument_Interface()
+        {
+            var source0 =
+@"public interface I<T>
+{
+}
+public class B : I<object[]>
+{
+}
+public class C : I<C>
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class Program
+{
+    static void F(B x)
+    {
+        I<object[]?> a = x;
+        I<object[]> b = x;
+    }
+    static void F(C y)
+    {
+        I<C?> a = y;
+        I<C> b = y;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(27967, "https://github.com/dotnet/roslyn/issues/27967")]
+        [Fact]
+        public void UnannotatedTypeArgument_BaseType()
+        {
+            var source0 =
+@"public class A<T>
+{
+}
+public class B : A<object[]>
+{
+}
+public class C : A<C>
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class Program
+{
+    static void F(B x)
+    {
+        A<object[]?> a = x;
+        A<object[]> b = x;
+    }
+    static void F(C y)
+    {
+        A<C?> a = y;
+        A<C> b = y;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnannotatedTypeArgument_Interface_Lookup()
+        {
+            var source0 =
+@"public interface I<T>
+{
+    void F(T t);
+}
+public interface I1 : I<object>
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"interface I2 : I<object>
+{
+}
+class Program
+{
+    static void F(I1 i1, I2 i2, object x, object? y)
+    {
+        i1.F(x);
+        i1.F(y);
+        i2.F(x);
+        i2.F(y); // warn
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,14): warning CS8604: Possible null reference argument for parameter 't' in 'void I<object>.F(object t)'.
+                //         i2.F(y); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("t", "void I<object>.F(object t)").WithLocation(11, 14));
+        }
+
+        [Fact]
+        public void UnannotatedTypeArgument_BaseType_Lookup()
+        {
+            var source0 =
+@"public class A<T>
+{
+    public static void F(T t) { }
+}
+public class B1 : A<object>
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class B2 : A<object>
+{
+}
+class Program
+{
+    static void F(object x, object? y)
+    {
+        B1.F(x);
+        B1.F(y);
+        B2.F(x);
+        B2.F(y); // warn
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,14): warning CS8604: Possible null reference argument for parameter 't' in 'void A<object>.F(object t)'.
+                //         B2.F(y); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("t", "void A<object>.F(object t)").WithLocation(11, 14));
+        }
+
+        [Fact]
+        public void UnannotatedConstraint_01()
+        {
+            var source0 =
+@"public class A
+{
+}
+public class B<T> where T : A
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        new B<A?>();
+        new B<A>();
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnannotatedConstraint_02()
+        {
+            var source0 =
+@"public class A<T>
+{
+}
+public class B<T> where T : A<object>
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        new B<A<object?>>();
+        new B<A<object>>();
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 

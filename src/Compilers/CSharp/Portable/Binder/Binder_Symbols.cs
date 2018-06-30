@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbolWithAnnotations constructedType;
                         if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
                         {
-                            constructedType = typeArgument.AsNullableReferenceOrValueType(Compilation, syntax.GetReference());
+                            constructedType = typeArgument.AsNullableReferenceOrValueType(Compilation);
                             if (!ShouldCheckConstraints)
                             {
                                 diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (a.QuestionToken.IsKind(SyntaxKind.QuestionToken))
                             {
-                                type = TypeSymbolWithAnnotations.CreateNullableReferenceType(array);
+                                type = TypeSymbolWithAnnotations.Create(array, isNullableIfReferenceType: true);
                             }
                             else
                             {
