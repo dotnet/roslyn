@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -251,6 +252,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     info.CurrentProperty,
                     info.DisposeMethod,
                     info.ElementType)
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Function GetAwaitExpressionMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFactsService.GetAwaitExpressionMethod
+            If node.IsKind(SyntaxKind.AwaitExpression) Then
+                Dim awaitExpression = DirectCast(node, AwaitExpressionSyntax)
+                Dim builder = ArrayBuilder(Of IMethodSymbol).GetInstance()
+                Dim info = model.GetAwaitExpressionInfo(awaitExpression)
+
+                Return info.GetAwaiterMethod
             End If
 
             Return Nothing

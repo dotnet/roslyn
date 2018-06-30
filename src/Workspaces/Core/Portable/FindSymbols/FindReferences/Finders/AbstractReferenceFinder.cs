@@ -413,6 +413,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
+        protected Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        {
+            return FindDocumentsAsync(project, documents, async (d, c) =>
+            {
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
+                return info.ContainsAwait;
+            }, cancellationToken);
+        }
+
         protected async Task<ImmutableArray<ReferenceLocation>> FindReferencesInForEachStatementsAsync(
             ISymbol symbol,
             Document document,
@@ -486,6 +495,42 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (deconstructMethods.Any(m => Matches(m, originalUnreducedSymbolDefinition)))
                 {
                     var location = syntaxFacts.GetDeconstructionReferenceLocation(node);
+                    locations.Add(new ReferenceLocation(
+                        document, alias: null, location, isImplicit: true, isWrittenTo: false, CandidateReason.None));
+                }
+            }
+
+            return locations.ToImmutableAndFree();
+        }
+
+        protected async Task<ImmutableArray<ReferenceLocation>> FindReferencesInAwaitExpressionAsync(
+            ISymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            if (!syntaxTreeInfo.ContainsAwait)
+            {
+                return ImmutableArray<ReferenceLocation>.Empty;
+            }
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var locations = ArrayBuilder<ReferenceLocation>.GetInstance();
+
+            var originalUnreducedSymbolDefinition = symbol.GetOriginalUnreducedDefinition();
+
+            foreach (var node in syntaxRoot.DescendantNodesAndSelf())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var awaitExpressionMethod = semanticFacts.GetAwaitExpressionMethod(semanticModel, node);
+
+                if (Matches(awaitExpressionMethod, originalUnreducedSymbolDefinition))
+                {
+                    var location = node.GetFirstToken().GetLocation();
                     locations.Add(new ReferenceLocation(
                         document, alias: null, location, isImplicit: true, isWrittenTo: false, CandidateReason.None));
                 }
