@@ -3833,33 +3833,8 @@ public class C
         }
 
         [Fact]
-        [WorkItem(26978, "https://github.com/dotnet/roslyn/issues/26978")]
-        public void BindingRefDynamicObjAssignment()
-        {
-            CompileAndVerify(@"
-using System;
-class C
-{
-    public int P;
-
-    static void Main()
-    {
-        dynamic x = new C();
-        x.P = 5;
-        Console.WriteLine(x.P);
-        
-        dynamic y = new C();
-        y.P = ref x.P;
-        Console.WriteLine(y.P);
-    }
-}", references: new[] { CSharpRef }, expectedOutput: @"
-5
-5");
-        }
-
-        [Fact]
         [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
-        public void AssigningRefToArrayElement()
+        public void AssigningRef_ArrayElement()
         {
             CreateCompilation(@"
 public class C
@@ -3872,6 +3847,91 @@ public class C
                 // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
                 //         array[0] = ref value;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "array[0]").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_PointerIndirectionOperator()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int* ptr, ref int value)
+    {
+        *ptr = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         *ptr = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "*ptr").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_PointerElementAccess()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int* ptr, ref int value)
+    {
+        ptr[0] = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         ptr[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "ptr[0]").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_RefvalueExpression()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int x)
+    {
+        __refvalue(__makeref(x), int) = ref x;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         __refvalue(__makeref(x), int) = ref x;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "__refvalue(__makeref(x), int)").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_DynamicIndexerAccess()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(dynamic d, ref int value)
+    {
+        d[0] = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         d[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d[0]").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_DynamicMemberAccess()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(dynamic d, ref int value)
+    {
+        d.member = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         d.member = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d.member").WithLocation(6, 9));
         }
     }
 }
