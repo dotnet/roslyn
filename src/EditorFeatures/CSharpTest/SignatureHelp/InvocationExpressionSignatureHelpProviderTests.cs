@@ -1779,7 +1779,7 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
-        public async Task PickCorrectOverload_PickFirst()
+        public async Task PickCorrectOverload_PickInt()
         {
             var markup = @"
 class Program
@@ -1790,6 +1790,30 @@ class Program
     }
     static void M(int i) { }
     static void M(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Program.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_PickInt_ReverseOrder()
+        {
+            var markup = @"
+class Program
+{
+    static void Main()
+    {
+        [|M(1$$|]);
+    }
+    static void M(string s) { }
+    static void M(int i) { }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
@@ -1827,7 +1851,7 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
-        public async Task PickCorrectOverload_FilterFirst_PickFirstRemaining()
+        public async Task PickCorrectOverload_FilterFirst_PickIntRemaining()
         {
             var markup = @"
 class D
@@ -1852,7 +1876,58 @@ class D
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
-        public async Task PickCorrectOverload_FilterFirst_PickSecondRemaining()
+        public async Task PickCorrectOverload_FilterFirst_PickIntRemaining_ConversionToD()
+        {
+            var markup = @"
+class D
+{
+    static void Main()
+    {
+        [|M(i: 42$$|]);
+    }
+    static void M(D filtered) { }
+    static void M(int i) { }
+    static void M(string i) { }
+    static implicit operator D(int i) => throw null;
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void D.M(string i)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_FilterFirst_PickIntRemaining_ReversedOrder()
+        {
+            var markup = @"
+class D
+{
+    static void Main()
+    {
+        [|M(i: 42$$|]);
+    }
+    static void M(string i) { }
+    static void M(int i) { }
+    static void M(D filtered) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void D.M(string i)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_FilterFirst_PickStringRemaining()
         {
             var markup = @"
 class D

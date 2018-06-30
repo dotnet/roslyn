@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     string argumentName,
                     bool isCaseSensitive)
                 {
-                    (var bestItem, bool stillUserSelected) = GetBestItem(selectedItem, userSelected, items, argumentIndex, argumentCount, argumentName, isCaseSensitive);
-                    var selectedParameter = GetSelectedParameter(bestItem, argumentIndex, argumentName, isCaseSensitive);
-                    return new SignatureHelpSelection(bestItem, stillUserSelected, selectedParameter);
+                    SelectBestItem(ref selectedItem, ref userSelected, items, argumentIndex, argumentCount, argumentName, isCaseSensitive);
+                    var selectedParameter = GetSelectedParameter(selectedItem, argumentIndex, argumentName, isCaseSensitive);
+                    return new SignatureHelpSelection(selectedItem, userSelected, selectedParameter);
                 }
 
                 private static int GetSelectedParameter(SignatureHelpItem bestItem, int parameterIndex, string parameterName, bool isCaseSensitive)
@@ -63,15 +63,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     return parameterIndex;
                 }
 
-                private static (SignatureHelpItem, bool userSelected) GetBestItem(
-                    SignatureHelpItem currentItem, bool userSelected, IList<SignatureHelpItem> filteredItems, int selectedParameter, int argumentCount, string name, bool isCaseSensitive)
+                private static void SelectBestItem(ref SignatureHelpItem currentItem, ref bool userSelected,
+                    IList<SignatureHelpItem> filteredItems, int selectedParameter, int argumentCount, string name, bool isCaseSensitive)
                 {
                     // If the current item is still applicable, then just keep it.
                     if (filteredItems.Contains(currentItem) &&
                         IsApplicable(currentItem, argumentCount, name, isCaseSensitive))
                     {
-                        return (currentItem, userSelected);
+                        return;
                     }
+                    userSelected = false;
 
                     // Try to find the first applicable item.  If there is none, then that means the
                     // selected parameter was outside the bounds of all methods.  i.e. all methods only
@@ -80,14 +81,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     var result = filteredItems.FirstOrDefault(i => IsApplicable(i, argumentCount, name, isCaseSensitive));
                     if (result != null)
                     {
-                        return (result, false);
+                        currentItem = result;
+                        return;
                     }
 
                     // if we couldn't find a best item, and they provided a name, then try again without
                     // a name.
                     if (name != null)
                     {
-                        return GetBestItem(currentItem, userSelected, filteredItems, selectedParameter, argumentCount, null, isCaseSensitive);
+                        SelectBestItem(ref currentItem, ref userSelected, filteredItems, selectedParameter, argumentCount, null, isCaseSensitive);
+                        return;
                     }
 
                     // If we don't have an item that can take that number of parameters, then just pick
@@ -95,10 +98,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     var lastItem = filteredItems.Last();
                     if (currentItem.IsVariadic || currentItem.Parameters.Length == lastItem.Parameters.Length)
                     {
-                        return (currentItem, false);
+                        return;
                     }
 
-                    return (lastItem, false);
+                    currentItem = lastItem;
                 }
 
                 private static bool IsApplicable(SignatureHelpItem item, int argumentCount, string name, bool isCaseSensitive)

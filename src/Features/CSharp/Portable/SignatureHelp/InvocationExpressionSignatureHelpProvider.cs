@@ -105,7 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
             else if (expressionType != null && expressionType.TypeKind == TypeKind.Delegate)
             {
-                var (items, selectedItem) = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, expressionType, cancellationToken);
+                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService,
+                    documentationCommentFormattingService, within, expressionType, out var selectedItem, cancellationToken);
 
                 return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
             }

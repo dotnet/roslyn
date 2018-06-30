@@ -15,14 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateInvokeItems(
+        private IList<SignatureHelpItem> GetDelegateInvokeItems(
             InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, out int? selectedItem, CancellationToken cancellationToken)
         {
+            selectedItem = null;
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
             {
-                return (null, null);
+                return null;
             }
 
             // Events can only be invoked directly from the class they were declared in.
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (expressionSymbol.IsKind(SymbolKind.Event) &&
                 !expressionSymbol.ContainingType.OriginalDefinition.Equals(within.OriginalDefinition))
             {
-                return (null, null);
+                return null;
             }
 
             var position = invocationExpression.SpanStart;
@@ -44,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateInvokePostambleParts(),
                 parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
 
-            return (SpecializedCollections.SingletonList(item), 0);
+            selectedItem = 0;
+            return SpecializedCollections.SingletonList(item);
         }
 
         private IList<SymbolDisplayPart> GetDelegateInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)

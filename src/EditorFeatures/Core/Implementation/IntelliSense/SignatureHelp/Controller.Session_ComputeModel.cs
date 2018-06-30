@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             return currentModel;
                         }
 
-                        (var selectedItem, bool userSelected) = GetSelectedItem(currentModel, items, provider);
+                        var selectedItem = GetSelectedItem(currentModel, items, provider, out bool userSelected);
+
                         var model = new Model(disconnectedBufferGraph, items.ApplicableSpan, provider,
                             items.Items, selectedItem, items.ArgumentIndex, items.ArgumentCount, items.ArgumentName,
                             selectedParameter: 0, userSelected);
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return s1 != null && s2 != null && s1.SequenceEqual(s2);
             }
 
-            private static (SignatureHelpItem selectedItem, bool userSelected) GetSelectedItem(Model currentModel, SignatureHelpItems items, ISignatureHelpProvider provider)
+            private static SignatureHelpItem GetSelectedItem(Model currentModel, SignatureHelpItems items, ISignatureHelpProvider provider, out bool userSelected)
             {
                 // Try to find the most appropriate item in the list to select by default.
 
@@ -146,17 +147,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 // then try to return the user-selection.
                 if (currentModel != null && currentModel.Provider == provider && currentModel.UserSelected)
                 {
-                    var userSelected = items.Items.FirstOrDefault(i => DisplayPartsMatch(i, currentModel.SelectedItem));
-                    if (userSelected != null)
+                    var userSelectedItem = items.Items.FirstOrDefault(i => DisplayPartsMatch(i, currentModel.SelectedItem));
+                    if (userSelectedItem != null)
                     {
-                        return (userSelected, true);
+                        userSelected = true;
+                        return userSelectedItem;
                     }
                 }
+                userSelected = false;
 
                 // If the provider specified a selected item, then pick that one.
                 if (items.SelectedItemIndex.HasValue)
                 {
-                    return (items.Items[items.SelectedItemIndex.Value], false);
+                    return items.Items[items.SelectedItemIndex.Value];
                 }
 
                 SignatureHelpItem lastSelectionOrDefault = null;
@@ -173,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     lastSelectionOrDefault = items.Items.First();
                 }
 
-                return (lastSelectionOrDefault, false);
+                return lastSelectionOrDefault;
             }
 
             private static bool DisplayPartsMatch(SignatureHelpItem i1, SignatureHelpItem i2)
