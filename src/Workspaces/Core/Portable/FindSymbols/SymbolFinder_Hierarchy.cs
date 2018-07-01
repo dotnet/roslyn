@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         foreach (var interfaceType in GetAllInterfaces(type))
                         {
-                            if (interfaceType.Symbol.MemberNames.Contains(symbol.Name))
+                            if (interfaceType.Symbol.MemberNames.Contains(symbol.Name) ||
+                                symbol.IsPropertyAccessor())
                             {
                                 foreach (var m in GetMembers(interfaceType, symbol.Name))
                                 {

@@ -14,16 +14,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
     internal class SerializableFindReferencesSearchOptions
     {
+        public bool AssociatePropertyReferencesWithSpecificAccessor;
+
         public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
         {
             return new SerializableFindReferencesSearchOptions
             {
+                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor
             };
         }
 
         public FindReferencesSearchOptions Rehydrate()
         {
-            return new FindReferencesSearchOptions();
+            return new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor);
         }
     }
 

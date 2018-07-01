@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
-            var options = FindReferencesSearchOptions.Default;
+            var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
             var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context, options);
 
             // Now call into the underlying FAR engine to find reference.  The FAR

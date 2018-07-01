@@ -1,20 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind.IsPropertyAccessor();
-        }
+            => symbol.MethodKind.IsPropertyAccessor();
 
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
@@ -26,27 +23,70 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var result = await base.DetermineCascadedSymbolsAsync(
                 symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
-            var symbol = symbolAndProjectId.Symbol;
-            if (symbol.AssociatedSymbol != null)
+            // If we've been asked to search for specific accessors, then do not cascade.
+            // We don't want to produce results for the associated property.
+            if (!options.AssociatePropertyReferencesWithSpecificAccessor)
             {
-                result = result.Add(symbolAndProjectId.WithSymbol(symbol.AssociatedSymbol));
+                var symbol = symbolAndProjectId.Symbol;
+                if (symbol.AssociatedSymbol != null)
+                {
+                    result = result.Add(symbolAndProjectId.WithSymbol(symbol.AssociatedSymbol));
+                }
             }
 
             return result;
         }
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol, Project project, IImmutableSet<Document> documents, 
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
+            var result = await FindDocumentsAsync(
+                project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+
+            if (options.AssociatePropertyReferencesWithSpecificAccessor)
+            {
+                // we want to associate normal property references with the specific 
+                // accessor being referenced.  So we also need to include documents 
+                // with our property's name.
+                var propDocuments = await FindDocumentsAsync(
+                    project, documents, cancellationToken, symbol.AssociatedSymbol.Name).ConfigureAwait(false);
+                result = result.AddRange(propDocuments);
+            }
+
+            return result;
         }
 
-        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol, Document document, SemanticModel semanticModel, 
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
+            var references = await FindReferencesInDocumentUsingSymbolNameAsync(
+                symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+
+            if (symbol.AssociatedSymbol is IPropertySymbol property &&
+                options.AssociatePropertyReferencesWithSpecificAccessor)
+            {
+                var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
+                    SymbolAndProjectId.Create(property, document.Project.Id),
+                    document, semanticModel, options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
+                    cancellationToken).ConfigureAwait(false);
+
+                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                var accessorReferences = propertyReferences.WhereAsArray(
+                    loc =>
+                    {
+                        var accessors = GetReferencedAccessorSymbols(
+                            semanticFacts, semanticModel, property,
+                            loc.Location.FindNode(getInnermostNodeForTie: true, cancellationToken),
+                            cancellationToken);
+                        return accessors.Contains(symbol);
+                    });
+
+                references = references.AddRange(accessorReferences);
+            }
+
+            return references;
         }
     }
 }

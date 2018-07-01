@@ -57,5 +57,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return ImmutableArray<SymbolAndProjectId>.Empty;
         }
+
+        protected ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
+            ISemanticFactsService semanticFacts, SemanticModel model,
+            IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            if (semanticFacts.IsWrittenTo(model, node, cancellationToken))
+            {
+                // if it was only written to, then only the setter was referenced.
+                // if it was written *and* read, then both accessors were referenced.
+                return semanticFacts.IsOnlyWrittenTo(model, node, cancellationToken)
+                    ? ImmutableArray.Create(property.SetMethod)
+                    : ImmutableArray.Create(property.GetMethod, property.SetMethod);
+            }
+            else
+            {
+                // Wasn't written. This could be a normal read, or used through something
+                // like nameof().
+                return semanticFacts.IsNameOfContext(model, node.SpanStart, cancellationToken)
+                    ? ImmutableArray<IMethodSymbol>.Empty
+                    : ImmutableArray.Create(property.GetMethod);
+            }
+        }
     }
 }

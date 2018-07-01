@@ -93,6 +93,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
                 symbol, document, semanticModel, cancellationToken).ConfigureAwait(false); 
 
+            if (options.AssociatePropertyReferencesWithSpecificAccessor)
+            {
+                // We want to associate property references to a specific accessor (if an accessor
+                // is being referenced).  Check if this reference would match an accessor. if so, do
+                // not add it.  It will be added by PropertyAccessorSymbolReferenceFinder.
+                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+
+                nameReferences = nameReferences.WhereAsArray(loc =>
+                {
+                    var accessors = GetReferencedAccessorSymbols(
+                        semanticFacts, semanticModel, symbol, 
+                        loc.Location.FindNode(getInnermostNodeForTie: true, cancellationToken),
+                        cancellationToken);
+                    return accessors.Length == 0;
+                });
+            }
+
             var forEachReferences = IsForEachProperty(symbol)
                 ? await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<ReferenceLocation>.Empty;

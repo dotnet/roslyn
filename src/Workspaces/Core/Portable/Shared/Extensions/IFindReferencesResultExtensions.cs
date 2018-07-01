@@ -50,10 +50,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
-            // We don't want to clutter the UI with property accessors if there are no direct
-            if (definition.IsPropertyAccessor())
+            // If we're associating property references with an accessor, then we don't want to show
+            // a property if it is has no references.  Similarly, if we're associated associating
+            // everything with the property, then we don't want to include accessors if there are no
+            // references to them.
+            if (options.AssociatePropertyReferencesWithSpecificAccessor)
             {
-                return false;
+                if (definition.Kind == SymbolKind.Property)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (definition.IsPropertyAccessor())
+                {
+                    return false;
+                }
             }
 
             // Otherwise we still show the item even if there are no references to it.
