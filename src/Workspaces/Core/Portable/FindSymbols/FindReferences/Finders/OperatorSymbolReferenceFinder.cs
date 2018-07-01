@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var op = symbol.GetPredefinedOperator();
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

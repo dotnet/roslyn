@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -21,12 +22,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<ReferencedSymbol> FilterToItemsToShow(
-            this IEnumerable<ReferencedSymbol> result)
+            this IEnumerable<ReferencedSymbol> result, FindReferencesSearchOptions options)
         {
-            return result.Where(ShouldShow);
+            return result.Where(r => ShouldShow(r, options));
         }
 
-        public static bool ShouldShow(this ReferencedSymbol referencedSymbol)
+        public static bool ShouldShow(
+            this ReferencedSymbol referencedSymbol, FindReferencesSearchOptions options)
         {
             // If the reference has any locations then we will present it.
             if (referencedSymbol.Locations.Any())
@@ -35,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return referencedSymbol.Definition.ShouldShowWithNoReferenceLocations(
-                showMetadataSymbolsWithoutReferences: true);
+                options, showMetadataSymbolsWithoutReferences: true);
         }
 
         public static bool ShouldShowWithNoReferenceLocations(
-            this ISymbol definition, bool showMetadataSymbolsWithoutReferences)
+            this ISymbol definition, FindReferencesSearchOptions options, bool showMetadataSymbolsWithoutReferences)
         {
             // If the definition is implicit and we have no references, then we don't want to
             // clutter the UI with it.
@@ -49,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // We don't want to clutter the UI with property accessors if there are no direct
-            // references to them.
             if (definition.IsPropertyAccessor())
             {
                 return false;

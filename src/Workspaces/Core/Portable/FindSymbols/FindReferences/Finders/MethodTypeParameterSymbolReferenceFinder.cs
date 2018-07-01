@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<ITypeParameterSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ITypeParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // Type parameters are only found in documents that have both their name, and the name
@@ -76,6 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ITypeParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): Method type parameters are like locals.  They are only in scope in

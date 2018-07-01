@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var location = symbol.Locations.FirstOrDefault();
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var container = GetContainer(symbol);

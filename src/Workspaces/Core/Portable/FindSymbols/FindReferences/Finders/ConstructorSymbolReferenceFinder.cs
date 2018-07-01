@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var typeName = symbol.ContainingType.Name;
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return FindAllReferencesInDocumentAsync(methodSymbol, document, semanticModel, cancellationToken);

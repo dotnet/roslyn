@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var result = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(project.Documents.ToImmutableArray());
@@ -73,6 +75,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // FAR on the Delegate type and use those results to find Invoke calls

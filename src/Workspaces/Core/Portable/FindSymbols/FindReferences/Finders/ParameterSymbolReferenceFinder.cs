@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): We can be smarter with parameters.  They will either be found
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetParameterSymbolsMatchFunction(
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var parameter = parameterAndProjectId.Symbol;

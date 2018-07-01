@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -22,10 +23,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IPropertySymbol> symbolAndProjectId, 
             Solution solution, 
-            IImmutableSet<Project> projects, 
+            IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
+            var baseSymbols = await base.DetermineCascadedSymbolsAsync(
+                symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
             var symbol = symbolAndProjectId.Symbol;
             var backingFields = symbol.ContainingType.GetMembers()
@@ -53,6 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IPropertySymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
@@ -83,9 +87,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IPropertySymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
+                symbol, document, semanticModel, cancellationToken).ConfigureAwait(false); 
 
             var forEachReferences = IsForEachProperty(symbol)
                 ? await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)

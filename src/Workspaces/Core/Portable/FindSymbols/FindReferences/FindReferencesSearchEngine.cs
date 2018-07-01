@@ -10,12 +10,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>;
+
+    internal class FindReferencesSearchOptions
+    {
+        public static readonly FindReferencesSearchOptions Default = 
+            new FindReferencesSearchOptions();
+
+        public FindReferencesSearchOptions()
+        {
+        }
+    }
 
     internal partial class FindReferencesSearchEngine
     {
@@ -26,6 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
+        private readonly FindReferencesSearchOptions _options;
 
         /// <summary>
         /// Mapping from a document to the list of reference locations found in it.  Kept around so
@@ -40,6 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             ImmutableArray<IReferenceFinder> finders,
             IStreamingFindReferencesProgress progress,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             _documents = documents;
@@ -48,6 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progress = progress;
             _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
+            _options = options;
 
             _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
         }

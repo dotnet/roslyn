@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
+            SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called by the find references search engine to determine which projects should be
@@ -55,7 +56,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken);
+            ISymbol symbol, Project project, IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called by the find references search engine to determine the set of reference locations
@@ -65,6 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, CancellationToken cancellationToken);
+            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, 
+            FindReferencesSearchOptions options, CancellationToken cancellationToken);
     }
 }

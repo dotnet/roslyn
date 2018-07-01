@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             foreach (var implementation in tuple.Value.implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    project, includeHiddenLocations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    project, includeHiddenLocations: false,
+                    FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
         }
@@ -132,7 +133,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
-            var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context);
+
+            var options = FindReferencesSearchOptions.Default;
+            var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context, options);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
@@ -143,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 project.Solution,
                 progressAdapter,
                 documents: null,
+                options: options,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 

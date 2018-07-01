@@ -20,10 +20,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var result = await base.DetermineCascadedSymbolsAsync(
-                symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
+                symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
             var symbol = symbolAndProjectId.Symbol;
             if (symbol.AssociatedSymbol != null)
@@ -34,12 +35,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result;
         }
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(IMethodSymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+            IMethodSymbol symbol, Project project, IImmutableSet<Document> documents, 
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
         }
 
-        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(IMethodSymbol symbol, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+            IMethodSymbol symbol, Document document, SemanticModel semanticModel, 
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
         }

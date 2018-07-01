@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<INamedTypeSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamedTypeSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
@@ -81,6 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamedTypeSymbol namedType,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var namedTypereferences = await FindReferencesInDocumentWorker(

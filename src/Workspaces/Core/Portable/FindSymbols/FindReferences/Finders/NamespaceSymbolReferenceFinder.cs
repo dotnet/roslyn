@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamespaceSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol, project));
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamespaceSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var identifierName = GetNamespaceIdentifierName(symbol, document.Project);
