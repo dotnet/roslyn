@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsBindingModuleLevelAttribute()
         {
-            if ((this.Flags & BinderFlags.InContectualAttributeBinder) == 0)
+            if ((this.Flags & BinderFlags.InContextualAttributeBinder) == 0)
             {
                 return false;
             }

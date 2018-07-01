@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This is a <see cref="ContextualAttributeBinder"/>, or has <see cref="ContextualAttributeBinder"/> as its parent.
         /// </summary>
-        InContectualAttributeBinder = 1 << 29,
+        InContextualAttributeBinder = 1 << 29,
 
         // Groups
 

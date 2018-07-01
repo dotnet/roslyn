@@ -209,10 +209,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            // PROTOTYPE(NullableReferenceTypes): Report ERR_DuplicateBound for
+            // duplicates that differ by top-level or nested nullability as well?
             if (constraintTypes.Contains(c => type.Equals(c, TypeCompareKind.AllAspects)))
             {
                 // "Duplicate constraint '{0}' for type parameter '{1}'"
-                Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.TypeSymbol, typeParameterName);
+                Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type, typeParameterName);
                 return false;
             }
 
