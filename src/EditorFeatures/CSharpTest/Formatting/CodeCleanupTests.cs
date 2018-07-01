@@ -84,6 +84,7 @@ class Program
             return AssertCodeCleanupResult(expected, code,
                 (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
                 (CodeCleanupOptions.SortImports, enabled: true),
+                (CodeCleanupOptions.ApplyImplicitExplicitTypePreferences, enabled: false),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
 
