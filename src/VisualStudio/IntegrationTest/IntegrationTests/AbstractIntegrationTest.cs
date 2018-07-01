@@ -46,7 +46,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             try
             {
-                _visualStudioContext = await _instanceFactory.GetNewOrUsedInstanceAsync(SharedIntegrationHostFixture.RequiredPackageIds).ConfigureAwait(false);
+                _visualStudioContext = await _instanceFactory.GetNewOrUsedInstanceAsync(VisualStudioInstanceFactory.RequiredPackageIds).ConfigureAwait(false);
             }
             catch
             {
