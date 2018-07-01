@@ -21,7 +21,7 @@ Install-Package Microsoft.CodeAnalysis.CSharp.Scripting
 * [Evaluate a C# expression (strongly-typed)](#exprstrong)
 * [Evaluated a C# expression with error handling](#error)
 * [Add references](#addref)
-* [Add imports](#addimports)
+* [Add namespace and type imports](#addimports)
 * [Parameterize a script](#parameter)
 * [Create & build a C# script and execute it multiple times](#multi)
 * [Create a delegate to a script](#delegate)
@@ -61,7 +61,17 @@ var result = await CSharpScript.EvaluateAsync("System.Net.Dns.GetHostName()",
      ScriptOptions.Default.WithReferences(typeof(System.Net.Dns).Assembly));
 ```
 
-#### <a name="addimports"></a>Add imports
+#### <a name="addimports"></a>Add namespace and type imports
+
+In the following code `WithImports("System.IO")` adds `using System.IO;` to the script options, making it possible to reference the types of `System.IO` namespace from the script code without qualification.
+
+```csharp
+var result = await CSharpScript.EvaluateAsync("Directory.GetCurrentDirectory()"), 
+     ScriptOptions.Default.WithImports("System.IO"));
+```
+
+Likewise, `WithImports("System.Math")` adds `using static System.Math;` to the script options, making it possible to reference the members of `System.Math` type without qualification.
+
 ```csharp
 var result = await CSharpScript.EvaluateAsync("Sqrt(2)", 
      ScriptOptions.Default.WithImports("System.Math"));
