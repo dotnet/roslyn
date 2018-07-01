@@ -1,0 +1,40 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Composition;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMember;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
+namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
+{
+    [ExportLanguageService(typeof(IGenerateDeconstructMemberService), LanguageNames.CSharp), Shared]
+    internal class CSharpGenerateDeconstructMethodService :
+        AbstractGenerateDeconstructMethodService<CSharpGenerateDeconstructMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
+    {
+        protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
+            => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
+
+        protected override AbstractInvocationInfo CreateInvocationMethodInfo(SemanticDocument document, AbstractGenerateParameterizedMemberService<CSharpGenerateDeconstructMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
+            => new CSharpGenerateParameterizedMemberService<CSharpGenerateDeconstructMethodService>.InvocationExpressionInfo(document, state);
+
+        protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
+            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
+
+        protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
+            => CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
+
+        protected override SyntaxToken MakeDeconstructToken()
+        {
+            return SyntaxFactory.Identifier(WellKnownMemberNames.DeconstructMethodName);
+        }
+    }
+}

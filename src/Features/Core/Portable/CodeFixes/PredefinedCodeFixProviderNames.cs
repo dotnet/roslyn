@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string GenerateVariable = nameof(GenerateVariable);
         public const string GenerateMethod = nameof(GenerateMethod);
         public const string GenerateConversion = nameof(GenerateConversion);
+        public const string GenerateDeconstructMethod = nameof(GenerateDeconstructMethod);
         public const string GenerateType = nameof(GenerateType);
         public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
         public const string ImplementInterface = nameof(ImplementInterface);
