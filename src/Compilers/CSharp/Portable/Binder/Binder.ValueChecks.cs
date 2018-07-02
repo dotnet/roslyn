@@ -1125,7 +1125,7 @@ moreArguments:
             // check receiver if ref-like
             if (receiverOpt?.Type?.IsByRefLikeType == true)
             {
-                return GetValEscape(receiverOpt, scopeOfTheContainingExpression);
+                escapeScope = Math.Max(escapeScope, GetValEscape(receiverOpt, scopeOfTheContainingExpression));
             }
 
             return escapeScope;
