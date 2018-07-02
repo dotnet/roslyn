@@ -363,16 +363,18 @@ function Build-InsertionItems() {
 }
 
 function Build-Installer () {
-    #  Copying Artifacts
+    ## Copying Artifacts
     $installerDir = Join-Path $configDir "Installer"
+    if (Test-Path $installerDir) {
+        Remove-Item -Path $installerDir -Recurse -Force
+    }
     Create-Directory $installerDir
 
     $intermidateDirectory = Join-Path $env:TEMP "InstallerTemp"
-    if(Test-Path $intermidateDirectory)
-    {
+    if (Test-Path $intermidateDirectory) {
         Remove-Item -Path $intermidateDirectory -Recurse -Force
     }
-    New-Item -ItemType Directory -Force -Path $intermidateDirectory
+    Create-Directory $intermidateDirectory
 
     ## Copying VsixExpInstaller.exe
     $vsixExpInstallerDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
