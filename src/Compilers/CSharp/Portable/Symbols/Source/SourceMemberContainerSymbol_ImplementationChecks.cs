@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckAbstractClassImplementations(DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol baseType = this.GetBaseTypeNoUseSiteDiagnostics();
 
             if (this.IsAbstract || (object)baseType == null || !baseType.IsAbstract)
             {
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool HasImportedBaseTypeDeclaringInterface(NamedTypeSymbol @interface)
         {
             CSharpCompilation compilation = this.DeclaringCompilation;
-            for (NamedTypeSymbol currType = this; (object)currType != null; currType = currType.BaseTypeNoUseSiteDiagnostics)
+            for (NamedTypeSymbol currType = this; (object)currType != null; currType = currType.GetBaseTypeNoUseSiteDiagnostics())
             {
                 if (!currType.OriginalDefinition.IsFromCompilation(compilation) && currType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface))
                 {
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckNewModifier(Symbol symbol, bool isNew, DiagnosticBag diagnostics)
         {
             // for error cases
-            if ((object)this.BaseTypeNoUseSiteDiagnostics == null)
+            if ((object)this.GetBaseTypeNoUseSiteDiagnostics() == null)
             {
                 return;
             }
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location symbolLocation = symbol.Locations.FirstOrDefault();
             bool unused = false;
 
-            NamedTypeSymbol currType = this.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol currType = this.GetBaseTypeNoUseSiteDiagnostics();
             while ((object)currType != null)
             {
                 foreach (var hiddenMember in currType.GetMembers(symbol.Name))
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                currType = currType.BaseTypeNoUseSiteDiagnostics;
+                currType = currType.GetBaseTypeNoUseSiteDiagnostics();
             }
 
             if (isNew)
@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            NamedTypeSymbol baseType = type.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol baseType = type.GetBaseTypeNoUseSiteDiagnostics();
             return (object)baseType == null || !baseType.AllInterfacesNoUseSiteDiagnostics.Contains(@interface);
         }
 

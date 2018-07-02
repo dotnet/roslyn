@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
             }
 
-            if (this.BaseTypeNoUseSiteDiagnostics?.ContainsNullableReferenceTypes() == true ||
+            if (this.GetBaseTypeNoUseSiteDiagnostics()?.ContainsNullableReferenceTypes() == true ||
                 this.InterfacesNoUseSiteDiagnostics().Any(t => t.ContainsNullableReferenceTypes()))
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, Locations[0], modifyCompilation: true);

@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBaseReference Base()
         {
             Debug.Assert((object)CurrentFunction != null && !CurrentFunction.IsStatic);
-            return new BoundBaseReference(Syntax, CurrentFunction.ThisParameter.Type.TypeSymbol.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
+            return new BoundBaseReference(Syntax, CurrentFunction.ThisParameter.Type.TypeSymbol.GetBaseTypeNoUseSiteDiagnostics()) { WasCompilerGenerated = true };
         }
 
         public BoundBadExpression BadExpression(TypeSymbol type)
@@ -924,7 +924,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement BaseInitialization()
         {
             // TODO: add diagnostics for when things fall apart
+<<<<<<< HEAD
             var ctor = CurrentFunction.ThisParameter.Type.TypeSymbol.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(c => c.ParameterCount == 0);
+=======
+            var ctor = CurrentMethod.ThisParameter.Type.TypeSymbol.GetBaseTypeNoUseSiteDiagnostics().InstanceConstructors.Single(c => c.ParameterCount == 0);
+>>>>>>> 5e83983... Make BaseTypeNoUseSiteDiagnostics a method (pure refactoring)
             return new BoundExpressionStatement(Syntax, Call(Base(), ctor)) { WasCompilerGenerated = true };
         }
 

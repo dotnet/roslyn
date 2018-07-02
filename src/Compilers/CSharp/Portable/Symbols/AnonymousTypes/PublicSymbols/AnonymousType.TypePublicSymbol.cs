@@ -228,9 +228,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+            internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
             {
-                get { return this.Manager.System_Object; }
+                return this.Manager.System_Object;
             }
 
             public override TypeKind TypeKind

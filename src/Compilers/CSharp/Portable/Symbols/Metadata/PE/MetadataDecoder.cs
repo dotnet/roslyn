@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         // Let's use a trick. To make sure the kind is the same, make sure
                         // base type is the same.
-                        SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault();
+                        SpecialType baseSpecialType = (candidate.GetBaseTypeNoUseSiteDiagnostics()?.SpecialType).GetValueOrDefault();
                         if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType).GetValueOrDefault())
                         {
                             continue;
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 EnqueueTypeSymbol(typeDefsToSearch, typeSymbolsToSearch, @interface);
             }
 
-            EnqueueTypeSymbol(typeDefsToSearch, typeSymbolsToSearch, typeSymbol.BaseTypeNoUseSiteDiagnostics);
+            EnqueueTypeSymbol(typeDefsToSearch, typeSymbolsToSearch, typeSymbol.GetBaseTypeNoUseSiteDiagnostics());
         }
 
         protected override void EnqueueTypeSymbol(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)

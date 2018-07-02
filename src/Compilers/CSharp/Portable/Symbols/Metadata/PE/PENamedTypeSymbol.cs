@@ -397,17 +397,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
         {
-            get
+            if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
-                {
-                    Interlocked.CompareExchange(ref _lazyBaseType, MakeAcyclicBaseType(), ErrorTypeSymbol.UnknownResultType);
-                }
-
-                return _lazyBaseType;
+                Interlocked.CompareExchange(ref _lazyBaseType, MakeAcyclicBaseType(), ErrorTypeSymbol.UnknownResultType);
             }
+
+            return _lazyBaseType;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
@@ -2200,7 +2197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var uncommon = GetUncommonProperties();
             if (uncommon == s_noUncommonProperties)
             {
-                return ((object)this.BaseTypeNoUseSiteDiagnostics != null) ? this.BaseTypeNoUseSiteDiagnostics.GetAttributeUsageInfo() : AttributeUsageInfo.Default;
+                return ((object)this.GetBaseTypeNoUseSiteDiagnostics() != null) ? this.GetBaseTypeNoUseSiteDiagnostics().GetAttributeUsageInfo() : AttributeUsageInfo.Default;
             }
 
             if (uncommon.lazyAttributeUsageInfo.IsNull)
@@ -2227,7 +2224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            return ((object)this.BaseTypeNoUseSiteDiagnostics != null) ? this.BaseTypeNoUseSiteDiagnostics.GetAttributeUsageInfo() : AttributeUsageInfo.Default;
+            return ((object)this.GetBaseTypeNoUseSiteDiagnostics() != null) ? this.GetBaseTypeNoUseSiteDiagnostics().GetAttributeUsageInfo() : AttributeUsageInfo.Default;
         }
 
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int statementIndex = 0;
 
                 //  explicit base constructor call
-                Debug.Assert(ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
+                Debug.Assert(ContainingType.GetBaseTypeNoUseSiteDiagnostics().SpecialType == SpecialType.System_Object);
                 BoundExpression call = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
                 if (call == null)
                 {

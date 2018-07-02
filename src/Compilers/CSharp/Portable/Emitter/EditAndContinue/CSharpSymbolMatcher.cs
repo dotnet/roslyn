@@ -884,10 +884,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 if (symbol.IsSZArray)
                 {
-                    return ArrayTypeSymbol.CreateSZArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementType.Update(translatedElementType, translatedModifiers));
+                    return ArrayTypeSymbol.CreateSZArray(symbol.GetBaseTypeNoUseSiteDiagnostics().ContainingAssembly, symbol.ElementType.Update(translatedElementType, translatedModifiers));
                 }
 
-                return ArrayTypeSymbol.CreateMDArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementType.Update(translatedElementType, translatedModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
+                return ArrayTypeSymbol.CreateMDArray(symbol.GetBaseTypeNoUseSiteDiagnostics().ContainingAssembly, symbol.ElementType.Update(translatedElementType, translatedModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
             }
 
             public override Symbol VisitDynamicType(DynamicTypeSymbol symbol)

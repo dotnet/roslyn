@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     result = MetadataDecoder.SubstituteNoPiaLocalType(
                         ref name,
                         isInterface,
-                        type.BaseTypeNoUseSiteDiagnostics,
+                        type.GetBaseTypeNoUseSiteDiagnostics(),
                         interfaceGuid,
                         scope,
                         identifier,

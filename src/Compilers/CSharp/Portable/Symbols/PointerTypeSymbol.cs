@@ -68,13 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
         {
-            get
-            {
-                // Pointers do not support boxing, so they really have no base type.
-                return null;
-            }
+            // Pointers do not support boxing, so they really have no base type.
+            return null;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)

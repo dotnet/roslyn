@@ -124,7 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInterface => false;
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _baseType;
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
+        {
+            return _baseType;
+        }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
 
@@ -188,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
+            if (ContainingType.GetBaseTypeNoUseSiteDiagnostics() is MissingMetadataTypeSymbol)
             {
                 // System_Attribute is missing. Don't generate anything
                 return;

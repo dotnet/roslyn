@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax = loweredBody.Syntax;
 
             // base constructor call:
-            Debug.Assert((object)constructor.ContainingType.BaseTypeNoUseSiteDiagnostics == null || constructor.ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
+            Debug.Assert((object)constructor.ContainingType.GetBaseTypeNoUseSiteDiagnostics() == null || constructor.ContainingType.GetBaseTypeNoUseSiteDiagnostics().SpecialType == SpecialType.System_Object);
             var objectType = constructor.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
 
             BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static MethodSymbol GetBaseTypeFinalizeMethod(MethodSymbol method)
         {
-            NamedTypeSymbol baseType = method.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol baseType = method.ContainingType.GetBaseTypeNoUseSiteDiagnostics();
             while ((object)baseType != null)
             {
                 foreach (Symbol member in baseType.GetMembers(WellKnownMemberNames.DestructorName))
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                baseType = baseType.BaseTypeNoUseSiteDiagnostics;
+                baseType = baseType.GetBaseTypeNoUseSiteDiagnostics();
             }
             return null;
         }

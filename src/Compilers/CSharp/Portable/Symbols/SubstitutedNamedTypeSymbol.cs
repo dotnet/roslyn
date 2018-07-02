@@ -147,12 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.GetDeclaredInterfaces(basesBeingResolved));
         }
 
-        internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal sealed override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
         {
-            get
-            {
-                return _unbound ? null : Map.SubstituteNamedType(OriginalDefinition.BaseTypeNoUseSiteDiagnostics);
-            }
+            return _unbound ? null : Map.SubstituteNamedType(OriginalDefinition.GetBaseTypeNoUseSiteDiagnostics());
         }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)

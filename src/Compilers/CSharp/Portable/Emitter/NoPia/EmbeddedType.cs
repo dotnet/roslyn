@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         protected override Cci.ITypeReference GetBaseClass(PEModuleBuilder moduleBuilder, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol baseType = UnderlyingNamedType.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol baseType = UnderlyingNamedType.GetBaseTypeNoUseSiteDiagnostics();
             return (object)baseType != null ? moduleBuilder.Translate(baseType, syntaxNodeOpt, diagnostics) : null;
         }
 

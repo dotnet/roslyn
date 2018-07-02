@@ -679,12 +679,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
         {
-            get
-            {
-                return _underlyingType.BaseTypeNoUseSiteDiagnostics;
-            }
+            return _underlyingType.GetBaseTypeNoUseSiteDiagnostics();
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)

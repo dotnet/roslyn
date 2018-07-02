@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
         {
-            get { return ContainingAssembly.GetSpecialType(SpecialType.System_MulticastDelegate); }
+            return ContainingAssembly.GetSpecialType(SpecialType.System_MulticastDelegate);
         }
 
         private sealed class DelegateConstructor : SynthesizedInstanceConstructor

@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // this should never happen, in theory,
             // but if it does happen we should make it a failure.
             // NOTE: declaredBase could be null for interfaces
-            var declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
+            var declaredBase = namedTypeSymbol.GetBaseTypeNoUseSiteDiagnostics();
             if ((object)declaredBase != null && declaredBase.SpecialType == SpecialType.System_ValueType)
             {
                 return;

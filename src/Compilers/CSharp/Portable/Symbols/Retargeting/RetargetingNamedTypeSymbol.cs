@@ -250,34 +250,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return new ExtendedErrorTypeSymbol(declaredBase, LookupResultKind.NotReferencable, info, true);
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
         {
-            get
+            if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
+                NamedTypeSymbol acyclicBase = GetDeclaredBaseType(null);
+
+                if ((object)acyclicBase == null)
                 {
-                    NamedTypeSymbol acyclicBase = GetDeclaredBaseType(null);
-
-                    if ((object)acyclicBase == null)
+                    // if base was not declared, get it from BaseType that should set it to some default
+                    var underlyingBase = _underlyingType.GetBaseTypeNoUseSiteDiagnostics();
+                    if ((object)underlyingBase != null)
                     {
-                        // if base was not declared, get it from BaseType that should set it to some default
-                        var underlyingBase = _underlyingType.BaseTypeNoUseSiteDiagnostics;
-                        if ((object)underlyingBase != null)
-                        {
-                            acyclicBase = this.RetargetingTranslator.Retarget(underlyingBase, RetargetOptions.RetargetPrimitiveTypesByName);
-                        }
+                        acyclicBase = this.RetargetingTranslator.Retarget(underlyingBase, RetargetOptions.RetargetPrimitiveTypesByName);
                     }
-
-                    if ((object)acyclicBase != null && BaseTypeAnalysis.ClassDependsOn(acyclicBase, this))
-                    {
-                        return CyclicInheritanceError(this, acyclicBase);
-                    }
-
-                    Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType);
                 }
 
-                return _lazyBaseType;
+                if ((object)acyclicBase != null && BaseTypeAnalysis.ClassDependsOn(acyclicBase, this))
+                {
+                    return CyclicInheritanceError(this, acyclicBase);
+                }
+
+                Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType);
             }
+
+            return _lazyBaseType;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)

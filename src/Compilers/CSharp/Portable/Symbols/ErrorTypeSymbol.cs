@@ -419,10 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-        {
-            get { return null; }
-        }
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics() => null;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 

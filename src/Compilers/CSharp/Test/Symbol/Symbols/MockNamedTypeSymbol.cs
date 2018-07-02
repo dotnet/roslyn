@@ -221,9 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
         {
-            get { throw new NotImplementedException(); }
+            throw new NotImplementedException();
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)

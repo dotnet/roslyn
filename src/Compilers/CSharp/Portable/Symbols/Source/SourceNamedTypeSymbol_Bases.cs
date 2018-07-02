@@ -28,30 +28,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
         /// </summary>
-        internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal sealed override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
         {
-            get
+            if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
+                // force resolution of bases in containing type
+                // to make base resolution errors more deterministic
+                if ((object)ContainingType != null)
                 {
-                    // force resolution of bases in containing type
-                    // to make base resolution errors more deterministic
-                    if ((object)ContainingType != null)
-                    {
-                        var tmp = ContainingType.BaseTypeNoUseSiteDiagnostics;
-                    }
-
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    var acyclicBase = this.MakeAcyclicBaseType(diagnostics);
-                    if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType))
-                    {
-                        AddDeclarationDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
+                    var tmp = ContainingType.GetBaseTypeNoUseSiteDiagnostics();
                 }
 
-                return _lazyBaseType;
+                var diagnostics = DiagnosticBag.GetInstance();
+                var acyclicBase = this.MakeAcyclicBaseType(diagnostics);
+                if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType))
+                {
+                    AddDeclarationDiagnostics(diagnostics);
+                }
+                diagnostics.Free();
             }
+
+            return _lazyBaseType;
         }
 
         /// <summary>
@@ -81,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void CheckBase(DiagnosticBag diagnostics)
         {
-            var localBase = this.BaseTypeNoUseSiteDiagnostics;
+            var localBase = this.GetBaseTypeNoUseSiteDiagnostics();
 
             if ((object)localBase == null)
             {
@@ -658,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 current.AddUseSiteDiagnostics(ref useSiteDiagnostics);
-                current = current.BaseTypeNoUseSiteDiagnostics;
+                current = current.GetBaseTypeNoUseSiteDiagnostics();
             }
             while ((object)current != null);
 

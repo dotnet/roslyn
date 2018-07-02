@@ -52,12 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns null for a submission class.
         /// This ensures that a submission class does not inherit methods such as ToString or GetHashCode.
         /// </summary>
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
         {
-            get
-            {
-                return IsScriptClass ? null : this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
-            }
+            return IsScriptClass ? null : this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
         }
 
         protected override void CheckBase(DiagnosticBag diagnostics)
@@ -73,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
         {
-            return BaseTypeNoUseSiteDiagnostics;
+            return GetBaseTypeNoUseSiteDiagnostics();
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)

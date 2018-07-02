@@ -1173,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private DiagnosticInfo DeriveUseSiteDiagnosticFromBase()
         {
-            NamedTypeSymbol @base = this.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol @base = this.GetBaseTypeNoUseSiteDiagnostics();
 
             while ((object)@base != null)
             {
@@ -1182,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return @base.GetUseSiteDiagnostic();
                 }
 
-                @base = @base.BaseTypeNoUseSiteDiagnostics;
+                @base = @base.GetBaseTypeNoUseSiteDiagnostics();
             }
 
             return null;
@@ -1210,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // not recurse into the containing type here; doing so will result in errors
             // being reported twice if Goo is bad.
 
-            var @base = this.BaseTypeNoUseSiteDiagnostics;
+            var @base = this.GetBaseTypeNoUseSiteDiagnostics();
             if ((object)@base != null && @base.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
             {
                 return true;
@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Conditional attributes are inherited by derived types.
-                var baseType = this.BaseTypeNoUseSiteDiagnostics;
+                var baseType = this.GetBaseTypeNoUseSiteDiagnostics();
                 return (object)baseType != null ? baseType.IsConditional : false;
             }
         }
