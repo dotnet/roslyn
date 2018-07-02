@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var needsCustomCommit = ((CompletionServiceWithProviders)completionService).GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
             if (needsCustomCommit)
             {
-                CustomCommit(view, buffer, roslynItem, applicableSpan, typeChar, token);
-                return new EditorCompletion.CommitResult(isHandled: true, EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
+                var commitBehavior =  CustomCommit(view, buffer, roslynItem, applicableSpan, typeChar, token);
+                return new EditorCompletion.CommitResult(isHandled: true, commitBehavior);
             }
 
             if (document.Project.Language == LanguageNames.VisualBasic && typeChar == '\n')
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var service = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
 
             // TODO: Better error handling https://github.com/dotnet/roslyn/issues/27412
-
+            bool includesCommitCharacter;
             using (var edit = buffer.CreateEdit())
             {
                 var provider = service.GetProvider(roslynItem);
@@ -100,9 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 {
                     view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(buffer.CurrentSnapshot, change.NewPosition.Value));
                 }
+
+                includesCommitCharacter = change.IncludesCommitCharacter;
             }
 
-            return EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
+            return includesCommitCharacter ? EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers : EditorCompletion.CommitBehavior.None;
         }
     }
 }

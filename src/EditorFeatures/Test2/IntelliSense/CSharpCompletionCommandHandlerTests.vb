@@ -1760,7 +1760,7 @@ public class Goo
         End Function
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27440"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedPropertyCompletionCommitWithEquals() As Task
             Using state = TestState.CreateCSharpTestState(
                             <Document>
@@ -1781,7 +1781,7 @@ public class Goo
         End Function
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27440"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedPropertyCompletionCommitWithSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                             <Document>
@@ -3466,7 +3466,7 @@ class Program
         End Function
 
         <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27440"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedParameterEqualsItemCommittedOnSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
