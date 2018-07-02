@@ -2,40 +2,35 @@
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpInteractiveBoxSelection : AbstractInteractiveWindowTest
+    public class CSharpInteractiveBoxSelection : AbstractIdeInteractiveWindowTest
     {
-        public CSharpInteractiveBoxSelection(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
-        {
-        }
-
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.InteractiveWindow.SubmitText("#cls");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("#cls");
         }
 
-        public override Task DisposeAsync()
+        public override async Task DisposeAsync()
         {
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
-            return base.DisposeAsync();
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.Edit_SelectionCancel);
+            await base.DisposeAsync();
         }
 
-        [WpfFact]
-        public void TopLeftBottomRightPromptToSymbol()
+        [IdeFact]
+        public async Task TopLeftBottomRightPromptToSymbolAsync()
         {
             InsertInputWithXAtLeft();
 
-            VisualStudio.InteractiveWindow.PlaceCaret(">", 1);
-            VisualStudio.InteractiveWindow.PlaceCaret("x", 0, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync(">", 1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("x", 0, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__", VirtualKey.Escape, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"__234567890ABCDEF
 __234567890ABCDEF
@@ -47,13 +42,13 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void BottomRightTopLeftPromptToSymbol()
+        [IdeFact]
+        public async Task BottomRightTopLeftPromptToSymbolAsync()
         {
             InsertInputWithXAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("x", 0);
-            VisualStudio.InteractiveWindow.PlaceCaret(">", 1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("x", 0);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync(">", 1, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__", VirtualKey.Escape, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"__|234567890ABCDEF
 __234567890ABCDEF
@@ -65,13 +60,13 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void TopRightBottomLeftPromptToSymbol()
+        [IdeFact]
+        public async Task TopRightBottomLeftPromptToSymbolAsync()
         {
             InsertInputWithXAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret(">", 3);
-            VisualStudio.InteractiveWindow.PlaceCaret("x", -2, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync(">", 3);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("x", -2, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__", VirtualKey.Escape, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"__234567890ABCDEF
 __234567890ABCDEF
@@ -83,13 +78,13 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void BottomLeftTopRightPromptToSymbol()
+        [IdeFact]
+        public async Task BottomLeftTopRightPromptToSymbolAsync()
         {
             InsertInputWithXAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("x", -2);
-            VisualStudio.InteractiveWindow.PlaceCaret(">", 3, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("x", -2);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync(">", 3, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__", VirtualKey.Escape, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"__|234567890ABCDEF
 __234567890ABCDEF
@@ -101,13 +96,13 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void TopLeftBottomRightSymbolToSymbol()
+        [IdeFact]
+        public async Task TopLeftBottomRightSymbolToSymbolAsync()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("s", -1);
-            VisualStudio.InteractiveWindow.PlaceCaret("e", 1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", -1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", 1, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__", VirtualKey.Escape, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -119,13 +114,13 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void BottomRightTopLeftSymbolToSymbol()
+        [IdeFact]
+        public async Task BottomRightTopLeftSymbolToSymbolAsync()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("e", 1);
-            VisualStudio.InteractiveWindow.PlaceCaret("s", -1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", 1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", -1, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__", VirtualKey.Escape, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -137,13 +132,13 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void TopRightBottomLeftSymbolToSymbol()
+        [IdeFact]
+        public async Task TopRightBottomLeftSymbolToSymbolAsync()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("s", 1);
-            VisualStudio.InteractiveWindow.PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", 1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", -1, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__", VirtualKey.Escape, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -156,13 +151,13 @@ __|234567890ABCDEF
         }
 
 
-        [WpfFact]
-        public void BottomLeftTopRightSymbolToSymbol()
+        [IdeFact]
+        public async Task BottomLeftTopRightSymbolToSymbolAsync()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("e", -1);
-            VisualStudio.InteractiveWindow.PlaceCaret("s", 1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", -1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", 1, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__", VirtualKey.Escape, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -174,13 +169,13 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void TopLeftBottomRightSelection1()
+        [IdeFact]
+        public async Task TopLeftBottomRightSelection1Async()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("s", -3);
-            VisualStudio.InteractiveWindow.PlaceCaret("e", 2, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("_");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", -3);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", 2, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("_");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -192,46 +187,46 @@ _34567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void TopLeftBottomRightSelection2()
+        [IdeFact]
+        public async Task TopLeftBottomRightSelection2Async()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("e", -2);
-            VisualStudio.InteractiveWindow.PlaceCaret("s", -3, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("_");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", -2);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", -3, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("_");
 
             VerifyOriginalCodeWithSAndEAtLeft();
         }
 
-        [WpfFact]
-        public void TopRightBottomLeftSelection()
+        [IdeFact]
+        public async Task TopRightBottomLeftSelectionAsync()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("s", -2);
-            VisualStudio.InteractiveWindow.PlaceCaret("e", -3, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("_");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", -2);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", -3, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("_");
 
             VerifyOriginalCodeWithSAndEAtLeft();
         }
 
-        [WpfFact]
-        public void BottomLeftTopRightSelection()
+        [IdeFact]
+        public async Task BottomLeftTopRightSelectionAsync()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("e", -3);
-            VisualStudio.InteractiveWindow.PlaceCaret("s", -2, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("_");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", -3);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", -2, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("_");
 
             VerifyOriginalCodeWithSAndEAtLeft();
         }
 
-        [WpfFact]
-        public void SelectionTouchingSubmissionBuffer()
+        [IdeFact]
+        public async Task SelectionTouchingSubmissionBufferAsync()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("s", -2);
-            VisualStudio.InteractiveWindow.PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", -2);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", -1, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -243,13 +238,13 @@ __e234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void PrimaryPromptLongerThanSecondaryZeroWidthNextToPromptSelection()
+        [IdeFact]
+        public async Task PrimaryPromptLongerThanSecondaryZeroWidthNextToPromptSelectionAsync()
         {
             InsertInputWithSAndEAtLeft();
-            VisualStudio.InteractiveWindow.PlaceCaret("s", -1);
-            VisualStudio.InteractiveWindow.PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", -1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", -1, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -261,13 +256,13 @@ __e234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void Backspace()
+        [IdeFact]
+        public async Task BackspaceAsync()
         {
             InsertInputWithSAndEInTheMiddle();
-            VisualStudio.InteractiveWindow.PlaceCaret("s", -1);
-            VisualStudio.InteractiveWindow.PlaceCaret("e", 0, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send(VirtualKey.Backspace, VirtualKey.Backspace);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("s", -1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", 0, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync(VirtualKey.Backspace, VirtualKey.Backspace);
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1CDEF
 1CDEF
@@ -279,13 +274,13 @@ __e234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void BackspaceBehavesLikeDelete()
+        [IdeFact]
+        public async Task BackspaceBehavesLikeDeleteAsync()
         {
             InsertInputWithEInTheMiddle();
-            VisualStudio.InteractiveWindow.PlaceCaret(">", 0);
-            VisualStudio.InteractiveWindow.PlaceCaret("e", 0, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send(VirtualKey.Backspace, VirtualKey.Backspace);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync(">", 0);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("e", 0, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync(VirtualKey.Backspace, VirtualKey.Backspace);
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"CDEF
 CDEF
@@ -297,35 +292,35 @@ CDEF
 1234567890ABCDEF");
         }
 
-        [WpfFact]
-        public void LeftToRightReversedBackspace()
+        [IdeFact]
+        public async Task LeftToRightReversedBackspaceAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode("1234567890ABCDEF");
-            VisualStudio.InteractiveWindow.PlaceCaret("2", -5);
-            VisualStudio.InteractiveWindow.PlaceCaret(">", 8, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send(VirtualKey.Backspace);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("2", -5);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync(">", 8, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync(VirtualKey.Backspace);
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"7890ABCDEF");
         }
 
-        [WpfFact]
-        public void LeftToRightReversedDelete()
+        [IdeFact]
+        public async Task LeftToRightReversedDeleteAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode("1234567890ABCDEF");
-            VisualStudio.InteractiveWindow.PlaceCaret("1", -1);
-            VisualStudio.InteractiveWindow.PlaceCaret(">", 5, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send(VirtualKey.Delete);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("1", -1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync(">", 5, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync(VirtualKey.Delete);
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"4567890ABCDEF");
         }
 
-        [WpfFact]
-        public void LeftToRightReversedTypeCharacter()
+        [IdeFact]
+        public async Task LeftToRightReversedTypeCharacterAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode("1234567890ABCDEF");
-            VisualStudio.InteractiveWindow.PlaceCaret("1", -1);
-            VisualStudio.InteractiveWindow.PlaceCaret(">", 5, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("1", -1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync(">", 5, extendSelection: true, selectBlock: true);
+            await VisualStudio.SendKeys.SendAsync("__");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"__4567890ABCDEF");
         }

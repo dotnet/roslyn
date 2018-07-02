@@ -87,18 +87,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 }
             }
 
-#if false
-            public void CurrentTokenType(string tokenType)
+            public async Task CurrentTokenTypeAsync(string tokenType)
             {
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Classification);
-                var actualTokenTypes = _textViewWindow.GetCurrentClassifications();
+                await _textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler);
+                await _textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService);
+                await _textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification);
+                var actualTokenTypes = await _textViewWindow.GetCurrentClassificationsAsync();
                 Assert.Equal(actualTokenTypes.Length, 1);
                 Assert.Contains(tokenType, actualTokenTypes[0]);
                 Assert.NotEqual("text", tokenType);
             }
-#endif
 
             public async Task CompletionItemsExistAsync(params string[] expectedItems)
             {

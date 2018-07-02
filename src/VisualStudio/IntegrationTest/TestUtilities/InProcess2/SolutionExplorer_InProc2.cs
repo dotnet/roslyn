@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE80;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using VSLangProj;
@@ -67,7 +69,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             };
         }
 
-#if false
         public void AddMetadataReference(string assemblyName, string projectName)
         {
             var project = GetProject(projectName);
@@ -75,6 +76,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             vsproject.References.Add(assemblyName);
         }
 
+#if false
         public void RemoveMetadataReference(string assemblyName, string projectName)
         {
             var project = GetProject(projectName);
@@ -539,6 +541,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 AddFile(projectName, fileName, contents, open);
             }
         }
+#endif
 
         /// <summary>
         /// Update the given file to have the contents given.
@@ -547,41 +550,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         /// <param name="fileName">The name of the file to update or add.</param>
         /// <param name="contents">The contents of the file to overwrite. Empty string is used if null is passed.</param>
         /// <param name="open">Whether to open the file after it has been updated.</param>
-        public void UpdateFile(string projectName, string fileName, string contents = null, bool open = false)
+        public async Task UpdateFileAsync(string projectName, string fileName, string contents = null, bool open = false)
         {
-            void SetText(string text)
+            async Task SetTextAsync(string text)
             {
-                InvokeOnUIThread(() =>
-                {
-                    // The active text view might not have finished composing yet, waiting for the application to 'idle'
-                    // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-                    WaitForApplicationIdle();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
-                    var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
-                    Marshal.ThrowExceptionForHR(hresult);
-                    var activeVsTextView = (IVsUserData)vsTextView;
+                // The active text view might not have finished composing yet, waiting for the application to 'idle'
+                // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
+                await WaitForApplicationIdleAsync(CancellationToken.None);
 
-                    var editorGuid = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
-                    hresult = activeVsTextView.GetData(editorGuid, out var wpfTextViewHost);
-                    Marshal.ThrowExceptionForHR(hresult);
+                var vsTextManager = await GetGlobalServiceAsync<SVsTextManager, IVsTextManager>();
+                var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
+                Marshal.ThrowExceptionForHR(hresult);
+                var activeVsTextView = (IVsUserData)vsTextView;
 
-                    var view = ((IWpfTextViewHost)wpfTextViewHost).TextView;
-                    var textSnapshot = view.TextSnapshot;
-                    var replacementSpan = new Text.SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-                    view.TextBuffer.Replace(replacementSpan, text);
-                });
+                var editorGuid = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
+                hresult = activeVsTextView.GetData(editorGuid, out var wpfTextViewHost);
+                Marshal.ThrowExceptionForHR(hresult);
+
+                var view = ((IWpfTextViewHost)wpfTextViewHost).TextView;
+                var textSnapshot = view.TextSnapshot;
+                var replacementSpan = new Text.SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
+                view.TextBuffer.Replace(replacementSpan, text);
             }
 
-            OpenFile(projectName, fileName);
-            SetText(contents ?? string.Empty);
-            CloseFile(projectName, fileName, saveFile: true);
+            await OpenFileAsync(projectName, fileName);
+            await SetTextAsync(contents ?? string.Empty);
+            await CloseFileAsync(projectName, fileName, saveFile: true);
             if (open)
             {
-                OpenFile(projectName, fileName);
+                await OpenFileAsync(projectName, fileName);
             }
         }
-#endif
 
         /// <summary>
         /// Add new file to project.
@@ -1001,10 +1002,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             _solution.Remove(project);
         }
+#endif
 
-        public void SelectItem(string itemName)
+        public async Task SelectItemAsync(string itemName)
         {
-            var dte = (DTE2)GetDTE();
+            var dte = (DTE2)await GetDTEAsync();
             var solutionExplorer = dte.ToolWindows.SolutionExplorer;
 
             var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
@@ -1012,6 +1014,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             solutionExplorer.Parent.Activate();
         }
 
+#if false
         public void SelectItemAtPath(params string[] path)
         {
             var dte = (DTE2)GetDTE();
@@ -1067,6 +1070,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             return item;
         }
+#endif
 
         private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
             EnvDTE.UIHierarchyItems currentItems,
@@ -1093,6 +1097,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             return null;
         }
-#endif
     }
 }

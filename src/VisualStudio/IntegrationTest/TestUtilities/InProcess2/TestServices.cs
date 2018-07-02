@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             Debugger = new Debugger_InProc2(this);
             Dialog = new Dialog_InProc2(this);
             LocalsWindow = new LocalsWindow_InProc2(this);
+            InteractiveWindow = new CSharpInteractiveWindow_InProc2(this);
 
             Editor = new Editor_InProc2(this);
             ErrorList = new ErrorList_InProc2(this);
@@ -51,6 +52,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public ErrorList_InProc2 ErrorList
+        {
+            get;
+        }
+
+        public CSharpInteractiveWindow_InProc2 InteractiveWindow
         {
             get;
         }

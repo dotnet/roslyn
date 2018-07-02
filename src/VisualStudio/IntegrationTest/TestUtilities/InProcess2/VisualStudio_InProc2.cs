@@ -98,6 +98,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             => GetDTE().Quit();
 #endif
 
+        public new async Task<bool> IsCommandAvailableAsync(string commandName)
+        {
+            return await base.IsCommandAvailableAsync(commandName);
+        }
+
         public new async Task ExecuteCommandAsync(string commandName, string args = "")
         {
             await base.ExecuteCommandAsync(commandName, args);

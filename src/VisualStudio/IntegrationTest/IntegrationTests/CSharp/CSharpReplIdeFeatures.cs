@@ -3,169 +3,165 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpReplIdeFeatures : AbstractInteractiveWindowTest
+    public class CSharpReplIdeFeatures : AbstractIdeInteractiveWindowTest
     {
-        public CSharpReplIdeFeatures(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
-        {
-        }
-
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(true);
         }
 
-        public override Task DisposeAsync()
+        public override async Task DisposeAsync()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.Reset();
-            return base.DisposeAsync();
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(false);
+            await VisualStudio.InteractiveWindow.ClearReplTextAsync();
+            await VisualStudio.InteractiveWindow.ResetAsync();
+            await base.DisposeAsync();
         }
 
-        [WpfFact]
-        public void VerifyDefaultUsingStatements()
+        [IdeFact]
+        public async Task VerifyDefaultUsingStatementsAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText("Console.WriteLine(42);");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("42");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("Console.WriteLine(42);");
+            await VisualStudio.InteractiveWindow.WaitForLastReplOutputAsync("42");
         }
 
-        [WpfFact]
-        public void VerifyCodeActionsNotAvailableInPreviousSubmission()
+        [IdeFact]
+        public async Task VerifyCodeActionsNotAvailableInPreviousSubmissionAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode("Console.WriteLine(42);");
-            VisualStudio.InteractiveWindow.Verify.CodeActionsNotShowing();
+            await VisualStudio.InteractiveWindow.Verify.CodeActionsNotShowingAsync();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
-        public void VerifyQuickInfoOnStringDocCommentsFromMetadata()
+        [IdeFact]
+        public async Task VerifyQuickInfoOnStringDocCommentsFromMetadataAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode("static void Goo(string[] args) { }");
-            VisualStudio.InteractiveWindow.PlaceCaret("[]", charsOffset: -2);
-            VisualStudio.InteractiveWindow.InvokeQuickInfo();
-            var s = VisualStudio.InteractiveWindow.GetQuickInfo();
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("[]", charsOffset: -2);
+            await VisualStudio.InteractiveWindow.InvokeQuickInfoAsync();
+            var s = await VisualStudio.InteractiveWindow.GetQuickInfoAsync();
             Assert.Equal("class‎ System‎.String", s);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
-        public void International()
+        [IdeFact]
+        public async Task InternationalAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"delegate void العربية();
 العربية func = () => System.Console.WriteLine(2);");
-            VisualStudio.InteractiveWindow.PlaceCaret("func", charsOffset: -1);
-            VisualStudio.InteractiveWindow.InvokeQuickInfo();
-            var s = VisualStudio.InteractiveWindow.GetQuickInfo();
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("func", charsOffset: -1);
+            await VisualStudio.InteractiveWindow.InvokeQuickInfoAsync();
+            var s = await VisualStudio.InteractiveWindow.GetQuickInfoAsync();
             Assert.Equal("‎(field‎)‎ العربية‎ func", s);
         }
 
-        [WpfFact]
-        public void HighlightRefsSingleSubmissionVerifyRenameTagsShowUpWhenInvokedOnUnsubmittedText()
+        [IdeFact]
+        public async Task HighlightRefsSingleSubmissionVerifyRenameTagsShowUpWhenInvokedOnUnsubmittedTextAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode("int someint; someint = 22; someint = 23;");
-            VisualStudio.InteractiveWindow.PlaceCaret("someint = 22", charsOffset: -6);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("someint = 22", charsOffset: -6);
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
         }
 
-        [WpfFact]
-        public void HighlightRefsSingleSubmissionVerifyRenameTagsGoAway()
+        [IdeFact]
+        public async Task HighlightRefsSingleSubmissionVerifyRenameTagsGoAwayAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode("int someint; someint = 22; someint = 23;");
-            VisualStudio.InteractiveWindow.PlaceCaret("someint = 22", charsOffset: -6);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("someint = 22", charsOffset: -6);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
 
-            VisualStudio.InteractiveWindow.PlaceCaret("22");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 0);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("22");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 0);
         }
 
-        [WpfFact]
-        public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpWhenInvokedOnSubmittedText()
+        [IdeFact]
+        public async Task HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpWhenInvokedOnSubmittedTextAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Goo something = new Goo();");
-            VisualStudio.InteractiveWindow.SubmitText("something.ToString();");
-            VisualStudio.InteractiveWindow.PlaceCaret("someth", charsOffset: 1, occurrence: 2);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("class Goo { }");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("Goo something = new Goo();");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("something.ToString();");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("someth", charsOffset: 1, occurrence: 2);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
 
-        [WpfFact]
-        public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnUnsubmittedText()
+        [IdeFact]
+        public async Task HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnUnsubmittedTextAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Goo something = new Goo();");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("class Goo { }");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("Goo something = new Goo();");
             VisualStudio.InteractiveWindow.InsertCode("something.ToString();");
-            VisualStudio.InteractiveWindow.PlaceCaret("someth", charsOffset: 1, occurrence: 2);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("someth", charsOffset: 1, occurrence: 2);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
 
-        [WpfFact]
-        public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnSubmittedText()
+        [IdeFact]
+        public async Task HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnSubmittedTextAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Goo a;");
-            VisualStudio.InteractiveWindow.SubmitText("Goo b;");
-            VisualStudio.InteractiveWindow.PlaceCaret("Goo b", charsOffset: -1);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("class Goo { }");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("Goo a;");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("Goo b;");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("Goo b", charsOffset: -1);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
 
-        [WpfFact]
-        public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnUnsubmittedText()
+        [IdeFact]
+        public async Task HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnUnsubmittedTextAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Goo a;");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("class Goo { }");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("Goo a;");
             VisualStudio.InteractiveWindow.InsertCode("Goo b;");
-            VisualStudio.InteractiveWindow.PlaceCaret("Goo b", charsOffset: -1);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("Goo b", charsOffset: -1);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
 
-        [WpfFact]
-        public void HighlightRefsMultipleSubmisionsVerifyRenameTagsGoAwayWhenInvokedOnUnsubmittedText()
+        [IdeFact]
+        public async Task HighlightRefsMultipleSubmisionsVerifyRenameTagsGoAwayWhenInvokedOnUnsubmittedTextAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Goo a;");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("class Goo { }");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("Goo a;");
             VisualStudio.InteractiveWindow.InsertCode("Goo b;Something();");
-            VisualStudio.InteractiveWindow.PlaceCaret("Something();", charsOffset: -1);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("Something();", charsOffset: -1);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
-        [WpfFact]
-        public void HighlightRefsMultipleSubmisionsVerifyRenameTagsOnRedefinedVariable()
+        [IdeFact]
+        public async Task HighlightRefsMultipleSubmisionsVerifyRenameTagsOnRedefinedVariableAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText("string abc = null;");
-            VisualStudio.InteractiveWindow.SubmitText("abc = string.Empty;");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("string abc = null;");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("abc = string.Empty;");
             VisualStudio.InteractiveWindow.InsertCode("int abc = 42;");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.InteractiveWindow.PlaceCaret("abc", occurrence: 3);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("abc", occurrence: 3);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
-        [WpfFact]
-        public void DisabledCommandsPart1()
+        [IdeFact]
+        public async Task DisabledCommandsPart1Async()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"public class Class
 {
@@ -177,36 +173,36 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
      }
 }");
 
-            VisualStudio.InteractiveWindow.PlaceCaret("abc");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            Assert.False(VisualStudio.IsCommandAvailable(WellKnownCommandNames.Refactor_Rename));
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("abc");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            Assert.False(await VisualStudio.VisualStudio.IsCommandAvailableAsync(WellKnownCommandNames.Refactor_Rename));
 
-            VisualStudio.InteractiveWindow.PlaceCaret("1 + 1");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            Assert.False(VisualStudio.IsCommandAvailable(WellKnownCommandNames.Refactor_ExtractMethod));
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("1 + 1");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            Assert.False(await VisualStudio.VisualStudio.IsCommandAvailableAsync(WellKnownCommandNames.Refactor_ExtractMethod));
 
-            VisualStudio.InteractiveWindow.PlaceCaret("Class");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            Assert.False(VisualStudio.IsCommandAvailable(WellKnownCommandNames.Refactor_ExtractInterface));
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("Class");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            Assert.False(await VisualStudio.VisualStudio.IsCommandAvailableAsync(WellKnownCommandNames.Refactor_ExtractInterface));
 
-            VisualStudio.InteractiveWindow.PlaceCaret("field");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            Assert.False(VisualStudio.IsCommandAvailable(WellKnownCommandNames.Refactor_EncapsulateField));
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("field");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            Assert.False(await VisualStudio.VisualStudio.IsCommandAvailableAsync(WellKnownCommandNames.Refactor_EncapsulateField));
 
-            VisualStudio.InteractiveWindow.PlaceCaret("Method");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            Assert.False(VisualStudio.IsCommandAvailable(WellKnownCommandNames.Refactor_RemoveParameters));
-            Assert.False(VisualStudio.IsCommandAvailable(WellKnownCommandNames.Refactor_ReorderParameters));
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("Method");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            Assert.False(await VisualStudio.VisualStudio.IsCommandAvailableAsync(WellKnownCommandNames.Refactor_RemoveParameters));
+            Assert.False(await VisualStudio.VisualStudio.IsCommandAvailableAsync(WellKnownCommandNames.Refactor_ReorderParameters));
         }
 
-        [WpfFact]
-        public void AddUsing()
+        [IdeFact]
+        public async Task AddUsingAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");
-            VisualStudio.InteractiveWindow.PlaceCaret("ArrayList");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.InteractiveWindow.InvokeCodeActionList();
-            VisualStudio.InteractiveWindow.Verify.CodeActions(
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("ArrayList");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await VisualStudio.InteractiveWindow.InvokeCodeActionListAsync();
+            await VisualStudio.InteractiveWindow.Verify.CodeActionsAsync(
                 new string[] { "using System.Collections;", "System.Collections.ArrayList" },
                 "using System.Collections;");
 
@@ -215,14 +211,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 typeof(ArrayList)");
         }
 
-        [WpfFact]
-        public void QualifyName()
+        [IdeFact]
+        public async Task QualifyNameAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.InteractiveWindow.PlaceCaret("ArrayList");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.InteractiveWindow.Verify.CodeActions(
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("ArrayList");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await VisualStudio.InteractiveWindow.Verify.CodeActionsAsync(
     new string[] { "using System.Collections;", "System.Collections.ArrayList" },
     "System.Collections.ArrayList");
             VisualStudio.InteractiveWindow.Verify.LastReplInput("typeof(System.Collections.ArrayList)");

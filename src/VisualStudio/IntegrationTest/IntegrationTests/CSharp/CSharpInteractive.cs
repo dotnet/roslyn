@@ -3,72 +3,67 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpInteractive : AbstractInteractiveWindowTest
+    public class CSharpInteractive : AbstractIdeInteractiveWindowTest
     {
-        public CSharpInteractive(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        [IdeFact]
+        public async Task BclMathCallAsync()
         {
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("Math.Sin(1)");
+            await VisualStudio.InteractiveWindow.WaitForLastReplOutputAsync("0.8414709848078965");
         }
 
-        [WpfFact]
-        public void BclMathCall()
+        [IdeFact]
+        public async Task BclConsoleCallAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText("Math.Sin(1)");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("0.8414709848078965");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync(@"Console.WriteLine(""Hello, World!"");");
+            await VisualStudio.InteractiveWindow.WaitForLastReplOutputAsync("Hello, World!");
         }
 
-        [WpfFact]
-        public void BclConsoleCall()
+        [IdeFact]
+        public async Task ForStatementAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText(@"Console.WriteLine(""Hello, World!"");");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("Hello, World!");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
+            await VisualStudio.InteractiveWindow.WaitForLastReplOutputContainsAsync($"{81}");
         }
 
-        [WpfFact]
-        public void ForStatement()
+        [IdeFact]
+        public async Task ForEachStatementAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains($"{81}");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
+            await VisualStudio.InteractiveWindow.WaitForLastReplOutputContainsAsync(@"c:\windows\win.ini");
         }
 
-        [WpfFact]
-        public void ForEachStatement()
+        [IdeFact]
+        public async Task TopLevelMethodAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains(@"c:\windows\win.ini");
-        }
-
-        [WpfFact]
-        public void TopLevelMethod()
-        {
-            VisualStudio.InteractiveWindow.SubmitText(@"int Fac(int x)
+            await VisualStudio.InteractiveWindow.SubmitTextAsync(@"int Fac(int x)
 {
     return x < 1 ? 1 : x * Fac(x - 1);
 }
 Fac(4)");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput($"{24}");
+            await VisualStudio.InteractiveWindow.WaitForLastReplOutputAsync($"{24}");
         }
 
-        [WpfFact]
+        [IdeFact]
         public async Task WpfInteractionAsync()
         {
-            VisualStudio.InteractiveWindow.SubmitText(@"#r ""WindowsBase""
+            await VisualStudio.InteractiveWindow.SubmitTextAsync(@"#r ""WindowsBase""
 #r ""PresentationCore""
 #r ""PresentationFramework""
 #r ""System.Xaml""");
 
-            VisualStudio.InteractiveWindow.SubmitText(@"using System.Windows;
+            await VisualStudio.InteractiveWindow.SubmitTextAsync(@"using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;");
 
-            VisualStudio.InteractiveWindow.SubmitText(@"var w = new Window();
+            await VisualStudio.InteractiveWindow.SubmitTextAsync(@"var w = new Window();
 w.Title = ""Hello World"";
 w.FontFamily = new FontFamily(""Calibri"");
 w.FontSize = 24;
@@ -79,7 +74,7 @@ w.Visibility = Visibility.Visible;");
 
             var testValue = Guid.NewGuid();
 
-            VisualStudio.InteractiveWindow.SubmitText($@"var b = new Button();
+            await VisualStudio.InteractiveWindow.SubmitTextAsync($@"var b = new Button();
 b.Content = ""{testValue}"";
 b.Margin = new Thickness(40);
 b.Click += (sender, e) => Console.WriteLine(""Hello, World!"");
@@ -90,24 +85,24 @@ w.Content = g;");
 
             await AutomationElementHelper.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
 
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("Hello, World!");
-            VisualStudio.InteractiveWindow.SubmitText("b = null; w.Close(); w = null;");
+            await VisualStudio.InteractiveWindow.WaitForLastReplOutputAsync("Hello, World!");
+            await VisualStudio.InteractiveWindow.SubmitTextAsync("b = null; w.Close(); w = null;");
         }
 
-        [WpfFact]
-        public void TypingHelpDirectiveWorks()
+        [IdeFact]
+        public async Task TypingHelpDirectiveWorksAsync()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
-            VisualStudio.InteractiveWindow.ShowWindow(waitForPrompt: true);
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(true);
+            await VisualStudio.InteractiveWindow.ShowWindowAsync(waitForPrompt: true);
 
             // Directly type #help, rather than sending it through VisualStudio.InteractiveWindow.SubmitText. We want to actually test
             // that completion doesn't interfere and there aren't problems with the content-type switching.
-            VisualStudio.SendKeys.Send("#help");
+            await VisualStudio.SendKeys.SendAsync("#help");
 
             Assert.EndsWith("#help", VisualStudio.InteractiveWindow.GetReplText());
 
-            VisualStudio.SendKeys.Send("\n");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("REPL commands");
+            await VisualStudio.SendKeys.SendAsync("\n");
+            await VisualStudio.InteractiveWindow.WaitForLastReplOutputContainsAsync("REPL commands");
         }
     }
 }

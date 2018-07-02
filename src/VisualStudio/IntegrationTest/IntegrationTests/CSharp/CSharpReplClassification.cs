@@ -1,22 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpReplClassification : AbstractInteractiveWindowTest
+    public class CSharpReplClassification : AbstractIdeInteractiveWindowTest
     {
-        public CSharpReplClassification(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
-        {
-        }
-
-        [WpfFact]
-        public void VerifyColorOfSomeTokens()
+        [IdeFact]
+        public async Task VerifyColorOfSomeTokensAsync()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"using System.Console;
 /// <summary>innertext
@@ -30,33 +25,33 @@ public static void Main(string[] args)
                 WriteLine(""Hello World"");
             }");
 
-            VisualStudio.InteractiveWindow.PlaceCaret("using");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "keyword");
-            VisualStudio.InteractiveWindow.PlaceCaret("{");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "punctuation");
-            VisualStudio.InteractiveWindow.PlaceCaret("Main");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "method name");
-            VisualStudio.InteractiveWindow.PlaceCaret("Hello");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "string");
-            VisualStudio.InteractiveWindow.PlaceCaret("<summary", charsOffset: -1);
-            VisualStudio.SendKeys.Send(new KeyPress(VirtualKey.Right, ShiftState.Alt));
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
-            VisualStudio.InteractiveWindow.PlaceCaret("summary");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - name");
-            VisualStudio.InteractiveWindow.PlaceCaret("innertext");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
-            VisualStudio.InteractiveWindow.PlaceCaret("!--");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
-            VisualStudio.InteractiveWindow.PlaceCaret("comment");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - comment");
-            VisualStudio.InteractiveWindow.PlaceCaret("CDATA");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
-            VisualStudio.InteractiveWindow.PlaceCaret("cdata");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - cdata section");
-            VisualStudio.InteractiveWindow.PlaceCaret("attribute");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
-            VisualStudio.InteractiveWindow.PlaceCaret("Environment");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "class name");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("using");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "keyword");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("{");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "punctuation");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("Main");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "method name");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("Hello");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "string");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("<summary", charsOffset: -1);
+            await VisualStudio.SendKeys.SendAsync(new KeyPress(VirtualKey.Right, ShiftState.Alt));
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "xml doc comment - delimiter");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("summary");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "xml doc comment - name");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("innertext");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "xml doc comment - text");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("!--");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "xml doc comment - delimiter");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("comment");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "xml doc comment - comment");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("CDATA");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "xml doc comment - delimiter");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("cdata");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "xml doc comment - cdata section");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("attribute");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "identifier");
+            await VisualStudio.InteractiveWindow.PlaceCaretAsync("Environment");
+            await VisualStudio.InteractiveWindow.Verify.CurrentTokenTypeAsync(tokenType: "class name");
         }
     }
 }

@@ -12,9 +12,13 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+using QuickInfoToStringConverter = Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.QuickInfoToStringConverter;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -116,37 +120,36 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         protected abstract Task<ITextBuffer> GetBufferContainingCaretAsync(IWpfTextView view);
 
-#if false
-        public string[] GetCurrentClassifications()
-            => InvokeOnUIThread(() =>
-            {
-                IClassifier classifier = null;
-                try
-                {
-                    var textView = GetActiveTextView();
-                    var selectionSpan = textView.Selection.StreamSelectionSpan.SnapshotSpan;
-                    if (selectionSpan.Length == 0)
-                    {
-                        var textStructureNavigatorSelectorService = GetComponentModelService<ITextStructureNavigatorSelectorService>();
-                        selectionSpan = textStructureNavigatorSelectorService
-                            .GetTextStructureNavigator(textView.TextBuffer)
-                            .GetExtentOfWord(selectionSpan.Start).Span;
-                    }
+        public async Task<string[]> GetCurrentClassificationsAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    var classifierAggregatorService = GetComponentModelService<IViewClassifierAggregatorService>();
-                    classifier = classifierAggregatorService.GetClassifier(textView);
-                    var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
-                    return classifiedSpans.Select(x => x.ClassificationType.Classification).ToArray();
-                }
-                finally
+            IClassifier classifier = null;
+            try
+            {
+                var textView = await GetActiveTextViewAsync();
+                var selectionSpan = textView.Selection.StreamSelectionSpan.SnapshotSpan;
+                if (selectionSpan.Length == 0)
                 {
-                    if (classifier is IDisposable classifierDispose)
-                    {
-                        classifierDispose.Dispose();
-                    }
+                    var textStructureNavigatorSelectorService = await GetComponentModelServiceAsync<ITextStructureNavigatorSelectorService>();
+                    selectionSpan = textStructureNavigatorSelectorService
+                        .GetTextStructureNavigator(textView.TextBuffer)
+                        .GetExtentOfWord(selectionSpan.Start).Span;
                 }
-            });
-#endif
+
+                var classifierAggregatorService = await GetComponentModelServiceAsync<IViewClassifierAggregatorService>();
+                classifier = classifierAggregatorService.GetClassifier(textView);
+                var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
+                return classifiedSpans.Select(x => x.ClassificationType.Classification).ToArray();
+            }
+            finally
+            {
+                if (classifier is IDisposable classifierDispose)
+                {
+                    classifierDispose.Dispose();
+                }
+            }
+        }
 
         public async Task PlaceCaretAsync(
             string marker,
@@ -231,29 +234,35 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return bufferPosition.Position;
         }
 
-#if false
-        public string GetQuickInfo()
-            => ExecuteOnActiveView(view =>
-            {
+        public async Task<string> GetQuickInfoAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
 #pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-                var broker = GetComponentModelService<IQuickInfoBroker>();
+            var broker = await GetComponentModelServiceAsync<IQuickInfoBroker>();
 #pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one QuickInfo session, but found {sessions.Count}");
-                }
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one QuickInfo session, but found {sessions.Count}");
+            }
 
-                return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
-            });
+            return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
+        }
 
-        public void VerifyTags(string tagTypeName, int expectedCount)
-            => ExecuteOnActiveView(view =>
+        public async Task VerifyTagsAsyn(string tagTypeName, int expectedCount)
         {
-            Type type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
-            bool filterTag(IMappingTagSpan<ITag> tag) { return tag.Tag.GetType().Equals(type); }
-            var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
+            bool filterTag(IMappingTagSpan<ITag> tag)
+            {
+                return tag.Tag.GetType().Equals(type);
+            }
+            var service = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>();
             var aggregator = service.CreateTagAggregator<ITag>(view);
             var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
             var tags = allTags.Where(filterTag).Cast<IMappingTagSpan<ITag>>();
@@ -264,8 +273,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 var tagsTypesString = string.Join(",", allTags.Select(tag => tag.Tag.ToString()));
                 throw new Exception($"Failed to verify {tagTypeName} tags. Expected count: {expectedCount}, Actual count: {actualCount}. All tags: {tagsTypesString}");
             }
-        });
-#endif
+        }
 
         public async Task<bool> IsLightBulbSessionExpandedAsync()
         {
@@ -469,13 +477,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         protected abstract Task<IWpfTextView> GetActiveTextViewAsync();
 
-#if false
-        public void InvokeCompletionList()
+        public async Task InvokeCompletionListAsync()
         {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            await ExecuteCommandAsync(WellKnownCommandNames.Edit_ListMembers);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet);
         }
-#endif
 
         public async Task InvokeCodeActionListAsync()
         {
@@ -497,12 +503,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             ShowLightBulb();
             WaitForLightBulbSession();
         }
-
-        public void InvokeQuickInfo()
-        {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
-        }
 #endif
+
+        public async Task InvokeQuickInfoAsync()
+        {
+            await ExecuteCommandAsync(WellKnownCommandNames.Edit_QuickInfo);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.QuickInfo);
+        }
     }
 }

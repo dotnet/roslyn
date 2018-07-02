@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 using ServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
@@ -125,5 +126,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.ExtractInterfaceDialog.CloseWindow();
 #endif
         }
+
+        protected KeyPress Ctrl(VirtualKey virtualKey)
+            => new KeyPress(virtualKey, ShiftState.Ctrl);
+
+        protected KeyPress Shift(VirtualKey virtualKey)
+            => new KeyPress(virtualKey, ShiftState.Shift);
+
+        protected KeyPress Alt(VirtualKey virtualKey)
+            => new KeyPress(virtualKey, ShiftState.Alt);
     }
 }

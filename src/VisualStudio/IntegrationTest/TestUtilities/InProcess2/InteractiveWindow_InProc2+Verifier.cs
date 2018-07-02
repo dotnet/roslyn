@@ -3,19 +3,16 @@
 using System;
 using Xunit;
 
-namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
-    /// <summary>
-    /// Provides a means of interacting with the interactive window in the Visual Studio host.
-    /// </summary>
-    public abstract partial class InteractiveWindow_OutOfProc : TextViewWindow_OutOfProc
+    partial class InteractiveWindow_InProc2
     {
-        public class Verifier : Verifier<InteractiveWindow_OutOfProc>
+        public class Verifier : Verifier<InteractiveWindow_InProc2>
         {
             private static readonly char[] LineSeparators = { '\r', '\n' };
 
-            public Verifier(InteractiveWindow_OutOfProc interactiveWindow, VisualStudioInstance instance)
-                : base(interactiveWindow, instance)
+            public Verifier(InteractiveWindow_InProc2 interactiveWindow)
+                : base(interactiveWindow)
             {
             }
 
