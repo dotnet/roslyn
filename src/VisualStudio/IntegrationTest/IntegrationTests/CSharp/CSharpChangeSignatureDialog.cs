@@ -1,54 +1,52 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpChangeSignatureDialog : AbstractEditorTest
+    public class CSharpChangeSignatureDialog : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudio.ChangeSignatureDialog;
-
-        public CSharpChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpChangeSignatureDialog))
+        public CSharpChangeSignatureDialog()
+            : base(nameof(CSharpChangeSignatureDialog))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void VerifyCodeRefactoringOffered()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task VerifyCodeRefactoringOfferedAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class C
 {
     public void Method$$(int a, string b) { }
 }");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Change signature...", applyFix: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync("Change signature...", applyFix: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void VerifyRefactoringCancelled()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task VerifyRefactoringCancelledAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class C
 {
     public void Method$$(int a, string b) { }
 }");
 
-            ChangeSignatureDialog.Invoke();
-            ChangeSignatureDialog.VerifyOpen();
-            ChangeSignatureDialog.ClickCancel();
-            ChangeSignatureDialog.VerifyClosed();
-            var actualText = VisualStudio.Editor.GetText();
+            await ChangeSignatureDialog.InvokeAsync();
+            await ChangeSignatureDialog.VerifyOpenAsync();
+            await ChangeSignatureDialog.ClickCancelAsync();
+            await ChangeSignatureDialog.VerifyClosedAsync();
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"
 class C
 {
@@ -56,22 +54,22 @@ class C
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void VerifyReorderParameters()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task VerifyReorderParametersAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class C
 {
     public void Method$$(int a, string b) { }
 }");
 
-            ChangeSignatureDialog.Invoke();
-            ChangeSignatureDialog.VerifyOpen();
-            ChangeSignatureDialog.SelectParameter("int a");
-            ChangeSignatureDialog.ClickDownButton();
-            ChangeSignatureDialog.ClickOK();
-            ChangeSignatureDialog.VerifyClosed();
-            var actuaText = VisualStudio.Editor.GetText();
+            await ChangeSignatureDialog.InvokeAsync();
+            await ChangeSignatureDialog.VerifyOpenAsync();
+            await ChangeSignatureDialog.SelectParameterAsync("int a");
+            await ChangeSignatureDialog.ClickDownAsync();
+            await ChangeSignatureDialog.ClickOkAsync();
+            await ChangeSignatureDialog.VerifyClosedAsync();
+            var actuaText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"
 class C
 {
@@ -79,10 +77,10 @@ class C
 }", actuaText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void VerifyRemoveParameter()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task VerifyRemoveParameterAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class C
 {
     /// <summary>
@@ -98,14 +96,14 @@ class C
     }
 }");
 
-            ChangeSignatureDialog.Invoke();
-            ChangeSignatureDialog.VerifyOpen();
-            ChangeSignatureDialog.SelectParameter("string b");
-            ChangeSignatureDialog.ClickUpButton();
-            ChangeSignatureDialog.ClickRemoveButton();
-            ChangeSignatureDialog.ClickOK();
-            ChangeSignatureDialog.VerifyClosed();
-            var actuaText = VisualStudio.Editor.GetText();
+            await ChangeSignatureDialog.InvokeAsync();
+            await ChangeSignatureDialog.VerifyOpenAsync();
+            await ChangeSignatureDialog.SelectParameterAsync("string b");
+            await ChangeSignatureDialog.ClickUpAsync();
+            await ChangeSignatureDialog.ClickRemoveAsync();
+            await ChangeSignatureDialog.ClickOkAsync();
+            await ChangeSignatureDialog.VerifyClosedAsync();
+            var actuaText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"
 class C
 {
@@ -123,10 +121,10 @@ class C
 }", actuaText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void VerifyCrossLanguageGlobalUndo()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task VerifyCrossLanguageGlobalUndoAsync()
         {
-            SetUpEditor(@"using VBProject;
+            await SetUpEditorAsync(@"using VBProject;
 
 class Program
 {
@@ -141,36 +139,36 @@ class Program
             var vbProject = new ProjectUtils.Project("VBProject");
             var vbProjectReference = new ProjectUtils.ProjectReference(vbProject.Name);
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddProject(vbProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
-            VisualStudio.Editor.SetText(@"
+            await VisualStudio.SolutionExplorer.AddProjectAsync(vbProject.Name, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            await VisualStudio.Editor.SetTextAsync(@"
 Public Class VBClass
     Public Sub Method(x As Integer, y As String)
     End Sub
 End Class");
 
-            VisualStudio.SolutionExplorer.SaveAll();
-            VisualStudio.SolutionExplorer.AddProjectReference(fromProjectName: project, toProjectName: vbProjectReference);
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
+            await VisualStudio.SolutionExplorer.SaveAllAsync();
+            VisualStudio.SolutionExplorer.AddProjectReference(projectName: ProjectName, projectToReferenceName: vbProjectReference.Name);
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
 
-            ChangeSignatureDialog.Invoke();
-            ChangeSignatureDialog.VerifyOpen();
-            ChangeSignatureDialog.SelectParameter("String y");
-            ChangeSignatureDialog.ClickUpButton();
-            ChangeSignatureDialog.ClickOK();
-            ChangeSignatureDialog.VerifyClosed();
-            var actuaText = VisualStudio.Editor.GetText();
+            await ChangeSignatureDialog.InvokeAsync();
+            await ChangeSignatureDialog.VerifyOpenAsync();
+            await ChangeSignatureDialog.SelectParameterAsync("String y");
+            await ChangeSignatureDialog.ClickUpAsync();
+            await ChangeSignatureDialog.ClickOkAsync();
+            await ChangeSignatureDialog.VerifyClosedAsync();
+            var actuaText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actuaText);
 
-            VisualStudio.SolutionExplorer.OpenFile(vbProject, "Class1.vb");
-            actuaText = VisualStudio.Editor.GetText();
+            await VisualStudio.SolutionExplorer.OpenFileAsync(vbProject.Name, "Class1.vb");
+            actuaText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"Public Sub Method(y As String, x As Integer)", actuaText);
 
-            VisualStudio.Editor.Undo();
-            actuaText = VisualStudio.Editor.GetText();
+            await VisualStudio.Editor.UndoAsync();
+            actuaText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"Public Sub Method(x As Integer, y As String)", actuaText);
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            actuaText = VisualStudio.Editor.GetText();
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
+            actuaText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"vb.Method(2, ""world"");", actuaText);
         }
     }

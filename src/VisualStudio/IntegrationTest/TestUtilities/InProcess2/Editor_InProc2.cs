@@ -672,10 +672,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return properties[propertyName].GetValue(button) as string;
         }
 
-#if false
-        public void Undo()
-            => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Undo);
-#endif
+        public async Task UndoAsync()
+        {
+            await ExecuteCommandAsync(WellKnownCommandNames.Edit_Undo);
+        }
 
         protected override Task<ITextBuffer> GetBufferContainingCaretAsync(IWpfTextView view)
         {
