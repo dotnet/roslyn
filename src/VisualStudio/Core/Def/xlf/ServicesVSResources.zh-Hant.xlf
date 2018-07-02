@@ -12,11 +12,6 @@
         <target state="translated">元素無效。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Ignore">
-        <source>Ignore</source>
-        <target state="translated">略過</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">其他運算子中</target>

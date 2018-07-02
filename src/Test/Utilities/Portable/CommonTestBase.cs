@@ -550,7 +550,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     continue;
                 }
 
-                var clonedOperation = model.CloneOperation(operation);
+                var clonedOperation = OperationCloner.CloneOperation(operation);
+
+                Assert.Same(model, operation.SemanticModel);
+                Assert.Same(model, clonedOperation.SemanticModel);
+                Assert.NotSame(model, ((Operation)operation).OwningSemanticModel);
+                Assert.Same(((Operation)operation).OwningSemanticModel, ((Operation)clonedOperation).OwningSemanticModel);
 
                 // check whether cloned IOperation is same as original one
                 var original = OperationTreeVerifier.GetOperationTree(model.Compilation, operation);
@@ -569,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void VerifyOperationTreeContracts(IOperation root)
         {
-            var semanticModel = ((Operation)root).SemanticModel;
+            var semanticModel = ((Operation)root).OwningSemanticModel;
             var set = new HashSet<IOperation>(root.DescendantsAndSelf());
 
             foreach (var child in root.DescendantsAndSelf())

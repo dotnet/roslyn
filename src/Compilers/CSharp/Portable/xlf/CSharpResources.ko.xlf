@@ -8041,13 +8041,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">반복기에 by-reference 지역을 사용할 수 없습니다.</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">반복기에 by-reference 지역을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">비동기 메서드에 by-reference 지역을 사용할 수 없습니다.</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">비동기 메서드에 by-reference 지역을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

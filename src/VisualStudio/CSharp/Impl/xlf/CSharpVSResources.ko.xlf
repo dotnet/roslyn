@@ -2,59 +2,54 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpVSResources.resx">
     <body>
-      <trans-unit id="All_csharp_formatting_rules">
-        <source>All C# Formatting Rules (indentation, wrapping and spacing)</source>
-        <target state="new">All C# Formatting Rules (indentation, wrapping and spacing)</target>
+      <trans-unit id="Add_accessibility_modifiers">
+        <source>Add accessibility modifiers</source>
+        <target state="new">Add accessibility modifiers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_remove_braces_for_single_line_control_statements">
+        <source>Add/remove braces for single-line control statements</source>
+        <target state="new">Add/remove braces for single-line control statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
+        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
+        <target state="new">Apply all C# formatting rules (indentation, wrapping, spacing)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_expression_block_body_preferences">
+        <source>Apply expression/block body preferences</source>
+        <target state="new">Apply expression/block body preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_implicit_explicit_type_preferences">
+        <source>Apply implicit/explicit type preferences</source>
+        <target state="new">Apply implicit/explicit type preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_inline_out_variable_preferences">
+        <source>Apply inline 'out' variables preferences</source>
+        <target state="new">Apply inline 'out' variables preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_language_framework_type_preferences">
+        <source>Apply language/framework type preferences</source>
+        <target state="new">Apply language/framework type preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object/collection initialization preferences</source>
+        <target state="new">Apply object/collection initialization preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_this_qualification_preferences">
+        <source>Apply 'this.' qualification preferences</source>
+        <target state="new">Apply 'this.' qualification preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_accessibility_modifiers">
-        <source>Fix accessibility modifiers</source>
-        <target state="new">Fix accessibility modifiers</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_add_remove_braces">
-        <source>Fix add/remove braces</source>
-        <target state="new">Fix add/remove braces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_expression_bodied_members">
-        <source>Fix expression-bodied members</source>
-        <target state="new">Fix expression-bodied members</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_framework_types">
-        <source>Fix framework types (int vs Int32)</source>
-        <target state="new">Fix framework types (int vs Int32)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_implicit_explicit_type">
-        <source>Fix implicit/explicit type</source>
-        <target state="new">Fix implicit/explicit type</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_inline_variable_declarations">
-        <source>Fix inline variable declarations</source>
-        <target state="new">Fix inline variable declarations</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_language_features">
-        <source>Fix language features</source>
-        <target state="new">Fix language features</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_object_collection_initialization">
-        <source>Fix object/collection initialization</source>
-        <target state="new">Fix object/collection initialization</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_this_qualification">
-        <source>Fix this. qualification</source>
-        <target state="new">Fix this. qualification</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -67,9 +62,9 @@
         <target state="translated">관계 연산자:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly">
-        <source>Make readonly</source>
-        <target state="new">Make readonly</target>
+      <trans-unit id="Make_private_field_readonly_when_possible">
+        <source>Make private fields readonly when possible</source>
+        <target state="new">Make private fields readonly when possible</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">

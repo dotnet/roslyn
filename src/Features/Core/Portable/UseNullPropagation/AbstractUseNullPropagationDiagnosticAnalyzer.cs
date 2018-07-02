@@ -178,9 +178,10 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 properties = properties.Add(UseNullPropagationConstants.WhenPartIsNullable, "");
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(option.Notification.Value),
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 conditionalExpression.GetLocation(),
+                option.Notification.Severity,
                 locations,
                 properties));
         }

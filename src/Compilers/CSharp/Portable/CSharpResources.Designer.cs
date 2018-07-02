@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async methods cannot have by reference locals.
+        ///   Looks up a localized string similar to Async methods cannot have by-reference locals.
         /// </summary>
         internal static string ERR_BadAsyncLocalType {
             get {
@@ -1637,7 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Iterators cannot have by reference locals.
+        ///   Looks up a localized string similar to Iterators cannot have by-reference locals.
         /// </summary>
         internal static string ERR_BadIteratorLocalType {
             get {

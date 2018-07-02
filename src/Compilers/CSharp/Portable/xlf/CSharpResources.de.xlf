@@ -8041,13 +8041,13 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Iteratoren dürfen keine lokalen Elemente als Verweis besitzen.</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Iteratoren dürfen keine lokalen Elemente als Verweis besitzen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">Asynchrone Methoden dürfen keine lokalen Elemente als Verweis besitzen.</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">Asynchrone Methoden dürfen keine lokalen Elemente als Verweis besitzen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

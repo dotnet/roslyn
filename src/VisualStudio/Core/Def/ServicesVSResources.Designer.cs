@@ -1108,15 +1108,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ignore.
-        /// </summary>
-        internal static string Ignore {
-            get {
-                return ResourceManager.GetString("Ignore", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Illegal characters in path..
         /// </summary>
         internal static string Illegal_characters_in_path {

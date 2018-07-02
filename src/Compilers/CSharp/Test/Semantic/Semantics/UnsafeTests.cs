@@ -6662,6 +6662,7 @@ unsafe class C
             {
                 Assert.NotNull(symbol);
                 Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.DeclarationKind);
+                Assert.True(((ILocalSymbol)symbol).IsFixed);
                 TypeSymbol type = symbol.Type;
                 Assert.Equal(TypeKind.Pointer, type.TypeKind);
                 Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)type).PointedAtType.SpecialType);

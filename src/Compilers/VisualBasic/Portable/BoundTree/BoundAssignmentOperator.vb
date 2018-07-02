@@ -46,6 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
+            Debug.Assert(Left.Type IsNot Nothing)
+
             If Not HasErrors Then
                 Debug.Assert(Left.IsLValue OrElse Left.IsPropertyOrXmlPropertyAccess() OrElse Left.IsLateBound)
 

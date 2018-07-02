@@ -29,13 +29,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => Application.Current.Dispatcher;
 
         protected static void BeginInvokeOnUIThread(Action action)
-            => CurrentApplicationDispatcher.BeginInvoke(action);
+            => CurrentApplicationDispatcher.BeginInvoke(action, DispatcherPriority.Background);
 
         protected static void InvokeOnUIThread(Action action)
-            => CurrentApplicationDispatcher.Invoke(action);
+            => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
 
         protected static T InvokeOnUIThread<T>(Func<T> action)
-            => CurrentApplicationDispatcher.Invoke(action);
+            => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
 
         protected static TInterface GetGlobalService<TService, TInterface>()
             where TService : class

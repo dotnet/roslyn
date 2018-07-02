@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -15,25 +12,25 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     internal abstract partial class AbstractNavigateToSearchService
     {
         private async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInRemoteProcessAsync(
-            RemoteHostClient client, Document document, string searchPattern, CancellationToken cancellationToken)
+            RemoteHostClient client, Document document, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 
             var serializableResults = await client.TryRunCodeAnalysisRemoteAsync<IList<SerializableNavigateToSearchResult>>(
                 solution, nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
-                new object[] { document.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
+                new object[] { document.Id, searchPattern, kinds }, cancellationToken).ConfigureAwait(false);
 
             return serializableResults.SelectAsArray(r => r.Rehydrate(solution));
         }
 
         private async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInRemoteProcessAsync(
-            RemoteHostClient client, Project project, string searchPattern, CancellationToken cancellationToken)
+            RemoteHostClient client, Project project, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
 
             var serializableResults = await client.TryRunCodeAnalysisRemoteAsync<IList<SerializableNavigateToSearchResult>>(
                 solution, nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
-                new object[] { project.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
+                new object[] { project.Id, searchPattern, kinds }, cancellationToken).ConfigureAwait(false);
 
             return serializableResults.SelectAsArray(r => r.Rehydrate(solution));
         }

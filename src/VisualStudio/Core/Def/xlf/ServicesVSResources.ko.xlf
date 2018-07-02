@@ -12,11 +12,6 @@
         <target state="translated">요소가 잘못되었습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Ignore">
-        <source>Ignore</source>
-        <target state="translated">무시</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">기타 연산자</target>

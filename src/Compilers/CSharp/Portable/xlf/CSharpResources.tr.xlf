@@ -8041,13 +8041,13 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Yineleyiciler başvuru yerel değerlerine sahip olamaz</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Yineleyiciler başvuru yerel değerlerine sahip olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">Zaman uyumsuz metotlar, başvuruya göre yerel değerlere sahip olamaz</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">Zaman uyumsuz metotlar, başvuruya göre yerel değerlere sahip olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

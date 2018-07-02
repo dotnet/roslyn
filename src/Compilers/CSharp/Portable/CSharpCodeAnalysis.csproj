@@ -11,6 +11,7 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <ServiceablePackage>true</ServiceablePackage>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <!-- This is required to prevent downgrade references from CscCore/VbcCode since we must
          reference Microsoft.NETCore.App to target the shared framework (bug
          https://github.com/dotnet/sdk/issues/1159) and NETCore.App
@@ -20,11 +21,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup>
-    <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
-      <_Parameter1>$(CommitHashDisplay)</_Parameter1>
-    </AssemblyVersionAttribute>
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj" />
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
