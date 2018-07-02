@@ -370,32 +370,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                // array elements and pointer dereferencing are readwrite variables
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerIndirectionOperator:
-                    // array elements and pointer dereferencing are readwrite variables
-                    return true;
+                // The undocumented __refvalue(tr, T) expression results in a variable of type T.
+                case BoundKind.RefValueOperator:
+                // dynamic expressions are readwrite, and can even be passed by ref (which is implemented via a temp)
+                case BoundKind.DynamicMemberAccess:
+                case BoundKind.DynamicIndexerAccess:
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        // These are readwrite variables
+                        return true;
+                    }
 
                 case BoundKind.PointerElementAccess:
                     {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
                         var receiver = ((BoundPointerElementAccess)expr).Expression;
                         if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
                         {
                             return CheckValueKind(node, fieldAccess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
                         }
+
+                        return true;
                     }
-
-                    return true;
-
-                case BoundKind.RefValueOperator:
-                    // The undocumented __refvalue(tr, T) expression results in a variable of type T.
-                    // it is a readwrite variable.
-                    return true;
-
-                case BoundKind.DynamicMemberAccess:
-                case BoundKind.DynamicIndexerAccess:
-                    // dynamic expressions can be read and written to
-                    // can even be passed by reference (which is implemented via a temp)
-                    return true;
 
                 case BoundKind.Parameter:
                     var parameter = (BoundParameter)expr;
