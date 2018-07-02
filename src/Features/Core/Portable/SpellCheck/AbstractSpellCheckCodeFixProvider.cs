@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
                     if (symbolInfo.Symbol == null)
                     {
-                        var isGeneric = IsGeneric(name);
-                        await CreateSpellCheckCodeIssueAsync(context, token, isGeneric, cancellationToken).ConfigureAwait(false);
+                        await CreateSpellCheckCodeIssueAsync(context, token, IsGeneric(name), cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -88,8 +87,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var nameText = token.ValueText;
             if (nameText?.Length >= MinTokenLength)
             {
-                var isGeneric = IsGeneric(token);
-                await CreateSpellCheckCodeIssueAsync(context, token, isGeneric, cancellationToken).ConfigureAwait(false);
+                await CreateSpellCheckCodeIssueAsync(context, token, IsGeneric(token), cancellationToken).ConfigureAwait(false);
             }
         }
 
