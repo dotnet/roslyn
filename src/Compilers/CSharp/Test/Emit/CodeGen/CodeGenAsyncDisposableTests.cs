@@ -149,7 +149,6 @@ class C : System.IAsyncDisposable
     public async Task DisposeAsync() { }
 }
 ";
-            // PROTOTYPE(async-streams): The second diagnostic is unexpected
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (3,11): error CS0738: 'C' does not implement interface member 'IAsyncDisposable.DisposeAsync()'. 'C.DisposeAsync()' cannot implement 'IAsyncDisposable.DisposeAsync()' because it does not have the matching return type of 'ValueTask'.
