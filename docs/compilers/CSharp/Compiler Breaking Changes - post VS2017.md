@@ -135,3 +135,24 @@ Example:
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27461 The method `LanguaguageVersionFacts.TryParse` is no longer an extension method.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27803 pattern matching now will produce errors when trying to return a stack bound value to an invalid escape scope.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26743 C# will now reject expressions such as `public int* M => &this.Bar[0];` if `Bar` is a fixed field of the containing type.
+
+- Visual Studio vNext: https://github.com/dotnet/roslyn/issues/27800 C# will now preserve left-to-right evaluation for compound assignment addition/subtraction expressions where the left-hand side is dynamic. In this example code:
+    ``` C#
+    class DynamicTest
+    {
+        public int Property { get; set; }
+        static dynamic GetDynamic() => return new DynamicTest();
+        static int GetInt() => 1;
+        public static void Main() => GetDynamic().Property += GetInt();
+    }
+    ```
+  - Previous versions of Roslyn would have evaluated this as:
+    1. GetInt()
+    2. GetDynamic()
+    3. get_Property
+    4. set_Property
+  - We now evaluate it as
+    1. GetDynamic
+    2. get_Property
+    3. GetInt()
+    4. set_Property

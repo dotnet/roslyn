@@ -972,6 +972,51 @@ public class C
             TestOperatorKinds(source);
         }
 
+        [Fact, WorkItem(27800, "https://github.com/dotnet/roslyn/issues/27800")]
+        public void TestDynamicCompoundOperatorOrdering()
+        {
+            CompileAndVerify(@"
+using System;
+using System.Threading.Tasks;
+class DynamicTest
+{
+	public int Property
+	{
+		get {
+			Console.WriteLine(""get_Property"");
+
+            return 0;
+        }
+        set {
+			Console.WriteLine(""set_Property"");
+		}
+    }
+
+    static dynamic GetDynamic()
+    {
+        Console.WriteLine(""GetDynamic"");
+        return new DynamicTest();
+    }
+
+    static int GetInt()
+    {
+        Console.WriteLine(""GetInt"");
+        return 1;
+    }
+
+    public static async Task Main()
+    {
+        GetDynamic().Property += GetInt();
+    }
+}", targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: @"
+GetDynamic
+get_Property
+GetInt
+set_Property
+");
+        }
+
+
         #endregion
 
         #region Conditional, Coalescing Expression
