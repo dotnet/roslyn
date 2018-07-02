@@ -88,10 +88,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             (await GetDTEAsync()).ActiveDocument.Activate();
         }
 
-#if false
-        public bool IsProjectItemDirty()
-            => GetDTE().ActiveDocument.ProjectItem.IsDirty;
-#endif
+        public async Task<bool> IsProjectItemDirtyAsync()
+            => (await GetDTEAsync()).ActiveDocument.ProjectItem.IsDirty;
 
         public async Task<string> GetTextAsync()
         {
@@ -110,46 +108,55 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 return Task.CompletedTask;
             });
 
-#if false
-        public void SelectText(string text)
+        public async Task SelectTextAsync(string text)
         {
-            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
-            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
+            await PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
+            await PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
-        public void ReplaceText(string oldText, string newText)
-            => ExecuteOnActiveView(view =>
-            {
-                var textSnapshot = view.TextSnapshot;
-                SelectText(oldText);                
-                var replacementSpan = new SnapshotSpan(textSnapshot, view.Selection.Start.Position, view.Selection.End.Position - view.Selection.Start.Position);
-                view.TextBuffer.Replace(replacementSpan, newText);
-            });
+        public async Task ReplaceTextAsync(string oldText, string newText)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        public string GetCurrentLineText()
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var bufferPosition = view.Caret.Position.BufferPosition;
-                var line = bufferPosition.GetContainingLine();
+            var view = await GetActiveTextViewAsync();
 
-                return line.GetText();
-            });
+            var textSnapshot = view.TextSnapshot;
+            await SelectTextAsync(oldText);
+            var replacementSpan = new SnapshotSpan(textSnapshot, view.Selection.Start.Position, view.Selection.End.Position - view.Selection.Start.Position);
+            view.TextBuffer.Replace(replacementSpan, newText);
+        }
 
-        public int GetLine()
-            => ExecuteOnActiveView(view =>
-            {
-                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
-                return lineNumber;
-            });
+        public async Task<string> GetCurrentLineTextAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        public int GetColumn()
-            => ExecuteOnActiveView(view =>
-            {
-                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
-                return columnIndex;
-            });
+            var view = await GetActiveTextViewAsync();
+            var subjectBuffer = view.GetBufferContainingCaret();
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            var line = bufferPosition.GetContainingLine();
 
+            return line.GetText();
+        }
+
+        public async Task<int> GetLineAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
+            return lineNumber;
+        }
+
+        public async Task<int> GetColumnAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
+            return columnIndex;
+        }
+
+#if false
         public string GetLineTextBeforeCaret()
             => ExecuteOnActiveView(view =>
             {

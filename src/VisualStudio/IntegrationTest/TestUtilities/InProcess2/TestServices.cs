@@ -15,6 +15,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             SolutionExplorer = new SolutionExplorer_InProc2(this);
             Workspace = new VisualStudioWorkspace_InProc2(this);
             SendKeys = new SendKeys_InProc2(this);
+            Debugger = new Debugger_InProc2(this);
+            Dialog = new Dialog_InProc2(this);
+            LocalsWindow = new LocalsWindow_InProc2(this);
 
             Editor = new Editor_InProc2(this);
             ErrorList = new ErrorList_InProc2(this);
@@ -32,12 +35,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             get;
         }
 
+        public Debugger_InProc2 Debugger
+        {
+            get;
+        }
+
+        public Dialog_InProc2 Dialog
+        {
+            get;
+        }
+
         public Editor_InProc2 Editor
         {
             get;
         }
 
         public ErrorList_InProc2 ErrorList
+        {
+            get;
+        }
+
+        public LocalsWindow_InProc2 LocalsWindow
         {
             get;
         }

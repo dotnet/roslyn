@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -14,19 +15,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             {
             }
 
-#if false
-            public void CurrentLineText(
+            public async Task CurrentLineTextAsync(
                 string expectedText,
                 bool assertCaretPosition = false,
                 bool trimWhitespace = true)
             {
                 if (assertCaretPosition)
                 {
-                    CurrentLineTextAndAssertCaretPosition(expectedText, trimWhitespace);
+                    await CurrentLineTextAndAssertCaretPositionAsync(expectedText, trimWhitespace);
                 }
                 else
                 {
-                    var lineText = _textViewWindow.GetCurrentLineText();
+                    var lineText = await _textViewWindow.GetCurrentLineTextAsync();
 
                     if (trimWhitespace)
                     {
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 }
             }
 
-            private void CurrentLineTextAndAssertCaretPosition(
+            private async Task CurrentLineTextAndAssertCaretPositionAsync(
                 string expectedText,
                 bool trimWhitespace)
             {
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 var expectedTextBeforeCaret = expectedText.Substring(0, caretStartIndex);
                 var expectedTextAfterCaret = expectedText.Substring(caretEndIndex);
 
-                var lineText = _textViewWindow.GetCurrentLineText();
+                var lineText = await _textViewWindow.GetCurrentLineTextAsync();
 
                 // Asserts below perform separate verifications of text before and after the caret.
                 // Depending on the position of the caret, if trimWhitespace, we trim beginning, end or both sides.
@@ -85,6 +85,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
             }
 
+#if false
             public void TextContains(
                 string expectedText,
                 bool assertCaretPosition = false)
@@ -182,12 +183,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 var actualTags = _textViewWindow.GetErrorTags();
                 Assert.Equal(expectedTags, actualTags);
             }
-
-            public void IsProjectItemDirty(bool expectedValue)
-            {
-                Assert.Equal(expectedValue, _textViewWindow._editorInProc.IsProjectItemDirty());
-            }
 #endif
+
+            public async Task IsProjectItemDirtyAsync(bool expectedValue)
+            {
+                Assert.Equal(expectedValue, await _textViewWindow.IsProjectItemDirtyAsync());
+            }
         }
     }
 }

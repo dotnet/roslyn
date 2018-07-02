@@ -7,6 +7,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Build_BuildSolution = "Build.BuildSolution";
         public const string Build_SolutionConfigurations = "Build.SolutionConfigurations";
 
+        public const string Debug_StopDebugging = "Debug.StopDebugging";
+
         public const string Edit_GoToAll = "Edit.GoToAll";
         public const string Edit_ListMembers = "Edit.ListMembers";
         public const string Edit_ParameterInfo = "Edit.ParameterInfo";
