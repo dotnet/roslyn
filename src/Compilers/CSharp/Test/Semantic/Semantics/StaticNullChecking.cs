@@ -34612,24 +34612,33 @@ delegate void D3<T3, U3>()
     where U3 : T3, T3?;";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (3,26): error CS0405: Duplicate constraint 'V?' for type parameter 'V'
-                // class C<V> where V : V?, V? { }
-                Diagnostic(ErrorCode.ERR_DuplicateBound, "V?").WithArguments("V?", "V").WithLocation(3, 26),
-                // (3,9): error CS0454: Circular constraint dependency involving 'V' and 'V'
-                // class C<V> where V : V?, V? { }
-                Diagnostic(ErrorCode.ERR_CircularConstraint, "V").WithArguments("V", "V").WithLocation(3, 9),
+                // (1,25): error CS0405: Duplicate constraint 'T' for type parameter 'T'
+                // class A<T> where T : T, T? { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T?").WithArguments("T", "T").WithLocation(1, 25),
                 // (1,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 // class A<T> where T : T, T? { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(1, 9),
-                // (1,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
-                // class A<T> where T : T, T? { }
-                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(1, 9),
+                // (2,26): error CS0405: Duplicate constraint 'U' for type parameter 'U'
+                // class B<U> where U : U?, U { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "U").WithArguments("U", "U").WithLocation(2, 26),
                 // (2,9): error CS0454: Circular constraint dependency involving 'U' and 'U'
                 // class B<U> where U : U?, U { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "U").WithArguments("U", "U").WithLocation(2, 9),
-                // (2,9): error CS0454: Circular constraint dependency involving 'U' and 'U'
-                // class B<U> where U : U?, U { }
-                Diagnostic(ErrorCode.ERR_CircularConstraint, "U").WithArguments("U", "U").WithLocation(2, 9));
+                // (3,26): error CS0405: Duplicate constraint 'V' for type parameter 'V'
+                // class C<V> where V : V?, V? { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "V?").WithArguments("V", "V").WithLocation(3, 26),
+                // (3,9): error CS0454: Circular constraint dependency involving 'V' and 'V'
+                // class C<V> where V : V?, V? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "V").WithArguments("V", "V").WithLocation(3, 9),
+                // (5,20): error CS0405: Duplicate constraint 'T1' for type parameter 'U1'
+                //     where U1 : T1, T1?;
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T1?").WithArguments("T1", "U1").WithLocation(5, 20),
+                // (7,28): error CS0405: Duplicate constraint 'T2' for type parameter 'U2'
+                //     where U2 : class, T2?, T2;
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T2").WithArguments("T2", "U2").WithLocation(7, 28),
+                // (10,20): error CS0405: Duplicate constraint 'T3' for type parameter 'U3'
+                //     where U3 : T3, T3?;
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T3?").WithArguments("T3", "U3").WithLocation(10, 20));
         }
 
         [Fact]
@@ -34870,21 +34879,31 @@ class C<T> where T : class
     static void F8<U>() where U : I<T?>, I<T?> { }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Report ERR_DuplicateBound for
-            // duplicates that differ by top-level or nested nullability as well?
             comp.VerifyDiagnostics(
                 // (4,38): error CS0405: Duplicate constraint 'T' for type parameter 'U'
                 //     static void F1<U>() where U : T, T { }
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "T").WithArguments("T", "U").WithLocation(4, 38),
-                // (7,39): error CS0405: Duplicate constraint 'T?' for type parameter 'U'
+                // (5,38): error CS0405: Duplicate constraint 'T' for type parameter 'U'
+                //     static void F2<U>() where U : T, T? { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T?").WithArguments("T", "U").WithLocation(5, 38),
+                // (6,39): error CS0405: Duplicate constraint 'T' for type parameter 'U'
+                //     static void F3<U>() where U : T?, T { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T").WithArguments("T", "U").WithLocation(6, 39),
+                // (7,39): error CS0405: Duplicate constraint 'T' for type parameter 'U'
                 //     static void F4<U>() where U : T?, T? { }
-                Diagnostic(ErrorCode.ERR_DuplicateBound, "T?").WithArguments("T?", "U").WithLocation(7, 39),
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T?").WithArguments("T", "U").WithLocation(7, 39),
                 // (8,41): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
                 //     static void F5<U>() where U : I<T>, I<T> { }
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T>").WithArguments("I<T>", "U").WithLocation(8, 41),
-                // (11,42): error CS0405: Duplicate constraint 'I<T?>' for type parameter 'U'
+                // (9,41): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
+                //     static void F6<U>() where U : I<T>, I<T?> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T?>").WithArguments("I<T>", "U").WithLocation(9, 41),
+                // (10,42): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
+                //     static void F7<U>() where U : I<T?>, I<T> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T>").WithArguments("I<T>", "U").WithLocation(10, 42),
+                // (11,42): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
                 //     static void F8<U>() where U : I<T?>, I<T?> { }
-                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T?>").WithArguments("I<T?>", "U").WithLocation(11, 42));
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T?>").WithArguments("I<T>", "U").WithLocation(11, 42));
         }
 
         [Fact]
@@ -35309,6 +35328,92 @@ public class A2<T> { }
             typeParameters = comp.GetMember<NamedTypeSymbol>("B2").TypeParameters;
             Assert.Equal("A2<System.Object!>!", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
             Assert.Equal("A2<System.Object?>!", typeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+        }
+
+        [Fact]
+        public void UnannotatedConstraint_Override()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public interface I<T> { }
+public abstract class A<T> where T : class
+{
+    [NonNullTypes(false)] public abstract void F1<U>() where U : T, I<T>;
+    [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
+    [NonNullTypes(true)] public abstract void F3<U>() where U : T, I<T>;
+    [NonNullTypes(true)] public abstract void F4<U>() where U : T?, I<T?>;
+}";
+            var comp0 = CreateCompilation(new[] { source0, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"using System.Runtime.CompilerServices;
+[NonNullTypes(false)]
+class B1 : A<string>
+{
+    public override void F1<U>() { }
+    public override void F2<U>() { }
+    public override void F3<U>() { }
+    public override void F4<U>() { }
+}
+[NonNullTypes(false)]
+class B2 : A<string?>
+{
+    public override void F1<U>() { }
+    public override void F2<U>() { }
+    public override void F3<U>() { }
+    public override void F4<U>() { }
+}
+[NonNullTypes(true)]
+class B3 : A<string>
+{
+    public override void F1<U>() { }
+    public override void F2<U>() { }
+    public override void F3<U>() { }
+    public override void F4<U>() { }
+}
+[NonNullTypes(true)]
+class B4 : A<string?>
+{
+    public override void F1<U>() { }
+    public override void F2<U>() { }
+    public override void F3<U>() { }
+    public override void F4<U>() { }
+}";
+            var comp = CreateCompilation(source, references: new[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            verifyAllConstraintTypes();
+
+            comp = CreateCompilation(source, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            verifyAllConstraintTypes();
+
+            void verifyAllConstraintTypes()
+            {
+                verifyConstraintTypes("B1.F1", "System.String", "I<System.String>");
+                verifyConstraintTypes("B1.F2", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B1.F3", "System.String", "I<System.String>");
+                verifyConstraintTypes("B1.F4", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B2.F1", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B2.F2", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B2.F3", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B2.F4", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B3.F1", "System.String!", "I<System.String!>");
+                verifyConstraintTypes("B3.F2", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B3.F3", "System.String!", "I<System.String!>"); // PROTOTYPE(NullableReferenceTypes): Should be I<System.String!>!. See TypeSymbolWithAnnotations.SubstituteType.
+                verifyConstraintTypes("B3.F4", "System.String?", "I<System.String?>"); // PROTOTYPE(NullableReferenceTypes): Should be I<System.String?>!. See TypeSymbolWithAnnotations.SubstituteType.
+                verifyConstraintTypes("B4.F1", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B4.F2", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B4.F3", "System.String?", "I<System.String?>"); // PROTOTYPE(NullableReferenceTypes): Should be I<System.String?>!. See TypeSymbolWithAnnotations.SubstituteType.
+                verifyConstraintTypes("B4.F4", "System.String?", "I<System.String?>"); // PROTOTYPE(NullableReferenceTypes): Should be I<System.String?>!. See TypeSymbolWithAnnotations.SubstituteType.
+            }
+
+            void verifyConstraintTypes(string methodName, params string[] expectedTypes)
+            {
+                var constraintTypes = comp.GetMember<MethodSymbol>(methodName).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics;
+                AssertEx.Equal(expectedTypes, constraintTypes.SelectAsArray(t => t.ToTestDisplayString(true)));
+            }
         }
 
         [Fact]

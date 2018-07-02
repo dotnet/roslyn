@@ -179,14 +179,12 @@ A warning is reported for inconsistent top-level nullability of constraint types
 static void F4<T> where T : class, Stream? { } // warning
 static void F5<T> where T : Stream?, IDisposable { } // warning
 ```
-An error is reported for duplicate constraints. _Should the error be reported for duplicates that differ by top-level or nested nullability?_
+An error is reported for duplicate constraints where constraints are compared ignoring top-level and nested nullability.
 ```c#
 class C<T> where T : class
 {
-    static void F1<U>() where U : T?, T? { } // error: duplicate constraint
-    static void F2<U>() where U : I<T?>, I<T?> { } // error: duplicate constraint
-    static void F3<U>() where U : T, T? { } // error?
-    static void F4<U>() where U : I<T>, I<T?> { } // error?
+    static void F1<U>() where U : T, T? { } // error: duplicate constraint
+    static void F2<U>() where U : I<T>, I<T?> { } // error: duplicate constraint
 }
 ```
 ## Compiler switch
