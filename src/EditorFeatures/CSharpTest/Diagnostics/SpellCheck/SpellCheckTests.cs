@@ -579,9 +579,9 @@ class C
 }");
         }
 
-        [WorkItem(1688, "https://github.com/dotnet/csharplang/issues/1688")]
+        [WorkItem(28244, "https://github.com/dotnet/roslyn/issues/28244")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
-        public async Task TestMispelledConstructor()
+        public async Task TestMisspelledConstructor()
         {
             await TestInRegularAndScriptAsync(
 @"public class SomeClass
