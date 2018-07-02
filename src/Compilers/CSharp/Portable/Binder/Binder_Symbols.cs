@@ -2103,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might require us to examine types forwarded by this assembly, thus binding assembly level 
             // attributes again. And the cycle continues. 
             // So, we won't do the analysis in this case, at the expense of better diagnostics.
-            if ((this.Flags & BinderFlags.InContectualAttributeBinder) != 0)
+            if ((this.Flags & BinderFlags.InContextualAttributeBinder) != 0)
             {
                 var current = this;
 

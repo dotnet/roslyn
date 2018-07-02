@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A simple class that combines a single type symbol with annotations
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class TypeSymbolWithAnnotations : NamespaceOrTypeSymbolWithAnnotations
+    internal abstract class TypeSymbolWithAnnotations : NamespaceOrTypeSymbolWithAnnotations, IFormattable
     {
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -341,6 +341,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract override string ToDisplayString(SymbolDisplayFormat format = null);
         internal string GetDebuggerDisplay() => ToDisplayString(DebuggerDisplayFormat);
+
+        // PROTOTYPE(NullableReferenceTypes): Remove IFormattable implementation
+        // if instances should not be used as Diagnostic arguments.
+        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        {
+            return ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
+        }
 
         public bool Equals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
         {

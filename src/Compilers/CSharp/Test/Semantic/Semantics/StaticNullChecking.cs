@@ -34611,12 +34611,10 @@ delegate void D3<T3, U3>()
     where T3 : class
     where U3 : T3, T3?;";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Report `Duplicate constraint 'V?' ...` rather than `... 'V' ...`.
-            // (Requires allowing TypeSymbolWithAnnotations as Diagnostic argument.)
             comp.VerifyDiagnostics(
-                // (3,26): error CS0405: Duplicate constraint 'V' for type parameter 'V'
+                // (3,26): error CS0405: Duplicate constraint 'V?' for type parameter 'V'
                 // class C<V> where V : V?, V? { }
-                Diagnostic(ErrorCode.ERR_DuplicateBound, "V?").WithArguments("V", "V").WithLocation(3, 26),
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "V?").WithArguments("V?", "V").WithLocation(3, 26),
                 // (3,9): error CS0454: Circular constraint dependency involving 'V' and 'V'
                 // class C<V> where V : V?, V? { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "V").WithArguments("V", "V").WithLocation(3, 9),
@@ -34853,6 +34851,40 @@ class C
                 // (5,35): error CS1968: Constraint cannot be a dynamic type 'I<dynamic>'
                 //     static void F2<T>() where T : I<dynamic?> { }
                 Diagnostic(ErrorCode.ERR_ConstructedDynamicTypeAsBound, "I<dynamic?>").WithArguments("I<dynamic?>").WithLocation(5, 35));
+        }
+
+        [Fact]
+        public void DuplicateConstraints()
+        {
+            var source =
+@"interface I<T> where T : class { }
+class C<T> where T : class
+{
+    static void F1<U>() where U : T, T { }
+    static void F2<U>() where U : T, T? { }
+    static void F3<U>() where U : T?, T { }
+    static void F4<U>() where U : T?, T? { }
+    static void F5<U>() where U : I<T>, I<T> { }
+    static void F6<U>() where U : I<T>, I<T?> { }
+    static void F7<U>() where U : I<T?>, I<T> { }
+    static void F8<U>() where U : I<T?>, I<T?> { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Report ERR_DuplicateBound for
+            // duplicates that differ by top-level or nested nullability as well?
+            comp.VerifyDiagnostics(
+                // (4,38): error CS0405: Duplicate constraint 'T' for type parameter 'U'
+                //     static void F1<U>() where U : T, T { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T").WithArguments("T", "U").WithLocation(4, 38),
+                // (7,39): error CS0405: Duplicate constraint 'T?' for type parameter 'U'
+                //     static void F4<U>() where U : T?, T? { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T?").WithArguments("T?", "U").WithLocation(7, 39),
+                // (8,41): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
+                //     static void F5<U>() where U : I<T>, I<T> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T>").WithArguments("I<T>", "U").WithLocation(8, 41),
+                // (11,42): error CS0405: Duplicate constraint 'I<T?>' for type parameter 'U'
+                //     static void F8<U>() where U : I<T?>, I<T?> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T?>").WithArguments("I<T?>", "U").WithLocation(11, 42));
         }
 
         [Fact]
@@ -35217,12 +35249,10 @@ class Program
         public void UnannotatedConstraint_01()
         {
             var source0 =
-@"public class A
-{
-}
-public class B<T> where T : A
-{
-}";
+@"public class A1 { }
+public class A2<T> { }
+public class B1<T> where T : A1 { }
+public class B2<T> where T : A2<object> { }";
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
@@ -35232,25 +35262,30 @@ public class B<T> where T : A
 {
     static void Main()
     {
-        new B<A?>();
-        new B<A>();
+        new B1<A1?>();
+        new B1<A1>();
+        new B2<A2<object?>>();
+        new B2<A2<object>>();
     }
 }";
             var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+            var typeParameters = comp.GetMember<NamedTypeSymbol>("B1").TypeParameters;
+            Assert.Equal("A1", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            typeParameters = comp.GetMember<NamedTypeSymbol>("B2").TypeParameters;
+            Assert.Equal("A2<System.Object>", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
         }
 
         [Fact]
         public void UnannotatedConstraint_02()
         {
             var source0 =
-@"public class A<T>
-{
-}
-public class B<T> where T : A<object>
-{
-}";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+@"using System.Runtime.CompilerServices;
+public class A1 { }
+public class A2<T> { }
+[NonNullTypes(false)] public class B1<T, U> where T : A1 where U : A1? { }
+[NonNullTypes(false)] public class B2<T, U> where T : A2<object> where U : A2<object?> { }";
+            var comp0 = CreateCompilation(new[] { source0, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
@@ -35259,12 +35294,21 @@ public class B<T> where T : A<object>
 {
     static void Main()
     {
-        new B<A<object?>>();
-        new B<A<object>>();
+        new B1<A1, A1?>();
+        new B1<A1?, A1>();
+        new B2<A2<object>, A2<object?>>();
+        new B2<A2<object?>, A2<object>>();
     }
 }";
             var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+            // PROTOTYPE(NullableReferenceTypes): Should be ~ rather than !.
+            var typeParameters = comp.GetMember<NamedTypeSymbol>("B1").TypeParameters;
+            Assert.Equal("A1!", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            Assert.Equal("A1?", typeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            typeParameters = comp.GetMember<NamedTypeSymbol>("B2").TypeParameters;
+            Assert.Equal("A2<System.Object!>!", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            Assert.Equal("A2<System.Object?>!", typeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
         }
 
         [Fact]
@@ -35288,14 +35332,20 @@ class C
 {
     static void Main()
     {
-        A<B1>.F(new B1());
-        A<B2>.F(new B2());
+        A<B1>.F(null); // warning
+        A<B2>.F(null); // warning
         A<B1?>.F(null);
         A<B2?>.F(null);
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         A<B1>.F(null); // warning
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 17),
+                // (8,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         A<B2>.F(null); // warning
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 17));
         }
 
         [Fact]
