@@ -27,16 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
             Column = column;
         }
 
-        public ErrorListItem(EnvDTE80.ErrorItem errorItem)
-        {
-            Severity = errorItem.ErrorLevel.AsString();
-            Description = errorItem.Description;
-            Project = Path.GetFileName(errorItem.Project);
-            FileName = Path.GetFileName(errorItem.FileName);
-            Line = errorItem.Line;
-            Column = errorItem.Column;
-        }
-
         public bool Equals(ErrorListItem other)
             => other != null
             && Comparison.AreStringValuesEqual(Severity, other.Severity)

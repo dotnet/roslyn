@@ -39,8 +39,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public EncapsulateField_OutOfProc EncapsulateField { get; }
 
-        public ErrorList_OutOfProc ErrorList { get; }
-
         public ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog { get; }
 
         public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
@@ -136,7 +134,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             EncapsulateField = new EncapsulateField_OutOfProc(this);
-            ErrorList = new ErrorList_OutOfProc(this);
             ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
