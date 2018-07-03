@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 // Wrap the spell checking actions into a single top level suggestion
                 // so as to not clutter the list.
                 context.RegisterCodeFix(new MyCodeAction(
-                    string.Format(FeaturesResources.Spell_check_0, nameText), codeActions), context.Diagnostics);
+                    string.Format(FeaturesResources.Fix_typo_0, nameText), codeActions), context.Diagnostics);
             }
             else
             {
