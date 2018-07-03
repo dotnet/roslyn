@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncDisposableTests : CSharpTestBase
     {
+        // PROTOTYPE(async-streams):
+        // Integrate async-dispose feature with "implicitly-scoped using statement" feature
+        // Integrate async-dispose feature with "pattern-based disposable" feature
         private static readonly string s_interfaces = @"
 namespace System
 {

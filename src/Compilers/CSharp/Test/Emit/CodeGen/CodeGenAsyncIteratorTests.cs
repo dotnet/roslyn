@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
         // Test normal break in async iterator
         // WaitForNextAsync is resilient to be called out of turn. Test that.
+        // Test a plain return statement
 
         [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYield()
