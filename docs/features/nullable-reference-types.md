@@ -187,5 +187,8 @@ class C<T> where T : class
     static void F2<U>() where U : I<T>, I<T?> { } // error: duplicate constraint
 }
 ```
+_If `List<T>` is defined in an unannotated assembly, the type of the indexer is `T~`._
+_What is the type of `new List<string>()[0]`? `string!` or `string~`?_
+_What is the type of `new List<string?>()[0]`?_
 ## Compiler switch
 _Describe behavior when feature is disabled._

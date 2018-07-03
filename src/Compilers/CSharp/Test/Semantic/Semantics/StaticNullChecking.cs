@@ -35005,6 +35005,7 @@ class C2<T, U> : I<T>, I<U?> where T : struct where U : class { }
 class C3<T, U> : I<T?>, I<U> where T : struct where U : class { }
 class C4<T, U> : I<T?>, I<U?> where T : struct where U : class { }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // See https://github.com/dotnet/roslyn/issues/28255.
             comp.VerifyDiagnostics(
                 // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C1<T, U> : I<T>, I<U> where T : struct where U : class { }
