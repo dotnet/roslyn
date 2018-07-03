@@ -14,8 +14,8 @@ def windowsUnitTestMachine = 'win2016-base'
 
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
-  archiveSettings.addFiles('Binaries/Debug/Logs/**/*)
-  archiveSettings.addFiles('Binaries/Release/Logs/**/*)
+  archiveSettings.addFiles('Binaries/Debug/Logs/**')
+  archiveSettings.addFiles('Binaries/Release/Logs/**')
   archiveSettings.addFiles('Binaries/**/*.png')
 
   // Only archive if failed/aborted
