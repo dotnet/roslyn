@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -799,6 +798,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactory.GetOptions(_containedLanguage.DataBuffer);
             var options = _workspace.Options
+                                        .WithChangedOption(FormattingOptions.NewLine, root.Language, editorOptions.GetNewLineCharacter())
                                         .WithChangedOption(FormattingOptions.UseTabs, root.Language, !editorOptions.IsConvertTabsToSpacesEnabled())
                                         .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
                                         .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize());
