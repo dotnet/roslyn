@@ -2522,6 +2522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
                     return BindValueKind.CompoundAssignment;
                 default:
                     return BindValueKind.RValue;
@@ -3502,6 +3503,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    Otherwise, a and b are incompatible, and a compile-time error occurs.
             diagnostics.Add(node, useSiteDiagnostics);
             return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
+        }
+
+
+        private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
+            BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
+
+            // If either operand is bad, bail out preventing more cascading errors
+            if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
+            {
+                return new BoundNullCoalesingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+            }
+
+            // Unlike a standard null coalescing expression, the resulting type of the expression a ??= b
+            // must be A (where A is the type of a), as it is where the result of the assignment will end up. Therefore,
+            // we must ensure that B (where B is the type B) is implicitly convertible to A or A0 (where A0 is the
+            // underlying non-nullable type of A).
+            TypeSymbol leftType = leftOperand.Type;
+            Debug.Assert(leftType != null);
+            TypeSymbol optRightType = rightOperand.Type;
+            bool rightTypeIsNonNull = !(optRightType is null);
+            bool isLeftNullable = leftType.IsNullableType();
+
+            // If A exists and is not a nullable type or reference type, a compile-time error occurs
+            if (!leftType.IsReferenceType && !isLeftNullable)
+            {
+                return generateNullCoalescingAssignmentBadBinaryOpsError();
+            }
+
+            // If A exists and an implicit conversion exists from B to A, we store that conversion. At runtime,
+            // a is first evaluated. If a is not null, b is not evaluated. If a is null, b is evaluated and converted
+            // to type A, and is stored in a.
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, leftType, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+            if (rightConversion.Exists)
+            {
+                var convertedRightOperand = CreateConversion(rightOperand, rightConversion, leftType, diagnostics);
+                return new BoundNullCoalesingAssignmentOperator(node, leftOperand, convertedRightOperand, leftType);
+            }
+
+            // a and b are incompatible and a compile-time error occurs
+            return generateNullCoalescingAssignmentBadBinaryOpsError();
+
+            BoundExpression generateNullCoalescingAssignmentBadBinaryOpsError()
+            {
+                Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
+                return new BoundNullCoalesingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+            }
         }
 
         /// <remarks>
