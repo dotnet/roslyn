@@ -645,7 +645,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             GetDTE().ItemOperations.NewFile(itemTemplate, fileName);
         }
-            
+#endif
 
         public void SetFileContents(string projectName, string relativeFilePath, string contents)
         {
@@ -655,7 +655,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             File.WriteAllText(filePath, contents);
         }
-#endif
 
         public string GetFileContents(string projectName, string relativeFilePath)
         {

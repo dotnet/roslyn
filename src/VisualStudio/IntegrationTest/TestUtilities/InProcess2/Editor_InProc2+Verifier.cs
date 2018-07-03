@@ -85,23 +85,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
             }
 
-#if false
-            public void TextContains(
+            public async Task TextContainsAsync(
                 string expectedText,
                 bool assertCaretPosition = false)
             {
                 if (assertCaretPosition)
                 {
-                    TextContainsAndAssertCaretPosition(expectedText);
+                    await TextContainsAndAssertCaretPositionAsync(expectedText);
                 }
                 else
                 {
-                    var editorText = _textViewWindow.GetText();
+                    var editorText = await _textViewWindow.GetTextAsync();
                     Assert.Contains(expectedText, editorText);
                 }
             }
 
-            private void TextContainsAndAssertCaretPosition(
+            private async Task TextContainsAndAssertCaretPositionAsync(
                 string expectedText)
             {
                 var caretStartIndex = expectedText.IndexOf("$$");
@@ -117,15 +116,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
                 var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
 
-                var editorText = _textViewWindow.GetText();
+                var editorText = await _textViewWindow.GetTextAsync();
                 Assert.Contains(expectedTextWithoutCaret, editorText);
 
                 var index = editorText.IndexOf(expectedTextWithoutCaret);
 
-                var caretPosition = _textViewWindow.GetCaretPosition();
+                var caretPosition = await _textViewWindow.GetCaretPositionAsync();
                 Assert.Equal(caretStartIndex + index, caretPosition);
             }
 
+#if false
             public void CurrentCompletionItem(
                 string expectedItem)
             {

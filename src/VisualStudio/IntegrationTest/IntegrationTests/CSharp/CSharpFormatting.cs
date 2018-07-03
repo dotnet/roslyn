@@ -2,34 +2,34 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpFormatting : AbstractEditorTest
+    public class CSharpFormatting : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFormatting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpFormatting))
+        public CSharpFormatting()
+            : base(nameof(CSharpFormatting))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void AlignOpenBraceWithMethodDeclaration()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task AlignOpenBraceWithMethodDeclarationAsync()
         {
-            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            using (var telemetry = await VisualStudio.VisualStudio.EnableTestTelemetryChannelAsync())
             {
-                SetUpEditor(@"
+                await SetUpEditorAsync(@"
 $$class C
 {
     void Main()
@@ -37,22 +37,22 @@ $$class C
     }
 }");
 
-                VisualStudio.Editor.FormatDocument();
-                VisualStudio.Editor.Verify.TextContains(@"
+                await VisualStudio.Editor.FormatDocumentAsync();
+                await VisualStudio.Editor.Verify.TextContainsAsync(@"
 class C
 {
     void Main()
     {
     }
 }");
-                telemetry.VerifyFired("vs/ide/vbcs/commandhandler/formatcommand");
+                await telemetry.VerifyFiredAsync("vs/ide/vbcs/commandhandler/formatcommand");
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatOnSemicolon()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatOnSemicolonAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 public class C
 {
     void Goo()
@@ -63,8 +63,8 @@ public class C
     }
 }");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Backspace, ";");
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Backspace, ";");
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 public class C
 {
     void Goo()
@@ -76,18 +76,18 @@ public class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatSelection()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSelectionAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 public class C {
     public void M( ) {$$
         }
 }");
 
-            VisualStudio.Editor.SelectTextInCurrentDocument("public void M( ) {");
-            VisualStudio.Editor.FormatSelection();
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.SelectTextInCurrentDocumentAsync("public void M( ) {");
+            await VisualStudio.Editor.FormatSelectionAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 public class C {
     public void M()
     {
@@ -95,10 +95,10 @@ public class C {
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void PasteCodeWithLambdaBody()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PasteCodeWithLambdaBodyAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 using System;
 class Program
 {
@@ -113,12 +113,12 @@ class Program
         };
     }
 }");
-            VisualStudio.Editor.Paste(@"        Action b = () =>
+            await VisualStudio.Editor.PasteAsync(@"        Action b = () =>
         {
 
             };");
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 using System;
 class Program
 {
@@ -137,8 +137,8 @@ class Program
     }
 }");
             // Undo should only undo the formatting
-            VisualStudio.Editor.Undo();
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.UndoAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 using System;
 class Program
 {
@@ -158,10 +158,10 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void PasteCodeWithLambdaBody2()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PasteCodeWithLambdaBody2Async()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 using System;
 class Program
 {
@@ -176,12 +176,12 @@ class Program
         };
     }
 }");
-            VisualStudio.Editor.Paste(@"        Action<int> b = n =>
+            await VisualStudio.Editor.PasteAsync(@"        Action<int> b = n =>
         {
             Console.Writeline(n);
         };");
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 using System;
 class Program
 {
@@ -201,10 +201,10 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void PasteCodeWithLambdaBody3()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PasteCodeWithLambdaBody3Async()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 using System;
 class Program
 {
@@ -219,12 +219,12 @@ class Program
         };
     }
 }");
-            VisualStudio.Editor.Paste(@"        D d = delegate(int x)
+            await VisualStudio.Editor.PasteAsync(@"        D d = delegate(int x)
 {
     return 2 * x;
 };");
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 using System;
 class Program
 {
@@ -244,11 +244,11 @@ class Program
 }");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
-         Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void ShiftEnterWithIntelliSenseAndBraceMatching()
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/18065")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ShiftEnterWithIntelliSenseAndBraceMatchingAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Program
 {
     object M(object bar)
@@ -256,9 +256,9 @@ class Program
         return M$$
     }
 }");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Editor.SendKeys("(ba", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "// comment");
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await VisualStudio.Editor.SendKeysAsync("(ba", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "// comment");
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 class Program
 {
     object M(object bar)
@@ -269,11 +269,11 @@ class Program
 }");
         }
 
-        [WpfFact]
+        [IdeFact]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
-        public void ApplyEditorConfigAndFormatDocument()
+        public async Task ApplyEditorConfigAndFormatDocumentAsync()
         {
             var markup = @"
 class C
@@ -299,27 +299,27 @@ class C
 }";
 
             // CodingConventions only sends notifications if a file is open for all directories in the project
-            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), @"Properties\AssemblyInfo.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, @"Properties\AssemblyInfo.cs");
 
             // Switch back to the main document we'll be editing
-            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
 
             MarkupTestFile.GetSpans(markup, out var expectedTextFourSpaceIndent, out ImmutableArray<TextSpan> spans);
-            SetUpEditor(markup);
-            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            await SetUpEditorAsync(markup);
+            await VisualStudio.VisualStudio.WaitForApplicationIdleAsync(CancellationToken.None);
 
             /*
              * The first portion of this test verifies that Format Document uses the default indentation settings when
              * no .editorconfig is available.
              */
 
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
-            VisualStudio.Editor.FormatDocumentViaCommand();
+            await VisualStudio.Editor.FormatDocumentViaCommandAsync();
 
-            Assert.Equal(expectedTextFourSpaceIndent, VisualStudio.Editor.GetText());
+            Assert.Equal(expectedTextFourSpaceIndent, await VisualStudio.Editor.GetTextAsync());
 
             /*
              * The second portion of this test adds a .editorconfig file to configure the indentation behavior, and
@@ -332,34 +332,34 @@ class C
 indent_size = 2
 ";
 
-            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", editorConfig, open: false);
 
             // Wait for CodingConventions library events to propagate to the workspace
-            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            await VisualStudio.VisualStudio.WaitForApplicationIdleAsync(CancellationToken.None);
+            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
-            VisualStudio.Editor.FormatDocumentViaCommand();
+            await VisualStudio.Editor.FormatDocumentViaCommandAsync();
 
-            Assert.Equal(expectedTextTwoSpaceIndent, VisualStudio.Editor.GetText());
+            Assert.Equal(expectedTextTwoSpaceIndent, await VisualStudio.Editor.GetTextAsync());
 
             /*
              * The third portion of this test modifies the existing .editorconfig file with a new indentation behavior,
              * and verifies that the next Format Document operation adheres to the updated formatting.
              */
 
-            VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("2", "4"));
+            VisualStudio.SolutionExplorer.SetFileContents(ProjectName, ".editorconfig", editorConfig.Replace("2", "4"));
 
             // Wait for CodingConventions library events to propagate to the workspace
-            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            await VisualStudio.VisualStudio.WaitForApplicationIdleAsync(CancellationToken.None);
+            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
-            VisualStudio.Editor.FormatDocumentViaCommand();
+            await VisualStudio.Editor.FormatDocumentViaCommandAsync();
 
-            Assert.Equal(expectedTextFourSpaceIndent, VisualStudio.Editor.GetText());
+            Assert.Equal(expectedTextFourSpaceIndent, await VisualStudio.Editor.GetTextAsync());
         }
     }
 }

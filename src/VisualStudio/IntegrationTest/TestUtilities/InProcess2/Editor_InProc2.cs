@@ -790,35 +790,33 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             SelectTextInCurrentDocument(text);
             SendKeys(VirtualKey.Delete);
         }
-
-        public void FormatDocument()
-        {
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
-        }
-
-        public void FormatDocumentViaCommand()
-        {
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudioInstance.Dte.ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
-        }
-
-        public void FormatSelection()
-        {
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
-        }
-
-        public void Paste(string text)
-        {
-            var thread = new Thread(() => Clipboard.SetText(text));
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-
-            VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
-        }
 #endif
+
+        public async Task FormatDocumentAsync()
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await SendKeysAsync(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
+        }
+
+        public async Task FormatDocumentViaCommandAsync()
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await ExecuteCommandAsync(WellKnownCommandNames.Edit_FormatDocument);
+        }
+
+        public async Task FormatSelectionAsync()
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await SendKeysAsync(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
+        }
+
+        public async Task PasteAsync(string text)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            Clipboard.SetText(text);
+            await ExecuteCommandAsync(WellKnownCommandNames.Edit_Paste);
+        }
 
         public async Task<string> GetSelectedNavBarItemAsync(int comboBoxIndex)
         {
