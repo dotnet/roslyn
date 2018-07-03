@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE(async-streams): Consider making AsyncRewriter an abstract base
 
         /// <summary>
-        /// This rewriter rewrites an async iterator method. See async-streams.md for design overview.
+        /// This rewriter rewrites an async-iterator method. See async-streams.md for design overview.
         /// </summary>
         private sealed class AsyncIteratorRewriter : AsyncRewriter
         {
-            private FieldSymbol _currentField; // stores the current yieled value
             private FieldSymbol _promiseOfValueOrEndField; // this struct implements the IValueTaskSource logic
             private FieldSymbol _promiseIsActiveField;
+            private FieldSymbol _currentField; // stores the current/yieled value
 
             internal AsyncIteratorRewriter(
                 BoundStatement body,
@@ -62,12 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override void GenerateControlFields()
             {
-                // the fields are initialized from async method, so they need to be public
+                // the fields are initialized from entry-point method (which replaces the async-iterator method), so they need to be public
 
                 base.GenerateControlFields();
-
-                // Add a field: T current
-                _currentField = F.StateMachineField(method.IteratorElementType, GeneratedNames.MakeIteratorCurrentFieldName());
 
                 // Add a field: ManualResetValueTaskSourceLogic<bool> promiseOfValueOrEnd
                 _promiseOfValueOrEndField = F.StateMachineField(
@@ -79,6 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _promiseIsActiveField = F.StateMachineField(
                     F.SpecialType(SpecialType.System_Boolean),
                     GeneratedNames.MakeAsyndIteratorPromiseIsActiveFieldName(), isPublic: true);
+
+                // Add a field: T current
+                _currentField = F.StateMachineField(method.IteratorElementType, GeneratedNames.MakeIteratorCurrentFieldName());
             }
 
             /// <summary>
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void GenerateIAsyncEnumeratorImplementation_WaitForNextAsync()
             {
-                // Produce an implementation for `ValueTask<bool> WaitForNextAsync()`:
+                // Produce the implementation for `ValueTask<bool> WaitForNextAsync()`:
                 // if (State == StateMachineStates.FinishedStateMachine)
                 // {
                 //     return default(ValueTask<bool>)
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void GenerateIAsyncEnumeratorImplementation_TryGetNext()
             {
-                // Produce an implementation for `T TryGetNext(out bool success)`:
+                // Produce the implementation for `T TryGetNext(out bool success)`:
                 // if (this._promiseIsActive)
                 // {
                 //     if (_valueOrEndPromise.GetStatus(_valueOrEndPromise.Version) == ValueTaskSourceStatus.Pending) throw new Exception();
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // success = true;
                 // return _current;
 
-                // PROTOTYPE(async-streams): Add safeguard code
+                // PROTOTYPE(async-streams): Add safeguard code (throwing exception if method incorrectly called)
 
                 NamedTypeSymbol IAsyncEnumeratorOfElementType =
                     F.WellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T)
@@ -296,13 +296,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     BoundParameter successParameter = F.Parameter(IAsyncEnumerableOfElementType_TryGetNext.Parameters[0]);
                     return F.Assignment(successParameter, F.Literal(value)); // success = value;
-
                 }
             }
 
             private void GenerateIValueTaskSourceImplementation_GetResult()
             {
-                // Produce:
+                // Produce the implementation for `bool IValueTaskSource<bool>GetResult(short token)`:
                 // return this._valueOrEndPromise.GetResult(token);
 
                 NamedTypeSymbol IValueTaskSourceOfBool =
@@ -313,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult)
                     .AsMember(IValueTaskSourceOfBool);
 
-                // PROTOTYPE(async-streams): Should we looking those members as optional?
+                // PROTOTYPE(async-streams): Should we be looking those members up as optional?
                 MethodSymbol promise_GetResult =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult)
                     .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
@@ -328,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void GenerateIValueTaskSourceImplementation_GetStatus()
             {
-                // Produce:
+                // Produce the implementation for `ValueTaskSourceStatus IValueTaskSource<bool>.GetStatus(short token)`:
                 // return this._valueOrEndPromise.GetStatus(token);
 
                 NamedTypeSymbol IValueTaskSourceOfBool =
@@ -353,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void GenerateIValueTaskSourceImplementation_OnCompleted()
             {
-                // Produce:
+                // Produce the implementation for `void IValueTaskSource<bool>.OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags)`:
                 // this._valueOrEndPromise.OnCompleted(continuation, state, token, flags);
                 // return;
 
@@ -385,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void GenerateIStrongBox_get_Value()
             {
-                // Produce:
+                // Produce the implementation for `ManualResetValueTaskSourceLogic<bool> IStrongBox<ManualResetValueTaskSourceLogic<bool>>.Value { get; }`:
                 // return ref _valueOrEndPromise;
 
                 NamedTypeSymbol MrvtslOfBool =
@@ -408,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void GenerateIAsyncDisposable_DisposeAsync()
             {
-                // Produce:
+                // Produce the implementation of `ValueTask IAsyncDisposable.DisposeAsync()`:
                 // this._valueOrEndPromise.Reset();
                 // this._state = StateNotStarted;
                 // return default;
@@ -482,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void GenerateIAsyncEnumerableImplementation_GetAsyncEnumerator()
             {
-                // PROTOTYPE(async-streams): do the threadID dance.
+                // PROTOTYPE(async-streams): do the threadID dance to decide if we can return this or should instantiate.
 
                 NamedTypeSymbol IAsyncEnumerableOfElementType =
                     F.WellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T)
@@ -540,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method: method,
                     methodOrdinal: _methodOrdinal,
                     asyncMethodBuilderMemberCollection: _asyncMethodBuilderMemberCollection,
-                    asyncIteratorInfo: new AsyncIteratorInfo(_promiseOfValueOrEndField, setResultMethod, resetMethod, setExceptionMethod, _currentField, _promiseIsActiveField),
+                    asyncIteratorInfo: new AsyncIteratorInfo(_promiseOfValueOrEndField, _promiseIsActiveField, _currentField, resetMethod, setResultMethod, setExceptionMethod),
                     F: F,
                     state: stateField,
                     builder: _builderField,

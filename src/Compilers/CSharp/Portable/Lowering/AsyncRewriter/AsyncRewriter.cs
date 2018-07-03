@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
-            // For async iterators, we also need to generate a class.
+            // For async-iterators, we also need to generate a class.
             var typeKind = (compilationState.Compilation.Options.EnableEditAndContinue || method.IsIterator) ? TypeKind.Class : TypeKind.Struct;
 
             var bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);

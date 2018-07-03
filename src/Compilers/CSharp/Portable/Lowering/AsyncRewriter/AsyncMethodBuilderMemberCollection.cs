@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool TryGetBuilderMember<TSymbol>(
+        private static bool TryGetBuilderMember<TSymbol>(
             SyntheticBoundNodeFactory F,
             WellKnownMember member,
             NamedTypeSymbol builderType,

@@ -12,37 +12,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class AsyncIteratorInfo
-    {
-        internal readonly FieldSymbol _promiseOfValueOrEndField;
-        internal readonly FieldSymbol _promiseIsActive;
-
-        // The SetResult(bool) method for the promise of value or end.
-        internal readonly MethodSymbol _setResult;
-
-        // The Reset() method for the promise of value or end.
-        internal readonly MethodSymbol _resetMethod;
-
-        // The SetException(Exception) method for the promise of value or end.
-        internal readonly MethodSymbol _setException;
-
-        // The field that holds the current/yielded value.
-        internal readonly FieldSymbol _currentField;
-
-        internal AsyncIteratorInfo(FieldSymbol promiseOfValueOrEndField, MethodSymbol setResult, MethodSymbol reset,
-            MethodSymbol setException, FieldSymbol currentField, FieldSymbol promiseIsActive)
-        {
-            _promiseOfValueOrEndField = promiseOfValueOrEndField;
-            _setResult = setResult;
-            _resetMethod = reset;
-            _setException = setException;
-            _currentField = currentField;
-            _promiseIsActive = promiseIsActive;
-        }
-    }
-
     /// <summary>
-    /// Produces a MoveNext() method for an async method or an async iterator method.
+    /// Produces a MoveNext() method for an async method or an async-iterator method.
     /// </summary>
     internal partial class AsyncMethodToStateMachineRewriter : MethodToStateMachineRewriter
     {
@@ -64,13 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
 
         /// <summary>
-        /// Additional information for rewriting an async iterator.
-        /// Only set for async iterator methods.
+        /// Additional information for rewriting an async-iterator.
+        /// Only set for async-iterator methods.
         /// </summary>
         private readonly AsyncIteratorInfo _asyncIteratorInfo;
 
         /// <summary>
-        /// Only set for async iterator methods. Local for previousState.
+        /// Only set for async-iterator methods. Local for previousState.
         /// </summary>
         private readonly LocalSymbol _asyncIteratorPreviousStateLocal;
 
@@ -307,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     assignFinishedState,
                     F.If(
                         // if (promiseIsActive)
-                        F.Field(F.This(), _asyncIteratorInfo._promiseIsActive),
+                        F.Field(F.This(), _asyncIteratorInfo._promiseIsActiveField),
                         // this.promiseOfValueOrEnd.SetException(ex);
                         thenClause: callSetException,
                         // throw;
@@ -362,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
-        protected virtual BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
+        private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
             var expression = (BoundExpression)Visit(node.Expression);
             resultPlace = (BoundExpression)Visit(resultPlace);
@@ -648,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_asyncIteratorInfo != null);
 
             // this.promiseIsActive = true;
-            BoundFieldAccess promiseIsActiveField = F.Field(F.This(), _asyncIteratorInfo._promiseIsActive);
+            BoundFieldAccess promiseIsActiveField = F.Field(F.This(), _asyncIteratorInfo._promiseIsActiveField);
             var assignTrue = F.Assignment(promiseIsActiveField, F.Literal(true));
 
             // this.promiseOfValueOrEnd.Reset();
@@ -679,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    this.promiseOfValueOrEnd.SetResult(result);
             // }
             return F.If(
-                F.Field(F.This(), _asyncIteratorInfo._promiseIsActive),
+                F.Field(F.This(), _asyncIteratorInfo._promiseIsActiveField),
                 thenClause: callSetResult);
         }
 
@@ -714,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_asyncIteratorInfo != null);
 
             //     yield return expression;
-            // is translated to
+            // is translated to:
             //     this.current = expression;
             //     int previousState = this.state;
             //     this.state = <next_state>;
@@ -722,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     {
             //         this._valueOrEndPromise.SetResult(true);
             //     }
-            //     return true;
+            //     goto <exit_label>;
             //     <next_state_label>: ;
             //     this.state = finalizeState;
 
@@ -753,9 +724,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
                 GenerateSetResultOnPromiseIfActive(true));
 
-            // PROTOTYPE(async-streams): I'm not sure GenerateReturn does what I want
             blockBuilder.Add(
-                // return true;
+                // goto <exit_label>;
                 GenerateReturn(finished: false));
 
             blockBuilder.Add(

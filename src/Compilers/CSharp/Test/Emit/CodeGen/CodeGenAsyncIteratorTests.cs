@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // test should cover both case with AwaitOnCompleted and AwaitUnsafeOnCompleted
         // test `async IAsyncEnumerable<int> M() { return TaskLike(); }`
         // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
-        // Test normal break in async iterator
+        // Test normal break in async-iterator
         // WaitForNextAsync is resilient to be called out of turn. Test that.
         // Test a plain return statement
 

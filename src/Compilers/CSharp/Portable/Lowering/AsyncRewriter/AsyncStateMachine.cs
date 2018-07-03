@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// The class that represents a translated async or async iterator method.
+    /// The class that represents a translated async or async-iterator method.
     /// </summary>
     internal sealed class AsyncStateMachine : StateMachineTypeSymbol
     {
