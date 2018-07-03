@@ -656,8 +656,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 foreach (var action in refactoring.Actions)
                 {
-                    refactoringSuggestedActions.Add(new CodeRefactoringSuggestedAction(
-                        _owner, workspace, _subjectBuffer, refactoring.Provider, action));
+                    if (action.NestedCodeActions.Length > 0)
+                    {
+                        var nestedActions = action.NestedCodeActions.SelectAsArray(
+                            na => new CodeRefactoringSuggestedAction(
+                                _owner, workspace, _subjectBuffer, refactoring.Provider, na));
+
+                        var set = new SuggestedActionSet(categoryName: null,
+                            actions: nestedActions, priority: SuggestedActionSetPriority.Medium, applicableToSpan: applicableSpan);
+
+                        refactoringSuggestedActions.Add(new SuggestedActionWithNestedActions(
+                            _owner, workspace, _subjectBuffer,
+                            refactoring.Provider, action, set));
+                    }
+                    else
+                    {
+                        refactoringSuggestedActions.Add(new CodeRefactoringSuggestedAction(
+                            _owner, workspace, _subjectBuffer, refactoring.Provider, action));
+                    }
                 }
 
                 return new SuggestedActionSet(

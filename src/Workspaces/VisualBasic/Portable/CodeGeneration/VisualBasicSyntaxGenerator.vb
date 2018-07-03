@@ -317,6 +317,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.QualifiedName(DirectCast(left, NameSyntax), DirectCast(right, SimpleNameSyntax))
         End Function
 
+        Friend Overrides Function GlobalAliasedName(name As SyntaxNode) As SyntaxNode
+            Return QualifiedName(SyntaxFactory.GlobalName(), name)
+        End Function
+
         Public Overrides Function ReferenceEqualsExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.IsExpression(Parenthesize(left), Parenthesize(right))
         End Function

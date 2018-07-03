@@ -1689,6 +1689,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right);
 
         /// <summary>
+        /// Returns a new name node qualified with the 'global' alias ('Global' in VB).
+        /// </summary>
+        internal abstract SyntaxNode GlobalAliasedName(SyntaxNode name);
+
+        /// <summary>
         /// Creates a name expression from a dotted name string.
         /// </summary>
         public SyntaxNode DottedName(string dottedName)

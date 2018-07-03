@@ -3968,9 +3968,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right)
-        {
-            return SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
-        }
+            => SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
+
+        internal override SyntaxNode GlobalAliasedName(SyntaxNode name)
+            => SyntaxFactory.AliasQualifiedName(SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), (SimpleNameSyntax)name);
 
         public override SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
             => namespaceOrTypeSymbol.GenerateNameSyntax();
