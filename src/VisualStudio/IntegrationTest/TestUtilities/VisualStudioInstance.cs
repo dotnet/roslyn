@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             StartRemoteIntegrationService(dte);
 
-            string portName = $"IPC channel client for {HostProcess.Id}";
+            string portName = $"IPC channel client for {HostProcess.Id}; {Guid.NewGuid():b}";
             _integrationServiceChannel = new IpcChannel(
                 new Hashtable
                 {
@@ -260,10 +260,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
             finally
             {
-                if (_integrationServiceChannel != null
-                    && ChannelServices.RegisteredChannels.Contains(_integrationServiceChannel))
+                if (_integrationServiceChannel != null)
                 {
-                    ChannelServices.UnregisterChannel(_integrationServiceChannel);
+                    if (ChannelServices.RegisteredChannels.Contains(_integrationServiceChannel))
+                    {
+                        ChannelServices.UnregisterChannel(_integrationServiceChannel);
+                    }
+
+                    _integrationServiceChannel.StopListening(null);
                 }
             }
         }

@@ -286,10 +286,14 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    if (channel != null
-                        && ChannelServices.RegisteredChannels.Contains(channel))
+                    if (channel != null)
                     {
-                        ChannelServices.UnregisterChannel(channel);
+                        if (ChannelServices.RegisteredChannels.Contains(channel))
+                        {
+                            ChannelServices.UnregisterChannel(channel);
+                        }
+
+                        channel.StopListening(null);
                     }
                 }
 

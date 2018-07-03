@@ -262,6 +262,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     ChannelServices.UnregisterChannel(_channel);
                 }
 
+                _channel.StopListening(null);
                 _channel = null;
             }
         }

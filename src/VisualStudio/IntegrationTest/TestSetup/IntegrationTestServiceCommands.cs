@@ -99,7 +99,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 var serviceType = typeof(IntegrationService);
                 _marshalledService = RemotingServices.Marshal(_service, serviceType.FullName, serviceType);
 
-                _serviceChannel.StartListening(null);
                 ChannelServices.RegisterChannel(_serviceChannel, ensureSecurity: true);
 
                 SwapAvailableCommands(_startMenuCmd, _stopMenuCmd);
