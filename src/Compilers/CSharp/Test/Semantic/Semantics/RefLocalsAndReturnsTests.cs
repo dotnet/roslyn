@@ -3836,28 +3836,185 @@ public class C
         }
 
         [Fact]
-        [WorkItem(26978, "https://github.com/dotnet/roslyn/issues/26978")]
-        public void BindingRefDynamicObjAssignment()
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_ArrayElement()
         {
-            CompileAndVerify(@"
+            CreateCompilation(@"
+public class C
+{
+    public void M(int[] array, ref int value)
+    {
+        array[0] = ref value;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         array[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "array[0]").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_PointerIndirectionOperator()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int* ptr, ref int value)
+    {
+        *ptr = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         *ptr = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "*ptr").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_PointerElementAccess()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int* ptr, ref int value)
+    {
+        ptr[0] = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         ptr[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "ptr[0]").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_RefvalueExpression()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int x)
+    {
+        __refvalue(__makeref(x), int) = ref x;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         __refvalue(__makeref(x), int) = ref x;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "__refvalue(__makeref(x), int)").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_DynamicIndexerAccess()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(dynamic d, ref int value)
+    {
+        d[0] = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         d[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d[0]").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_DynamicMemberAccess()
+        {
+            CreateCompilation(@"
+public unsafe class C
+{
+    public void M(dynamic d, ref int value)
+    {
+        d.member = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         d.member = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d.member").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
+        public void RefReturnInvocationOfRefLikeTypeRefResult()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+class C
+{
+    public ref long M(S receiver)
+    {
+        long x = 0;
+        ref long y = ref receiver.M(ref x);
+        return ref y;
+    }
+
+    public ref long M2(S receiver)
+    {
+        long x = 0;
+        {
+            ref long y = ref receiver.M(ref x);
+            return ref y;
+        }
+    }
+}
+ref struct S
+{
+    public ref long M(ref long x) => ref x;
+}").VerifyDiagnostics(
+                // (8,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(8, 20),
+                // (16,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //             return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(16, 24));
+        }
+
+        [Fact]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
+        public void RefReturnInvocationOfRefLikeTypeRefResult_Repro()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
-    public int P;
+  static void Main(string[] args)
+  {
+    ref long x = ref M(default); // get a reference to the stack which will be used for the next method
+    M2(ref x); // break things
+    Console.ReadKey();
+  }
 
-    static void Main()
+  public static ref long M(S receiver)
+  {
+    Span<long> ls = stackalloc long[0]; // change the length of this stackalloc to move the resulting pointer and break different things
+    long x = 0;
+    ref var y = ref x;
     {
-        dynamic x = new C();
-        x.P = 5;
-        Console.WriteLine(x.P);
-        
-        dynamic y = new C();
-        y.P = ref x.P;
-        Console.WriteLine(y.P);
+      ref var z = ref receiver.M(ref y);
+      return ref z;
     }
-}", references: new[] { CSharpRef }, expectedOutput: @"
-5
-5");
+  }
+
+  static void M2(ref long q)
+  {
+    Span<long> span = stackalloc long[50];
+    var element = span[0]; // it was ok
+    q = -1; // break things
+    element = span[0]; // and not it's broken:
+                       // System.AccessViolationException: 'Attempted to read or write protected memory. This is often an indication that other memory is corrupt.'
+  }
+}
+
+ref struct S
+{
+  public ref long M(ref long x) => ref x;
+}").VerifyDiagnostics(
+                // (19,18): error CS8157: Cannot return 'z' by reference because it was initialized to a value that cannot be returned by reference
+                //       return ref z;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "z").WithArguments("z").WithLocation(19, 18));
         }
     }
 }

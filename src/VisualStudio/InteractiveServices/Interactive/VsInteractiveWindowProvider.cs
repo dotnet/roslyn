@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-extern alias core;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,6 +15,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -62,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         protected abstract Guid LanguageServiceGuid { get; }
         protected abstract Guid Id { get; }
         protected abstract string Title { get; }
-        protected abstract core::Microsoft.CodeAnalysis.Internal.Log.FunctionId InteractiveWindowFunctionId { get; }
+        protected abstract FunctionId InteractiveWindowFunctionId { get; }
 
         protected IInteractiveWindowCommandsFactory CommandsFactory
         {
@@ -83,12 +82,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         public void Create(int instanceId)
         {
             var evaluator = CreateInteractiveEvaluator(_vsServiceProvider, _classifierAggregator, _contentTypeRegistry, _vsWorkspace);
-
+            
             Debug.Assert(_vsInteractiveWindow == null);
 
             // ForceCreate means that the window should be created if the persisted layout indicates that it is visible.
             _vsInteractiveWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, __VSCREATETOOLWIN.CTW_fForceCreate);
             _vsInteractiveWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
+
+            if (_vsInteractiveWindow is ToolWindowPane interactiveWindowPane)
+            {
+                evaluator.OnBeforeReset += options => interactiveWindowPane.Caption = Title + (options.Is64Bit ? " (64-bit)" : " (32-bit)");
+            }
 
             var window = _vsInteractiveWindow.InteractiveWindow;
             window.TextView.Options.SetOptionValue(DefaultTextViewHostOptions.SuggestionMarginId, true);
@@ -127,18 +131,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         protected void LogSession(string key, string value)
         {
-            core::Microsoft.CodeAnalysis.Internal.Log.Logger.Log(InteractiveWindowFunctionId,
-                    core::Microsoft.CodeAnalysis.Internal.Log.KeyValueLogMessage.Create(m => m.Add(key, value)));
+            Logger.Log(InteractiveWindowFunctionId, KeyValueLogMessage.Create(m => m.Add(key, value)));
         }
 
         private void LogCloseSession(int languageBufferCount)
         {
-            core::Microsoft.CodeAnalysis.Internal.Log.Logger.Log(InteractiveWindowFunctionId,
-                       core::Microsoft.CodeAnalysis.Internal.Log.KeyValueLogMessage.Create(m =>
-                       {
-                           m.Add(LogMessage.Window, LogMessage.Close);
-                           m.Add(LogMessage.LanguageBufferCount, languageBufferCount);
-                       }));
+            Logger.Log(InteractiveWindowFunctionId,
+                KeyValueLogMessage.Create(m =>
+                {
+                    m.Add(LogMessage.Window, LogMessage.Close);
+                    m.Add(LogMessage.LanguageBufferCount, languageBufferCount);
+                }));
         }
 
         private static ImmutableArray<IInteractiveWindowCommand> GetApplicableCommands(IInteractiveWindowCommand[] commands, string coreContentType, string specializedContentType)

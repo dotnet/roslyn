@@ -3509,7 +3509,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             receiver,
                             resultMember.Parameters,
                             arguments,
-                            refKinds,
                             argsToParamsOpt,
                             this.LocalScopeDepth,
                             diagnostics);
@@ -4660,7 +4659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         null,
                         method.Parameters,
                         arguments,
-                        refKinds,
                         argToParams,
                         this.LocalScopeDepth,
                         diagnostics);
@@ -7014,7 +7012,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiver,
                         property.Parameters,
                         arguments,
-                        argumentRefKinds,
                         argsToParams,
                         this.LocalScopeDepth,
                         diagnostics);
