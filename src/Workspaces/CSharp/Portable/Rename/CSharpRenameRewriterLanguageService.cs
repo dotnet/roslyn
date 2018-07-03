@@ -814,19 +814,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     renamedSymbol.Kind == SymbolKind.RangeVariable)
                 {
                     var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
-
-                    var methodDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
+                    var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
                     var visitor = new LocalConflictVisitor(token);
-                    visitor.Visit(methodDeclaration);
+
+                    visitor.Visit(memberDeclaration);
                     conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
+
+                    // If this is a parameter symbol for a partial method definition, be sure we visited 
+                    // the implementation part's body.
+                    if (renamedSymbol is IParameterSymbol renamedParameterSymbol &&
+                        renamedSymbol.ContainingSymbol is IMethodSymbol methodSymbol &&
+                        methodSymbol.PartialImplementationPart != null)
+                    {
+                        var matchingParameterSymbol = methodSymbol.PartialImplementationPart.Parameters[renamedParameterSymbol.Ordinal];
+
+                        token = matchingParameterSymbol.Locations.Single().FindToken(cancellationToken);
+                        memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
+                        visitor = new LocalConflictVisitor(token);
+                        visitor.Visit(memberDeclaration);
+                        conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
+                    }
                 }
                 else if (renamedSymbol.Kind == SymbolKind.Label)
                 {
                     var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
-
-                    var methodDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
+                    var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
                     var visitor = new LabelConflictVisitor(token);
-                    visitor.Visit(methodDeclaration);
+
+                    visitor.Visit(memberDeclaration);
                     conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
                 }
                 else if (renamedSymbol.Kind == SymbolKind.Method)

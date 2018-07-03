@@ -1459,9 +1459,11 @@ class C
 
         <WorkItem(544293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NoKeywordsOrSymbolsAfterNamedParameter() As Task
-            Using state = TestState.CreateCSharpTestState(
-                              <Document>
+        Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                        <Workspace>
+                            <Project Language="C#" CommonReferences="true" LanguageVersion="7">
+                                <Document>
 class Goo
 {
     void Test()
@@ -1474,13 +1476,41 @@ class Goo
     {
     }
 }
-                              </Document>)
+                              </Document>
+                            </Project>
+                        </Workspace>)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
                 Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:"))
                 Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
                 Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function KeywordsOrSymbolsAfterNamedParameter() As Task
+            Using state = TestState.CreateCSharpTestState(
+                                <Document>
+class Goo
+{
+    void Test()
+    {
+        object m = null;
+        Method(obj:m, $$
+    }
+
+    void Method(object obj, int num = 23, string str = "")
+    {
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("a")
+                Await state.AssertCompletionSession()
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
             End Using
         End Function
 
@@ -1827,7 +1857,7 @@ class D : C
                 state.SendTypeChars(" Goo")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("public override void Goo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+                Assert.Contains("public override void Goo<S>(S x = default)", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -3859,7 +3889,7 @@ class C
                 context.AddItem(CompletionItem.Create(
                     "CustomItem",
                     rules:=CompletionItemRules.Default.WithMatchPriority(1000)))
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
 
             Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean

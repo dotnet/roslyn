@@ -1208,7 +1208,7 @@ public static class ErrorCases
         }
 
         [WorkItem(544440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestBug12768()
         {
             string sourceDefinitions = @"

@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 var analysis = semanticModel.AnalyzeDataFlow(syntax);
-                var captures = analysis.CapturedInside;
+                var captures = analysis.CapturedInside.Except(analysis.VariablesDeclared).ToImmutableArray();
                 if (!captures.IsEmpty)
                 {
                     var parts = new List<SymbolDisplayPart>();

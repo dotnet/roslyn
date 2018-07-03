@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return !type.IsSpecialType();
         }
 
-        private Glyph GetGlyph(SymbolKind kind, Accessibility declaredAccessibility)
+        private Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
         {
             Glyph publicIcon;
             switch (kind)

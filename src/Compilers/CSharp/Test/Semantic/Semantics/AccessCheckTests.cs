@@ -640,7 +640,8 @@ public class A
                 Diagnostic(ErrorCode.ERR_BadAccess, "c_priv").WithArguments("C.c_priv").WithLocation(9, 19),
                 // (10,17): error CS0122: 'D' is inaccessible due to its protection level
                 //         int f = D.d_pub;
-                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17)
+                );
         }
 
         [Fact]
@@ -683,7 +684,8 @@ public class A: C
                 Diagnostic(ErrorCode.ERR_BadAccess, "c_priv").WithArguments("C.c_priv").WithLocation(9, 19),
                 // (10,17): error CS0122: 'D' is inaccessible due to its protection level
                 //         int f = D.d_pub;
-                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17)
+                );
         }
 
         [Fact]
@@ -984,7 +986,8 @@ public class A
             c.VerifyDiagnostics(
                 // (6,17): error CS0122: 'C' is inaccessible due to its protection level
                 //     protected B(C o) {}
-                Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("C").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("C").WithLocation(6, 17)
+                );
         }
 
         [Fact]
@@ -1034,8 +1037,9 @@ public class A
 
             assembly2Compilation.VerifyDiagnostics(
                 // (7,35): error CS0122: 'InstancePropertyContainer.PropIntProProSet' is inaccessible due to its protection level
-                //         PropIntProProSet
-                Diagnostic(ErrorCode.ERR_BadAccess, "PropIntProProSet").WithArguments("InstancePropertyContainer.PropIntProProSet"));
+                //         InstancePropertyContainer.PropIntProProSet = 12;
+                Diagnostic(ErrorCode.ERR_BadAccess, "PropIntProProSet").WithArguments("InstancePropertyContainer.PropIntProProSet").WithLocation(7, 35)
+                );
         }
 
         [WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]

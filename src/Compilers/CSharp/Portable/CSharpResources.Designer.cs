@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async methods cannot have by reference locals.
+        ///   Looks up a localized string similar to Async methods cannot have by-reference locals.
         /// </summary>
         internal static string ERR_BadAsyncLocalType {
             get {
@@ -1637,7 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Iterators cannot have by reference locals.
+        ///   Looks up a localized string similar to Iterators cannot have by-reference locals.
         /// </summary>
         internal static string ERR_BadIteratorLocalType {
             get {
@@ -4670,6 +4670,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 8.0. Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion8 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion8", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_FeatureNotValidInExpressionTree {
@@ -4931,7 +4940,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Friend access was granted by &apos;{0}&apos;, but the public key of the output assembly does not match that specified by the attribute in the granting assembly..
+        ///   Looks up a localized string similar to Friend access was granted by &apos;{0}&apos;, but the public key of the output assembly (&apos;{1}&apos;) does not match that specified by the InternalsVisibleTo attribute in the granting assembly..
         /// </summary>
         internal static string ERR_FriendRefNotEqualToThis {
             get {

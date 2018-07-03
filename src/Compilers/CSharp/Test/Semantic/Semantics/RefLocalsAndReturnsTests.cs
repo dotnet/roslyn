@@ -527,21 +527,24 @@ class C
     void M(ref Span<int> s)
     {
         Span<int> s2 = new Span<int>(new int[10]);
-        s = ref s2; // OK
+        s = ref s2; // Illegal, narrower escape scope
 
         s2 = stackalloc int[10]; // Illegal, narrower lifetime
 
         Span<int> s3 = stackalloc int[10];
-        s = ref s3; // Illegal, narrower lifetime
+        s = ref s3; // Illegal, narrower escape scope
     }
 }");
             comp.VerifyDiagnostics(
+                // (8,9): error CS8374: Cannot ref-assign 's2' to 's' because 's2' has a narrower escape scope than 's'.
+                //         s = ref s2; // Illegal, narrower escape scope
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s2").WithArguments("s", "s2").WithLocation(8, 9),
                 // (10,14): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         s2 = stackalloc int[10]; // Illegal, narrower lifetime
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(10, 14),
-                // (13,17): error CS8352: Cannot use local 's3' in this context because it may expose referenced variables outside of their declaration scope
-                //         s = ref s3; // Illegal, narrower lifetime
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s3").WithArguments("s3").WithLocation(13, 17));
+                // (13,9): error CS8374: Cannot ref-assign 's3' to 's' because 's3' has a narrower escape scope than 's'.
+                //         s = ref s3; // Illegal, narrower escape scope
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9));
         }
 
         [Fact]
@@ -1114,7 +1117,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,26): error CS8177: Async methods cannot have by reference locals
+                // (7,26): error CS8177: Async methods cannot have by-reference locals
                 //         ref readonly int x = ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x = ref (new int[1])[0]").WithLocation(7, 26));
         }
@@ -1134,7 +1137,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,26): error CS8176: Iterators cannot have by reference locals
+                // (7,26): error CS8176: Iterators cannot have by-reference locals
                 //         ref readonly int x = ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(7, 26));
         }
@@ -2601,10 +2604,10 @@ class TestClass
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (13,21): error CS8176: Iterators cannot have by reference locals
+                // (13,21): error CS8176: Iterators cannot have by-reference locals
                 //             ref int z = ref x;
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "z").WithLocation(13, 21),
-                // (8,17): error CS8176: Iterators cannot have by reference locals
+                // (8,17): error CS8176: Iterators cannot have by-reference locals
                 //         ref int y = ref x;
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(8, 17));
         }
@@ -2628,10 +2631,10 @@ class TestClass
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
-                // (8,17): error CS8177: Async methods cannot have by reference locals
+                // (8,17): error CS8177: Async methods cannot have by-reference locals
                 //         ref int y = ref x;
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y = ref x").WithLocation(8, 17),
-                // (11,21): error CS8177: Async methods cannot have by reference locals
+                // (11,21): error CS8177: Async methods cannot have by-reference locals
                 //             ref int z = ref x;
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "z = ref x").WithLocation(11, 21));
         }
@@ -2948,7 +2951,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,17): error CS8932: Async methods cannot have by reference locals
+                // (8,17): error CS8932: Async methods cannot have by-reference locals
                 //         ref int i = ref field;
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i = ref field").WithLocation(8, 17),
                 // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -2975,7 +2978,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (10,17): error CS8931: Iterators cannot have by reference locals
+                // (10,17): error CS8931: Iterators cannot have by-reference locals
                 //         ref int i = ref field;
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "i").WithLocation(10, 17));
         }
@@ -3813,6 +3816,48 @@ class Test
                 // (10,22): error CS1003: Syntax error, ',' expected
                 //         M(out in int x);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 22));
+        }
+
+        [Fact]
+        [WorkItem(26516, "https://github.com/dotnet/roslyn/issues/26516")]
+        public void BindingRefVoidAssignment()
+        {
+            CreateCompilation(@"
+public class C
+{
+	public void M(ref int x)
+    {
+    	M(ref void = ref x);
+    }
+}").VerifyDiagnostics(
+                // (6,12): error CS1525: Invalid expression term 'void'
+                //     	M(ref void = ref x);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(6, 12));
+        }
+
+        [Fact]
+        [WorkItem(26978, "https://github.com/dotnet/roslyn/issues/26978")]
+        public void BindingRefDynamicObjAssignment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    public int P;
+
+    static void Main()
+    {
+        dynamic x = new C();
+        x.P = 5;
+        Console.WriteLine(x.P);
+        
+        dynamic y = new C();
+        y.P = ref x.P;
+        Console.WriteLine(y.P);
+    }
+}", references: new[] { CSharpRef }, expectedOutput: @"
+5
+5");
         }
     }
 }
