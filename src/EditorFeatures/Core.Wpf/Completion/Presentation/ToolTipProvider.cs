@@ -69,13 +69,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                 // Kick off the task to produce the new content.  When it completes, call back on
                 // the UI thread to update the display.
-                var getDescriptionTask = item.GetDescriptionAsync(_cancellationTokenSource.Token);
-                if (getDescriptionTask != null)
-                {
-                    var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-                    getDescriptionTask.ContinueWith(ProcessDescription, _cancellationTokenSource.Token,
-                                            TaskContinuationOptions.OnlyOnRanToCompletion, scheduler);
-                }
+                var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                item.GetDescriptionAsync(_cancellationTokenSource.Token)
+                    .ContinueWith(ProcessDescription, _cancellationTokenSource.Token,
+                                  TaskContinuationOptions.OnlyOnRanToCompletion, scheduler);
 
                 // If we get unloaded (i.e. the user scrolls down in the completion list and VS
                 // dismisses the existing tooltip), then cancel the work we're doing
