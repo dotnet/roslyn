@@ -44,6 +44,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             var view = await GetActiveTextViewAsync();
             var broker = await GetComponentModelServiceAsync<ICompletionBroker>();
 
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet);
+
             var sessions = broker.GetSessions(view);
             if (sessions.Count != 1)
             {
