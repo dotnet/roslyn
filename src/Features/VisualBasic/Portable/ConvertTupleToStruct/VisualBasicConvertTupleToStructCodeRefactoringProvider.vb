@@ -32,25 +32,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
                 SyntaxFactory.SeparatedList(Of ArgumentSyntax)(tuple.Arguments.GetWithSeparators()),
                 tuple.CloseParenToken)
         End Function
-
-        'Private Function CreateArguments(initializers As SeparatedSyntaxList(Of FieldInitializerSyntax)) As SeparatedSyntaxList(Of ArgumentSyntax)
-        '    Return SyntaxFactory.SeparatedList(Of ArgumentSyntax)(CreateArguments(initializers.GetWithSeparators()))
-        'End Function
-
-        'Private Function CreateArguments(list As SyntaxNodeOrTokenList) As SyntaxNodeOrTokenList
-        '    Return New SyntaxNodeOrTokenList(list.Select(AddressOf CreateArgumentOrComma))
-        'End Function
-
-        'Private Function CreateArgumentOrComma(declOrComma As SyntaxNodeOrToken) As SyntaxNodeOrToken
-        '    Return If(declOrComma.IsToken,
-        '               declOrComma,
-        '               CreateArgument(CType(declOrComma, FieldInitializerSyntax)))
-        'End Function
-
-        'Private Function CreateArgument(initializer As FieldInitializerSyntax) As ArgumentSyntax
-        '    Dim expression = If(TryCast(initializer, InferredFieldInitializerSyntax)?.Expression,
-        '                        TryCast(initializer, NamedFieldInitializerSyntax)?.Expression)
-        '    Return SyntaxFactory.SimpleArgument(expression)
-        'End Function
     End Class
 End Namespace

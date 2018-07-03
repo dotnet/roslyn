@@ -34,18 +34,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
                 tupleExpression.Arguments,
                 tupleExpression.CloseParenToken);
 
-        //private SeparatedSyntaxList<ArgumentSyntax> CreateArguments(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
-        //    => SyntaxFactory.SeparatedList<ArgumentSyntax>(CreateArguments(initializers.GetWithSeparators()));
-
-        //private SyntaxNodeOrTokenList CreateArguments(SyntaxNodeOrTokenList list)
-        //    => new SyntaxNodeOrTokenList(list.Select(CreateArgumentOrComma));
-
-        //private SyntaxNodeOrToken CreateArgumentOrComma(SyntaxNodeOrToken declOrComma)
-        //    => declOrComma.IsToken
-        //        ? declOrComma
-        //        : CreateArgument((AnonymousObjectMemberDeclaratorSyntax)declOrComma);
-
-        //private ArgumentSyntax CreateArgument(AnonymousObjectMemberDeclaratorSyntax decl)
-        //    => SyntaxFactory.Argument(decl.Expression);
-    }
+    
 }
