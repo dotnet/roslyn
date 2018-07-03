@@ -35005,7 +35005,7 @@ class C2<T, U> : I<T>, I<U?> where T : struct where U : class { }
 class C3<T, U> : I<T?>, I<U> where T : struct where U : class { }
 class C4<T, U> : I<T?>, I<U?> where T : struct where U : class { }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // See https://github.com/dotnet/roslyn/issues/28255.
+            // Constraints are ignored when unifying types.
             comp.VerifyDiagnostics(
                 // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C1<T, U> : I<T>, I<U> where T : struct where U : class { }
@@ -35402,12 +35402,12 @@ class B4 : A<string?>
                 verifyConstraintTypes("B2.F4", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B3.F1", "System.String!", "I<System.String!>");
                 verifyConstraintTypes("B3.F2", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B3.F3", "System.String!", "I<System.String!>"); // PROTOTYPE(NullableReferenceTypes): Should be I<System.String!>!. See TypeSymbolWithAnnotations.SubstituteType.
-                verifyConstraintTypes("B3.F4", "System.String?", "I<System.String?>"); // PROTOTYPE(NullableReferenceTypes): Should be I<System.String?>!. See TypeSymbolWithAnnotations.SubstituteType.
+                verifyConstraintTypes("B3.F3", "System.String!", "I<System.String!>");
+                verifyConstraintTypes("B3.F4", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B4.F1", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B4.F2", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B4.F3", "System.String?", "I<System.String?>"); // PROTOTYPE(NullableReferenceTypes): Should be I<System.String?>!. See TypeSymbolWithAnnotations.SubstituteType.
-                verifyConstraintTypes("B4.F4", "System.String?", "I<System.String?>"); // PROTOTYPE(NullableReferenceTypes): Should be I<System.String?>!. See TypeSymbolWithAnnotations.SubstituteType.
+                verifyConstraintTypes("B4.F3", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B4.F4", "System.String?", "I<System.String?>");
             }
 
             void verifyConstraintTypes(string methodName, params string[] expectedTypes)
