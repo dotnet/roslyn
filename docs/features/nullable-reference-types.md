@@ -187,6 +187,15 @@ class C<T> where T : class
     static void F2<U>() where U : I<T>, I<T?> { } // error: duplicate constraint
 }
 ```
-_If `List<T>` is defined in an unannotated assembly, with `List<string>` is `T` `string!` or `string~`?_
+_What are the rules for annotated (unannotated) type arguments for generic type parameters from unannotated (annotated) types and methods?_
+```c#
+[NotNullTypes(false)] List<T> F1<T>(T t) where T : class { ... }
+[NotNullTypes(true)]  List<T> F2<T>(T t) where T : class { ... }
+[NotNullTypes(true)]  List<T> F3<T>(T? t) where T : class { ... }
+var x = F1(notNullString);   // List<string!> or List<string~> ?
+var y = F1(maybeNullString); // List<string?> or List<string~> ?
+var z = F2(obliviousString); // List<string~>! or List<string!>! ?
+var w = F3(obliviousString); // List<string~>! or List<string?>! ?
+```
 ## Compiler switch
 _Describe behavior when feature is disabled._
