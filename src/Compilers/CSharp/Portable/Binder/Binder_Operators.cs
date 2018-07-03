@@ -3527,15 +3527,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool rightTypeIsNonNull = !(optRightType is null);
             bool isLeftNullable = leftType.IsNullableType();
 
-            // If A exists and is not a nullable type or reference type, a compile-time error occurs
+            // If A is not a nullable type or reference type, a compile-time error occurs
             if (!leftType.IsReferenceType && !isLeftNullable)
             {
-                return generateNullCoalescingAssignmentBadBinaryOpsError();
+                return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
             }
 
-            // If A exists and an implicit conversion exists from B to A, we store that conversion. At runtime,
-            // a is first evaluated. If a is not null, b is not evaluated. If a is null, b is evaluated and converted
-            // to type A, and is stored in a.
+            // If implicit conversion exists from B to A, we store that conversion. At runtime, a is first evaluated. If
+            // a is not null, b is not evaluated. If a is null, b is evaluated and converted to type A, and is stored in a.
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, leftType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
@@ -3546,13 +3545,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // a and b are incompatible and a compile-time error occurs
-            return generateNullCoalescingAssignmentBadBinaryOpsError();
+            return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
 
-            BoundExpression generateNullCoalescingAssignmentBadBinaryOpsError()
-            {
-                Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
-                return new BoundNullCoalesingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
-            }
+        }
+
+        BoundExpression GenerateNullCoalescingAssignmentBadBinaryOpsError(AssignmentExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, DiagnosticBag diagnostics)
+        {
+            Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
+            return new BoundNullCoalesingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
         }
 
         /// <remarks>
