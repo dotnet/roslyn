@@ -977,14 +977,12 @@ public class C
         {
             CompileAndVerify(@"
 using System;
-using System.Threading.Tasks;
 class DynamicTest
 {
 	public int Property
 	{
 		get {
 			Console.WriteLine(""get_Property"");
-
             return 0;
         }
         set {
@@ -1004,7 +1002,7 @@ class DynamicTest
         return 1;
     }
 
-    public static async Task Main()
+    public static void Main()
     {
         GetDynamic().Property += GetInt();
     }
