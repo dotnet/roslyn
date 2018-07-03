@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Roslyn.Utilities;
@@ -67,6 +64,15 @@ namespace Microsoft.CodeAnalysis
             return sb.ToString();
         }
 
+        /// <summary>
+        /// <![CDATA[
+        /// <path-list> ::= <path-item> | <path-item> <path-list>
+        /// <path-item> ::= "*"  | "**" | "?" | <char> | <choice> | <range>
+        /// <char> ::= any unicode character
+        /// <choice> ::= "{" <choice-list> "}"
+        /// <choice-list> ::= <path-list> | <path-list> "," <choice-list>
+        /// ]]>
+        /// </summary>
         private static bool TryCompilePathList(
             ref SectionNameLexer lexer,
             StringBuilder sb,
@@ -98,6 +104,8 @@ namespace Microsoft.CodeAnalysis
                         sb.Append(".*");
                         break;
                     case TokenKind.OpenCurly:
+                        // Back up token stream. The following helpers all expect a '{'
+                        lexer.Position--;
                         // This is ambiguous between {num..num} and {item1,item2}
                         // We need to look ahead to disambiguate. Looking for {num..num}
                         // is easier because it can't be recursive.
@@ -109,12 +117,14 @@ namespace Microsoft.CodeAnalysis
                             {
                                 return false;
                             }
+                            // Keep looping. There may be more after the '}'.
+                            break;
                         }
                         else
                         {
                             // PROTOTYPE: Implement number range compilation
+                            return false;
                         }
-                        break;
                     case TokenKind.CloseCurly:
                         // Either the end of a choice, or a failed parse
                         return parsingChoice;
@@ -149,8 +159,20 @@ namespace Microsoft.CodeAnalysis
             return !parsingChoice;
         }
 
+        /// <summary>
+        /// Parses choice defined by the following grammar:
+        /// <![CDATA[
+        /// <choice> ::= "{" <choice-list> "}"
+        /// <choice-list> ::= <path-list> | <path-list> "," <choice-list>
+        /// ]]>
+        /// </summary>
         private static bool TryCompileChoice(ref SectionNameLexer lexer, StringBuilder sb)
         {
+            if (lexer.Lex() != TokenKind.OpenCurly)
+            {
+                return false;
+            }
+
             // Start a non-capturing group for the choice
             sb.Append("(?:");
 
@@ -182,10 +204,24 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        /// <summary>
+        /// Parses range defined by the following grammar.
+        /// <![CDATA[
+        /// <range> ::= "{" <integer> ".." <integer> "}"
+        /// <integer> ::= "-" <digit-list> | <digit-list>
+        /// <digit-list> ::= <digit> | <digit> <digit-list>
+        /// <digit> ::= 0-9
+        /// ]]>
+        /// </summary>
         private static (string numStart, string numEnd)? TryParseNumberRange(ref SectionNameLexer lexer)
         {
             var saved = lexer.Position;
-            // We start immediately after a '{'
+            if (lexer.Lex() != TokenKind.OpenCurly)
+            {
+                lexer.Position = saved;
+                return null;
+            }
+
             var num1 = lexer.TryLexNumber();
             if (num1 is null || lexer.IsDone)
             {
@@ -204,8 +240,7 @@ namespace Microsoft.CodeAnalysis
 
             // Now another number
             var num2 = lexer.TryLexNumber();
-            if (num2 is null || lexer.IsDone ||
-                lexer.Lex() != TokenKind.CloseCurly)
+            if (num2 is null || lexer.IsDone || lexer.Lex() != TokenKind.CloseCurly)
             {
                 // Not a number or no '}'
                 lexer.Position = saved;
@@ -336,7 +371,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         sb.Append('-');
                     }
-                    else if (currentChar >= '0' && currentChar <= '9')
+                    else if (char.IsDigit(currentChar))
                     {
                         sb.Append(currentChar);
                     }
