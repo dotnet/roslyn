@@ -4,41 +4,23 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 {
-    internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvider<
-        TExpressionSyntax,
-        TNameSyntax,
-        TIdentifierNameSyntax,
-        TObjectCreationExpressionSyntax,
-        TTupleExpressionSyntax,
-        TTupleTypeSyntax,
-        TTypeBlockSyntax,
-        TNamespaceDeclarationSyntax> where TExpressionSyntax : SyntaxNode
-        where TNameSyntax : TExpressionSyntax
-        where TIdentifierNameSyntax : TNameSyntax
-        where TObjectCreationExpressionSyntax : TExpressionSyntax
-        where TTupleExpressionSyntax : TExpressionSyntax
-        where TTupleTypeSyntax : SyntaxNode
-        where TTypeBlockSyntax : SyntaxNode
-        where TNamespaceDeclarationSyntax : SyntaxNode
+    internal struct DocumentToUpdate
     {
-        private struct DocumentToUpdate
+        /// <summary>
+        /// The document to update.
+        /// </summary>
+        public readonly Document Document;
+
+        /// <summary>
+        /// The subnodes in this document to walk and update.  If empty, the entire document
+        /// should be walked.
+        /// </summary>
+        public readonly ImmutableArray<SyntaxNode> NodesToUpdate;
+
+        public DocumentToUpdate(Document document, ImmutableArray<SyntaxNode> nodesToUpdate)
         {
-            /// <summary>
-            /// The document to update.
-            /// </summary>
-            public readonly Document Document;
-
-            /// <summary>
-            /// The subnodes in this document to walk and update.  If empty, the entire document
-            /// should be walked.
-            /// </summary>
-            public readonly ImmutableArray<SyntaxNode> NodesToUpdate;
-
-            public DocumentToUpdate(Document document, ImmutableArray<SyntaxNode> nodesToUpdate)
-            {
-                Document = document;
-                NodesToUpdate = nodesToUpdate;
-            }
+            Document = document;
+            NodesToUpdate = nodesToUpdate;
         }
     }
 }

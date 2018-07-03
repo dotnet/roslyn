@@ -33,6 +33,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
                 tupleExpression.OpenParenToken,
                 tupleExpression.Arguments,
                 tupleExpression.CloseParenToken);
-
-    
+    }
 }
