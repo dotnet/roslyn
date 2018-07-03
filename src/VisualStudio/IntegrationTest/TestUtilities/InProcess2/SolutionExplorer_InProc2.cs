@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -126,7 +127,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             _fileName = Path.Combine(solutionPath, $"{solutionName}.sln");
         }
 
-#if false
         public string[] GetAssemblyReferences(string projectName)
         {
             var project = GetProject(projectName);
@@ -136,6 +136,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return references;
         }
 
+#if false
         public void RenameFile(string projectName, string oldFileName, string newFileName)
         {
             var projectItem = GetProjectItem(projectName, oldFileName);
@@ -158,6 +159,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             ExecuteCommand("Project.EditProjectFile");
         }
+#endif
 
         public string[] GetProjectReferences(string projectName)
         {
@@ -166,18 +168,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return references;
         }
 
-        public void CreateSolution(string solutionName, string solutionElementString)
+        public async Task CreateSolutionAsync(string solutionName, XElement solutionElement)
         {
-            var solutionElement = XElement.Parse(solutionElementString);
             if (solutionElement.Name != "Solution")
             {
-                throw new ArgumentException(nameof(solutionElementString));
+                throw new ArgumentException(nameof(solutionElement));
             }
-            CreateSolution(solutionName);
+
+            await CreateSolutionAsync(solutionName);
 
             foreach (var projectElement in solutionElement.Elements("Project"))
             {
-                CreateProject(projectElement);
+                await CreateProjectAsync(projectElement);
             }
 
             foreach (var projectElement in solutionElement.Elements("Project"))
@@ -194,7 +196,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-        private void CreateProject(XElement projectElement)
+        private async Task CreateProjectAsync(XElement projectElement)
         {
             const string language = "Language";
             const string name = "ProjectName";
@@ -207,16 +209,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 ?? throw new ArgumentException($"You must specify an attribute called '{template}' on a project element.");
 
             var projectPath = Path.Combine(DirectoryName, projectName);
-            var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
+            var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName));
 
             _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
             foreach (var documentElement in projectElement.Elements("Document"))
             {
                 var fileName = documentElement.Attribute("FileName").Value;
-                UpdateOrAddFile(projectName, fileName, contents: documentElement.Value);
+                await UpdateOrAddFileAsync(projectName, fileName, contents: documentElement.Value);
             }
         }
-#endif
 
         public void AddProjectReference(string projectName, string projectToReferenceName)
         {
@@ -521,7 +522,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
 
-#if false
         /// <summary>
         /// Update the given file if it already exists in the project, otherwise add a new file to the project.
         /// </summary>
@@ -529,19 +529,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         /// <param name="fileName">The name of the file to update or add.</param>
         /// <param name="contents">The contents of the file to overwrite if the file already exists or set if the file it created. Empty string is used if null is passed.</param>
         /// <param name="open">Whether to open the file after it has been updated/created.</param>
-        public void UpdateOrAddFile(string projectName, string fileName, string contents = null, bool open = false)
+        public async Task UpdateOrAddFileAsync(string projectName, string fileName, string contents = null, bool open = false)
         {
             var project = GetProject(projectName);
             if (project.ProjectItems.Cast<EnvDTE.ProjectItem>().Any(x => x.Name == fileName))
             {
-                UpdateFile(projectName, fileName, contents, open);
+                await UpdateFileAsync(projectName, fileName, contents, open);
             }
             else
             {
-                AddFile(projectName, fileName, contents, open);
+                await AddFileAsync(projectName, fileName, contents, open);
             }
         }
-#endif
 
         /// <summary>
         /// Update the given file to have the contents given.

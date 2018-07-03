@@ -14,6 +14,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionExtensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -818,5 +819,179 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
         }
 #endif
+
+        public async Task<string> GetSelectedNavBarItemAsync(int comboBoxIndex)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar);
+
+            var view = await GetActiveTextViewAsync();
+            return (await GetNavigationBarComboBoxesAsync(view))[comboBoxIndex].SelectedItem?.ToString();
+        }
+
+        public async Task<string> GetProjectNavBarSelectionAsync()
+        {
+            return await GetSelectedNavBarItemAsync(0);
+        }
+
+        public async Task<string> GetTypeNavBarSelectionAsync()
+        {
+            return await GetSelectedNavBarItemAsync(1);
+        }
+
+        public async Task<string> GetMemberNavBarSelectionAsync()
+        {
+            return await GetSelectedNavBarItemAsync(2);
+        }
+
+        public async Task<string[]> GetNavBarItemsAsync(int comboBoxIndex)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar);
+
+            var view = await GetActiveTextViewAsync();
+            return (await GetNavigationBarComboBoxesAsync(view))[comboBoxIndex]
+                .Items
+                .OfType<object>()
+                .Select(i => i?.ToString() ?? "")
+                .ToArray();
+        }
+
+        public async Task<string[]> GetProjectNavBarItemsAsync()
+        {
+            return await GetNavBarItemsAsync(0);
+        }
+
+        public async Task<string[]> GetTypeNavBarItemsAsync()
+        {
+            return await GetNavBarItemsAsync(1);
+        }
+
+        public async Task<string[]> GetMemberNavBarItemsAsync()
+        {
+            return await GetNavBarItemsAsync(2);
+        }
+
+        public async Task<int> GetNavbarItemIndexAsync(int index, string itemText)
+        {
+            int FindItem(ComboBox comboBox)
+            {
+                for (int i = 0; i < comboBox.Items.Count; i++)
+                {
+                    if (comboBox.Items[i].ToString() == itemText)
+                    {
+                        return i;
+                    }
+                }
+
+                return -1;
+            }
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            return FindItem((await GetNavigationBarComboBoxesAsync(view))[index]);
+        }
+
+        public async Task ExpandNavigationBarAsync(int index)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar);
+
+            var view = await GetActiveTextViewAsync();
+            var combobox = (await GetNavigationBarComboBoxesAsync(view))[index];
+            combobox.Focus();
+            combobox.IsDropDownOpen = true;
+        }
+
+        public async Task ExpandProjectNavBarAsync()
+        {
+            await ExpandNavigationBarAsync(0);
+        }
+
+        public async Task ExpandTypeNavBarAsync()
+        {
+            await ExpandNavigationBarAsync(1);
+        }
+
+        public async Task ExpandMemberNavBarAsync()
+        {
+            await ExpandNavigationBarAsync(2);
+        }
+
+        public async Task SelectNavBarItemAsync(int comboboxIndex, string selection)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar);
+
+            var itemIndex = await GetNavbarItemIndexAsync(comboboxIndex, selection);
+            if (itemIndex < 0)
+            {
+                throw new ArgumentException($"Could not find {selection} in combobox");
+            }
+
+            await ExpandNavigationBarAsync(comboboxIndex);
+            await TestServices.SendKeys.SendAsync(VirtualKey.Home);
+            for (var i = 0; i < itemIndex; i++)
+            {
+                await TestServices.SendKeys.SendAsync(VirtualKey.Down);
+            }
+
+            await TestServices.SendKeys.SendAsync(VirtualKey.Enter);
+        }
+
+        public async Task SelectProjectNavbarItemAsync(string item)
+        {
+            await SelectNavBarItemAsync(0, item);
+        }
+
+        public async Task SelectTypeNavBarItemAsync(string item)
+        {
+            await SelectNavBarItemAsync(1, item);
+        }
+
+        public async Task SelectMemberNavBarItemAsync(string item)
+        {
+            await SelectNavBarItemAsync(2, item);
+        }
+
+        public async Task<bool> IsNavBarEnabledAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            return await GetNavbarAsync(view) != null;
+        }
+
+        private async Task<List<ComboBox>> GetNavigationBarComboBoxesAsync(IWpfTextView textView)
+        {
+            var margin = await GetNavbarAsync(textView);
+            var combos = margin.GetFieldValue<List<ComboBox>>("_combos");
+            return combos;
+        }
+
+        private async Task<UIElement> GetNavbarAsync(IWpfTextView textView)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var control = textView.VisualElement;
+            while (control != null)
+            {
+                if (control.GetType().Name == "WpfMultiViewHost")
+                {
+                    break;
+                }
+
+                control = VisualTreeHelper.GetParent(control) as FrameworkElement;
+            }
+
+            var topMarginControl = control.GetPropertyValue<ContentControl>("TopMarginControl");
+            var vsDropDownBarAdapterMargin = topMarginControl.Content as UIElement;
+            return vsDropDownBarAdapterMargin;
+        }
     }
 }

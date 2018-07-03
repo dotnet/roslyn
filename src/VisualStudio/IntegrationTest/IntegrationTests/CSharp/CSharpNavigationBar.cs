@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpNavigationBar : AbstractEditorTest
+    public class CSharpNavigationBar : AbstractIdeEditorTest
     {
         private const string TestSource = @"
 class C
@@ -28,17 +29,17 @@ struct S
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpNavigationBar))
+        public CSharpNavigationBar()
+            : base(nameof(CSharpNavigationBar))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
-        public void VerifyNavBar()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public async Task VerifyNavBarAsync()
         {
-            SetUpEditor(TestSource);
-            VisualStudio.Editor.PlaceCaret("this", charsOffset: 1);
-            VisualStudio.Editor.ExpandMemberNavBar();
+            await SetUpEditorAsync(TestSource);
+            await VisualStudio.Editor.PlaceCaretAsync("this", charsOffset: 1);
+            await VisualStudio.Editor.ExpandMemberNavBarAsync();
             var expectedItems = new[]
             {
                 "M(int i)",
@@ -47,61 +48,61 @@ struct S
                 "this[int index]"
             };
 
-            Assert.Equal(expectedItems, VisualStudio.Editor.GetMemberNavBarItems());
-            VisualStudio.Editor.SelectMemberNavBarItem("operator !=(C c1, C c2)");
+            Assert.Equal(expectedItems, await VisualStudio.Editor.GetMemberNavBarItemsAsync());
+            await VisualStudio.Editor.SelectMemberNavBarItemAsync("operator !=(C c1, C c2)");
 
-            VisualStudio.Editor.Verify.CurrentLineText("public static bool operator $$!=(C c1, C c2) { return false; }", assertCaretPosition: true, trimWhitespace: true);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("public static bool operator $$!=(C c1, C c2) { return false; }", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
-        public void VerifyNavBar2()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public async Task VerifyNavBar2Async()
         {
-            SetUpEditor(TestSource);
+            await SetUpEditorAsync(TestSource);
 
-            VerifyLeftSelected("C");
-            VerifyRightSelected("this[int index]");
+            await VerifyLeftSelectedAsync("C");
+            await VerifyRightSelectedAsync("this[int index]");
 
-            VisualStudio.Editor.ExpandTypeNavBar();
+            await VisualStudio.Editor.ExpandTypeNavBarAsync();
             var expectedItems = new[]
             {
                 "C",
                 "S",
             };
 
-            VisualStudio.Editor.SelectTypeNavBarItem("S");
+            await VisualStudio.Editor.SelectTypeNavBarItemAsync("S");
 
-            VerifyLeftSelected("S");
-            VerifyRightSelected("Goo()");
-            VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
+            await VerifyLeftSelectedAsync("S");
+            await VerifyRightSelectedAsync("Goo()");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("$$struct S", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
-        public void VerifyNavBar3()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public async Task VerifyNavBar3Async()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 struct S$$
 {
     int Goo() { }
     void Bar() { }
 }");
-            VisualStudio.Editor.ExpandMemberNavBar();
+            await VisualStudio.Editor.ExpandMemberNavBarAsync();
             var expectedItems = new[]
             {
                 "Bar()",
                 "Goo()",
             };
-            Assert.Equal(expectedItems, VisualStudio.Editor.GetMemberNavBarItems());
-            VisualStudio.Editor.SelectMemberNavBarItem("Bar()");
-            VisualStudio.Editor.Verify.CurrentLineText("void $$Bar() { }", assertCaretPosition: true, trimWhitespace: true);
+            Assert.Equal(expectedItems, await VisualStudio.Editor.GetMemberNavBarItemsAsync());
+            await VisualStudio.Editor.SelectMemberNavBarItemAsync("Bar()");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("void $$Bar() { }", assertCaretPosition: true, trimWhitespace: true);
 
-            VisualStudio.ExecuteCommand("Edit.LineUp");
-            VerifyRightSelected("Goo()");
+            await VisualStudio.VisualStudio.ExecuteCommandAsync("Edit.LineUp");
+            await VerifyRightSelectedAsync("Goo()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
-        public void TestSplitWindow()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public async Task TestSplitWindowAsync()
         {
-            VisualStudio.Editor.SetText(@"
+            await VisualStudio.Editor.SetTextAsync(@"
 class C
 {
     public void M(int i) { }
@@ -113,34 +114,34 @@ struct S
     int Goo() { }
     void Bar() { }
 }");
-            VisualStudio.ExecuteCommand("Window.Split");
-            VisualStudio.Editor.PlaceCaret("this", charsOffset: 1);
-            VerifyLeftSelected("C");
-            VerifyRightSelected("this[int index]");
-            VisualStudio.ExecuteCommand("Window.NextSplitPane");
-            VisualStudio.Editor.PlaceCaret("Goo", charsOffset: 1);
-            VerifyLeftSelected("S");
-            VerifyRightSelected("Goo()");
+            await VisualStudio.VisualStudio.ExecuteCommandAsync("Window.Split");
+            await VisualStudio.Editor.PlaceCaretAsync("this", charsOffset: 1);
+            await VerifyLeftSelectedAsync("C");
+            await VerifyRightSelectedAsync("this[int index]");
+            await VisualStudio.VisualStudio.ExecuteCommandAsync("Window.NextSplitPane");
+            await VisualStudio.Editor.PlaceCaretAsync("Goo", charsOffset: 1);
+            await VerifyLeftSelectedAsync("S");
+            await VerifyRightSelectedAsync("Goo()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
-        public void VerifyOption()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public async Task VerifyOptionAsync()
         {
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "False");
-            Assert.False(VisualStudio.Editor.IsNavBarEnabled());
+            await VisualStudio.Workspace.SetFeatureOptionAsync(NavigationBarOptions.ShowNavigationBar, LanguageNames.CSharp, false);
+            Assert.False(await VisualStudio.Editor.IsNavBarEnabledAsync());
 
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
-            Assert.True(VisualStudio.Editor.IsNavBarEnabled());
+            await VisualStudio.Workspace.SetFeatureOptionAsync(NavigationBarOptions.ShowNavigationBar, LanguageNames.CSharp, true);
+            Assert.True(await VisualStudio.Editor.IsNavBarEnabledAsync());
         }
 
-        private void VerifyLeftSelected(string expected)
+        private async Task VerifyLeftSelectedAsync(string expected)
         {
-            Assert.Equal(expected, VisualStudio.Editor.GetTypeNavBarSelection());
+            Assert.Equal(expected, await VisualStudio.Editor.GetTypeNavBarSelectionAsync());
         }
 
-        private void VerifyRightSelected(string expected)
+        private async Task VerifyRightSelectedAsync(string expected)
         {
-            Assert.Equal(expected, VisualStudio.Editor.GetMemberNavBarSelection());
+            Assert.Equal(expected, await VisualStudio.Editor.GetMemberNavBarSelectionAsync());
         }
     }
 }

@@ -15,20 +15,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 _solutionExplorer = solutionExplorer;
             }
 
-#if false
-            public void AssemblyReferencePresent(ProjectUtils.Project project, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
+            public void AssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
             {
-                var assemblyReferences = _solutionExplorer.GetAssemblyReferences(project);
+                var assemblyReferences = _solutionExplorer.GetAssemblyReferences(projectName);
                 var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
                 Assert.Contains(expectedAssemblyReference, assemblyReferences);
             }
 
-            public void ProjectReferencePresent(ProjectUtils.Project project, string referencedProjectName)
+            public void ProjectReferencePresent(string projectName, string referencedProjectName)
             {
-                var projectReferences = _solutionExplorer.GetProjectReferences(project);
+                var projectReferences = _solutionExplorer.GetProjectReferences(projectName);
                 Assert.Contains(referencedProjectName, projectReferences);
             }
-#endif
 
             public void FileContents(string projectName, string fileName, string expectedContents)
             {

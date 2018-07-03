@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -165,24 +168,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             (await GetWaitingServiceAsync()).EnableActiveTokenTracking(true);
         }
 
-#if false
-        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
-            => InvokeOnUIThread(() =>
+        [Obsolete("Use the type safe overloads instead.")]
+        public async Task SetFeatureOptionAsync(string feature, string optionName, string language, string valueString)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
+            var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
+            if (option == null)
             {
-                var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
-                var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
-                if (option == null)
-                {
-                    throw new InvalidOperationException($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
-                }
+                throw new InvalidOperationException($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
+            }
 
-                var value = TypeDescriptor.GetConverter(option.Type).ConvertFromString(valueString);
-                var optionKey = string.IsNullOrWhiteSpace(language)
-                    ? new OptionKey(option)
-                    : new OptionKey(option, language);
+            var value = TypeDescriptor.GetConverter(option.Type).ConvertFromString(valueString);
+            var optionKey = string.IsNullOrWhiteSpace(language)
+                ? new OptionKey(option)
+                : new OptionKey(option, language);
 
-                optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, value));
-            });
-#endif
+            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, value));
+        }
+
+        public async Task SetFeatureOptionAsync<T>(PerLanguageOption<T> option, string language, T value)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
+            optionService.SetOptions(optionService.GetOptions().WithChangedOption(option, language, value));
+        }
     }
 }
