@@ -10,20 +10,19 @@ using Xunit.Sdk;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 {
-    public sealed class IdeTestCase : XunitTestCase
+    public sealed class IdeTheoryTestCase : XunitTestCase
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes")]
-        public IdeTestCase()
+        public IdeTheoryTestCase()
         {
         }
 
-        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, object[] testMethodArguments = null, string skipReason = null)
+        public IdeTheoryTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, object[] testMethodArguments = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
         {
             SharedData = WpfTestSharedData.Instance;
             VisualStudioVersion = visualStudioVersion;
-            SkipReason = skipReason;
         }
 
         public VisualStudioVersion VisualStudioVersion
