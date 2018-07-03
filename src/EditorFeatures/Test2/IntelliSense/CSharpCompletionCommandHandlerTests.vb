@@ -1943,7 +1943,7 @@ class A
         End Function
 
         <WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27455"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMissingOnObjectCreationAfterVar2() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -1957,7 +1957,7 @@ class A
             ]]></Document>)
                 state.SendTypeChars("X")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"X"}))
+                Assert.False(state.CompletionItemsContainsAny({"X"}))
             End Using
         End Function
 
