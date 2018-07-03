@@ -31,6 +31,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Partial Friend Class TestState
         Inherits AbstractCommandHandlerTestState
 
+        Friend Const RoslynItem = "RoslynItem"
+
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
         Friend ReadOnly FormatCommandHandler As FormatCommandHandler
@@ -168,11 +170,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Region "IntelliSense Operations"
 
         Public Overloads Sub SendEscape()
-            MyBase.SendEscape(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of EscapeKeyCommandArgs))
+            MyBase.SendEscape(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendDownKey()
-            MyBase.SendDownKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of DownKeyCommandArgs))
+            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendUpKey()
@@ -302,6 +306,35 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Return displayText.Any(Function(v) items.Items.Any(
                                        Function(i) i.DisplayText = v))
+        End Function
+
+        Public Function GetCompletionItems(Optional displayText As String = Nothing) As CompletionItem()
+            AssertNoAsynchronousOperationsRunning()
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim items = session.GetComputedItems(CancellationToken.None)
+
+            Dim filteredItems = items.Items.Where(Function(i) (displayText Is Nothing) Or (i.DisplayText = displayText)).ToArray()
+            Dim result(filteredItems.Length - 1) As CompletionItem
+
+            For i = 0 To filteredItems.Length - 1
+                Dim completionItem As CompletionItem = Nothing
+                If filteredItems(i).Properties.TryGetProperty(RoslynItem, completionItem) Then
+                    result(i) = completionItem
+                Else
+                    Assert.False(True, "No Roslyn Item found")
+                End If
+            Next
+
+            Return result
+        End Function
+
+        Public Function HasSuggestedItem() As Boolean
+            AssertNoAsynchronousOperationsRunning()
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim computedItems = session.GetComputedItems(CancellationToken.None)
+            Return computedItems.SuggestionItem IsNot Nothing
         End Function
 
         Public Sub AssertItemsInOrder(expectedOrder As String())
