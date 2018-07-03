@@ -179,15 +179,23 @@ A warning is reported for inconsistent top-level nullability of constraint types
 static void F4<T> where T : class, Stream? { } // warning
 static void F5<T> where T : Stream?, IDisposable { } // warning
 ```
-An error is reported for duplicate constraints. _Should the error be reported for duplicates that differ by top-level or nested nullability?_
+An error is reported for duplicate constraints where constraints are compared ignoring top-level and nested nullability.
 ```c#
 class C<T> where T : class
 {
-    static void F1<U>() where U : T?, T? { } // error: duplicate constraint
-    static void F2<U>() where U : I<T?>, I<T?> { } // error: duplicate constraint
-    static void F3<U>() where U : T, T? { } // error?
-    static void F4<U>() where U : I<T>, I<T?> { } // error?
+    static void F1<U>() where U : T, T? { } // error: duplicate constraint
+    static void F2<U>() where U : I<T>, I<T?> { } // error: duplicate constraint
 }
+```
+_What are the rules for annotated (unannotated) type arguments for generic type parameters from unannotated (annotated) types and methods?_
+```c#
+[NotNullTypes(false)] List<T> F1<T>(T t) where T : class { ... }
+[NotNullTypes(true)]  List<T> F2<T>(T t) where T : class { ... }
+[NotNullTypes(true)]  List<T?> F3<T>(T? t) where T : class { ... }
+var x = F1(notNullString);   // List<string!> or List<string~> ?
+var y = F1(maybeNullString); // List<string?> or List<string~> ?
+var z = F2(obliviousString); // List<string~>! or List<string!>! ?
+var w = F3(obliviousString); // List<string~>! or List<string?>! ?
 ```
 ## Compiler switch
 _Describe behavior when feature is disabled._
