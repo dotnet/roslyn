@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class IntellisenseQuickInfoBuilderTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Sub BuildQuickInfoItem()
+        Public Async Sub BuildQuickInfoItem()
 
             Dim codeAnalysisQuickInfoItem _
                     = QuickInfoItem.Create(New Text.TextSpan(0, 0), ImmutableArray.Create({"Method", "Public"}),
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 .DefaultValue = DefaultValue.Mock
             }
 
-            Dim intellisenseQuickInfo = IntellisenseQuickInfoBuilder.BuildItem(trackingSpan.Object, codeAnalysisQuickInfoItem)
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, Threading.CancellationToken.None)
 
             Assert.NotNull(intellisenseQuickInfo)
 
