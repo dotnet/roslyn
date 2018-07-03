@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasAwait)
             {
-                TypeSymbol taskType = this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                TypeSymbol taskType = this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
                 hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, _syntax.AwaitKeyword);
 
                 var resource = (SyntaxNode)expressionSyntax ?? declarationSyntax;

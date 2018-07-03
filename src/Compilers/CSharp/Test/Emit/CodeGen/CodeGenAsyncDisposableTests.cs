@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -16,7 +19,7 @@ namespace System
 {
     public interface IAsyncDisposable
     {
-        System.Threading.Tasks.Task DisposeAsync();
+        System.Threading.Tasks.ValueTask DisposeAsync();
     }
 }
 ";
@@ -33,13 +36,13 @@ class C : System.IAsyncDisposable
         {
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         throw null;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,15): error CS8302: Feature 'async streams' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //         using await (var x = new C())
@@ -61,13 +64,13 @@ class C : System.IAsyncDisposable
             return;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         throw null;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,15): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         using await (var x = new C())
@@ -88,13 +91,13 @@ class C : System.IAsyncDisposable
             return 1;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         throw null;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,15): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
                 //         using await (var x = new C())
@@ -118,17 +121,42 @@ class C : System.IAsyncDisposable
             }
         };
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         throw null;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (8,19): error CS4034: The 'await' operator can only be used within an async lambda expression. Consider marking this lambda expression with the 'async' modifier.
                 //             using await (var y = new C())
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncLambda, "await").WithArguments("lambda expression").WithLocation(8, 19)
+                );
+        }
+
+        [Fact]
+        public void TestWithTaskReturningDisposeAsync()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C : System.IAsyncDisposable
+{
+    public static async Task Main()
+    {
+        using await (var y = new C()) { }
+    }
+    public async Task DisposeAsync() { }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (3,11): error CS0738: 'C' does not implement interface member 'IAsyncDisposable.DisposeAsync()'. 'C.DisposeAsync()' cannot implement 'IAsyncDisposable.DisposeAsync()' because it does not have the matching return type of 'ValueTask'.
+                // class C : System.IAsyncDisposable
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "System.IAsyncDisposable").WithArguments("C", "System.IAsyncDisposable.DisposeAsync()", "C.DisposeAsync()", "System.Threading.Tasks.ValueTask").WithLocation(3, 11),
+                // (9,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public async Task DisposeAsync() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "DisposeAsync").WithLocation(9, 23)
                 );
         }
 
@@ -155,7 +183,7 @@ class C : System.IAsyncDisposable
         };
         await x();
     }
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync1 "");
         await Task.Delay(10);
@@ -163,9 +191,9 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "C body DisposeAsync1 DisposeAsync2 end");
+            CompileAndVerify(comp, expectedOutput: "C body DisposeAsync1 DisposeAsync2 end", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -184,13 +212,13 @@ class C : System.IAsyncDisposable
             }
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         throw null;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (8,19): error CS4004: Cannot await in an unsafe context
                 //             using await (var x = new C())
@@ -214,13 +242,13 @@ class C : System.IAsyncDisposable
             }
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         throw null;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (8,19): error CS1996: Cannot await in the body of a lock statement
                 //             using await (var x = new C())
@@ -241,13 +269,13 @@ class C : System.IAsyncDisposable
         }
     }
     [System.Obsolete]
-    public async System.Threading.Tasks.Task DisposeAsync()
+    public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         await System.Threading.Tasks.Task.Delay(10);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             // PROTOTYPE(async-streams) Confirm whether this behavior is ok (currently matching behavior of obsolete Dispose in non-async using)
         }
@@ -270,7 +298,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics();
         }
 
@@ -296,7 +324,7 @@ class C : System.IAsyncDisposable
             System.Console.Write(""end"");
         }
     }
-    public async System.Threading.Tasks.Task DisposeAsync()
+    public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose_start "");
         await System.Threading.Tasks.Task.Delay(10);
@@ -304,9 +332,9 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "try using dispose_start dispose_end end");
+            CompileAndVerify(comp, expectedOutput: "try using dispose_start dispose_end end", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -335,7 +363,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (4,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public static async System.Threading.Tasks.Task Main()
@@ -378,7 +406,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (17,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         async System.Threading.Tasks.Task local()
@@ -411,7 +439,7 @@ class C : System.IAsyncDisposable
         System.Console.Write(""return"");
         return 1;
     }
-    public async System.Threading.Tasks.Task DisposeAsync()
+    public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose_start "");
         await System.Threading.Tasks.Task.Delay(10);
@@ -419,9 +447,9 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -446,9 +474,9 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "before after");
+            CompileAndVerify(comp, expectedOutput: "before after", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -469,7 +497,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
+            var comp = CreateCompilationWithTasksExtensions(source);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         using await (new C())
@@ -487,7 +515,7 @@ class C
         }
 
         [Fact]
-        public void TestMissingIAsyncDisposableAndMissingTaskAndMissingAsync()
+        public void TestMissingIAsyncDisposableAndMissingValueTaskAndMissingAsync()
         {
             string source = @"
 class C
@@ -505,7 +533,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source);
-            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task);
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         using await (new C())
@@ -513,9 +541,9 @@ class C
                 // (6,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         using await (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
-                // (6,15): error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
+                // (6,15): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
                 //         using await (new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.Task").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(6, 15),
                 // (6,15): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
                 //         using await (new C())
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(6, 15),
@@ -525,9 +553,9 @@ class C
                 // (9,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         using await (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22),
-                // (9,15): error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
+                // (9,15): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
                 //         using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.Task").WithLocation(9, 15),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(9, 15),
                 // (9,15): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
                 //         using await (var x = new C())
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(9, 15),
@@ -593,7 +621,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
+            var comp = CreateCompilationWithTasksExtensions(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (13,15): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
@@ -622,7 +650,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
+            var comp = CreateCompilationWithTasksExtensions(source);
             comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
             comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
@@ -658,7 +686,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
+            var comp = CreateCompilationWithTasksExtensions(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (13,15): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
@@ -676,10 +704,10 @@ class C : System.IAsyncDisposable
             string lib_cs = @"
 public class Base : System.IAsyncDisposable
 {
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
 }
 ";
@@ -697,13 +725,13 @@ public class C : Base
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib46(lib_cs + s_interfaces);
-            var comp = CreateCompilationWithMscorlib46(comp_cs, references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
-            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task);
+            var libComp = CreateCompilationWithTasksExtensions(lib_cs + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(comp_cs, references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
             comp.VerifyDiagnostics(
-                // (6,15): error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
+                // (6,15): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
                 //         using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.Task").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(6, 15)
                 );
         }
 
@@ -721,10 +749,10 @@ class C : System.IAsyncDisposable, System.IDisposable
             return 1;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
     public void Dispose()
     {
@@ -732,9 +760,9 @@ class C : System.IAsyncDisposable, System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -751,10 +779,10 @@ class C : System.IAsyncDisposable, System.IDisposable
             return 1;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write(""IGNORED"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
     public void Dispose()
     {
@@ -762,9 +790,9 @@ class C : System.IAsyncDisposable, System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body Dispose");
+            CompileAndVerify(comp, expectedOutput: "body Dispose", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -782,16 +810,16 @@ class C : System.IAsyncDisposable
         System.Console.Write(""end "");
         return 1;
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync "");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync end", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -808,26 +836,27 @@ class C : System.IAsyncDisposable
             return;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync", verify: Verification.Skipped);
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      302 (0x12e)
+  // Code size      306 (0x132)
   .maxstack  3
   .locals init (int V_0,
                 object V_1,
-                System.Runtime.CompilerServices.TaskAwaiter V_2,
-                C.<Main>d__0 V_3,
-                System.Exception V_4,
-                int V_5)
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_2,
+                System.Threading.Tasks.ValueTask V_3,
+                C.<Main>d__0 V_4,
+                System.Exception V_5,
+                int V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
   IL_0006:  stloc.0
@@ -836,7 +865,7 @@ class C : System.IAsyncDisposable
     IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_000c
     IL_000a:  br.s       IL_0011
-    IL_000c:  br         IL_0095
+    IL_000c:  br         IL_0099
     IL_0011:  nop
     IL_0012:  ldarg.0
     IL_0013:  newobj     ""C..ctor()""
@@ -869,99 +898,101 @@ class C : System.IAsyncDisposable
     }
     IL_004c:  ldarg.0
     IL_004d:  ldfld      ""C C.<Main>d__0.<>s__1""
-    IL_0052:  brfalse.s  IL_00b9
+    IL_0052:  brfalse.s  IL_00bd
     IL_0054:  ldarg.0
     IL_0055:  ldfld      ""C C.<Main>d__0.<>s__1""
-    IL_005a:  callvirt   ""System.Threading.Tasks.Task System.IAsyncDisposable.DisposeAsync()""
-    IL_005f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
-    IL_0064:  stloc.2
-    IL_0065:  ldloca.s   V_2
-    IL_0067:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
-    IL_006c:  brtrue.s   IL_00b1
-    IL_006e:  ldarg.0
-    IL_006f:  ldc.i4.0
-    IL_0070:  dup
-    IL_0071:  stloc.0
-    IL_0072:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_0077:  ldarg.0
-    IL_0078:  ldloc.2
-    IL_0079:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<Main>d__0.<>u__1""
-    IL_007e:  ldarg.0
-    IL_007f:  stloc.3
-    IL_0080:  ldarg.0
-    IL_0081:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_0086:  ldloca.s   V_2
-    IL_0088:  ldloca.s   V_3
-    IL_008a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<Main>d__0)""
-    IL_008f:  nop
-    IL_0090:  leave      IL_012d
-    IL_0095:  ldarg.0
-    IL_0096:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<Main>d__0.<>u__1""
-    IL_009b:  stloc.2
-    IL_009c:  ldarg.0
-    IL_009d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<Main>d__0.<>u__1""
-    IL_00a2:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_00a8:  ldarg.0
-    IL_00a9:  ldc.i4.m1
-    IL_00aa:  dup
-    IL_00ab:  stloc.0
-    IL_00ac:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_00b1:  ldloca.s   V_2
-    IL_00b3:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_00b8:  nop
-    IL_00b9:  ldarg.0
-    IL_00ba:  ldfld      ""object C.<Main>d__0.<>s__2""
-    IL_00bf:  stloc.1
-    IL_00c0:  ldloc.1
-    IL_00c1:  brfalse.s  IL_00de
-    IL_00c3:  ldloc.1
-    IL_00c4:  isinst     ""System.Exception""
-    IL_00c9:  stloc.s    V_4
-    IL_00cb:  ldloc.s    V_4
-    IL_00cd:  brtrue.s   IL_00d1
-    IL_00cf:  ldloc.1
-    IL_00d0:  throw
-    IL_00d1:  ldloc.s    V_4
-    IL_00d3:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_00d8:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_00dd:  nop
-    IL_00de:  ldarg.0
-    IL_00df:  ldfld      ""int C.<Main>d__0.<>s__3""
-    IL_00e4:  stloc.s    V_5
-    IL_00e6:  ldloc.s    V_5
-    IL_00e8:  ldc.i4.1
-    IL_00e9:  beq.s      IL_00ed
-    IL_00eb:  br.s       IL_00ef
-    IL_00ed:  leave.s    IL_0119
-    IL_00ef:  ldarg.0
-    IL_00f0:  ldnull
-    IL_00f1:  stfld      ""object C.<Main>d__0.<>s__2""
-    IL_00f6:  ldarg.0
-    IL_00f7:  ldnull
-    IL_00f8:  stfld      ""C C.<Main>d__0.<>s__1""
-    IL_00fd:  leave.s    IL_0119
+    IL_005a:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_005f:  stloc.3
+    IL_0060:  ldloca.s   V_3
+    IL_0062:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_0067:  stloc.2
+    IL_0068:  ldloca.s   V_2
+    IL_006a:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_006f:  brtrue.s   IL_00b5
+    IL_0071:  ldarg.0
+    IL_0072:  ldc.i4.0
+    IL_0073:  dup
+    IL_0074:  stloc.0
+    IL_0075:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_007a:  ldarg.0
+    IL_007b:  ldloc.2
+    IL_007c:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0081:  ldarg.0
+    IL_0082:  stloc.s    V_4
+    IL_0084:  ldarg.0
+    IL_0085:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_008a:  ldloca.s   V_2
+    IL_008c:  ldloca.s   V_4
+    IL_008e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_0093:  nop
+    IL_0094:  leave      IL_0131
+    IL_0099:  ldarg.0
+    IL_009a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_009f:  stloc.2
+    IL_00a0:  ldarg.0
+    IL_00a1:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_00a6:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_00ac:  ldarg.0
+    IL_00ad:  ldc.i4.m1
+    IL_00ae:  dup
+    IL_00af:  stloc.0
+    IL_00b0:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00b5:  ldloca.s   V_2
+    IL_00b7:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_00bc:  nop
+    IL_00bd:  ldarg.0
+    IL_00be:  ldfld      ""object C.<Main>d__0.<>s__2""
+    IL_00c3:  stloc.1
+    IL_00c4:  ldloc.1
+    IL_00c5:  brfalse.s  IL_00e2
+    IL_00c7:  ldloc.1
+    IL_00c8:  isinst     ""System.Exception""
+    IL_00cd:  stloc.s    V_5
+    IL_00cf:  ldloc.s    V_5
+    IL_00d1:  brtrue.s   IL_00d5
+    IL_00d3:  ldloc.1
+    IL_00d4:  throw
+    IL_00d5:  ldloc.s    V_5
+    IL_00d7:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00dc:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00e1:  nop
+    IL_00e2:  ldarg.0
+    IL_00e3:  ldfld      ""int C.<Main>d__0.<>s__3""
+    IL_00e8:  stloc.s    V_6
+    IL_00ea:  ldloc.s    V_6
+    IL_00ec:  ldc.i4.1
+    IL_00ed:  beq.s      IL_00f1
+    IL_00ef:  br.s       IL_00f3
+    IL_00f1:  leave.s    IL_011d
+    IL_00f3:  ldarg.0
+    IL_00f4:  ldnull
+    IL_00f5:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_00fa:  ldarg.0
+    IL_00fb:  ldnull
+    IL_00fc:  stfld      ""C C.<Main>d__0.<>s__1""
+    IL_0101:  leave.s    IL_011d
   }
   catch System.Exception
   {
-    IL_00ff:  stloc.s    V_4
-    IL_0101:  ldarg.0
-    IL_0102:  ldc.i4.s   -2
-    IL_0104:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_0109:  ldarg.0
-    IL_010a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_010f:  ldloc.s    V_4
-    IL_0111:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_0116:  nop
-    IL_0117:  leave.s    IL_012d
+    IL_0103:  stloc.s    V_5
+    IL_0105:  ldarg.0
+    IL_0106:  ldc.i4.s   -2
+    IL_0108:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_010d:  ldarg.0
+    IL_010e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0113:  ldloc.s    V_5
+    IL_0115:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_011a:  nop
+    IL_011b:  leave.s    IL_0131
   }
-  IL_0119:  ldarg.0
-  IL_011a:  ldc.i4.s   -2
-  IL_011c:  stfld      ""int C.<Main>d__0.<>1__state""
-  IL_0121:  ldarg.0
-  IL_0122:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-  IL_0127:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_012c:  nop
-  IL_012d:  ret
+  IL_011d:  ldarg.0
+  IL_011e:  ldc.i4.s   -2
+  IL_0120:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_0125:  ldarg.0
+  IL_0126:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_012b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0130:  nop
+  IL_0131:  ret
 }");
         }
 
@@ -981,9 +1012,9 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body");
+            var verifier = CompileAndVerify(comp, expectedOutput: "body", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1000,7 +1031,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,22): error CS9000: 'method group': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         using await (Main)
@@ -1023,16 +1054,16 @@ class C : System.IAsyncDisposable
             return;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1049,26 +1080,27 @@ struct S : System.IAsyncDisposable
             return;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync", verify: Verification.Skipped);
             verifier.VerifyIL("S.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      294 (0x126)
+  // Code size      298 (0x12a)
   .maxstack  3
   .locals init (int V_0,
                 object V_1,
-                System.Runtime.CompilerServices.TaskAwaiter V_2,
-                S.<Main>d__0 V_3,
-                System.Exception V_4,
-                int V_5)
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_2,
+                System.Threading.Tasks.ValueTask V_3,
+                S.<Main>d__0 V_4,
+                System.Exception V_5,
+                int V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int S.<Main>d__0.<>1__state""
   IL_0006:  stloc.0
@@ -1077,7 +1109,7 @@ struct S : System.IAsyncDisposable
     IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_000c
     IL_000a:  br.s       IL_0011
-    IL_000c:  br         IL_0094
+    IL_000c:  br         IL_0098
     IL_0011:  nop
     IL_0012:  ldarg.0
     IL_0013:  ldflda     ""S S.<Main>d__0.<>s__1""
@@ -1111,93 +1143,95 @@ struct S : System.IAsyncDisposable
     IL_004d:  ldarg.0
     IL_004e:  ldflda     ""S S.<Main>d__0.<>s__1""
     IL_0053:  constrained. ""S""
-    IL_0059:  callvirt   ""System.Threading.Tasks.Task System.IAsyncDisposable.DisposeAsync()""
-    IL_005e:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
-    IL_0063:  stloc.2
-    IL_0064:  ldloca.s   V_2
-    IL_0066:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
-    IL_006b:  brtrue.s   IL_00b0
-    IL_006d:  ldarg.0
-    IL_006e:  ldc.i4.0
-    IL_006f:  dup
-    IL_0070:  stloc.0
-    IL_0071:  stfld      ""int S.<Main>d__0.<>1__state""
-    IL_0076:  ldarg.0
-    IL_0077:  ldloc.2
-    IL_0078:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter S.<Main>d__0.<>u__1""
-    IL_007d:  ldarg.0
-    IL_007e:  stloc.3
-    IL_007f:  ldarg.0
-    IL_0080:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
-    IL_0085:  ldloca.s   V_2
-    IL_0087:  ldloca.s   V_3
-    IL_0089:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, S.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref S.<Main>d__0)""
-    IL_008e:  nop
-    IL_008f:  leave      IL_0125
-    IL_0094:  ldarg.0
-    IL_0095:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter S.<Main>d__0.<>u__1""
-    IL_009a:  stloc.2
-    IL_009b:  ldarg.0
-    IL_009c:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter S.<Main>d__0.<>u__1""
-    IL_00a1:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_00a7:  ldarg.0
-    IL_00a8:  ldc.i4.m1
-    IL_00a9:  dup
-    IL_00aa:  stloc.0
-    IL_00ab:  stfld      ""int S.<Main>d__0.<>1__state""
-    IL_00b0:  ldloca.s   V_2
-    IL_00b2:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_00b7:  nop
-    IL_00b8:  ldarg.0
-    IL_00b9:  ldfld      ""object S.<Main>d__0.<>s__2""
-    IL_00be:  stloc.1
-    IL_00bf:  ldloc.1
-    IL_00c0:  brfalse.s  IL_00dd
-    IL_00c2:  ldloc.1
-    IL_00c3:  isinst     ""System.Exception""
-    IL_00c8:  stloc.s    V_4
-    IL_00ca:  ldloc.s    V_4
-    IL_00cc:  brtrue.s   IL_00d0
-    IL_00ce:  ldloc.1
-    IL_00cf:  throw
-    IL_00d0:  ldloc.s    V_4
-    IL_00d2:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_00d7:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_00dc:  nop
-    IL_00dd:  ldarg.0
-    IL_00de:  ldfld      ""int S.<Main>d__0.<>s__3""
-    IL_00e3:  stloc.s    V_5
-    IL_00e5:  ldloc.s    V_5
-    IL_00e7:  ldc.i4.1
-    IL_00e8:  beq.s      IL_00ec
-    IL_00ea:  br.s       IL_00ee
-    IL_00ec:  leave.s    IL_0111
-    IL_00ee:  ldarg.0
-    IL_00ef:  ldnull
-    IL_00f0:  stfld      ""object S.<Main>d__0.<>s__2""
-    IL_00f5:  leave.s    IL_0111
+    IL_0059:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_005e:  stloc.3
+    IL_005f:  ldloca.s   V_3
+    IL_0061:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_0066:  stloc.2
+    IL_0067:  ldloca.s   V_2
+    IL_0069:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_006e:  brtrue.s   IL_00b4
+    IL_0070:  ldarg.0
+    IL_0071:  ldc.i4.0
+    IL_0072:  dup
+    IL_0073:  stloc.0
+    IL_0074:  stfld      ""int S.<Main>d__0.<>1__state""
+    IL_0079:  ldarg.0
+    IL_007a:  ldloc.2
+    IL_007b:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter S.<Main>d__0.<>u__1""
+    IL_0080:  ldarg.0
+    IL_0081:  stloc.s    V_4
+    IL_0083:  ldarg.0
+    IL_0084:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
+    IL_0089:  ldloca.s   V_2
+    IL_008b:  ldloca.s   V_4
+    IL_008d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, S.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref S.<Main>d__0)""
+    IL_0092:  nop
+    IL_0093:  leave      IL_0129
+    IL_0098:  ldarg.0
+    IL_0099:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter S.<Main>d__0.<>u__1""
+    IL_009e:  stloc.2
+    IL_009f:  ldarg.0
+    IL_00a0:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter S.<Main>d__0.<>u__1""
+    IL_00a5:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldc.i4.m1
+    IL_00ad:  dup
+    IL_00ae:  stloc.0
+    IL_00af:  stfld      ""int S.<Main>d__0.<>1__state""
+    IL_00b4:  ldloca.s   V_2
+    IL_00b6:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_00bb:  nop
+    IL_00bc:  ldarg.0
+    IL_00bd:  ldfld      ""object S.<Main>d__0.<>s__2""
+    IL_00c2:  stloc.1
+    IL_00c3:  ldloc.1
+    IL_00c4:  brfalse.s  IL_00e1
+    IL_00c6:  ldloc.1
+    IL_00c7:  isinst     ""System.Exception""
+    IL_00cc:  stloc.s    V_5
+    IL_00ce:  ldloc.s    V_5
+    IL_00d0:  brtrue.s   IL_00d4
+    IL_00d2:  ldloc.1
+    IL_00d3:  throw
+    IL_00d4:  ldloc.s    V_5
+    IL_00d6:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00db:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00e0:  nop
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldfld      ""int S.<Main>d__0.<>s__3""
+    IL_00e7:  stloc.s    V_6
+    IL_00e9:  ldloc.s    V_6
+    IL_00eb:  ldc.i4.1
+    IL_00ec:  beq.s      IL_00f0
+    IL_00ee:  br.s       IL_00f2
+    IL_00f0:  leave.s    IL_0115
+    IL_00f2:  ldarg.0
+    IL_00f3:  ldnull
+    IL_00f4:  stfld      ""object S.<Main>d__0.<>s__2""
+    IL_00f9:  leave.s    IL_0115
   }
   catch System.Exception
   {
-    IL_00f7:  stloc.s    V_4
-    IL_00f9:  ldarg.0
-    IL_00fa:  ldc.i4.s   -2
-    IL_00fc:  stfld      ""int S.<Main>d__0.<>1__state""
-    IL_0101:  ldarg.0
-    IL_0102:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
-    IL_0107:  ldloc.s    V_4
-    IL_0109:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_010e:  nop
-    IL_010f:  leave.s    IL_0125
+    IL_00fb:  stloc.s    V_5
+    IL_00fd:  ldarg.0
+    IL_00fe:  ldc.i4.s   -2
+    IL_0100:  stfld      ""int S.<Main>d__0.<>1__state""
+    IL_0105:  ldarg.0
+    IL_0106:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
+    IL_010b:  ldloc.s    V_5
+    IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0112:  nop
+    IL_0113:  leave.s    IL_0129
   }
-  IL_0111:  ldarg.0
-  IL_0112:  ldc.i4.s   -2
-  IL_0114:  stfld      ""int S.<Main>d__0.<>1__state""
-  IL_0119:  ldarg.0
-  IL_011a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
-  IL_011f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_0124:  nop
-  IL_0125:  ret
+  IL_0115:  ldarg.0
+  IL_0116:  ldc.i4.s   -2
+  IL_0118:  stfld      ""int S.<Main>d__0.<>1__state""
+  IL_011d:  ldarg.0
+  IL_011e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
+  IL_0123:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0128:  nop
+  IL_0129:  ret
 }");
         }
 
@@ -1216,16 +1250,16 @@ struct S : System.IAsyncDisposable
             return;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1243,23 +1277,23 @@ struct S : System.IAsyncDisposable
             return;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write(""NOT RELEVANT"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body");
+            var verifier = CompileAndVerify(comp, expectedOutput: "body", verify: Verification.Skipped);
         }
 
         [Fact]
         [WorkItem(24267, "https://github.com/dotnet/roslyn/issues/24267")]
         public void AssignsInAsyncWithAsyncUsing()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilationWithTasksExtensions(@"
 class C
 {
     public static void M2()
@@ -1311,7 +1345,7 @@ class S : System.IAsyncDisposable
             return;
         }
     }
-    public async System.Threading.Tasks.Task DisposeAsync()
+    public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose{_i}_start "");
         await System.Threading.Tasks.Task.Delay(10);
@@ -1319,9 +1353,9 @@ class S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end");
+            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1351,16 +1385,16 @@ class S : System.IAsyncDisposable
             System.Console.Write(""caught"");
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose{_i} "");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
+            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1396,16 +1430,16 @@ class S : System.IAsyncDisposable
             System.Console.Write(""caught"");
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose{_i} "");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 dispose1 caught");
+            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 dispose1 caught", verify: Verification.Skipped);
         }
 
         [Fact]

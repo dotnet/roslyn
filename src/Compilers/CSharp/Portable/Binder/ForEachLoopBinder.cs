@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool GetAwaitDisposeAsyncInfo(ref ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
-            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task));
+            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask));
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             return hasErrors;
         }
@@ -1155,9 +1155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var returnType = waitForNextAsyncMethodCandidate.OriginalDefinition.ReturnType;
-            if (!returnType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
+            if (!returnType.IsGenericTaskType(Compilation))
             {
-                // PROTOTYPE(async-streams) What about a task-like type?
+                // PROTOTYPE(async-streams): Add tests for other task-like return types for WaitForNextAsync
                 return false;
             }
 

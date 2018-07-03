@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <dotnetRuntimeVersion>2.0.0</dotnetRuntimeVersion>
+    <dotnetRuntimeVersion>2.0.7</dotnetRuntimeVersion>
 
     <!--
         When changing this value ensure that you do not exceed the LKG used by source build. This is necessary
