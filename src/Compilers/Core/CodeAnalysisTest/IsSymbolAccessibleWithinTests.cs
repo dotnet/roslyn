@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -18,11 +19,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 @"Class A
 End Class
 ");
-            var csc = CSharpCompilation.Create("CS", new[] { csharpTree }, new MetadataReference[] { TestBase.MscorlibRef });
-            var Ac = csc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
+            var csc = CSharpCompilation.Create("CS", new[] { csharpTree }, new MetadataReference[] { TestBase.MscorlibRef }) as Compilation;
+            var Ac = csc.GlobalNamespace.GetMembers("A").First() as INamedTypeSymbol;
 
-            var vbc = VisualBasicCompilation.Create("VB", new[] { vbTree }, new MetadataReference[] { TestBase.MscorlibRef });
-            var Av = vbc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
+            var vbc = VisualBasicCompilation.Create("VB", new[] { vbTree }, new MetadataReference[] { TestBase.MscorlibRef }) as Compilation;
+            var Av = vbc.GlobalNamespace.GetMembers("A").First() as INamedTypeSymbol;
 
             Assert.Throws<ArgumentException>(() => csc.IsSymbolAccessibleWithin(Av, Av));
             Assert.Throws<ArgumentException>(() => csc.IsSymbolAccessibleWithin(Av, Ac));

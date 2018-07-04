@@ -1838,13 +1838,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref useSiteDiagnostics, throughType0);
         }
 
+        [Obsolete("Compilation.IsSymbolAccessibleWithin is not designed for use within the compilers", true)]
+        internal new bool IsSymbolAccessibleWithin(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol throughType = null)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
-        #region Binding
+            #region Binding
 
-        /// <summary>
-        /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
-        /// </summary>
+            /// <summary>
+            /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
+            /// </summary>
         public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
         {
             if (syntaxTree == null)

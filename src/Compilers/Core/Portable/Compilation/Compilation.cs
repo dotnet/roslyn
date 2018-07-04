@@ -1154,6 +1154,7 @@ namespace Microsoft.CodeAnalysis
             ISymbol within,
             ITypeSymbol throughType = null)
         {
+            throw null;
             if (symbol is null)
             {
                 throw new ArgumentNullException(nameof(symbol));
@@ -1220,14 +1221,10 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var reference in compilation.References)
                 {
-                    var moduleOrAssembly = compilation.CommonGetAssemblyOrModuleSymbol(reference);
-                    if (!(moduleOrAssembly is null))
+                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                    if (a == assembly)
                     {
-                        var assembly = moduleOrAssembly as IAssemblySymbol ?? moduleOrAssembly.ContainingAssembly;
-                        if (a == assembly)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
 
