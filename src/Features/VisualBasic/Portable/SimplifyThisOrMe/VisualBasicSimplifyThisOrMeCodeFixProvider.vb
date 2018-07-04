@@ -21,15 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
         End Function
 
         Protected Overrides Function GetNameWithTriviaMoved(semanticModel As SemanticModel, memberAccess As MemberAccessExpressionSyntax) As SyntaxNode
-            Dim replacementNode = memberAccess.Name
-            replacementNode =
-                replacementNode.WithIdentifier(
-                    VisualBasicSimplificationService.TryEscapeIdentifierToken(
-                        memberAccess.Name.Identifier,
-                        semanticModel)).
-                    WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()).
-                    WithTrailingTrivia(memberAccess.GetTrailingTrivia())
-            Return replacementNode
+            Return memberAccess.GetNameWithTriviaMoved(semanticModel)
         End Function
     End Class
 End Namespace

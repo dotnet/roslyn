@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
         protected override SyntaxNode GetNameWithTriviaMoved(
             SemanticModel semantic, MemberAccessExpressionSyntax memberAccess)
         {
-            return memberAccess.Name
-                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
-                .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
+            return memberAccess.GetNameWithTriviaMoved();
         }
     }
 }
