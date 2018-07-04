@@ -82,7 +82,17 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                 return;
             }
 
-            var (descriptor, severity) = GetRemoveQualificationDiagnosticDescriptor(model, node, optionSet, cancellationToken);
+            var symbolInfo = model.GetSymbolInfo(node, cancellationToken);
+            if (symbolInfo.Symbol == null)
+            {
+                return;
+            }
+
+            var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
+            var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
+            var severity = optionValue.Notification.Severity;
+
+            var descriptor = CreateUnnecessaryDescriptor(DescriptorId);
             if (descriptor == null)
             {
                 return;
@@ -101,21 +111,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                 ImmutableArray.Create(node.GetLocation()), builder.ToImmutable());
 
             context.ReportDiagnostic(diagnostic);
-        }
-
-        private (DiagnosticDescriptor descriptor, ReportDiagnostic severity) GetRemoveQualificationDiagnosticDescriptor(SemanticModel model, SyntaxNode node, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            var symbolInfo = model.GetSymbolInfo(node, cancellationToken);
-            if (symbolInfo.Symbol == null)
-            {
-                return default;
-            }
-
-            var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
-            var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
-            var severity = optionValue.Notification.Severity;
-
-            return (CreateUnnecessaryDescriptor(DescriptorId), severity);
         }
     }
 }
