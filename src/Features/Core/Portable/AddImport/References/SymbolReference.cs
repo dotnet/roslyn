@@ -101,7 +101,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     // the spelling of this name we are *also* adding a namespace.  This helps as we
                     // have gotten feedback in the past that the 'using/import' addition was
                     // unexpected.
-                    tags = WellKnownTagArrays.Namespace;
+                    if (tags.IsDefaultOrEmpty)
+                    {
+                        tags = WellKnownTagArrays.Namespace;
+                    }
                 }
 
                 var textChanges = await GetTextChangesAsync(
