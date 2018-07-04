@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             ImmutableArray.Create(
                 IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                 IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
                 IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId);
 

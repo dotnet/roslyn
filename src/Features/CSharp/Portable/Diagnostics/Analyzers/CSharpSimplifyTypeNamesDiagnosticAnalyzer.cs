@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -147,9 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 else if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)expression;
-                    diagnosticId = memberAccess.Expression.Kind() == SyntaxKind.ThisExpression ?
-                        IDEDiagnosticIds.RemoveQualificationDiagnosticId :
-                        IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
+                    if (memberAccess.Expression.Kind() == SyntaxKind.ThisExpression)
+                    {
+                        return false;
+                    }
+
+                    diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
                 }
             }
 

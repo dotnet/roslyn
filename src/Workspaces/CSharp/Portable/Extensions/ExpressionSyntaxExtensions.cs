@@ -1016,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
+        public static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
         {
             // We want to include any user-typed trivia that may be present between the 'Expression', 'OperatorToken' and 'Identifier' of the MemberAccessExpression.
             // However, we don't want to include any elastic trivia that may have been introduced by the expander in these locations. This is to avoid triggering

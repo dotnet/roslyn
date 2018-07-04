@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,15 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Member_Access), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
                                                                     s_localizableTitleSimplifyMemberAccess,
-                                                                    s_localizableMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
-
-        private static readonly LocalizableString s_localizableTitleRemoveThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorRemoveThisOrMe = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                                                                    s_localizableTitleRemoveThisOrMe,
                                                                     s_localizableMessage,
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
@@ -66,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             = ImmutableArray.Create(
                     s_descriptorSimplifyNames,
                     s_descriptorSimplifyMemberAccess,
-                    s_descriptorRemoveThisOrMe,
                     s_descriptorPreferIntrinsicTypeInDeclarations,
                     s_descriptorPreferIntrinsicTypeInMemberAccess);
 
@@ -138,10 +126,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     severity = descriptor.DefaultSeverity.ToReportDiagnostic();
                     break;
 
-                case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
-                    (descriptor, severity) = GetRemoveQualificationDiagnosticDescriptor(model, node, optionSet, cancellationToken);
-                    break;
-
                 case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId:
                     option = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
                     (descriptor, severity) = GetApplicablePredefinedTypeDiagnosticDescriptor(
@@ -194,21 +178,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             }
 
             return (descriptor, optionValue.Notification.Severity);
-        }
-
-        private (DiagnosticDescriptor descriptor, ReportDiagnostic severity) GetRemoveQualificationDiagnosticDescriptor(SemanticModel model, SyntaxNode node, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            var symbolInfo = model.GetSymbolInfo(node, cancellationToken);
-            if (symbolInfo.Symbol == null)
-            {
-                return default;
-            }
-
-            var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
-            var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
-            var severity = optionValue.Notification.Severity;
-
-            return (s_descriptorRemoveThisOrMe, severity);
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()

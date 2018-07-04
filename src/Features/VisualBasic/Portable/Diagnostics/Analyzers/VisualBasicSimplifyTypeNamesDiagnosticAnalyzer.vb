@@ -89,9 +89,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                         Return False
                     End If
                 End If
-                diagnosticId = If(memberAccess.Expression.Kind = SyntaxKind.MeExpression,
-                    IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                    IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
+                If memberAccess.Expression.Kind = SyntaxKind.MeExpression Then
+                    Return False
+                End If
+
+                diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
             End If
 
             Return True
