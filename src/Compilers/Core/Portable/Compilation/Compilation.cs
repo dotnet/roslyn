@@ -1154,7 +1154,6 @@ namespace Microsoft.CodeAnalysis
             ISymbol within,
             ITypeSymbol throughType = null)
         {
-            throw null;
             if (symbol is null)
             {
                 throw new ArgumentNullException(nameof(symbol));
