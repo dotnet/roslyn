@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -20,10 +21,31 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
         protected override string GetTitle()
             => CSharpFeaturesResources.Remove_this_qualification;
 
-        protected override SyntaxNode GetNameWithTriviaMoved(
-            SemanticModel semantic, MemberAccessExpressionSyntax memberAccess)
+        protected override SyntaxNode Rewrite(
+            SemanticModel semanticModel, SyntaxNode root, ISet<MemberAccessExpressionSyntax> memberAccessNodes)
         {
-            return memberAccess.GetNameWithTriviaMoved();
+            var rewriter = new Rewriter(memberAccessNodes);
+            return rewriter.Visit(root);
+        }
+
+        private class Rewriter : CSharpSyntaxRewriter
+        {
+            private readonly ISet<MemberAccessExpressionSyntax> memberAccessNodes;
+
+            public Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes)
+            {
+                this.memberAccessNodes = memberAccessNodes;
+            }
+
+            public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+            {
+                if (memberAccessNodes.Contains(node))
+                {
+                    return node.GetNameWithTriviaMoved();
+                }
+
+                return base.VisitMemberAccessExpression(node);
+            }
         }
     }
 }

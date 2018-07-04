@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 {
@@ -23,8 +26,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         }
 
         protected abstract string GetTitle();
-        protected abstract SyntaxNode GetNameWithTriviaMoved(
-            SemanticModel semanticModel, TMemberAccessExpressionSyntax memberAccess);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveQualificationDiagnosticId);
@@ -51,16 +52,15 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            foreach (var diagnostic in diagnostics)
-            {
-                var memberAccess = (TMemberAccessExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(
-                    getInnermostNodeForTie: true, cancellationToken);
+            var memberAccessNodes = diagnostics.Select(
+                d => (TMemberAccessExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken)).ToSet();
 
-                var replacement = GetNameWithTriviaMoved(semanticModel, memberAccess);
-
-                editor.ReplaceNode(memberAccess, replacement);
-            }
+            var newRoot = Rewrite(semanticModel, root, memberAccessNodes);
+            editor.ReplaceNode(root, newRoot);
         }
+
+        protected abstract SyntaxNode Rewrite(
+            SemanticModel semanticModel, SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
