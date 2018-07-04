@@ -969,14 +969,17 @@ class C
 
         #region relational binary parentheses
 
-        private readonly string s_relationalBinaryIgnore = $@"
+        private readonly string s_relationalBinaryAlwaysForClarity = $@"
 class C
 {{
     void M()
     {{
 //[
-        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        // {ServicesVSResources.Prefer_colon}
         var v = (a < b) == (c > d);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a < b == c > d;
 //]
     }}
 }}
@@ -1038,7 +1041,7 @@ class C
 
         #region other parentheses
 
-        private readonly string s_otherParenthesesIgnore = $@"
+        private readonly string s_otherParenthesesAlwaysForClarity = $@"
 class C
 {{
     void M()
@@ -1158,25 +1161,25 @@ class C
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.ArithmeticBinaryParentheses,
                 CSharpVSResources.In_arithmetic_binary_operators,
                 new[] { s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary },
-                isIgnoreOption: false);
+                defaultAddForClarity: true);
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherBinaryParentheses,
                 CSharpVSResources.In_other_binary_operators,
                 new[] { s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary },
-                isIgnoreOption: false);
+                defaultAddForClarity: true);
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.RelationalBinaryParentheses,
                 CSharpVSResources.In_relational_binary_operators,
-                new[] { s_relationalBinaryIgnore, s_relationalBinaryNeverIfUnnecessary },
-                isIgnoreOption: true);
+                new[] { s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary },
+                defaultAddForClarity: true);
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherParentheses,
                 ServicesVSResources.In_other_operators,
-                new[] { s_otherParenthesesIgnore, s_otherParenthesesNeverIfUnnecessary },
-                isIgnoreOption: true);
+                new[] { s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary },
+                defaultAddForClarity: false);
         }
 
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)

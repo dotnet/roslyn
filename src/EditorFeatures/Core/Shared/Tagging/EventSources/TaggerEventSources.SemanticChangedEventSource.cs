@@ -37,11 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             protected override void ConnectToWorkspace(Workspace workspace)
             {
                 _notificationService.OpenedDocumentSemanticChanged += OnOpenedDocumentSemanticChanged;
+                this.RaiseChanged();
             }
 
             protected override void DisconnectFromWorkspace(Workspace workspace)
             {
                 _notificationService.OpenedDocumentSemanticChanged -= OnOpenedDocumentSemanticChanged;
+                this.RaiseChanged();
             }
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)

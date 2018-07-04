@@ -1764,6 +1764,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ClassifyConversion(source, destination).ToCommonConversion()
         End Function
 
+        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As [Optional](Of Object)) As IConvertibleConversion
+            constantValue = Nothing
+
+            If destination Is Nothing Then
+                Return New Conversion(Nothing) ' No conversion
+            End If
+
+            Dim sourceType As ITypeSymbol = source.Type
+
+            If sourceType Is Nothing Then
+                If source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing AndAlso destination.IsReferenceType Then
+                    constantValue = source.ConstantValue
+                    Return New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.WideningNothingLiteral, Nothing))
+                End If
+
+                Return New Conversion(Nothing) ' No conversion
+            End If
+
+            Dim result As Conversion = ClassifyConversion(sourceType, destination)
+
+            If result.IsReference AndAlso source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing Then
+                constantValue = source.ConstantValue
+            End If
+
+            Return result
+        End Function
+
         ''' <summary>
         ''' A symbol representing the implicit Script class. This is null if the class is not
         ''' defined in the compilation.
@@ -1805,6 +1832,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function GetSpecialTypeMember(memberId As SpecialMember) As Symbol
             Return Assembly.GetSpecialTypeMember(memberId)
+        End Function
+
+        Friend Overrides Function CommonGetSpecialTypeMember(specialMember As SpecialMember) As ISymbol
+            Return GetSpecialTypeMember(specialMember)
         End Function
 
         Friend Function GetTypeByReflectionType(type As Type, diagnostics As DiagnosticBag) As TypeSymbol

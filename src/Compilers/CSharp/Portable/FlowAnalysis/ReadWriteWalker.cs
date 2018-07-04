@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterRegion()
         {
-            for (MethodSymbol m = this.currentMethodOrLambda; (object)m != null; m = m.ContainingSymbol as MethodSymbol)
+            for (var m = this.currentSymbol as MethodSymbol; (object)m != null; m = m.ContainingSymbol as MethodSymbol)
             {
                 foreach (var p in m.Parameters)
                 {
