@@ -14,10 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
     internal partial class CSharpSimplifyThisOrMeCodeFixProvider 
         : AbstractSimplifyThisOrMeCodeFixProvider<MemberAccessExpressionSyntax>
     {
-        public CSharpSimplifyThisOrMeCodeFixProvider() 
-        {
-        }
-
         protected override string GetTitle()
             => CSharpFeaturesResources.Remove_this_qualification;
 
@@ -33,19 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
             private readonly ISet<MemberAccessExpressionSyntax> memberAccessNodes;
 
             public Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes)
-            {
-                this.memberAccessNodes = memberAccessNodes;
-            }
+                => this.memberAccessNodes = memberAccessNodes;
 
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-            {
-                if (memberAccessNodes.Contains(node))
-                {
-                    return node.GetNameWithTriviaMoved();
-                }
-
-                return base.VisitMemberAccessExpression(node);
-            }
+                => memberAccessNodes.Contains(node) 
+                    ? node.GetNameWithTriviaMoved()
+                    : base.VisitMemberAccessExpression(node);
         }
     }
 }

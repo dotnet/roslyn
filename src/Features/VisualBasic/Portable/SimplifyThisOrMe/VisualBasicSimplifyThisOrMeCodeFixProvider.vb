@@ -12,9 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
     Partial Friend Class VisualBasicSimplifyThisOrMeCodeFixProvider
         Inherits AbstractSimplifyThisOrMeCodeFixProvider(Of MemberAccessExpressionSyntax)
 
-        Public Sub New()
-        End Sub
-
         Protected Overrides Function GetTitle() As String
             Return VBFeaturesResources.Remove_Me_qualification
         End Function
@@ -36,11 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             End Sub
 
             Public Overrides Function VisitMemberAccessExpression(node As MemberAccessExpressionSyntax) As SyntaxNode
-                If memberAccessNodes.Contains(node) Then
-                    Return node.GetNameWithTriviaMoved(semanticModel)
-                End If
-
-                Return MyBase.VisitMemberAccessExpression(node)
+                Return If(memberAccessNodes.Contains(node),
+                    node.GetNameWithTriviaMoved(semanticModel),
+                    MyBase.VisitMemberAccessExpression(node))
             End Function
         End Class
     End Class
