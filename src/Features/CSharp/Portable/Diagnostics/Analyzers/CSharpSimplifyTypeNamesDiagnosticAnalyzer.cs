@@ -101,6 +101,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             issueSpan = default;
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;
 
+            var memberAccess = node as MemberAccessExpressionSyntax;
+            if (memberAccess != null && memberAccess.Expression.IsKind(SyntaxKind.ThisExpression))
+            {
+                // don't bother analyzing "this.Goo" expressions.  They will be analyzed by
+                // the CSharpSimplifyThisOrMeDiagnosticAnalyzer.
+                return false;
+            }
+
             // For Crefs, currently only Qualified Crefs needs to be handled separately
             if (node.Kind() == SyntaxKind.QualifiedCref)
             {
@@ -144,12 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 }
                 else if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
-                    var memberAccess = (MemberAccessExpressionSyntax)expression;
-                    if (memberAccess.Expression.Kind() == SyntaxKind.ThisExpression)
-                    {
-                        return false;
-                    }
-
                     diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
                 }
             }

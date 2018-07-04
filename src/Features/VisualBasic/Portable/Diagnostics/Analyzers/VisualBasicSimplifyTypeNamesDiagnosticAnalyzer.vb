@@ -65,6 +65,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             issueSpan = Nothing
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId
 
+            Dim memberAccess = TryCast(node, MemberAccessExpressionSyntax)
+            If memberAccess IsNot Nothing AndAlso memberAccess.Expression.IsKind(SyntaxKind.MeExpression) Then
+                ' don't bother analyzing "me.Goo" expressions.  They will be analyzed by
+                ' the VisualBasicSimplifyThisOrMeDiagnosticAnalyzer.
+                Return False
+            End If
+
             Dim expression = DirectCast(node, ExpressionSyntax)
             If expression.ContainsDiagnostics Then
                 Return False
@@ -81,16 +88,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             ElseIf replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)) Then
                 diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId
             ElseIf expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
                 Dim method = model.GetMemberGroup(expression)
                 If method.Length = 1 Then
                     Dim symbol = method.First()
                     If (symbol.IsOverrides Or symbol.IsOverridable) And memberAccess.Expression.Kind = SyntaxKind.MyClassExpression Then
                         Return False
                     End If
-                End If
-                If memberAccess.Expression.Kind = SyntaxKind.MeExpression Then
-                    Return False
                 End If
 
                 diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
