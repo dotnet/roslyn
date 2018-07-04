@@ -20,11 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
             ThisExpressionSyntax,
             MemberAccessExpressionSyntax>
     {
-        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
-            ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression);
-
         public CSharpSimplifyThisOrMeDiagnosticAnalyzer()
-            : base(s_kindsOfInterest)
+            : base(ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression))
         {
         }
 

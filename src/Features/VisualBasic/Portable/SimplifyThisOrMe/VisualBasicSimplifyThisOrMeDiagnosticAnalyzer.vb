@@ -18,11 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             MeExpressionSyntax,
             MemberAccessExpressionSyntax)
 
-        Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
-            SyntaxKind.SimpleMemberAccessExpression)
-
         Public Sub New()
-            MyBase.New(s_kindsOfInterest)
+            MyBase.New(ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression))
         End Sub
 
         Protected Overrides Function GetLanguageName() As String
