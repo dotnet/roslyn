@@ -90,7 +90,12 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var tree = model.SyntaxTree;
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
+
+            // used so we can provide a link in the preview to the options page. This value is
+            // hard-coded there to be the one that will go to the code-style page.
+            builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration);
             builder["OptionLanguage"] = model.Language;
+
             var diagnostic = DiagnosticHelper.Create(
                 descriptor, tree.GetLocation(issueSpan), severity, 
                 ImmutableArray.Create(node.GetLocation()), builder.ToImmutable());
