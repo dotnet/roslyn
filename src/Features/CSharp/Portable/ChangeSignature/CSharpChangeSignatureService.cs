@@ -406,9 +406,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
             var newParameters = new List<T>();
-            int index = 0;
-            foreach (var newParam in reorderedParameters)
+            for (var index = 0; index < reorderedParameters.Count; index++)
             {
+                var newParam = reorderedParameters[index];
                 var pos = originalParameters.IndexOf(newParam);
                 var param = list[pos];
 
@@ -416,7 +416,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 param = TransferLeadingWhitespaceTrivia(param, list[index]);
 
                 newParameters.Add(param);
-                index++;
             }
 
             var numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count;
@@ -433,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (oldOnlyHasWhitespaceTrivia && newOnlyHasWhitespaceTrivia)
             {
-                return newArgument.WithLeadingTrivia(oldTrivia);
+                newArgument = newArgument.WithLeadingTrivia(oldTrivia);
             }
 
             return newArgument;
@@ -449,7 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var numSeparatorsToSkip = arguments.Count - newArguments.Count;
 
             // copy whitespace trivia from original position
-            var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(newArguments.Select(a => (AttributeArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
+            var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
+                newArguments.Select(a => (AttributeArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
 
             return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
         }
@@ -463,7 +463,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var newArguments = PermuteArguments(document, declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature, isReducedExtensionMethod);
 
-            var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(newArguments.Select(a => (ArgumentSyntax)(UnifiedArgumentSyntax)a), arguments); // copy whitespace trivia from original position
+            // copy whitespace trivia from original position
+            var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
+                newArguments.Select(a => (ArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
 
             var numSeparatorsToSkip = arguments.Count - newArguments.Count;
             return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));

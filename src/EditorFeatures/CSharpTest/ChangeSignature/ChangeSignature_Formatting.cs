@@ -346,6 +346,71 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        public async Task ChangeSignature_Formatting_Attribute_KeepTrivia_RemovingSecond()
+        {
+            var markup = @"
+[Custom(
+    1, 2)]
+class CustomAttribute : System.Attribute
+{
+    public $$CustomAttribute(int x, int y) { }
+}";
+            var updatedSignature = new[] { 0 };
+            var expectedUpdatedCode = @"
+[Custom(
+    1)]
+class CustomAttribute : System.Attribute
+{
+    public CustomAttribute(int x) { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        public async Task ChangeSignature_Formatting_Attribute_KeepTrivia_RemovingBoth()
+        {
+            var markup = @"
+[Custom(
+    1, 2)]
+class CustomAttribute : System.Attribute
+{
+    public $$CustomAttribute(int x, int y) { }
+}";
+            var updatedSignature = new int[] { };
+            var expectedUpdatedCode = @"
+[Custom(
+)]
+class CustomAttribute : System.Attribute
+{
+    public CustomAttribute() { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        public async Task ChangeSignature_Formatting_Attribute_KeepTrivia_RemovingBeforeNewlineComma()
+        {
+            var markup = @"
+[Custom(1
+    , 2, 3)]
+class CustomAttribute : System.Attribute
+{
+    public $$CustomAttribute(int x, int y, int z) { }
+}";
+            var updatedSignature = new[] { 1, 2 };
+            var expectedUpdatedCode = @"
+[Custom(2, 3)]
+class CustomAttribute : System.Attribute
+{
+    public CustomAttribute(int y, int z) { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
         [WorkItem(946220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946220")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Formatting_LambdaAsArgument()
