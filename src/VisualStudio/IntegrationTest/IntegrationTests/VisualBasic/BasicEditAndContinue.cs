@@ -21,6 +21,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
             await VisualStudio.SolutionExplorer.CreateSolutionAsync(nameof(BasicBuild));
             await VisualStudio.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
         }
 
         protected override string LanguageName => LanguageNames.VisualBasic;
