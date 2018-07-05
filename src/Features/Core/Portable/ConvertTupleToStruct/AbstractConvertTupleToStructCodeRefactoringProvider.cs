@@ -321,6 +321,26 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         {
             var solution = startingProject.Solution;
             var graph = solution.GetProjectDependencyGraph();
+
+            // Note: there are a couple of approaches we can take here.  Processing 'direct'
+            // dependencies, or processing 'transitive' dependencies.  Both have pros/cons:
+            //
+            // Direct Dependencies:
+            //  Pros:
+            //      All updated projects are able to see the newly added type.
+            //      Transitive deps won't be updated to use a type they can't actually use.
+            //  Cons:
+            //      If that project then exports that new type, then transitive deps will
+            //      break if they use those exported APIs since they won't know about the
+            //      type.
+            //
+            // Transitive Dependencies:
+            //  Pros:
+            //      All affected code is updated.
+            //  Cons: 
+            //      Non-direct deps will not compile unless the take a reference on the
+            //      starting project.
+
             var dependentProjects = graph.GetProjectsThatDirectlyDependOnThisProject(startingProject.Id);
             var allProjects = dependentProjects.Select(solution.GetProject).Concat(startingProject).ToSet();
 
