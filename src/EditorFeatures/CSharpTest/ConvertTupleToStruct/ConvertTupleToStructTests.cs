@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -14,189 +16,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertTupleToStructCodeRefactoringProvider();
 
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => FlattenActions(actions);
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleAnonymousType()
+        public async Task ConvertSingleTupleType()
         {
             var text = @"
 class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, b = 2 };
+        var t1 = [||](a: 1, b: 2);
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task OnEmptyAnonymousType()
-        {
-            await TestInRegularAndScriptAsync(@"
-class Test
-{
-    void Method()
-    {
-        var t1 = [||]new { };
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}();
-    }
-}
-
-internal class NewClass
-{
-    public NewClass()
-    {
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null;
-    }
-
-    public override int GetHashCode()
-    {
-        return 0;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task OnSingleFieldAnonymousType()
-        {
-            await TestInRegularAndScriptAsync(@"
-class Test
-{
-    void Method()
-    {
-        var t1 = [||]new { a = 1 };
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1);
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-
-    public NewClass(int a)
-    {
-        A = a;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A;
-    }
-
-    public override int GetHashCode()
-    {
-        return -862436692 + A.GetHashCode();
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleAnonymousTypeWithInferredName()
+        public async Task ConvertSingleTupleTypeWithInferredName()
         {
             var text = @"
 class Test
 {
     void Method(int b)
     {
-        var t1 = [||]new { a = 1, b };
+        var t1 = [||](a: 1, b);
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method(int b)
-    {
-        var t1 = new {|Rename:NewClass|}(1, b);
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -208,48 +59,12 @@ class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, b = 2 };
-        var t2 = new { a = 3, b = 4 };
+        var t1 = [||](a: 1, b: 2);
+        var t2 = (a: 3, b: 4);
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-        var t2 = new NewClass(3, 4);
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -261,60 +76,18 @@ class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, b = 2 };
-        var t2 = new { a = 3, b = 4 };
+        var t1 = [||](a: 1, b: 2);
+        var t2 = (a: 3, b: 4);
     }
 
     void Method2()
     {
-        var t1 = new { a = 1, b = 2 };
-        var t2 = new { a = 3, b = 4 };
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 3, b: 4);
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-        var t2 = new NewClass(3, 4);
-    }
-
-    void Method2()
-    {
-        var t1 = new { a = 1, b = 2 };
-        var t2 = new { a = 3, b = 4 };
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -326,52 +99,14 @@ class Test
 {
     void Method(int b)
     {
-        var t1 = [||]new { a = 1, b = 2 };
-        var t2 = new { a = 3, b };
-        var t3 = new { a = 4 };
-        var t4 = new { b = 5, a = 6 };
+        var t1 = [||](a: 1, b: 2);
+        var t2 = (a: 3, b);
+        var t3 = (a: 4, b: 5, c: 6);
+        var t4 = (b: 5, a: 6);
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method(int b)
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-        var t2 = new NewClass(3, b);
-        var t3 = new { a = 4 };
-        var t4 = new { b = 5, a = 6 };
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -383,52 +118,14 @@ class Test
 {
     void Method(int b)
     {
-        var t1 = [||]new { a = 1, b = 2 };
-        var t2 = new { a = 3, b };
-        var t3 = new { a = 4 };
-        var t4 = new { b = 5, a = 6 };
+        var t1 = [||](a: 1, b: 2);
+        var t2 = (a: 3, b);
+        var t3 = (a: 4, b: 5, c: 6);
+        var t4 = (b: 5, a: 6);
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method(int b)
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-        var t2 = new NewClass(3, b);
-        var t3 = new { a = 4 };
-        var t4 = new { b = 5, a = 6 };
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -440,60 +137,18 @@ class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, b = 2 };
-        var t2 = new { a = 3, b = 4 };
+        var t1 = [||](a: 1, b: 2);
+        var t2 = (a: 3, b: 4);
     }
 
     void Method2()
     {
-        var t1 = new { a = 1, b = 2 };
-        var t2 = new { a = 3, b = 4 };
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 3, b: 4);
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-        var t2 = new NewClass(3, 4);
-    }
-
-    void Method2()
-    {
-        var t1 = new { a = 1, b = 2 };
-        var t2 = new { a = 3, b = 4 };
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -505,99 +160,11 @@ class Test
 {
     void Method()
     {
-        var t1 = /*1*/ [||]new /*2*/ { /*3*/ a /*4*/ = /*5*/ 1 /*7*/ , /*8*/ b /*9*/ = /*10*/ 2 /*11*/ } /*12*/ ;
+        var t1 = /*1*/ [||]( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ b /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = /*1*/ new {|Rename:NewClass|}( /*3*/ 1 /*7*/ , /*8*/ 2 /*11*/ ) /*12*/ ;
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestTrivia2()
-        {
-            var text = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = /*1*/ [||]new /*2*/ { /*3*/ a /*4*/ = /*5*/ 1 /*7*/ , /*8*/ b /*9*/ = /*10*/ 2 /*11*/ } /*12*/ ;
-        var t2 = /*1*/ new /*2*/ { /*3*/ a /*4*/ = /*5*/ 1 /*7*/ , /*8*/ b /*9*/ = /*10*/ 2 /*11*/ } /*12*/ ;
-    }
-}
-";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = /*1*/ new {|Rename:NewClass|}( /*3*/ 1 /*7*/ , /*8*/ 2 /*11*/ ) /*12*/ ;
-        var t2 = /*1*/ new NewClass( /*3*/ 1 /*7*/ , /*8*/ 2 /*11*/ ) /*12*/ ;
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -609,7 +176,7 @@ class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, b = new { c = 1, d = 2 } };
+        var t1 = [||](a: 1, b: new { c = 1, d = 2 });
     }
 }
 ";
@@ -625,46 +192,11 @@ class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, b = (object)new { a = 1, b = default(object) } };
+        var t1 = [||](a: 1, b: (object)(a: 1, b: default(object)));
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, (object)new NewClass(1, default(object)));
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public object B { get; }
-
-    public NewClass(int a, object b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               System.Collections.Generic.EqualityComparer<object>.Default.Equals(B, other.B);
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(B);
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -676,101 +208,12 @@ class Test
 {
     void Method()
     {
-        var t1 = new { a = 1, b = 2 };
-        var t2 = [||]new { a = 3, b = 4 };
+        var t1 = (a: 1, b: 2);
+        var t2 = [||](a: 3, b: 4);
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new NewClass(1, 2);
-        var t2 = new {|Rename:NewClass|}(3, 4);
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task UpdateReferences()
-        {
-            var text = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = [||]new { a = 1, b = 2 };
-        Console.WriteLine(t1.a + t1?.b);
-    }
-}
-";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-        Console.WriteLine(t1.A + t1?.B);
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -782,48 +225,11 @@ class Test<X> where X : struct
 {
     void Method<Y>(List<X> x, Y[] y) where Y : class, new()
     {
-        var t1 = [||]new { a = x, b = y };
+        var t1 = [||](a: x, b: y);
     }
 }
 ";
-            var expected = @"
-class Test<X> where X : struct
-{
-    void Method<Y>(List<X> x, Y[] y) where Y : class, new()
-    {
-        var t1 = new {|Rename:NewClass|}(x, y);
-    }
-}
-
-internal class NewClass<X, Y>
-    where X : struct
-    where Y : class, new()
-{
-    public List<X> A { get; }
-    public Y[] B { get; }
-
-    public NewClass(List<X> a, Y[] b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass<X, Y>;
-        return other != null &&
-               System.Collections.Generic.EqualityComparer<List<X>>.Default.Equals(A, other.A) &&
-               System.Collections.Generic.EqualityComparer<Y[]>.Default.Equals(B, other.B);
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<List<X>>.Default.GetHashCode(A);
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<Y[]>.Default.GetHashCode(B);
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -835,54 +241,15 @@ class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, b = 2 };
+        var t1 = [||](a: 1, b: 2);
     }
 }
 
-class NewClass
+class NewStruct
 {
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass1|}(1, 2);
-    }
-}
-
-class NewClass
-{
-}
-
-internal class NewClass1
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass1(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass1;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -894,97 +261,11 @@ class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, a = 2 };
+        var t1 = [||](a: 1, a: 2);
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int Item { get; }
-
-    public NewClass(int a, int item)
-    {
-        A = a;
-        Item = item;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               Item == other.Item;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -335756622;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + Item.GetHashCode();
-        return hashCode;
-    }
-}";
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestNewSelection()
-        {
-            var text = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = [|new|] { a = 1, b = 2 };
-    }
-}
-";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -998,56 +279,15 @@ class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, b = 2 };
+        var t1 = [||](a: 1, b: 2);
         Action a = () =>
         {
-            var t2 = new { a = 3, b = 4 };
+            var t2 = (a: 3, b: 4);
         };
     }
 }
 ";
-            var expected = @"
-using System;
-
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-        Action a = () =>
-        {
-            var t2 = new NewClass(3, 4);
-        };
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -1061,56 +301,15 @@ class Test
 {
     void Method()
     {
-        var t1 = new { a = 1, b = 2 };
+        var t1 = (a: 1, b: 2);
         Action a = () =>
         {
-            var t2 = [||]new { a = 3, b = 4 };
+            var t2 = [||](a: 3, b: 4);
         };
     }
 }
 ";
-            var expected = @"
-using System;
-
-class Test
-{
-    void Method()
-    {
-        var t1 = new NewClass(1, 2);
-        Action a = () =>
-        {
-            var t2 = new {|Rename:NewClass|}(3, 4);
-        };
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -1124,56 +323,15 @@ class Test
 {
     void Method()
     {
-        var t1 = [||]new { a = 1, b = 2 };
+        var t1 = [||](a: 1, b: 2);
         void Goo()
         {
-            var t2 = new { a = 3, b = 4 };
+            var t2 = (a: 3, b: 4);
         }
     }
 }
 ";
-            var expected = @"
-using System;
-
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewClass|}(1, 2);
-        void Goo()
-        {
-            var t2 = new NewClass(3, 4);
-        }
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -1187,56 +345,15 @@ class Test
 {
     void Method()
     {
-        var t1 = new { a = 1, b = 2 };
+        var t1 = (a: 1, b: 2);
         void Goo()
         {
-            var t2 = [||]new { a = 3, b = 4 };
+            var t2 = [||](a: 3, b: 4);
         }
     }
 }
 ";
-            var expected = @"
-using System;
-
-class Test
-{
-    void Method()
-    {
-        var t1 = new NewClass(1, 2);
-        void Goo()
-        {
-            var t2 = new {|Rename:NewClass|}(3, 4);
-        }
-    }
-}
-
-internal class NewClass
-{
-    public int A { get; }
-    public int B { get; }
-
-    public NewClass(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        var other = obj as NewClass;
-        return other != null &&
-               A == other.A &&
-               B == other.B;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = -1817952719;
-        hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + B.GetHashCode();
-        return hashCode;
-    }
-}";
+            var expected = @"";
             await TestInRegularAndScriptAsync(text, expected);
         }
     }

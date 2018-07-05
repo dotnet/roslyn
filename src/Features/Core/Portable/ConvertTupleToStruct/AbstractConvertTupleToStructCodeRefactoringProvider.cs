@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         protected abstract TObjectCreationExpressionSyntax CreateObjectCreationExpression(
             TNameSyntax nameNode, TTupleExpressionSyntax tupleExpression);
 
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -599,7 +600,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private void ReplaceWithObjectCreation(
-            SyntaxEditor editor, string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
+            ISyntaxFactsService syntaxFacts, SyntaxEditor editor, string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             TNameSyntax qualifiedTypeName, SyntaxNode startingCreationNode, TTupleExpressionSyntax childCreation)
         {
             // Use the callback form as anonymous types may be nested, and we want to
@@ -615,6 +616,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         ? CreateStructNameNode(g, typeName, typeParameters, addRenameAnnotation: true)
                         : qualifiedTypeName;
 
+                    var (
                     return CreateObjectCreationExpression(typeNameNode, currentTupleExpr)
                         .WithAdditionalAnnotations(Formatter.Annotation);
                 });
