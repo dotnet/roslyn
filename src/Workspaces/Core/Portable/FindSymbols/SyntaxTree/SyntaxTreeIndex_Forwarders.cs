@@ -29,5 +29,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsBaseConstructorInitializer => _contextInfo.ContainsBaseConstructorInitializer;
         public bool ContainsElementAccessExpression => _contextInfo.ContainsElementAccessExpression;
         public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
+        public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
     }
 }

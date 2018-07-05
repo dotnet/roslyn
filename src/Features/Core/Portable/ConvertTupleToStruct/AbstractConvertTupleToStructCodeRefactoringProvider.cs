@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -303,7 +304,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     return await GetDocumentsToUpdateForContainingTypeAsync(
                         document, tupleExprOrTypeNode, cancellationToken).ConfigureAwait(false);
                 case Scope.ContainingProject:
-                    break;
+                    return await GetDocumentsToUpdateForContainingProjectAsync(
+                        document.Project, tupleType, cancellationToken).ConfigureAwait(false);
                 case Scope.DependentProjects:
                     break;
                 default:
@@ -311,6 +313,39 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             }
 
             throw new NotImplementedException();
+        }
+
+        private async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingProjectAsync(
+            Project project, INamedTypeSymbol tupleType, CancellationToken cancellationToken)
+        {
+            var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
+
+            var tupleFieldNames = tupleType.TupleElements.SelectAsArray(f => f.Name);
+            foreach (var document in project.Documents)
+            {
+                var info = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+                if (info.ContainsTupleExpressionOrTupleType &&
+                    InfoProbablyContainsTupleFieldNames(info, tupleFieldNames))
+                {
+                    // Use 'default' for nodesToUpdate so we walk the entire document
+                    result.Add(new DocumentToUpdate(document, nodesToUpdate: default));
+                }
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        private bool InfoProbablyContainsTupleFieldNames(SyntaxTreeIndex info, ImmutableArray<string> tupleFieldNames)
+        {
+            foreach (var name in tupleFieldNames)
+            {
+                if (!info.ProbablyContainsIdentifier(name))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingTypeAsync(
