@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -31,17 +32,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             _displayFactory = new NavigateToItemDisplayFactory();
         }
 
-        public ISet<string> KindsProvided
+        ISet<string> INavigateToItemProvider2.KindsProvided => KindsProvided;
+
+        public ImmutableHashSet<string> KindsProvided
         {
             get
             {
-                var result = new HashSet<string>(StringComparer.Ordinal);
+                var result = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
                 foreach (var project in _workspace.CurrentSolution.Projects)
                 {
                     var navigateToSearchService = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
                     if (navigateToSearchService != null)
                     {
-                        result.UnionWith(navigateToSearchService.KindsProvided);
+                        result = result.Union(navigateToSearchService.KindsProvided);
                         continue;
                     }
                 }
@@ -125,10 +128,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public void StartSearch(INavigateToCallback callback, string searchValue, INavigateToFilterParameters filter)
         {
-            StartSearch(callback, searchValue, filter.Kinds);
+            StartSearch(callback, searchValue, filter.Kinds.ToImmutableHashSet(StringComparer.Ordinal));
         }
 
-        private void StartSearch(INavigateToCallback callback, string searchValue, ISet<string> kinds)
+        private void StartSearch(INavigateToCallback callback, string searchValue, IImmutableSet<string> kinds)
         {
             this.StopSearch();
 

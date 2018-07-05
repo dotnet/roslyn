@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
             private readonly bool _searchCurrentDocument;
-            private readonly ISet<string> _kinds;
+            private readonly IImmutableSet<string> _kinds;
             private readonly Document _currentDocument;
             private readonly ProgressTracker _progress;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 INavigateToCallback callback,
                 string searchPattern,
                 bool searchCurrentDocument,
-                ISet<string> kinds,
+                IImmutableSet<string> kinds,
                 CancellationToken cancellationToken)
             {
                 _solution = solution;
@@ -215,14 +214,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     _navigateToSearchService = navigateToSearchService;
                 }
 
-                public IImmutableSet<string> KindsProvided => ImmutableHashSet<string>.Empty;
+                public IImmutableSet<string> KindsProvided => ImmutableHashSet.Create<string>(StringComparer.Ordinal);
 
                 public bool CanFilter => false;
 
-                public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
+                public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
                     => _navigateToSearchService.SearchDocumentAsync(document, searchPattern, cancellationToken);
 
-                public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
+                public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
                     => _navigateToSearchService.SearchProjectAsync(project, searchPattern, cancellationToken);
             }
         }
