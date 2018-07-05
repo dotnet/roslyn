@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 {
                     using (cacheService.EnableCaching(project.Id))
                     {
-                        var service = project.LanguageServices.GetService<INavigateToSearchService>();
+                        var service = TryGetNavigateToSearchService(project);
                         if (service != null)
                         {
                             var searchTask = _currentDocument != null
@@ -126,6 +127,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         }
                     }
                 }
+            }
+
+            private static INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate TryGetNavigateToSearchService(Project project)
+            {
+                var service = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
+                if (service != null)
+                {
+                    return service;
+                }
+
+#pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0612 // Type or member is obsolete
+                var legacyService = project.LanguageServices.GetService<INavigateToSearchService>();
+                if (legacyService != null)
+                {
+                    return new ShimNavigateToSearchService(legacyService);
+                }
+#pragma warning restore CS0612 // Type or member is obsolete
+#pragma warning restore CS0618 // Type or member is obsolete
+
+                return null;
             }
 
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
@@ -181,6 +203,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     default:
                         return languageName;
                 }
+            }
+
+            [Obsolete]
+            private class ShimNavigateToSearchService : INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate
+            {
+                private readonly INavigateToSearchService _navigateToSearchService;
+
+                public ShimNavigateToSearchService(INavigateToSearchService navigateToSearchService)
+                {
+                    _navigateToSearchService = navigateToSearchService;
+                }
+
+                public IImmutableSet<string> KindsProvided => ImmutableHashSet<string>.Empty;
+
+                public bool CanFilter => false;
+
+                public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
+                    => _navigateToSearchService.SearchDocumentAsync(document, searchPattern, cancellationToken);
+
+                public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
+                    => _navigateToSearchService.SearchProjectAsync(project, searchPattern, cancellationToken);
             }
         }
     }

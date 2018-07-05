@@ -2,11 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
+using INavigateToSearchService = Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchService;
+using INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate = Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
@@ -30,21 +31,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             _displayFactory = new NavigateToItemDisplayFactory();
         }
 
-        public ISet<string> KindsProvided { get; } = ImmutableHashSet.Create(
-            NavigateToItemKind.Class,
-            NavigateToItemKind.Constant,
-            NavigateToItemKind.Delegate,
-            NavigateToItemKind.Enum,
-            NavigateToItemKind.EnumItem,
-            NavigateToItemKind.Event,
-            NavigateToItemKind.Field,
-            NavigateToItemKind.Interface,
-            NavigateToItemKind.Method,
-            NavigateToItemKind.Module,
-            NavigateToItemKind.Property,
-            NavigateToItemKind.Structure);
+        public ISet<string> KindsProvided
+        {
+            get
+            {
+                var result = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var project in _workspace.CurrentSolution.Projects)
+                {
+                    var navigateToSearchService = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
+                    if (navigateToSearchService != null)
+                    {
+                        result.UnionWith(navigateToSearchService.KindsProvided);
+                        continue;
+                    }
+                }
 
-        public bool CanFilter => true;
+                return result;
+            }
+        }
+
+        public bool CanFilter
+        {
+            get
+            {
+                foreach (var project in _workspace.CurrentSolution.Projects)
+                {
+                    var navigateToSearchService = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
+                    if (navigateToSearchService != null)
+                    {
+                        if (!navigateToSearchService.CanFilter)
+                        {
+                            return false;
+                        }
+
+                        continue;
+                    }
+
+#pragma warning disable CS0618 // Type or member is obsolete
+                    var legacyNavigateToSearchService = project.LanguageServices.GetService<INavigateToSearchService>();
+                    if (legacyNavigateToSearchService != null)
+                    {
+                        return false;
+                    }
+#pragma warning restore CS0618 // Type or member is obsolete
+
+                    // If we reach here, it means the current project does not support Navigate To, which is
+                    // functionally equivalent to supporting filtering.
+                }
+
+                // All projects either support filtering or do not support Navigate To at all
+                return true;
+            }
+        }
 
         public void StopSearch()
         {
