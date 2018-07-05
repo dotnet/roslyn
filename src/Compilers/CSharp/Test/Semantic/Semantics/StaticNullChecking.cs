@@ -34142,6 +34142,80 @@ class C
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "E").WithArguments("C.E", "").WithLocation(5, 10));
         }
 
+        [Fact]
+        public void Constraints_01()
+        {
+            var source =
+@"interface I<T>
+{
+    T P { get; set; }
+}
+class A { }
+class B
+{
+    static void F1<T>(T t1) where T : A
+    {
+        t1.ToString();
+        t1 = default; // 1
+    }
+    static void F2<T>(T t2) where T : A?
+    {
+        t2.ToString(); // 2
+        t2 = default; // 3
+    }
+    static void F3<T>(T t3) where T : I<T>
+    {
+        t3.P.ToString(); // 4
+        t3 = default; // 5
+    }
+    static void F4<T>(T t4) where T : I<T>?
+    {
+        t4.P.ToString(); // 6 and 7
+        t4.P = default; // 8
+        t4 = default;
+    }
+    static void F5<T>(T t5) where T : I<T?>
+    {
+        t5.P.ToString(); // 9
+        t5.P = default;
+        t5 = default; // 10
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Various differences from expected warnings.
+            comp.VerifyDiagnostics(
+                // (11,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         t1 = default; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(11, 14),
+                // (16,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         t2 = default; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(16, 14),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         t3.P.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t3").WithLocation(20, 9),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         t3.P.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t3.P").WithLocation(20, 9),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         t4.P.ToString(); // 6 and 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t4").WithLocation(25, 9),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         t4.P.ToString(); // 6 and 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t4.P").WithLocation(25, 9),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         t4.P = default; // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t4").WithLocation(26, 9),
+                // (31,9): warning CS8602: Possible dereference of a null reference.
+                //         t5.P.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t5").WithLocation(31, 9),
+                // (31,9): warning CS8602: Possible dereference of a null reference.
+                //         t5.P.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t5.P").WithLocation(31, 9),
+                // (32,9): warning CS8602: Possible dereference of a null reference.
+                //         t5.P = default;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t5").WithLocation(32, 9));
+        }
+
         // PROTOTYPE(NullableReferenceTypes): Should report CS8600 for `T1 t = (T1)NullableObject();`
         // and `T3 t = (T3)NullableObject();`. (See VisitConversion which skips reporting because the
         // `object?` has an Unboxing conversion. Should report warning on unconverted operand
