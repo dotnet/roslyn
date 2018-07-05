@@ -25,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                     if (boundAssignment.LocalSymbol.IsUsing)
                     {
                         ImmutableArray<LocalSymbol> locals = ImmutableArray.Create<LocalSymbol>(boundAssignment.LocalSymbol);
+
+                        List<BoundStatement> precedingStatements = new List<BoundStatement>();
+                        for (int j = 0; j < current; j++)
+                        {
+                            precedingStatements.Add(statements[j]);
+                        }
+
                         List<BoundStatement> followingStatements = new List<BoundStatement>();
                         for (int i = current + 1; i < statements.Length; i++)
                             followingStatements.Add(statements[i]);
@@ -45,10 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                                 localDeclarations.ToImmutableArray<BoundLocalDeclaration>()),
                             expressionOpt: null,
                             iDisposableConversion: Conversion.Identity,
+                            disposeMethodOpt: null,
                             body: boundBlock
                             );
+                        precedingStatements.Add(boundUsing);
 
-                        return boundUsing;
+                        BoundBlock outermostBlock = new BoundBlock(
+                            syntax: boundAssignment.Syntax,
+                            locals: node.Locals,
+                            statements: precedingStatements.ToImmutableArray<BoundStatement>());
+
+                        return outermostBlock;
 
                     }
                 }

@@ -130,5 +130,67 @@ class C2
   IL_0018:  ret
 }");
         }
+
+        [Fact]
+        public void PreexistingVariablesUsingVariableEmitTest()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    public void Dispose() { }
+    public void Method1() { }
+}
+class C2
+{
+    public static void Main()
+    {
+        C1 c0 = new C1();
+        c0.Method1();
+        using var c1 = new C1();
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C2.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  1
+  .locals init (C1 V_0) //c1
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  callvirt   ""void C1.Method1()""
+  IL_000a:  newobj     ""C1..ctor()""
+  IL_000f:  stloc.0
+  .try
+  {
+    IL_0010:  leave.s    IL_001c
+  }
+  finally
+  {
+    IL_0012:  ldloc.0
+    IL_0013:  brfalse.s  IL_001b
+    IL_0015:  ldloc.0
+    IL_0016:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001b:  endfinally
+  }
+  IL_001c:  ret
+}");
+        }
+    [Fact]
+    public void MultipleUsingVarEmitTest()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    public void Dispose() { }
+}
+class C2
+{
+    public static void Main()
+    {
+        using C1 o1 = new C1(), o2 = new C1();
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C2.Main", @"");
+        }
     }
 }
