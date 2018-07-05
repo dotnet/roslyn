@@ -1351,6 +1351,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix typo &apos;{0}&apos;.
+        /// </summary>
+        internal static string Fix_typo_0 {
+            get {
+                return ResourceManager.GetString("Fix_typo_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Format string contains invalid placeholder.
         /// </summary>
         internal static string Format_string_contains_invalid_placeholder {
@@ -3068,15 +3077,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Spell check &apos;{0}&apos;.
-        /// </summary>
-        internal static string Spell_check_0 {
-            get {
-                return ResourceManager.GetString("Spell_check_0", resourceCulture);
             }
         }
         

@@ -1585,6 +1585,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node != null && (node.Parent as InvocationExpressionSyntax)?.Expression == node;
         }
 
+        public bool IsAwaitExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.AwaitExpression);
+
         public bool IsExpressionOfAwaitExpression(SyntaxNode node)
         {
             return node != null && (node.Parent as AwaitExpressionSyntax)?.Expression == node;
@@ -1652,6 +1655,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsConditionalOr(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalOrExpression;
+
+        public bool IsTupleExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.TupleExpression;
+
+        public bool IsTupleType(SyntaxNode node)
+            => node.Kind() == SyntaxKind.TupleType;
 
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
