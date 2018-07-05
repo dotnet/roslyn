@@ -2,17 +2,17 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
+Imports Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousTypeToClass
-    Public Class ConvertAnonymousTypeToClassTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStruct
+    Public Class ConvertTupleToStructTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicConvertAnonymousTypeToClassCodeRefactoringProvider()
+            Return New VisualBasicConvertTupleToStructCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function ConvertSingleAnonymousType() As Task
             Dim text = "
 class Test
@@ -55,7 +55,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function OnEmptyAnonymousType() As Task
             Await TestInRegularAndScriptAsync("
 class Test
@@ -87,7 +87,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function OnSingleFieldAnonymousType() As Task
             Await TestInRegularAndScriptAsync("
 class Test
@@ -125,7 +125,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function ConvertSingleAnonymousTypeWithInferredName() As Task
             Dim text = "
 class Test
@@ -168,7 +168,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function ConvertMultipleInstancesInSameMethod() As Task
             Dim text = "
 class Test
@@ -213,7 +213,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function ConvertMultipleInstancesAcrossMethods() As Task
             Dim text = "
 class Test
@@ -268,7 +268,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function OnlyConvertMatchingTypesInSameMethod() As Task
             Dim text = "
 class Test
@@ -317,7 +317,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function TestFixAllMatchesInSingleMethod() As Task
             Dim text = "
 class Test
@@ -366,7 +366,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function TestFixNotAcrossMethods() As Task
             Dim text = "
 class Test
@@ -421,7 +421,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function NotIfReferencesAnonymousTypeInternally() As Task
             Dim text = "
 class Test
@@ -434,7 +434,7 @@ end class
             Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function ConvertMultipleNestedInstancesInSameMethod() As Task
             Dim text = "
 class Test
@@ -477,7 +477,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function RenameAnnotationOnStartingPoint() As Task
             Dim text = "
 class Test
@@ -522,7 +522,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function UpdateReferences() As Task
             Dim text = "
 class Test
@@ -567,7 +567,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function CapturedTypeParameters() As Task
             Dim text = "
 imports system.collections.generic
@@ -614,7 +614,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function TestNonKeyProperties() As Task
             Dim text = "
 class Test
@@ -663,7 +663,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function TestNameCollision() As Task
             Dim text = "
 class Test
@@ -712,7 +712,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function TestDuplicatedName() As Task
             Dim text = "
 class Test

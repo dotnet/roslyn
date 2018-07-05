@@ -2,19 +2,19 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass;
+using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousTypeToClass
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 {
-    public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest
+    public class ConvertTupleToStructTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpConvertAnonymousTypeToClassCodeRefactoringProvider();
+            => new CSharpConvertTupleToStructCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertSingleAnonymousType()
         {
             var text = @"
@@ -65,7 +65,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task OnEmptyAnonymousType()
         {
             await TestInRegularAndScriptAsync(@"
@@ -105,7 +105,7 @@ internal class NewClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task OnSingleFieldAnonymousType()
         {
             await TestInRegularAndScriptAsync(@"
@@ -149,7 +149,7 @@ internal class NewClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertSingleAnonymousTypeWithInferredName()
         {
             var text = @"
@@ -200,7 +200,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertMultipleInstancesInSameMethod()
         {
             var text = @"
@@ -253,7 +253,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertMultipleInstancesAcrossMethods()
         {
             var text = @"
@@ -318,7 +318,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task OnlyConvertMatchingTypesInSameMethod()
         {
             var text = @"
@@ -375,7 +375,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestFixAllMatchesInSingleMethod()
         {
             var text = @"
@@ -432,7 +432,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestFixNotAcrossMethods()
         {
             var text = @"
@@ -497,7 +497,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestTrivia()
         {
             var text = @"
@@ -548,7 +548,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestTrivia2()
         {
             var text = @"
@@ -601,7 +601,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task NotIfReferencesAnonymousTypeInternally()
         {
             var text = @"
@@ -617,7 +617,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertMultipleNestedInstancesInSameMethod()
         {
             var text = @"
@@ -668,7 +668,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task RenameAnnotationOnStartingPoint()
         {
             var text = @"
@@ -721,7 +721,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task UpdateReferences()
         {
             var text = @"
@@ -774,7 +774,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task CapturedTypeParameters()
         {
             var text = @"
@@ -827,7 +827,7 @@ internal class NewClass<X, Y>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task NewTypeNameCollision()
         {
             var text = @"
@@ -886,7 +886,7 @@ internal class NewClass1
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestDuplicatedName()
         {
             var text = @"
@@ -937,7 +937,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestNewSelection()
         {
             var text = @"
@@ -988,7 +988,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestInLambda1()
         {
             var text = @"
@@ -1051,7 +1051,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestInLambda2()
         {
             var text = @"
@@ -1114,7 +1114,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestInLocalFunction1()
         {
             var text = @"
@@ -1177,7 +1177,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task TestInLocalFunction2()
         {
             var text = @"
