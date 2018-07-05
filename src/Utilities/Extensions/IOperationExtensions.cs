@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -134,38 +135,66 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Gets all valid members of the block operation body, excluding the VB implicit label and return statements.
+        /// Filters out operations that are implicit and have no explicit descendant with a constant value or a non-null type.
         /// </summary>
-        public static ImmutableArray<IOperation> GetOperations(this ImmutableArray<IOperation> blockOperations)
+        public static ImmutableArray<IOperation> WithoutFullyImplicitOperations(this ImmutableArray<IOperation> operations)
         {
-            if (blockOperations.IsDefaultOrEmpty)
+            ImmutableArray<IOperation>.Builder builder = null;
+            for (int i = 0; i < operations.Length; i++)
             {
-                return blockOperations;
+                var operation = operations[i];
+       
+                // Check if all descendants are either implicit or are explicit with no constant value or type, indicating it is not user written code.
+                if (operation.DescendantsAndSelf().All(o => o.IsImplicit || (!o.ConstantValue.HasValue && o.Type == null)))
+                {
+                    if (builder == null)
+                    {
+                        builder = ImmutableArray.CreateBuilder<IOperation>();
+                        builder.AddRange(operations, i);
+                    }
+                }
+                else if (builder != null)
+                {
+                    builder.Add(operation);
+                }
             }
 
-            if (blockOperations.Length > 1 && blockOperations[0].Language == LanguageNames.VisualBasic)
-            {
-                var lastOperation = blockOperations[blockOperations.Length - 1];
-                var secondLastOperation = blockOperations[blockOperations.Length - 2];
+            return builder != null ? builder.ToImmutable() : operations;
+        }
 
-                if (lastOperation.Kind == OperationKind.Return && lastOperation.IsImplicit &&
-                    secondLastOperation.Kind == OperationKind.Labeled &&
-                    ((ILabeledOperation)secondLastOperation).Label.Name == "exit" &&
-                    secondLastOperation.IsImplicit)
+        /// <summary>
+        /// Gets explicit descendants or self of the given <paramref name="operation"/> that have no explicit ancestor in
+        /// the operation tree rooted at <paramref name="operation"/>.
+        /// </summary>
+        /// <param name="operation">Operation</param>
+        public static ImmutableArray<IOperation> GetTopmostExplicitDescendants(this IOperation operation)
+        {
+            if (!operation.IsImplicit)
+            {
+                return ImmutableArray.Create(operation);
+            }
+
+            var builder = ImmutableArray.CreateBuilder<IOperation>();
+            var operationsToProcess = new Queue<IOperation>();
+            operationsToProcess.Enqueue(operation);
+
+            while (operationsToProcess.Count > 0)
+            {
+                operation = operationsToProcess.Dequeue();
+                if (!operation.IsImplicit)
                 {
-                    var builder = ImmutableArray.CreateBuilder<IOperation>();
-                    builder.AddRange(blockOperations, blockOperations.Length - 2);
-                    return builder.ToImmutable();
+                    builder.Add(operation);
                 }
                 else
                 {
-                    return blockOperations;
+                    foreach (var child in operation.Children)
+                    {
+                        operationsToProcess.Enqueue(child);
+                    }
                 }
             }
-            else
-            {
-                return blockOperations;
-            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -412,22 +441,22 @@ namespace Analyzer.Utilities.Extensions
             switch (operation)
             {
                 case IBlockOperation blockOperation:
-                    return SemanticModel.GetControlFlowGraph(blockOperation);
+                    return ControlFlowGraph.Create(blockOperation);
 
                 case IMethodBodyOperation methodBodyOperation:
-                    return SemanticModel.GetControlFlowGraph(methodBodyOperation);
+                    return ControlFlowGraph.Create(methodBodyOperation);
 
                 case IConstructorBodyOperation constructorBodyOperation:
-                    return SemanticModel.GetControlFlowGraph(constructorBodyOperation);
+                    return ControlFlowGraph.Create(constructorBodyOperation);
 
                 case IFieldInitializerOperation fieldInitializerOperation:
-                    return SemanticModel.GetControlFlowGraph(fieldInitializerOperation);
+                    return ControlFlowGraph.Create(fieldInitializerOperation);
 
                 case IPropertyInitializerOperation propertyInitializerOperation:
-                    return SemanticModel.GetControlFlowGraph(propertyInitializerOperation);
+                    return ControlFlowGraph.Create(propertyInitializerOperation);
 
                 case IParameterInitializerOperation parameterInitializerOperation:
-                    return SemanticModel.GetControlFlowGraph(parameterInitializerOperation);
+                    return ControlFlowGraph.Create(parameterInitializerOperation);
 
                 default:
                     throw new NotSupportedException($"Unexpected root operation kind: {operation.Kind.ToString()}");
