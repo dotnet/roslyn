@@ -367,6 +367,11 @@ function Get-VisualStudioDirAndId() {
                 Write-Output $obj.instanceId
                 return
             }
+            else {
+                Write-Host "Ignored unsupported installation $name"
+                Write-Host "  Path: $($obj.installationPath)"
+                Write-Host "  ID: $($obj.instanceId)"
+            }
         }
         else {
             Write-Host "Unrecognized installationName format $name"
