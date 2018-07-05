@@ -791,7 +791,7 @@ class Test<X> where X : struct
 {
     void Method<Y>(List<X> x, Y[] y) where Y : class, new()
     {
-        var t1 = new {|Rename:NewClass|}(x, y);
+        var t1 = new {|Rename:NewClass|}<X, Y>(x, y);
     }
 }
 

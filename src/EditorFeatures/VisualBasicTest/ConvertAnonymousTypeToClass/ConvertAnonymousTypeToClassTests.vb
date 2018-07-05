@@ -583,7 +583,7 @@ imports system.collections.generic
 
 class Test(of X as {structure})
     sub Method(of Y as {class, new})(lst as List(of X), arr as Y())
-        dim t1 = New {|Rename:NewClass|}(lst, arr)
+        dim t1 = New {|Rename:NewClass|}(Of X, Y)(lst, arr)
     end sub
 end class
 

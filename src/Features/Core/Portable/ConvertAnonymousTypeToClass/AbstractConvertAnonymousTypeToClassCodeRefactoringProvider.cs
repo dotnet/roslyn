@@ -24,18 +24,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 {
     internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvider<
         TExpressionSyntax,
+        TNameSyntax,
         TIdentifierNameSyntax,
         TObjectCreationExpressionSyntax,
         TAnonymousObjectCreationExpressionSyntax,
         TNamespaceDeclarationSyntax>
         : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
-        where TIdentifierNameSyntax : TExpressionSyntax
+        where TNameSyntax : TExpressionSyntax
+        where TIdentifierNameSyntax : TNameSyntax
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TAnonymousObjectCreationExpressionSyntax : TExpressionSyntax
         where TNamespaceDeclarationSyntax : SyntaxNode
     {
-        protected abstract TObjectCreationExpressionSyntax CreateObjectCreationExpression(TIdentifierNameSyntax nameNode, TAnonymousObjectCreationExpressionSyntax currentAnonymousObject);
+        protected abstract TObjectCreationExpressionSyntax CreateObjectCreationExpression(TNameSyntax nameNode, TAnonymousObjectCreationExpressionSyntax currentAnonymousObject);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // Next, go through and replace all matching anonymous types in this method with a call
             // to construct the new named type we've generated.  
             await ReplaceMatchingAnonymousTypesAsync(
-                document, editor, className,
+                document, editor, namedTypeSymbol,
                 containingMember, anonymousObject, 
                 anonymousType, cancellationToken).ConfigureAwait(false);
 
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         }
 
         private async Task ReplaceMatchingAnonymousTypesAsync(
-            Document document, SyntaxEditor editor, string className,
+            Document document, SyntaxEditor editor, INamedTypeSymbol classSymbol,
             SyntaxNode containingMember, TAnonymousObjectCreationExpressionSyntax creationNode, 
             INamedTypeSymbol anonymousType, CancellationToken cancellationToken)
         {
@@ -237,13 +239,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
                 if (anonymousType.Equals(childType))
                 {
-                    ReplaceWithObjectCreation(editor, className, creationNode, childCreation);
+                    ReplaceWithObjectCreation(editor, classSymbol, creationNode, childCreation);
                 }
             }
         }
 
         private void ReplaceWithObjectCreation(
-            SyntaxEditor editor, string className,
+            SyntaxEditor editor, INamedTypeSymbol classSymbol,
             TAnonymousObjectCreationExpressionSyntax startingCreationNode,
             TAnonymousObjectCreationExpressionSyntax childCreation)
         {
@@ -256,11 +258,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                     var currentAnonymousObject = (TAnonymousObjectCreationExpressionSyntax)currentNode;
 
                     // If we hit the node the user started on, then add the rename annotation here.
+                    var className = classSymbol.Name;
                     var classNameToken = startingCreationNode == childCreation
                         ? g.Identifier(className).WithAdditionalAnnotations(RenameAnnotation.Create())
                         : g.Identifier(className);
 
-                    var classNameNode = (TIdentifierNameSyntax)g.IdentifierName(classNameToken);
+                    var classNameNode = classSymbol.TypeParameters.Length == 0
+                        ? (TNameSyntax)g.IdentifierName(classNameToken)
+                        : (TNameSyntax)g.GenericName(classNameToken, 
+                            classSymbol.TypeParameters.Select(tp => g.IdentifierName(tp.Name)));
+
                     return CreateObjectCreationExpression(classNameNode, currentAnonymousObject)
                         .WithAdditionalAnnotations(Formatter.Annotation);
                 });

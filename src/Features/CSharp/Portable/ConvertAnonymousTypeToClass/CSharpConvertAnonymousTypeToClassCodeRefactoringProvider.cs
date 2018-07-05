@@ -12,13 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
     internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
         AbstractConvertAnonymousTypeToClassCodeRefactoringProvider<
             ExpressionSyntax,
+            NameSyntax,
             IdentifierNameSyntax,
             ObjectCreationExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax,
             NamespaceDeclarationSyntax>
     {
         protected override ObjectCreationExpressionSyntax CreateObjectCreationExpression(
-            IdentifierNameSyntax nameNode, AnonymousObjectCreationExpressionSyntax anonymousObject)
+            NameSyntax nameNode, AnonymousObjectCreationExpressionSyntax anonymousObject)
         {
             return SyntaxFactory.ObjectCreationExpression(
                 nameNode, CreateArgumentList(anonymousObject), initializer: default);

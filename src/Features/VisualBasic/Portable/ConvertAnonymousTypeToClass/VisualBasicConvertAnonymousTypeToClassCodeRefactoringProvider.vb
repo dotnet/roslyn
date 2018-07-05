@@ -11,13 +11,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
     Friend Class VisualBasicConvertAnonymousTypeToClassCodeRefactoringProvider
         Inherits AbstractConvertAnonymousTypeToClassCodeRefactoringProvider(Of
             ExpressionSyntax,
+            NameSyntax,
             IdentifierNameSyntax,
             ObjectCreationExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax,
             NamespaceBlockSyntax)
 
         Protected Overrides Function CreateObjectCreationExpression(
-            nameNode As IdentifierNameSyntax, anonymousObject As AnonymousObjectCreationExpressionSyntax) As ObjectCreationExpressionSyntax
+            nameNode As NameSyntax, anonymousObject As AnonymousObjectCreationExpressionSyntax) As ObjectCreationExpressionSyntax
 
             Return SyntaxFactory.ObjectCreationExpression(
                 attributeLists:=Nothing, nameNode, CreateArgumentList(anonymousObject.Initializer), initializer:=Nothing)
