@@ -307,7 +307,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     return await GetDocumentsToUpdateForContainingProjectAsync(
                         document.Project, tupleType, cancellationToken).ConfigureAwait(false);
                 case Scope.DependentProjects:
-                    break;
+                    return await GetDocumentsToUpdateForDependentProjectAsync(
+                        document.Project, tupleType, cancellationToken).ConfigureAwait(false);
                 default:
                     break;
             }
@@ -315,12 +316,40 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             throw new NotImplementedException();
         }
 
+        private async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForDependentProjectAsync(
+            Project startingProject, INamedTypeSymbol tupleType, CancellationToken cancellationToken)
+        {
+            var solution = startingProject.Solution;
+            var graph = solution.GetProjectDependencyGraph();
+            var dependentProjects = graph.GetProjectsThatDirectlyDependOnThisProject(startingProject.Id);
+            var allProjects = dependentProjects.Select(solution.GetProject).Concat(startingProject).ToSet();
+
+            var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
+            var tupleFieldNames = tupleType.TupleElements.SelectAsArray(f => f.Name);
+
+            foreach (var project in allProjects)
+            {
+                await AddDocumentsToUpdateForProjectAsync(
+                    project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
         private async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingProjectAsync(
             Project project, INamedTypeSymbol tupleType, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
-
             var tupleFieldNames = tupleType.TupleElements.SelectAsArray(f => f.Name);
+
+            await AddDocumentsToUpdateForProjectAsync(
+                project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
+
+            return result.ToImmutableAndFree();
+        }
+
+        private async Task AddDocumentsToUpdateForProjectAsync(Project project, ArrayBuilder<DocumentToUpdate> result, ImmutableArray<string> tupleFieldNames, CancellationToken cancellationToken)
+        {
             foreach (var document in project.Documents)
             {
                 var info = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
@@ -331,8 +360,6 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     result.Add(new DocumentToUpdate(document, nodesToUpdate: default));
                 }
             }
-
-            return result.ToImmutableAndFree();
         }
 
         private bool InfoProbablyContainsTupleFieldNames(SyntaxTreeIndex info, ImmutableArray<string> tupleFieldNames)
