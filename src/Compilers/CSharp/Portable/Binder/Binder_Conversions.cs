@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindArgumentsAndNames(node.ArgumentList, diagnostics, arguments, allowArglist: true);
 
             BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer != null
-              ? BindInitializerExpression(syntax: node.Initializer, type: destination, typeSyntax: syntax, diagnostics)
-              : null;
+                ? BindInitializerExpression(syntax: node.Initializer, type: destination, typeSyntax: syntax, diagnostics)
+                : null;
 
             BoundExpression boundCreation = null;
 
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     boundCreation = BindTypeParameterCreationExpression(
                        node,
-                       typeParameter: typeParameter,
+                       typeParameter,
                        boundInitializerOpt,
                        diagnostics);
                     break;
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundConversion(
                 syntax,
-                boundCreation ?? unboundCreation,
+                operand: boundCreation ?? unboundCreation,
                 conversion,
                 @checked: false,
                 explicitCastInCode: isCast,
