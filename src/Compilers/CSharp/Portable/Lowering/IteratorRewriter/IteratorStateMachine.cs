@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _interfaces;
         }
 
-        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics()
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
         {
             return ContainingAssembly.GetSpecialType(SpecialType.System_Object);
         }
