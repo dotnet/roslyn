@@ -27,10 +27,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             {
                 if (testCase is IdeTestCase ideTestCase)
                 {
-                    return new IdeTestCase(diagnosticMessageSink, ideTestCase.DefaultMethodDisplay, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.TestMethodArguments);
+                    return new IdeTestCase(diagnosticMessageSink, ideTestCase.DefaultMethodDisplay, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.TestMethodArguments, ideTestCase.SkipReason);
                 }
 
-                return new IdeTestCase(diagnosticMessageSink, TestMethodDisplay.ClassAndMethod, testCase.TestMethod, VisualStudioVersion.VS2017, testCase.TestMethodArguments);
+                return new IdeTestCase(diagnosticMessageSink, TestMethodDisplay.ClassAndMethod, testCase.TestMethod, VisualStudioVersion.VS2017, testCase.TestMethodArguments, testCase.SkipReason);
                 //throw new InvalidOperationException($"{testCase.GetType().AssemblyQualifiedName} is not a supported test case type. Expected {typeof(IdeTestCase).AssemblyQualifiedName}.");
             });
 
