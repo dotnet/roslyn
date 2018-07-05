@@ -5,12 +5,12 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <SourceLinkProvider Condition="'$(SourceLinkProvider)' == ''">GitHub</SourceLinkProvider>
-  </PropertyGroup>
-
+  <!--
+    Include both GitHub and VSTS packages to enable SourceLink in repositories that mirror to VSTS.
+  -->
   <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
-    <PackageReference Include="Microsoft.SourceLink.$(SourceLinkProvider)" Version="$(MicrosoftSourceLinkVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkVersion)" PrivateAssets="all" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.SourceLink.Vsts.Git" Version="$(MicrosoftSourceLinkVersion)" PrivateAssets="all" IsImplicitlyDefined="true" />
   </ItemGroup>
 
 </Project>
