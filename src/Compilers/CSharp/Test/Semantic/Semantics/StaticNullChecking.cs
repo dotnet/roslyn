@@ -28726,8 +28726,6 @@ class C
                 TestOptions.Regular8.WithFeature("staticNullChecking").GetNullableReferenceFlags());
             Assert.Equal(NullableReferenceFlags.Enabled,
                 TestOptions.Regular8.WithFeature("staticNullChecking", "0").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.InferLocalNullability,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "2").GetNullableReferenceFlags());
             Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.AllowMemberOptOut | NullableReferenceFlags.AllowAssemblyOptOut,
                 TestOptions.Regular8.WithFeature("staticNullChecking", "12").GetNullableReferenceFlags());
             Assert.Equal(NullableReferenceFlags.Enabled | (NullableReferenceFlags)0x123,
@@ -28899,23 +28897,11 @@ class B
                 //         F(y);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("s", "string? C.F(string s)").WithLocation(11, 11));
 
-            comp = CreateCompilation(
-                source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.InferLocalNullability));
-            comp.VerifyDiagnostics(
-                // (8,11): warning CS8604: Possible null reference argument for parameter 's' in 'string? C.F(string s)'.
-                //         F(x);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("s", "string? C.F(string s)").WithLocation(8, 11),
-                // (11,11): warning CS8604: Possible null reference argument for parameter 's' in 'string? C.F(string s)'.
-                //         F(y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("s", "string? C.F(string s)").WithLocation(11, 11));
-
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(true, symbol.Type.IsNullable);
+            Assert.Equal("System.String!", symbol.Type.ToTestDisplayString(true));
         }
 
         [Fact]
@@ -35452,6 +35438,9 @@ class C
                 // (8,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A<B2>.F(null); // warning
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 17));
+
+            var constraintTypes = comp.GetMember<NamedTypeSymbol>("A").TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics;
+            Assert.Equal("I<T>", constraintTypes[0].ToTestDisplayString(true));
         }
 
         [Fact]

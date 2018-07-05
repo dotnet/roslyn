@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         None = 0,
         //AllowNullAsNonNull = 0x1,
-        InferLocalNullability = 0x2,
+        //InferLocalNullability = 0x2,
         AllowMemberOptOut = 0x4,
         AllowAssemblyOptOut = 0x8,
         Enabled = 0x1000,
