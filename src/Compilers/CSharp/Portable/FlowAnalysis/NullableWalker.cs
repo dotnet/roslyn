@@ -3718,7 +3718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                _resultType = _resultType?.WithTopLevelNonNullability();
+                _resultType = _resultType?.WithTopLevelNonNullabilityForReferenceTypes();
             }
 
             return null;
