@@ -2598,16 +2598,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
-            
+
             var us = (LocalDeclarationStatementSyntax)statement;
             Assert.NotNull(us.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
             Assert.NotNull(us.Declaration);
             Assert.Equal("f ? x = a", us.Declaration.ToString());
-
         }
-
-
 
         [Fact]
         public void TestUsingSpecialCase3()

@@ -217,7 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 kind = LocalDeclarationKind.RegularVariable;
                             }
-                                foreach (var vdecl in decl.Declaration.Variables)
+
+                            foreach (var vdecl in decl.Declaration.Variables)
                             {
                                 var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, localDeclarationBinder);
                                 locals.Add(localSymbol);
