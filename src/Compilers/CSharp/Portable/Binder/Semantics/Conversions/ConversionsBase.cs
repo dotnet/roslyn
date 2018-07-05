@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
-        public abstract Conversion GetImplicitObjectCreationConversion(UnboundObjectCreationExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
-
         public abstract Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
@@ -844,12 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ImplicitThrow;
 
                 case BoundKind.UnboundObjectCreationExpression:
-                    var objectCreationConversion = GetImplicitObjectCreationConversion((UnboundObjectCreationExpression)sourceExpression, destination, ref useSiteDiagnostics);
-                    if (objectCreationConversion.Exists)
-                    {
-                        return objectCreationConversion;
-                    }
-                    break;
+                    return Conversion.ImplicitNew;
             }
 
             return Conversion.NoConversion;

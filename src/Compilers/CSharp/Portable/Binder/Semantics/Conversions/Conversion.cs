@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference: 
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.ImplicitThrow:
+                case ConversionKind.ImplicitNew:
                 case ConversionKind.AnonymousFunction: 
                 case ConversionKind.Boxing: 
                 case ConversionKind.DefaultOrNullLiteral: 
@@ -219,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitReference => new Conversion(ConversionKind.ImplicitReference);
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
+        internal static Conversion ImplicitNew => new Conversion(ConversionKind.ImplicitNew);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion DefaultOrNullLiteral => new Conversion(ConversionKind.DefaultOrNullLiteral);

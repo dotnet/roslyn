@@ -10311,8 +10311,8 @@ tryAgain:
         private ExpressionSyntax ParseArrayOrObjectCreationExpression()
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
-            bool isPossibleArrayCreation = this.IsPossibleArrayCreationExpression();
-            var type = isPossibleArrayCreation || this.CurrentToken.Kind != SyntaxKind.OpenParenToken
+            bool isPossibleArrayCreation = this.IsPossibleArrayCreationExpression(out ScanTypeFlags scanTypeFlags);
+            var type = isPossibleArrayCreation || scanTypeFlags == ScanTypeFlags.NullableType || this.CurrentToken.Kind != SyntaxKind.OpenParenToken
                 ? this.ParseType(
                     isPossibleArrayCreation
                         ? ParseTypeMode.ArrayCreation
@@ -10380,15 +10380,15 @@ tryAgain:
             return result;
         }
 
-        private bool IsPossibleArrayCreationExpression()
+        private bool IsPossibleArrayCreationExpression(out ScanTypeFlags scanTypeFlags)
         {
             // previous token should be NewKeyword
 
             var resetPoint = this.GetResetPoint();
             try
             {
-                ScanTypeFlags isType = this.ScanNonArrayType();
-                return isType != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
+                scanTypeFlags = this.ScanNonArrayType();
+                return scanTypeFlags != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
             }
             finally
             {

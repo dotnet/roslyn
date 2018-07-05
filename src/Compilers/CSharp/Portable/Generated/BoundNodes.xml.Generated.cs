@@ -4691,40 +4691,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class UnboundObjectCreationExpression : BoundExpression
     {
-        public UnboundObjectCreationExpression(SyntaxNode syntax, AnalyzedArguments arguments, bool hasErrors)
+        public UnboundObjectCreationExpression(SyntaxNode syntax, bool hasErrors)
             : base(BoundKind.UnboundObjectCreationExpression, syntax, null, hasErrors)
         {
-
-            Debug.Assert(arguments != null, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-            this.Arguments = arguments;
         }
 
-        public UnboundObjectCreationExpression(SyntaxNode syntax, AnalyzedArguments arguments)
+        public UnboundObjectCreationExpression(SyntaxNode syntax)
             : base(BoundKind.UnboundObjectCreationExpression, syntax, null)
         {
-
-            Debug.Assert(arguments != null, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-            this.Arguments = arguments;
         }
 
-
-        public AnalyzedArguments Arguments { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitUnboundObjectCreationExpression(this);
         }
 
-        public UnboundObjectCreationExpression Update(AnalyzedArguments arguments)
+        public UnboundObjectCreationExpression Update()
         {
-            if (arguments != this.Arguments)
-            {
-                var result = new UnboundObjectCreationExpression(this.Syntax, arguments, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                return result;
-            }
             return this;
         }
     }
@@ -9441,7 +9425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.Arguments);
+            return node.Update();
         }
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
@@ -10882,7 +10866,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("unboundObjectCreationExpression", null, new TreeDumperNode[]
             {
-                new TreeDumperNode("arguments", node.Arguments, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

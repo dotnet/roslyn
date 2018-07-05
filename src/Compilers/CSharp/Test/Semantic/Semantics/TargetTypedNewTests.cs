@@ -40,6 +40,9 @@ class C {
                 // (4,18): error CS1736: Default parameter value for 'c' must be a compile-time constant
                 //     void M(C c = new(), S s = new())
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("c").WithLocation(4, 18),
+                // (4,31): error CS9367: The default constructor of the value type 'S' may not be used with target-typed 'new'. Consider using 'default' instead.
+                //     void M(C c = new(), S s = new())
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("S").WithLocation(4, 31),
                 // (4,31): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     void M(C c = new(), S s = new())
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(4, 31)
@@ -238,51 +241,36 @@ namespace System
                 // (12,13): error CS0815: Cannot assign new() to an implicitly-typed variable
                 //         var v0 = new();
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v0 = new()").WithArguments("new()").WithLocation(12, 13),
-                // (13,21): error CS9366: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
+                // (13,21): error CS9367: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         Struct v1 = new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("Struct").WithLocation(13, 21),
-                // (14,21): error CS9365: The type 'Action' may not be used as the target-type of 'new'.
-                //         Action v2 = new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("System.Action").WithLocation(14, 21),
                 // (15,9): error CS0723: Cannot declare a variable of static type 'Static'
                 //         Static v3 = new();
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "Static").WithArguments("Static").WithLocation(15, 9),
-                // (15,21): error CS0712: Cannot create an instance of the static class 'Static'
+                // (15,21): error CS1729: 'Static' does not contain a constructor that takes 0 arguments
                 //         Static v3 = new();
-                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new()").WithArguments("Static").WithLocation(15, 21),
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("Static", "0").WithLocation(15, 21),
                 // (16,23): error CS0144: Cannot create an instance of the abstract class or interface 'Abstract'
                 //         Abstract v4 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("Abstract").WithLocation(16, 23),
-                // (17,24): error CS0144: Cannot create an instance of the abstract class or interface 'Interface'
-                //         Interface v5 = new();
-                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("Interface").WithLocation(17, 24),
-                // (18,26): error CS9365: The type 'Enumeration' may not be used as the target-type of 'new'.
-                //         Enumeration v6 = new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("Enumeration").WithLocation(18, 26),
-                // (19,18): error CS9366: The default constructor of the value type 'int' may not be used with target-typed 'new'. Consider using 'default' instead.
+                // (19,18): error CS9367: The default constructor of the value type 'int' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         int v7 = new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int").WithLocation(19, 18),
-                // (20,19): error CS1919: Unsafe type 'int*' cannot be used in object creation
-                //         int* v8 = new();
-                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("int*").WithLocation(20, 19),
-                // (21,19): error CS9366: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
+                // (21,19): error CS9367: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         int? v9 = new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int?").WithLocation(21, 19),
-                // (22,26): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //         (int, int) v10 = new();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new()").WithArguments("(int, int)").WithLocation(22, 26),
-                // (23,23): error CS0143: The type 'dynamic' has no constructors defined
-                //         dynamic v11 = new();
-                Diagnostic(ErrorCode.ERR_NoConstructors, "new()").WithArguments("dynamic").WithLocation(23, 23),
-                // (24,21): error CS9365: The type 'int[]' may not be used as the target-type of 'new'.
-                //         int[] v12 = new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("int[]").WithLocation(24, 21),
                 // (25,9): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //         Error v13 = new();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(25, 9),
-                // (26,17): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
-                //         T v14 = new();
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("T").WithLocation(26, 17)
+                // (13,16): warning CS0219: The variable 'v1' is assigned but its value is never used
+                //         Struct v1 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(13, 16),
+                // (19,13): warning CS0219: The variable 'v7' is assigned but its value is never used
+                //         int v7 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v7").WithArguments("v7").WithLocation(19, 13),
+                // (21,14): warning CS0219: The variable 'v9' is assigned but its value is never used
+                //         int? v9 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v9").WithArguments("v9").WithLocation(21, 14)
                 );
         }
 
@@ -321,12 +309,9 @@ namespace System
     public struct ValueTuple<T1,T2> {}
 }
 ", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (12,26): error CS9366: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
+                // (12,26): error CS9367: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v1 = (Struct)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("Struct").WithLocation(12, 26),
-                // (13,26): error CS9365: The type 'Action' may not be used as the target-type of 'new'.
-                //         var v2 = (Action)new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("System.Action").WithLocation(13, 26),
                 // (14,26): error CS0712: Cannot create an instance of the static class 'Static'
                 //         var v3 = (Static)new();
                 Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new()").WithArguments("Static").WithLocation(14, 26),
@@ -336,39 +321,27 @@ namespace System
                 // (15,28): error CS0144: Cannot create an instance of the abstract class or interface 'Abstract'
                 //         var v4 = (Abstract)new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("Abstract").WithLocation(15, 28),
-                // (16,29): error CS0144: Cannot create an instance of the abstract class or interface 'Interface'
-                //         var v5 = (Interface)new();
-                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("Interface").WithLocation(16, 29),
-                // (17,31): error CS9365: The type 'Enumeration' may not be used as the target-type of 'new'.
-                //         var v6 = (Enumeration)new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("Enumeration").WithLocation(17, 31),
-                // (18,23): error CS9366: The default constructor of the value type 'int' may not be used with target-typed 'new'. Consider using 'default' instead.
+                // (18,23): error CS9367: The default constructor of the value type 'int' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v7 = (int)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int").WithLocation(18, 23),
-                // (19,24): error CS1919: Unsafe type 'int*' cannot be used in object creation
-                //         var v8 = (int*)new();
-                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("int*").WithLocation(19, 24),
-                // (20,24): error CS9366: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
+                // (20,24): error CS9367: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v9 = (int?)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int?").WithLocation(20, 24),
-                // (21,30): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //         var v10 = ((int,int))new();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new()").WithArguments("(int, int)").WithLocation(21, 30),
-                // (22,28): error CS0143: The type 'dynamic' has no constructors defined
-                //         var v11 = (dynamic)new();
-                Diagnostic(ErrorCode.ERR_NoConstructors, "new()").WithArguments("dynamic").WithLocation(22, 28),
-                // (23,26): error CS9365: The type 'int[]' may not be used as the target-type of 'new'.
-                //         var v12 = (int[])new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("int[]").WithLocation(23, 26),
                 // (24,20): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //         var v13 = (Error)new();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(24, 20),
                 // (24,26): error CS1729: 'Error' does not contain a constructor that takes 0 arguments
                 //         var v13 = (Error)new();
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("Error", "0").WithLocation(24, 26),
-                // (25,22): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
-                //         var v14 = (T)new();
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("T").WithLocation(25, 22)
+                // (12,13): warning CS0219: The variable 'v1' is assigned but its value is never used
+                //         var v1 = (Struct)new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(12, 13),
+                // (18,13): warning CS0219: The variable 'v7' is assigned but its value is never used
+                //         var v7 = (int)new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v7").WithArguments("v7").WithLocation(18, 13),
+                // (20,13): warning CS0219: The variable 'v9' is assigned but its value is never used
+                //         var v9 = (int?)new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v9").WithArguments("v9").WithLocation(20, 13)
                 );
         }
 
@@ -809,9 +782,39 @@ class Program
     }
 }
 ", options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (17,11): error CS1503: Argument 1: cannot convert from 'new()' to 'Animal'
+                // (17,11): error CS0122: 'Animal.Animal()' is inaccessible due to its protection level
                 //         M(new());
-                Diagnostic(ErrorCode.ERR_BadArgType, "new()").WithArguments("1", "new()", "Animal").WithLocation(17, 11)
+                Diagnostic(ErrorCode.ERR_BadAccess, "new()").WithArguments("Animal.Animal()").WithLocation(17, 11)
+                );
+        }
+
+        [Fact]
+        public void TestOverloadResolution()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public C(int i) {}
+}
+
+class D
+{
+}
+
+class Program
+{
+    static void M(C c, object o) {}
+    static void M(D d, int i) {}
+
+    public static void Main()
+    {
+        M(new(1), 1);
+    }
+}
+", options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (18,11): error CS1729: 'D' does not contain a constructor that takes 1 arguments
+                //         M(new(1), 1);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new(1)").WithArguments("D", "1").WithLocation(18, 11)
                 );
         }
     }

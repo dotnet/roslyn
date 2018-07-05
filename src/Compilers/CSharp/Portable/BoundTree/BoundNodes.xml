@@ -1295,7 +1295,6 @@
   
   <Node Name="UnboundObjectCreationExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
-    <Field Name="Arguments" Type="AnalyzedArguments" Null="disallow" />
   </Node>
 
   <!-- 
