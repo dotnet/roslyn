@@ -374,6 +374,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 }
             }
 
+            if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
+            {
+                dte.Debugger.TerminateAll();
+            }
+
             await CloseSolutionAsync();
 
             foreach (var directoryToDelete in directoriesToDelete)
