@@ -128,6 +128,6 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         /// </summary>
         /// <remarks>if predefined type is not preferred, it implies the preference is framework type.</remarks>
         private static bool OptionSettingPrefersFrameworkType(CodeStyleOption<bool> optionValue, ReportDiagnostic severity)
-            => !optionValue.Value && severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden;
+            => !optionValue.Value && severity != ReportDiagnostic.Suppress;
     }
 }
