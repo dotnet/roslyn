@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = result.DoUpdate(newTypeSymbol, result.CustomModifiers);
             }
 
-            //if (!result.IsValueType) // PROTOTYPE(NullableReferenceTypes): this is causing cycle 6 in NullableAttribute_01
+            if (!result.IsValueType)
             {
                 if (isNullable)
                 {
