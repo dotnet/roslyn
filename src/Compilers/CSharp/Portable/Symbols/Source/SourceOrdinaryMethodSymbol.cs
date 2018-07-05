@@ -1096,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 implementation.NonNullTypes)
             {
                 ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
-                ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters;
+                ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArguments).Parameters;
 
                 for (int i = 0; i < implementationParameters.Length; i++)
                 {
@@ -1125,10 +1125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            var nonNullTypes = part1.NonNullTypes;
             var typeParameters2 = part2.TypeParameters;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
-            var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
-            var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
+            var typeMap1 = new TypeMap(nonNullTypes, typeParameters1, indexedTypeParameters, allowAlpha: true);
+            var typeMap2 = new TypeMap(nonNullTypes, typeParameters2, indexedTypeParameters, allowAlpha: true);
 
             return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
         }

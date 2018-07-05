@@ -217,6 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments() =>
+            GetTypeParametersAsTypeArguments(OriginalDefinition.NonNullTypes);
+
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments(bool nonNullTypes) =>
+            TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(nonNullTypes, TypeParameters);
+
         /// <summary>
         /// Call <see cref="TryGetThisParameter"/> and throw if it returns false.
         /// </summary>

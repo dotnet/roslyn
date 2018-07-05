@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             continue;
                         }
 
-                        var type = TypeSymbolWithAnnotations.Create(typeSymbol, isNullableIfReferenceType: null);
+                        var type = TypeSymbolWithAnnotations.CreateNonNull(containingType.NonNullTypes, typeSymbol);
                         if (moduleSymbol.UtilizesNullableReferenceTypes)
                         {
                             type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);

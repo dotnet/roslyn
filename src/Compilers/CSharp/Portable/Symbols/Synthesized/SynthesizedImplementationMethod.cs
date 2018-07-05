@@ -40,12 +40,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(interfaceMethod);
 
             // alpha-rename to get the implementation's type parameters
+            bool nonNullTypes = GetNonNullTypes(interfaceMethod);
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
-            typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
+            typeMap.WithAlphaRename(interfaceMethod, this, nonNullTypes, out _typeParameters);
 
-            _interfaceMethod = interfaceMethod.ConstructIfGeneric(_typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+            _interfaceMethod = interfaceMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(nonNullTypes));
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);
         }
+
+        private static bool GetNonNullTypes(MethodSymbol interfaceMethod) => interfaceMethod.OriginalDefinition.NonNullTypes;
 
         #region Delegate to interfaceMethod
 
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return _typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
+            get { return GetTypeParametersAsTypeArguments(GetNonNullTypes(_interfaceMethod)); }
         }
 
         public override RefKind RefKind

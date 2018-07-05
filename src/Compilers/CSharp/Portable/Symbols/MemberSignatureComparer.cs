@@ -420,8 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var indexed = builder.ToImmutableAndFree();
 
-                typeMap1 = new TypeMap(member1.GetMemberTypeParameters(), indexed, true);
-                typeMap2 = new TypeMap(typeParameters2, indexed, true);
+                typeMap1 = new TypeMap(member1.NonNullTypes, member1.GetMemberTypeParameters(), indexed, true);
+                typeMap2 = new TypeMap(member2.NonNullTypes, typeParameters2, indexed, true);
             }
             else
             {
@@ -589,6 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return typeParameters.IsEmpty ?
                 null :
                 new TypeMap(
+                    member.NonNullTypes,
                     typeParameters,
                     IndexedTypeParameterSymbol.Take(member.GetMemberArity()),
                     true);

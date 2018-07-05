@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // We also preserve tuple names, if present and different
                 ImmutableArray<string> names = CSharpCompilation.TupleNamesEncoder.Encode(destinationType);
-                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithDynamic, names);
+                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(destinationUsesNonNullTypes, typeWithDynamic, names);
             }
             else
             {
@@ -89,8 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Preserve nullable modifiers as well.
-            // PROTOTYPE(NullableReferenceTypes): Set unknown nullability otherwise.
-            if (containingAssembly.Modules[0].UtilizesNullableReferenceTypes)
+            // PROTOTYPE(NullableReferenceTypes): Is it reasonable to copy annotations from the source?
+            // If the destination had some of those annotations but not all, then clearly the destination
+            // was incorrect. Or if the destination is C#7, then the destination will advertise annotations
+            // that the author did not write and did not validate.
+            if (destinationUsesNonNullTypes)
             {
                 var flagsBuilder = ArrayBuilder<bool>.GetInstance();
                 destinationType.AddNullableTransforms(flagsBuilder);

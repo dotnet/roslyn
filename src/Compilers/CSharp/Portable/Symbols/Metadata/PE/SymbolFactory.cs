@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return elementType;
             }
 
-            return ArrayTypeSymbol.CreateMDArray(moduleSymbol.ContainingAssembly, CreateType(elementType, customModifiers), rank, sizes, lowerBounds);
+            return ArrayTypeSymbol.CreateMDArray(moduleSymbol.ContainingAssembly, CreateType(moduleSymbol, elementType, customModifiers), rank, sizes, lowerBounds);
         }
 
         internal override TypeSymbol GetSpecialType(PEModuleSymbol moduleSymbol, SpecialType specialType)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return type;
             }
 
-            return new PointerTypeSymbol(CreateType(type, customModifiers));
+            return new PointerTypeSymbol(CreateType(moduleSymbol, type, customModifiers));
         }
 
         internal override TypeSymbol GetEnumUnderlyingType(PEModuleSymbol moduleSymbol, TypeSymbol type)
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return elementType;
             }
 
-            return ArrayTypeSymbol.CreateSZArray(moduleSymbol.ContainingAssembly, CreateType(elementType, customModifiers));
+            return ArrayTypeSymbol.CreateSZArray(moduleSymbol.ContainingAssembly, CreateType(moduleSymbol, elementType, customModifiers));
         }
 
         internal override TypeSymbol GetUnsupportedMetadataTypeSymbol(PEModuleSymbol moduleSymbol, BadImageFormatException exception)
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return new UnsupportedMetadataTypeSymbol();
             }
 
-            TypeMap substitution = new TypeMap(typeParameters, arguments.SelectAsArray(arg => CreateType(arg.Key, arg.Value)));
+            TypeMap substitution = new TypeMap(typeParameters, arguments.SelectAsArray((arg, m) => CreateType(m, arg.Key, arg.Value), moduleSymbol));
 
             NamedTypeSymbol constructedType = substitution.SubstituteNamedType(genericType);
 
@@ -170,9 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return ((object)namedType != null && namedType.IsGenericType) ? namedType.AsUnboundGenericType() : type;
         }
 
-        private static TypeSymbolWithAnnotations CreateType(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        private static TypeSymbolWithAnnotations CreateType(PEModuleSymbol moduleSymbol, TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
-            return TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
+            // PROTOTYPE(NullableReferenceTypes): Use containing method or type
+            // for NonNullTypes context rather than module.
+            return TypeSymbolWithAnnotations.Create(type, nonNullTypes: moduleSymbol.NonNullTypes, isAnnotated: false, CSharpCustomModifier.Convert(customModifiers));
         }
     }
 }
