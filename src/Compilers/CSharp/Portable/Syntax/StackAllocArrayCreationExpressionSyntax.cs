@@ -11,6 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return Update(StackAllocKeyword, type, default(InitializerExpressionSyntax));
         }
     }
+
+    public partial class LocalDeclarationStatementSyntax
+    {
+        public LocalDeclarationStatementSyntax Update(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+        {
+            return Update(default(SyntaxToken), modifiers, declaration, semicolonToken);
+        }
+    }
 }
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,5 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return StackAllocArrayCreationExpression(stackAllocKeyword, type, default(InitializerExpressionSyntax));
         }
+        public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+        {
+            return LocalDeclarationStatement(default(SyntaxToken), modifiers, declaration, semicolonToken);
+        }
+
     }
 }

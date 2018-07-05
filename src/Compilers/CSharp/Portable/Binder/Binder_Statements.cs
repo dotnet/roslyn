@@ -618,7 +618,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 kind = LocalDeclarationKind.Constant;
             }
-
+            else if (node.UsingKeyword != default)
+            {
+                kind = LocalDeclarationKind.UsingVariable;
+            }
             var variableList = node.Declaration.Variables;
             int variableCount = variableList.Count;
 
@@ -817,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarator != null);
 
-            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax),
+            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind),
                                            kind,
                                            isVar,
                                            declarator,
@@ -972,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
 
-            if (kind == LocalDeclarationKind.FixedVariable || kind == LocalDeclarationKind.UsingVariable)
+            if (kind == LocalDeclarationKind.FixedVariable)
             {
                 // CONSIDER: The error message is "you must provide an initializer in a fixed 
                 // CONSIDER: or using declaration". The error message could be targetted to 
@@ -1025,12 +1028,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments;
         }
 
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax)
+        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind)
         {
-            return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer);
+            LocalDeclarationKind kind = outerKind == LocalDeclarationKind.UsingVariable ? LocalDeclarationKind.UsingVariable : LocalDeclarationKind.RegularVariable;
+            return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer, kind);
         }
 
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(SyntaxToken identifier, TypeSyntax typeSyntax, EqualsValueClauseSyntax equalsValue)
+        private SourceLocalSymbol LocateDeclaredVariableSymbol(SyntaxToken identifier, TypeSyntax typeSyntax, EqualsValueClauseSyntax equalsValue, LocalDeclarationKind kind)
         {
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
@@ -1044,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     false, // do not allow ref
                     typeSyntax,
                     identifier,
-                    LocalDeclarationKind.RegularVariable,
+                    kind,
                     equalsValue);
             }
 

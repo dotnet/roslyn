@@ -2350,6 +2350,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingVarWithDeclaration()
+        {
+            var text = "using T a = b;";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+
+            Assert.NotNull(us.Declaration);
+            Assert.NotNull(us.Declaration.Type);
+            Assert.Equal("T", us.Declaration.Type.ToString());
+            Assert.Equal(1, us.Declaration.Variables.Count);
+            Assert.NotNull(us.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+            Assert.NotNull(us.SemicolonToken);
+        }
+
+        [Fact]
         public void TestUsingWithVarDeclaration()
         {
             var text = "using (var a = b) { }";
@@ -2383,6 +2412,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(us.CloseParenToken);
             Assert.NotNull(us.Statement);
+        }
+
+        [Fact]
+        public void TestUsingVarWithVarDeclaration()
+        {
+            var text = "using var a = b;";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+
+            Assert.NotNull(us.Declaration);
+            Assert.NotNull(us.Declaration.Type);
+            Assert.Equal("var", us.Declaration.Type.ToString());
+            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)us.Declaration.Type).Identifier.Kind());
+            Assert.Equal(1, us.Declaration.Variables.Count);
+            Assert.NotNull(us.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
         }
 
         [Fact]
@@ -2430,6 +2489,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingVarWithDeclarationWithMultipleVariables()
+        {
+            var text = "using T a = b, c = d;";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+
+            Assert.NotNull(us.Declaration);
+            Assert.NotNull(us.Declaration.Type);
+            Assert.Equal("T", us.Declaration.Type.ToString());
+
+            Assert.Equal(2, us.Declaration.Variables.Count);
+
+            Assert.NotNull(us.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+
+            Assert.NotNull(us.Declaration.Variables[1].Identifier);
+            Assert.Equal("c", us.Declaration.Variables[1].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[1].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[1].Initializer);
+            Assert.NotNull(us.Declaration.Variables[1].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[1].Initializer.Value);
+            Assert.Equal("d", us.Declaration.Variables[1].Initializer.Value.ToString());
+        }
+
+        [Fact]
         public void TestUsingSpecialCase1()
         {
             var text = "using (f ? x = a : x = b) { }";
@@ -2449,6 +2546,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("f ? x = a : x = b", us.Expression.ToString());
             Assert.NotNull(us.CloseParenToken);
             Assert.NotNull(us.Statement);
+        }
+
+        [Fact]
+        public void TestUsingVarSpecialCase1()
+        {
+            var text = "using var x = f ? a : b;";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+            
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+            Assert.NotNull(us.Declaration);
+            Assert.Equal("var x = f ? a : b", us.Declaration.ToString());
         }
 
         [Fact]
@@ -2474,6 +2589,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingVarSpecialCase2()
+        {
+            var text = "using f ? x = a;";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+            
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+            Assert.NotNull(us.Declaration);
+            Assert.Equal("f ? x = a", us.Declaration.ToString());
+
+        }
+
+
+
+        [Fact]
         public void TestUsingSpecialCase3()
         {
             var text = "using (f ? x, y) { }";
@@ -2494,6 +2630,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(us.CloseParenToken);
             Assert.NotNull(us.Statement);
         }
+
+        [Fact]
+        public void TestUsingVarSpecialCase3()
+        {
+            var text = "using f ? x, y;";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+            Assert.NotNull(us.Declaration);
+            Assert.Equal("f ? x, y", us.Declaration.ToString());
+        }
+
+
 
         [Fact]
         public void TestContextualKeywordsAsLocalVariableTypes()
