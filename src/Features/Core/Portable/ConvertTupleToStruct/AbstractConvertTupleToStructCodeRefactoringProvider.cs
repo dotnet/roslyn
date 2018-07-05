@@ -83,30 +83,37 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                       .Distinct()
                       .ToImmutableArray();
 
-            if (capturedTypeParameters.Length > 0)
-            {
-                return;
-            }
-
             var scopes = ArrayBuilder<CodeAction>.GetInstance();
             scopes.Add(CreateAction(context, Scope.ContainingMember));
 
-            var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
-            if (containingType != null)
+            // If we captured any Method type-parameters, we can only replace the anonymous types we
+            // find in the containing method.  No other anonymous types in other members would be able
+            // to reference this type parameter.
+            if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Method))
             {
-                scopes.Add(CreateAction(context, Scope.ContainingType));
-            }
+                var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
+                if (containingType != null)
+                {
+                    scopes.Add(CreateAction(context, Scope.ContainingType));
+                }
 
-            // To do a global find/replace of matching tuples, we need to search for documents
-            // containing tuples *and* which have the names of the tuple fields in them.  That means
-            // the tuple field name must exist in the document.
-            //
-            // this means we can only find tuples like ```(x: 1, ...)``` but not ```(1, 2)```.  The
-            // latter has members called Item1 and Item2, but those names don't show up in source.
-            if (fields.All(f => f.CorrespondingTupleField != f))
-            {
-                scopes.Add(CreateAction(context, Scope.ContainingProject));
-                scopes.Add(CreateAction(context, Scope.DependentProjects));
+                // If we captured any Type type-parameters, we can only replace the anonymous
+                // types we find in the containing type.  No other anonymous types in other
+                // type would be able to reference this type parameter.
+                if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Type))
+                {
+                    // To do a global find/replace of matching tuples, we need to search for documents
+                    // containing tuples *and* which have the names of the tuple fields in them.  That means
+                    // the tuple field name must exist in the document.
+                    //
+                    // this means we can only find tuples like ```(x: 1, ...)``` but not ```(1, 2)```.  The
+                    // latter has members called Item1 and Item2, but those names don't show up in source.
+                    if (fields.All(f => f.CorrespondingTupleField != f))
+                    {
+                        scopes.Add(CreateAction(context, Scope.ContainingProject));
+                        scopes.Add(CreateAction(context, Scope.DependentProjects));
+                    }
+                }
             }
 
             context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
@@ -198,10 +205,16 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var structName = NameGenerator.GenerateUniqueName(
                 "NewStruct", n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
 
+            var capturedTypeParameters =
+                tupleType.TupleElements.Select(p => p.Type)
+                                       .SelectMany(t => t.GetReferencedTypeParameters())
+                                       .Distinct()
+                                       .ToImmutableArray();
+
             // Next, generate the full struct that will be used to replace all instances of this
             // anonymous type.
             var namedTypeSymbol = await GenerateFinalNamedTypeAsync(
-                document, scope, structName, tupleType, cancellationToken).ConfigureAwait(false);
+                document, scope, structName, capturedTypeParameters, tupleType, cancellationToken).ConfigureAwait(false);
 
             var documentToEditorMap = new Dictionary<Document, SyntaxEditor>();
             var documentsToUpdate = await GetDocumentsToUpdateAsync(
@@ -212,8 +225,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             await ReplaceExpressionAndTypesInScopeAsync(
                 documentToEditorMap, documentsToUpdate, 
                 tupleExprOrTypeNode, tupleType,
-                structName, containingNamespace, 
-                cancellationToken).ConfigureAwait(false);
+                structName, capturedTypeParameters,
+                containingNamespace, cancellationToken).ConfigureAwait(false);
 
             await GenerateStructIntoContainingNamespaceAsync(
                 document, tupleExprOrTypeNode, namedTypeSymbol,
@@ -229,8 +242,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             Dictionary<Document, SyntaxEditor> documentToEditorMap, 
             ImmutableArray<DocumentToUpdate> documentsToUpdate,
             SyntaxNode tupleExprOrTypeNode, INamedTypeSymbol tupleType, 
-            string structName, INamespaceSymbol containingNamespace, 
-            CancellationToken cancellationToken)
+            string structName, ImmutableArray<ITypeParameterSymbol> typeParameters,
+            INamespaceSymbol containingNamespace, CancellationToken cancellationToken)
         {
             // Process the documents one project at a time.
             foreach (var group in documentsToUpdate.GroupBy(d => d.Document.Project))
@@ -249,7 +262,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 // If the struct is being injected into the global namespace, then reference it with
                 // "global::NewStruct",  Otherwise, get the full name to the namespace, and append
                 // the NewStruct name to it.
-                var structNameNode = generator.IdentifierName(structName);
+                var structNameNode = CreateStructNameNode(
+                    generator, structName, typeParameters, addRenameAnnotation: false);
+
                 var fullTypeName = containingNamespace.IsGlobalNamespace
                     ? (TNameSyntax)generator.GlobalAliasedName(structNameNode)
                     : (TNameSyntax)generator.QualifiedName(generator.NameExpression(containingNamespace), structNameNode);
@@ -277,7 +292,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     {
                         replaced |= await ReplaceTupleExpressionsAndTypesInDocumentAsync(
                             document, editor, tupleExprOrTypeNode, tupleType,
-                            fullTypeName, structName, container, cancellationToken).ConfigureAwait(false);
+                            fullTypeName, structName, typeParameters,
+                            container, cancellationToken).ConfigureAwait(false);
                     }
 
                     if (replaced)
@@ -290,6 +306,21 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
                 GC.KeepAlive(compilation);
             }
+        }
+
+        private static TNameSyntax CreateStructNameNode(
+            SyntaxGenerator generator, string structName,
+            ImmutableArray<ITypeParameterSymbol> typeParameters, bool addRenameAnnotation)
+        {
+            var structNameToken = generator.Identifier(structName);
+            if (addRenameAnnotation)
+            {
+                structNameToken = structNameToken.WithAdditionalAnnotations(RenameAnnotation.Create());
+            }
+
+            return typeParameters.Length == 0
+                ? (TNameSyntax)generator.IdentifierName(structNameToken)
+                : (TNameSyntax)generator.GenericName(structNameToken, typeParameters.Select(tp => generator.IdentifierName(tp.Name)));
         }
 
         private async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateAsync(
@@ -491,30 +522,30 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private async Task<bool> ReplaceTupleExpressionsAndTypesInDocumentAsync(
-            Document document, SyntaxEditor editor,
-            SyntaxNode startingNode, INamedTypeSymbol tupleType,
-            TNameSyntax fullyQualifiedStructName, string structName,
+            Document document, SyntaxEditor editor, SyntaxNode startingNode, 
+            INamedTypeSymbol tupleType, TNameSyntax fullyQualifiedStructName, 
+            string structName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             SyntaxNode containerToUpdate, CancellationToken cancellationToken)
         {
             var changed = false;
             changed |= await ReplaceMatchingTupleExpressionsAsync(
                 document, editor, startingNode, tupleType,
-                fullyQualifiedStructName, structName, 
+                fullyQualifiedStructName, structName, typeParameters,
                 containerToUpdate, cancellationToken).ConfigureAwait(false);
 
             changed |= await ReplaceMatchingTupleTypesAsync(
                 document, editor, startingNode, tupleType,
-                fullyQualifiedStructName, structName,
+                fullyQualifiedStructName, structName, typeParameters,
                 containerToUpdate, cancellationToken).ConfigureAwait(false);
 
             return changed;
         }
 
         private async Task<bool> ReplaceMatchingTupleExpressionsAsync(
-            Document document, SyntaxEditor editor,
-            SyntaxNode startingNode, INamedTypeSymbol tupleType, 
-            TNameSyntax qualifiedTypeName, string typeName, 
-            SyntaxNode containingMember,  CancellationToken cancellationToken)
+            Document document, SyntaxEditor editor, SyntaxNode startingNode, 
+            INamedTypeSymbol tupleType, TNameSyntax qualifiedTypeName, 
+            string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
+            SyntaxNode containingMember, CancellationToken cancellationToken)
         {
             var comparer = document.GetLanguageService<ISyntaxFactsService>().StringComparer;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -536,7 +567,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 {
                     changed = true;
                     ReplaceWithObjectCreation(
-                        editor, typeName, qualifiedTypeName, startingNode, childCreation);
+                        editor, typeName, typeParameters, 
+                        qualifiedTypeName, startingNode, childCreation);
                 }
             }
 
@@ -567,8 +599,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private void ReplaceWithObjectCreation(
-            SyntaxEditor editor, string typeName, TNameSyntax qualifiedTypeName,
-            SyntaxNode startingCreationNode, TTupleExpressionSyntax childCreation)
+            SyntaxEditor editor, string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
+            TNameSyntax qualifiedTypeName, SyntaxNode startingCreationNode, TTupleExpressionSyntax childCreation)
         {
             // Use the callback form as anonymous types may be nested, and we want to
             // properly replace them even in that case.
@@ -580,7 +612,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
                     // If we hit the node the user started on, then add the rename annotation here.
                     var typeNameNode = startingCreationNode == childCreation
-                        ? (TIdentifierNameSyntax)g.IdentifierName(g.Identifier(typeName).WithAdditionalAnnotations(RenameAnnotation.Create()))
+                        ? CreateStructNameNode(g, typeName, typeParameters, addRenameAnnotation: true)
                         : qualifiedTypeName;
 
                     return CreateObjectCreationExpression(typeNameNode, currentTupleExpr)
@@ -589,9 +621,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private async Task<bool> ReplaceMatchingTupleTypesAsync(
-            Document document, SyntaxEditor editor,
-            SyntaxNode startingNode, INamedTypeSymbol tupleType,
-            TNameSyntax qualifiedTypeName, string typeName,
+            Document document, SyntaxEditor editor, SyntaxNode startingNode, 
+            INamedTypeSymbol tupleType, TNameSyntax qualifiedTypeName, 
+            string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             SyntaxNode containingMember, CancellationToken cancellationToken)
         {
             var comparer = document.GetLanguageService<ISyntaxFactsService>().StringComparer;
@@ -614,7 +646,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 {
                     changed = true;
                     ReplaceWithTypeNode(
-                        editor, typeName, qualifiedTypeName, startingNode, childTupleType);
+                        editor, typeName, typeParameters, qualifiedTypeName, startingNode, childTupleType);
                 }
             }
 
@@ -622,8 +654,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private void ReplaceWithTypeNode(
-            SyntaxEditor editor, string typeName, TNameSyntax qualifiedTypeName,
-            SyntaxNode startingNode, TTupleTypeSyntax childTupleType)
+            SyntaxEditor editor, string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
+            TNameSyntax qualifiedTypeName, SyntaxNode startingNode, TTupleTypeSyntax childTupleType)
         {
             // Use the callback form as anonymous types may be nested, and we want to
             // properly replace them even in that case.
@@ -633,7 +665,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 {
                     // If we hit the node the user started on, then add the rename annotation here.
                     var typeNameNode = startingNode == childTupleType
-                        ? (TIdentifierNameSyntax)g.IdentifierName(g.Identifier(typeName).WithAdditionalAnnotations(RenameAnnotation.Create()))
+                        ? CreateStructNameNode(g, typeName, typeParameters, addRenameAnnotation: true)
                         : qualifiedTypeName;
 
                     return typeNameNode.WithTriviaFrom(currentNode);
@@ -642,6 +674,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
         private static async Task<INamedTypeSymbol> GenerateFinalNamedTypeAsync(
             Document document, Scope scope, string structName, 
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
             INamedTypeSymbol tupleType, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -656,7 +689,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // help create members like Equals/GetHashCode.  Then, once we have all the members we
             // create the final type.
             var namedTypeWithoutMembers = CreateNamedType(
-                scope, structName, members: default);
+                scope, structName, typeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var constructor = CreateConstructor(compilation, structName, fields, generator);
@@ -680,7 +713,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
             AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
 
-            var namedTypeSymbol = CreateNamedType(scope, structName, capturedTypeParameters, members.ToImmutableAndFree());
+            var namedTypeSymbol = CreateNamedType(scope, structName, typeParameters, members.ToImmutableAndFree());
             return namedTypeSymbol;
         }
 
@@ -746,14 +779,15 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static INamedTypeSymbol CreateNamedType(
-            Scope scope, string structName, ImmutableArray<ISymbol> members)
+            Scope scope, string structName, 
+            ImmutableArray<ITypeParameterSymbol> typeParameters, ImmutableArray<ISymbol> members)
         {
             var accessibility = scope == Scope.DependentProjects
                 ? Accessibility.Public
                 : Accessibility.Internal;
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 attributes: default, accessibility, modifiers: default, 
-                TypeKind.Struct, structName, typeParameters: default, members: members);
+                TypeKind.Struct, structName, typeParameters, members: members);
         }
 
         private static IMethodSymbol CreateConstructor(

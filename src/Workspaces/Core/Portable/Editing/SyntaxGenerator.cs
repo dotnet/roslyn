@@ -1642,6 +1642,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode GenericName(string identifier, IEnumerable<SyntaxNode> typeArguments);
 
+        internal abstract SyntaxNode GenericName(SyntaxToken identifier, IEnumerable<SyntaxNode> typeArguments);
+
         /// <summary>
         /// Creates an expression that denotes a generic identifier name.
         /// </summary>
