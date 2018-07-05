@@ -590,6 +590,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Because of target-typing, stackalloc conversions are handled separately
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
+
+                case ConversionKind.ImplicitNew:
                     return false;
 
                 // Spec'd in C# 4.

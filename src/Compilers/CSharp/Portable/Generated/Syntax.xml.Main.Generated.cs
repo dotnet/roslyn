@@ -5878,8 +5878,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("newKeyword");
       }
-      if (type == null)
-        throw new ArgumentNullException(nameof(type));
       return (ObjectCreationExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green, argumentList == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green, initializer == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
     }
 
@@ -5891,9 +5889,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new ObjectCreationExpressionSyntax instance.</summary>
-    public static ObjectCreationExpressionSyntax ObjectCreationExpression(TypeSyntax type)
+    public static ObjectCreationExpressionSyntax ObjectCreationExpression()
     {
-      return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), type, default(ArgumentListSyntax), default(InitializerExpressionSyntax));
+      return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), default(TypeSyntax), default(ArgumentListSyntax), default(InitializerExpressionSyntax));
     }
 
     /// <summary>Creates a new AnonymousObjectMemberDeclaratorSyntax instance.</summary>

@@ -8760,6 +8760,21 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultValueTypeCtorInTargetTypedNew">
+        <source>The default constructor of the value type '{0}' may not be used with target-typed 'new'. Consider using 'default' instead.</source>
+        <target state="new">The default constructor of the value type '{0}' may not be used with target-typed 'new'. Consider using 'default' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadTargetTypeForNew">
+        <source>The type '{0}' may not be used as the target-type of 'new'.</source>
+        <target state="new">The type '{0}' may not be used as the target-type of 'new'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypelessNewInAs">
+        <source>The first operand of an 'as' operator may not be a target-typed 'new'.</source>
+        <target state="new">The first operand of an 'as' operator may not be a target-typed 'new'.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

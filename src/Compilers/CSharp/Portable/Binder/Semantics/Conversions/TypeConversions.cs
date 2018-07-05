@@ -41,5 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Conversions involving interpolated strings require a Binder.
             throw ExceptionUtilities.Unreachable;
         }
+
+        public override Conversion GetImplicitObjectCreationConversion(UnboundObjectCreationExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // Conversions involving implicit object creations require a Binder.
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }

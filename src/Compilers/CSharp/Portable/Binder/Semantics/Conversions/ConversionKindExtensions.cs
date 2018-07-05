@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Deconstruction:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
+                case ConversionKind.ImplicitNew:
                     return true;
 
                 case ConversionKind.ExplicitNumeric:

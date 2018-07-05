@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         EventAssignmentOperator,
         Attribute,
         ObjectCreationExpression,
+        UnboundObjectCreationExpression,
         TupleLiteral,
         ConvertedTupleLiteral,
         DynamicObjectCreationExpression,
@@ -4688,6 +4689,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class UnboundObjectCreationExpression : BoundExpression
+    {
+        public UnboundObjectCreationExpression(SyntaxNode syntax, AnalyzedArguments arguments, bool hasErrors)
+            : base(BoundKind.UnboundObjectCreationExpression, syntax, null, hasErrors)
+        {
+
+            Debug.Assert(arguments != null, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Arguments = arguments;
+        }
+
+        public UnboundObjectCreationExpression(SyntaxNode syntax, AnalyzedArguments arguments)
+            : base(BoundKind.UnboundObjectCreationExpression, syntax, null)
+        {
+
+            Debug.Assert(arguments != null, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Arguments = arguments;
+        }
+
+
+        public AnalyzedArguments Arguments { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitUnboundObjectCreationExpression(this);
+        }
+
+        public UnboundObjectCreationExpression Update(AnalyzedArguments arguments)
+        {
+            if (arguments != this.Arguments)
+            {
+                var result = new UnboundObjectCreationExpression(this.Syntax, arguments, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class BoundTupleExpression : BoundExpression
     {
         protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
@@ -6592,6 +6633,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitAttribute(node as BoundAttribute, arg);
                 case BoundKind.ObjectCreationExpression: 
                     return VisitObjectCreationExpression(node as BoundObjectCreationExpression, arg);
+                case BoundKind.UnboundObjectCreationExpression: 
+                    return VisitUnboundObjectCreationExpression(node as UnboundObjectCreationExpression, arg);
                 case BoundKind.TupleLiteral: 
                     return VisitTupleLiteral(node as BoundTupleLiteral, arg);
                 case BoundKind.ConvertedTupleLiteral: 
@@ -7127,6 +7170,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitObjectCreationExpression(BoundObjectCreationExpression node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7747,6 +7794,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
         {
             return this.DefaultVisit(node);
         }
@@ -8503,6 +8554,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.VisitList(node.Arguments);
             this.Visit(node.InitializerExpressionOpt);
+            return null;
+        }
+        public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        {
             return null;
         }
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
@@ -9382,6 +9437,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundObjectInitializerExpressionBase initializerExpressionOpt = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpressionOpt);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.Constructor, node.ConstructorsGroup, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, initializerExpressionOpt, node.BinderOpt, type);
+        }
+        public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(node.Arguments);
         }
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
@@ -10814,6 +10874,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
                 new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
                 new TreeDumperNode("binderOpt", node.BinderOpt, null),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node, object arg)
+        {
+            return new TreeDumperNode("unboundObjectCreationExpression", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("arguments", node.Arguments, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

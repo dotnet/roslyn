@@ -5339,7 +5339,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="SyntaxTreeNotFound" xml:space="preserve">
     <value>SyntaxTree is not part of the compilation</value>
   </data>
-  <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
-    <value>An out variable cannot be declared as a ref local</value>
+  <data name="ERR_TypelessNewInAs" xml:space="preserve">
+    <value>The first operand of an 'as' operator may not be a target-typed 'new'.</value>
+  </data>
+  <data name="ERR_BadTargetTypeForNew" xml:space="preserve">
+    <value>The type '{0}' may not be used as the target-type of 'new'.</value>
+  </data>
+  <data name="ERR_DefaultValueTypeCtorInTargetTypedNew" xml:space="preserve">
+    <value>The default constructor of the value type '{0}' may not be used with target-typed 'new'. Consider using 'default' instead.</value>
   </data>
 </root>

@@ -7261,8 +7261,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 4;
         this.AdjustFlagsAndWidth(newKeyword);
         this.newKeyword = newKeyword;
-        this.AdjustFlagsAndWidth(type);
-        this.type = type;
+        if (type != null)
+        {
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
         if (argumentList != null)
         {
             this.AdjustFlagsAndWidth(argumentList);
@@ -7283,8 +7286,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 4;
         this.AdjustFlagsAndWidth(newKeyword);
         this.newKeyword = newKeyword;
-        this.AdjustFlagsAndWidth(type);
-        this.type = type;
+        if (type != null)
+        {
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
         if (argumentList != null)
         {
             this.AdjustFlagsAndWidth(argumentList);
@@ -7304,8 +7310,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 4;
         this.AdjustFlagsAndWidth(newKeyword);
         this.newKeyword = newKeyword;
-        this.AdjustFlagsAndWidth(type);
-        this.type = type;
+        if (type != null)
+        {
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
         if (argumentList != null)
         {
             this.AdjustFlagsAndWidth(argumentList);
@@ -39361,8 +39370,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("newKeyword");
       }
-      if (type == null)
-        throw new ArgumentNullException(nameof(type));
 #endif
 
       return new ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression, newKeyword, type, argumentList, initializer, this.context);
@@ -46324,8 +46331,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("newKeyword");
       }
-      if (type == null)
-        throw new ArgumentNullException(nameof(type));
 #endif
 
       return new ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression, newKeyword, type, argumentList, initializer);

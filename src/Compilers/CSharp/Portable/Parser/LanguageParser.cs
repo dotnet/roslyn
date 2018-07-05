@@ -10312,28 +10312,15 @@ tryAgain:
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
             bool isPossibleArrayCreation = this.IsPossibleArrayCreationExpression();
-            var type = this.ParseType(isPossibleArrayCreation ? ParseTypeMode.ArrayCreation : ParseTypeMode.Normal, expectSizes: isPossibleArrayCreation);
+            var type = isPossibleArrayCreation || this.CurrentToken.Kind != SyntaxKind.OpenParenToken
+                ? this.ParseType(
+                    isPossibleArrayCreation
+                        ? ParseTypeMode.ArrayCreation
+                        : ParseTypeMode.Normal,
+                    expectSizes: isPossibleArrayCreation)
+                : null;
 
-            if (type.Kind == SyntaxKind.ArrayType)
-            {
-                // Check for an initializer.
-                InitializerExpressionSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    initializer = this.ParseArrayInitializer();
-                }
-                else
-                {
-                    var rankSpec = ((ArrayTypeSyntax)type).RankSpecifiers[0];
-                    if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
-                    {
-                        type = this.AddError(type, rankSpec, ErrorCode.ERR_MissingArraySize);
-                    }
-                }
-
-                return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
-            }
-            else
+            if (type == null || type.Kind != SyntaxKind.ArrayType)
             {
                 ArgumentListSyntax argumentList = null;
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
@@ -10357,6 +10344,25 @@ tryAgain:
                 }
 
                 return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+            }
+            else
+            {
+                // Check for an initializer.
+                InitializerExpressionSyntax initializer = null;
+                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                {
+                    initializer = this.ParseArrayInitializer();
+                }
+                else
+                {
+                    var rankSpec = ((ArrayTypeSyntax)type).RankSpecifiers[0];
+                    if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
+                    {
+                        type = this.AddError(type, rankSpec, ErrorCode.ERR_MissingArraySize);
+                    }
+                }
+
+                return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
             }
         }
 

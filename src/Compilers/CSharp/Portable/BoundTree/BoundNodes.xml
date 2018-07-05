@@ -1293,6 +1293,10 @@
     <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
   
+  <Node Name="UnboundObjectCreationExpression" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Arguments" Type="AnalyzedArguments" Null="disallow" />
+  </Node>
 
   <!-- 
   Tuple literals can exist in two forms - literal and converted literal.
