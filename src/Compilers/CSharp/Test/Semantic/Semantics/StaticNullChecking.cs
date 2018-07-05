@@ -1864,6 +1864,21 @@ public class Oblivious { }
         }
 
         [Fact]
+        public void NonNullTypes_ValueTypeArgument()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+[module: NonNullTypes(false)]
+class A<T> { }
+class B
+{
+    A<byte> P { get; }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void AssignObliviousIntoLocals()
         {
             var obliviousLib = @"
