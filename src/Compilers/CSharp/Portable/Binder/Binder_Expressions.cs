@@ -5050,7 +5050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return succeededConsideringAccessibility;
         }
 
-        internal ImmutableArray<MethodSymbol> GetAccessibleConstructorsForOverloadResolution(NamedTypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private ImmutableArray<MethodSymbol> GetAccessibleConstructorsForOverloadResolution(NamedTypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             ImmutableArray<MethodSymbol> allInstanceConstructors;
             return GetAccessibleConstructorsForOverloadResolution(type, false, out allInstanceConstructors, ref useSiteDiagnostics);
