@@ -96,8 +96,17 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 scopes.Add(CreateAction(context, Scope.ContainingType));
             }
 
-            scopes.Add(CreateAction(context, Scope.ContainingProject));
-            scopes.Add(CreateAction(context, Scope.DependentProjects));
+            // To do a global find/replace of matching tuples, we need to search for documents
+            // containing tuples *and* which have the names of the tuple fields in them.  That means
+            // the tuple field name must exist in the document.
+            //
+            // this means we can only find tuples like ```(x: 1, ...)``` but not ```(1, 2)```.  The
+            // latter has members called Item1 and Item2, but those names don't show up in source.
+            if (fields.All(f => f.CorrespondingTupleField != f))
+            {
+                scopes.Add(CreateAction(context, Scope.ContainingProject));
+                scopes.Add(CreateAction(context, Scope.DependentProjects));
+            }
 
             context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
                 FeaturesResources.Convert_to_struct,
