@@ -588,6 +588,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
                 return false;
             }
+            else if (parameterSymbol.RefKind == RefKind.None && RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                return false;
+            }
 
             if (this.LockedOrDisposedVariables.Contains(parameterSymbol))
             {

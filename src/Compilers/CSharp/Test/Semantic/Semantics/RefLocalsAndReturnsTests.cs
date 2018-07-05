@@ -3819,6 +3819,23 @@ class Test
         }
 
         [Fact]
+        [WorkItem(28117, "https://github.com/dotnet/roslyn/issues/28117")]
+        public void AssigningRefToParameter()
+        {
+            CreateCompilation(@"
+public class C
+{
+    void M(int a, ref int b)
+    {
+        a = ref b;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         a = ref b;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "a").WithLocation(6, 9));
+        }
+
+        [Fact]
         [WorkItem(26516, "https://github.com/dotnet/roslyn/issues/26516")]
         public void BindingRefVoidAssignment()
         {

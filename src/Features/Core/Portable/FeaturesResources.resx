@@ -1088,8 +1088,8 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_properties" xml:space="preserve">
     <value>Use expression body for properties</value>
   </data>
-  <data name="Spell_check_0" xml:space="preserve">
-    <value>Spell check '{0}'</value>
+  <data name="Fix_typo_0" xml:space="preserve">
+    <value>Fix typo '{0}'</value>
   </data>
   <data name="Fully_qualify_0" xml:space="preserve">
     <value>Fully qualify '{0}'</value>
