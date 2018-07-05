@@ -291,7 +291,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 case Scope.ContainingMember:
                     return GetDocumentsToUpdateForContainingMember(document, tupleExprOrTypeNode);
                 case Scope.ContainingType:
-                    return await GetDocumentsToUpdateForContainingTypeAsync(document, tupleExprOrTypeNode, cancellationToken);
+                    return await GetDocumentsToUpdateForContainingTypeAsync(
+                        document, tupleExprOrTypeNode, cancellationToken).ConfigureAwait(false);
                 case Scope.ContainingProject:
                     break;
                 case Scope.DependentProjects:
