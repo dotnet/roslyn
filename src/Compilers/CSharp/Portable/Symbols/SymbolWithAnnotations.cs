@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // In this case we delay asking this question as long as possible.
             if (typeSymbol.TypeKind != TypeKind.TypeParameter)
             {
-                if (typeSymbol.IsReferenceType)
+                if (!typeSymbol.IsValueType)
                 {
                     return new NonLazyType(typeSymbol, isNullable: true, this.CustomModifiers);
                 }
@@ -260,23 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new LazyNullableType(compilation, this);
-        }
-
-        /// <summary>
-        /// Return nullable type if the type is a non-nullable
-        /// reference type and local nullability is inferred.
-        /// </summary>
-        public TypeSymbolWithAnnotations AsNullableReferenceTypeIfInferLocalNullability(SyntaxNode syntax)
-        {
-            if (IsReferenceType && IsNullable == false)
-            {
-                var flags = ((CSharpParseOptions)syntax.SyntaxTree.Options).GetNullableReferenceFlags();
-                if ((flags & NullableReferenceFlags.InferLocalNullability) != 0)
-                {
-                    return AsNullableReferenceType();
-                }
-            }
-            return this;
         }
 
         /// <summary>
@@ -519,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var typeSymbol = TypeSymbol;
 
-            if (IsNullable == true && !typeSymbol.IsNullableType() && typeSymbol.IsReferenceType)
+            if (IsNullable == true && !typeSymbol.IsValueType)
             {
                 return true;
             }
@@ -595,10 +578,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SetUnknownNullabilityForReferenceTypes();
         }
 
-        public TypeSymbolWithAnnotations WithTopLevelNonNullability()
+        public TypeSymbolWithAnnotations WithTopLevelNonNullabilityForReferenceTypes()
         {
             var typeSymbol = TypeSymbol;
-            if (IsNullable == false || !typeSymbol.IsReferenceType)
+            if (IsNullable == false || typeSymbol.IsValueType)
             {
                 return this;
             }
@@ -612,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsNullable.HasValue)
             {
-                if (!typeSymbol.IsNullableType() && typeSymbol.IsReferenceType)
+                if (!typeSymbol.IsValueType)
                 {
                     typeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
                     return new NonLazyType(typeSymbol, isNullable: null, CustomModifiers);
