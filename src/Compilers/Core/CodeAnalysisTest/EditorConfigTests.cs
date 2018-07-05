@@ -9,6 +9,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestHelpers;
+using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

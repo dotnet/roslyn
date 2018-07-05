@@ -87,11 +87,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            var severity = option.Notification.Value;
-            context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptorWithSeverity(severity),
+            var severity = option.Notification.Severity;
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 objectCreationExpression.GetLocation(),
-                additionalLocations: locations));
+                severity,
+                additionalLocations: locations,
+                properties: null));
 
             FadeOutCode(context, optionSet, matches.Value, locations);
         }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,35 +13,35 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
     public class EditorConfigCodeStyleParserTests
     {
         [Theory]
-        [InlineData("true:none", true, DiagnosticSeverity.Hidden)]
-        [InlineData("true:silent", true, DiagnosticSeverity.Hidden)]
-        [InlineData("true:suggestion", true, DiagnosticSeverity.Info)]
-        [InlineData("true:warning", true, DiagnosticSeverity.Warning)]
-        [InlineData("true:error", true, DiagnosticSeverity.Error)]
-        [InlineData("true", false, DiagnosticSeverity.Hidden)]
-        [InlineData("false:none", false, DiagnosticSeverity.Hidden)]
-        [InlineData("false:silent", false, DiagnosticSeverity.Hidden)]
-        [InlineData("false:suggestion", false, DiagnosticSeverity.Info)]
-        [InlineData("false:warning", false, DiagnosticSeverity.Warning)]
-        [InlineData("false:error", false, DiagnosticSeverity.Error)]
-        [InlineData("false", false, DiagnosticSeverity.Hidden)]
-        [InlineData("*", false, DiagnosticSeverity.Hidden)]
-        [InlineData("false:false", false, DiagnosticSeverity.Hidden)]
-        static void TestParseEditorConfigCodeStyleOption(string args, bool isEnabled, DiagnosticSeverity severity)
+        [InlineData("true:none", true, ReportDiagnostic.Suppress)]
+        [InlineData("true:silent", true, ReportDiagnostic.Hidden)]
+        [InlineData("true:suggestion", true, ReportDiagnostic.Info)]
+        [InlineData("true:warning", true, ReportDiagnostic.Warn)]
+        [InlineData("true:error", true, ReportDiagnostic.Error)]
+        [InlineData("true", false, ReportDiagnostic.Hidden)]
+        [InlineData("false:none", false, ReportDiagnostic.Suppress)]
+        [InlineData("false:silent", false, ReportDiagnostic.Hidden)]
+        [InlineData("false:suggestion", false, ReportDiagnostic.Info)]
+        [InlineData("false:warning", false, ReportDiagnostic.Warn)]
+        [InlineData("false:error", false, ReportDiagnostic.Error)]
+        [InlineData("false", false, ReportDiagnostic.Hidden)]
+        [InlineData("*", false, ReportDiagnostic.Hidden)]
+        [InlineData("false:false", false, ReportDiagnostic.Hidden)]
+        static void TestParseEditorConfigCodeStyleOption(string args, bool isEnabled, ReportDiagnostic severity)
         {
-            var notificationOption = NotificationOption.None;
+            var notificationOption = NotificationOption.Silent;
             switch (severity)
             {
-                case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.None;
+                case ReportDiagnostic.Hidden:
+                    notificationOption = NotificationOption.Silent;
                     break;
-                case DiagnosticSeverity.Info:
+                case ReportDiagnostic.Info:
                     notificationOption = NotificationOption.Suggestion;
                     break;
-                case DiagnosticSeverity.Warning:
+                case ReportDiagnostic.Warn:
                     notificationOption = NotificationOption.Warning;
                     break;
-                case DiagnosticSeverity.Error:
+                case ReportDiagnostic.Error:
                     notificationOption = NotificationOption.Error;
                     break;
             }
@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
             CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, out var result);
             Assert.True(result.Value == isEnabled,
                         $"Expected {nameof(isEnabled)} to be {isEnabled}, was {result.Value}");
-            Assert.True(result.Notification.Value == severity,
-                        $"Expected {nameof(severity)} to be {severity}, was {result.Notification.Value}");
+            Assert.True(result.Notification.Severity == severity,
+                        $"Expected {nameof(severity)} to be {severity}, was {result.Notification.Severity}");
         }
     }
 }

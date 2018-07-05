@@ -1026,7 +1026,15 @@ namespace Microsoft.CodeAnalysis
                                     return;
                                 }
 
-                                xmlStreamOpt.SetLength(0);
+                                try
+                                {
+                                    xmlStreamOpt.SetLength(0);
+                                }
+                                catch (Exception e)
+                                {
+                                    MessageProvider.ReportStreamWriteException(e, finalXmlFilePath, diagnostics);
+                                    return;
+                                }
                                 xmlStreamDisposerOpt = new NoThrowStreamDisposer(
                                     xmlStreamOpt,
                                     finalXmlFilePath,

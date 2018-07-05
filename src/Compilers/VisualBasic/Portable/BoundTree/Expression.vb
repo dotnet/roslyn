@@ -79,14 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend Partial Class BoundNoPiaObjectCreationExpression
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return If(InitializerOpt IsNot Nothing, StaticCast(Of BoundNode).From(InitializerOpt.Initializers), ImmutableArray(Of BoundNode).Empty)
-            End Get
-        End Property
-    End Class
-
     Friend Partial Class BoundAnonymousTypeCreationExpression
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get

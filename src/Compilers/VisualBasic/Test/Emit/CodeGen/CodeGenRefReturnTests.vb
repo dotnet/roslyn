@@ -892,7 +892,7 @@ BC37263: An expression tree may not contain a call to a method or property that 
 ]]></error>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MidAssignment()
             Dim comp1 = CreateCSharpCompilation(
 "public class C

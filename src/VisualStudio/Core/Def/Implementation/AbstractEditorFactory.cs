@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -26,38 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// </summary>
     internal abstract partial class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
     {
-        private readonly Package _package;
         private readonly IComponentModel _componentModel;
         private Microsoft.VisualStudio.OLE.Interop.IServiceProvider _oleServiceProvider;
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
-        private readonly IWaitIndicator _waitIndicator;
         private bool _encoding;
 
-        protected AbstractEditorFactory(Package package)
+        protected AbstractEditorFactory(IComponentModel componentModel)
         {
-            _package = package ?? throw new ArgumentNullException(nameof(package));
-            _componentModel = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
-
-            _editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            _contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
-            _waitIndicator = _componentModel.GetService<IWaitIndicator>();
-        }
-
-        protected IServiceProvider ServiceProvider
-        {
-            get
-            {
-                return _package;
-            }
-        }
-
-        protected IComponentModel ComponentModel
-        {
-            get
-            {
-                return _componentModel;
-            }
+            _componentModel = componentModel;
         }
 
         protected abstract string ContentTypeName { get; }
@@ -102,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // to properly handle multiple windows open for the same document.
             if (punkDocDataExisting != IntPtr.Zero)
             {
-                object docDataExisting = Marshal.GetObjectForIUnknown(punkDocDataExisting);
+                var docDataExisting = Marshal.GetObjectForIUnknown(punkDocDataExisting);
 
                 textBuffer = docDataExisting as IVsTextBuffer;
 
@@ -113,18 +87,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
+            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+
             // Do we need to create a text buffer?
             if (textBuffer == null)
             {
-                var contentType = _contentTypeRegistryService.GetContentType(ContentTypeName);
-                textBuffer = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
+                var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
+                var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
+                textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
 
                 if (_encoding)
                 {
                     if (textBuffer is IVsUserData userData)
                     {
                         // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
-                        int hresult = userData.SetData(
+                        var hresult = userData.SetData(
                             VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
                             (uint)__PROMPTONLOADFLAGS.codepagePrompt);
 
@@ -138,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // If the text buffer is marked as read-only, ensure that the padlock icon is displayed
             // next the new window's title and that [Read Only] is appended to title.
-            READONLYSTATUS readOnlyStatus = READONLYSTATUS.ROSTATUS_NotReadOnly;
+            var readOnlyStatus = READONLYSTATUS.ROSTATUS_NotReadOnly;
             if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out var textBufferFlags)) &&
                 0 != (textBufferFlags & ((uint)BUFFERSTATEFLAGS.BSF_FILESYS_READONLY | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY)))
             {
@@ -151,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     // We must create the WinForms designer here
                     const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
-                    var designerService = (IVSMDDesignerService)ServiceProvider.GetService(typeof(SVSMDDesignerService));
+                    var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
                     var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(LoaderName);
 
                     try
@@ -173,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 case "Code":
 
-                    var codeWindow = _editorAdaptersFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
+                    var codeWindow = editorAdaptersFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
                     codeWindow.SetBuffer((IVsTextLines)textBuffer);
 
                     codeWindow.GetEditorCaption(readOnlyStatus, out pbstrEditorCaption);
@@ -231,8 +208,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Is this being added from a template?
             if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
             {
+                var waitIndicator = _componentModel.GetService<IWaitIndicator>();
                 // TODO(cyrusn): Can this be cancellable?
-                _waitIndicator.Wait(
+                waitIndicator.Wait(
                     "Intellisense",
                     allowCancel: false,
                     action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.CancellationToken));
@@ -251,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
             // to include this in a workspace to figure out the right options it should be formatted with.
             // This requires us to place it in the correct project.
-            var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
+            var workspace = _componentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
             ProjectId projectIdToAddTo = null;
@@ -288,12 +266,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var formattedText = addedDocument.GetTextSynchronously(cancellationToken).WithChanges(formattedTextChanges);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            string targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine);
+            var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine);
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)
             {
-                string originalNewLine = originalText.ToString(CodeAnalysis.Text.TextSpan.FromBounds(originalLine.End, originalLine.EndIncludingLineBreak));
+                var originalNewLine = originalText.ToString(CodeAnalysis.Text.TextSpan.FromBounds(originalLine.End, originalLine.EndIncludingLineBreak));
 
                 // Check if we have a line ending, so we don't go adding one to the end if we don't need to.
                 if (originalNewLine.Length > 0 && originalNewLine != targetLineEnding)

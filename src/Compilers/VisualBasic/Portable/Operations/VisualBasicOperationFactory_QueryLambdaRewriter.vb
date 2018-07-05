@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                         Dim access = DirectCast(expression, BoundPropertyAccess)
                         expression = New BoundPropertyAccess(node.Syntax, access.PropertySymbol, access.PropertyGroupOpt, access.AccessKind,
                                                              access.IsWriteable, access.IsWriteable, access.ReceiverOpt, access.Arguments,
-                                                             access.Type, access.HasErrors)
+                                                             access.DefaultArguments, access.Type, access.HasErrors)
                     Case Else
                         Debug.Fail($"Unexpected bound kind '{expression.Kind}' generated for range variable rewrite by method '{NameOf(LocalRewriter.PopulateRangeVariableMapForQueryLambdaRewrite)}'")
                 End Select
