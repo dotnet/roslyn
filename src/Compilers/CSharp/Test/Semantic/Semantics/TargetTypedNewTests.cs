@@ -244,6 +244,9 @@ namespace System
                 // (13,21): error CS9367: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         Struct v1 = new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("Struct").WithLocation(13, 21),
+                // (14,21): error CS9366: The type 'Action' may not be used as the target-type of 'new'.
+                //         Action v2 = new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("System.Action").WithLocation(14, 21),
                 // (15,9): error CS0723: Cannot declare a variable of static type 'Static'
                 //         Static v3 = new();
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "Static").WithArguments("Static").WithLocation(15, 9),
@@ -253,15 +256,36 @@ namespace System
                 // (16,23): error CS0144: Cannot create an instance of the abstract class or interface 'Abstract'
                 //         Abstract v4 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("Abstract").WithLocation(16, 23),
+                // (17,24): error CS9366: The type 'Interface' may not be used as the target-type of 'new'.
+                //         Interface v5 = new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("Interface").WithLocation(17, 24),
+                // (18,26): error CS9366: The type 'Enumeration' may not be used as the target-type of 'new'.
+                //         Enumeration v6 = new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("Enumeration").WithLocation(18, 26),
                 // (19,18): error CS9367: The default constructor of the value type 'int' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         int v7 = new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int").WithLocation(19, 18),
+                // (20,19): error CS1919: Unsafe type 'int*' cannot be used in object creation
+                //         int* v8 = new();
+                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("int*").WithLocation(20, 19),
                 // (21,19): error CS9367: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         int? v9 = new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int?").WithLocation(21, 19),
+                // (22,26): error CS0712: Cannot create an instance of the static class '(int, int)'
+                //         (int, int) v10 = new();
+                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new()").WithArguments("(int, int)").WithLocation(22, 26),
+                // (23,23): error CS0143: The type 'dynamic' has no constructors defined
+                //         dynamic v11 = new();
+                Diagnostic(ErrorCode.ERR_NoConstructors, "new()").WithArguments("dynamic").WithLocation(23, 23),
+                // (24,21): error CS9366: The type 'int[]' may not be used as the target-type of 'new'.
+                //         int[] v12 = new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("int[]").WithLocation(24, 21),
                 // (25,9): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //         Error v13 = new();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(25, 9),
+                // (26,17): error CS9366: The type 'T' may not be used as the target-type of 'new'.
+                //         T v14 = new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("T").WithLocation(26, 17),
                 // (13,16): warning CS0219: The variable 'v1' is assigned but its value is never used
                 //         Struct v1 = new();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(13, 16),
@@ -309,30 +333,52 @@ namespace System
     public struct ValueTuple<T1,T2> {}
 }
 ", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
                 // (12,26): error CS9367: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v1 = (Struct)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("Struct").WithLocation(12, 26),
-                // (14,26): error CS0712: Cannot create an instance of the static class 'Static'
+                // (13,18): error CS9366: The type 'Action' may not be used as the target-type of 'new'.
+                //         var v2 = (Action)new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(Action)new()").WithArguments("System.Action").WithLocation(13, 18),
+                // (14,18): error CS0716: Cannot convert to static type 'Static'
                 //         var v3 = (Static)new();
-                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new()").WithArguments("Static").WithLocation(14, 26),
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(Static)new()").WithArguments("Static").WithLocation(14, 18),
                 // (14,9): error CS0723: Cannot declare a variable of static type 'Static'
                 //         var v3 = (Static)new();
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "var").WithArguments("Static").WithLocation(14, 9),
                 // (15,28): error CS0144: Cannot create an instance of the abstract class or interface 'Abstract'
                 //         var v4 = (Abstract)new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("Abstract").WithLocation(15, 28),
+                // (16,18): error CS9366: The type 'Interface' may not be used as the target-type of 'new'.
+                //         var v5 = (Interface)new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(Interface)new()").WithArguments("Interface").WithLocation(16, 18),
+                // (17,18): error CS9366: The type 'Enumeration' may not be used as the target-type of 'new'.
+                //         var v6 = (Enumeration)new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(Enumeration)new()").WithArguments("Enumeration").WithLocation(17, 18),
                 // (18,23): error CS9367: The default constructor of the value type 'int' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v7 = (int)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int").WithLocation(18, 23),
+                // (19,18): error CS1919: Unsafe type 'int*' cannot be used in object creation
+                //         var v8 = (int*)new();
+                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "(int*)new()").WithArguments("int*").WithLocation(19, 18),
                 // (20,24): error CS9367: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v9 = (int?)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int?").WithLocation(20, 24),
+                // (21,19): error CS0712: Cannot create an instance of the static class '(int, int)'
+                //         var v10 = ((int,int))new();
+                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "((int,int))new()").WithArguments("(int, int)").WithLocation(21, 19),
+                // (22,19): error CS0143: The type 'dynamic' has no constructors defined
+                //         var v11 = (dynamic)new();
+                Diagnostic(ErrorCode.ERR_NoConstructors, "(dynamic)new()").WithArguments("dynamic").WithLocation(22, 19),
+                // (23,19): error CS9366: The type 'int[]' may not be used as the target-type of 'new'.
+                //         var v12 = (int[])new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(int[])new()").WithArguments("int[]").WithLocation(23, 19),
                 // (24,20): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //         var v13 = (Error)new();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(24, 20),
-                // (24,26): error CS1729: 'Error' does not contain a constructor that takes 0 arguments
-                //         var v13 = (Error)new();
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("Error", "0").WithLocation(24, 26),
+                // (25,19): error CS9366: The type 'T' may not be used as the target-type of 'new'.
+                //         var v14 = (T)new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(T)new()").WithArguments("T").WithLocation(25, 19),
                 // (12,13): warning CS0219: The variable 'v1' is assigned but its value is never used
                 //         var v1 = (Struct)new();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(12, 13),

@@ -1917,12 +1917,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (operand.Kind == BoundKind.UnboundObjectCreationExpression)
-            {
-                GenerateImplicitNewConversionError(diagnostics, operand.Syntax, (UnboundObjectCreationExpression)operand, targetType);
-                return;
-            }
-
             if (operand.HasAnyErrors || targetType.IsErrorType())
             {
                 // an error has already been reported elsewhere

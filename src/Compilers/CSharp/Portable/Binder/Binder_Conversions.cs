@@ -145,12 +145,35 @@ namespace Microsoft.CodeAnalysis.CSharp
               ? BindInitializerExpression(syntax: node.Initializer, type: destination, typeSyntax: syntax, diagnostics)
               : null;
 
-            BoundExpression boundCreation;
+            BoundExpression boundCreation = null;
 
             switch (destination.TypeKind)
             {
+                case TypeKind.Array:
+                case TypeKind.Enum:
+                case TypeKind.Delegate:
+                case TypeKind.Interface:
+                    Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, destination);
+                    break;
+
+                case TypeKind.Pointer:
+                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, destination);
+                    break;
+
+                case TypeKind.Dynamic:
+                    Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, destination);
+                    break;
+
+                case TypeKind.Struct:
+                    if (destination.IsTupleType)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_InstantiatingStaticClass, syntax, destination);
+                        break;
+                    }
+
+                    goto case TypeKind.Class;
+
                 case TypeKind.Class:
-                case TypeKind.Struct when !destination.IsTupleType:
                     boundCreation = BindClassCreationExpression(
                         node,
                         typeName: destination.Name,
@@ -166,7 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeParameter = (TypeParameterSymbol)destination;
                     if (!typeParameter.IsInstantiable())
                     {
-                        goto default;
+                        Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, destination);
+                        break;
                     }
 
                     boundCreation = BindTypeParameterCreationExpression(
@@ -175,23 +199,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                        boundInitializerOpt,
                        diagnostics);
                     break;
-
-                default:
-                    boundCreation = unboundCreation;
-                    break;
             }
 
             arguments.Free();
 
             return new BoundConversion(
                 syntax,
-                boundCreation,
+                boundCreation ?? unboundCreation,
                 conversion,
                 @checked: false,
                 explicitCastInCode: isCast,
                 constantValueOpt: null,
                 type: destination,
-                hasErrors: boundCreation.Kind == BoundKind.UnboundObjectCreationExpression)
+                hasErrors: boundCreation is null)
             { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 

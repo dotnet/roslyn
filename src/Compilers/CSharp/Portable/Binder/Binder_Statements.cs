@@ -1694,95 +1694,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(expression.Syntax, expression, conversion, false, targetType, diagnostics);
         }
 
-        internal void GenerateImplicitNewConversionError(
-            DiagnosticBag diagnostics, 
-            SyntaxNode syntax,
-            UnboundObjectCreationExpression unboundCreation,
-            TypeSymbol targetType)
-        {
-            Debug.Assert((object)targetType != null);
-            Debug.Assert(unboundCreation != null);
-
-            switch (targetType.TypeKind)
-            {
-                case TypeKind.Array:
-                case TypeKind.Enum:
-                case TypeKind.Delegate:
-                    Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, targetType);
-                    return;
-                case TypeKind.Dynamic:
-                    Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, targetType);
-                    return;
-                case TypeKind.Interface:
-                    Error(diagnostics, ErrorCode.ERR_NoNewAbstract, syntax, targetType);
-                    return;
-                case TypeKind.Pointer:
-                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, targetType);
-                    return;
-                case TypeKind.TypeParameter:
-                    goto case TypeKind.Array;
-                    //if (ReportTypeParameterCreationError(syntax, (TypeParameterSymbol)targetType, unboundCreation.Arguments, diagnostics))
-                    //{
-                    //    return;
-                    //}
-
-                    //break;
-
-                default:
-                    if (targetType.IsStatic)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_InstantiatingStaticClass, syntax, targetType);
-                        return;
-                    }
-
-                    if (targetType.IsAbstract)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_NoNewAbstract, syntax, targetType);
-                        return;
-                    }
-
-                    if (targetType.IsTupleType)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, targetType);
-                        return;
-                    }
-
-                    var arguments = AnalyzedArguments.GetInstance();
-
-                    try
-                    {
-                        BindArgumentsAndNames(((ObjectCreationExpressionSyntax)syntax).ArgumentList, diagnostics, arguments);
-                        if (!TryPerformConstructorOverloadResolution(
-                            (NamedTypeSymbol)targetType,
-                            arguments,
-                            WellKnownMemberNames.InstanceConstructorName,
-                            unboundCreation.Syntax.Location,
-                            suppressResultDiagnostics: false,
-                            diagnostics,
-                            out MemberResolutionResult<MethodSymbol> memberResolutionResult,
-                            out ImmutableArray<MethodSymbol> candidateConstructors,
-                            allowProtectedConstructorsOfBaseType: false))
-                        {
-                            return;
-                        }
-
-                        if (memberResolutionResult.Member.IsDefaultValueTypeConstructor())
-                        {
-                            Error(diagnostics, ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, syntax, targetType);
-                            return;
-                        }
-
-                        break;
-                    }
-                    finally
-                    {
-                        arguments.Free();
-                    }
-            }
-
-            Debug.Fail("Missing case in target-typed new error reporting");
-        }
-
         internal void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, SyntaxNode syntax,
             UnboundLambda anonymousFunction, TypeSymbol targetType)
         {
@@ -2079,11 +1990,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnboundLambda:
                     {
                         GenerateAnonymousFunctionConversionError(diagnostics, syntax, (UnboundLambda)operand, targetType);
-                        return;
-                    }
-                case BoundKind.UnboundObjectCreationExpression:
-                    {
-                        GenerateImplicitNewConversionError(diagnostics, syntax, (UnboundObjectCreationExpression)operand, targetType);
                         return;
                     }
                 case BoundKind.TupleLiteral:
