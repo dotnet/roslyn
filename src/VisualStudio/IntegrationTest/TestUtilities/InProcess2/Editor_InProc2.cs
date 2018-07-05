@@ -93,20 +93,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         public async Task<string> GetTextAsync()
         {
-            return await ExecuteOnActiveViewAsync(view =>
-            {
-                return Task.FromResult(view.TextSnapshot.GetText());
-            });
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            return view.TextSnapshot.GetText();
         }
 
         public async Task SetTextAsync(string text)
-            => await ExecuteOnActiveViewAsync(view =>
-            {
-                var textSnapshot = view.TextSnapshot;
-                var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-                view.TextBuffer.Replace(replacementSpan, text);
-                return Task.CompletedTask;
-            });
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var textSnapshot = view.TextSnapshot;
+            var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
+            view.TextBuffer.Replace(replacementSpan, text);
+        }
 
         public async Task SelectTextAsync(string text)
         {
@@ -189,15 +190,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 #endif
 
         public async Task MoveCaretAsync(int position)
-            => await ExecuteOnActiveViewAsync(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                view.Caret.MoveTo(point);
+            var view = await GetActiveTextViewAsync();
+            var subjectBuffer = view.GetBufferContainingCaret();
+            var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
-                return Task.CompletedTask;
-            });
+            view.Caret.MoveTo(point);
+        }
 
         /// <remarks>
         /// This method does not wait for async operations before

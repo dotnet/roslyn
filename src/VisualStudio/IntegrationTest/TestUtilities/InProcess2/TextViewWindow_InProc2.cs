@@ -154,91 +154,81 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             int occurrence = 0,
             bool extendSelection = false,
             bool selectBlock = false)
-            => await ExecuteOnActiveViewAsync(async view =>
-            {
-                var dte = await GetDTEAsync();
-                dte.Find.FindWhat = marker;
-                dte.Find.MatchCase = true;
-                dte.Find.MatchInHiddenText = true;
-                dte.Find.Target = EnvDTE.vsFindTarget.vsFindTargetCurrentDocument;
-                dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
-
-                var originalPosition = await GetCaretPositionAsync();
-                view.Caret.MoveTo(new SnapshotPoint((await GetBufferContainingCaretAsync(view)).CurrentSnapshot, 0));
-
-                if (occurrence > 0)
-                {
-                    var result = EnvDTE.vsFindResult.vsFindResultNotFound;
-                    for (var i = 0; i < occurrence; i++)
-                    {
-                        result = dte.Find.Execute();
-                    }
-
-                    if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                    {
-                        throw new Exception("Occurrence " + occurrence + " of marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                    }
-                }
-                else
-                {
-                    var result = dte.Find.Execute();
-                    if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                    {
-                        throw new Exception("Marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                    }
-                }
-
-                if (charsOffset > 0)
-                {
-                    for (var i = 0; i < charsOffset - 1; i++)
-                    {
-                        view.Caret.MoveToNextCaretPosition();
-                    }
-
-                    view.Selection.Clear();
-                }
-
-                if (charsOffset < 0)
-                {
-                    // On the first negative charsOffset, move to anchor-point position, as if the user hit the LEFT key
-                    view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, view.Selection.AnchorPoint.Position.Position));
-
-                    for (var i = 0; i < -charsOffset - 1; i++)
-                    {
-                        view.Caret.MoveToPreviousCaretPosition();
-                    }
-
-                    view.Selection.Clear();
-                }
-
-                if (extendSelection)
-                {
-                    var newPosition = view.Selection.ActivePoint.Position.Position;
-                    view.Selection.Select(new VirtualSnapshotPoint(view.TextSnapshot, originalPosition), new VirtualSnapshotPoint(view.TextSnapshot, newPosition));
-                    view.Selection.Mode = selectBlock ? TextSelectionMode.Box : TextSelectionMode.Stream;
-                }
-            });
-
-        public async Task<int> GetCaretPositionAsync()
-            => await ExecuteOnActiveViewAsync(async view =>
-            {
-                var subjectBuffer = await GetBufferContainingCaretAsync(view);
-                var bufferPosition = view.Caret.Position.BufferPosition;
-                return bufferPosition.Position;
-            });
-
-        protected async Task<T> ExecuteOnActiveViewAsync<T>(Func<IWpfTextView, Task<T>> action)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var view = await GetActiveTextViewAsync();
-            return await action(view);
+            var dte = await GetDTEAsync();
+            dte.Find.FindWhat = marker;
+            dte.Find.MatchCase = true;
+            dte.Find.MatchInHiddenText = true;
+            dte.Find.Target = EnvDTE.vsFindTarget.vsFindTargetCurrentDocument;
+            dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
+
+            var originalPosition = await GetCaretPositionAsync();
+            view.Caret.MoveTo(new SnapshotPoint((await GetBufferContainingCaretAsync(view)).CurrentSnapshot, 0));
+
+            if (occurrence > 0)
+            {
+                var result = EnvDTE.vsFindResult.vsFindResultNotFound;
+                for (var i = 0; i < occurrence; i++)
+                {
+                    result = dte.Find.Execute();
+                }
+
+                if (result != EnvDTE.vsFindResult.vsFindResultFound)
+                {
+                    throw new Exception("Occurrence " + occurrence + " of marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
+                }
+            }
+            else
+            {
+                var result = dte.Find.Execute();
+                if (result != EnvDTE.vsFindResult.vsFindResultFound)
+                {
+                    throw new Exception("Marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
+                }
+            }
+
+            if (charsOffset > 0)
+            {
+                for (var i = 0; i < charsOffset - 1; i++)
+                {
+                    view.Caret.MoveToNextCaretPosition();
+                }
+
+                view.Selection.Clear();
+            }
+
+            if (charsOffset < 0)
+            {
+            // On the first negative charsOffset, move to anchor-point position, as if the user hit the LEFT key
+            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, view.Selection.AnchorPoint.Position.Position));
+
+                for (var i = 0; i < -charsOffset - 1; i++)
+                {
+                    view.Caret.MoveToPreviousCaretPosition();
+                }
+
+                view.Selection.Clear();
+            }
+
+            if (extendSelection)
+            {
+                var newPosition = view.Selection.ActivePoint.Position.Position;
+                view.Selection.Select(new VirtualSnapshotPoint(view.TextSnapshot, originalPosition), new VirtualSnapshotPoint(view.TextSnapshot, newPosition));
+                view.Selection.Mode = selectBlock ? TextSelectionMode.Box : TextSelectionMode.Stream;
+            }
         }
 
-        protected async Task ExecuteOnActiveViewAsync(Func<IWpfTextView, Task> action)
+        public async Task<int> GetCaretPositionAsync()
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var view = await GetActiveTextViewAsync();
-            await action(view);
+            var subjectBuffer = await GetBufferContainingCaretAsync(view);
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            return bufferPosition.Position;
         }
 
 #if false
@@ -278,22 +268,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 #endif
 
         public async Task<bool> IsLightBulbSessionExpandedAsync()
-            => await ExecuteOnActiveViewAsync(async view =>
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var broker = (await GetComponentModelAsync()).GetService<ILightBulbBroker>();
+            if (!broker.IsLightBulbSessionActive(view))
             {
-                var broker = (await GetComponentModelAsync()).GetService<ILightBulbBroker>();
-                if (!broker.IsLightBulbSessionActive(view))
-                {
-                    return false;
-                }
+                return false;
+            }
 
-                var session = broker.GetSession(view);
-                if (session == null || !session.IsExpanded)
-                {
-                    return false;
-                }
+            var session = broker.GetSession(view);
+            if (session == null || !session.IsExpanded)
+            {
+                return false;
+            }
 
-                return true;
-            });
+            return true;
+        }
 
         public async Task<string[]> GetLightBulbActionsAsync()
         {
