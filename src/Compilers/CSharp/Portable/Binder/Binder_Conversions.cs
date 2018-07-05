@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Struct:
                     if (destination.IsTupleType)
                     {
-                        Error(diagnostics, ErrorCode.ERR_InstantiatingStaticClass, syntax, destination);
+                        Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, destination);
                         break;
                     }
 

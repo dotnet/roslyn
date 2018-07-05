@@ -271,9 +271,9 @@ namespace System
                 // (21,19): error CS9367: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         int? v9 = new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int?").WithLocation(21, 19),
-                // (22,26): error CS0712: Cannot create an instance of the static class '(int, int)'
+                // (22,26): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         (int, int) v10 = new();
-                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new()").WithArguments("(int, int)").WithLocation(22, 26),
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new()").WithArguments("(int, int)").WithLocation(22, 26),
                 // (23,23): error CS0143: The type 'dynamic' has no constructors defined
                 //         dynamic v11 = new();
                 Diagnostic(ErrorCode.ERR_NoConstructors, "new()").WithArguments("dynamic").WithLocation(23, 23),
@@ -333,7 +333,6 @@ namespace System
     public struct ValueTuple<T1,T2> {}
 }
 ", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-
                 // (12,26): error CS9367: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v1 = (Struct)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("Struct").WithLocation(12, 26),
@@ -364,9 +363,9 @@ namespace System
                 // (20,24): error CS9367: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v9 = (int?)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int?").WithLocation(20, 24),
-                // (21,19): error CS0712: Cannot create an instance of the static class '(int, int)'
+                // (21,19): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var v10 = ((int,int))new();
-                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "((int,int))new()").WithArguments("(int, int)").WithLocation(21, 19),
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "((int,int))new()").WithArguments("(int, int)").WithLocation(21, 19),
                 // (22,19): error CS0143: The type 'dynamic' has no constructors defined
                 //         var v11 = (dynamic)new();
                 Diagnostic(ErrorCode.ERR_NoConstructors, "(dynamic)new()").WithArguments("dynamic").WithLocation(22, 19),
