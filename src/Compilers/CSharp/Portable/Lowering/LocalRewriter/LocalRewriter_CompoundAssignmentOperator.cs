@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lhsRead = MakeRValue(transformedLHS);
 
-            // save RHS to a temp, we need to use it twice:
-            // if RHS needs to be saved to a temp, we save the LHS read to a temp first to ensure order
+            // If RHS needs to be saved to a temp, we save the LHS read to a temp first to ensure order
             // of operations is preserved
             if (isPossibleEventHandlerOperation && CanChangeValueBetweenReads(loweredRight))
             {
@@ -69,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // And then wrap it up with the generated temporaries.
             //
             // (The right hand side has already been converted to the type expected by the operator.)
-
 
             BoundExpression opLHS = isDynamic ? lhsRead : MakeConversionNode(
                 syntax: syntax,

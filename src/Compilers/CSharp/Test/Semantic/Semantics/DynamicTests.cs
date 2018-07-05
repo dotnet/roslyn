@@ -1004,9 +1004,18 @@ class DynamicTest
 
     public static void Main()
     {
+        Console.WriteLine(""Compound Add"");
         GetDynamic().Property += GetInt();
+        Console.WriteLine(""Compound And"");
+        GetDynamic().Property &= GetInt();
     }
 }", targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: @"
+Compound Add
+GetDynamic
+get_Property
+GetInt
+set_Property
+Compound And
 GetDynamic
 get_Property
 GetInt
