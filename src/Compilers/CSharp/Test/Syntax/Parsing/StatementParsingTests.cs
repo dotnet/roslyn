@@ -2379,6 +2379,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingVarWithDeclarationTree()
+        {
+            UsingStatement(@"using T a = b;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
         public void TestUsingWithVarDeclaration()
         {
             var text = "using (var a = b) { }";
@@ -2442,6 +2472,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
             Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+        }
+
+        [Fact]
+        public void TestUsingVarWithVarDeclarationTree()
+        {
+            UsingStatement(@"using var a = b;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
         }
 
         [Fact]
@@ -2527,6 +2587,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingVarWithDeclarationMultipleVariablesTree()
+        {
+            UsingStatement(@"using T a = b, c = d;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
         public void TestUsingSpecialCase1()
         {
             var text = "using (f ? x = a : x = b) { }";
@@ -2564,6 +2667,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
             Assert.NotNull(us.Declaration);
             Assert.Equal("var x = f ? a : b", us.Declaration.ToString());
+        }
+
+
+        [Fact]
+        public void TestUsingVarSpecialCase1Tree()
+        {
+            UsingStatement(@"using var x = f ? a : b;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.ConditionalExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
         }
 
         [Fact]
