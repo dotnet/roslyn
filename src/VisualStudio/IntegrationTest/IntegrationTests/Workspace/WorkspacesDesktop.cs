@@ -1,47 +1,52 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class WorkspacesDesktop : WorkspaceBase
     {
-        public WorkspacesDesktop(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
+        public WorkspacesDesktop()
+            : base(WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public override void OpenCSharpThenVBSolution()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public override async Task OpenCSharpThenVBSolutionAsync()
         {
-            base.OpenCSharpThenVBSolution();
+            await base.OpenCSharpThenVBSolutionAsync();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public override void MetadataReference()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public override async Task MetadataReferenceAsync()
         {
-            base.MetadataReference();
+            await base.MetadataReferenceAsync();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public override void ProjectReference()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public override async Task ProjectReferenceAsync()
         {
-            base.ProjectReference();
+            await base.ProjectReferenceAsync();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.Workspace)]
-        public override void ProjectProperties()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public override async Task ProjectPropertiesAsync()
         {
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
-            base.ProjectProperties();
+            await VisualStudio.SolutionExplorer.CreateSolutionAsync(nameof(WorkspacesDesktop));
+            await VisualStudio.SolutionExplorer.AddProjectAsync(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            await base.ProjectPropertiesAsync();
+        }
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public override async Task RenamingOpenFilesAsync()
+        {
+            await base.RenamingOpenFilesAsync();
         }
     }
 }

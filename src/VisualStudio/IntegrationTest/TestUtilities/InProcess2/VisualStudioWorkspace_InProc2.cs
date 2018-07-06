@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -36,20 +37,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             _visualStudioWorkspace = await GetComponentModelServiceAsync<VisualStudioWorkspace>();
         }
 
-#if false
-        public void SetOptionInfer(string projectName, bool value)
-            => InvokeOnUIThread(() =>
-            {
-                var convertedValue = value ? 1 : 0;
-                var project = GetProject(projectName);
-                project.Properties.Item("OptionInfer").Value = convertedValue;
-            });
+        public async Task SetOptionInferAsync(string projectName, bool value)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        private EnvDTE.Project GetProject(string nameOrFileName)
-            => GetDTE().Solution.Projects.OfType<EnvDTE.Project>().First(p =>
-               string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
-                || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
-#endif
+            var convertedValue = value ? 1 : 0;
+            var project = await GetProjectAsync(projectName);
+            project.Properties.Item("OptionInfer").Value = convertedValue;
+
+            await WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+        }
+
+        private async Task<EnvDTE.Project> GetProjectAsync(string nameOrFileName)
+        {
+            return (await GetDTEAsync()).Solution.Projects.OfType<EnvDTE.Project>().First(p =>
+                string.Equals(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase));
+        }
 
         public bool IsUseSuggestionModeOn()
             => _visualStudioWorkspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
@@ -73,58 +77,36 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 FeatureOnOffOptions.PrettyListing, languageName, value);
         }
 
-#if false
-        public void EnableQuickInfo(bool value)
-            => InvokeOnUIThread(() =>
-            {
-                _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
-                    InternalFeatureOnOffOptions.QuickInfo, value);
-            });
-
-        public void SetPerLanguageOption(string optionName, string feature, string language, object value)
+        public async Task EnableQuickInfoAsync(bool value)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
+                InternalFeatureOnOffOptions.QuickInfo, value);
+        }
+
+        public async Task SetFullSolutionAnalysisAsync(bool value)
+        {
+            await SetPerLanguageOptionAsync(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, value);
+            await SetPerLanguageOptionAsync(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, value);
+        }
+
+        public async Task SetPerLanguageOptionAsync<T>(PerLanguageOption<T> option, string language, T value)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
-            var option = GetOption(optionName, feature, optionService);
-            var result = GetValue(value, option);
             var optionKey = new OptionKey(option, language);
-            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
+            optionService.SetOptions(optionService.GetOptions().WithChangedOption(option, language, value));
         }
 
-        public void SetOption(string optionName, string feature, object value)
+        public async Task SetOptionAsync<T>(Option<T> option, T value)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
-            var option = GetOption(optionName, feature, optionService);
-            var result = GetValue(value, option);
-            var optionKey = new OptionKey(option);
-            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
+            optionService.SetOptions(optionService.GetOptions().WithChangedOption(option, value));
         }
-
-        private static object GetValue(object value, IOption option)
-        {
-            object result;
-            if (value is string stringValue)
-            {
-                result = TypeDescriptor.GetConverter(option.Type).ConvertFromString(stringValue);
-            }
-            else
-            {
-                result = value;
-            }
-
-            return result;
-        }
-
-        private static IOption GetOption(string optionName, string feature, IOptionService optionService)
-        {
-            var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
-            if (option == null)
-            {
-                throw new Exception($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
-            }
-
-            return option;
-        }
-#endif
 
         private async Task<TestingOnly_WaitingService> GetWaitingServiceAsync()
         {

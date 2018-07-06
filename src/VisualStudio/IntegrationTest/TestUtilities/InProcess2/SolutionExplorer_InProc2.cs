@@ -77,14 +77,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             vsproject.References.Add(assemblyName);
         }
 
-#if false
         public void RemoveMetadataReference(string assemblyName, string projectName)
         {
             var project = GetProject(projectName);
             var reference = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.Name == assemblyName).First();
             reference.Remove();
         }
-#endif
 
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
@@ -136,7 +134,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return references;
         }
 
-#if false
         public void RenameFile(string projectName, string oldFileName, string newFileName)
         {
             var projectItem = GetProjectItem(projectName, oldFileName);
@@ -144,9 +141,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             projectItem.Name = newFileName;
         }
 
-        public void EditProjectFile(string projectName)
+        public async Task EditProjectFileAsync(string projectName)
         {
-            var solutionExplorer = ((DTE2)GetDTE()).ToolWindows.SolutionExplorer;
+            var solutionExplorer = ((DTE2)(await GetDTEAsync())).ToolWindows.SolutionExplorer;
             solutionExplorer.Parent.Activate();
             var rootHierarchyItems = solutionExplorer.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
             var solution = rootHierarchyItems.First();
@@ -156,10 +153,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             {
                 throw new ArgumentException($"Could not find project file, current hierarchy items '{string.Join(", ", rootHierarchyItems.Select(x => x.Name))}'");
             }
+
             project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
-            ExecuteCommand("Project.EditProjectFile");
+            await ExecuteCommandAsync("Project.EditProjectFile");
         }
-#endif
 
         public string[] GetProjectReferences(string projectName)
         {
@@ -272,6 +269,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 throw new InvalidOperationException($"'{nameof(RemovePackageReference)}' is not supported in project '{projectName}'.");
             }
         }
+#endif
 
         public void RemoveProjectReference(string projectName, string projectReferenceName)
         {
@@ -287,6 +285,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             reference.Remove();
         }
 
+#if false
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
         {
             var dte = GetDTE();
