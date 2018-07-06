@@ -784,13 +784,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
-#if false
-        public void DeleteText(string text)
+        public async Task DeleteTextAsync(string text)
         {
-            SelectTextInCurrentDocument(text);
-            SendKeys(VirtualKey.Delete);
+            await SelectTextInCurrentDocumentAsync(text);
+            await SendKeysAsync(VirtualKey.Delete);
         }
-#endif
 
         public async Task FormatDocumentAsync()
         {
