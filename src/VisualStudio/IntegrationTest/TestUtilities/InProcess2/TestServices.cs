@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             ExtractInterfaceDialog = new ExtractInterfaceDialog_InProc2(this);
             FindReferencesWindow = new FindReferencesWindow_InProc2(this);
             ImmediateWindow = new ImmediateWindow_InProc2(this);
+            InlineRenameDialog = new InlineRenameDialog_InProc2(this);
             PreviewChangesDialog = new PreviewChangesDialog_InProc2(this);
             Shell = new Shell_InProc2(this);
 
@@ -78,6 +79,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public ImmediateWindow_InProc2 ImmediateWindow
+        {
+            get;
+        }
+
+        public InlineRenameDialog_InProc2 InlineRenameDialog
         {
             get;
         }

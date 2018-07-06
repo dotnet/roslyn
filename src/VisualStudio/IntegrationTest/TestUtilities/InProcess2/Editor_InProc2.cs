@@ -755,25 +755,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 #if false
         public void GoToImplementation()
             => GetDTE().ExecuteCommand("Edit.GoToImplementation");
+#endif
 
-		/// <summary>
+        /// <summary>
         /// Gets the spans where a particular tag appears in the active text view.
         /// </summary>
         /// <returns>
         /// Given a list of tag spans [s1, s2, ...], returns a decomposed array for serialization:
         ///     [s1.Start, s1.Length, s2.Start, s2.Length, ...]
         /// </returns>
-        public int[] GetTagSpans(string tagId)
-            => InvokeOnUIThread(() =>
-            {
-                var view = GetActiveTextView();
-                var tagAggregatorFactory = GetComponentModel().GetService<IViewTagAggregatorFactoryService>();
-                var tagAggregator = tagAggregatorFactory.CreateTagAggregator<ITextMarkerTag>(view);
-                var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
+        public async Task<TextSpan[]> GetTagSpansAsync(string tagId)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).SelectMany(t => new List<int> { t.Start, t.Length }).ToArray();
-            });
+            var view = await GetActiveTextViewAsync();
+            var tagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>();
+            var tagAggregator = tagAggregatorFactory.CreateTagAggregator<ITextMarkerTag>(view);
+            var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
 
+            return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).ToArray();
+        }
+
+#if false
         public void SendExplicitFocus()
             => InvokeOnUIThread(() =>
             {
