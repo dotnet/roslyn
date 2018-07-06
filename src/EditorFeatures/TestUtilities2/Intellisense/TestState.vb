@@ -187,12 +187,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 #Region "Completion Operations"
         Public Overloads Sub SendTab()
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of TabKeyCommandArgs))
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TabKeyCommandArgs))
             MyBase.SendTab(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertText(vbTab))
         End Sub
 
         Public Overloads Sub SendReturn()
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs))
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of ReturnKeyCommandArgs))
             MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
         End Sub
 

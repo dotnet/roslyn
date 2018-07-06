@@ -181,7 +181,7 @@ End Class
                               </document>)
 
                 state.SendTypeChars("Fog(")
-                Await state.AssertCompletionSession()
+                Await state.AssertNoCompletionSession()
 
                 Assert.Contains("    FogBar(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
