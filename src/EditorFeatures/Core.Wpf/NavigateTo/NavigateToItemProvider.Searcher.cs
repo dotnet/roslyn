@@ -128,27 +128,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            private static INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate TryGetNavigateToSearchService(Project project)
-            {
-                var service = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
-                if (service != null)
-                {
-                    return service;
-                }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-#pragma warning disable CS0612 // Type or member is obsolete
-                var legacyService = project.LanguageServices.GetService<INavigateToSearchService>();
-                if (legacyService != null)
-                {
-                    return new ShimNavigateToSearchService(legacyService);
-                }
-#pragma warning restore CS0612 // Type or member is obsolete
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                return null;
-            }
-
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
             {
                 var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
@@ -202,27 +181,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     default:
                         return languageName;
                 }
-            }
-
-            [Obsolete]
-            private class ShimNavigateToSearchService : INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate
-            {
-                private readonly INavigateToSearchService _navigateToSearchService;
-
-                public ShimNavigateToSearchService(INavigateToSearchService navigateToSearchService)
-                {
-                    _navigateToSearchService = navigateToSearchService;
-                }
-
-                public IImmutableSet<string> KindsProvided => ImmutableHashSet.Create<string>(StringComparer.Ordinal);
-
-                public bool CanFilter => false;
-
-                public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                    => _navigateToSearchService.SearchDocumentAsync(document, searchPattern, cancellationToken);
-
-                public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                    => _navigateToSearchService.SearchProjectAsync(project, searchPattern, cancellationToken);
             }
         }
     }
