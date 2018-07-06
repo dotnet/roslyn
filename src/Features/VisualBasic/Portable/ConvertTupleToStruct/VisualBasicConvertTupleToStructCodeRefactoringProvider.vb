@@ -13,24 +13,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
             ExpressionSyntax,
             NameSyntax,
             IdentifierNameSyntax,
+            LiteralExpressionSyntax,
             ObjectCreationExpressionSyntax,
             TupleExpressionSyntax,
+            ArgumentSyntax,
             TupleTypeSyntax,
             TypeBlockSyntax,
             NamespaceBlockSyntax)
 
         Protected Overrides Function CreateObjectCreationExpression(
-            nameNode As NameSyntax, tuple As TupleExpressionSyntax) As ObjectCreationExpressionSyntax
+                nameNode As NameSyntax, openParen As SyntaxToken, arguments As SeparatedSyntaxList(Of ArgumentSyntax), closeParen As SyntaxToken) As ObjectCreationExpressionSyntax
 
             Return SyntaxFactory.ObjectCreationExpression(
-                attributeLists:=Nothing, nameNode, CreateArgumentList(tuple), initializer:=Nothing)
-        End Function
-
-        Private Function CreateArgumentList(tuple As TupleExpressionSyntax) As ArgumentListSyntax
-            Return SyntaxFactory.ArgumentList(
-                tuple.OpenParenToken,
-                SyntaxFactory.SeparatedList(Of ArgumentSyntax)(tuple.Arguments.GetWithSeparators()),
-                tuple.CloseParenToken)
+                attributeLists:=Nothing, nameNode, SyntaxFactory.ArgumentList(openParen, arguments, closeParen), initializer:=Nothing)
         End Function
     End Class
 End Namespace

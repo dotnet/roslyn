@@ -28,8 +28,10 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         TExpressionSyntax,
         TNameSyntax,
         TIdentifierNameSyntax,
+        TLiteralExpressionSyntax,
         TObjectCreationExpressionSyntax,
         TTupleExpressionSyntax,
+        TArgumentSyntax,
         TTupleTypeSyntax,
         TTypeBlockSyntax,
         TNamespaceDeclarationSyntax>
@@ -37,8 +39,10 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         where TExpressionSyntax : SyntaxNode
         where TNameSyntax : TExpressionSyntax
         where TIdentifierNameSyntax : TNameSyntax
+        where TLiteralExpressionSyntax : TExpressionSyntax
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TTupleExpressionSyntax : TExpressionSyntax
+        where TArgumentSyntax: SyntaxNode
         where TTupleTypeSyntax : SyntaxNode
         where TTypeBlockSyntax : SyntaxNode
         where TNamespaceDeclarationSyntax : SyntaxNode
@@ -52,8 +56,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         protected abstract TObjectCreationExpressionSyntax CreateObjectCreationExpression(
-            TNameSyntax nameNode, TTupleExpressionSyntax tupleExpression);
-
+            TNameSyntax nameNode, SyntaxToken openParen, SeparatedSyntaxList<TArgumentSyntax> arguments, SyntaxToken closeParen);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -548,7 +551,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             SyntaxNode containingMember, CancellationToken cancellationToken)
         {
-            var comparer = document.GetLanguageService<ISyntaxFactsService>().StringComparer;
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var comparer = syntaxFacts.StringComparer;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var childCreationNodes = containingMember.DescendantNodesAndSelf()
@@ -568,7 +572,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 {
                     changed = true;
                     ReplaceWithObjectCreation(
-                        editor, typeName, typeParameters, 
+                        syntaxFacts, editor, typeName, typeParameters, 
                         qualifiedTypeName, startingNode, childCreation);
                 }
             }
@@ -616,10 +620,39 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         ? CreateStructNameNode(g, typeName, typeParameters, addRenameAnnotation: true)
                         : qualifiedTypeName;
 
-                    var (
-                    return CreateObjectCreationExpression(typeNameNode, currentTupleExpr)
+                    syntaxFacts.GetPartsOfTupleExpression<TArgumentSyntax>(
+                        currentTupleExpr, out var openParen, out var arguments, out var closeParen);
+                    arguments = ConvertArguments(syntaxFacts, g, arguments);
+
+                    return CreateObjectCreationExpression(typeNameNode, openParen, arguments, closeParen)
                         .WithAdditionalAnnotations(Formatter.Annotation);
                 });
+        }
+
+        private SeparatedSyntaxList<TArgumentSyntax> ConvertArguments(ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, SeparatedSyntaxList<TArgumentSyntax> arguments)
+            => generator.SeparatedList<TArgumentSyntax>(ConvertArguments(syntaxFacts, generator, arguments.GetWithSeparators()));
+
+        private SyntaxNodeOrTokenList ConvertArguments(ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, SyntaxNodeOrTokenList list)
+            => new SyntaxNodeOrTokenList(list.Select(v => ConvertArgumentOrToken(syntaxFacts, generator, v)));
+
+        private SyntaxNodeOrToken ConvertArgumentOrToken(ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, SyntaxNodeOrToken arg)
+            => arg.IsToken
+                ? arg
+                : ConvertArgument(syntaxFacts, generator, (TArgumentSyntax)arg.AsNode());
+
+        private TArgumentSyntax ConvertArgument(
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, TArgumentSyntax argument)
+        {
+            // Keep named arguments for literal args.  It helps keep the code self-documenting.
+            // Remove for complex args as it's most likely just clutter a person doesn't need
+            // when instantiating their new type.
+            var expr = syntaxFacts.GetExpressionOfArgument(argument);
+            if (expr is TLiteralExpressionSyntax)
+            {
+                return argument;
+            }
+
+            return (TArgumentSyntax)generator.Argument(expr).WithTriviaFrom(argument);
         }
 
         private async Task<bool> ReplaceMatchingTupleTypesAsync(

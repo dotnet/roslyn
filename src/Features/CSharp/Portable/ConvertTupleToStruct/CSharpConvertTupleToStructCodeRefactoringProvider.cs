@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
@@ -18,39 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
             ExpressionSyntax,
             NameSyntax,
             IdentifierNameSyntax,
+            LiteralExpressionSyntax,
             ObjectCreationExpressionSyntax,
             TupleExpressionSyntax,
+            ArgumentSyntax,
             TupleTypeSyntax,
             TypeDeclarationSyntax,
             NamespaceDeclarationSyntax>
     {
         protected override ObjectCreationExpressionSyntax CreateObjectCreationExpression(
-            NameSyntax nameNode, TupleExpressionSyntax tupleExpression)
+            NameSyntax nameNode, SyntaxToken openParen, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParen)
         {
             return SyntaxFactory.ObjectCreationExpression(
-                nameNode, CreateArgumentList(tupleExpression), initializer: default);
+                nameNode, SyntaxFactory.ArgumentList(openParen, arguments, closeParen), initializer: default);
         }
-
-        private ArgumentListSyntax CreateArgumentList(TupleExpressionSyntax tupleExpression)
-            => SyntaxFactory.ArgumentList(
-                tupleExpression.OpenParenToken,
-                SyntaxFactory.SeparatedList<ArgumentSyntax>(ConvertArguments(tupleExpression.Arguments.GetWithSeparators())),
-                tupleExpression.CloseParenToken);
-
-        private SyntaxNodeOrTokenList ConvertArguments(SyntaxNodeOrTokenList list)
-            => SyntaxFactory.NodeOrTokenList(list.Select(ConvertArgumentOrComma));
-
-        private SyntaxNodeOrToken ConvertArgumentOrComma(SyntaxNodeOrToken arg)
-            => arg.IsToken
-                ? arg
-                : ConvertArgument((ArgumentSyntax)arg.AsNode());
-
-        // Keep named arguments for literal args.  It helps keep the code self-documenting.
-        // Remove for complex args as it's most likely just clutter a person doesn't need
-        // when instantiating their new type.
-        private SyntaxNode ConvertArgument(ArgumentSyntax argument)
-            => argument.Expression is LiteralExpressionSyntax
-                ? argument
-                : SyntaxFactory.Argument(argument.Expression).WithTriviaFrom(argument);
     }
 }

@@ -36,6 +36,22 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestNonLiteralNames()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: Foo(), b: Bar());
+    }
+}
+";
+            var expected = @"";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertSingleTupleTypeWithInferredName()
         {
             var text = @"
