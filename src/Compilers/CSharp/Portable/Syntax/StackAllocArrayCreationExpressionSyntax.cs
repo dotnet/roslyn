@@ -26,6 +26,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
             => LocalDeclarationStatement(default(SyntaxToken), modifiers, declaration, semicolonToken);
-
     }
 }

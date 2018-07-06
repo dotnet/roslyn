@@ -204,20 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Binder localDeclarationBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
                             var decl = (LocalDeclarationStatementSyntax)innerStatement;
-                            LocalDeclarationKind kind;
-                            if (decl.IsConst)
-                            {
-                                kind = LocalDeclarationKind.Constant;
-                            }
-                            else if (decl.UsingKeyword != default(SyntaxToken))
-                            {
-                                kind = LocalDeclarationKind.UsingVariable;
-                            }
-                            else
-                            {
-                                kind = LocalDeclarationKind.RegularVariable;
-                            }
-
+                            LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
                             foreach (var vdecl in decl.Declaration.Variables)
                             {
                                 var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, localDeclarationBinder);
