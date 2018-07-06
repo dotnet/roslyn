@@ -443,7 +443,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
 
-            foreach (var group in typeSymbol.DeclaringSyntaxReferences.GroupBy(r => r.SyntaxTree))
+            var declarationService = startingDocument.GetLanguageService<ISymbolDeclarationService>();
+            foreach (var group in declarationService.GetDeclarations(typeSymbol).GroupBy(r => r.SyntaxTree))
             {
                 var document = solution.GetDocument(group.Key);
                 var nodes = group.SelectAsArray(r => r.GetSyntax(cancellationToken));
