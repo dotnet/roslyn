@@ -172,11 +172,6 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             Contract.ThrowIfFalse(nodesAndTokensToReduce.Any());
 
-            //if (nodesAndTokensToReduce.Length == 26)
-            //{
-            //    nodesAndTokensToReduce = ImmutableArray.Create(nodesAndTokensToReduce[0]);
-            //}
-
             // Reduce each node or token in the given list by running it through each reducer.
             var simplifyTasks = new Task[nodesAndTokensToReduce.Length];
             for (int i = 0; i < nodesAndTokensToReduce.Length; i++)

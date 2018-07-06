@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
+        #region update containing member tests
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertSingleTupleType()
         {
@@ -37,6 +39,298 @@ class Test
     void Method()
     {
         var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b) (NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertFromType()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        [||](int a, int b) t1 = (a: 1, b: 2);
+        (int a, int b) t2 = (a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        {|Rename:NewStruct|} t1 = new NewStruct(a: 1, b: 2);
+        NewStruct t2 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b) (NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertFromType2()
+        {
+            var text = @"
+class Test
+{
+    (int a, int b) Method()
+    {
+        [||](int a, int b) t1 = (a: 1, b: 2);
+        (int a, int b) t2 = (a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    NewStruct Method()
+    {
+        {|Rename:NewStruct|} t1 = new NewStruct(a: 1, b: 2);
+        NewStruct t2 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b) (NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertFromType3()
+        {
+            var text = @"
+class Test
+{
+    (int a, int b) Method()
+    {
+        [||](int a, int b) t1 = (a: 1, b: 2);
+        (int b, int a) t2 = (b: 1, a: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    NewStruct Method()
+    {
+        {|Rename:NewStruct|} t1 = new NewStruct(a: 1, b: 2);
+        (int b, int a) t2 = (b: 1, a: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b) (NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertFromType4()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        (int a, int b) t1 = (a: 1, b: 2);
+        [||](int a, int b) t2 = (a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        NewStruct t1 = new NewStruct(a: 1, b: 2);
+        {|Rename:NewStruct|} t2 = new NewStruct(a: 1, b: 2);
     }
 }
 
@@ -1570,5 +1864,873 @@ internal struct NewStruct
 
         protected override ParseOptions GetScriptOptions()
             => null;
+
+        #endregion
+
+        #region update containing type tests
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestCapturedTypeParameter_UpdateType()
+        {
+            var text = @"
+using System;
+
+class Test<T>
+{
+    void Method(T t)
+    {
+        var t1 = [||](a: t, b: 2);
+    }
+
+    T t;
+    void Goo()
+    {
+        var t2 = (a: t, b: 4);
+    }
+
+    void Blah<T>(T t)
+    {
+        var t2 = (a: t, b: 4);
+    }
+}
+";
+            var expected = @"
+using System;
+
+class Test<T>
+{
+    void Method(T t)
+    {
+        var t1 = new {|Rename:NewStruct|}<T>(t, b: 2);
+    }
+
+    T t;
+    void Goo()
+    {
+        var t2 = new NewStruct<T>(t, b: 4);
+    }
+
+    void Blah<T>(T t)
+    {
+        var t2 = (a: t, b: 4);
+    }
+}
+
+internal struct NewStruct<T>
+{
+    public T a;
+    public int b;
+
+    public NewStruct(T a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct<T>))
+        {
+            return false;
+        }
+
+        var other = (NewStruct<T>)obj;
+        return System.Collections.Generic.EqualityComparer<T>.Default.Equals(a, other.a) &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out T a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (T a, int b) (NewStruct<T> value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct<T>((T a, int b) value)
+    {
+        return new NewStruct<T>(value.a, value.b);
+    }
+}";
+
+            await TestExactActionSetOfferedAsync(text, new[]
+            {
+                FeaturesResources.and_update_usages_in_containing_member,
+                FeaturesResources.and_update_usages_in_containing_type
+            });
+            await TestInRegularAndScriptAsync(text, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateAllInType_SinglePart_SingleFile()
+        {
+            var text = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+
+    void Goo()
+    {
+        var t2 = (a: 3, b: 4);
+    }
+}
+
+class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+
+    void Goo()
+    {
+        var t2 = new NewStruct(a: 3, b: 4);
+    }
+}
+
+class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b) (NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateAllInType_MultiplePart_SingleFile()
+        {
+            var text = @"
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+
+partial class Test
+{
+    (int a, int b) Goo()
+    {
+        var t2 = (a: 3, b: 4);
+    }
+}
+
+class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+}
+
+partial class Test
+{
+    NewStruct Goo()
+    {
+        var t2 = new NewStruct(a: 3, b: 4);
+    }
+}
+
+class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b) (NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateAllInType_MultiplePart_MultipleFile()
+        {
+            var text = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+
+partial class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+partial class Test
+{
+    (int a, int b) Goo()
+    {
+        var t2 = (a: 3, b: 4);
+    }
+}
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+}
+
+partial class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return a == other.a &amp;&amp;
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b) (NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}</Document>
+        <Document>
+using System;
+
+partial class Test
+{
+    NewStruct Goo()
+    {
+        var t2 = new NewStruct(a: 3, b: 4);
+    }
+}
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(text, expected, index: 1);
+        }
+
+        #endregion update containing project tests
+
+        #region update containing project tests
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace()
+        {
+            var text = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+namespace N
+{
+    partial class Test
+    {
+        void Method()
+        {
+            var t1 = [||](a: 1, b: 2);
+        }
+    }
+
+    partial class Other
+    {
+        void Method()
+        {
+            var t1 = (a: 1, b: 2);
+        }
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+partial class Test
+{
+    (int a, int b) Goo()
+    {
+        var t2 = (a: 3, b: 4);
+    }
+}
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+namespace N
+{
+    partial class Test
+    {
+        void Method()
+        {
+            var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        }
+    }
+
+    partial class Other
+    {
+        void Method()
+        {
+            var t1 = new NewStruct(a: 1, b: 2);
+        }
+    }
+
+    internal struct NewStruct
+    {
+        public int a;
+        public int b;
+
+        public NewStruct(int a, int b)
+        {
+            this.a = a;
+            this.b = b;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is NewStruct))
+            {
+                return false;
+            }
+
+            var other = (NewStruct)obj;
+            return a == other.a &amp;&amp;
+                   b == other.b;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 2118541809;
+            hashCode = hashCode * -1521134295 + a.GetHashCode();
+            hashCode = hashCode * -1521134295 + b.GetHashCode();
+            return hashCode;
+        }
+
+        public void Deconstruct(out int a, out int b)
+        {
+            a = this.a;
+            b = this.b;
+        }
+
+        public static implicit operator (int a, int b) (NewStruct value)
+        {
+            return (value.a, value.b);
+        }
+
+        public static implicit operator NewStruct((int a, int b) value)
+        {
+            return new NewStruct(value.a, value.b);
+        }
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+partial class Test
+{
+    N.NewStruct Goo()
+    {
+        var t2 = new N.NewStruct(a: 3, b: 4);
+    }
+}
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = new N.NewStruct(a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(text, expected, index: 2);
+        }
+
+        #endregion
+
+        #region update dependent projects
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateDependentProjects_DirectDependency()
+        {
+            var text = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+
+partial class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+using System;
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+partial class Other
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+public struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return a == other.a &amp;&amp;
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b) (NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}</Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+using System;
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(text, expected, index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateDependentProjects_NoDependency()
+        {
+            var text = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+
+partial class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+using System;
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+partial class Other
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+public struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return a == other.a &amp;&amp;
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b) (NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}</Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+using System;
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(text, expected, index: 3);
+        }
+
+        #endregion
     }
 }
