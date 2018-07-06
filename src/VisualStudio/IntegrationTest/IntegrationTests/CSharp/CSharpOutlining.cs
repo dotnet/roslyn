@@ -3,27 +3,29 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpOutlining : AbstractEditorTest
+    public class CSharpOutlining : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpOutlining(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpOutlining))
+        public CSharpOutlining()
+            : base(nameof(CSharpOutlining))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void Outlining()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task OutliningAsync()
         {
             var input = @"
 using [|System;
@@ -41,12 +43,12 @@ namespace ConsoleApplication1[|
     }|]
 }|]";
             MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
-            VisualStudio.Editor.SetText(text);
-            Assert.Equal(spans.OrderBy(s => s.Start), VisualStudio.Editor.GetOutliningSpans());
+            await VisualStudio.Editor.SetTextAsync(text);
+            Assert.Equal(spans.OrderBy(s => s.Start), await VisualStudio.Editor.GetOutliningSpansAsync());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void OutliningConfigChange()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task OutliningConfigChangeAsync()
         {
             var input = @"
 namespace ClassLibrary1[|
@@ -69,18 +71,18 @@ namespace ClassLibrary1[|
     }|]
 }|]";
             MarkupTestFile.GetSpans(input, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
-            VisualStudio.Editor.SetText(text);
+            await VisualStudio.Editor.SetTextAsync(text);
 
-            VerifySpansInConfiguration(spans, "Release");
-            VerifySpansInConfiguration(spans, "Debug");
+            await VerifySpansInConfigurationAsync(spans, "Release");
+            await VerifySpansInConfigurationAsync(spans, "Debug");
         }
 
-        private void VerifySpansInConfiguration(IDictionary<string, ImmutableArray<TextSpan>> spans, string configuration)
+        private async Task VerifySpansInConfigurationAsync(IDictionary<string, ImmutableArray<TextSpan>> spans, string configuration)
         {
-            VisualStudio.ExecuteCommand("Build.SolutionConfigurations", configuration);
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.Build_SolutionConfigurations, configuration);
 
             var expectedSpans = spans[""].Concat(spans[configuration]).OrderBy(s => s.Start);
-            Assert.Equal(expectedSpans, VisualStudio.Editor.GetOutliningSpans());
+            Assert.Equal(expectedSpans, await VisualStudio.Editor.GetOutliningSpansAsync());
         }
     }
 }

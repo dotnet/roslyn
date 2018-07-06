@@ -20,9 +20,11 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using WinForms = System.Windows.Forms;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -689,21 +691,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return Task.FromResult(view.GetBufferContainingCaret());
         }
 
-#if false
-        public string[] GetOutliningSpans()
+        public async Task<TextSpan[]> GetOutliningSpansAsync()
         {
-            return ExecuteOnActiveView(view =>
-            {
-                var manager = GetComponentModelService<IOutliningManagerService>().GetOutliningManager(view);
-                var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
-                var regions = manager.GetAllRegions(span);
-                return regions
-                    .OrderBy(s => s.Extent.GetStartPoint(view.TextSnapshot))
-                    .Select(r => PrintSpan(r.Extent.GetSpan(view.TextSnapshot)))
-                    .ToArray();
-            });
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Outlining);
+
+            var view = await GetActiveTextViewAsync();
+            var manager = (await GetComponentModelServiceAsync<IOutliningManagerService>()).GetOutliningManager(view);
+            var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
+            var regions = manager.GetAllRegions(span);
+            return regions
+                .OrderBy(s => s.Extent.GetStartPoint(view.TextSnapshot))
+                .Select(r => r.Extent.GetSpan(view.TextSnapshot).Span.ToTextSpan())
+                .ToArray();
         }
 
+#if false
         public List<string> GetF1Keywords()
         {
             return InvokeOnUIThread(() =>
