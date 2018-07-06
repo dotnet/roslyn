@@ -1043,6 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     false, // do not allow ref
                     typeSyntax,
                     identifier,
+                    LocalDeclarationKind.RegularVariable,
                     equalsValue);
             }
 
