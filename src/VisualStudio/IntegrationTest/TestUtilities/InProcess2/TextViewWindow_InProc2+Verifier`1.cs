@@ -98,6 +98,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 Assert.NotEqual("text", tokenType);
             }
 
+            public async Task CurrentCompletionItemAsync(string expectedItem)
+            {
+                var currentItem = await _textViewWindow.GetCurrentCompletionItemAsync();
+                Assert.Equal(expectedItem, currentItem);
+            }
+
             public async Task CompletionItemsExistAsync(params string[] expectedItems)
             {
                 var completionItems = await _textViewWindow.GetCompletionItemsAsync();

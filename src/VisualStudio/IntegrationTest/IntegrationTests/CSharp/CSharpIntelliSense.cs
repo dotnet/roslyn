@@ -1,57 +1,58 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpIntelliSense : AbstractEditorTest
+    public class CSharpIntelliSense : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpIntelliSense(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpIntelliSense))
+        public CSharpIntelliSense()
+            : base(nameof(CSharpIntelliSense))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AtNamespaceLevel()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AtNamespaceLevelAsync()
         {
-            SetUpEditor(@"$$");
+            await SetUpEditorAsync(@"$$");
 
-            VisualStudio.Editor.SendKeys("usi");
-            VisualStudio.Editor.Verify.CompletionItemsExist("using");
+            await VisualStudio.Editor.SendKeysAsync("usi");
+            await VisualStudio.Editor.Verify.CompletionItemsExistAsync("using");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
-            VisualStudio.Editor.Verify.CurrentLineText("using$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Tab);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("using$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SpeculativeTInList()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SpeculativeTInListAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class C
 {
     $$
 }");
 
-            VisualStudio.Editor.SendKeys("pub");
-            VisualStudio.Editor.Verify.CompletionItemsExist("public");
+            await VisualStudio.Editor.SendKeysAsync("pub");
+            await VisualStudio.Editor.Verify.CompletionItemsExistAsync("public");
 
-            VisualStudio.Editor.SendKeys(' ');
-            VisualStudio.Editor.Verify.CurrentLineText("public $$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync(' ');
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("public $$", assertCaretPosition: true);
 
-            VisualStudio.Editor.SendKeys('t');
-            VisualStudio.Editor.Verify.CompletionItemsExist("T");
+            await VisualStudio.Editor.SendKeysAsync('t');
+            await VisualStudio.Editor.Verify.CompletionItemsExistAsync("T");
 
-            VisualStudio.Editor.SendKeys(' ');
-            VisualStudio.Editor.SendKeys("Goo<T>() { }");
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.SendKeysAsync(' ');
+            await VisualStudio.Editor.SendKeysAsync("Goo<T>() { }");
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 class C
 {
     public T Goo<T>() { }$$
@@ -59,10 +60,10 @@ class C
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void VerifyCompletionListMembersOnStaticTypesAndCompleteThem()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifyCompletionListMembersOnStaticTypesAndCompleteThemAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 public class Program
 {
     static void Main(string[] args)
@@ -77,74 +78,74 @@ public static class NavigateTo
     public static void Navigate(int i){ }
 }");
 
-            VisualStudio.Editor.SendKeys('.');
-            VisualStudio.Editor.Verify.CompletionItemsExist("Search", "Navigate");
+            await VisualStudio.Editor.SendKeysAsync('.');
+            await VisualStudio.Editor.Verify.CompletionItemsExistAsync("Search", "Navigate");
 
-            VisualStudio.Editor.SendKeys('S', VirtualKey.Tab);
-            VisualStudio.Editor.Verify.CurrentLineText("NavigateTo.Search$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync('S', VirtualKey.Tab);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("NavigateTo.Search$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CtrlAltSpace()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CtrlAltSpaceAsync()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(false);
 
-            VisualStudio.Editor.SendKeys("nam Goo", VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys("pu cla Program", VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys("pub stati voi Main(string[] args)", VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys("System.Console.writeline();");
-            VisualStudio.Editor.Verify.CurrentLineText("System.Console.WriteLine();$$", assertCaretPosition: true);
-            VisualStudio.Editor.SendKeys(VirtualKey.Home, Shift(VirtualKey.End), VirtualKey.Delete);
+            await VisualStudio.Editor.SendKeysAsync("nam Goo", VirtualKey.Enter);
+            await VisualStudio.Editor.SendKeysAsync('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+            await VisualStudio.Editor.SendKeysAsync("pu cla Program", VirtualKey.Enter);
+            await VisualStudio.Editor.SendKeysAsync('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+            await VisualStudio.Editor.SendKeysAsync("pub stati voi Main(string[] args)", VirtualKey.Enter);
+            await VisualStudio.Editor.SendKeysAsync('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+            await VisualStudio.Editor.SendKeysAsync("System.Console.writeline();");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("System.Console.WriteLine();$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Home, Shift(VirtualKey.End), VirtualKey.Delete);
 
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.Edit_ToggleCompletionMode);
 
-            VisualStudio.Editor.SendKeys("System.Console.writeline();");
-            VisualStudio.Editor.Verify.CurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("System.Console.writeline();");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("System.Console.writeline();$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CtrlAltSpaceOption()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CtrlAltSpaceOptionAsync()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(false);
 
-            VisualStudio.Editor.SendKeys("nam Goo");
-            VisualStudio.Editor.Verify.CurrentLineText("namespace Goo$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("nam Goo");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("namespace Goo$$", assertCaretPosition: true);
 
-            ClearEditor();
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
+            await ClearEditorAsync();
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(true);
 
-            VisualStudio.Editor.SendKeys("nam Goo");
-            VisualStudio.Editor.Verify.CurrentLineText("nam Goo$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("nam Goo");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("nam Goo$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CtrlSpace()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CtrlSpaceAsync()
         {
-            SetUpEditor("class c { void M() {$$ } }");
-            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
-            VisualStudio.Editor.Verify.CompletionItemsExist("System");
+            await SetUpEditorAsync("class c { void M() {$$ } }");
+            await VisualStudio.Editor.SendKeysAsync(Ctrl(VirtualKey.Space));
+            await VisualStudio.Editor.Verify.CompletionItemsExistAsync("System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NavigatingWithDownKey()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NavigatingWithDownKeyAsync()
         {
-            SetUpEditor("class c { void M() {$$ } }");
-            VisualStudio.Editor.SendKeys('c');
-            VisualStudio.Editor.Verify.CurrentCompletionItem("c");
-            VisualStudio.Editor.Verify.CompletionItemsExist("c");
+            await SetUpEditorAsync("class c { void M() {$$ } }");
+            await VisualStudio.Editor.SendKeysAsync('c');
+            await VisualStudio.Editor.Verify.CurrentCompletionItemAsync("c");
+            await VisualStudio.Editor.Verify.CompletionItemsExistAsync("c");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Down);
-            VisualStudio.Editor.Verify.CurrentCompletionItem("char");
-            VisualStudio.Editor.Verify.CompletionItemsExist("char");
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Down);
+            await VisualStudio.Editor.Verify.CurrentCompletionItemAsync("char");
+            await VisualStudio.Editor.Verify.CompletionItemsExistAsync("char");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void XmlDocCommentIntelliSense()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task XmlDocCommentIntelliSenseAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Class1
 {
     ///$$
@@ -154,37 +155,37 @@ class Class1
     }
 }");
 
-            VisualStudio.Editor.SendKeys("<s");
-            VisualStudio.Editor.Verify.CompletionItemsExist("see", "seealso", "summary");
+            await VisualStudio.Editor.SendKeysAsync("<s");
+            await VisualStudio.Editor.Verify.CompletionItemsExistAsync("see", "seealso", "summary");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
-            VisualStudio.Editor.Verify.CurrentLineText("///<see cref=\"$$\"/>", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("///<see cref=\"$$\"/>", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void XmlTagCompletion()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task XmlTagCompletionAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 /// $$
 class C { }
 ");
 
-            VisualStudio.Editor.SendKeys("<summary>");
-            VisualStudio.Editor.Verify.CurrentLineText("/// <summary>$$</summary>", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("<summary>");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("/// <summary>$$</summary>", assertCaretPosition: true);
 
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 /// <summary>$$
 class C { }
 ");
 
-            VisualStudio.Editor.SendKeys("</");
-            VisualStudio.Editor.Verify.CurrentLineText("/// <summary></summary>$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("</");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("/// <summary></summary>$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SignatureHelpShowsUp()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SignatureHelpShowsUpAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Class1
 {
     void Main(string[] args)
@@ -193,36 +194,36 @@ class Class1
     }
 }");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(false);
 
-            VisualStudio.Editor.SendKeys("Mai(");
+            await VisualStudio.Editor.SendKeysAsync("Mai(");
 
-            VisualStudio.Editor.Verify.CurrentSignature("void Class1.Main(string[] args)");
-            VisualStudio.Editor.Verify.CurrentParameter("args", "");
+            await VisualStudio.Editor.Verify.CurrentSignatureAsync("void Class1.Main(string[] args)");
+            await VisualStudio.Editor.Verify.CurrentParameterAsync("args", "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletionAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Class1
 {
     void Main(string[] args)
     $$
 }");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(false);
 
-            VisualStudio.Editor.SendKeys(
+            await VisualStudio.Editor.SendKeysAsync(
                 '{',
                 VirtualKey.Enter,
                 "                 ");
 
-            VisualStudio.Editor.InvokeCompletionList();
+            await VisualStudio.Editor.InvokeCompletionListAsync();
 
-            VisualStudio.Editor.SendKeys('}');
+            await VisualStudio.Editor.SendKeysAsync('}');
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 class Class1
 {
     void Main(string[] args)
@@ -232,10 +233,10 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitOnShiftEnter()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitOnShiftEnterAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Class1
 {
     void Main(string[] args)
@@ -244,13 +245,13 @@ class Class1
     }
 }");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(false);
 
-            VisualStudio.Editor.SendKeys(
+            await VisualStudio.Editor.SendKeysAsync(
                 'M',
                 Shift(VirtualKey.Enter));
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 class Class1
 {
     void Main(string[] args)
@@ -261,20 +262,20 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitOnLeftCurly()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitOnLeftCurlyAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Class1
 {
     $$
 }");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            await VisualStudio.Workspace.SetUseSuggestionModeAsync(false);
 
-            VisualStudio.Editor.SendKeys("int P { g{");
+            await VisualStudio.Editor.SendKeysAsync("int P { g{");
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 class Class1
 {
     int P { get { $$} }
@@ -282,10 +283,10 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void EnsureTheCaretIsVisibleAfterALongEdit()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnsureTheCaretIsVisibleAfterALongEditAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 public class Program
 {
     static void Main(string[] args)
@@ -295,25 +296,25 @@ public class Program
     }
 }");
 
-            VisualStudio.Editor.SendKeys(
+            await VisualStudio.Editor.SendKeysAsync(
                 VirtualKey.Delete,
                 "aaa",
                 VirtualKey.Tab);
-            var actualText = VisualStudio.Editor.GetText();
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", actualText);
-            Assert.True(VisualStudio.Editor.IsCaretOnScreen());
+            Assert.True(await VisualStudio.Editor.IsCaretOnScreenAsync());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void DismissOnSelect()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DismissOnSelectAsync()
         {
-            SetUpEditor(@"$$");
+            await SetUpEditorAsync(@"$$");
 
-            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            await VisualStudio.Editor.SendKeysAsync(Ctrl(VirtualKey.Space));
+            Assert.Equal(true, await VisualStudio.Editor.IsCompletionActiveAsync());
 
-            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.A));
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            await VisualStudio.Editor.SendKeysAsync(Ctrl(VirtualKey.A));
+            Assert.Equal(false, await VisualStudio.Editor.IsCompletionActiveAsync());
         }
     }
 }

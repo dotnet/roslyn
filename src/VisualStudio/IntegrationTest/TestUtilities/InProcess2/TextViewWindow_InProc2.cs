@@ -61,26 +61,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
         }
 
-#if false
         /// <remarks>
         /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
-        public string GetCurrentCompletionItem()
-            => ExecuteOnActiveView(view =>
+        public async Task<string> GetCurrentCompletionItemAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var broker = await GetComponentModelServiceAsync<ICompletionBroker>();
+
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
             {
-                var broker = GetComponentModelService<ICompletionBroker>();
+                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+            }
 
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-                }
-
-                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-                return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
-            });
-#endif
+            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+            return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
+        }
 
         public async Task ShowLightBulbAsync()
         {
@@ -105,18 +105,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view);
         }
 
-#if false
         /// <remarks>
         /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
-        public bool IsCompletionActive()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-                return broker.IsCompletionActive(view);
-            });
-#endif
+        public async Task<bool> IsCompletionActiveAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var broker = await GetComponentModelServiceAsync<ICompletionBroker>();
+            return broker.IsCompletionActive(view);
+        }
 
         protected abstract Task<ITextBuffer> GetBufferContainingCaretAsync(IWpfTextView view);
 

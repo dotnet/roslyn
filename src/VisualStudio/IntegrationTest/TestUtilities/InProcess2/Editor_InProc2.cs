@@ -209,6 +209,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            await WaitForSignatureHelpAsync();
+
             var view = await GetActiveTextViewAsync();
 
             var broker = await GetComponentModelServiceAsync<ISignatureHelpBroker>();
@@ -255,6 +257,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         public Signature[] GetSignatures()
             => ExecuteOnActiveView(view =>
             {
+                await WaitForSignatureHelpAsync();
+
                 var broker = GetComponentModelService<ISignatureHelpBroker>();
 
                 var sessions = broker.GetSessions(view);
@@ -275,6 +279,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            await WaitForSignatureHelpAsync();
+
             var view = await GetActiveTextViewAsync();
             var broker = await GetComponentModelServiceAsync<ISignatureHelpBroker>();
 
@@ -287,18 +293,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return new Signature(sessions[0].SelectedSignature);
         }
 
-#if false
-        public bool IsCaretOnScreen()
-            => ExecuteOnActiveView(view =>
-            {
-                var caret = view.Caret;
+        public async Task<bool> IsCaretOnScreenAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                return caret.Left >= view.ViewportLeft
-                    && caret.Right <= view.ViewportRight
-                    && caret.Top >= view.ViewportTop
-                    && caret.Bottom <= view.ViewportBottom;
-            });
-#endif
+            var view = await GetActiveTextViewAsync();
+            var caret = view.Caret;
+
+            return caret.Left >= view.ViewportLeft
+                && caret.Right <= view.ViewportRight
+                && caret.Top >= view.ViewportTop
+                && caret.Bottom <= view.ViewportBottom;
+        }
 
         public async Task<ClassifiedToken[]> GetLightbulbPreviewClassificationsAsync(string menuText)
         {

@@ -126,13 +126,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
 
 #if false
-            public void CurrentCompletionItem(
-                string expectedItem)
-            {
-                var currentItem = _textViewWindow.GetCurrentCompletionItem();
-                Assert.Equal(expectedItem, currentItem);
-            }
-
             public void VerifyCurrentSignature(
                 Signature expectedSignature)
             {

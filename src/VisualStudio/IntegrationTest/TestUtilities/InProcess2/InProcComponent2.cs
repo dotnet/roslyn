@@ -8,6 +8,7 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -92,6 +93,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 cancellationToken,
                 TaskCreationOptions.None,
                 taskScheduler);
+        }
+
+        protected async Task WaitForCompletionSetAsync()
+            => await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet);
+
+        protected async Task WaitForSignatureHelpAsync()
+            => await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp);
+
+        protected async Task WaitForQuickInfoAsync()
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ErrorSquiggles);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.QuickInfo);
         }
     }
 }
