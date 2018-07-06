@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using WinForms = System.Windows.Forms;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -219,17 +220,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return broker.IsSignatureHelpActive(view);
         }
 
-#if false
-        public string[] GetErrorTags()
-            => GetTags<IErrorTag>();
+        public async Task<string[]> GetErrorTagsAsync()
+            => await GetTagsAsync<IErrorTag>();
 
+#if false
         public string[] GetHighlightTags()
            => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
+#endif
 
         private string PrintSpan(SnapshotSpan span)
-                => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
+            => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
 
-        private string[] GetTags<TTag>(Predicate<TTag> filter = null)
+        private async Task<string[]> GetTagsAsync<TTag>(Predicate<TTag> filter = null)
             where TTag : ITag
         {
             bool Filter(TTag tag)
@@ -240,18 +242,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 filter = Filter;
             }
 
-            return ExecuteOnActiveView(view =>
-            {
-                var viewTagAggregatorFactory = GetComponentModelService<IViewTagAggregatorFactoryService>();
-                var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
-                var tags = aggregator
-                  .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                  .Where(t => filter(t.Tag))
-                  .Cast<IMappingTagSpan<ITag>>();
-                return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
-            });
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>();
+            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
+            var tags = aggregator
+                .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
+                .Where(t => filter(t.Tag))
+                .OrderBy(t => t.Span.GetSpans(view.TextBuffer).Single().Span.Start)
+                .ThenBy(t => t.Span.GetSpans(view.TextBuffer).Single().Span.End)
+                .Cast<IMappingTagSpan<ITag>>();
+            return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
         }
 
+#if false
         /// <remarks>
         /// This method does not wait for async operations before
         /// querying the editor

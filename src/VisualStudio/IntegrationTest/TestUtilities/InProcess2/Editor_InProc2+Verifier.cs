@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
@@ -168,15 +169,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             {
                 _textViewWindow.VerifyDialog(dialogName, isOpen);
             }
+#endif
 
-            public void ErrorTags(params string[] expectedTags)
+            public async Task ErrorTagsAsync(params string[] expectedTags)
             {
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
-                var actualTags = _textViewWindow.GetErrorTags();
+                await _textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler);
+                await _textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService);
+                var actualTags = await _textViewWindow.GetErrorTagsAsync();
                 Assert.Equal(expectedTags, actualTags);
             }
-#endif
 
             public async Task IsProjectItemDirtyAsync(bool expectedValue)
             {

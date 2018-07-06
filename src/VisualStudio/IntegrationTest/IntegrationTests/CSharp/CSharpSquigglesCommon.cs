@@ -1,22 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    public abstract class CSharpSquigglesCommon : AbstractEditorTest
+    public abstract class CSharpSquigglesCommon : AbstractIdeEditorTest
     {
-        public CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
-            :base(instanceFactory, nameof(CSharpSquigglesCommon), projectTemplate)
+        public CSharpSquigglesCommon(string projectTemplate)
+            : base(nameof(CSharpSquigglesCommon), projectTemplate)
         {
         }
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public virtual void VerifySyntaxErrorSquiggles()
+        public virtual async Task VerifySyntaxErrorSquigglesAsync()
         {
-            VisualStudio.Editor.SetText(@"using System;
+            await VisualStudio.Editor.SetTextAsync(@"using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -31,26 +31,26 @@ namespace ConsoleApplication1
             Console.WriteLine(""Hello World"")
         }
 
-        private void sub()
+        private void Sub()
         {
     }
 }");
-            VisualStudio.Editor.Verify.ErrorTags(
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[286-287]",
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[347-348]",
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\r\nusing System.Text;'[15-68]");
+            await VisualStudio.Editor.Verify.ErrorTagsAsync(
+                "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\r\nusing System.Text;'[15-68]",
+                "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[286-287]",
+                "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[347-348]");
         }
 
-        public virtual void VerifySemanticErrorSquiggles()
+        public virtual async Task VerifySemanticErrorSquigglesAsync()
         {
-            VisualStudio.Editor.SetText(@"using System;
+            await VisualStudio.Editor.SetTextAsync(@"using System;
 
 class C  : Bar
 {
 }");
-            VisualStudio.Editor.Verify.ErrorTags(
-                "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[28-31]",
-                "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System;'[0-13]");
+            await VisualStudio.Editor.Verify.ErrorTagsAsync(
+                "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System;'[0-13]",
+                "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[28-31]");
         }
     }
 }
