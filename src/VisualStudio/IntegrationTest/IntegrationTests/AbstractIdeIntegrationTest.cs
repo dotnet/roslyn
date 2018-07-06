@@ -117,6 +117,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             // Close any windows leftover from previous (failed) tests
             await VisualStudio.InteractiveWindow.CloseWindowAsync();
+            await VisualStudio.ImmediateWindow.CloseWindowAsync();
 #if false
             VisualStudio.ObjectBrowserWindow.CloseWindow();
 #endif

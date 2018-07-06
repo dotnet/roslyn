@@ -58,6 +58,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             var debugger = await GetDebuggerAsync();
 
             debugger.Go(waitForBreakMode);
+
+            // Yield to ensure main thread operations at higher priority than Background are completed before the test
+            // continues.
+            await Task.Yield();
         }
 
         public async Task StepOverAsync(bool waitForBreakOrEnd)
