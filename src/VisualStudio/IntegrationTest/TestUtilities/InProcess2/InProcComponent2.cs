@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -28,6 +29,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         protected JoinableTaskFactory JoinableTaskFactory => TestServices.JoinableTaskFactory;
+
+        protected IntPtr MainWindowHandle => new WindowInteropHelper(Application.Current.MainWindow).Handle;
 
         protected async Task<TInterface> GetGlobalServiceAsync<TService, TInterface>()
             where TService : class

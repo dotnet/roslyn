@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        public static void SetForegroundWindow(IntPtr window, bool skipAttachingThread = false)
+        public static void SetForegroundWindow(IntPtr window, bool skipAttachingThread = false, bool throwOnFailure = true)
         {
             var foregroundWindow = GetForegroundWindow();
 
@@ -249,6 +249,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 if (!success)
                 {
+                    if (!throwOnFailure)
+                    {
+                        return;
+                    }
+
                     throw new InvalidOperationException("Setting the foreground window failed.");
                 }
 

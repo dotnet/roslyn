@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Interop;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -18,8 +16,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             : base(testService)
         {
         }
-
-        private IntPtr MainWindowHandle => new WindowInteropHelper(Application.Current.MainWindow).Handle;
 
         public async Task SendAsync(params object[] keys)
         {
@@ -196,7 +192,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             {
                 if (foregroundWindow != IntPtr.Zero)
                 {
-                    IntegrationHelper.SetForegroundWindow(foregroundWindow);
+                    IntegrationHelper.SetForegroundWindow(foregroundWindow, throwOnFailure: false);
                 }
             }
 

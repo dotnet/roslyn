@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -19,25 +16,56 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         public async Task VerifyOpenAsync(string dialogName)
         {
-            throw new NotImplementedException();
-            //// FindDialog will wait until the dialog is open, so the return value is unused.
-            //DialogHelpers.FindDialogByName(GetMainWindowHWnd(), dialogName, isOpen: true, CancellationToken.None);
+            // FindDialogByNameAsync will wait until the dialog is open, so the return value is unused.
+            await FindDialogByNameAsync(dialogName, isOpen: true, CancellationToken.None);
 
-            //// Wait for application idle to ensure the dialog is fully initialized
-            //VisualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
+            // Wait for application idle to ensure the dialog is fully initialized
+            await WaitForApplicationIdleAsync(CancellationToken.None);
         }
 
         public async Task VerifyClosedAsync(string dialogName)
         {
-            throw new NotImplementedException();
-            //// FindDialog will wait until the dialog is closed, so the return value is unused.
-            //DialogHelpers.FindDialogByName(GetMainWindowHWnd(), dialogName, isOpen: false, CancellationToken.None);
+            // FindDialog will wait until the dialog is closed, so the return value is unused.
+            await FindDialogByNameAsync(dialogName, isOpen: false, CancellationToken.None);
         }
 
-        public async Task ClickAsync(string dialogName, string buttonName)
+        public async Task ClickOKAsync(string dialogName)
         {
-            throw new NotImplementedException();
-            //DialogHelpers.PressButtonWithNameFromDialogWithName(GetMainWindowHWnd(), dialogName, buttonName);
+            var windowHandle = await FindDialogByNameAsync(dialogName, isOpen: true, new CancellationToken(canceled: true));
+            await TestServices.SendKeys.SendAsync(VirtualKey.Enter);
+        }
+
+        private async Task<IntPtr> FindDialogByNameAsync(string dialogName, bool isOpen, CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(MainWindowHandle);
+                if (modalWindow != IntPtr.Zero)
+                {
+                    var text = IntegrationHelper.GetTitleForWindow(modalWindow);
+                    if (text == dialogName)
+                    {
+                        if (isOpen)
+                        {
+                            // We found the dialog of interest
+                            return modalWindow;
+                        }
+                    }
+                    else
+                    {
+                        // This isn't the dialog we're looking for
+                        modalWindow = IntPtr.Zero;
+                    }
+                }
+
+                if (modalWindow == IntPtr.Zero && !isOpen)
+                {
+                    // No matching dialog was found
+                    return IntPtr.Zero;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
+            }
         }
     }
 }

@@ -191,7 +191,7 @@ End Module
             await VisualStudio.ErrorList.Verify.NoErrorsAsync();
         }
 
-        [IdeFact(Skip = "Relies on functionality not yet implemented")]
+        [IdeFact]
         public async Task DocumentStateTrackingReadonlyInRunModeAsync()
         {
             await SetupMultiProjectSolutionAsync();
@@ -215,7 +215,7 @@ End Module
             await VisualStudio.SendKeys.SendAsync(VirtualKey.T);
             var editAndContinueDialogName = "Edit and Continue";
             await VisualStudio.Dialog.VerifyOpenAsync(editAndContinueDialogName);
-            await VisualStudio.Dialog.ClickAsync(editAndContinueDialogName, "OK");
+            await VisualStudio.Dialog.ClickOKAsync(editAndContinueDialogName);
             await VisualStudio.Dialog.VerifyClosedAsync(editAndContinueDialogName);
             await VisualStudio.Editor.Verify.IsProjectItemDirtyAsync(expectedValue: false);
 
@@ -224,7 +224,7 @@ End Module
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
             await VisualStudio.SendKeys.SendAsync(VirtualKey.T);
             await VisualStudio.Dialog.VerifyOpenAsync(editAndContinueDialogName);
-            await VisualStudio.Dialog.ClickAsync(editAndContinueDialogName, "OK");
+            await VisualStudio.Dialog.ClickOKAsync(editAndContinueDialogName);
             await VisualStudio.Dialog.VerifyClosedAsync(editAndContinueDialogName);
             await VisualStudio.Editor.Verify.IsProjectItemDirtyAsync(expectedValue: false);
 
@@ -235,7 +235,7 @@ End Module
 
             var microsoftVisualStudionDialogName = "Microsoft Visual Studio";
             await VisualStudio.Dialog.VerifyOpenAsync(microsoftVisualStudionDialogName);
-            await VisualStudio.Dialog.ClickAsync(microsoftVisualStudionDialogName, "OK");
+            await VisualStudio.Dialog.ClickOKAsync(microsoftVisualStudionDialogName);
             await VisualStudio.Dialog.VerifyClosedAsync(microsoftVisualStudionDialogName);
             await VisualStudio.Editor.Verify.IsProjectItemDirtyAsync(expectedValue: false);
         }
