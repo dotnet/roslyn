@@ -2519,7 +2519,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnaryMinusExpression: return UnaryOperatorKind.UnaryMinus;
                 case SyntaxKind.LogicalNotExpression: return UnaryOperatorKind.LogicalNegation;
                 case SyntaxKind.BitwiseNotExpression: return UnaryOperatorKind.BitwiseComplement;
-                case SyntaxKind.IndexExpression: return UnaryOperatorKind.Index;
                 default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }

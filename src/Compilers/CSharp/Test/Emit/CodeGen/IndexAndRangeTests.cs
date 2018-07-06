@@ -5,6 +5,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    // PROTOTYPE: add tests for when either operands of range is optimized using NullableAlwaysHasValue
+    // PROTOTYPE: add tests for when either operands of range is optimized using NullableNeverHasValue (not implemented yet)
+
     public class IndexAndRangeTests : CSharpTestBase
     {
         [Fact]
@@ -152,25 +155,28 @@ public static class Util
 
             CompileAndVerify(compilation).VerifyIL("Util.Create", @"
 {
-  // Code size       40 (0x28)
+  // Code size       42 (0x2a)
   .maxstack  2
-  .locals init (System.Index? V_0,
-                System.Range? V_1)
-  IL_0000:  ldarg.1
+  .locals init (System.Index V_0,
+                System.Index? V_1,
+                System.Range? V_2)
+  IL_0000:  ldarg.0
   IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool System.Index?.HasValue.get""
-  IL_0009:  brtrue.s   IL_0015
-  IL_000b:  ldloca.s   V_1
-  IL_000d:  initobj    ""System.Range?""
-  IL_0013:  ldloc.1
-  IL_0014:  ret
-  IL_0015:  ldarg.0
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""System.Index System.Index?.GetValueOrDefault()""
-  IL_001d:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
-  IL_0022:  newobj     ""System.Range?..ctor(System.Range)""
-  IL_0027:  ret
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  call       ""bool System.Index?.HasValue.get""
+  IL_000b:  brtrue.s   IL_0017
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  initobj    ""System.Range?""
+  IL_0015:  ldloc.2
+  IL_0016:  ret
+  IL_0017:  ldloc.0
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""System.Index System.Index?.GetValueOrDefault()""
+  IL_001f:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0024:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0029:  ret
 }");
         }
 
@@ -186,25 +192,28 @@ public static class Util
 
             CompileAndVerify(compilation).VerifyIL("Util.Create", @"
 {
-  // Code size       40 (0x28)
+  // Code size       42 (0x2a)
   .maxstack  2
   .locals init (System.Index? V_0,
-                System.Range? V_1)
+                System.Index V_1,
+                System.Range? V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool System.Index?.HasValue.get""
-  IL_0009:  brtrue.s   IL_0015
-  IL_000b:  ldloca.s   V_1
-  IL_000d:  initobj    ""System.Range?""
-  IL_0013:  ldloc.1
-  IL_0014:  ret
-  IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""System.Index System.Index?.GetValueOrDefault()""
-  IL_001c:  ldarg.1
-  IL_001d:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
-  IL_0022:  newobj     ""System.Range?..ctor(System.Range)""
-  IL_0027:  ret
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  call       ""bool System.Index?.HasValue.get""
+  IL_000b:  brtrue.s   IL_0017
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  initobj    ""System.Range?""
+  IL_0015:  ldloc.2
+  IL_0016:  ret
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""System.Index System.Index?.GetValueOrDefault()""
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0024:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0029:  ret
 }");
         }
 
@@ -483,10 +492,10 @@ i: default
 j: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'False''
 k: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '2', fromEnd: 'False''
 l: default
-m: value: 'value: '1', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
-n: value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
+m: value: 'value: '1', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
+n: value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
 o: default
-p: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''");
+p: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''");
         }
 
         [Fact]
@@ -516,8 +525,8 @@ class Program
 
             CompileAndVerify(compilation, expectedOutput: @"
 value: '1', fromEnd: 'True'
-value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
-value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
+value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
+value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
 value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '3', fromEnd: 'False''
 value: 'value: '4', fromEnd: 'False'', fromEnd: 'value: '5', fromEnd: 'False''");
         }
@@ -572,8 +581,8 @@ public static class Program
 {
     public static string get_IndexerExtension(this string foo, Range range)
     {
-        int start = range.Start.FromEnd ? (foo.Length - range.Start.Value) : range.Start.Value;
-        int end = range.End.FromEnd ? (foo.Length - range.End.Value) : range.End.Value;
+        int start = range.Start.FromEnd ? (foo.Length - Math.Max(range.Start.Value, 1)) : range.Start.Value;
+        int end = range.End.FromEnd ? (foo.Length - Math.Max(range.End.Value, 1)) : range.End.Value;
         return foo.Substring(start, end - start + 1);
     }
     public static void Main()
@@ -620,8 +629,8 @@ public static class Program
 {
     public static string get_IndexerExtension(this Span<int> foo, Range range)
     {
-        int start = range.Start.FromEnd ? (foo.Length - range.Start.Value) : range.Start.Value;
-        int end = range.End.FromEnd ? (foo.Length - range.End.Value) : range.End.Value;
+        int start = range.Start.FromEnd ? (foo.Length - Math.Max(range.Start.Value, 1)) : range.Start.Value;
+        int end = range.End.FromEnd ? (foo.Length - Math.Max(range.End.Value, 1)) : range.End.Value;
 
         int[] ar = new int[end - start + 1];
         for(var i = start; i <= end; i++)
@@ -675,8 +684,8 @@ public static class Program
 {
     public static string get_IndexerExtension(this int[] foo, Range range)
     {
-        int start = range.Start.FromEnd ? (foo.Length - range.Start.Value) : range.Start.Value;
-        int end = range.End.FromEnd ? (foo.Length - range.End.Value) : range.End.Value;
+        int start = range.Start.FromEnd ? (foo.Length - Math.Max(range.Start.Value, 1)) : range.Start.Value;
+        int end = range.End.FromEnd ? (foo.Length - Math.Max(range.End.Value, 1)) : range.End.Value;
 
         int[] ar = new int[end - start + 1];
         for(var i = start; i <= end; i++)
@@ -699,6 +708,150 @@ public static class Program
 [0] -- [0, 1, 2, 3, 4, 5]
 [1, 2, 3, 4, 5, 6] -- [4, 5, 6]
 [0, 1, 2, 3, 4, 5, 6]");
+        }
+
+        [Fact]
+        public void LowerRange_OrderOfEvaluation_Index_NullableIndex()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+using System;
+public static class Util
+{
+    static void Main()
+    {
+        var x = Create();
+    }
+
+    public static Range? Create()
+    {
+        return GetIndex1() .. GetIndex2();
+    }
+
+    static Index GetIndex1()
+    {
+        System.Console.WriteLine(""1"");
+        return default;
+    }
+
+    static Index? GetIndex2()
+    {
+        System.Console.WriteLine(""2"");
+        return new Index(1, true);
+    }
+}", options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"
+1
+2").VerifyIL("Util.Create", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (System.Index V_0,
+                System.Index? V_1,
+                System.Range? V_2,
+                System.Range? V_3)
+  IL_0000:  nop
+  IL_0001:  call       ""System.Index Util.GetIndex1()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index? Util.GetIndex2()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  call       ""bool System.Index?.HasValue.get""
+  IL_0014:  brtrue.s   IL_0021
+  IL_0016:  ldloca.s   V_2
+  IL_0018:  initobj    ""System.Range?""
+  IL_001e:  ldloc.2
+  IL_001f:  br.s       IL_0033
+  IL_0021:  ldloc.0
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  call       ""System.Index System.Index?.GetValueOrDefault()""
+  IL_0029:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_002e:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0033:  stloc.3
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.3
+  IL_0037:  ret
+}");
+        }
+
+        [Fact]
+        public void LowerRange_OrderOfEvaluation_Index_Null()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+using System;
+public static class Util
+{
+    static void Main()
+    {
+        var x = Create();
+    }
+
+    public static Range? Create()
+    {
+        return GetIndex1() .. GetIndex2();
+    }
+
+    static Index GetIndex1()
+    {
+        System.Console.WriteLine(""1"");
+        return default;
+    }
+
+    static Index? GetIndex2()
+    {
+        System.Console.WriteLine(""2"");
+        return null;
+    }
+}", options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"
+1
+2").VerifyIL("Util.Create", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (System.Index V_0,
+                System.Index? V_1,
+                System.Range? V_2,
+                System.Range? V_3)
+  IL_0000:  nop
+  IL_0001:  call       ""System.Index Util.GetIndex1()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index? Util.GetIndex2()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  call       ""bool System.Index?.HasValue.get""
+  IL_0014:  brtrue.s   IL_0021
+  IL_0016:  ldloca.s   V_2
+  IL_0018:  initobj    ""System.Range?""
+  IL_001e:  ldloc.2
+  IL_001f:  br.s       IL_0033
+  IL_0021:  ldloc.0
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  call       ""System.Index System.Index?.GetValueOrDefault()""
+  IL_0029:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_002e:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0033:  stloc.3
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.3
+  IL_0037:  ret
+}");
+        }
+
+        [Fact]
+        public void Index_OperandConvertibleToInt()
+        {
+            CompileAndVerify(CreateCompilationWithIndex(@"
+using System;
+class Test
+{
+    static void Main()
+    {
+        byte a = 3;
+        Index b = ^a;
+        Console.WriteLine($""Value: {b.Value}, FromEnd: {b.FromEnd}"");
+    }
+}", options: TestOptions.ReleaseExe), expectedOutput: "Value: 3, FromEnd: True");
         }
     }
 }

@@ -253,6 +253,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateMethodBodyOperation((BoundNonConstructorMethodBody)boundNode);
                 case BoundKind.DiscardExpression:
                     return CreateDiscardExpressionOperation((BoundDiscardExpression)boundNode);
+                case BoundKind.IndexExpression:
+                    return CreateIndexExpressionOperation((BoundIndexExpression)boundNode);
                 case BoundKind.RangeExpression:
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
 
@@ -2056,11 +2058,21 @@ namespace Microsoft.CodeAnalysis.Operations
                                         isImplicit: boundNode.WasCompilerGenerated);
         }
 
+        private IOperation CreateIndexExpressionOperation(BoundIndexExpression boundIndex)
+        {
+            return new IndexOperation(
+                isLifted: boundIndex.Type.IsNullableType(),
+                isImplicit: boundIndex.WasCompilerGenerated,
+                _semanticModel,
+                boundIndex.Syntax,
+                boundIndex.Type,
+                operand: Create(boundIndex.Operand));
+        }
+
         private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
         {
-            bool isLifted = boundRange.Type.IsNullableType();
             return new RangeOperation(
-                isLifted,
+                isLifted: boundRange.Type.IsNullableType(),
                 isImplicit: boundRange.WasCompilerGenerated,
                 _semanticModel,
                 boundRange.Syntax,

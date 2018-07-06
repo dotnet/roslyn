@@ -6991,36 +6991,57 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
     }
 
-    /// <summary>
-    /// PROTOTYPE: shouldn't this file be generated (and be partial)?
-    /// Represents an operation with two optional index operands that produce a range.
-    /// PROTOTYPE: operands should be lazily materialized
-    /// </summary>
+    internal sealed class IndexOperation : Operation, IIndexOperation
+    {
+        public IndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand) :
+                    base(OperationKind.Index, semanticModel, syntax, type, constantValue: null, isImplicit: isImplicit)
+        {
+            // PROTOTYPE: introduce another lazy version of this class. See BaseAddressOfExpression, LazyAddressOfExpression ,and AddressOfExpression
+
+            IsLifted = isLifted;
+            Operand = Operation.SetParentOperation(operand, this);
+        }
+
+        public IOperation Operand { get; }
+        public bool IsLifted { get; }
+
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                IOperation operand = Operand;
+                if (operand != null)
+                {
+                    yield return operand;
+                }
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitIndexOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitIndexOperation(this, argument);
+        }
+    }
+
     internal sealed class RangeOperation : Operation, IRangeOperation
     {
         public RangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand) :
                     base(OperationKind.Range, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
+            // PROTOTYPE: introduce another lazy version of this class. See BaseAddressOfExpression, LazyAddressOfExpression ,and AddressOfExpression
+
             IsLifted = isLifted;
             LeftOperand = Operation.SetParentOperation(leftOperand, this);
             RightOperand = Operation.SetParentOperation(rightOperand, this);
         }
 
-        /// <summary>
-        /// Left operand.
-        /// </summary>
         public IOperation LeftOperand { get; }
-        /// <summary>
-        /// Right operand.
-        /// </summary>
         public IOperation RightOperand { get; }
-
-        /// <summary>
-        /// <code>true</code> if this is a 'lifted' range operation.  When there is an 
-        /// operator that is defined to work on a value type, 'lifted' operators are 
-        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
-        /// value types.
-        /// </summary>
         public bool IsLifted { get; }
 
         public sealed override IEnumerable<IOperation> Children

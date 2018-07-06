@@ -3561,7 +3561,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IUnaryOperation (UnaryOperatorKind.Index) (OperationKind.UnaryOperator, Type: System.Index) (Syntax: '^arg')
+IIndexOperation (OperationKind.Index, Type: System.Index, Constant: null) (Syntax: '^arg')
   Operand: 
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'arg')
 ";
@@ -3583,9 +3583,34 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IUnaryOperation (UnaryOperatorKind.Index, IsLifted) (OperationKind.UnaryOperator, Type: System.Index?) (Syntax: '^arg')
+IIndexOperation (IsLifted) (OperationKind.Index, Type: System.Index?, Constant: null) (Syntax: '^arg')
   Operand: 
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'arg')
+";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyIndexOperator_ConvertibleToInt()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(byte arg)
+    {
+        var x = /*<bind>*/^arg/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IIndexOperation (OperationKind.Index, Type: System.Index, Constant: null) (Syntax: '^arg')
+  Operand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'arg')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'arg')
 ";
 
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);

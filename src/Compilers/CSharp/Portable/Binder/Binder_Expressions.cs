@@ -1888,12 +1888,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            Debug.Assert(node.OperatorToken.IsKind(SyntaxKind.CaretToken));
+
             // PROTOTYPE: move this check to parser?
             CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
 
+            // Used in lowering
+            GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
 
-            return BindUnaryOperator(node, diagnostics);
+            BoundExpression boundOperand = BindValue(node.Operand, diagnostics, BindValueKind.RValue);
+            TypeSymbol intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+            TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
+
+            if (boundOperand.Type != null && boundOperand.Type.IsNullableType())
+            {
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node);
+
+                intType = nullableType.Construct(intType);
+                indexType = nullableType.Construct(indexType);
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, intType, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+
+            if (!conversion.IsValid)
+            {
+                GenerateImplicitConversionError(diagnostics, node, conversion, boundOperand, intType);
+            }
+
+            BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
+            return new BoundIndexExpression(node, boundConversion, indexType);
         }
 
         private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)
@@ -1941,7 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundOperand = BindValue(operand, diagnostics, BindValueKind.RValue);
             TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, operand);
 
-            if (boundOperand.Type.IsNullableType())
+            if (boundOperand.Type != null && boundOperand.Type.IsNullableType())
             {
                 // PROTOTYPE: check if index type is nonnullable struct, and if it can be used here. report accordingly.
                 indexType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand).Construct(indexType);

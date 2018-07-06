@@ -582,6 +582,11 @@ namespace Microsoft.CodeAnalysis.Operations
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override IOperation VisitIndexOperation(IIndexOperation operation, object argument)
+        {
+            return new IndexOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.Operand);
+        }
+
         public override IOperation VisitRangeOperation(IRangeOperation operation, object argument)
         {
             return new RangeOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.LeftOperand, operation.RightOperand);

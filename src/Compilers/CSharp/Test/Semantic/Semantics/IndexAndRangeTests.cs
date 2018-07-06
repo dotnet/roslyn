@@ -10,9 +10,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    /// <summary>
-    /// Tests related to binding index/range expressions.
-    /// </summary>
+    /* PROTOTYPE: add assignment tests:
+     *  object x, y;
+     *  str = str[(x = F()).Start..x.End];
+     *  str = str[(y).Start..(y = F()).End];
+     *
+     *  str = str[F(out var x)..G(x)];
+     *  str = str[G(y)..F(out var y)];
+     *
+     * if (str[F(out var x)..F(out var y)] || x == null || y == null) { }
+     */
+
     public class IndexAndRangeTests : CompilingTestBase
     {
         [Fact]
@@ -28,7 +36,10 @@ class Test
 }").VerifyDiagnostics(
                 // (6,17): error CS0656: Missing compiler required member 'System.Index..ctor'
                 //         var x = ^arg;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^arg").WithArguments("System.Index", ".ctor").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^arg").WithArguments("System.Index", ".ctor").WithLocation(6, 17),
+                // (6,17): error CS0518: Predefined type 'System.Index' is not defined or imported
+                //         var x = ^arg;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^arg").WithArguments("System.Index").WithLocation(6, 17));
         }
 
         [Fact]
@@ -49,6 +60,7 @@ class Test
             var expression = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("^", expression.OperatorToken.ToFullString());
             Assert.Equal("System.Index", model.GetTypeInfo(expression).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expression).Symbol);
         }
 
         [Fact]
@@ -69,6 +81,7 @@ class Test
             var expression = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("^", expression.OperatorToken.ToFullString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expression).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expression).Symbol);
         }
 
         [Fact]
@@ -84,15 +97,15 @@ class Test
         var z = ^true;
     }
 }").VerifyDiagnostics(
-                // (6,17): error CS0023: Operator '^' cannot be applied to operand of type 'string'
+                //(6,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         var x = ^"string";
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, @"^""string""").WithArguments("^", "string").WithLocation(6, 17),
-                // (7,17): error CS0023: Operator '^' cannot be applied to operand of type 'double'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"^""string""").WithArguments("string", "int").WithLocation(6, 17),
+                //(7,17): error CS0029: Cannot implicitly convert type 'double' to 'int'
                 //         var y = ^1.5;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "^1.5").WithArguments("^", "double").WithLocation(7, 17),
-                // (8,17): error CS0023: Operator '^' cannot be applied to operand of type 'bool'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "^1.5").WithArguments("double", "int").WithLocation(7, 17),
+                //(8,17): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                 //         var z = ^true;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "^true").WithArguments("^", "bool").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "^true").WithArguments("bool", "int").WithLocation(8, 17));
         }
 
         [Fact]
@@ -291,18 +304,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[0]).Symbol);
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[1]).Symbol);
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[2]).Symbol);
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[3]).Symbol);
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }
@@ -330,18 +347,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[0]).Symbol);
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[1]).Symbol);
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[2]).Symbol);
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[3]).Symbol);
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }
@@ -415,6 +436,58 @@ class Test
                 // (9,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8 or greater.
                 //         var d = ..;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..").WithArguments("range operator", "8").WithLocation(9, 17));
+        }
+
+        [Fact]
+        public void IndexOnNonTypedNodes()
+        {
+            CreateCompilationWithIndex(@"
+class Test
+{
+    void M()
+    {
+        var a = ^M;
+        var b = ^null;
+        var c = ^default;
+    }
+}").VerifyDiagnostics(
+                // (6,17): error CS0428: Cannot convert method group 'M' to non-delegate type 'int'. Did you intend to invoke the method?
+                //         var a = ^M;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "^M").WithArguments("M", "int").WithLocation(6, 17),
+                // (7,17): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         var b = ^null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "^null").WithArguments("int").WithLocation(7, 17));
+        }
+
+        [Fact]
+        public void RangeOnNonTypedNodes()
+        {
+            CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M()
+    {
+        var a = 0..M;
+        var b = 0..null;
+        var c = 0..default;
+
+        var d = M..0;
+        var e = null..0;
+        var f = default..0;
+    }
+}").VerifyDiagnostics(
+                // (6,20): error CS0428: Cannot convert method group 'M' to non-delegate type 'Index'. Did you intend to invoke the method?
+                //         var a = 0..M;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "System.Index").WithLocation(6, 20),
+                // (7,20): error CS0037: Cannot convert null to 'Index' because it is a non-nullable value type
+                //         var b = 0..null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Index").WithLocation(7, 20),
+                // (10,17): error CS0428: Cannot convert method group 'M' to non-delegate type 'Index'. Did you intend to invoke the method?
+                //         var d = M..0;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "System.Index").WithLocation(10, 17),
+                // (11,17): error CS0037: Cannot convert null to 'Index' because it is a non-nullable value type
+                //         var e = null..0;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Index").WithLocation(11, 17));
         }
     }
 }

@@ -347,9 +347,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     case CSharp.UnaryOperatorKind.False:
                         return UnaryOperatorKind.False;
-
-                    case CSharp.UnaryOperatorKind.Index:
-                        return UnaryOperatorKind.Index;
                 }
 
                 return UnaryOperatorKind.None;

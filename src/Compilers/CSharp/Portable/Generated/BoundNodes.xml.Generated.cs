@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RefTypeOperator,
         MakeRefOperator,
         RefValueOperator,
+        IndexExpression,
         RangeExpression,
         BinaryOperator,
         TupleBinaryOperator,
@@ -1010,6 +1011,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operand != this.Operand || type != this.Type)
             {
                 var result = new BoundRefValueOperator(this.Syntax, operand, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundIndexExpression : BoundExpression
+    {
+        public BoundIndexExpression(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.IndexExpression, syntax, type, hasErrors || operand.HasErrors())
+        {
+
+            Debug.Assert(operand != null, "Field 'operand' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Operand = operand;
+        }
+
+
+        public BoundExpression Operand { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitIndexExpression(this);
+        }
+
+        public BoundIndexExpression Update(BoundExpression operand, TypeSymbol type)
+        {
+            if (operand != this.Operand || type != this.Type)
+            {
+                var result = new BoundIndexExpression(this.Syntax, operand, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6447,6 +6480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitMakeRefOperator(node as BoundMakeRefOperator, arg);
                 case BoundKind.RefValueOperator: 
                     return VisitRefValueOperator(node as BoundRefValueOperator, arg);
+                case BoundKind.IndexExpression: 
+                    return VisitIndexExpression(node as BoundIndexExpression, arg);
                 case BoundKind.RangeExpression: 
                     return VisitRangeExpression(node as BoundRangeExpression, arg);
                 case BoundKind.BinaryOperator: 
@@ -6804,6 +6839,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitRefValueOperator(BoundRefValueOperator node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitIndexExpression(BoundIndexExpression node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7428,6 +7467,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitRefValueOperator(BoundRefValueOperator node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitIndexExpression(BoundIndexExpression node)
         {
             return this.DefaultVisit(node);
         }
@@ -8068,6 +8111,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitRefValueOperator(BoundRefValueOperator node)
+        {
+            this.Visit(node.Operand);
+            return null;
+        }
+        public override BoundNode VisitIndexExpression(BoundIndexExpression node)
         {
             this.Visit(node.Operand);
             return null;
@@ -8895,6 +8943,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(operand, type);
         }
         public override BoundNode VisitRefValueOperator(BoundRefValueOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(operand, type);
+        }
+        public override BoundNode VisitIndexExpression(BoundIndexExpression node)
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
@@ -9918,6 +9972,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitRefValueOperator(BoundRefValueOperator node, object arg)
         {
             return new TreeDumperNode("refValueOperator", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitIndexExpression(BoundIndexExpression node, object arg)
+        {
+            return new TreeDumperNode("indexExpression", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
                 new TreeDumperNode("type", node.Type, null)
