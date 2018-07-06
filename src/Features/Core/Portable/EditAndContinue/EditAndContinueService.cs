@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
     /// </summary>
     /// <remarks>
-    /// Although the service itself is host agnotic, some of the services it consumes are only available in particular hosts (like Visual Studio).
+    /// Although the service itself is host agnostic, some of the services it consumes are only available in particular hosts (like Visual Studio).
     /// Therefore this service doesn't export <see cref="IEditAndContinueService"/> on its own. Each host that supports EnC shall implement
     /// a subclass that exports <see cref="IEditAndContinueService"/>.
     /// </remarks>

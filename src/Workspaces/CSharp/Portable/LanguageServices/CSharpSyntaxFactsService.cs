@@ -1585,6 +1585,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node != null && (node.Parent as InvocationExpressionSyntax)?.Expression == node;
         }
 
+        public bool IsAwaitExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.AwaitExpression);
+
         public bool IsExpressionOfAwaitExpression(SyntaxNode node)
         {
             return node != null && (node.Parent as AwaitExpressionSyntax)?.Expression == node;

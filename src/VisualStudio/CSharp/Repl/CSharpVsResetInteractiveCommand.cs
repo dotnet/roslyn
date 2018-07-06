@@ -14,9 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
     {
         [ImportingConstructor]
         public CSharpVsResetInteractiveCommand(
-            [Import]CSharpVsInteractiveWindowProvider interactiveWindowProvider,
+            VisualStudioWorkspace workspace,
+            CSharpVsInteractiveWindowProvider interactiveWindowProvider,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(interactiveWindowProvider, serviceProvider)
+            : base(workspace, interactiveWindowProvider, serviceProvider)
         {
         }
 

@@ -117,7 +117,8 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly IntegrationTestFiles As String() = {
         "xunit.*.dll",
         "*.UnitTests.dll.config",
-        "InteractiveHost.exe",
+        "InteractiveHost32.exe",
+        "InteractiveHost64.exe",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
         "Microsoft.CodeAnalysis.CSharp.Features.dll",
@@ -248,7 +249,8 @@ Public Class BuildDevDivInsertionFiles
         "xunit.*.dll",
         "PerfTests",
         "BasicUndo.dll",
-        "InteractiveHost.exe",
+        "InteractiveHost32.exe",
+        "InteractiveHost64.exe",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
         "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll",
@@ -791,7 +793,8 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\vbc\net46\vbc.exe.config")
         add("Exes\vbc\net46\vbc.rsp")
         add("Exes\VBCSCompiler\net46\VBCSCompiler.exe.config")
-        add("Exes\InteractiveHost\InteractiveHost.exe.config")
+        add("Exes\InteractiveHost32\InteractiveHost32.exe.config")
+        add("Exes\InteractiveHost64\InteractiveHost64.exe.config")
         add("Exes\csi\net46\csi.rsp")
         add("Exes\csi\net46\csi.exe.config")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
