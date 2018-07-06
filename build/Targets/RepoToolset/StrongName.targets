@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(SignAssembly)' == 'true'">
+      <Choose>
+        <!-- Shipping binaries are always public signed.  In the case of an official build $(OfficialBuild) the
+             binaries will be real signed as a post processing step. -->
+        <When Condition="'$(NonShipping)' != 'true'">
+          <PropertyGroup>
+            <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\..\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
+            <PublicKey>$(RoslynPublicKey)</PublicKey>
+            <PublicKeyToken>31BF3856AD364E35</PublicKeyToken>
+            <PublicSign>true</PublicSign>
+          </PropertyGroup>
+        </When>
+
+        <!-- Non-shipping binaries are simply signed with the Roslyn internal key. -->
+        <Otherwise>
+          <PropertyGroup>
+            <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\..\Strong Name Keys\RoslynInternalKey.Private.snk</AssemblyOriginatorKeyFile>
+            <DelaySign>false</DelaySign>
+            <PublicKey>$(RoslynInternalKey)</PublicKey>
+            <PublicKeyToken>fc793a00266884fb</PublicKeyToken>
+          </PropertyGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+  </Choose>
+</Project>
