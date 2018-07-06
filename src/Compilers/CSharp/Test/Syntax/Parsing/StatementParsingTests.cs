@@ -2755,6 +2755,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingVarSpecialCase2Tree()
+        {
+            UsingStatement(@"using f ? x = a;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
         public void TestUsingSpecialCase3()
         {
             var text = "using (f ? x, y) { }";
@@ -2792,6 +2825,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
             Assert.NotNull(us.Declaration);
             Assert.Equal("f ? x, y", us.Declaration.ToString());
+        }
+
+        [Fact]
+        public void TestUsingVarSpecialCase3Tree()
+        {
+            UsingStatement("using f? x, y;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    N(SyntaxKind.IdentifierToken);
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
         }
 
 
