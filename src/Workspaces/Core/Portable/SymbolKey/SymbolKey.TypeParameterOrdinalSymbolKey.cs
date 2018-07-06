@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteInteger(symbol.Ordinal);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var methodIndex = reader.ReadInteger();
                 var ordinal = reader.ReadInteger();
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var typeParameter = method?.TypeParameters[ordinal];
                 return typeParameter == null
                     ? default
-                    : new SymbolKeyResolution(typeParameter);
+                    : new ResolvedSymbolInfo(typeParameter);
             }
         }
     }

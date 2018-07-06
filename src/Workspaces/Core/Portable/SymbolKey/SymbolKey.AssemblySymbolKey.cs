@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteString(symbol.Identity.Name);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var assemblyName = reader.ReadString();
                 var assemblySymbols = GetAssemblySymbols(assemblyName, reader.Compilation, reader.IgnoreAssemblyKey);
 
-                return SymbolKeyResolution.Create(assemblySymbols);
+                return ResolvedSymbolInfo.Create(assemblySymbols);
             }
 
             private static ImmutableArray<IAssemblySymbol> GetAssemblySymbols(

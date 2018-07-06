@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
-    internal static class SymbolKeyResolutionExtensions
+    internal static class ResolvedSymbolInfoExtensions
     {
-        internal static ISymbol GetAnySymbol(this SymbolKeyResolution resolution)
+        internal static ISymbol GetAnySymbol(this ResolvedSymbolInfo resolution)
         {
             if (resolution.Symbol != null)
             {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Symbols
             return null;
         }
 
-        internal static ImmutableArray<TType> GetAllSymbols<TType>(this SymbolKeyResolution resolution)
+        internal static ImmutableArray<TType> GetAllSymbols<TType>(this ResolvedSymbolInfo resolution)
         {
             var result = ImmutableArray.CreateBuilder<TType>();
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Symbols
             return result.ToImmutable();
         }
 
-        internal static TSymbol GetFirstSymbol<TSymbol>(this SymbolKeyResolution resolution)
+        internal static TSymbol GetFirstSymbol<TSymbol>(this ResolvedSymbolInfo resolution)
             where TSymbol : ISymbol
         {
             return resolution.GetAllSymbols<TSymbol>().FirstOrDefault();

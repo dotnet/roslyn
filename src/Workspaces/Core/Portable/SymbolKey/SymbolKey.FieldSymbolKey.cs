@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteSymbolKey(symbol.ContainingType);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
                 var resolvedContainingType = reader.ReadSymbolKey();
 
                 var fields = reader.GetMembersWithName<IFieldSymbol>(resolvedContainingType, metadataName);
 
-                return SymbolKeyResolution.Create(fields);
+                return ResolvedSymbolInfo.Create(fields);
             }
         }
     }

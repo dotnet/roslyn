@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
                 var resolvedContainingSymbol = reader.ReadSymbolKey();
 
                 var parameters = GetParameterSymbols(metadataName, resolvedContainingSymbol, reader.Compilation);
 
-                return SymbolKeyResolution.Create(parameters);
+                return ResolvedSymbolInfo.Create(parameters);
             }
 
-            private static ImmutableArray<IParameterSymbol> GetParameterSymbols(string metadataName, SymbolKeyResolution resolvedContainingSymbol, Compilation compilation)
+            private static ImmutableArray<IParameterSymbol> GetParameterSymbols(string metadataName, ResolvedSymbolInfo resolvedContainingSymbol, Compilation compilation)
             {
                 var result = ArrayBuilder<IParameterSymbol>.GetInstance();
 

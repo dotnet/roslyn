@@ -276,8 +276,8 @@ namespace Microsoft.CodeAnalysis.Symbols
             private static readonly ObjectPool<SymbolKeyReader> s_readerPool =
                 new ObjectPool<SymbolKeyReader>(() => new SymbolKeyReader());
 
-            private readonly Dictionary<int, SymbolKeyResolution> _idToResult = new Dictionary<int, SymbolKeyResolution>();
-            private readonly Func<SymbolKeyResolution> _readSymbolKey;
+            private readonly Dictionary<int, ResolvedSymbolInfo> _idToResult = new Dictionary<int, ResolvedSymbolInfo>();
+            private readonly Func<ResolvedSymbolInfo> _readSymbolKey;
             private readonly Func<Location> _readLocation;
 
             public Compilation Compilation { get; private set; }
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 return true;
             }
 
-            internal ImmutableArray<TSymbol> GetMembersWithName<TSymbol>(SymbolKeyResolution resolvedContainingType, string name)
+            internal ImmutableArray<TSymbol> GetMembersWithName<TSymbol>(ResolvedSymbolInfo resolvedContainingType, string name)
             {
                 var results = ArrayBuilder<TSymbol>.GetInstance();
 
@@ -419,17 +419,17 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             #region Symbols
 
-            public SymbolKeyResolution ReadFirstSymbolKey()
+            public ResolvedSymbolInfo ReadFirstSymbolKey()
             {
                 return ReadSymbolKeyWorker(first: true);
             }
 
-            public SymbolKeyResolution ReadSymbolKey()
+            public ResolvedSymbolInfo ReadSymbolKey()
             {
                 return ReadSymbolKeyWorker(first: false);
             }
 
-            private SymbolKeyResolution ReadSymbolKeyWorker(bool first)
+            private ResolvedSymbolInfo ReadSymbolKeyWorker(bool first)
             {
                 CancellationToken.ThrowIfCancellationRequested();
                 if (!first)
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 }
 
                 EatOpenParen();
-                SymbolKeyResolution result;
+                ResolvedSymbolInfo result;
 
                 type = Data[Position];
                 Eat(type);
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 return result;
             }
 
-            private SymbolKeyResolution ReadWorker(char type)
+            private ResolvedSymbolInfo ReadWorker(char type)
             {
                 switch (type)
                 {
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 throw new NotImplementedException();
             }
 
-            public ImmutableArray<SymbolKeyResolution> ReadSymbolKeyArray()
+            public ImmutableArray<ResolvedSymbolInfo> ReadSymbolKeyArray()
                 => ReadArray(_readSymbolKey);
 
             #endregion
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.Symbols
             }
 
             private Location CreateModuleLocation(
-                SymbolKeyResolution assembly, string moduleName)
+                ResolvedSymbolInfo assembly, string moduleName)
             {
                 var symbol = assembly.GetAnySymbol() as IAssemblySymbol;
                 Debug.Assert(symbol != null);

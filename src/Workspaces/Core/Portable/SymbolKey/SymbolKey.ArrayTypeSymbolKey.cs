@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteInteger(symbol.Rank);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var resolvedElementType = reader.ReadSymbolKey();
                 var rank = reader.ReadInteger();
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     .GetAllSymbols<ITypeSymbol>()
                     .SelectAsArray(s => reader.Compilation.CreateArrayTypeSymbol(s, rank));
 
-                return SymbolKeyResolution.Create(symbols);
+                return ResolvedSymbolInfo.Create(symbols);
             }
         }
     }

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteInteger((int)kind);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var localName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     var symbols = GetSymbols(reader.Compilation, containingSymbol, kind, localName, reader.CancellationToken);
                     if (ordinal < symbols.Length)
                     {
-                        return new SymbolKeyResolution(symbols[ordinal]);
+                        return new ResolvedSymbolInfo(symbols[ordinal]);
                     }
                 }
 

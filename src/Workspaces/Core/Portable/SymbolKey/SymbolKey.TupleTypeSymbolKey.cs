@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteLocationArray(locations.ToImmutableAndFree());
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var isError = reader.ReadBoolean();
                 if (isError)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                             var tupleTypeSymbol = reader.Compilation.CreateTupleTypeSymbol(
                                 elementTypes, elementNames, elementLocations);
 
-                            return new SymbolKeyResolution(tupleTypeSymbol);
+                            return new ResolvedSymbolInfo(tupleTypeSymbol);
                         }
                         catch (ArgumentException)
                         {
@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.Symbols
                             result.Add(tupleTypeSymbol);
                         }
 
-                        return SymbolKeyResolution.Create(result.ToImmutableAndFree());
+                        return ResolvedSymbolInfo.Create(result.ToImmutableAndFree());
                     }
                     catch (ArgumentException)
                     {
                     }
                 }
 
-                return new SymbolKeyResolution(reader.Compilation.ObjectType);
+                return new ResolvedSymbolInfo(reader.Compilation.ObjectType);
             }
 
             private static ImmutableArray<Location> ReadElementLocations(SymbolKeyReader reader)

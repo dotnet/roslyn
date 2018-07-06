@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var name = reader.ReadString();
                 var resolvedTarget = reader.ReadSymbolKey();
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 return default;
             }
 
-            private static SymbolKeyResolution? Resolve(
+            private static ResolvedSymbolInfo? Resolve(
                 SemanticModel semanticModel, SyntaxNode syntaxNode, string name, ISymbol target,
                 CancellationToken cancellationToken)
             {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                         if (aliasSymbol.Name == name &&
                             SymbolEquivalenceComparer.Instance.Equals(aliasSymbol.Target, target))
                         {
-                            return new SymbolKeyResolution(aliasSymbol);
+                            return new ResolvedSymbolInfo(aliasSymbol);
                         }
                     }
                     else if (symbol.Kind != SymbolKind.Namespace)

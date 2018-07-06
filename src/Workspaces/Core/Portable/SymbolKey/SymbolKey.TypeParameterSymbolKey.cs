@@ -15,16 +15,16 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
                 var resolvedContainingSymbol = reader.ReadSymbolKey();
 
                 var result = GetTypeParameterSymbols(metadataName, resolvedContainingSymbol, reader.Compilation);
-                return SymbolKeyResolution.Create(result);
+                return ResolvedSymbolInfo.Create(result);
             }
 
-            private static ImmutableArray<ITypeParameterSymbol> GetTypeParameterSymbols(string metadataName, SymbolKeyResolution resolvedContainingSymbol, Compilation compilation)
+            private static ImmutableArray<ITypeParameterSymbol> GetTypeParameterSymbols(string metadataName, ResolvedSymbolInfo resolvedContainingSymbol, Compilation compilation)
             {
                 var result = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
 

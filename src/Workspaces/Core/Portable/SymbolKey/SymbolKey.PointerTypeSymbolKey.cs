@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteSymbolKey(symbol.PointedAtType);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var resolvedPointedAtType = reader.ReadSymbolKey();
 
                 var pointerTypeSymbols = GetPointerTypeSymbols(resolvedPointedAtType, reader.Compilation);
-                return SymbolKeyResolution.Create(pointerTypeSymbols);
+                return ResolvedSymbolInfo.Create(pointerTypeSymbols);
             }
 
-            private static ImmutableArray<IPointerTypeSymbol> GetPointerTypeSymbols(SymbolKeyResolution resolvedPointedAtType, Compilation compilation)
+            private static ImmutableArray<IPointerTypeSymbol> GetPointerTypeSymbols(ResolvedSymbolInfo resolvedPointedAtType, Compilation compilation)
             {
                 var result = ArrayBuilder<IPointerTypeSymbol>.GetInstance();
 

@@ -17,7 +17,7 @@ End Namespace
 "
             Const expected = "(N ""N2"" 0 (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 4) 3) 2) 1) 0)"
 
-            Await AssertDeclaredSymbol(Of NamespaceStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of NamespaceStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -30,7 +30,7 @@ End Namespace
 "
             Const expected = "(D ""M1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 4) 3) 2) 1) 0 8 0 ! 0)"
 
-            Await AssertDeclaredSymbol(Of ModuleStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of ModuleStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -43,7 +43,7 @@ End Namespace
 "
             Const expected = "(D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 4) 3) 2) 1) 0 2 0 ! 0)"
 
-            Await AssertDeclaredSymbol(Of ClassStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of ClassStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -56,7 +56,7 @@ End Namespace
 "
             Const expected = "(Y ""T"" (D ""C1`1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 1 2 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of TypeParameterSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of TypeParameterSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -69,7 +69,7 @@ End Namespace
 "
             Const expected = "(D ""S1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 4) 3) 2) 1) 0 10 0 ! 0)"
 
-            Await AssertDeclaredSymbol(Of StructureStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of StructureStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -82,7 +82,7 @@ End Namespace
 "
             Const expected = "(Y ""T"" (D ""S1`1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 1 10 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of TypeParameterSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of TypeParameterSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -95,7 +95,7 @@ End Namespace
 "
             Const expected = "(D ""I1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 4) 3) 2) 1) 0 7 0 ! 0)"
 
-            Await AssertDeclaredSymbol(Of InterfaceStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of InterfaceStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -108,7 +108,7 @@ End Namespace
 "
             Const expected = "(Y ""T"" (D ""I1`1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 1 7 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of TypeParameterSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of TypeParameterSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -120,7 +120,7 @@ End Namespace
 "
             Const expected = "(D ""D1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 4) 3) 2) 1) 0 3 0 ! 0)"
 
-            Await AssertDeclaredSymbol(Of DelegateStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of DelegateStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -132,7 +132,7 @@ End Namespace
 "
             Const expected = "(Y ""T"" (D ""D1`1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 1 3 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of TypeParameterSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of TypeParameterSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -145,7 +145,7 @@ End Namespace
 "
             Const expected = "(D ""E1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 4) 3) 2) 1) 0 5 0 ! 0)"
 
-            Await AssertDeclaredSymbol(Of EnumStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of EnumStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -161,7 +161,7 @@ End Namespace
 "
             Const expected = "(F ""Two"" (D ""E1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 5 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of EnumMemberDeclarationSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of EnumMemberDeclarationSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -173,7 +173,7 @@ End Namespace
 "
             Const expected = "(A ""N2"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 4) 3) 2) 1) ""TestFile"" 0)"
 
-            Await AssertDeclaredSymbol(Of SimpleImportsClauseSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of SimpleImportsClauseSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -187,7 +187,7 @@ End Namespace
 "
             Const expected = "(A ""C2"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) ""TestFile"" 0)"
 
-            Await AssertDeclaredSymbol(Of SimpleImportsClauseSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of SimpleImportsClauseSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -201,7 +201,7 @@ End Namespace
 "
             Const expected = "(A ""C2"" (D ""C1`1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 1 2 0 (% 1 (D ""String"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 2 0 ! 6)) 1) ""TestFile"" 0)"
 
-            Await AssertDeclaredSymbol(Of SimpleImportsClauseSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of SimpleImportsClauseSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -213,7 +213,7 @@ Imports $$N2 = X.Y.Z
             ' Note that C# and VB differ here.
             Const expected = "(A ""N2"" (E ""X.Y.Z"" ! 0 ! 1) ""TestFile"" 0)"
 
-            Await AssertDeclaredSymbol(Of SimpleImportsClauseSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of SimpleImportsClauseSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -228,7 +228,7 @@ End Namespace
 
             Const expected = "(F ""_f1"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of ModifiedIdentifierSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of ModifiedIdentifierSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -247,7 +247,7 @@ End Namespace
 
             Const expected = "(Q ""P"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 (% 0) (% 0) 0)"
 
-            Await AssertDeclaredSymbol(Of PropertyStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of PropertyStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -266,7 +266,7 @@ End Namespace
 
             Const expected = "(M ""get_P"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 0) (% 0) ! 0)"
 
-            Await AssertDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -285,7 +285,7 @@ End Namespace
 
             Const expected = "(M ""set_P"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 1 0) (% 1 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -304,7 +304,7 @@ End Namespace
 
             Const expected = "(Q ""Item"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 1 (% 1 0) (% 1 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6)) 0)"
 
-            Await AssertDeclaredSymbol(Of PropertyStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of PropertyStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -323,7 +323,7 @@ End Namespace
 
             Const expected = "(M ""get_Item"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 1 0) (% 1 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -341,7 +341,7 @@ End Namespace
 
             Const expected = "(M ""set_Item"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 2 0 0) (% 2 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6) (# 6)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -360,7 +360,7 @@ End Namespace
 
             Const expected = "(Q ""Item"" (D ""C1`1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 1 2 0 ! 1) 1 (% 1 0) (% 1 (Y ""T"" (# 1) 6)) 0)"
 
-            Await AssertDeclaredSymbol(Of PropertyStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of PropertyStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -375,7 +375,7 @@ End Namespace
 
             Const expected = "(V ""E"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of EventStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of EventStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -390,7 +390,7 @@ End Namespace
 
             Const expected = "(V ""E"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of EventStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of EventStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -406,7 +406,7 @@ End Namespace
 
             Const expected = "(V ""E"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of EventStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of EventStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -429,7 +429,7 @@ End Namespace
 
             Const expected = "(V ""E"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of EventStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of EventStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -452,7 +452,7 @@ End Namespace
 
             Const expected = "(M ""add_E"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 1 0) (% 1 (D ""EventHandler"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 3 0 ! 6)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -475,7 +475,7 @@ End Namespace
 
             Const expected = "(M ""remove_E"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 1 0) (% 1 (D ""EventHandler"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 3 0 ! 6)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -497,7 +497,7 @@ End Namespace
 
             Const expected = "(M ""raise_E"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 2 0 0) (% 2 (D ""Object"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 2 0 ! 6) (E ""EventArgs"" ! 0 ! 11)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of AccessorStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -513,7 +513,7 @@ End Namespace
 
             Const expected = "(M ""op_Equality"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 2 0 0) (% 2 (# 1) (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of OperatorStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of OperatorStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -529,7 +529,7 @@ End Namespace
 
             Const expected = "(M ""op_Implicit"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 1 0) (% 1 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6)) (# 1) 0)"
 
-            Await AssertDeclaredSymbol(Of OperatorStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of OperatorStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -545,7 +545,7 @@ End Namespace
 
             Const expected = "(M ""M"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 0) (% 0) ! 0)"
 
-            Await AssertDeclaredSymbol(Of MethodStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of MethodStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -561,7 +561,7 @@ End Namespace
 
             Const expected = "(M ""M"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 0 0 (% 4 0 0 1 0) (% 4 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6) (D ""String"" (# 7) 0 2 0 ! 11) (D ""Boolean"" (# 7) 0 10 0 ! 12) (R (D ""Object"" (# 7) 0 2 0 ! 14) 1 13)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of MethodStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of MethodStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -577,7 +577,7 @@ End Namespace
 
             Const expected = "(M ""M"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 2 0 (% 4 0 0 1 0) (% 4 (@ (# 0) 0 6) (D ""String"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 11) 10) 9) 8) 0 2 0 ! 7) (# 6) (R (D ""Object"" (# 8) 0 2 0 ! 13) 1 12)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of MethodStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of MethodStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -595,7 +595,7 @@ End Namespace
 
             Const expected = "(M ""M"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 5) 4) 3) 2) 0 2 0 ! 1) 1 0 (% 1 0) (% 1 (D ""Dictionary`2"" (N ""Generic"" 0 (N ""Collections"" 0 (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 12) 11) 10) 9) 8) 7) 2 2 0 (% 2 (D ""Int32"" (# 9) 0 10 0 ! 13) (D ""List`1"" (# 7) 1 2 0 (% 1 (@ (# 0) 0 15)) 14)) 6)) ! 0)"
 
-            Await AssertDeclaredSymbol(Of MethodStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of MethodStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -620,7 +620,7 @@ End Class
 
             Const expected = "(X (M ""Square"" (D ""Extensions"" (N """" 0 (U (S ""TestProject"" 5) 4) 3) 0 8 0 ! 2) 0 0 (% 1 0) (% 1 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6)) ! 1) (# 6) 0)"
 
-            Await AssertSymbol(Of InvocationExpressionSyntax)(code, expected)
+            Await AssertSymbolKeyCreatedFromSymbolInfo(Of InvocationExpressionSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -645,7 +645,7 @@ End Class
 
             Const expected = "(X (M ""Square"" (D ""Extensions"" (N """" 0 (U (S ""TestProject"" 5) 4) 3) 0 8 0 ! 2) 0 0 (% 1 1) (% 1 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6)) ! 1) (# 6) 0)"
 
-            Await AssertSymbol(Of InvocationExpressionSyntax)(code, expected)
+            Await AssertSymbolKeyCreatedFromSymbolInfo(Of InvocationExpressionSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -660,7 +660,7 @@ End Class
 
             Const expected = "(C (M ""M"" (D ""C1"" (N """" 0 (U (S ""TestProject"" 5) 4) 3) 0 2 0 ! 2) 1 0 (% 0) (% 0) ! 1) (% 1 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 10) 9) 8) 7) 0 10 0 ! 6)) 0)"
 
-            Await AssertSymbol(Of InvocationExpressionSyntax)(code, expected)
+            Await AssertSymbolKeyCreatedFromSymbolInfo(Of InvocationExpressionSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -676,7 +676,7 @@ End Namespace
 
             Const expected = "(P ""i"" (M ""M"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 6) 5) 4) 3) 0 2 0 ! 2) 0 0 (% 1 0) (% 1 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 11) 10) 9) 8) 0 10 0 ! 7)) ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of ParameterSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of ParameterSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -692,7 +692,7 @@ End Namespace
 
             Const expected = "(P ""i"" (M ""M"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 6) 5) 4) 3) 0 2 0 ! 2) 1 0 (% 1 0) (% 1 (@ (# 1) 0 7)) ! 1) 0)"
 
-            Await AssertDeclaredSymbol(Of ParameterSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of ParameterSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -709,7 +709,7 @@ End Namespace
 
             Const expected = "(B ""i"" (M ""M"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 6) 5) 4) 3) 0 2 0 ! 2) 0 0 (% 0) (% 0) ! 1) 0 8 0)"
 
-            Await AssertDeclaredSymbol(Of ModifiedIdentifierSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of ModifiedIdentifierSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -727,7 +727,7 @@ End Namespace
 
             Const expected = "(B ""label"" (M ""M"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 6) 5) 4) 3) 0 2 0 ! 2) 0 0 (% 0) (% 0) ! 1) 0 7 0)"
 
-            Await AssertDeclaredSymbol(Of LabelStatementSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of LabelStatementSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -746,7 +746,7 @@ End Namespace
 
             Const expected = "(B ""x"" (M ""M"" (D ""C1"" (N ""N1"" 0 (N """" 0 (U (S ""TestProject"" 6) 5) 4) 3) 0 2 0 ! 2) 0 0 (% 0) (% 0) ! 1) 0 16 0)"
 
-            Await AssertDeclaredSymbol(Of ModifiedIdentifierSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of ModifiedIdentifierSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -763,7 +763,7 @@ End Namespace
 
             Const expected = "(T 0 (D ""ValueTuple`2"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 5) 4) 3) 2) 2 10 0 (% 2 (D ""Int32"" (# 2) 0 10 0 ! 6) (# 6)) 1) (% 2 ! !) (% 2  1 ""TestFile"" 68 1  1 ""TestFile"" 71 1) 0)"
 
-            Await AssertType(Of TupleExpressionSyntax)(code, expected)
+            Await AssertSymbolKeyCreatedFromTypeInfo(Of TupleExpressionSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -780,7 +780,7 @@ End Namespace
 
             Const expected = "(W (% 2 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 5) 4) 3) 2) 0 10 0 ! 1) (# 1)) (% 2 ""X"" ""Y"") (% 2 0 0) (% 2  1 ""TestFile"" 79 1  1 ""TestFile"" 88 1) 0)"
 
-            Await AssertDeclaredSymbol(Of AnonymousObjectCreationExpressionSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of AnonymousObjectCreationExpressionSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -797,7 +797,7 @@ End Namespace
 
             Const expected = "(Q ""X"" (W (% 2 (D ""Int32"" (N ""System"" 0 (N """" 0 (U (S ""mscorlib"" 6) 5) 4) 3) 0 10 0 ! 2) (# 2)) (% 2 ""X"" ""Y"") (% 2 0 0) (% 2  1 ""TestFile"" 79 1  1 ""TestFile"" 88 1) 1) 0 (% 0) (% 0) 0)"
 
-            Await AssertDeclaredSymbol(Of FieldInitializerSyntax)(code, expected)
+            Await AssertSymbolKeyWithDeclaredSymbol(Of FieldInitializerSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -814,7 +814,7 @@ End Namespace
 
             Const expected = "(Z 0  1 ""TestFile"" 88 15 0)"
 
-            Await AssertSymbol(Of LambdaExpressionSyntax)(code, expected)
+            Await AssertSymbolKeyCreatedFromSymbolInfo(Of LambdaExpressionSyntax)(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SymbolKeys)>
@@ -831,7 +831,7 @@ End Namespace
 
             Const expected = "(Z 1  1 ""TestFile"" 67 15 0)"
 
-            Await AssertSymbol(Of LambdaExpressionSyntax)(code, expected, symbolFinder:=Function(s) TryCast(s, IMethodSymbol)?.AssociatedAnonymousDelegate)
+            Await AssertSymbolKeyCreatedFromSymbolInfo(Of LambdaExpressionSyntax)(code, expected, symbolFinder:=Function(s) TryCast(s, IMethodSymbol)?.AssociatedAnonymousDelegate)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

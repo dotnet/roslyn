@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteLocationArray(propertyLocations);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var resolvedPropertyTypes = reader.ReadSymbolKeyArray();
                 var propertyTypes = resolvedPropertyTypes.SelectAsArray(r => r.GetFirstSymbol<ITypeSymbol>());
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                         var anonymousType = reader.Compilation.CreateAnonymousTypeSymbol(
                             propertyTypes, propertyNames, propertyIsReadOnly, propertyLocations);
 
-                        return new SymbolKeyResolution(anonymousType);
+                        return new ResolvedSymbolInfo(anonymousType);
                     }
                     catch (ArgumentException)
                     {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 // TODO(dustinca): Is object the best thing to return here? It seems reasonable for type inferrers,
                 // but I would expect symbol resolution to return a default SymbolKeyResolution if it couldn't be found.
                 // At the very least, it should include make this a candidate symbol and set a reason.
-                return new SymbolKeyResolution(reader.Compilation.ObjectType);
+                return new ResolvedSymbolInfo(reader.Compilation.ObjectType);
             }
         }
     }

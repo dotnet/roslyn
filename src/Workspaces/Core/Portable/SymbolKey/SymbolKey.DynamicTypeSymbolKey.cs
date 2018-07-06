@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Symbols
             {
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
-                return new SymbolKeyResolution(reader.Compilation.DynamicType);
+                return new ResolvedSymbolInfo(reader.Compilation.DynamicType);
             }
         }
     }

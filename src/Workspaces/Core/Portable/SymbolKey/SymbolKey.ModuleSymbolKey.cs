@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var resolvedContainingSymbol = reader.ReadSymbolKey();
 
                 var modules = GetModuleSymbols(resolvedContainingSymbol);
 
-                return SymbolKeyResolution.Create(modules);
+                return ResolvedSymbolInfo.Create(modules);
             }
 
-            private static ImmutableArray<IModuleSymbol> GetModuleSymbols(SymbolKeyResolution resolvedContainingSymbol)
+            private static ImmutableArray<IModuleSymbol> GetModuleSymbols(ResolvedSymbolInfo resolvedContainingSymbol)
             {
                 var result = ArrayBuilder<IModuleSymbol>.GetInstance();
 

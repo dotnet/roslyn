@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteSymbolKey(symbol.ReceiverType);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var resolvedReducedFrom = reader.ReadSymbolKey();
                 var resolvedReceivedType = reader.ReadSymbolKey();
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     }
                 }
 
-                return SymbolKeyResolution.Create(result.ToImmutableAndFree());
+                return ResolvedSymbolInfo.Create(result.ToImmutableAndFree());
             }
         }
     }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 visitor.WriteSymbolKeyArray(symbol.TypeArguments);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var resolvedConstructedFrom = reader.ReadSymbolKey();
                 var resolvedTypeArguments = reader.ReadSymbolKeyArray();
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     .GetAllSymbols<IMethodSymbol>()
                     .SelectAsArray(m => m.Construct(typeArguments));
 
-                return SymbolKeyResolution.Create(result);
+                return ResolvedSymbolInfo.Create(result);
             }
         }
     }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 visitor.PopMethod(symbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
                 var resolvedContainingSymbol = reader.ReadSymbolKey();
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     reader.PopMethod(methodOpt: null);
                 }
 
-                return SymbolKeyResolution.Create(result.ToImmutableAndFree());
+                return ResolvedSymbolInfo.Create(result.ToImmutableAndFree());
             }
 
             private static IMethodSymbol Resolve(

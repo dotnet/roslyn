@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return memberContainingDocument;
         }
 
-        private ISymbol GetResolvedSymbol(SymbolKeyResolution resolution, TextSpan span)
+        private ISymbol GetResolvedSymbol(ResolvedSymbolInfo resolution, TextSpan span)
         {
             if (resolution.CandidateReason == CandidateReason.Ambiguous)
             {

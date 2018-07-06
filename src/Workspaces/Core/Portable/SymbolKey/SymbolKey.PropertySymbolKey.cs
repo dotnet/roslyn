@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
                 var resolvedContainingSymbol = reader.ReadSymbolKey();
@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.Symbols
 
                 var properties = GetPropertySymbols(reader, metadataName, resolvedContainingSymbol, isIndexer, refKinds, originalParameterTypes);
 
-                return SymbolKeyResolution.Create(properties);
+                return ResolvedSymbolInfo.Create(properties);
             }
 
             private static ImmutableArray<IPropertySymbol> GetPropertySymbols(
                 SymbolKeyReader reader,
                 string metadataName,
-                SymbolKeyResolution resolvedContainingSymbol,
+                ResolvedSymbolInfo resolvedContainingSymbol,
                 bool isIndexer,
                 ImmutableArray<RefKind> refKinds,
                 ImmutableArray<ITypeSymbol> originalParameterTypes)

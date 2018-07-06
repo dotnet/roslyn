@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// <param name="ignoreAssemblyNames">If <see langword="true"/>, assembly names will be ignored while resolving
         /// this <see cref="SymbolKey"/>. The default value is false.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the process.</param>
-        public SymbolKeyResolution Resolve(
+        public ResolvedSymbolInfo Resolve(
             Compilation compilation,
             bool ignoreAssemblyNames = false,
             CancellationToken cancellationToken = default)
@@ -129,12 +129,12 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// from a compilation that has the exact same source as the given <paramref name="compilation"/>.
         /// Otherwise, the locations resolved may be incorrect in the final compilation.
         /// </summary>
-        internal SymbolKeyResolution ResolveWithLocations(
+        internal ResolvedSymbolInfo ResolveWithLocations(
             Compilation compilation,
             CancellationToken cancellationToken = default)
             => ResolveCore(EncodedSymbolData, compilation, ignoreAssemblyNames: false, resolveLocations: true, cancellationToken);
 
-        private static SymbolKeyResolution ResolveCore(
+        private static ResolvedSymbolInfo ResolveCore(
             string encodedSymbolData,
             Compilation compilation,
             bool ignoreAssemblyNames, bool resolveLocations,
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         private static bool NamesAreEqual(Compilation compilation, string name1, string name2)
             => string.Equals(name1, name2, compilation.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
-        private static ImmutableArray<INamedTypeSymbol> ConstructTypes(ImmutableArray<INamedTypeSymbol> types, ImmutableArray<SymbolKeyResolution> resolvedTypeArguments, int arity)
+        private static ImmutableArray<INamedTypeSymbol> ConstructTypes(ImmutableArray<INamedTypeSymbol> types, ImmutableArray<ResolvedSymbolInfo> resolvedTypeArguments, int arity)
         {
             if (arity == 0 || resolvedTypeArguments.IsDefault)
             {

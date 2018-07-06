@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
                 var resolvedContainingSymbol = reader.ReadSymbolKey();
@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Symbols
 
                 var types = GetNamedTypeSymbols(reader, metadataName, resolvedContainingSymbol, arity, typeKind, isUnboundGenericType, resolvedTypeArguments);
 
-                return SymbolKeyResolution.Create(types);
+                return ResolvedSymbolInfo.Create(types);
             }
 
-            private static ImmutableArray<INamedTypeSymbol> GetNamedTypeSymbols(SymbolKeyReader reader, string metadataName, SymbolKeyResolution resolvedContainingSymbol, int arity, TypeKind typeKind, bool isUnboundGenericType, ImmutableArray<SymbolKeyResolution> resolvedTypeArguments)
+            private static ImmutableArray<INamedTypeSymbol> GetNamedTypeSymbols(SymbolKeyReader reader, string metadataName, ResolvedSymbolInfo resolvedContainingSymbol, int arity, TypeKind typeKind, bool isUnboundGenericType, ImmutableArray<ResolvedSymbolInfo> resolvedTypeArguments)
             {
                 var result = ArrayBuilder<INamedTypeSymbol>.GetInstance();
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 writer.WriteLocation(symbol.Locations.FirstOrDefault());
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var isAnonymousDelegateType = reader.ReadBoolean();
                 var location = reader.ReadLocation();
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     symbol = anonymousDelegate;
                 }
 
-                return new SymbolKeyResolution(symbol);
+                return new ResolvedSymbolInfo(symbol);
             }
         }
     }

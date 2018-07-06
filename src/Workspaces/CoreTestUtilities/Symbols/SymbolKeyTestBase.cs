@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Symbols
         protected abstract string LanguageName { get; }
         protected abstract ParseOptions CreateParseOptions();
 
-        private async Task<(Document document, TSyntax syntax)> GetSyntaxAsync<TSyntax>(string code, string expected)
+        private async Task<(Document document, TSyntax syntax)> GetSyntaxAsync<TSyntax>(string code)
             where TSyntax : SyntaxNode
         {
             MarkupTestFile.GetPosition(code, out var output, out int position);
@@ -63,64 +62,78 @@ namespace Microsoft.CodeAnalysis.UnitTests.Symbols
             return (document, token.Parent.FirstAncestorOrSelf<TSyntax>());
         }
 
-        protected async Task AssertDeclaredSymbol<TSyntax>(string code, string expected, bool useNew = true)
+        private static string GetSymbolKey(ISymbol symbol, bool useNew)
+            => useNew
+                ? SymbolKeyBuilder.Create(symbol)
+                : SymbolKey.GetEncodedSymbolData(symbol);
+
+        protected async Task AssertSymbolKeyCreatedFromDeclaredSymbol<TSyntax>(string code, string expectedSymbolKey, bool useNew = true)
             where TSyntax : SyntaxNode
         {
-            var (document, syntax) = await GetSyntaxAsync<TSyntax>(code, expected);
+            var (document, syntax) = await GetSyntaxAsync<TSyntax>(code);
 
             var semanticModel = await document.GetSemanticModelAsync();
             var symbol = semanticModel.GetDeclaredSymbol(syntax);
+            var symbolKey = GetSymbolKey(symbol, useNew);
 
-            var encodedSymbolData = useNew
-                ? SymbolKeyWriter.Write(symbol, CancellationToken.None)
-                : SymbolKey.GetEncodedSymbolData(symbol);
-
-            Assert.Equal(expected, encodedSymbolData);
+            Assert.Equal(expectedSymbolKey, symbolKey);
         }
 
-        protected async Task AssertSymbol<TSyntax>(string code, string expected, bool useNew = true)
+        protected async Task AssertSymbolKeyCreatedFromSymbolInfo<TSyntax>(string code, string expectedSymbolKey, bool useNew = true)
             where TSyntax : SyntaxNode
         {
-            var (document, syntax) = await GetSyntaxAsync<TSyntax>(code, expected);
+            var (document, syntax) = await GetSyntaxAsync<TSyntax>(code);
 
             var semanticModel = await document.GetSemanticModelAsync();
             var symbol = semanticModel.GetSymbolInfo(syntax).Symbol;
+            var symbolKey = GetSymbolKey(symbol, useNew);
 
-            var encodedSymbolData = useNew
-                ? SymbolKeyWriter.Write(symbol, CancellationToken.None)
-                : SymbolKey.GetEncodedSymbolData(symbol);
-
-            Assert.Equal(expected, encodedSymbolData);
+            Assert.Equal(expectedSymbolKey, symbolKey);
         }
 
-        protected async Task AssertSymbol<TSyntax>(string code, string expected, Func<ISymbol, ISymbol> symbolFinder, bool useNew = true)
+        protected async Task AssertSymbolKeyCreatedFromSymbolInfo<TSyntax>(string code, string expectedSymbolKey, Func<ISymbol, ISymbol> symbolFinder, bool useNew = true)
             where TSyntax : SyntaxNode
         {
-            var (document, syntax) = await GetSyntaxAsync<TSyntax>(code, expected);
+            var (document, syntax) = await GetSyntaxAsync<TSyntax>(code);
 
             var semanticModel = await document.GetSemanticModelAsync();
             var symbol = symbolFinder(semanticModel.GetSymbolInfo(syntax).Symbol);
+            var symbolKey = GetSymbolKey(symbol, useNew);
 
-            var encodedSymbolData = useNew
-                ? SymbolKeyWriter.Write(symbol, CancellationToken.None)
-                : SymbolKey.GetEncodedSymbolData(symbol);
-
-            Assert.Equal(expected, encodedSymbolData);
+            Assert.Equal(expectedSymbolKey, symbolKey);
         }
 
-        protected async Task AssertType<TSyntax>(string code, string expected, bool useNew = true)
+        protected async Task AssertSymbolKeyCreatedFromTypeInfo<TSyntax>(string code, string expectedSymbolKey, bool useNew = true)
             where TSyntax : SyntaxNode
         {
-            var (document, syntax) = await GetSyntaxAsync<TSyntax>(code, expected);
+            var (document, syntax) = await GetSyntaxAsync<TSyntax>(code);
 
             var semanticModel = await document.GetSemanticModelAsync();
             var symbol = semanticModel.GetTypeInfo(syntax).Type;
+            var symbolKey = GetSymbolKey(symbol, useNew);
 
-            var encodedSymbolData = useNew
-                ? SymbolKeyWriter.Write(symbol, CancellationToken.None)
-                : SymbolKey.GetEncodedSymbolData(symbol);
+            Assert.Equal(expectedSymbolKey, symbolKey);
+        }
 
-            Assert.Equal(expected, encodedSymbolData);
+        protected async Task AssertSymbolKeyResolvesToDeclaredSymbol<TSyntax>(string code, string symbolKey)
+            where TSyntax : SyntaxNode
+        {
+            var (document, syntax) = await GetSyntaxAsync<TSyntax>(code);
+
+            var compilation = await document.Project.GetCompilationAsync();
+            var semanticModel = await document.GetSemanticModelAsync();
+            var symbol = semanticModel.GetDeclaredSymbol(syntax);
+
+            var resolvedSymbol = SymbolKeyResolver.Resolve(symbolKey, compilation);
+
+            Assert.Same(symbol, resolvedSymbol.Symbol);
+        }
+
+        protected async Task AssertSymbolKeyWithDeclaredSymbol<TSyntax>(string code, string symbolKey, bool useNew = true)
+            where TSyntax : SyntaxNode
+        {
+            await AssertSymbolKeyCreatedFromDeclaredSymbol<TSyntax>(code, symbolKey, useNew);
+            await AssertSymbolKeyResolvesToDeclaredSymbol<TSyntax>(code, symbolKey);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var name = reader.ReadString();
                 var resolvedContainer = reader.ReadSymbolKey();
@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var errorTypes = ResolveErrorTypes(reader, resolvedContainer, name, arity);
                 var constructedTypes = ConstructTypes(errorTypes, resolvedTypeArguments, arity);
 
-                return SymbolKeyResolution.Create(constructedTypes);
+                return ResolvedSymbolInfo.Create(constructedTypes);
             }
 
             private static ImmutableArray<INamedTypeSymbol> ResolveErrorTypes(
-                SymbolKeyReader reader, SymbolKeyResolution resolvedContainer, string name, int arity)
+                SymbolKeyReader reader, ResolvedSymbolInfo resolvedContainer, string name, int arity)
             {
                 var result = ArrayBuilder<INamedTypeSymbol>.GetInstance();
 

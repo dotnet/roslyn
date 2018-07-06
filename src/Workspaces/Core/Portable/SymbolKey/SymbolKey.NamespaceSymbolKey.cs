@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static ResolvedSymbolInfo Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
                 var isCompilationGlobalNamespace = reader.ReadBoolean();
@@ -60,15 +60,15 @@ namespace Microsoft.CodeAnalysis.Symbols
 
                 if (isCompilationGlobalNamespace)
                 {
-                    return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
+                    return new ResolvedSymbolInfo(reader.Compilation.GlobalNamespace);
                 }
 
                 var namespaces = GetNamespaceSymbols(resolvedContainingSymbol, metadataName);
 
-                return SymbolKeyResolution.Create(namespaces);
+                return ResolvedSymbolInfo.Create(namespaces);
             }
 
-            private static ImmutableArray<INamespaceSymbol> GetNamespaceSymbols(SymbolKeyResolution resolvedContainingSymbol, string metadataName)
+            private static ImmutableArray<INamespaceSymbol> GetNamespaceSymbols(ResolvedSymbolInfo resolvedContainingSymbol, string metadataName)
             {
                 var result = ArrayBuilder<INamespaceSymbol>.GetInstance();
 

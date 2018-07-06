@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
-    internal struct SymbolKeyResolution : IEquatable<SymbolKeyResolution>
+    internal struct ResolvedSymbolInfo : IEquatable<ResolvedSymbolInfo>
     {
         private readonly ImmutableArray<ISymbol> _candidateSymbols;
 
@@ -35,17 +35,17 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         public CandidateReason CandidateReason { get; }
 
-        internal SymbolKeyResolution(ISymbol symbol)
+        internal ResolvedSymbolInfo(ISymbol symbol)
             : this(symbol, ImmutableArray<ISymbol>.Empty, CandidateReason.None)
         {
         }
 
-        internal SymbolKeyResolution(ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
+        internal ResolvedSymbolInfo(ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
             : this(symbol: null, candidateSymbols, candidateReason)
         {
         }
 
-        private SymbolKeyResolution(ISymbol symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
+        private ResolvedSymbolInfo(ISymbol symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
             : this()
         {
             Symbol = symbol;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 ? ImmutableArray.Create(this.Symbol)
                 : _candidateSymbols.NullToEmpty();
 
-        internal static SymbolKeyResolution Create<TSymbol>(ImmutableArray<TSymbol> symbols)
+        internal static ResolvedSymbolInfo Create<TSymbol>(ImmutableArray<TSymbol> symbols)
             where TSymbol : ISymbol
         {
             if (symbols.IsDefaultOrEmpty)
@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.Symbols
             }
 
             return symbols.Length == 1
-                ? new SymbolKeyResolution(symbols[0])
-                : new SymbolKeyResolution(symbols.CastArray<ISymbol>(), CandidateReason.Ambiguous);
+                ? new ResolvedSymbolInfo(symbols[0])
+                : new ResolvedSymbolInfo(symbols.CastArray<ISymbol>(), CandidateReason.Ambiguous);
         }
 
         public override bool Equals(object obj)
-            => obj is SymbolKeyResolution && Equals((SymbolKeyResolution)obj);
+            => obj is ResolvedSymbolInfo && Equals((ResolvedSymbolInfo)obj);
 
-        public bool Equals(SymbolKeyResolution other)
+        public bool Equals(ResolvedSymbolInfo other)
             => object.Equals(this.Symbol, other.Symbol)
                 && ((_candidateSymbols.IsDefault && other._candidateSymbols.IsDefault) || _candidateSymbols.SequenceEqual(other._candidateSymbols))
                 && this.CandidateReason == other.CandidateReason;
