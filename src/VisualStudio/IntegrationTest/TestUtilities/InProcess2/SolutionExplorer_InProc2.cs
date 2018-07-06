@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -390,7 +391,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 // state believing a debugger session was active.
                 //
                 // This delay should be replaced with a proper wait condition once the correct one is determined.
-                await WaitForApplicationIdleAsync(CancellationToken.None);
+                var editAndContinueService = await GetComponentModelServiceAsync<IEditAndContinueService>();
+                do
+                {
+                    await Task.Yield();
+                }
+                while (editAndContinueService?.DebuggingSession != null);
             }
 
             await CloseSolutionAsync();
