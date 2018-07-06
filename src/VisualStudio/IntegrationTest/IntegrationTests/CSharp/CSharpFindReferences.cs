@@ -1,40 +1,38 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpFindReferences : AbstractEditorTest
+    public class CSharpFindReferences : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpFindReferences))
+        public CSharpFindReferences()
+            : base(nameof(CSharpFindReferences))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
-        public void FindReferencesToCtor()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        public async Task FindReferencesToCtorAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Program
 {
 }$$
 ");
-            var project = new ProjectUtils.Project(ProjectName); ;
-            VisualStudio.SolutionExplorer.AddFile(project, "File2.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "File2.cs");
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "File2.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "File2.cs");
 
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class SomeOtherClass
 {
     void M()
@@ -44,12 +42,12 @@ class SomeOtherClass
 }
 ");
 
-            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+            await VisualStudio.Editor.SendKeysAsync(Shift(VirtualKey.F12));
 
             const string programReferencesCaption = "'Program' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
+            var results = await VisualStudio.FindReferencesWindow.GetContentsAsync(programReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = await VisualStudio.Shell.GetActiveWindowCaptionAsync();
             Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
@@ -71,12 +69,12 @@ class SomeOtherClass
                 });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
-        public void FindReferencesToLocals()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        public async Task FindReferencesToLocalsAsync()
         {
-            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            using (var telemetry = await VisualStudio.VisualStudio.EnableTestTelemetryChannelAsync())
             {
-                SetUpEditor(@"
+                await SetUpEditorAsync(@"
 class Program
 {
     static void Main()
@@ -87,12 +85,12 @@ class Program
 }
 ");
 
-                VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+                await VisualStudio.Editor.SendKeysAsync(Shift(VirtualKey.F12));
 
                 const string localReferencesCaption = "'local' references";
-                var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
+                var results = await VisualStudio.FindReferencesWindow.GetContentsAsync(localReferencesCaption);
 
-                var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+                var activeWindowCaption = await VisualStudio.Shell.GetActiveWindowCaptionAsync();
                 Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
                 Assert.Collection(
@@ -113,14 +111,14 @@ class Program
                     }
                     });
 
-                telemetry.VerifyFired("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
+                await telemetry.VerifyFiredAsync("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
-        public void FindReferencesToString()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        public async Task FindReferencesToStringAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Program
 {
     static void Main()
@@ -130,12 +128,12 @@ class Program
 }
 ");
 
-            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+            await VisualStudio.Editor.SendKeysAsync(Shift(VirtualKey.F12));
 
             const string findReferencesCaption = "'\"1\"' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(findReferencesCaption);
+            var results = await VisualStudio.FindReferencesWindow.GetContentsAsync(findReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = await VisualStudio.Shell.GetActiveWindowCaptionAsync();
             Assert.Equal(expected: findReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(

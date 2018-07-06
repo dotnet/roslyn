@@ -23,7 +23,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             Editor = new Editor_InProc2(this);
             EncapsulateField = new EncapsulateField_InProc2(this);
             ErrorList = new ErrorList_InProc2(this);
+            FindReferencesWindow = new FindReferencesWindow_InProc2(this);
             PreviewChangesDialog = new PreviewChangesDialog_InProc2(this);
+            Shell = new Shell_InProc2(this);
 
             ChangeSignatureDialog = new ChangeSignatureDialog_InProc2(this);
         }
@@ -63,6 +65,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             get;
         }
 
+        public FindReferencesWindow_InProc2 FindReferencesWindow
+        {
+            get;
+        }
+
         public CSharpInteractiveWindow_InProc2 InteractiveWindow
         {
             get;
@@ -79,6 +86,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public SendKeys_InProc2 SendKeys
+        {
+            get;
+        }
+
+        public Shell_InProc2 Shell
         {
             get;
         }
