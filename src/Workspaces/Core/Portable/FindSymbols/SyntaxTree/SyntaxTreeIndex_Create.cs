@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsElementAccess = false;
                 var containsIndexerMemberCref = false;
                 var containsDeconstruction = false;
+                var containsAwait = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -95,6 +96,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                             containsDeconstruction = containsDeconstruction || syntaxFacts.IsDeconstructionAssignment(node)
                                 || syntaxFacts.IsDeconstructionForEachStatement(node);
+
+                            containsAwait = containsAwait || syntaxFacts.IsAwaitExpression(node);
 
                             // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
                             // crash because the document's syntax root doesn't contain the span of the node returned
@@ -203,7 +206,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsBaseConstructorInitializer,
                             containsElementAccess,
                             containsIndexerMemberCref,
-                            containsDeconstruction),
+                            containsDeconstruction,
+                            containsAwait),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutableAndFree()));
             }

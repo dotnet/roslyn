@@ -279,7 +279,6 @@ class C
 }
 ";
 
-            // Affected by https://github.com/dotnet/roslyn/issues/25268
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -352,22 +351,42 @@ Block[B1] - Block
                                                         Block[B0#A1] - Entry
                                                             Statements (0)
                                                             Next (Regular) Block[B1#A1]
-                                                        Block[B1#A1] - Block
-                                                            Predecessors: [B0#A1]
-                                                            Statements (0)
-                                                            Next (Return) Block[B2#A1]
-                                                                IObjectCreationOperation (Constructor: <anonymous type: System.Int32 x, System.String y>..ctor(System.Int32 x, System.String y)) (OperationKind.ObjectCreation, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'from y in b')
-                                                                  Arguments(2):
-                                                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'from y in b')
+                                                                Entering: {R1#A1}
+
+                                                        .locals {R1#A1}
+                                                        {
+                                                            CaptureIds: [0] [1]
+                                                            Block[B1#A1] - Block
+                                                                Predecessors: [B0#A1]
+                                                                Statements (2)
+                                                                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'from y in b')
+                                                                      Value: 
                                                                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'from y in b')
-                                                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'from y in b')
+
+                                                                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'from y in b')
+                                                                      Value: 
                                                                         IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'from y in b')
-                                                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                  Initializer: 
-                                                                    null
+
+                                                                Next (Return) Block[B2#A1]
+                                                                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'from y in b')
+                                                                      Initializers(2):
+                                                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'from y in b ... select 0')
+                                                                            Left: 
+                                                                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.String y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'from y in b')
+                                                                                Instance Receiver: 
+                                                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'from y in b')
+                                                                            Right: 
+                                                                              IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'from y in b')
+                                                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'from y in b ... select 0')
+                                                                            Left: 
+                                                                              IPropertyReferenceOperation: System.String <anonymous type: System.Int32 x, System.String y>.y { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'from y in b')
+                                                                                Instance Receiver: 
+                                                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'from y in b')
+                                                                            Right: 
+                                                                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'from y in b')
+                                                                    Leaving: {R1#A1}
+                                                        }
+
                                                         Block[B2#A1] - Exit
                                                             Predecessors: [B1#A1]
                                                             Statements (0)
@@ -454,7 +473,6 @@ class C
     }/*</bind>*/
 }
 ";
-            // Affected by https://github.com/dotnet/roslyn/issues/25268
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -504,22 +522,42 @@ Block[B1] - Block
                                                         Block[B0#A0] - Entry
                                                             Statements (0)
                                                             Next (Regular) Block[B1#A0]
-                                                        Block[B1#A0] - Block
-                                                            Predecessors: [B0#A0]
-                                                            Statements (0)
-                                                            Next (Return) Block[B2#A0]
-                                                                IObjectCreationOperation (Constructor: <anonymous type: System.Int32 x, System.Int32 y>..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreation, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'let y = x')
-                                                                  Arguments(2):
-                                                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'let y = x')
+                                                                Entering: {R1#A0}
+
+                                                        .locals {R1#A0}
+                                                        {
+                                                            CaptureIds: [0] [1]
+                                                            Block[B1#A0] - Block
+                                                                Predecessors: [B0#A0]
+                                                                Statements (2)
+                                                                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'let y = x')
+                                                                      Value: 
                                                                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'let y = x')
-                                                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+
+                                                                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                                                                      Value: 
                                                                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                                                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                  Initializer: 
-                                                                    null
+
+                                                                Next (Return) Block[B2#A0]
+                                                                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'let y = x')
+                                                                      Initializers(2):
+                                                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'let y = x ... select 0')
+                                                                            Left: 
+                                                                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'let y = x')
+                                                                                Instance Receiver: 
+                                                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'let y = x')
+                                                                            Right: 
+                                                                              IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'let y = x')
+                                                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'let y = x')
+                                                                            Left: 
+                                                                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.y { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                                                Instance Receiver: 
+                                                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'let y = x')
+                                                                            Right: 
+                                                                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                                    Leaving: {R1#A0}
+                                                        }
+
                                                         Block[B2#A0] - Exit
                                                             Predecessors: [B1#A0]
                                                             Statements (0)
