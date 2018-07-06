@@ -1567,5 +1567,8 @@ internal struct NewStruct
 }";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        protected override ParseOptions GetScriptOptions()
+            => null;
     }
 }
