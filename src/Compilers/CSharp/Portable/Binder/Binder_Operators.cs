@@ -3523,12 +3523,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // underlying non-nullable type of A).
             TypeSymbol leftType = leftOperand.Type;
             Debug.Assert(leftType != null);
-            TypeSymbol optRightType = rightOperand.Type;
-            bool rightTypeIsNonNull = !(optRightType is null);
-            bool isLeftNullable = leftType.IsNullableType();
 
             // If A is not a nullable type or reference type, a compile-time error occurs
-            if (!leftType.IsReferenceType && !isLeftNullable)
+            if (!leftType.IsReferenceType && !leftType.IsNullableType())
             {
                 return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
             }
@@ -3549,7 +3546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        BoundExpression GenerateNullCoalescingAssignmentBadBinaryOpsError(AssignmentExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, DiagnosticBag diagnostics)
+        private BoundExpression GenerateNullCoalescingAssignmentBadBinaryOpsError(AssignmentExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, DiagnosticBag diagnostics)
         {
             Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
             return new BoundNullCoalesingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);

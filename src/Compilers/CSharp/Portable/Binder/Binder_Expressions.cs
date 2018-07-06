@@ -643,6 +643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var binaryParent = (BinaryExpressionSyntax)parent;
                         return node == binaryParent.Right;
                     }
+                case SyntaxKind.CoalesceAssignmentExpression: // ??=
+                    {
+                        var assignmentParent = (AssignmentExpressionSyntax)parent;
+                        return node == assignmentParent.Right;
+                    }
                 case SyntaxKind.ArrowExpressionClause:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:

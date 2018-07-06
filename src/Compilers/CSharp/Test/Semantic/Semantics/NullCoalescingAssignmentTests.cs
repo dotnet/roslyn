@@ -1289,41 +1289,32 @@ public class C
         C c;
         c ??= new C();
 
-        object x;
-        object y;
-        GetC(x = 1).F ??= (y = 2);
-        x.ToString();
-        y.ToString();
+        object x1;
+        object y1;
+        GetC(x1 = 1).Prop ??= (y1 = 2);
+        x1.ToString();
+        y1.ToString();
+
+        object x2;
+        object y2;
+        GetC(x2 = 1).Field ??= (y2 = 2);
+        x2.ToString();
+        y2.ToString();
     }
     static C GetC(object i) => null;
-    object F { get; set; }
+    object Prop { get; set; }
+    object Field;
 }").VerifyDiagnostics(
                 // (7,9): error CS0165: Use of unassigned local variable 'c'
                 //         c ??= new C();
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(7, 9),
-                // (13,9): error CS0165: Use of unassigned local variable 'y'
-                //         y.ToString();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(13, 9)
+                // (13,9): error CS0165: Use of unassigned local variable 'y1'
+                //         y1.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(13, 9),
+                // (19,9): error CS0165: Use of unassigned local variable 'y2'
+                //         y2.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(19, 9)
             );
-
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
-            var conditionalAssignment = tree.GetRoot().DescendantNodes()
-                                                      .OfType<AssignmentExpressionSyntax>()
-                                                      .Where(expr => expr.IsKind(SyntaxKind.CoalesceAssignmentExpression))
-                                                      .Skip(1)
-                                                      .Single();
-
-            var yDeclaration = tree.GetRoot().DescendantNodes()
-                                             .OfType<VariableDeclaratorSyntax>()
-                                             .Where(decl => decl.Identifier.Text == "y")
-                                             .Single();
-            var ySymbol = semanticModel.GetDeclaredSymbol(yDeclaration);
-
-            var flowAnalysis = semanticModel.AnalyzeDataFlow(conditionalAssignment);
-            Assert.True(flowAnalysis.Succeeded);
-            Assert.Contains(ySymbol, flowAnalysis.WrittenInside);
-            Assert.DoesNotContain(ySymbol, flowAnalysis.AlwaysAssigned);
         }
 
         [Fact]
@@ -1342,6 +1333,76 @@ public class C
                 //         P ??= new C();
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "P").WithArguments("C.P").WithLocation(7, 9)
             );
+        }
+
+        [Fact]
+        public void ThrowExpressionRHS()
+        {
+            CompileAndVerify(@"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        try
+        {
+            object o = null;
+            o ??= throw new Exception();
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""Succeeded"");
+        }
+    }
+}
+", expectedOutput: "Succeeded");
+
+            CreateCompilation(@"
+public class C
+{
+    static object Property { get; }
+    public static void Main()
+    {
+        Property ??= throw null;
+    }
+}
+").VerifyDiagnostics(
+                // (7,9): error CS0200: Property or indexer 'C.Property' cannot be assigned to -- it is read only
+                //         Property ??= throw null;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property").WithArguments("C.Property").WithLocation(7, 9)
+            );
+        }
+
+        [Fact]
+        public void TypeParameterLHS()
+        {
+            CreateCompilation(@"
+class C
+{
+    void M<T>(T t)
+    {
+        t ??= default;
+    }
+}
+").VerifyDiagnostics(
+                // (6,9): error CS0019: Operator '??=' cannot be applied to operands of type 'T' and 'default'
+                //         t ??= default;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t ??= default").WithArguments("??=", "T", "default").WithLocation(6, 9)
+            );
+
+            CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Verify<object>(null, ""Assignment Evaluated"");
+    }
+    static void Verify<T>(T t1, T t2) where T : class
+    {
+        Console.WriteLine(t1 ??= t2);
+    }
+}", expectedOutput: "Assignment Evaluated");
         }
     }
 }
