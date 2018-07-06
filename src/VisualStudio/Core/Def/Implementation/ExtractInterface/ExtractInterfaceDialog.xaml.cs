@@ -138,5 +138,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 item.IsChecked = !allChecked;
             }
         }
+
+        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly ExtractInterfaceDialog _dialog;
+
+            public TestAccessor(ExtractInterfaceDialog dialog)
+            {
+                _dialog = dialog;
+            }
+
+            public Button OKButton => _dialog.OKButton;
+
+            public Button CancelButton => _dialog.CancelButton;
+
+            public Button SelectAllButton => _dialog.SelectAllButton;
+
+            public Button DeselectAllButton => _dialog.DeselectAllButton;
+
+            public TextBox FileNameTextBox => _dialog.fileNameTextBox;
+
+            public ListView Members => _dialog.Members;
+        }
     }
 }

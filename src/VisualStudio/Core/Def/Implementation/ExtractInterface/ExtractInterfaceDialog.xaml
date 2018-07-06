@@ -109,6 +109,7 @@
                 </u:AutomationDelegatingListView>
                 <StackPanel Grid.Column="1">
                     <Button x:Uid="SelectAllButton"
+                            Name="SelectAllButton"
                             Content="{Binding ElementName=dialog, Path=SelectAll}" 
                             Margin="2, 9, 9, 7" 
                             Click="Select_All_Click" 
@@ -116,6 +117,7 @@
                             MinWidth="73"
                             MinHeight="21"/>
                     <Button x:Uid="DeselectAllButton"
+                            Name="DeselectAllButton"
                             Content="{Binding ElementName=dialog, Path=DeselectAll}" 
                             Margin="2, 0, 9, 0"
                             Padding="{StaticResource ResourceKey=selectDeselectButtonPadding}"
@@ -130,6 +132,7 @@
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal">
             <Button x:Uid="OkButton" 
+                    Name="OKButton"
                     Content="{Binding ElementName=dialog, Path=OK}" 
                     Margin="0, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
@@ -137,7 +140,8 @@
                     IsDefault="True"
                     MinWidth="73"
                     MinHeight="21"/>
-            <Button x:Uid="CancelButton" 
+            <Button x:Uid="CancelButton"
+                    Name="CancelButton"
                     Content="{Binding ElementName=dialog, Path=Cancel}"
                     Margin="7, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"

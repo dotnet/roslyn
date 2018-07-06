@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             Editor = new Editor_InProc2(this);
             EncapsulateField = new EncapsulateField_InProc2(this);
             ErrorList = new ErrorList_InProc2(this);
+            ExtractInterfaceDialog = new ExtractInterfaceDialog_InProc2(this);
             FindReferencesWindow = new FindReferencesWindow_InProc2(this);
             ImmediateWindow = new ImmediateWindow_InProc2(this);
             PreviewChangesDialog = new PreviewChangesDialog_InProc2(this);
@@ -62,6 +63,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public ErrorList_InProc2 ErrorList
+        {
+            get;
+        }
+
+        public ExtractInterfaceDialog_InProc2 ExtractInterfaceDialog
         {
             get;
         }

@@ -1,143 +1,149 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpExtractInterfaceDialog : AbstractEditorTest
+    public class CSharpExtractInterfaceDialog : AbstractIdeEditorTest
     {
+        public CSharpExtractInterfaceDialog()
+            : base(nameof(CSharpExtractInterfaceDialog))
+        {
+        }
+
         protected override string LanguageName => LanguageNames.CSharp;
 
-        private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
+        private ExtractInterfaceDialog_InProc2 ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
 
-        public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpExtractInterfaceDialog))
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public async Task VerifyCancellationAsync()
         {
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void VerifyCancellation()
-        {
-            SetUpEditor(@"class C$$
+            await SetUpEditorAsync(@"class C$$
 {
     public void M() { }
 }
 ");
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            ExtractInterfaceDialog.VerifyOpen();
-            ExtractInterfaceDialog.ClickCancel();
-            ExtractInterfaceDialog.VerifyClosed();
+            await ExtractInterfaceDialog.VerifyOpenAsync();
+            await ExtractInterfaceDialog.ClickCancelAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync();
 
-            VisualStudio.Editor.Verify.TextContains(@"class C
+            await codeAction;
+
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"class C
 {
     public void M() { }
 }
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void CheckFileName()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public async Task CheckFileNameAsync()
         {
-            SetUpEditor(@"class C$$
+            await SetUpEditorAsync(@"class C$$
 {
     public void M() { }
 }
 ");
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            ExtractInterfaceDialog.VerifyOpen();
+            await ExtractInterfaceDialog.VerifyOpenAsync();
 
-            var targetFileName = ExtractInterfaceDialog.GetTargetFileName();
+            var targetFileName = await ExtractInterfaceDialog.GetTargetFileNameAsync();
             Assert.Equal(expected: "IC.cs", actual: targetFileName);
 
-            ExtractInterfaceDialog.ClickCancel();
-            ExtractInterfaceDialog.VerifyClosed();
+            await ExtractInterfaceDialog.ClickCancelAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync();
+
+            await codeAction;
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void VerifySelectAndDeselectAllButtons()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public async Task VerifySelectAndDeselectAllButtonsAsync()
         {
-            SetUpEditor(@"class C$$
+            await SetUpEditorAsync(@"class C$$
 {
     public void M1() { }
     public void M2() { }
 }
 ");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            ExtractInterfaceDialog.VerifyOpen();
+            await ExtractInterfaceDialog.VerifyOpenAsync();
 
-            var selectedItems = ExtractInterfaceDialog.GetSelectedItems();
+            var selectedItems = await ExtractInterfaceDialog.GetSelectedItemsAsync();
             Assert.Equal(
                 expected: new[] { "M1()", "M2()" },
                 actual: selectedItems);
 
-            ExtractInterfaceDialog.ClickDeselectAll();
+            await ExtractInterfaceDialog.ClickDeselectAllAsync();
 
-            selectedItems = ExtractInterfaceDialog.GetSelectedItems();
+            selectedItems = await ExtractInterfaceDialog.GetSelectedItemsAsync();
             Assert.Empty(selectedItems);
 
-            ExtractInterfaceDialog.ClickSelectAll();
+            await ExtractInterfaceDialog.ClickSelectAllAsync();
 
-            selectedItems = ExtractInterfaceDialog.GetSelectedItems();
+            selectedItems = await ExtractInterfaceDialog.GetSelectedItemsAsync();
             Assert.Equal(
                 expected: new[] { "M1()", "M2()" },
                 actual: selectedItems);
 
-            ExtractInterfaceDialog.ClickCancel();
-            ExtractInterfaceDialog.VerifyClosed();
+            await ExtractInterfaceDialog.ClickCancelAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync();
+
+            await codeAction;
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void OnlySelectedItemsAreGenerated()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public async Task OnlySelectedItemsAreGeneratedAsync()
         {
-            SetUpEditor(@"class C$$
+            await SetUpEditorAsync(@"class C$$
 {
     public void M1() { }
     public void M2() { }
 }
 ");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            ExtractInterfaceDialog.VerifyOpen();
-            ExtractInterfaceDialog.ClickDeselectAll();
-            ExtractInterfaceDialog.ToggleItem("M2()");
-            ExtractInterfaceDialog.ClickOK();
-            ExtractInterfaceDialog.VerifyClosed();
+            await ExtractInterfaceDialog.VerifyOpenAsync();
+            await ExtractInterfaceDialog.ClickDeselectAllAsync();
+            await ExtractInterfaceDialog.ToggleItemAsync("M2()");
+            await ExtractInterfaceDialog.ClickOkAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync();
 
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            VisualStudio.Editor.Verify.TextContains(@"class C : IC
+            await codeAction;
+
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"class C : IC
 {
     public void M1() { }
     public void M2() { }
 }
 ");
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "IC.cs");
-            VisualStudio.Editor.Verify.TextContains(@"interface IC
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "IC.cs");
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"interface IC
 {
     void M2();
 }");

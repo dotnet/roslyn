@@ -124,8 +124,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await VisualStudio.ChangeSignatureDialog.CloseWindowAsync();
 #if false
             VisualStudio.GenerateTypeDialog.CloseWindow();
-            VisualStudio.ExtractInterfaceDialog.CloseWindow();
 #endif
+            await VisualStudio.ExtractInterfaceDialog.CloseWindowAsync();
         }
 
         protected KeyPress Ctrl(VirtualKey virtualKey)

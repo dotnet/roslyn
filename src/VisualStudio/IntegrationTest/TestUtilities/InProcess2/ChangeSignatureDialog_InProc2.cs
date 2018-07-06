@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 while (true)
                 {
                     cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                    var window = Application.Current.Windows.OfType<ChangeSignatureDialog>().SingleOrDefault();
+                    var window = await TryGetDialogAsync();
                     if (window is null)
                     {
                         return;
