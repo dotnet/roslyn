@@ -8,6 +8,7 @@
   
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
+    <StrongNameKeyId>MicrosoftShared</StrongNameKeyId>
     <ChecksumAlgorithm>SHA256</ChecksumAlgorithm>
     <HighEntropyVA>true</HighEntropyVA>
     <NeutralLanguage>en-US</NeutralLanguage>

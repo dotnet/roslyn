@@ -25,7 +25,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToRazor Include="Microsoft.CodeAnalysis.Remote.Razor" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Remote\JsonRpcMessageHandler.cs">

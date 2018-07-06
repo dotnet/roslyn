@@ -12,8 +12,8 @@
   <Import Project="RepoToolset\Localization.targets" />
   <Import Project="RepoToolset\StrongName.targets" />
   <Import Project="RepoToolset\SymStore.targets" />
+  <Import Project="RepoToolset\GenerateInternalsVisibleTo.targets" />
   <Import Project="VisualStudio.targets"/>
-  <Import Project="GenerateInternalsVisibleTo.targets" />
   <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
 
   <PropertyGroup>
