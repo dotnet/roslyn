@@ -13,6 +13,8 @@
   <Import Project="RepoToolset\StrongName.targets" />
   <Import Project="RepoToolset\SymStore.targets" />
   <Import Project="VisualStudio.targets"/>
+  <Import Project="GenerateInternalsVisibleTo.targets" />
+  <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
 
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
@@ -21,7 +23,6 @@
          but gets included in lots of output items like VSIX. -->
     <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0'">false</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
-
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetNetFX20)' == 'true'">
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
@@ -58,10 +59,20 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="GenerateAssemblyInfo.targets" Condition="'$(Language)' == 'C#' or '$(Language)' == 'VB'" />
-  <Import Project="GenerateInternalsVisibleTo.targets" />
-
-  <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
+  <!--
+    Chain before the .NET Core SDK GetAssemblyAttributes target to add the additional attribute.
+  -->
+  <Target Name="_AddCommitHashAttribute"
+          DependsOnTargets="InitializeSourceControlInformation"
+          BeforeTargets="GetAssemblyAttributes"
+          Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true'">
+    <ItemGroup>
+      <AssemblyAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
+        <_Parameter1 Condition="'$(OfficialBuild)' == 'true'">$(SourceRevisionId)</_Parameter1>
+        <_Parameter1 Condition="'$(OfficialBuild)' != 'true'">&lt;developer build&gt;</_Parameter1>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
 
   <PropertyGroup>
     <PrepareForBuildDependsOn>RestoreToolsetCheck;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
