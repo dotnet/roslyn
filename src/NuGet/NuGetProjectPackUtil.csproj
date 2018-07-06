@@ -16,6 +16,7 @@
     <OutputType>Library</OutputType>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecFile></NuspecFile>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <Target Name="_InitializeNuspecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="InitializeSourceControlInformation">
     <PropertyGroup>
