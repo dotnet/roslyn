@@ -493,17 +493,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb);
         }
 
-#if false
         /// <summary>
-        /// Invokes the lightbulb without waiting for diagnostics
-        /// Compare to <see cref="InvokeCodeActionList"/>
+        /// Invokes the light bulb without waiting for diagnostics
+        /// Compare to <see cref="InvokeCodeActionListAsync"/>
         /// </summary>
-        public void InvokeCodeActionListWithoutWaiting()
+        public async Task InvokeCodeActionListWithoutWaitingAsync()
         {
-            ShowLightBulb();
-            WaitForLightBulbSession();
+            await ShowLightBulbAsync();
+            await WaitForLightBulbSessionAsync();
         }
-#endif
 
         public async Task InvokeQuickInfoAsync()
         {

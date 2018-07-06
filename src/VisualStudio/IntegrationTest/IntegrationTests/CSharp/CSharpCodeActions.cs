@@ -3,40 +3,39 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpCodeActions : AbstractEditorTest
+    public class CSharpCodeActions : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpCodeActions(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpCodeActions))
+        public CSharpCodeActions()
+            : base(nameof(CSharpCodeActions))
         {
         }
 
-        [WpfFact(Skip="https://github.com/dotnet/roslyn/issues/26204"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void GenerateMethodInClosedFile()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task GenerateMethodInClosedFileAsync()
         {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "Foo.cs", contents: @"
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "Foo.cs", contents: @"
 public class Foo
 {
 }
 ");
 
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 using System;
 
 public class Program
@@ -49,9 +48,9 @@ public class Program
 }
 ");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate method 'Foo.Bar'", applyFix: true);
-            VisualStudio.SolutionExplorer.Verify.FileContents(project, "Foo.cs", @"
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate method 'Foo.Bar'", applyFix: true);
+            VisualStudio.SolutionExplorer.Verify.FileContents(ProjectName, "Foo.cs", @"
 using System;
 
 public class Foo
@@ -64,15 +63,15 @@ public class Foo
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public void FastDoubleInvoke()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task FastDoubleInvokeAsync()
         {
             // We want to invoke the first smart tag and then *immediately * try invoking the next.
             // The next will happen to be the 'Simplify name' smart tag.  We should be able
             // to get it to invoke without any sort of waiting to happen.  This helps address a bug
             // we had where our asynchronous smart tags interfered with asynchrony in VS, which caused
             // the second smart tag to not expand if you tried invoking it too quickly
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -81,12 +80,12 @@ class Program
     }
 }
 ");
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("using System;", applyFix: true, blockUntilComplete: true);
-            VisualStudio.Editor.InvokeCodeActionListWithoutWaiting();
-            VisualStudio.Editor.Verify.CodeAction("Simplify name 'System.ArgumentException'", applyFix: true, blockUntilComplete: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync("using System;", applyFix: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.InvokeCodeActionListWithoutWaitingAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync("Simplify name 'System.ArgumentException'", applyFix: true, willBlockUntilComplete: true);
 
-            VisualStudio.Editor.Verify.TextContains(
+            await VisualStudio.Editor.Verify.TextContainsAsync(
                 @"
 using System;
 
@@ -99,8 +98,8 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void InvokeDelegateWithConditionalAccessMultipleTimes()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task InvokeDelegateWithConditionalAccessMultipleTimesAsync()
         {
             var markup = @"
 using System;
@@ -128,22 +127,22 @@ class C
 
             MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
 
-            SetUpEditor(markup);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
-            VisualStudio.Editor.PlaceCaret("temp2", 0, 0, extendSelection: false, selectBlock: false);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
-            VisualStudio.Editor.Verify.TextContains("First?.");
-            VisualStudio.Editor.Verify.TextContains("Second?.");
+            await SetUpEditorAsync(markup);
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.PlaceCaretAsync("temp2", 0, 0, extendSelection: false, selectBlock: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.Verify.TextContainsAsync("First?.");
+            await VisualStudio.Editor.Verify.TextContainsAsync("Second?.");
         }
 
-        [WpfFact]
+        [IdeFact]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
         [WorkItem(19089, "https://github.com/dotnet/roslyn/issues/19089")]
-        public void ApplyEditorConfigAndFixAllOccurrences()
+        public async Task ApplyEditorConfigAndFixAllOccurrencesAsync()
         {
             var markup = @"
 class C
@@ -181,10 +180,10 @@ class C
 }";
 
             // CodingConventions only sends notifications if a file is open for all directories in the project
-            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), @"Properties\AssemblyInfo.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, @"Properties\AssemblyInfo.cs");
 
             // Switch back to the main document we'll be editing
-            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
 
             /*
              * The first portion of this test adds a .editorconfig file to configure the analyzer behavior, and verifies
@@ -193,9 +192,9 @@ class C
              */
 
             MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
-            SetUpEditor(markup);
-            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
-            VisualStudio.Editor.Verify.CodeActionsNotShowing();
+            await SetUpEditorAsync(markup);
+            await VisualStudio.VisualStudio.WaitForApplicationIdleAsync(CancellationToken.None);
+            await VisualStudio.Editor.Verify.CodeActionsNotShowingAsync();
 
             var editorConfig = @"root = true
 
@@ -203,21 +202,21 @@ class C
 csharp_style_expression_bodied_properties = true:warning
 ";
 
-            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", editorConfig, open: false);
 
             // Wait for CodingConventions library events to propagate to the workspace
-            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            await VisualStudio.VisualStudio.WaitForApplicationIdleAsync(CancellationToken.None);
+            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction(
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync(
                 "Use expression body for properties",
                 applyFix: true,
                 fixAllScope: FixAllScope.Project);
 
-            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+            Assert.Equal(expectedText, await VisualStudio.Editor.GetTextAsync());
 
             /*
              * The second portion of this test modifier the existing .editorconfig file to configure the analyzer to the
@@ -226,16 +225,16 @@ csharp_style_expression_bodied_properties = true:warning
              * outcome for the modified .editorconfig style.
              */
 
-            VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
+            VisualStudio.SolutionExplorer.SetFileContents(ProjectName, ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
 
             // Wait for CodingConventions library events to propagate to the workspace
-            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            await VisualStudio.VisualStudio.WaitForApplicationIdleAsync(CancellationToken.None);
+            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction(
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync(
                 "Use block body for properties",
                 applyFix: true,
                 fixAllScope: FixAllScope.Project);
@@ -276,13 +275,13 @@ class C
     }
 }";
 
-            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+            Assert.Equal(expectedText, await VisualStudio.Editor.GetTextAsync());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void ClassificationInPreviewPane()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task ClassificationInPreviewPaneAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 class Program
 {
     int Main()
@@ -290,15 +289,15 @@ class Program
         Foo$$();
     }
 }");
-            VisualStudio.Editor.InvokeCodeActionList();
-            var classifiedTokens = GetLightbulbPreviewClassification("Generate method 'Program.Foo'");
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var classifiedTokens = await GetLightbulbPreviewClassificationAsync("Generate method 'Program.Foo'");
             Assert.True(classifiedTokens.Any(c => c.Text == "void" && c.Classification == "keyword"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public void AddUsingExactMatchBeforeRenameTracking()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task AddUsingExactMatchBeforeRenameTrackingAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 public class Program
 {
     static void Main(string[] args)
@@ -309,9 +308,9 @@ public class Program
 
 public class P2 { }");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Backspace, VirtualKey.Backspace, "Stream");
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Backspace, VirtualKey.Backspace, "Stream");
 
-            VisualStudio.Editor.InvokeCodeActionList();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
             var expectedItems = new[]
             {
                 "using System.IO;",
@@ -325,14 +324,14 @@ public class P2 { }");
                 "in Source"
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
-            VisualStudio.Editor.Verify.TextContains("using System.IO;");
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.TextContainsAsync("using System.IO;");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GFUFuzzyMatchAfterRenameTracking()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GFUFuzzyMatchAfterRenameTrackingAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 namespace N
 {
     class Goober { }
@@ -348,10 +347,10 @@ namespace NS
         }
     }
 }");
-            VisualStudio.Editor.SendKeys(VirtualKey.Backspace, VirtualKey.Backspace,
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Backspace, VirtualKey.Backspace,
                 "Foober");
 
-            VisualStudio.Editor.InvokeCodeActionList();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
             var expectedItems = new[]
             {
                 "Rename 'P2' to 'Foober'",
@@ -365,13 +364,13 @@ namespace NS
                 "in Source",
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public void SuppressionAfterRefactorings()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task SuppressionAfterRefactoringsAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 [System.Obsolete]
 class C
 {
@@ -383,9 +382,9 @@ class Program
         C p = $$2;
     }
 }");
-            VisualStudio.Editor.SelectTextInCurrentDocument("2");
+            await VisualStudio.Editor.SelectTextInCurrentDocumentAsync("2");
 
-            VisualStudio.Editor.InvokeCodeActionList();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
 
             var generateImplicitTitle = "Generate implicit conversion operator in 'C'";
             var expectedItems = new[]
@@ -400,14 +399,14 @@ class Program
                 "in Source",
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: generateImplicitTitle, ensureExpectedItemsAreOrdered: true);
-            VisualStudio.Editor.Verify.TextContains("implicit");
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: generateImplicitTitle, ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.TextContainsAsync("implicit");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public void OrderFixesByCursorProximityLeft()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task OrderFixesByCursorProximityLeftAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 using System;
 public class Program
 {
@@ -417,21 +416,21 @@ public class Program
         GCHandle$$ handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
     }
 }");
-            VisualStudio.Editor.InvokeCodeActionList();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
             var expectedItems = new[]
             {
                 "using System.Runtime.InteropServices;",
                 "System.Runtime.InteropServices.GCHandle"
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
-            VisualStudio.Editor.Verify.TextContains("using System.Runtime.InteropServices");
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.TextContainsAsync("using System.Runtime.InteropServices");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public void OrderFixesByCursorProximityRight()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task OrderFixesByCursorProximityRightAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 using System;
 public class Program
 {
@@ -441,15 +440,15 @@ public class Program
         GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.$$Pinned);
     }
 }");
-            VisualStudio.Editor.InvokeCodeActionList();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
             var expectedItems = new[]
             {
                 "using System.Runtime.InteropServices;",
                 "System.Runtime.InteropServices.GCHandle"
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
-            VisualStudio.Editor.Verify.TextContains("using System.Runtime.InteropServices");
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.TextContainsAsync("using System.Runtime.InteropServices");
 
         }
     }
