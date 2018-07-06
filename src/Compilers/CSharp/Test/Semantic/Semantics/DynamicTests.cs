@@ -979,15 +979,15 @@ public class C
 using System;
 class DynamicTest
 {
-	public int Property
-	{
-		get {
-			Console.WriteLine(""get_Property"");
+    public int Property
+    {
+        get {
+            Console.WriteLine(""get_Property"");
             return 0;
         }
         set {
-			Console.WriteLine(""set_Property"");
-		}
+            Console.WriteLine(""set_Property"");
+        }
     }
 
     static dynamic GetDynamic()
