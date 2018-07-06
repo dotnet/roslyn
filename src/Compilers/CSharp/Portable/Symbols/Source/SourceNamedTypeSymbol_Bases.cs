@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
         /// </summary>
-        internal sealed override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute = false)
+        internal sealed override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
         {
             if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // to make base resolution errors more deterministic
                 if ((object)ContainingType != null)
                 {
-                    var tmp = ContainingType.GetBaseTypeNoUseSiteDiagnostics();
+                    var tmp = ContainingType.BaseTypeNoUseSiteDiagnostics;
                 }
 
                 var diagnostics = DiagnosticBag.GetInstance();
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void CheckBase(DiagnosticBag diagnostics)
         {
-            var localBase = this.GetBaseTypeNoUseSiteDiagnostics();
+            var localBase = this.BaseTypeNoUseSiteDiagnostics;
 
             if ((object)localBase == null)
             {
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 current.AddUseSiteDiagnostics(ref useSiteDiagnostics);
-                current = current.GetBaseTypeNoUseSiteDiagnostics();
+                current = current.BaseTypeNoUseSiteDiagnostics;
             }
             while ((object)current != null);
 

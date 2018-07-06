@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
-            return (object)this.ContainingType.GetBaseTypeNoUseSiteDiagnostics() == null;
+            return (object)this.ContainingType.BaseTypeNoUseSiteDiagnostics == null;
         }
 
         internal override bool GenerateDebugInfo

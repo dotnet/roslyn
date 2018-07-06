@@ -2574,7 +2574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     return symbolDef.SymbolAsMember(containingType);
                 }
-                containingType = containingType.GetBaseTypeNoUseSiteDiagnostics();
+                containingType = containingType.BaseTypeNoUseSiteDiagnostics;
                 if ((object)containingType == null)
                 {
                     break;

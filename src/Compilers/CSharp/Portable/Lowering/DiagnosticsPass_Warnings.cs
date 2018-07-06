@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // NOTE: We're only trying to produce a warning, so there's no point in producing a
                     // use site diagnostic if we can't walk up the base type hierarchy.
-                    baseType = baseType.GetBaseTypeNoUseSiteDiagnostics();
+                    baseType = baseType.BaseTypeNoUseSiteDiagnostics;
                 }
             }
 
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol nt = conv.Operand.Type as NamedTypeSymbol;
             if ((object)nt == null || !nt.IsReferenceType) return false;
             string opName = (oldOperatorKind == BinaryOperatorKind.ObjectEqual) ? WellKnownMemberNames.EqualityOperatorName : WellKnownMemberNames.InequalityOperatorName;
-            for (var t = nt; (object)t != null; t = t.GetBaseTypeNoUseSiteDiagnostics())
+            for (var t = nt; (object)t != null; t = t.BaseTypeNoUseSiteDiagnostics)
             {
                 foreach (var sym in t.GetMembers(opName))
                 {

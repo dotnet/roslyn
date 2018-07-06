@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return info;
             }
 
-            for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.GetBaseTypeNoUseSiteDiagnostics())
+            for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
                 var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 if (!interfaces.IsEmpty)
@@ -153,7 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
         /// </summary>
-        internal abstract NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute = false);
+        internal abstract NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute);
+
+        internal NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => GetBaseTypeNoUseSiteDiagnostics(ignoreNonNullTypesAttribute: false);
 
         internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool ignoreNonNullTypesAttribute = false)
         {
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal NamedTypeSymbol BaseTypeOriginalDefinition(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var result = GetBaseTypeNoUseSiteDiagnostics();
+            var result = BaseTypeNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
@@ -360,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             var visited = new HashSet<NamedTypeSymbol>(EqualsIgnoringTupleNames);
 
-            for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.GetBaseTypeNoUseSiteDiagnostics())
+            for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
                 var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 for (int i = interfaces.Length - 1; i >= 0; i--)
@@ -650,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.GetBaseTypeNoUseSiteDiagnostics();
+                return this.BaseTypeNoUseSiteDiagnostics;
             }
         }
 
@@ -807,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol implicitImpl = null;
             Symbol closestMismatch = null;
 
-            for (TypeSymbol currType = implementingType; (object)currType != null; currType = currType.GetBaseTypeNoUseSiteDiagnostics())
+            for (TypeSymbol currType = implementingType; (object)currType != null; currType = currType.BaseTypeNoUseSiteDiagnostics)
             {
                 // NOTE: In the case of PE symbols, it is possible to see an explicit implementation
                 // on a type that does not declare the corresponding interface (or one of its
@@ -1520,9 +1522,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if ((object)this.GetBaseTypeNoUseSiteDiagnostics() != null && this.GetBaseTypeNoUseSiteDiagnostics().IsAbstract)
+            if ((object)this.BaseTypeNoUseSiteDiagnostics != null && this.BaseTypeNoUseSiteDiagnostics.IsAbstract)
             {
-                foreach (var baseAbstractMember in this.GetBaseTypeNoUseSiteDiagnostics().AbstractMembers)
+                foreach (var baseAbstractMember in this.BaseTypeNoUseSiteDiagnostics.AbstractMembers)
                 {
                     if (!overriddenMembers.Contains(baseAbstractMember))
                     {

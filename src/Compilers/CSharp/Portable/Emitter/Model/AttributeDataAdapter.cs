@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return member;
                     }
                 }
-                type = type.GetBaseTypeNoUseSiteDiagnostics();
+                type = type.BaseTypeNoUseSiteDiagnostics;
             }
 
             Debug.Assert(false, "Name does not match an attribute field or a property.  How can that be?");

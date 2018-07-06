@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute = false)
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
         {
             return _baseType;
         }
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations newElementType)
             {
                 var newInterfaces = _interfaces.SelectAsArray((i, t) => i.OriginalDefinition.Construct(t), newElementType.TypeSymbol);
-                return new SZArray(newElementType, GetBaseTypeNoUseSiteDiagnostics(), newInterfaces);
+                return new SZArray(newElementType, BaseTypeNoUseSiteDiagnostics, newInterfaces);
             }
 
             public override int Rank
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations elementType)
             {
-                return new MDArrayNoSizesOrBounds(elementType, Rank, GetBaseTypeNoUseSiteDiagnostics());
+                return new MDArrayNoSizesOrBounds(elementType, Rank, BaseTypeNoUseSiteDiagnostics);
             }
 
             internal override bool HasDefaultSizesAndLowerBounds
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations elementType)
             {
-                return new MDArrayWithSizesAndBounds(elementType, Rank, _sizes, _lowerBounds, GetBaseTypeNoUseSiteDiagnostics());
+                return new MDArrayWithSizesAndBounds(elementType, Rank, _sizes, _lowerBounds, BaseTypeNoUseSiteDiagnostics);
             }
 
             public override ImmutableArray<int> Sizes

@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ImmutableArray<Symbol>.Empty;
                 }
 
-                if ((object)containingType == null || (object)(baseType = containingType.GetBaseTypeNoUseSiteDiagnostics()) == null)
+                if ((object)containingType == null || (object)(baseType = containingType.BaseTypeNoUseSiteDiagnostics) == null)
                 {
                     throw new ArgumentException(
                         "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)",

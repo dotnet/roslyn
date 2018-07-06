@@ -487,7 +487,7 @@ class D : C<B>, I<B>
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
             var derivedType = comp.GetMember<NamedTypeSymbol>("D");
-            var baseType = derivedType.GetBaseTypeNoUseSiteDiagnostics();
+            var baseType = derivedType.BaseTypeNoUseSiteDiagnostics;
             var constraintType = baseType.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
             Assert.Equal(null, constraintType.IsNullable);
             var interfaceType = derivedType.Interfaces().Single();

@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol bestMatch = null;
             ArrayBuilder<Symbol> hiddenBuilder = null;
 
-            for (NamedTypeSymbol currType = containingType.GetBaseTypeNoUseSiteDiagnostics();
+            for (NamedTypeSymbol currType = containingType.BaseTypeNoUseSiteDiagnostics;
                 (object)currType != null && (object)bestMatch == null && hiddenBuilder == null;
-                currType = currType.GetBaseTypeNoUseSiteDiagnostics())
+                currType = currType.BaseTypeNoUseSiteDiagnostics)
             {
                 bool unused;
                 FindOverriddenOrHiddenMembersInType(
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol containingType = method.ContainingType;
 
-            for (NamedTypeSymbol currType = containingType.GetBaseTypeNoUseSiteDiagnostics(); !ReferenceEquals(currType, null); currType = currType.GetBaseTypeNoUseSiteDiagnostics())
+            for (NamedTypeSymbol currType = containingType.BaseTypeNoUseSiteDiagnostics; !ReferenceEquals(currType, null); currType = currType.BaseTypeNoUseSiteDiagnostics)
             {
                 foreach (Symbol otherMember in currType.GetMembers(method.Name))
                 {

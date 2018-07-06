@@ -1842,7 +1842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBaseReference BindBase(BaseExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol baseType = (object)this.ContainingType == null ? null : this.ContainingType.GetBaseTypeNoUseSiteDiagnostics();
+            NamedTypeSymbol baseType = (object)this.ContainingType == null ? null : this.ContainingType.BaseTypeNoUseSiteDiagnostics;
             bool hasErrors = true;
 
             bool inStaticContext;
@@ -3405,7 +3405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isBaseConstructorInitializer)
                 {
-                    initializerType = initializerType.GetBaseTypeNoUseSiteDiagnostics();
+                    initializerType = initializerType.BaseTypeNoUseSiteDiagnostics;
 
                     // Soft assert: we think this is the case, and we're asserting to catch scenarios that violate our expectations
                     Debug.Assert((object)initializerType != null ||

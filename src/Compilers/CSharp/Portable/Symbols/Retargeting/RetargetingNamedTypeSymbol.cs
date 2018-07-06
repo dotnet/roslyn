@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 if ((object)acyclicBase == null)
                 {
                     // if base was not declared, get it from BaseType that should set it to some default
-                    var underlyingBase = _underlyingType.GetBaseTypeNoUseSiteDiagnostics();
+                    var underlyingBase = _underlyingType.BaseTypeNoUseSiteDiagnostics;
                     if ((object)underlyingBase != null)
                     {
                         acyclicBase = this.RetargetingTranslator.Retarget(underlyingBase, RetargetOptions.RetargetPrimitiveTypesByName);

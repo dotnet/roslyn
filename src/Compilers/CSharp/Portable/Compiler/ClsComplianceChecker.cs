@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                NamedTypeSymbol baseType = symbol.EnumUnderlyingType ?? symbol.GetBaseTypeNoUseSiteDiagnostics(); // null for interfaces
+                NamedTypeSymbol baseType = symbol.EnumUnderlyingType ?? symbol.BaseTypeNoUseSiteDiagnostics; // null for interfaces
                 System.Diagnostics.Debug.Assert((object)baseType != null || symbol.SpecialType == SpecialType.System_Object, "Only object has no base.");
                 if ((object)baseType != null && !IsCompliantType(baseType, symbol))
                 {
@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                NamedTypeSymbol baseType = type.GetBaseTypeNoUseSiteDiagnostics();
+                NamedTypeSymbol baseType = type.BaseTypeNoUseSiteDiagnostics;
                 while ((object)baseType != null)
                 {
                     foreach (Symbol member in baseType.GetMembersUnordered())
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    baseType = baseType.GetBaseTypeNoUseSiteDiagnostics();
+                    baseType = baseType.BaseTypeNoUseSiteDiagnostics;
                 }
             }
 
@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return containingType != contextBaseType;
                     }
 
-                    contextBaseType = contextBaseType.GetBaseTypeNoUseSiteDiagnostics();
+                    contextBaseType = contextBaseType.BaseTypeNoUseSiteDiagnostics;
                 }
 
                 context = context.ContainingType;

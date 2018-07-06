@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Enums and delegates know their own base types
                     // intrinsically (and do not include interface lists)
                     // so there is no possibility of a cycle.
-                    return type.GetBaseTypeNoUseSiteDiagnostics();
+                    return type.BaseTypeNoUseSiteDiagnostics;
             }
         }
 

@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute = false)
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
         {
             if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
             {
@@ -2197,7 +2197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var uncommon = GetUncommonProperties();
             if (uncommon == s_noUncommonProperties)
             {
-                return ((object)this.GetBaseTypeNoUseSiteDiagnostics() != null) ? this.GetBaseTypeNoUseSiteDiagnostics().GetAttributeUsageInfo() : AttributeUsageInfo.Default;
+                return ((object)this.BaseTypeNoUseSiteDiagnostics != null) ? this.BaseTypeNoUseSiteDiagnostics.GetAttributeUsageInfo() : AttributeUsageInfo.Default;
             }
 
             if (uncommon.lazyAttributeUsageInfo.IsNull)
@@ -2224,7 +2224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            return ((object)this.GetBaseTypeNoUseSiteDiagnostics() != null) ? this.GetBaseTypeNoUseSiteDiagnostics().GetAttributeUsageInfo() : AttributeUsageInfo.Default;
+            return ((object)this.BaseTypeNoUseSiteDiagnostics != null) ? this.BaseTypeNoUseSiteDiagnostics.GetAttributeUsageInfo() : AttributeUsageInfo.Default;
         }
 
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness

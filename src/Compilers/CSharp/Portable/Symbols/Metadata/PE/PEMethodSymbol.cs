@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // is a new virtual method and doesn't override anything.
         public override bool IsOverride =>
             this.IsMetadataVirtual() && !this.IsDestructor &&
-                       ((!this.IsMetadataNewSlot() && (object)_containingType.GetBaseTypeNoUseSiteDiagnostics() != null) || this.IsExplicitClassOverride);
+                       ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride);
 
         public override bool IsStatic => HasFlag(MethodAttributes.Static);
 

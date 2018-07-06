@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return ArrayTypeSymbol.CreateSZArray(
                     element,
-                    t.GetBaseTypeNoUseSiteDiagnostics(),
+                    t.BaseTypeNoUseSiteDiagnostics,
                     interfaces);
             }
 
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 t.Rank,
                 t.Sizes,
                 t.LowerBounds,
-                t.GetBaseTypeNoUseSiteDiagnostics());
+                t.BaseTypeNoUseSiteDiagnostics);
         }
 
         private PointerTypeSymbol SubstitutePointerType(PointerTypeSymbol t)

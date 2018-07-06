@@ -1763,7 +1763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation)
         {
             // Note that the base type can be null if we're compiling System.Object in source.
-            NamedTypeSymbol baseType = constructor.ContainingType.GetBaseTypeNoUseSiteDiagnostics();
+            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
             Debug.Assert(((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
@@ -1847,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundCall GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol baseType = constructor.ContainingType.GetBaseTypeNoUseSiteDiagnostics();
+            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
             MethodSymbol baseConstructor = null;
             LookupResultKind resultKind = LookupResultKind.Viable;
             Location diagnosticsLocation = constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.Locations[0];

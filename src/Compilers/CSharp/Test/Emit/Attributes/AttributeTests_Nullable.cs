@@ -1481,7 +1481,7 @@ public class B<T> :
             var type = comp2.GetMember<NamedTypeSymbol>("B");
             Assert.Equal(
                 "A<(System.Object? _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)>",
-                type.GetBaseTypeNoUseSiteDiagnostics().ToTestDisplayString());
+                type.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Equal(
                 "I<(System.Object? _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)>",
                 type.Interfaces()[0].ToTestDisplayString());

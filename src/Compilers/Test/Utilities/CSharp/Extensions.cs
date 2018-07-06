@@ -557,7 +557,7 @@ internal static class Extensions
 
     public static NamedTypeSymbol BaseType(this TypeSymbol symbol)
     {
-        return symbol.GetBaseTypeNoUseSiteDiagnostics();
+        return symbol.BaseTypeNoUseSiteDiagnostics;
     }
 
     public static ImmutableArray<NamedTypeSymbol> Interfaces(this TypeSymbol symbol)

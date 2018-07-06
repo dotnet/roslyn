@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
-            NamedTypeSymbol baseType = this.GetBaseTypeNoUseSiteDiagnostics();
+            NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
 
             if (this.IsScriptClass)
             {

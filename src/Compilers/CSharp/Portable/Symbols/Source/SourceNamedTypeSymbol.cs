@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data.AttributeUsageInfo;
             }
 
-            return ((object)this.GetBaseTypeNoUseSiteDiagnostics() != null) ? this.GetBaseTypeNoUseSiteDiagnostics().GetAttributeUsageInfo() : AttributeUsageInfo.Default;
+            return ((object)this.BaseTypeNoUseSiteDiagnostics != null) ? this.BaseTypeNoUseSiteDiagnostics.GetAttributeUsageInfo() : AttributeUsageInfo.Default;
         }
 
         /// <summary>
@@ -1095,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.TypeKind == TypeKind.Class)
                 {
-                    var baseType = this.GetBaseTypeNoUseSiteDiagnostics();
+                    var baseType = this.BaseTypeNoUseSiteDiagnostics;
                     if ((object)baseType != null && baseType.SpecialType != SpecialType.System_Object)
                     {
                         // CS0424: '{0}': a class with the ComImport attribute cannot specify a base class
@@ -1207,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create(defaultMemberNameConstant)));
             }
 
-            NamedTypeSymbol baseType = this.GetBaseTypeNoUseSiteDiagnostics();
+            NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
             if ((object)baseType != null)
             {
                 if (baseType.ContainsDynamic())

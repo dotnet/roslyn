@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            if (ContainingType.GetBaseTypeNoUseSiteDiagnostics() is MissingMetadataTypeSymbol)
+            if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
             {
                 // System_Attribute is missing. Don't generate anything
                 return;
