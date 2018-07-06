@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private const string SerializationFormat = "11";
+        private const string SerializationFormat = "12";
 
         public readonly Checksum Checksum;
 
