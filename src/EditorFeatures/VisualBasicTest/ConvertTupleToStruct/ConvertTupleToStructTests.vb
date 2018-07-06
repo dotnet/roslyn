@@ -1761,7 +1761,81 @@ end class
     </Project>
 </Workspace>"
 
-            Dim expected = ""
+            Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+imports System
+
+partial class Test
+    sub Method()
+        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+    end sub
+end class
+
+partial class Other
+    sub Method()
+        dim t1 = (a:=1, b:=2)
+    end sub
+end class
+
+Friend Structure NewStruct
+    Public a As Integer
+    Public b As Integer
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.a = a
+        Me.b = b
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is NewStruct) Then
+            Return False
+        End If
+
+        Dim other = DirectCast(obj, NewStruct)
+        Return a = other.a AndAlso
+               b = other.b
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode = 2118541809
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
+        Return hashCode
+    End Function
+
+    Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
+        a = Me.a
+        b = Me.b
+    End Sub
+
+    Public Shared Widening Operator CType(value As NewStruct) As (a As Integer, b As Integer)
+        Return (value.a, value.b)
+    End Operator
+
+    Public Shared Widening Operator CType(value As (a As Integer, b As Integer)) As NewStruct
+        Return New NewStruct(value.a, value.b)
+    End Operator
+End Structure
+</Document>
+        <Document>
+imports System
+
+partial class Test
+    function Goo() as NewStruct
+        dim t2 = New NewStruct(a:=3, b:=4)
+    end function
+end class
+
+partial class Other
+    sub Goo()
+        dim t1 = (a:=1, b:=2)
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>"
             Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
@@ -1809,7 +1883,83 @@ end class
     </Project>
 </Workspace>"
 
-            Dim expected = ""
+            Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+imports System
+
+namespace N
+    partial class Test
+        sub Method()
+            dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        end sub
+    end class
+
+    partial class Other
+        sub Method()
+            dim t1 = New NewStruct(a:=1, b:=2)
+        end sub
+    end class
+
+    Friend Structure NewStruct
+        Public a As Integer
+        Public b As Integer
+
+        Public Sub New(a As Integer, b As Integer)
+            Me.a = a
+            Me.b = b
+        End Sub
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            If Not (TypeOf obj Is NewStruct) Then
+                Return False
+            End If
+
+            Dim other = DirectCast(obj, NewStruct)
+            Return a = other.a AndAlso
+                   b = other.b
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Dim hashCode = 2118541809
+            hashCode = hashCode * -1521134295 + a.GetHashCode()
+            hashCode = hashCode * -1521134295 + b.GetHashCode()
+            Return hashCode
+        End Function
+
+        Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
+            a = Me.a
+            b = Me.b
+        End Sub
+
+        Public Shared Widening Operator CType(value As NewStruct) As (a As Integer, b As Integer)
+            Return (value.a, value.b)
+        End Operator
+
+        Public Shared Widening Operator CType(value As (a As Integer, b As Integer)) As NewStruct
+            Return New NewStruct(value.a, value.b)
+        End Operator
+    End Structure
+end namespace
+        </Document>
+        <Document>
+imports System
+
+partial class Test
+    function Goo() as N.NewStruct
+        dim t2 = New N.NewStruct(a:=3, b:=4)
+    end function
+end class
+
+partial class Other
+    sub Goo()
+        dim t1 = New N.NewStruct(a:=1, b:=2)
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>"
             Await TestInRegularAndScriptAsync(text, expected, index:=2)
         End Function
 
@@ -1851,7 +2001,78 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Dim expected = ""
+            Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+imports System
+
+partial class Test
+    sub Method()
+        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+    end sub
+end class
+
+partial class Other
+    sub Method()
+        dim t1 = New NewStruct(a:=1, b:=2)
+    end sub
+end class
+
+Public Structure NewStruct
+    Public a As Integer
+    Public b As Integer
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.a = a
+        Me.b = b
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is NewStruct) Then
+            Return False
+        End If
+
+        Dim other = DirectCast(obj, NewStruct)
+        Return a = other.a AndAlso
+               b = other.b
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode = 2118541809
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
+        Return hashCode
+    End Function
+
+    Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
+        a = Me.a
+        b = Me.b
+    End Sub
+
+    Public Shared Widening Operator CType(value As NewStruct) As (a As Integer, b As Integer)
+        Return (value.a, value.b)
+    End Operator
+
+    Public Shared Widening Operator CType(value As (a As Integer, b As Integer)) As NewStruct
+        Return New NewStruct(value.a, value.b)
+    End Operator
+End Structure
+</Document>
+    </Project>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+imports System
+
+partial class Other
+    sub Goo()
+        dim t1 = New NewStruct(a:=1, b:=2)
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>"
             Await TestInRegularAndScriptAsync(text, expected, index:=3)
         End Function
 
@@ -1888,7 +2109,77 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Dim expected = ""
+            Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+imports System
+
+partial class Test
+    sub Method()
+        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+    end sub
+end class
+
+partial class Other
+    sub Method()
+        dim t1 = New NewStruct(a:=1, b:=2)
+    end sub
+end class
+
+Public Structure NewStruct
+    Public a As Integer
+    Public b As Integer
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.a = a
+        Me.b = b
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is NewStruct) Then
+            Return False
+        End If
+
+        Dim other = DirectCast(obj, NewStruct)
+        Return a = other.a AndAlso
+               b = other.b
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode = 2118541809
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
+        Return hashCode
+    End Function
+
+    Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
+        a = Me.a
+        b = Me.b
+    End Sub
+
+    Public Shared Widening Operator CType(value As NewStruct) As (a As Integer, b As Integer)
+        Return (value.a, value.b)
+    End Operator
+
+    Public Shared Widening Operator CType(value As (a As Integer, b As Integer)) As NewStruct
+        Return New NewStruct(value.a, value.b)
+    End Operator
+End Structure
+</Document>
+    </Project>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+imports System
+
+partial class Other
+    sub Goo()
+        dim t1 = (a:=1, b:=2)
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>"
             Await TestInRegularAndScriptAsync(text, expected, index:=3)
         End Function
 
