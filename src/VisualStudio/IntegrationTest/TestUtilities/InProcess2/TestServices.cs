@@ -21,7 +21,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             InteractiveWindow = new CSharpInteractiveWindow_InProc2(this);
 
             Editor = new Editor_InProc2(this);
+            EncapsulateField = new EncapsulateField_InProc2(this);
             ErrorList = new ErrorList_InProc2(this);
+            PreviewChangesDialog = new PreviewChangesDialog_InProc2(this);
 
             ChangeSignatureDialog = new ChangeSignatureDialog_InProc2(this);
         }
@@ -51,6 +53,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             get;
         }
 
+        public EncapsulateField_InProc2 EncapsulateField
+        {
+            get;
+        }
+
         public ErrorList_InProc2 ErrorList
         {
             get;
@@ -62,6 +69,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public LocalsWindow_InProc2 LocalsWindow
+        {
+            get;
+        }
+
+        public PreviewChangesDialog_InProc2 PreviewChangesDialog
         {
             get;
         }

@@ -1,19 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpEncapsulateField : AbstractEditorTest
+    public class CSharpEncapsulateField : AbstractIdeEditorTest
     {
-        public CSharpEncapsulateField(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpEncapsulateField))
+        public CSharpEncapsulateField()
+            : base(nameof(CSharpEncapsulateField))
         {
         }
 
@@ -32,30 +34,33 @@ namespace myNamespace
     }
 }";
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19816")]
+        [IdeFact]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateThroughCommand()
+        public async Task EncapsulateThroughCommandAsync()
         {
-            SetUpEditor(TestSource);
-            var encapsulateField = VisualStudio.EncapsulateField;
-            var dialog = VisualStudio.PreviewChangesDialog;
-            encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
-            dialog.ClickCancel(encapsulateField.DialogName);
-            dialog.VerifyClosed(encapsulateField.DialogName);
-            encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
-            dialog.ClickApplyAndWaitForFeature(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
-            VisualStudio.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            {
+                await SetUpEditorAsync(TestSource);
+                var encapsulateField = VisualStudio.EncapsulateField;
+                var dialog = VisualStudio.PreviewChangesDialog;
+                await encapsulateField.InvokeAsync();
+                await dialog.VerifyOpenAsync(encapsulateField.DialogName, cancellationTokenSource.Token);
+                await dialog.ClickCancelAsync(encapsulateField.DialogName);
+                await dialog.VerifyClosedAsync(encapsulateField.DialogName, cancellationTokenSource.Token);
+                await encapsulateField.InvokeAsync();
+                await dialog.VerifyOpenAsync(encapsulateField.DialogName, cancellationTokenSource.Token);
+                await dialog.ClickApplyAndWaitForFeatureAsync(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
+                await VisualStudio.Editor.Verify.TextContainsAsync("public static int? Param { get => param; set => param = value; }");
+            }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateThroughLightbulbIncludingReferences()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task EncapsulateThroughLightbulbIncludingReferencesAsync()
         {
-            SetUpEditor(TestSource);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'param' (and use property)", applyFix: true, blockUntilComplete: true);
-            VisualStudio.Editor.Verify.TextContains(@"
+            await SetUpEditorAsync(TestSource);
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'param' (and use property)", applyFix: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 namespace myNamespace
 {
     class Program
@@ -72,13 +77,13 @@ namespace myNamespace
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateThroughLightbulbDefinitionsOnly()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task EncapsulateThroughLightbulbDefinitionsOnlyAsync()
         {
-            SetUpEditor(TestSource);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'param' (but still use field)", applyFix: true, blockUntilComplete: true);
-            VisualStudio.Editor.Verify.TextContains(@"
+            await SetUpEditorAsync(TestSource);
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'param' (but still use field)", applyFix: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 namespace myNamespace
 {
     class Program

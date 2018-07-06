@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -214,18 +215,18 @@ End Module
 
             await VisualStudio.SendKeys.SendAsync(VirtualKey.T);
             var editAndContinueDialogName = "Edit and Continue";
-            await VisualStudio.Dialog.VerifyOpenAsync(editAndContinueDialogName);
+            await VisualStudio.Dialog.VerifyOpenAsync(editAndContinueDialogName, CancellationToken.None);
             await VisualStudio.Dialog.ClickOKAsync(editAndContinueDialogName);
-            await VisualStudio.Dialog.VerifyClosedAsync(editAndContinueDialogName);
+            await VisualStudio.Dialog.VerifyClosedAsync(editAndContinueDialogName, CancellationToken.None);
             await VisualStudio.Editor.Verify.IsProjectItemDirtyAsync(expectedValue: false);
 
             // This module is referred by the loaded module, but not used. So this will not be loaded
             await VisualStudio.SolutionExplorer.OpenFileAsync(basicLibrary, "Class1.vb");
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
             await VisualStudio.SendKeys.SendAsync(VirtualKey.T);
-            await VisualStudio.Dialog.VerifyOpenAsync(editAndContinueDialogName);
+            await VisualStudio.Dialog.VerifyOpenAsync(editAndContinueDialogName, CancellationToken.None);
             await VisualStudio.Dialog.ClickOKAsync(editAndContinueDialogName);
-            await VisualStudio.Dialog.VerifyClosedAsync(editAndContinueDialogName);
+            await VisualStudio.Dialog.VerifyClosedAsync(editAndContinueDialogName, CancellationToken.None);
             await VisualStudio.Editor.Verify.IsProjectItemDirtyAsync(expectedValue: false);
 
             //  This module is not referred by the loaded module. this will not be loaded
@@ -234,9 +235,9 @@ End Module
             await VisualStudio.SendKeys.SendAsync(VirtualKey.T);
 
             var microsoftVisualStudionDialogName = "Microsoft Visual Studio";
-            await VisualStudio.Dialog.VerifyOpenAsync(microsoftVisualStudionDialogName);
+            await VisualStudio.Dialog.VerifyOpenAsync(microsoftVisualStudionDialogName, CancellationToken.None);
             await VisualStudio.Dialog.ClickOKAsync(microsoftVisualStudionDialogName);
-            await VisualStudio.Dialog.VerifyClosedAsync(microsoftVisualStudionDialogName);
+            await VisualStudio.Dialog.VerifyClosedAsync(microsoftVisualStudionDialogName, CancellationToken.None);
             await VisualStudio.Editor.Verify.IsProjectItemDirtyAsync(expectedValue: false);
         }
 

@@ -14,25 +14,33 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
         }
 
-        public async Task VerifyOpenAsync(string dialogName)
+        public async Task<IntPtr> VerifyOpenAsync(string dialogName, CancellationToken cancellationToken)
         {
             // FindDialogByNameAsync will wait until the dialog is open, so the return value is unused.
-            await FindDialogByNameAsync(dialogName, isOpen: true, CancellationToken.None);
+            var dialog = await FindDialogByNameAsync(dialogName, isOpen: true, cancellationToken);
 
             // Wait for application idle to ensure the dialog is fully initialized
             await WaitForApplicationIdleAsync(CancellationToken.None);
+
+            return dialog;
         }
 
-        public async Task VerifyClosedAsync(string dialogName)
+        public async Task VerifyClosedAsync(string dialogName, CancellationToken cancellationToken)
         {
             // FindDialog will wait until the dialog is closed, so the return value is unused.
-            await FindDialogByNameAsync(dialogName, isOpen: false, CancellationToken.None);
+            await FindDialogByNameAsync(dialogName, isOpen: false, cancellationToken);
         }
 
         public async Task ClickOKAsync(string dialogName)
         {
             var windowHandle = await FindDialogByNameAsync(dialogName, isOpen: true, new CancellationToken(canceled: true));
             await TestServices.SendKeys.SendAsync(VirtualKey.Enter);
+        }
+
+        public async Task ClickCancelAsync(string dialogName)
+        {
+            var windowHandle = await FindDialogByNameAsync(dialogName, isOpen: true, new CancellationToken(canceled: true));
+            await TestServices.SendKeys.SendAsync(VirtualKey.Escape);
         }
 
         private async Task<IntPtr> FindDialogByNameAsync(string dialogName, bool isOpen, CancellationToken cancellationToken)
