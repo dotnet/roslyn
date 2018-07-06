@@ -23,7 +23,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         {
             SharedData = WpfTestSharedData.Instance;
             VisualStudioVersion = visualStudioVersion;
-            SkipReason = skipReason;
+            if (!string.IsNullOrEmpty(skipReason))
+            {
+                SkipReason = skipReason;
+            }
         }
 
         public VisualStudioVersion VisualStudioVersion
