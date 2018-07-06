@@ -43,11 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 var result = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
                 foreach (var project in _workspace.CurrentSolution.Projects)
                 {
-                    var navigateToSearchService = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
+                    var navigateToSearchService = TryGetNavigateToSearchService(project);
                     if (navigateToSearchService != null)
                     {
                         result = result.Union(navigateToSearchService.KindsProvided);
-                        continue;
                     }
                 }
 
@@ -61,27 +60,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 foreach (var project in _workspace.CurrentSolution.Projects)
                 {
-                    var navigateToSearchService = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
-                    if (navigateToSearchService != null)
+                    var navigateToSearchService = TryGetNavigateToSearchService(project);
+                    if (navigateToSearchService is null)
                     {
-                        if (!navigateToSearchService.CanFilter)
-                        {
-                            return false;
-                        }
-
+                        // If we reach here, it means the current project does not support Navigate To, which is
+                        // functionally equivalent to supporting filtering.
                         continue;
                     }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-                    var legacyNavigateToSearchService = project.LanguageServices.GetService<INavigateToSearchService>();
-                    if (legacyNavigateToSearchService != null)
+                    if (!navigateToSearchService.CanFilter)
                     {
                         return false;
                     }
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                    // If we reach here, it means the current project does not support Navigate To, which is
-                    // functionally equivalent to supporting filtering.
                 }
 
                 // All projects either support filtering or do not support Navigate To at all
