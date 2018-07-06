@@ -71,12 +71,12 @@ class C
             ChangeSignatureDialog.ClickDownButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-            var actuaText = VisualStudio.Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class C
 {
     public void Method(string b, int a) { }
-}", actuaText);
+}", actualText);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -105,7 +105,7 @@ class C
             ChangeSignatureDialog.ClickRemoveButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-            var actuaText = VisualStudio.Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class C
 {
@@ -120,7 +120,7 @@ class C
     {
         Method(1);
     }
-}", actuaText);
+}", actualText);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -158,20 +158,20 @@ End Class");
             ChangeSignatureDialog.ClickUpButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-            var actuaText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actuaText);
+            var actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actualText);
 
             VisualStudio.SolutionExplorer.OpenFile(vbProject, "Class1.vb");
-            actuaText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"Public Sub Method(y As String, x As Integer)", actuaText);
+            actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"Public Sub Method(y As String, x As Integer)", actualText);
 
             VisualStudio.Editor.Undo();
-            actuaText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"Public Sub Method(x As Integer, y As String)", actuaText);
+            actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"Public Sub Method(x As Integer, y As String)", actualText);
 
             VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            actuaText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"vb.Method(2, ""world"");", actuaText);
+            actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"vb.Method(2, ""world"");", actualText);
         }
     }
 }

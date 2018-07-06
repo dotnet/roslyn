@@ -889,34 +889,28 @@ public class B
                      .WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
+        [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
         public void TestReportingDiagnosticWithCSharpCompilerId()
         {
             string source = @"";
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithCSharpCompilerDiagnosticId() };
-            string message = new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, AnalyzerWithCSharpCompilerDiagnosticId.Descriptor.Id), "diagnostic").Message;
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
-                     expected: Diagnostic("AD0001")
-                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithCSharpCompilerDiagnosticId", "System.ArgumentException", message)
-                     .WithLocation(1, 1));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    Diagnostic("CS101").WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
+        [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
         public void TestReportingDiagnosticWithBasicCompilerId()
         {
             string source = @"";
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithBasicCompilerDiagnosticId() };
-            string message = new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, AnalyzerWithBasicCompilerDiagnosticId.Descriptor.Id), "diagnostic").Message;
-
+            
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
-                     expected: Diagnostic("AD0001")
-                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithBasicCompilerDiagnosticId", "System.ArgumentException", message)
-                     .WithLocation(1, 1));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    Diagnostic("BC101").WithLocation(1, 1));
         }
 
         [Fact, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]

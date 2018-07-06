@@ -1092,7 +1092,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver,
                     method.Parameters,
                     args,
-                    argRefKinds,
                     argsToParams,
                     this.LocalScopeDepth,
                     diagnostics);
