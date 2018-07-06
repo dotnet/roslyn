@@ -415,7 +415,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var fixedRoot = await document.GetSyntaxRootAsync();
             var actualText = fixedRoot.ToFullString();
 
-            Assert.Equal(expectedText, actualText);
+            if (expectedText == "")
+            {
+                // if not expected text has been provided, call the overload that prints out
+                // the full actual text.
+                Assert.Equal((object)expectedText, actualText);
+            }
+            else
+            {
+                Assert.Equal(expectedText, actualText);
+            }
 
             TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
             TestAnnotations(renameSpans, RenameAnnotation.Kind);
