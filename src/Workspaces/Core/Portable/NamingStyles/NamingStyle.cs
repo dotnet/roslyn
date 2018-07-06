@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         private bool CheckAllLower(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
                 name, nameSpan, s_wordIsAllLowerCase,
-                WorkspacesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
+                WorkspacesResources.These_words_cannot_contain_upper_case_characters_colon_0, out reason);
 
         private bool CheckFirstAndRestWords(
             string name, TextSpan nameSpan,

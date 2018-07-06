@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -38,10 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         internal Task Execute(IInteractiveWindow interactiveWindow, string title)
         {
-            ImmutableArray<string> references, referenceSearchPaths, sourceSearchPaths, projectNamespaces;
-            string projectDirectory;
-
-            if (GetProjectProperties(out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory))
+            if (GetProjectProperties(out var references, out var referenceSearchPaths, out var sourceSearchPaths, out var projectNamespaces, out var projectDirectory, out bool? is64Bit))
             {
                 // Now, we're going to do a bunch of async operations.  So create a wait
                 // indicator so the user knows something is happening, and also so they cancel.
@@ -55,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     sourceSearchPaths,
                     projectNamespaces,
                     projectDirectory,
+                    is64Bit,
                     waitContext);
 
                 // Once we're done resetting, dismiss the wait indicator and focus the REPL window.
@@ -77,10 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             ImmutableArray<string> sourceSearchPaths,
             ImmutableArray<string> projectNamespaces,
             string projectDirectory,
+            bool? is64Bit,
             IWaitContext waitContext)
         {
             // First, open the repl window.
-            IInteractiveEvaluator evaluator = interactiveWindow.Evaluator;
+            var evaluator = (IResettableInteractiveEvaluator)interactiveWindow.Evaluator;
 
             // If the user hits the cancel button on the wait indicator, then we want to stop the
             // build.
@@ -98,6 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // Then reset the REPL
             waitContext.Message = InteractiveEditorFeaturesResources.Resetting_Interactive;
+            evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(is64Bit);
             await interactiveWindow.Operations.ResetAsync(initialize: true).ConfigureAwait(true);
 
             // TODO: load context from an rsp file.
@@ -105,10 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // Now send the reference paths we've collected to the repl.
             // The SetPathsAsync method is not available through an Interface.
             // Execute the method only if the cast to a concrete InteractiveEvaluator succeeds.
-            if (evaluator is InteractiveEvaluator interactiveEvaluator)
-            {
-                await interactiveEvaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
-            }
+            await evaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
 
             var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);
             var importReferencesCommand = referencePaths.Select(_createReference);
@@ -135,7 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> referenceSearchPaths,
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
-            out string projectDirectory);
+            out string projectDirectory,
+            out bool? is64bit);
 
         /// <summary>
         /// A method that should trigger an async project build.
