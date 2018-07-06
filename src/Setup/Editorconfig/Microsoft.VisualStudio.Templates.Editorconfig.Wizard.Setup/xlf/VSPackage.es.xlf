@@ -4,27 +4,27 @@
     <body>
       <trans-unit id="110">
         <source>ResourcePackage Extension</source>
-        <target state="new">ResourcePackage Extension</target>
+        <target state="translated">Extensión ResourcePackage</target>
         <note />
       </trans-unit>
       <trans-unit id="112">
         <source>ResourcePackage Visual Studio Extension Detailed Info</source>
-        <target state="new">ResourcePackage Visual Studio Extension Detailed Info</target>
+        <target state="translated">Detalles de la extensión ResourcePackage de Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="115">
         <source>editorconfig File (default)</source>
-        <target state="new">editorconfig File (default)</target>
+        <target state="translated">Archivo editorconfig (predeterminado)</target>
         <note />
       </trans-unit>
       <trans-unit id="116">
         <source>Create an editorconfig file to persist your editor and code settings.</source>
-        <target state="new">Create an editorconfig file to persist your editor and code settings.</target>
+        <target state="translated">Cree un archivo editorconfig para mantener su configuración de editor y código.</target>
         <note />
       </trans-unit>
       <trans-unit id="117">
         <source>editorconfig File (.NET)</source>
-        <target state="new">editorconfig File (.NET)</target>
+        <target state="translated">Archivo editorconfig (.NET)</target>
         <note />
       </trans-unit>
     </body>
