@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // Next, we'll check to see if there is actually a DataTip for this candidate.
                 // If there is, we'll map this span back to the DataBuffer and return it.
                 pSpan[0] = candidateSpan.ToVsTextSpan();
-                int hr = base.GetDataTipTextImpl(pSpan, out pbstrText);
+                int hr = base.GetDataTipTextImpl(_subjectBuffer, pSpan, out pbstrText);
                 if (ErrorHandler.Succeeded(hr))
                 {
                     var subjectSpan = _subjectBuffer.CurrentSnapshot.GetSpan(pSpan[0]);
