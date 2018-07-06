@@ -745,10 +745,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 return results;
             });
         }
+#endif
 
-        public void GoToDefinition()
-            => GetDTE().ExecuteCommand("Edit.GoToDefinition");
+        public async Task GoToDefinitionAsync()
+        {
+            await ExecuteCommandAsync(WellKnownCommandNames.Edit_GoToDefinition);
+        }
 
+#if false
         public void GoToImplementation()
             => GetDTE().ExecuteCommand("Edit.GoToImplementation");
 

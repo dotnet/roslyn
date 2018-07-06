@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -22,24 +20,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return (await GetDTEAsync()).ActiveWindow.Caption;
         }
 
-#if false
-        public bool IsActiveTabProvisional()
-            => InvokeOnUIThread(() =>
+        public async Task<bool> IsActiveTabProvisionalAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var shellMonitorSelection = await GetGlobalServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>();
+            if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))
             {
-                var shellMonitorSelection = GetGlobalService<SVsShellMonitorSelection, IVsMonitorSelection>();
-                if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))
-                {
-                    throw new InvalidOperationException("Tried to get the active document frame but no documents were open.");
-                }
+                throw new InvalidOperationException("Tried to get the active document frame but no documents were open.");
+            }
 
-                var windowFrame = (IVsWindowFrame)windowFrameObject;
-                if (!ErrorHandler.Succeeded(windowFrame.GetProperty((int)VsFramePropID.IsProvisional, out var isProvisionalObject)))
-                {
-                    throw new InvalidOperationException("The active window frame did not have an 'IsProvisional' property.");
-                }
+            var windowFrame = (IVsWindowFrame)windowFrameObject;
+            if (!ErrorHandler.Succeeded(windowFrame.GetProperty((int)__VSFPROPID5.VSFPROPID_IsProvisional, out var isProvisionalObject)))
+            {
+                throw new InvalidOperationException("The active window frame did not have an 'IsProvisional' property.");
+            }
 
-                return (bool)isProvisionalObject;
-            });
-#endif
+            return (bool)isProvisionalObject;
+        }
     }
 }

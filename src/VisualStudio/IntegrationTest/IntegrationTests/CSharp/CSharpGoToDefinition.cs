@@ -1,88 +1,85 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpGoToDefinition : AbstractEditorTest
+    public class CSharpGoToDefinition : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpGoToDefinition(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpGoToDefinition))
+        public CSharpGoToDefinition()
+            : base(nameof(CSharpGoToDefinition))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
-        public void GoToClassDeclaration()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        public async Task GoToClassDeclarationAsync()
         {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileDef.cs");
-            VisualStudio.SolutionExplorer.OpenFile( project, "FileDef.cs");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileDef.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileDef.cs");
+            await VisualStudio.Editor.SetTextAsync(
 @"class SomeClass
 {
 }");
-            VisualStudio.SolutionExplorer.AddFile(project,"FileConsumer.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileConsumer.cs");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName ,"FileConsumer.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileConsumer.cs");
+            await VisualStudio.Editor.SetTextAsync(
 @"class SomeOtherClass
 {
     SomeClass sc;
 }");
-            VisualStudio.Editor.PlaceCaret("SomeClass");
-            VisualStudio.Editor.GoToDefinition();
-            VisualStudio.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
-            Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
+            await VisualStudio.Editor.PlaceCaretAsync("SomeClass");
+            await VisualStudio.Editor.GoToDefinitionAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"class SomeClass$$", assertCaretPosition: true);
+            Assert.False(await VisualStudio.Shell.IsActiveTabProvisionalAsync());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
-        public void GoToDefinitionOpensProvisionalTabIfDocumentNotAlreadyOpen()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        public async Task GoToDefinitionOpensProvisionalTabIfDocumentNotAlreadyOpenAsync()
         {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileDef.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileDef.cs");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileDef.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileDef.cs");
+            await VisualStudio.Editor.SetTextAsync(
 @"class SomeClass
 {
 }
 ");
-            VisualStudio.SolutionExplorer.CloseFile(project, "FileDef.cs", saveFile: true);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileConsumer.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileConsumer.cs");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.CloseFileAsync(ProjectName, "FileDef.cs", saveFile: true);
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileConsumer.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileConsumer.cs");
+            await VisualStudio.Editor.SetTextAsync(
 @"class SomeOtherClass
 {
     SomeClass sc;
 }");
-            VisualStudio.Editor.PlaceCaret("SomeClass");
-            VisualStudio.Editor.GoToDefinition();
-            VisualStudio.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
-            Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
+            await VisualStudio.Editor.PlaceCaretAsync("SomeClass");
+            await VisualStudio.Editor.GoToDefinitionAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"class SomeClass$$", assertCaretPosition: true);
+            Assert.True(await VisualStudio.Shell.IsActiveTabProvisionalAsync());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
-        public void GoToDefinitionWithMultipleResults()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        public async Task GoToDefinitionWithMultipleResultsAsync()
         {
-            SetUpEditor(
+            await SetUpEditorAsync(
 @"partial class /*Marker*/ $$PartialClass { }
 
 partial class PartialClass { int i = 0; }");
 
-            VisualStudio.Editor.GoToDefinition();
+            await VisualStudio.Editor.GoToDefinitionAsync();
 
             const string programReferencesCaption = "'PartialClass' declarations";
-            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
+            var results = await VisualStudio.FindReferencesWindow.GetContentsAsync(programReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = await VisualStudio.Shell.GetActiveWindowCaptionAsync();
             Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
