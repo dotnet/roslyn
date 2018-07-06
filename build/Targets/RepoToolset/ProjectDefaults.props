@@ -91,7 +91,7 @@
   </Choose>
 
   <Import Project="|Build precondition failed: Unable to determine the language of the project. Consider adding Directory.Build.props that sets Language property to directory '$(MSBuildProjectDirectory)'.|"
-          Condition="'$(Language)' == '' and '$(MSBuildProjectExtension)' != '.shproj'"/>
+          Condition="'$(Language)' == '' and '$(MSBuildProjectExtension)' != '.shproj' and '$(MSBuildProjectExtension)' != '.swixproj' and '$(MSBuildProjectExtension)' != '.vsmanproj'"/>
 
   <Choose>
     <!-- C# specific settings -->
