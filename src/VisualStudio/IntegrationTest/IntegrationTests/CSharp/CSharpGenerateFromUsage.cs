@@ -1,27 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpGenerateFromUsage : AbstractEditorTest
+    public class CSharpGenerateFromUsage : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpGenerateFromUsage(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpGenerateFromUsage))
+        public CSharpGenerateFromUsage()
+            : base(nameof(CSharpGenerateFromUsage))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
-        public void GenerateLocal()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
+        public async Task GenerateLocalAsync()
         {
-            SetUpEditor(
+            await SetUpEditorAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -29,8 +29,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         string s = $$xyz;
     }
 }");
-            VisualStudio.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
-            VisualStudio.Editor.Verify.TextContains(
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate local 'xyz'", applyFix: true);
+            await VisualStudio.Editor.Verify.TextContainsAsync(
 @"class Program
 {
     static void Main(string[] args)
