@@ -1,27 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpOrganizing : AbstractEditorTest
+    public class CSharpOrganizing : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpOrganizing(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpOrganizing))
+        public CSharpOrganizing()
+            : base(nameof(CSharpOrganizing))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void RemoveAndSort()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task RemoveAndSortAsync()
         {
-            SetUpEditor(@"$$
+            await SetUpEditorAsync(@"$$
 using C;
 using B;
 using A;
@@ -34,8 +35,8 @@ class Test
 namespace A { public class CA { } }
 namespace B { public class CB { } }
 namespace C { public class CC { } }");
-            VisualStudio.ExecuteCommand("Edit.RemoveAndSort");
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.Edit_RemoveAndSort);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 using A;
 using C;
 
