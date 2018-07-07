@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -30,6 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             {
                 _description = value;
                 _uiThreadOperationScope.Description = value;
+                ForceUpdate();
+            }
+        }
+
+        private void ForceUpdate()
+        {
+            using (_uiThreadOperationScope.Context.AddScope(true, ""))
+            {
             }
         }
 
@@ -59,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private void ReportProgress()
         {
             _uiThreadOperationScope.Progress.Report(new ProgressInfo(_completedItems, _totalItems));
+            ForceUpdate();
         }
     }
 }

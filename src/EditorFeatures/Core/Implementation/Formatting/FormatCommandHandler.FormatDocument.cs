@@ -76,59 +76,64 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (var scope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
-            {
-                var cancellationToken = context.OperationContext.UserCancellationToken;
-
-                var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                using (var transaction = new CaretPreservingEditTransaction(
-                    EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+            context.OperationContext.TakeOwnership();
+            _waitIndicator.Wait(
+                EditorFeaturesResources.Formatting_document,
+                EditorFeaturesResources.Formatting_document,
+                allowCancel: true,
+                showProgress: true,
+                c =>
                 {
-                    var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+                    var cancellationToken = c.CancellationToken;
 
-                    if (codeCleanupService == null)
+                    var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+                    using (var transaction = new CaretPreservingEditTransaction(
+                        EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        Format(args.TextView, document, selectionOpt: null, cancellationToken);
-                    }
-                    else
-                    {
-                        if (docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
+                        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+
+                        if (codeCleanupService == null)
                         {
-                            var progressTracker = new ProgressTrackerAdapter(scope);
-                            
-                            // Start with a single progress item, which is the one to actually apply
-                            // the changes.
-                            progressTracker.AddItems(1);
-
-                            // Code cleanup
-                            var oldDoc = document;
-                            var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(
-                                document, codeCleanupService, progressTracker, cancellationToken).WaitAndGetResult(cancellationToken)?.ToList();
-
-                            if (codeCleanupChanges?.Count > 0)
-                            {
-                                progressTracker.Description = EditorFeaturesResources.Applying_changes;
-                                ApplyChanges(oldDoc, codeCleanupChanges, selectionOpt: null, cancellationToken);
-                            }
-
-                            progressTracker.ItemCompleted();
+                            Format(args.TextView, document, selectionOpt: null, cancellationToken);
                         }
                         else
                         {
-                            Format(args.TextView, document, selectionOpt: null, cancellationToken);
-
-                            if (!docOptions.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain))
+                            if (docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
                             {
-                                ShowGoldBarForCodeCleanupConfiguration(document);
+                                var progressTracker = c.ProgressTracker;
+
+                                // Start with a single progress item, which is the one to actually apply
+                                // the changes.
+                                progressTracker.AddItems(1);
+
+                                // Code cleanup
+                                var oldDoc = document;
+                                var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(
+                                    document, codeCleanupService, progressTracker, cancellationToken).WaitAndGetResult(cancellationToken)?.ToList();
+
+                                if (codeCleanupChanges?.Count > 0)
+                                {
+                                    progressTracker.Description = EditorFeaturesResources.Applying_changes;
+                                    ApplyChanges(oldDoc, codeCleanupChanges, selectionOpt: null, cancellationToken);
+                                }
+
+                                progressTracker.ItemCompleted();
+                            }
+                            else
+                            {
+                                Format(args.TextView, document, selectionOpt: null, cancellationToken);
+
+                                if (!docOptions.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain))
+                                {
+                                    ShowGoldBarForCodeCleanupConfiguration(document);
+                                }
                             }
                         }
 
+                        transaction.Complete();
                     }
-
-                    transaction.Complete();
-                }
-            }
+                });
 
             return true;
         }
