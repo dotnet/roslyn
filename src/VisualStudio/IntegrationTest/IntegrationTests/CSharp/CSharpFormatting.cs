@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -335,6 +336,7 @@ indent_size = 2
             await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", editorConfig, open: false);
 
             // Wait for CodingConventions library events to propagate to the workspace
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
             await VisualStudio.VisualStudio.WaitForApplicationIdleAsync(CancellationToken.None);
             await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
@@ -352,6 +354,7 @@ indent_size = 2
             VisualStudio.SolutionExplorer.SetFileContents(ProjectName, ".editorconfig", editorConfig.Replace("2", "4"));
 
             // Wait for CodingConventions library events to propagate to the workspace
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
             await VisualStudio.VisualStudio.WaitForApplicationIdleAsync(CancellationToken.None);
             await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
