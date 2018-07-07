@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             await base.DisposeAsync();
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/28357")]
         public async Task TopLeftBottomRightPromptToSymbolAsync()
         {
             InsertInputWithXAtLeft();
@@ -42,7 +42,7 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/28357")]
         public async Task BottomRightTopLeftPromptToSymbolAsync()
         {
             InsertInputWithXAtLeft();
@@ -60,7 +60,7 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/28357")]
         public async Task TopRightBottomLeftPromptToSymbolAsync()
         {
             InsertInputWithXAtLeft();
@@ -78,7 +78,7 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/28357")]
         public async Task BottomLeftTopRightPromptToSymbolAsync()
         {
             InsertInputWithXAtLeft();
@@ -96,7 +96,7 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/28357")]
         public async Task TopLeftBottomRightSymbolToSymbolAsync()
         {
             InsertInputWithSAndEAtLeft();
@@ -114,7 +114,7 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/28357")]
         public async Task BottomRightTopLeftSymbolToSymbolAsync()
         {
             InsertInputWithSAndEAtLeft();
@@ -132,7 +132,7 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/28357")]
         public async Task TopRightBottomLeftSymbolToSymbolAsync()
         {
             InsertInputWithSAndEAtLeft();
@@ -151,7 +151,7 @@ __|234567890ABCDEF
         }
 
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/28357")]
         public async Task BottomLeftTopRightSymbolToSymbolAsync()
         {
             InsertInputWithSAndEAtLeft();
