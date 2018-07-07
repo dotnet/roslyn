@@ -477,20 +477,20 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code Completion.
-        /// </summary>
-        internal static string Code_Completion {
-            get {
-                return ResourceManager.GetString("Code_Completion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Code cleanup is not configured.
         /// </summary>
         internal static string Code_cleanup_is_not_configured {
             get {
                 return ResourceManager.GetString("Code_cleanup_is_not_configured", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code Completion.
+        /// </summary>
+        internal static string Code_Completion {
+            get {
+                return ResourceManager.GetString("Code_Completion", resourceCulture);
             }
         }
         
@@ -1774,6 +1774,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This can take several seconds when there are many changes..
+        /// </summary>
+        internal static string This_can_take_several_seconds_when_there_are_many_changes {
+            get {
+                return ResourceManager.GetString("This_can_take_several_seconds_when_there_are_many_changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This session has already been dismissed..
         /// </summary>
         internal static string This_session_has_already_been_dismissed {
@@ -1999,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We can fix the error by not making struct &quot;out/ref&quot; parameter(s). 
+        ///   Looks up a localized string similar to We can fix the error by not making struct &quot;out/ref&quot; parameter(s).
         ///Do you want to proceed?.
         /// </summary>
         internal static string We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed {

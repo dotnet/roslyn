@@ -25,7 +25,7 @@
                     <CheckBox x:Name="FormatOnPasteCheckBox" x:Uid="FormatOnPasteCheckBox" />
                 </StackPanel>
             </GroupBox>
-            <GroupBox x:Name="FormatDocumentSettingsGroupBox" x:Uid="FormatDocumentSettingsGroupBox" >
+            <GroupBox x:Name="FormatDocumentSettingsGroupBox" x:Uid="FormatDocumentSettingsGroupBox">
                 <StackPanel x:Uid="StackPanel_2">
                     <CheckBox x:Name="AllCSharpFormattingRulesCheckBox" x:Uid="AllCSharpFormattingRulesCheckBox" IsEnabled="False" IsChecked="True"/>
                     <CheckBox x:Name="RemoveUnusedUsingsCheckBox" x:Uid="RemoveUnusedUsingsCheckBox" />
@@ -42,9 +42,11 @@
                     <CheckBox x:Name="MakePrivateFieldReadonlyWhenPossibleCheckBox" x:Uid="MakePrivateFieldReadonlyWhenPossibleCheckBox" />
                     <CheckBox x:Name="RemoveUnnecessaryCastsCheckBox" x:Uid="RemoveUnnecessaryCastsCheckBox" />
                     <CheckBox x:Name="RemoveUnusedVariablesCheckBox" x:Uid="RemoveUnusedVariablesCheckBox" />
-
                 </StackPanel>
             </GroupBox>
+            <Label>
+                <TextBlock TextWrapping="WrapWithOverflow" x:Name="FormatDocumentSettingsNoteTextBlock" x:Uid="FormatDocumentSettingsNoteTextBlock"/>
+            </Label>
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>

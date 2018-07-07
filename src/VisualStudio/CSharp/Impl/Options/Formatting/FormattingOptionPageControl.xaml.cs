@@ -63,6 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(MakePrivateFieldReadonlyWhenPossibleCheckBox, CodeCleanupOptions.MakePrivateFieldReadonlyWhenPossible, LanguageNames.CSharp);
             BindToOption(RemoveUnnecessaryCastsCheckBox, CodeCleanupOptions.RemoveUnnecessaryCasts, LanguageNames.CSharp);
             BindToOption(RemoveUnusedVariablesCheckBox, CodeCleanupOptions.RemoveUnusedVariables, LanguageNames.CSharp);
+
+            FormatDocumentSettingsNoteTextBlock.Text = CSharpVSResources.Select_which_rules_you_want_to_fix_as_part_of_document_cleanup_Note_that_the_number_of_items_selected_may_impact_performance_of_Format_Document;
         }
 
         private void FormatWhenTypingCheckBox_Checked(object sender, RoutedEventArgs e)

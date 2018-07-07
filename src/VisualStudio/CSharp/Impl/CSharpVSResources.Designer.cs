@@ -1213,6 +1213,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select which rules you want to fix as part of document cleanup. Note that the number of items selected may impact performance of Format Document.
+        /// </summary>
+        internal static string Select_which_rules_you_want_to_fix_as_part_of_document_cleanup_Note_that_the_number_of_items_selected_may_impact_performance_of_Format_Document {
+            get {
+                return ResourceManager.GetString("Select_which_rules_you_want_to_fix_as_part_of_document_cleanup_Note_that_the_numb" +
+                        "er_of_items_selected_may_impact_performance_of_Format_Document", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Selection In Completion List.
         /// </summary>
         internal static string Selection_In_Completion_List {
