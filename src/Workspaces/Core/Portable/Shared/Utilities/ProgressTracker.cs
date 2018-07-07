@@ -17,12 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly Action<string, int, int> _updateActionOpt;
 
         public ProgressTracker()
-            : this(default(Action<string, int, int>))
-        {
-        }
-
-        public ProgressTracker(Action<int, int> updateActionOpt)
-            : this((desc, completed, total) => updateActionOpt?.Invoke(completed, total))
+            : this(null)
         {
         }
 
