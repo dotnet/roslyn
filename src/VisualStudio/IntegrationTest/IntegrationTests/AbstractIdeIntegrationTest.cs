@@ -116,8 +116,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync();
 
             // Close any windows leftover from previous (failed) tests
+            await VisualStudio.InteractiveWindow.CloseWindowAsync();
 #if false
-            VisualStudio.InteractiveWindow.CloseInteractiveWindow();
             VisualStudio.ObjectBrowserWindow.CloseWindow();
 #endif
             await VisualStudio.ChangeSignatureDialog.CloseWindowAsync();

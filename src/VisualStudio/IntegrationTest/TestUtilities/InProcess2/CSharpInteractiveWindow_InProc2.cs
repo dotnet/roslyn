@@ -9,10 +9,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
     public class CSharpInteractiveWindow_InProc2 : InteractiveWindow_InProc2
     {
         private const string ViewCommand = "View.C#Interactive";
-        private const string WindowTitle = "C# Interactive";
 
         public CSharpInteractiveWindow_InProc2(TestServices testServices)
-            : base(testServices, ViewCommand, WindowTitle)
+            : base(testServices, ViewCommand, CSharpVsInteractiveWindowPackage.Id)
         {
         }
 

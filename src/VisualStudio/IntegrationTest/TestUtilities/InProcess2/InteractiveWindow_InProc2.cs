@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -16,15 +17,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(10);
 
         private readonly string _viewCommand;
-        private readonly string _windowTitle;
+        private readonly Guid _windowId;
         private TimeSpan _timeout;
         private IInteractiveWindow _interactiveWindow;
 
-        protected InteractiveWindow_InProc2(TestServices testServices, string viewCommand, string windowTitle)
+        protected InteractiveWindow_InProc2(TestServices testServices, string viewCommand, Guid windowId)
             : base(testServices)
         {
             _viewCommand = viewCommand;
-            _windowTitle = windowTitle;
+            _windowId = windowId;
             _timeout = DefaultTimeout;
 
             Verify = new Verifier(this);
@@ -175,15 +176,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         public async Task CloseWindowAsync()
         {
-            var dte = await GetDTEAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            foreach (EnvDTE.Window window in dte.Windows)
+            var shell = await GetGlobalServiceAsync<SVsUIShell, IVsUIShell>();
+            if (ErrorHandler.Succeeded(shell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFrameOnly, _windowId, out var windowFrame)))
             {
-                if (window.Caption == _windowTitle)
-                {
-                    window?.Close();
-                    break;
-                }
+                ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
             }
         }
 
