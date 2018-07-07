@@ -7,19 +7,30 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     /// <summary>
-    /// An adapter between editor's <see cref="IUIThreadOperationScope"/> (which supports reporting progress) 
-    /// and <see cref="IProgressTracker"/>.
+    /// An adapter between editor's <see cref="IUIThreadOperationScope"/> (which supports reporting
+    /// progress) and <see cref="IProgressTracker"/>.
     /// </summary>
     internal class ProgressTrackerAdapter : IProgressTracker
     {
         private readonly IUIThreadOperationScope _uiThreadOperationScope;
         private int _completedItems;
         private int _totalItems;
+        private string _description;
 
         public ProgressTrackerAdapter(IUIThreadOperationScope uiThreadOperationScope)
         {
             Requires.NotNull(uiThreadOperationScope, nameof(uiThreadOperationScope));
             _uiThreadOperationScope = uiThreadOperationScope;
+        }
+
+        public string Description
+        {
+            get => _description;
+            set
+            {
+                _description = value;
+                _uiThreadOperationScope.Description = value;
+            }
         }
 
         public int CompletedItems => _completedItems;

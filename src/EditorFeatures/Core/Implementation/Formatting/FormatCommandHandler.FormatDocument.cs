@@ -95,15 +95,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     {
                         if (docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
                         {
+                            var progressTracker = new ProgressTrackerAdapter(scope);
+                            
+                            // Start with a single progress item, which is the one to actually apply
+                            // the changes.
+                            progressTracker.AddItems(1);
+
                             // Code cleanup
                             var oldDoc = document;
                             var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(
-                                document, codeCleanupService, scope, cancellationToken).WaitAndGetResult(cancellationToken);
+                                document, codeCleanupService, progressTracker, cancellationToken).WaitAndGetResult(cancellationToken)?.ToList();
 
-                            if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
+                            if (codeCleanupChanges?.Count > 0)
                             {
-                                ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
+                                progressTracker.Description = EditorFeaturesResources.Applying_changes;
+                                ApplyChanges(oldDoc, codeCleanupChanges, selectionOpt: null, cancellationToken);
                             }
+
+                            progressTracker.ItemCompleted();
                         }
                         else
                         {
@@ -126,19 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(
             Document document, ICodeCleanupService codeCleanupService, 
-            IUIThreadOperationScope scope, CancellationToken cancellationToken)
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var progressTracker = new ProgressTracker((desc, completed, total) =>
-            {
-                if (desc != null)
-                {
-                    scope.Description = desc;
-                    if (total != 0)
-                    {
-                        scope.Progress.Report(new ProgressInfo(completed, total));
-                    }
-                }
-            });
             var newDoc = await codeCleanupService.CleanupAsync(
                 document, progressTracker, cancellationToken).ConfigureAwait(false);
 
