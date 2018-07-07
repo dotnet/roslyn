@@ -121,7 +121,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
             var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
             var baseFileName = $"{DateTime.Now:HH.mm.ss}-{testName}-{ex.GetType().Name}";
-            ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
+
+            try
+            {
+                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
+            }
+            catch (Exception secondary)
+            {
+                File.WriteAllText(
+                    Path.Combine(logDir, $"{baseFileName}-Screenshot.log"),
+                    secondary.ToString());
+            }
 
             File.WriteAllText(
                 Path.Combine(logDir, $"{baseFileName}.log"),
