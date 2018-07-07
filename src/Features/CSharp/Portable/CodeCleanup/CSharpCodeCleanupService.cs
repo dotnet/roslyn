@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -107,44 +108,69 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             );
         }
 
-        public async Task<Document> CleanupAsync(Document document, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAsync(
+            Document document, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
+            // add one item for the 'Remove Usings', one for 'Sort using' and one item for the
+            // 'format' actions we'll do last
+            progressTracker.AddItems(3);
+
             if (_codeFixServiceOpt != null)
             {
-                document = await ApplyCodeFixesAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
+                document = await ApplyCodeFixesAsync(
+                    document, progressTracker, docOptions, cancellationToken).ConfigureAwait(false);
             }
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
-            document = await RemoveSortUsingsAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
+            document = await RemoveSortUsingsAsync(
+                document, progressTracker, docOptions, cancellationToken).ConfigureAwait(false);
 
-            return await Formatter.FormatAsync(document).ConfigureAwait(false);
+            progressTracker.Description = FeaturesResources.Formatting_document;
+            var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
+            progressTracker.ItemCompleted();
+
+            return result;
         }
 
-        private async Task<Document> RemoveSortUsingsAsync(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
+        private async Task<Document> RemoveSortUsingsAsync(
+            Document document, IProgressTracker tracker,  DocumentOptionSet docOptions, CancellationToken cancellationToken)
         {
-            // remove usings
             if (docOptions.GetOption(CodeCleanupOptions.RemoveUnusedImports))
             {
                 var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
                 if (removeUsingsService != null)
                 {
+                    tracker.Description = CSharpFeaturesResources.Organize_Usings;
                     document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            // sort usings
+            // mark the remove usings command as done.
+            tracker.ItemCompleted();
+
             if (docOptions.GetOption(CodeCleanupOptions.SortImports))
             {
+                tracker.Description = CSharpFeaturesResources.Organize_Usings;
                 document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
             }
+
+            // Mark the sort usings command as done.
+            tracker.ItemCompleted();
 
             return document;
         }
 
-        private async Task<Document> ApplyCodeFixesAsync(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
+        private async Task<Document> ApplyCodeFixesAsync(
+            Document document, IProgressTracker progressTracker,
+            DocumentOptionSet docOptions, CancellationToken cancellationToken)
         {
+            var diagnosticIDs = GetEnabledDiagnosticIds(docOptions);
+
+            // Add a progress item for each diagnostic we're going to try to cleanup.
+            progressTracker.AddItems(diagnosticIDs.Length);
+
             var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             var dummy = new ProgressTracker();
@@ -156,24 +182,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 var textSpan = new TextSpan(0, syntaxTree.Length);
 
                 var fixCollection = await _codeFixServiceOpt.GetFixesAsync(document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
-                if (fixCollection == null)
+                if (fixCollection != null && fixCollection.Fixes.Length > 0)
                 {
-                    continue;
+                    progressTracker.Description = fixCollection.Fixes[0].Action.Title;
+
+                    var fixAll = fixCollection.FixAllState;
+                    var solution = await fixAllService.GetFixAllChangedSolutionAsync(
+                        fixAll.CreateFixAllContext(dummy, cancellationToken)).ConfigureAwait(false);
+
+                    document = solution.GetDocument(document.Id);
                 }
 
-                var fixAll = fixCollection.FixAllState;
-                var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                    fixAll.CreateFixAllContext(dummy, cancellationToken)).ConfigureAwait(false);
-
-                document = solution.GetDocument(document.Id);
+                // Mark this progress item as being completed.
+                progressTracker.ItemCompleted();
             }
 
             return document;
         }
 
-        private IEnumerable<string> GetEnabledDiagnosticIds(DocumentOptionSet docOptions)
+        private ImmutableArray<string> GetEnabledDiagnosticIds(DocumentOptionSet docOptions)
         {
-            var diagnosticIds = new List<string>();
+            var diagnosticIds = ArrayBuilder<string>.GetInstance();
 
             foreach (var tuple in _optionDiagnosticsMappings)
             {
@@ -183,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 }
             }
 
-            return diagnosticIds;
+            return diagnosticIds.ToImmutableAndFree();
         }
     }
 }

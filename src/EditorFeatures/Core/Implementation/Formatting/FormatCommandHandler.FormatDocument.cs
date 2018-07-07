@@ -9,9 +9,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Options.OptionServiceFactory;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
+            using (var scope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
 
@@ -95,7 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         {
                             // Code cleanup
                             var oldDoc = document;
-                            var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, codeCleanupService, cancellationToken).WaitAndGetResult(cancellationToken);
+                            var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(
+                                document, codeCleanupService, scope, cancellationToken).WaitAndGetResult(cancellationToken);
 
                             if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
                             {
@@ -121,9 +124,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return true;
         }
 
-        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(Document document, ICodeCleanupService codeCleanupService, CancellationToken cancellationToken)
+        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(
+            Document document, ICodeCleanupService codeCleanupService, 
+            IUIThreadOperationScope scope, CancellationToken cancellationToken)
         {
-            var newDoc = await codeCleanupService.CleanupAsync(document, cancellationToken).ConfigureAwait(false);
+            var progressTracker = new ProgressTracker((desc, completed, total) =>
+            {
+                if (desc != null)
+                {
+                    scope.Description = desc;
+                    if (total != 0)
+                    {
+                        scope.Progress.Report(new ProgressInfo(completed, total));
+                    }
+                }
+            });
+            var newDoc = await codeCleanupService.CleanupAsync(
+                document, progressTracker, cancellationToken).ConfigureAwait(false);
 
             return await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
         }
