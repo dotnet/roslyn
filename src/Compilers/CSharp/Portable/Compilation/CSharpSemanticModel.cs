@@ -3301,10 +3301,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.IndexExpression:
+                    {
+                        var indexExpression = (BoundIndexExpression)boundNode;
+                        if (indexExpression.SymbolOpt != null)
+                        {
+                            symbols = ImmutableArray.Create((Symbol)indexExpression.SymbolOpt);
+                        }
+                        break;
+                    }
+
+                case BoundKind.RangeExpression:
+                    {
+                        var rangeExpression = (BoundRangeExpression)boundNode;
+                        if (rangeExpression.SymbolOpt != null)
+                        {
+                            symbols = ImmutableArray.Create((Symbol)rangeExpression.SymbolOpt);
+                        }
+                        break;
+                    }
+
                 default:
                     {
-                        // PROTOTYPE: should we return the methods we lower into for indexes and ranges?
-
                         var symbol = boundNode.ExpressionSymbol;
                         if ((object)symbol != null)
                         {

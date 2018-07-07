@@ -1,26 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    /* PROTOTYPE: add assignment tests:
-     *  object x, y;
-     *  str = str[(x = F()).Start..x.End];
-     *  str = str[(y).Start..(y = F()).End];
-     *
-     *  str = str[F(out var x)..G(x)];
-     *  str = str[G(y)..F(out var y)];
-     *
-     * if (str[F(out var x)..F(out var y)] || x == null || y == null) { }
-     */
-
     public class IndexAndRangeTests : CompilingTestBase
     {
         [Fact]
@@ -43,6 +28,90 @@ class Test
         }
 
         [Fact]
+        public void IndexExpression_LiftedTypeIsNotNullable()
+        {
+            var compilation = CreateCompilation(@"
+namespace System
+{
+    public class Index
+    {
+        public Index(int value, bool fromEnd) { }
+    }
+}
+class Test
+{
+    void M(int? arg)
+    {
+        var x = ^arg;
+    }
+}").VerifyDiagnostics(
+                // (13,17): error CS0453: The type 'Index' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         var x = ^arg;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "^arg").WithArguments("System.Nullable<T>", "T", "System.Index").WithLocation(13, 17));
+        }
+
+        [Fact]
+        public void IndexExpression_NullableConstructorNotFound()
+        {
+            var compilation = CreateEmptyCompilation(@"
+namespace System
+{
+    public struct Int32 { }
+    public struct Boolean { }
+    public class ValueType { }
+    public class String { }
+    public class Object { }
+    public class Void { }
+    public struct Nullable<T> where T : struct
+    {
+    }
+    public struct Index
+    {
+        public Index(int value, bool fromEnd) { }
+    }
+}
+class Test
+{
+    void M(int? arg)
+    {
+        var x = ^arg;
+    }
+}").VerifyDiagnostics(
+                // (22,17): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         var x = ^arg;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^arg").WithArguments("System.Nullable`1", ".ctor").WithLocation(22, 17));
+        }
+
+        [Fact]
+        public void IndexExpression_ConstructorNotFound()
+        {
+            var compilation = CreateCompilation(@"
+namespace System
+{
+    public readonly struct Index
+    {
+    }
+}
+class Test
+{
+    void M(int arg)
+    {
+        var x = ^arg;
+    }
+}").VerifyDiagnostics(
+                // (12,17): error CS0656: Missing compiler required member 'System.Index..ctor'
+                //         var x = ^arg;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^arg").WithArguments("System.Index", ".ctor").WithLocation(12, 17));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var expression = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            Assert.Equal("System.Index", model.GetTypeInfo(expression).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+        }
+
+        [Fact]
         public void IndexExpression_SemanticModel()
         {
             var compilation = CreateCompilationWithIndex(@"
@@ -60,7 +129,7 @@ class Test
             var expression = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("^", expression.OperatorToken.ToFullString());
             Assert.Equal("System.Index", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -81,7 +150,7 @@ class Test
             var expression = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("^", expression.OperatorToken.ToFullString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -166,6 +235,66 @@ class Test
         }
 
         [Fact]
+        public void RangeExpression_LiftedRangeNotNullable()
+        {
+            var compilation = CreateCompilationWithIndex(@"
+namespace System
+{
+    public class Range
+    {
+        public static Range Create(Index start, Index end) => default;
+    }
+}
+class Test
+{
+    void M(System.Index? index)
+    {
+        var a = index..index;
+    }
+}").VerifyDiagnostics(
+                // (13,17): error CS0453: The type 'Range' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         var a = index..index;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "index..index").WithArguments("System.Nullable<T>", "T", "System.Range").WithLocation(13, 17));
+        }
+
+        [Fact]
+        public void RangeExpression_LiftedIndexNotNullable()
+        {
+            var compilation = CreateCompilation(@"
+namespace System
+{
+    public class Index
+    {
+        public Index(int value, bool fromEnd) { }
+        public static implicit operator Index(int value) => new Index(value, fromEnd: false);
+    }
+    public readonly struct Range
+    {
+        public static Range Create(Index start, Index end) => default;
+    }
+}
+class Test
+{
+    void M(int? index)
+    {
+        var a = index..index;
+    }
+}").VerifyDiagnostics(
+                // (18,17): error CS0453: The type 'Index' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         var a = index..index;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "index").WithArguments("System.Nullable<T>", "T", "System.Index").WithLocation(18, 17),
+                // (18,17): error CS0029: Cannot implicitly convert type 'int?' to 'System.Index?'
+                //         var a = index..index;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "index").WithArguments("int?", "System.Index?").WithLocation(18, 17),
+                // (18,24): error CS0453: The type 'Index' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         var a = index..index;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "index").WithArguments("System.Nullable<T>", "T", "System.Index").WithLocation(18, 24),
+                // (18,24): error CS0029: Cannot implicitly convert type 'int?' to 'System.Index?'
+                //         var a = index..index;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "index").WithArguments("int?", "System.Index?").WithLocation(18, 24));
+        }
+
+        [Fact]
         public void RangeExpression_WithoutRangeCreate()
         {
             var compilation = CreateCompilationWithIndex(@"
@@ -192,6 +321,90 @@ class Test
                 // (16,17): error CS0656: Missing compiler required member 'System.Range.Create'
                 //         var a = 1..2;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..2").WithArguments("System.Range", "Create").WithLocation(16, 17));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(0);
+            Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+        }
+
+        [Fact]
+        public void RangeExpression_NullableConstructorNotFound()
+        {
+            var compilation = CreateEmptyCompilation(@"
+namespace System
+{
+    public struct Int32 { }
+    public struct Boolean { }
+    public class ValueType { }
+    public class String { }
+    public class Object { }
+    public class Void { }
+    public struct Nullable<T> where T : struct
+    {
+    }
+    public struct Index
+    {
+        public Index(int value, bool fromEnd) { }
+    }
+    public readonly struct Range
+    {
+        public static Range Create(Index start, Index end) => default;
+    }
+}
+class Test
+{
+    void M(System.Index? arg)
+    {
+        var x = arg..arg;
+    }
+}").VerifyDiagnostics(
+                // (26,17): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         var x = arg..arg;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arg").WithArguments("System.Nullable`1", ".ctor").WithLocation(26, 17),
+                // (26,22): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         var x = arg..arg;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arg").WithArguments("System.Nullable`1", ".ctor").WithLocation(26, 22),
+                // (26,17): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         var x = arg..arg;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arg..arg").WithArguments("System.Nullable`1", ".ctor").WithLocation(26, 17));
+        }
+
+        [Fact]
+        public void RangeExpression_BooleanNotFound()
+        {
+            var compilation = CreateEmptyCompilation(@"
+namespace System
+{
+    public struct Int32 { }
+    public class ValueType { }
+    public class String { }
+    public class Object { }
+    public class Void { }
+    public struct Nullable<T> where T : struct
+    {
+        public Nullable(T value) { }
+    }
+    public struct Index
+    {
+    }
+    public readonly struct Range
+    {
+        public static Range Create(Index start, Index end) => default;
+    }
+}
+class Test
+{
+    void M(System.Index? arg)
+    {
+        var x = arg..arg;
+    }
+}").VerifyDiagnostics(
+                // (25,17): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //         var x = arg..arg;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "arg..arg").WithArguments("System.Boolean").WithLocation(25, 17));
         }
 
         [Fact]
@@ -221,6 +434,13 @@ class Test
                 // (17,17): error CS0656: Missing compiler required member 'System.Range.FromStart'
                 //         var b = 1..;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..").WithArguments("System.Range", "FromStart").WithLocation(17, 17));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(1);
+            Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expression).Symbol);
         }
 
         [Fact]
@@ -250,6 +470,13 @@ class Test
                 // (18,17): error CS0656: Missing compiler required member 'System.Range.ToEnd'
                 //         var c = ..2;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..2").WithArguments("System.Range", "ToEnd").WithLocation(18, 17));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(2);
+            Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expression).Symbol);
         }
 
         [Fact]
@@ -279,6 +506,13 @@ class Test
                 // (19,17): error CS0656: Missing compiler required member 'System.Range.All'
                 //         var d = ..;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Range", "All").WithLocation(19, 17));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(3);
+            Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expression).Symbol);
         }
 
         [Fact]
@@ -304,22 +538,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expressions[0]).Symbol);
+            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expressions[1]).Symbol);
+            Assert.Equal("System.Range System.Range.FromStart(System.Index start)", model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expressions[2]).Symbol);
+            Assert.Equal("System.Range System.Range.ToEnd(System.Index end)", model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expressions[3]).Symbol);
+            Assert.Equal("System.Range System.Range.All()", model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }
@@ -347,22 +581,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expressions[0]).Symbol);
+            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expressions[1]).Symbol);
+            Assert.Equal("System.Range System.Range.FromStart(System.Index start)", model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expressions[2]).Symbol);
+            Assert.Equal("System.Range System.Range.ToEnd(System.Index end)", model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expressions[3]).Symbol);
+            Assert.Equal("System.Range System.Range.All()", model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }
@@ -370,27 +604,29 @@ class Test
         [Fact]
         public void RangeExpression_InvalidTypes()
         {
-            // PROTOTYPE: add more test for complex conversions
-
             var compilation = CreateCompilationWithIndexAndRange(@"
 class Test
 {
     void M()
     {
-        var x = 1..""string"";
-        var y = 1.5..;
-        var z = ..true;
+        var a = 1..""string"";
+        var b = 1.5..;
+        var c = ..true;
+        var d = ..M();
     }
 }").VerifyDiagnostics(
                 // (6,20): error CS0029: Cannot implicitly convert type 'string' to 'System.Index'
-                //         var x = 1.."string";
+                //         var a = 1.."string";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""string""").WithArguments("string", "System.Index").WithLocation(6, 20),
                 // (7,17): error CS0029: Cannot implicitly convert type 'double' to 'System.Index'
-                //         var y = 1.5..;
+                //         var b = 1.5..;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1.5").WithArguments("double", "System.Index").WithLocation(7, 17),
                 // (8,19): error CS0029: Cannot implicitly convert type 'bool' to 'System.Index'
-                //         var z = ..true;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "System.Index").WithLocation(8, 19));
+                //         var c = ..true;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "System.Index").WithLocation(8, 19),
+                // (9,19): error CS0029: Cannot implicitly convert type 'void' to 'System.Index'
+                //         var d = ..M();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M()").WithArguments("void", "System.Index").WithLocation(9, 19));
         }
 
         [Fact]
@@ -488,6 +724,28 @@ class Test
                 // (11,17): error CS0037: Cannot convert null to 'Index' because it is a non-nullable value type
                 //         var e = null..0;
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Index").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void Range_OnVarOut_Error()
+        {
+            CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        var result = y..Create(out Index y);
+    }
+    static Index Create(out Index y)
+    {
+        y = ^2;
+        return ^1;
+    }
+}").VerifyDiagnostics(
+                // (7,22): error CS0841: Cannot use local variable 'y' before it is declared
+                //         var result = y..Create(out Index y);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 22));
         }
     }
 }

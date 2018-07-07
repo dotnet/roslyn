@@ -6991,19 +6991,18 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
     }
 
-    internal sealed class IndexOperation : Operation, IIndexOperation
+    internal abstract class BaseIndexOperation : Operation, IIndexOperation
     {
-        public IndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand) :
+        protected BaseIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
                     base(OperationKind.Index, semanticModel, syntax, type, constantValue: null, isImplicit: isImplicit)
         {
-            // PROTOTYPE: introduce another lazy version of this class. See BaseAddressOfExpression, LazyAddressOfExpression ,and AddressOfExpression
-
             IsLifted = isLifted;
-            Operand = Operation.SetParentOperation(operand, this);
+            Symbol = symbol;
         }
 
-        public IOperation Operand { get; }
+        public abstract IOperation Operand { get; }
         public bool IsLifted { get; }
+        public IMethodSymbol Symbol { get; }
 
         public sealed override IEnumerable<IOperation> Children
         {
@@ -7028,21 +7027,43 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class RangeOperation : Operation, IRangeOperation
+    internal sealed class IndexOperation : BaseIndexOperation
     {
-        public RangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand) :
-                    base(OperationKind.Range, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
+        public IndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol) :
+                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
         {
-            // PROTOTYPE: introduce another lazy version of this class. See BaseAddressOfExpression, LazyAddressOfExpression ,and AddressOfExpression
-
-            IsLifted = isLifted;
-            LeftOperand = Operation.SetParentOperation(leftOperand, this);
-            RightOperand = Operation.SetParentOperation(rightOperand, this);
+            Operand = Operation.SetParentOperation(operand, this);
         }
 
-        public IOperation LeftOperand { get; }
-        public IOperation RightOperand { get; }
+        public override IOperation Operand { get; }
+    }
+
+    internal sealed class LazyIndexOperation : BaseIndexOperation
+    {
+        private Lazy<IOperation> _operand;
+
+        public LazyIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Lazy<IOperation> operand, IMethodSymbol symbol) :
+                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        {
+            _operand = new Lazy<IOperation>(() => Operation.SetParentOperation(operand.Value, this));
+        }
+
+        public override IOperation Operand => this._operand.Value;
+    }
+
+    internal abstract class BaseRangeOperation : Operation, IRangeOperation
+    {
+        protected BaseRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
+                    base(OperationKind.Range, semanticModel, syntax, type, constantValue: null, isImplicit: isImplicit)
+        {
+            IsLifted = isLifted;
+            Symbol = symbol;
+        }
+
+        public abstract IOperation LeftOperand { get; }
+        public abstract IOperation RightOperand { get; }
         public bool IsLifted { get; }
+        public IMethodSymbol Symbol { get; }
 
         public sealed override IEnumerable<IOperation> Children
         {
@@ -7071,5 +7092,34 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitRangeOperation(this, argument);
         }
+    }
+
+    internal sealed class RangeOperation : BaseRangeOperation
+    {
+        public RangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand, IMethodSymbol symbol) :
+                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        {
+            LeftOperand = Operation.SetParentOperation(leftOperand, this);
+            RightOperand = Operation.SetParentOperation(rightOperand, this);
+        }
+
+        public override IOperation LeftOperand { get; }
+        public override IOperation RightOperand { get; }
+    }
+
+    internal sealed class LazyRangeOperation : BaseRangeOperation
+    {
+        private Lazy<IOperation> _leftOperand;
+        private Lazy<IOperation> _rightOperand;
+
+        public LazyRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, IMethodSymbol symbol) :
+                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        {
+            _leftOperand = new Lazy<IOperation>(() => Operation.SetParentOperation(leftOperand.Value, this));
+            _rightOperand = new Lazy<IOperation>(() => Operation.SetParentOperation(rightOperand.Value, this));
+        }
+
+        public override IOperation LeftOperand => this._leftOperand.Value;
+        public override IOperation RightOperand => this._rightOperand.Value;
     }
 }

@@ -41,6 +41,7 @@ Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation.Locals.get -> System
 Microsoft.CodeAnalysis.Operations.IDiscardOperation
 Microsoft.CodeAnalysis.Operations.IDiscardOperation.DiscardSymbol.get -> Microsoft.CodeAnalysis.IDiscardSymbol
 Microsoft.CodeAnalysis.Operations.IIndexOperation
+Microsoft.CodeAnalysis.Operations.IIndexOperation.Symbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Operations.IIndexOperation.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Operations.IIndexOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ILocalFunctionOperation.IgnoredBody.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation
@@ -49,6 +50,7 @@ Microsoft.CodeAnalysis.Operations.IMethodBodyBaseOperation.BlockBody.get -> Micr
 Microsoft.CodeAnalysis.Operations.IMethodBodyBaseOperation.ExpressionBody.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation
 Microsoft.CodeAnalysis.Operations.IMethodBodyOperation
 Microsoft.CodeAnalysis.Operations.IRangeOperation
+Microsoft.CodeAnalysis.Operations.IRangeOperation.Symbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Operations.IRangeOperation.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Operations.IRangeOperation.LeftOperand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IRangeOperation.RightOperand.get -> Microsoft.CodeAnalysis.IOperation

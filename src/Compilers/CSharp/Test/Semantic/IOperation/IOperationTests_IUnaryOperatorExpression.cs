@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3566,7 +3567,8 @@ IIndexOperation (OperationKind.Index, Type: System.Index, Constant: null) (Synta
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'arg')
 ";
 
-            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -3588,7 +3590,8 @@ IIndexOperation (IsLifted) (OperationKind.Index, Type: System.Index?, Constant: 
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'arg')
 ";
 
-            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -3613,7 +3616,8 @@ IIndexOperation (OperationKind.Index, Type: System.Index, Constant: null) (Synta
         IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'arg')
 ";
 
-            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
         }
     }
 }

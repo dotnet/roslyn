@@ -315,6 +315,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="SymbolOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundRangeExpression" Base="BoundExpression">
@@ -323,6 +324,7 @@
 
     <Field Name="LeftOperand" Type="BoundExpression" Null="allow"/>
     <Field Name="RightOperand" Type="BoundExpression" Null="allow"/>
+    <Field Name="SymbolOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundBinaryOperator" Base="BoundExpression">

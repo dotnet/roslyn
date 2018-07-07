@@ -1890,12 +1890,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.OperatorToken.IsKind(SyntaxKind.CaretToken));
 
-            // PROTOTYPE: move this check to parser?
             CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
 
-            // Used in lowering
+            // Used in lowering as the second argument to the constructor. Example: new Index(value, fromEnd: true)
             GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-            GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
 
             BoundExpression boundOperand = BindValue(node.Operand, diagnostics, BindValueKind.RValue);
             TypeSymbol intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
@@ -1903,7 +1901,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (boundOperand.Type != null && boundOperand.Type.IsNullableType())
             {
+                // Used in lowering to construct the nullable
+                GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, node);
                 NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node);
+
+                if (!indexType.IsNonNullableValueType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ValConstraintNotSatisfied, node, nullableType, nullableType.TypeParameters.Single(), indexType);
+                }
 
                 intType = nullableType.Construct(intType);
                 indexType = nullableType.Construct(indexType);
@@ -1919,15 +1924,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
-            return new BoundIndexExpression(node, boundConversion, indexType);
+            MethodSymbol symbolOpt = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node) as MethodSymbol;
+
+            return new BoundIndexExpression(node, boundConversion, symbolOpt, indexType);
         }
 
         private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE: move this check to parser?
             CheckFeatureAvailability(node, MessageID.IDS_FeatureRangeOperator, diagnostics);
 
             TypeSymbol rangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
+            MethodSymbol symbolOpt = null;
 
             if (!rangeType.IsErrorType())
             {
@@ -1942,7 +1949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__FromStart : WellKnownMember.System_Range__Create;
                 }
 
-                GetWellKnownTypeMember(Compilation, requiredRangeMethod, diagnostics, syntax: node);
+                symbolOpt = GetWellKnownTypeMember(Compilation, requiredRangeMethod, diagnostics, syntax: node) as MethodSymbol;
             }
 
             BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
@@ -1950,11 +1957,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left?.Type.IsNullableType() == true || right?.Type.IsNullableType() == true)
             {
-                // PROTOTYPE: check if range type is nonnullable struct, and if it can be used here. report accordingly.
-                rangeType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(rangeType);
+                // Used in lowering to construct the nullable
+                GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
+                GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, node);
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node);
+
+                if (!rangeType.IsNonNullableValueType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ValConstraintNotSatisfied, node, nullableType, nullableType.TypeParameters.Single(), rangeType);
+                }
+
+                rangeType = nullableType.Construct(rangeType);
             }
 
-            return new BoundRangeExpression(node, left, right, rangeType);
+            return new BoundRangeExpression(node, left, right, symbolOpt, rangeType);
         }
 
         private BoundExpression BindRangeExpressionOperand(ExpressionSyntax operand, DiagnosticBag diagnostics)
@@ -1969,8 +1985,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (boundOperand.Type != null && boundOperand.Type.IsNullableType())
             {
-                // PROTOTYPE: check if index type is nonnullable struct, and if it can be used here. report accordingly.
-                indexType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand).Construct(indexType);
+                // Used in lowering to construct the nullable
+                GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, operand);
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand);
+
+                if (!indexType.IsNonNullableValueType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ValConstraintNotSatisfied, operand, nullableType, nullableType.TypeParameters.Single(), indexType);
+                }
+
+                indexType = nullableType.Construct(indexType);
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;

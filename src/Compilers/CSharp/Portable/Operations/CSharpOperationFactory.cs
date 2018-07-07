@@ -2060,25 +2060,27 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateIndexExpressionOperation(BoundIndexExpression boundIndex)
         {
-            return new IndexOperation(
+            return new LazyIndexOperation(
                 isLifted: boundIndex.Type.IsNullableType(),
                 isImplicit: boundIndex.WasCompilerGenerated,
                 _semanticModel,
                 boundIndex.Syntax,
                 boundIndex.Type,
-                operand: Create(boundIndex.Operand));
+                operand: new Lazy<IOperation>(() => Create(boundIndex.Operand)),
+                symbol: boundIndex.SymbolOpt);
         }
 
         private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
         {
-            return new RangeOperation(
+            return new LazyRangeOperation(
                 isLifted: boundRange.Type.IsNullableType(),
                 isImplicit: boundRange.WasCompilerGenerated,
                 _semanticModel,
                 boundRange.Syntax,
                 boundRange.Type,
-                leftOperand: Create(boundRange.LeftOperand),
-                rightOperand: Create(boundRange.RightOperand));
+                leftOperand: new Lazy<IOperation>(() => Create(boundRange.LeftOperand)),
+                rightOperand: new Lazy<IOperation>(() => Create(boundRange.RightOperand)),
+                symbol: boundRange.SymbolOpt);
         }
     }
 }

@@ -1034,13 +1034,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
-        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
+        protected static IOperation VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
             var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
             additionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
+
+            return actualOperation;
         }
 
         protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)

@@ -1361,8 +1361,6 @@ d.cs
             Assert.True(args.DisplayLangVersions);
         }
 
-        // PROTOTYPE: add 8.0 to IDE drop-down for selecting Language Version?
-
         [Fact]
         public void LanguageVersionAdded_Canary()
         {

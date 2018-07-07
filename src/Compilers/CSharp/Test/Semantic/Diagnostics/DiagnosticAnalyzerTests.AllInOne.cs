@@ -30,11 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
 
             var syntaxKinds = new HashSet<SyntaxKind>();
-
-            // PROTOTYPE: investigate whether this should be added or not?
-            syntaxKinds.Add(SyntaxKind.RangeExpression);
-            syntaxKinds.Add(SyntaxKind.IndexExpression);
-
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKinds);
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
         }

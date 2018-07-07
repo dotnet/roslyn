@@ -5,9 +5,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    // PROTOTYPE: add tests for when either operands of range is optimized using NullableAlwaysHasValue
-    // PROTOTYPE: add tests for when either operands of range is optimized using NullableNeverHasValue (not implemented yet)
-
     public class IndexAndRangeTests : CSharpTestBase
     {
         [Fact]
@@ -68,9 +65,9 @@ public static class Util
         [Fact]
         public void PrintIndexExpressions()
         {
-            var compilation = CreateCompilationWithIndex(@"
+            var compilation = CreateCompilationWithIndexAndRange(@"
 using System;
-class Program
+partial class Program
 {
     static void Main()
     {
@@ -100,18 +97,7 @@ class Program
         Index? f = ^nullableDefault;
         Console.WriteLine(""f: "" + Print(f));
     }
-    static string Print(Index? arg)
-    {
-        if (arg.HasValue)
-        {
-            return $""value: '{arg.Value.Value}', fromEnd: '{arg.Value.FromEnd}'"";
-        }
-        else
-        {
-            return ""default"";
-        }
-    }
-}", options: TestOptions.ReleaseExe);
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"
 a: value: '1', fromEnd: 'False'
@@ -388,7 +374,7 @@ public static class Util
         {
             var compilation = CreateCompilationWithIndexAndRange(@"
 using System;
-class Program
+partial class Program
 {
     static void Main()
     {
@@ -455,29 +441,7 @@ class Program
         Console.WriteLine(""p: "" + Print(p));
 
     }
-    static string Print(Index? arg)
-    {
-        if (arg.HasValue)
-        {
-            return $""value: '{arg.Value.Value}', fromEnd: '{arg.Value.FromEnd}'"";
-        }
-        else
-        {
-            return ""default"";
-        }
-    }
-    static string Print(Range? arg)
-    {
-        if (arg.HasValue)
-        {
-            return $""value: '{Print(arg.Value.Start)}', fromEnd: '{Print(arg.Value.End)}'"";
-        }
-        else
-        {
-            return ""default"";
-        }
-    }
-}", options: TestOptions.ReleaseExe);
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"
 a: value: 'value: '1', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'False''
@@ -503,7 +467,7 @@ p: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
         {
             var compilation = CreateCompilationWithIndexAndRange(@"
 using System;
-class Program
+partial class Program
 {
     static void Main()
     {
@@ -513,15 +477,7 @@ class Program
         Console.WriteLine(Print(..3));
         Console.WriteLine(Print(4..5));
     }
-    static string Print(Index arg)
-    {
-        return $""value: '{arg.Value}', fromEnd: '{arg.FromEnd}'"";
-    }
-    static string Print(Range arg)
-    {
-        return $""value: '{Print(arg.Start)}', fromEnd: '{Print(arg.End)}'"";
-    }
-}", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: @"
 value: '1', fromEnd: 'True'
@@ -662,17 +618,422 @@ public static class Util
         [Fact]
         public void Index_OperandConvertibleToInt()
         {
-            CompileAndVerify(CreateCompilationWithIndex(@"
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
 using System;
-class Test
+partial class Program
 {
     static void Main()
     {
         byte a = 3;
         Index b = ^a;
-        Console.WriteLine($""Value: {b.Value}, FromEnd: {b.FromEnd}"");
+        Console.WriteLine(Print(b));
     }
-}", options: TestOptions.ReleaseExe), expectedOutput: "Value: 3, FromEnd: True");
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe), expectedOutput: "value: '3', fromEnd: 'True'");
         }
+
+        [Fact]
+        public void Index_NullableAlwaysHasValue()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create()));
+    }
+    static Index? Create()
+    {
+        // should be lowered into: new Nullable<Index>(new Index(5, fromEnd: true))
+        return ^new Nullable<int>(5);
+    }
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe),
+                expectedOutput: "value: '5', fromEnd: 'True'")
+                .VerifyIL("Program.Create", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldc.i4.5
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  newobj     ""System.Index?..ctor(System.Index)""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void Range_NullableAlwaysHasValue_Left()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create(^1)));
+    }
+    static Range? Create(Index arg)
+    {
+        // should be lowered into: new Nullable<Range>(Range.FromStart(arg))
+        return new Nullable<Index>(arg)..;
+    }
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe),
+                expectedOutput: "value: 'value: '1', fromEnd: 'True'', fromEnd: 'value: '0', fromEnd: 'True''")
+                .VerifyIL("Program.Create", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.Range System.Range.FromStart(System.Index)""
+  IL_0006:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void Range_NullableAlwaysHasValue_Right()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create(^1)));
+    }
+    static Range? Create(Index arg)
+    {
+        // should be lowered into: new Nullable<Range>(Range.ToEnd(arg))
+        return ..new Nullable<Index>(arg);
+    }
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe),
+                expectedOutput: "value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''")
+                .VerifyIL("Program.Create", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.Range System.Range.ToEnd(System.Index)""
+  IL_0006:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void Range_NullableAlwaysHasValue_Both()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create(^2, ^1)));
+    }
+    static Range? Create(Index arg1, Index arg2)
+    {
+        // should be lowered into: new Nullable<Range>(Range.Create(arg1, arg2))
+        return new Nullable<Index>(arg1)..new Nullable<Index>(arg2);
+    }
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe),
+                expectedOutput: "value: 'value: '2', fromEnd: 'True'', fromEnd: 'value: '1', fromEnd: 'True''")
+                .VerifyIL("Program.Create", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0007:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void Index_NullableNeverHasValue()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create()));
+    }
+    static Index? Create()
+    {
+        // should be lowered into: new Nullable<Index>(new Index(default, fromEnd: true))
+        return ^new Nullable<int>();
+    }
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe), expectedOutput: "value: '0', fromEnd: 'True'")
+                .VerifyIL("Program.Create", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  newobj     ""System.Index?..ctor(System.Index)""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void Range_NullableNeverhasValue_Left()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create()));
+    }
+    static Range? Create()
+    {
+        // should be lowered into: new Nullable<Range>(Range.FromStart(default))
+        return new Nullable<Index>()..;
+    }
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe),
+                expectedOutput: "value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''")
+                .VerifyIL("Program.Create", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (System.Index V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.Index""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""System.Range System.Range.FromStart(System.Index)""
+  IL_000e:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void Range_NullableNeverHasValue_Right()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create()));
+    }
+    static Range? Create()
+    {
+        // should be lowered into: new Nullable<Range>(Range.ToEnd(default))
+        return ..new Nullable<Index>();
+    }
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe),
+                expectedOutput: "value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'False''")
+                .VerifyIL("Program.Create", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (System.Index V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.Index""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""System.Range System.Range.ToEnd(System.Index)""
+  IL_000e:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void Range_NullableNeverHasValue_Both()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create()));
+    }
+    static Range? Create()
+    {
+        // should be lowered into: new Nullable<Range>(Range.Create(default, default))
+        return new Nullable<Index>()..new Nullable<Index>();
+    }
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe),
+                expectedOutput: "value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'False''")
+                .VerifyIL("Program.Create", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (System.Index V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.Index""
+  IL_0008:  ldloc.0
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  initobj    ""System.Index""
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0017:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_001c:  ret
+}");
+        }
+
+        [Fact]
+        public void Index_OnFunctionCall()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(^Create(5)));
+    }
+    static int Create(int x) => x;
+}" + PrintIndexesAndRangesCode,
+                options: TestOptions.ReleaseExe),
+                expectedOutput: "value: '5', fromEnd: 'True'");
+        }
+
+        [Fact]
+        public void Range_OnFunctionCall()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create(1)..Create(2)));
+    }
+    static Index Create(int x) => ^x;
+}" + PrintIndexesAndRangesCode,
+                options: TestOptions.ReleaseExe),
+                expectedOutput: "value: 'value: '1', fromEnd: 'True'', fromEnd: 'value: '2', fromEnd: 'True''");
+        }
+
+        [Fact]
+        public void Index_OnAssignment()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        int x = default;
+        Console.WriteLine(Print(^(x = Create(5))));
+        Console.WriteLine(x);
+    }
+    static int Create(int x) => x;
+}" + PrintIndexesAndRangesCode,
+                options: TestOptions.ReleaseExe),
+                expectedOutput: @"
+value: '5', fromEnd: 'True'
+5");
+        }
+
+        [Fact]
+        public void Range_OnAssignment()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Index x = default, y = default;
+        Console.WriteLine(Print((x = Create(1))..(y = Create(2))));
+        Console.WriteLine(Print(x));
+        Console.WriteLine(Print(y));
+    }
+    static Index Create(int x) => ^x;
+}" + PrintIndexesAndRangesCode,
+                options: TestOptions.ReleaseExe),
+                expectedOutput: @"
+value: 'value: '1', fromEnd: 'True'', fromEnd: 'value: '2', fromEnd: 'True''
+value: '1', fromEnd: 'True'
+value: '2', fromEnd: 'True'");
+        }
+
+        [Fact]
+        public void Range_OnVarOut()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(Create(1, out Index y)..y));
+    }
+    static Index Create(int x, out Index y)
+    {
+        y = ^2;
+        return ^x;
+    }
+}" + PrintIndexesAndRangesCode, options: TestOptions.ReleaseExe),
+                expectedOutput: "value: 'value: '1', fromEnd: 'True'', fromEnd: 'value: '2', fromEnd: 'True''");
+        }
+
+        [Fact]
+        public void Range_EvaluationInCondition()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+partial class Program
+{
+    static void Main()
+    {
+        if ((Create(1, out int a)..Create(2, out int b)).Start.FromEnd && a < b)
+        {
+            Console.WriteLine(""YES"");
+        }
+        if ((Create(4, out int c)..Create(3, out int d)).Start.FromEnd && c < d)
+        {
+            Console.WriteLine(""NO"");
+        }
+    }
+    static Index Create(int x, out int y)
+    {
+        y = x;
+        return ^x;
+    }
+}", options: TestOptions.ReleaseExe), expectedOutput: "YES");
+        }
+
+        private const string PrintIndexesAndRangesCode = @"
+partial class Program
+{
+    static string Print(Index arg)
+    {
+        return $""value: '{arg.Value}', fromEnd: '{arg.FromEnd}'"";
+    }
+    static string Print(Range arg)
+    {
+        return $""value: '{Print(arg.Start)}', fromEnd: '{Print(arg.End)}'"";
+    }
+    static string Print(Index? arg)
+    {
+        if (arg.HasValue)
+        {
+            return Print(arg.Value);
+        }
+        else
+        {
+            return ""default"";
+        }
+    }
+    static string Print(Range? arg)
+    {
+        if (arg.HasValue)
+        {
+            return Print(arg.Value);
+        }
+        else
+        {
+            return ""default"";
+        }
+    }
+}";
     }
 }

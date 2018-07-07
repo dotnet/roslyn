@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to change it in the future.
-    /// PROTOTYPE: (from AlekseyTS) expose the method symbol it is lowered into, for the benefit of GetSymbolInfo and IOperation APIs
     /// </remarks>
     public interface IRangeOperation : IOperation
     {
@@ -32,5 +31,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// value types.
         /// </summary>
         bool IsLifted { get; }
+
+        /// <summary>
+        /// Factory method symbol that's called to create this Range value.
+        /// Can be null if appropriate symbol was not found.
+        /// </summary>
+        IMethodSymbol Symbol { get; }
     }
 }
