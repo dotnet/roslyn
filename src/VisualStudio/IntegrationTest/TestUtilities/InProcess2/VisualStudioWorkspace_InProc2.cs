@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
@@ -152,6 +155,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             await LoadRoslynPackageAsync();
             _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
+
+            // Prepare to reset all options
+            var optionService = _visualStudioWorkspace.Services.GetRequiredService<IOptionService>();
+            var optionSet = optionService.GetOptions();
+            foreach (var changedOptionKey in optionSet.GetChangedOptions(DefaultValueOptionSet.Instance).ToArray())
+            {
+                optionSet = optionSet.WithChangedOption(changedOptionKey, changedOptionKey.Option.DefaultValue);
+            }
+
+            // Options overrides used for testing
+            optionSet = optionSet.WithChangedOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, LanguageNames.CSharp, true);
+            optionSet = optionSet.WithChangedOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, LanguageNames.VisualBasic, true);
+
+            optionService.SetOptions(optionSet);
         }
 
         public async Task CleanUpWaitingServiceAsync()
@@ -173,7 +190,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
+            var optionService = _visualStudioWorkspace.Services.GetRequiredService<IOptionService>();
             var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
             if (option == null)
             {
@@ -194,6 +211,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
             optionService.SetOptions(optionService.GetOptions().WithChangedOption(option, language, value));
+        }
+
+        /// <summary>
+        /// An implementation of <see cref="OptionSet"/> that returns the default values for all options.
+        /// </summary>
+        private class DefaultValueOptionSet : OptionSet
+        {
+            public static readonly DefaultValueOptionSet Instance = new DefaultValueOptionSet();
+
+            private DefaultValueOptionSet()
+            {
+            }
+
+            public override object GetOption(OptionKey optionKey)
+            {
+                return optionKey.Option.DefaultValue;
+            }
+
+            public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+            {
+                throw new NotSupportedException();
+            }
+
+            internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+            {
+                if (optionSet == this)
+                {
+                    return Enumerable.Empty<OptionKey>();
+                }
+
+                return optionSet.GetChangedOptions(this);
+            }
         }
     }
 }
