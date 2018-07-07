@@ -137,3 +137,4 @@ Example:
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26743 C# will now reject expressions such as `public int* M => &this.Bar[0];` if `Bar` is a fixed field of the containing type.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27772 invocation receivers will be checked for escape scope errors now in nested scope expressions.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/28117 C# will now reject ref assignments to byval parameters.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27049 C# will now reject base.Method() calls inside restricted types, because that requires boxing.
