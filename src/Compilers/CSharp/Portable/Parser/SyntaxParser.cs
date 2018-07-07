@@ -1054,13 +1054,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
 
-            if (feature == MessageID.IDS_FeatureModuleAttrLoc)
+            // There's a special error code for some features, so handle those separately.
+            switch (feature)
             {
-                // There's a special error code for this feature, so handle it separately.
-                return availableVersion >= LanguageVersion.CSharp2
-                    ? node
-                    : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
-            }
+                case MessageID.IDS_FeatureModuleAttrLoc:
+                    return availableVersion >= LanguageVersion.CSharp2
+                        ? node
+                        : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
+
+                case MessageID.IDS_FeatureVerbatimInterpolatedStrings:
+                    return availableVersion >= LanguageVersion.CSharp8
+                        ? node
+                        : this.AddError(node, ErrorCode.ERR_VerbatimInterpolatedStringsNotAvailable,
+                            new CSharpRequiredLanguageVersion(LanguageVersion.CSharp8));
+           }
 
             if (IsFeatureEnabled(feature))
             {

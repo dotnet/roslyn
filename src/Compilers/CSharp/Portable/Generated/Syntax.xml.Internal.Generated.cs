@@ -39995,6 +39995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.InterpolatedStringStartToken:
         case SyntaxKind.InterpolatedVerbatimStringStartToken:
+        case SyntaxKind.VerbatimInterpolatedStringStartToken:
           break;
         default:
           throw new ArgumentException("stringStartToken");
@@ -46958,6 +46959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.InterpolatedStringStartToken:
         case SyntaxKind.InterpolatedVerbatimStringStartToken:
+        case SyntaxKind.VerbatimInterpolatedStringStartToken:
           break;
         default:
           throw new ArgumentException("stringStartToken");

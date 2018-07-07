@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 || token.IsKind(SyntaxKind.CharacterLiteralToken)
                 || token.IsKind(SyntaxKind.InterpolatedStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)
+                || token.IsKind(SyntaxKind.VerbatimInterpolatedStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedStringTextToken)
                 || token.IsKind(SyntaxKind.InterpolatedStringEndToken);
         }
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             switch (token.Kind())
             {
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.VerbatimInterpolatedStringStartToken:
                     return true;
                 case SyntaxKind.InterpolatedStringStartToken:
                     return false;
@@ -84,7 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         var interpolatedString = token.Parent as InterpolatedStringExpressionSyntax;
 
                         return interpolatedString != null
-                            && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                            && interpolatedString.StringStartToken.IsKind(
+                                SyntaxKind.InterpolatedVerbatimStringStartToken,
+                                SyntaxKind.VerbatimInterpolatedStringStartToken);
                     }
 
                 case SyntaxKind.InterpolatedStringTextToken:
@@ -98,7 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         var interpolatedString = interpolatedStringText.Parent as InterpolatedStringExpressionSyntax;
 
                         return interpolatedString != null
-                            && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                            && interpolatedString.StringStartToken.IsKind(
+                                SyntaxKind.InterpolatedVerbatimStringStartToken,
+                                SyntaxKind.VerbatimInterpolatedStringStartToken);
                     }
             }
 

@@ -10097,6 +10097,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To use &apos;@$&apos; instead of &apos;$@&quot; for a verbatim interpolated string, please use language version {0} or greater..
+        /// </summary>
+        internal static string ERR_VerbatimInterpolatedStringsNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_VerbatimInterpolatedStringsNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: virtual or abstract members cannot be private.
         /// </summary>
         internal static string ERR_VirtualPrivate {
@@ -11030,6 +11039,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureUsingStatic {
             get {
                 return ResourceManager.GetString("IDS_FeatureUsingStatic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to verbatim interpolated strings.
+        /// </summary>
+        internal static string IDS_FeatureVerbatimInterpolatedStrings {
+            get {
+                return ResourceManager.GetString("IDS_FeatureVerbatimInterpolatedStrings", resourceCulture);
             }
         }
         

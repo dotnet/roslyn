@@ -291,6 +291,22 @@ class Program
                 LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
+
+        [Fact]
+        public async Task UpgradeProjectForVerbatimInterpolatedString()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void A()
+    {
+        var x = [|@$""hello""|];
+    }
+}",
+                expected: LanguageVersion.CSharp8,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
         #endregion
 
         [Fact]

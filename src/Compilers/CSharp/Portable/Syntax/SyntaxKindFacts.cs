@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.VerbatimInterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
                 case SyntaxKind.LoadKeyword:
@@ -1592,6 +1593,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "when";
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     return "$@\"";
+                case SyntaxKind.VerbatimInterpolatedStringStartToken:
+                    return "@$\"";
                 case SyntaxKind.InterpolatedStringStartToken:
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:

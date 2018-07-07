@@ -12,6 +12,16 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VerbatimInterpolatedStringsNotAvailable">
+        <source>To use '@$' instead of '$@" for a verbatim interpolated string, please use language version {0} or greater.</source>
+        <target state="new">To use '@$' instead of '$@" for a verbatim interpolated string, please use language version {0} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureVerbatimInterpolatedStrings">
+        <source>verbatim interpolated strings</source>
+        <target state="new">verbatim interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;Null&gt;</target>
