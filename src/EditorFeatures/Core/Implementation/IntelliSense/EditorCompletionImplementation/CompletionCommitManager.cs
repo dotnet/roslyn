@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return new EditorCompletion.CommitResult(isHandled: true, commitBehavior);
             }
 
+            if (!IsCommitCharacter(typeChar, roslynItem.Rules.CommitCharacterRules))
+            {
+                return new EditorCompletion.CommitResult(isHandled: true, EditorCompletion.CommitBehavior.CancelCommit);
+            }
+
             if (document.Project.Language == LanguageNames.VisualBasic && typeChar == '\n')
             {
                 return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
@@ -64,6 +69,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.None);
+        }
+
+        /// <summary>
+        /// This method needs to support custom procesing of commit characters to be on par with the old completion implementation.
+        /// TODO we should consider removign this method and arrange better processing of commit characters.
+        /// </summary>
+        private  bool IsCommitCharacter(char typeChar, ImmutableArray<CharacterSetModificationRule> rules)
+        {
+            // Tab, Enter and Null (call invoke commit) are always a commit character
+            if (typeChar == '\t' || typeChar == '\n' || typeChar == '\0') 
+            {
+                return true;
+            }
+
+            foreach (var rule in rules)
+            {
+                switch (rule.Kind)
+                {
+                    case CharacterSetModificationKind.Add:
+                        if (rule.Characters.Contains(typeChar))
+                        {
+                            return true;
+                        }
+
+                        break;
+
+                    case CharacterSetModificationKind.Remove:
+                        if (rule.Characters.Contains(typeChar))
+                        {
+                            return false;
+                        }
+
+                        break;
+
+                    case CharacterSetModificationKind.Replace:
+                        return rule.Characters.Contains(typeChar);
+                    }
+                }
+
+            return CommitChars.Contains(typeChar);
         }
 
         private EditorCompletion.CommitBehavior CustomCommit(

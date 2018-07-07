@@ -329,6 +329,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return result
         End Function
 
+        Public Function GetSelectedCompletionItemOpt() As CompletionItem
+            AssertNoAsynchronousOperationsRunning()
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            If session IsNot Nothing Then
+                Dim item = session.GetComputedItems(CancellationToken.None).SelectedItem
+                Dim completionItem As CompletionItem = Nothing
+                If item?.Properties.TryGetProperty(RoslynItem, completionItem) Then
+                    Return completionItem
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
         Public Function HasSuggestedItem() As Boolean
             AssertNoAsynchronousOperationsRunning()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)

@@ -1481,7 +1481,7 @@ class Goo
         End Function
 
         <WorkItem(544017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544017")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionTriggeredOnSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1503,7 +1503,7 @@ class Goo
         End Function
 
         <WorkItem(479078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/479078")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionTriggeredOnSpaceForNullables() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1544,22 +1544,22 @@ class Goo
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnPlusCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("+"c)
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnLeftBraceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("{"c)
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnSpaceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(" "c)
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnSemicolonCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(";"c)
         End Function
@@ -1582,7 +1582,11 @@ class Goo
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
                 state.SendTypeChars(c.ToString())
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Numberos")
+                Dim selectedItem = state.GetSelectedCompletionItemOpt()
+                If selectedItem IsNot Nothing Then
+                    Assert.True(selectedItem.DisplayText <> "Numberos")
+                End If
+
                 Assert.Contains(String.Format("Numeros num = Nu{0}", c), state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
