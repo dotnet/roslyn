@@ -539,15 +539,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Applying: {0}.
-        /// </summary>
-        internal static string Applying_0 {
-            get {
-                return ResourceManager.GetString("Applying_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
         internal static string Argument_cannot_be_empty {
@@ -2568,15 +2559,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Prefer_explicitly_provided_tuple_element_name {
             get {
                 return ResourceManager.GetString("Prefer_explicitly_provided_tuple_element_name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Preparing: {0}.
-        /// </summary>
-        internal static string Preparing_0 {
-            get {
-                return ResourceManager.GetString("Preparing_0", resourceCulture);
             }
         }
         
