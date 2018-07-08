@@ -614,12 +614,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-#if false
         /// <summary>
         /// Adds a new standalone file to the Miscellaneous Files workspace.
         /// </summary>
         /// <param name="fileName">The name of the file to add.</param>
-        public void AddStandaloneFile(string fileName)
+        public async Task AddStandaloneFileAsync(string fileName)
         {
             string itemTemplate;
 
@@ -642,9 +641,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                     throw new NotSupportedException($"File type '{extension}' is not yet supported.");
             }
 
-            GetDTE().ItemOperations.NewFile(itemTemplate, fileName);
+            (await GetDTEAsync()).ItemOperations.NewFile(itemTemplate, fileName);
         }
-#endif
 
         public void SetFileContents(string projectName, string relativeFilePath, string contents)
         {

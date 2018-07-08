@@ -1,31 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicRename : AbstractEditorTest
+    public class BasicRename : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.InlineRenameDialog;
-
-        public BasicRename(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicRename))
+        public BasicRename()
+            : base(nameof(BasicRename))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
-        public void VerifyLocalVariableRename()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        private InlineRenameDialog_InProc2 InlineRenameDialog => VisualStudio.InlineRenameDialog;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        public async Task VerifyLocalVariableRenameAsync()
         {
             var markup = @"
 Imports System
@@ -42,15 +43,15 @@ Module Program
 
     End Sub
 End Module";
-            SetUpEditor(markup);
-            InlineRenameDialog.Invoke();
+            await SetUpEditorAsync(markup);
+            await InlineRenameDialog.InvokeAsync();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = await VisualStudio.Editor.GetTagSpansAsync(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Y, VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -67,8 +68,8 @@ Module Program
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
-        public void VerifyLocalVariableRenameWithCommentsUpdated()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        public async Task VerifyLocalVariableRenameWithCommentsUpdatedAsync()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
             // "thix" below to ensure we don't change instances of "x" in comments that are part of
@@ -89,16 +90,16 @@ Module Program
         [|x|] = 5
         TestMethod([|x|])
 End Module";
-            SetUpEditor(markup);
-            InlineRenameDialog.Invoke();
-            InlineRenameDialog.ToggleIncludeComments();
+            await SetUpEditorAsync(markup);
+            await InlineRenameDialog.InvokeAsync();
+            await InlineRenameDialog.ToggleIncludeCommentsAsync();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = await VisualStudio.Editor.GetTagSpansAsync(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Y, VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -116,8 +117,8 @@ Module Program
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
-        public void VerifyLocalVariableRenameWithStringsUpdated()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        public async Task VerifyLocalVariableRenameWithStringsUpdatedAsync()
         {
             var markup = @"
 Imports System
@@ -131,17 +132,17 @@ Module Program
         Dim s = ""[|x|] xx [|x|]""
     End Sub
 End Module";
-            SetUpEditor(markup);
+            await SetUpEditorAsync(markup);
 
-            InlineRenameDialog.Invoke();
-            InlineRenameDialog.ToggleIncludeStrings();
+            await InlineRenameDialog.InvokeAsync();
+            await InlineRenameDialog.ToggleIncludeStringsAsync();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = await VisualStudio.Editor.GetTagSpansAsync(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Y, VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -155,8 +156,8 @@ Module Program
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
-        public void VerifyOverloadsUpdated()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        public async Task VerifyOverloadsUpdatedAsync()
         {
             var markup = @"
 Interface I
@@ -169,17 +170,17 @@ Public MustInherit Class A
     Public MustOverride Sub [|TestMethod|](y As Integer) Implements I.[|TestMethod|]
     Public MustOverride Sub [|TestMethod|](y As String) Implements I.[|TestMethod|]
 End Class";
-            SetUpEditor(markup);
+            await SetUpEditorAsync(markup);
 
-            InlineRenameDialog.Invoke();
-            InlineRenameDialog.ToggleIncludeOverloads();
+            await InlineRenameDialog.InvokeAsync();
+            await InlineRenameDialog.ToggleIncludeOverloadsAsync();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = await VisualStudio.Editor.GetTagSpansAsync(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Y, VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 Interface I
     Sub y(y As Integer)
     Sub y(y As String)
