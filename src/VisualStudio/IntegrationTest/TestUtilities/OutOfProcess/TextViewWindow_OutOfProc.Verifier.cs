@@ -110,15 +110,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 }
             }
 
-            public void CompletionItemsDoNotExist( params string[] unexpectedItems)
-            {
-                var completionItems = _textViewWindow.GetCompletionItems();
-                foreach (var unexpectedItem in unexpectedItems)
-                {
-                    Assert.DoesNotContain(unexpectedItem, completionItems);
-                }
-            }
-
             public void CaretPosition(int expectedCaretPosition)
             {
                 var position = _textViewWindow.GetCaretPosition();

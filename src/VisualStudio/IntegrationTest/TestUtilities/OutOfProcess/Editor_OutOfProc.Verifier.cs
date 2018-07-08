@@ -129,47 +129,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 Assert.Equal(caretStartIndex + index, caretPosition);
             }
 
-            public void CurrentCompletionItem(
-                string expectedItem)
-            {
-                var currentItem = _textViewWindow.GetCurrentCompletionItem();
-                Assert.Equal(expectedItem, currentItem);
-            }
-
-            public void VerifyCurrentSignature(
-                Signature expectedSignature)
-            {
-                var currentSignature = _textViewWindow.GetCurrentSignature();
-                Assert.Equal(expectedSignature, currentSignature);
-            }
-
-            public void CurrentSignature(string content)
-            {
-                var currentSignature = _textViewWindow.GetCurrentSignature();
-                Assert.Equal(content, currentSignature.Content);
-            }
-
-            public void CurrentParameter(
-                string name,
-                string documentation)
-            {
-                var currentParameter = _textViewWindow.GetCurrentSignature().CurrentParameter;
-                Assert.Equal(name, currentParameter.Name);
-                Assert.Equal(documentation, currentParameter.Documentation);
-            }
-
-            public void Parameters(
-                params (string name, string documentation)[] parameters)
-            {
-                var currentParameters = _textViewWindow.GetCurrentSignature().Parameters;
-                for (var i = 0; i < parameters.Length; i++)
-                {
-                    var (expectedName, expectedDocumentation) = parameters[i];
-                    Assert.Equal(expectedName, currentParameters[i].Name);
-                    Assert.Equal(expectedDocumentation, currentParameters[i].Documentation);
-                }
-            }
-
             public void Dialog(
                 string dialogName,
                 bool isOpen)
@@ -183,11 +142,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
                 var actualTags = _textViewWindow.GetErrorTags();
                 Assert.Equal(expectedTags, actualTags);
-            }
-
-            public void IsProjectItemDirty(bool expectedValue)
-            {
-                Assert.Equal(expectedValue, _textViewWindow._editorInProc.IsProjectItemDirty());
             }
         }
     }
