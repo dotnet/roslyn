@@ -31,8 +31,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
-        public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
-
         public SendKeys SendKeys { get; }
 
         public Shell_OutOfProc Shell { get; }
@@ -110,7 +108,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
-            InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);

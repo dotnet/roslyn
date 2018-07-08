@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -77,7 +78,7 @@ End Module";
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
             VisualStudio.Editor.Verify.TextContains(expectedText);
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
-            AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
+            AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(RenameFieldBackgroundAndBorderTag.TagId));
 
             VisualStudio.Editor.SendKeys("SayHello", VirtualKey.Enter);
             VisualStudio.Editor.Verify.TextContains(@"    Private Sub SayHello()
@@ -120,7 +121,7 @@ End Module";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
             Assert.Equal(expectedText, VisualStudio.Editor.GetText());
-            AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
+            AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(RenameFieldBackgroundAndBorderTag.TagId));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
@@ -160,7 +161,7 @@ End Module";
 
                 MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
                 Assert.Equal(expectedText, VisualStudio.Editor.GetText());
-                AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
+                AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(RenameFieldBackgroundAndBorderTag.TagId));
             }
             finally
             {
