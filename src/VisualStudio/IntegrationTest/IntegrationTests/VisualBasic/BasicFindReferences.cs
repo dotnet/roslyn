@@ -1,31 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicFindReferences : AbstractEditorTest
+    public class BasicFindReferences : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicFindReferences))
+        public BasicFindReferences()
+            : base(nameof(BasicFindReferences))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
-        public void FindReferencesToLocals()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        public async Task FindReferencesToLocalsAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class Program
   Sub Main()
       Dim local = 1
@@ -34,12 +33,12 @@ Class Program
 End Class
 ");
 
-            VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
+            await VisualStudio.SendKeys.SendAsync(Shift(VirtualKey.F12));
 
             const string localReferencesCaption = "'local' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
+            var results = await VisualStudio.FindReferencesWindow.GetContentsAsync(localReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = await VisualStudio.Shell.GetActiveWindowCaptionAsync();
             Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
@@ -61,19 +60,18 @@ End Class
                 });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
-        public void FindReferencesToSharedField()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        public async Task FindReferencesToSharedFieldAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class Program
     Public Shared Alpha As Int32
 End Class$$
 ");
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "File2.vb");
-            VisualStudio.SolutionExplorer.OpenFile(project, "File2.vb");
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "File2.vb");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "File2.vb");
 
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class SomeOtherClass
     Sub M()
         Console.WriteLine(Program.$$Alpha)
@@ -81,12 +79,12 @@ Class SomeOtherClass
 End Class
 ");
 
-            VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
+            await VisualStudio.SendKeys.SendAsync(Shift(VirtualKey.F12));
 
             const string alphaReferencesCaption = "'Alpha' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(alphaReferencesCaption);
+            var results = await VisualStudio.FindReferencesWindow.GetContentsAsync(alphaReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = await VisualStudio.Shell.GetActiveWindowCaptionAsync();
             Assert.Equal(expected: alphaReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
