@@ -7,10 +7,8 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
-    public partial class SolutionExplorer_OutOfProc : OutOfProcComponent
+    public class SolutionExplorer_OutOfProc : OutOfProcComponent
     {
-        public Verifier Verify { get; }
-
         private readonly SolutionExplorer_InProc _inProc;
         private readonly VisualStudioInstance _instance;
 
@@ -19,7 +17,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
-            Verify = new Verifier(this);
         }
 
         public void CloseSolution(bool saveFirst = false)
