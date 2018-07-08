@@ -1,80 +1,82 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicExtractInterfaceDialog : AbstractEditorTest
+    public class BasicExtractInterfaceDialog : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
-
-        public BasicExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicExtractInterfaceDialog))
+        public BasicExtractInterfaceDialog()
+            : base(nameof(BasicExtractInterfaceDialog))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void CoreScenario()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        private ExtractInterfaceDialog_InProc2 ExtractInterfaceDialog => TestServices.ExtractInterfaceDialog;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public async Task CoreScenarioAsync()
         {
-            SetUpEditor(@"Class C$$
+            await SetUpEditorAsync(@"Class C$$
     Public Sub M()
     End Sub
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            ExtractInterfaceDialog.VerifyOpen();
-            ExtractInterfaceDialog.ClickOK();
-            ExtractInterfaceDialog.VerifyClosed();
+            await ExtractInterfaceDialog.VerifyOpenAsync();
+            await ExtractInterfaceDialog.ClickOkAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync();
 
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.vb");
+            await codeAction;
 
-            VisualStudio.Editor.Verify.TextContains(@"Class C
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb");
+
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"Class C
     Implements IC
     Public Sub M() Implements IC.M
     End Sub
 End Class");
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "IC.vb");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "IC.vb");
 
-            VisualStudio.Editor.Verify.TextContains(@"Interface IC
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"Interface IC
     Sub M()
 End Interface");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void CheckFileName()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public async Task CheckFileNameAsync()
         {
-            SetUpEditor(@"Class C2$$
+            await SetUpEditorAsync(@"Class C2$$
     Public Sub M()
     End Sub
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            ExtractInterfaceDialog.VerifyOpen();
+            await ExtractInterfaceDialog.VerifyOpenAsync();
 
-            var fileName = ExtractInterfaceDialog.GetTargetFileName();
+            var fileName = await ExtractInterfaceDialog.GetTargetFileNameAsync();
 
             Assert.Equal(expected: "IC2.vb", actual: fileName);
 
-            ExtractInterfaceDialog.ClickCancel();
+            await ExtractInterfaceDialog.ClickCancelAsync();
+
+            await codeAction;
         }
     }
 }
