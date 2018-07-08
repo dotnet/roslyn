@@ -105,50 +105,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // to initialize all fields in the struct, not just the ones we're creating.  To
                 // do that, we call the default constructor.
 
-                var numFieldsRequiringInitialization = 0;
-
-                var autoProperties = new List<IPropertySymbol>();
-                foreach (var containingTypeField in containingTypeOpt.GetMembers().OfType<IFieldSymbol>())
-                {
-                    if (!containingTypeField.IsStatic)
-                    {
-                        numFieldsRequiringInitialization++;
-
-                        if (containingTypeField.AssociatedSymbol is IPropertySymbol autoProperty)
-                        {
-                            autoProperties.Add(autoProperty);
-                        }
-                    }
-                }
-
-                if (numFieldsRequiringInitialization == 0)
-                {
-                    return false;
-                }
-
-                foreach (var initialized in parameterToExistingFieldMap.Values)
-                {
-                    if (initialized.IsImplicitlyDeclared || initialized.IsStatic)
-                    {
-                        continue;
-                    }
-
-                    switch (initialized)
-                    {
-                        case IFieldSymbol _:
-                        case IPropertySymbol property when autoProperties.Contains(property):
-                            numFieldsRequiringInitialization--;
-                            if (numFieldsRequiringInitialization == 0)
-                            {
-                                return false;
-                            }
-                            break;
-                    }
-                }
-
-                // We have fewer field assignments than actual fields.  Generate a call to the
-                // default constructor as well.
-                return true;
+                return containingTypeOpt.GetMembers()
+                    .OfType<IFieldSymbol>()
+                    .Where(field => !field.IsStatic)
+                    .Select(field => field.AssociatedSymbol ?? field)
+                    .Except(parameterToExistingFieldMap.Values)
+                    .Any();
             }
 
             return false;
