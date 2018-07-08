@@ -1379,4 +1379,10 @@ This version used in: {2}</value>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
   </data>
+  <data name="Applying_0" xml:space="preserve">
+    <value>Applying: {0}</value>
+  </data>
+  <data name="Preparing_0" xml:space="preserve">
+    <value>Preparing: {0}</value>
+  </data>
 </root>
