@@ -27,8 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
 
-        public Dialog_OutOfProc Dialog { get; }
-
         public Editor_OutOfProc Editor { get; }
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
@@ -110,7 +108,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             _inProc.WaitForSystemIdle();
 
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
-            Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
