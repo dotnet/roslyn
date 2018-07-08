@@ -18,11 +18,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         {
         }
 
-        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, object[] testMethodArguments = null, string skipReason = null)
+        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, string isolatedInstanceMessage, object[] testMethodArguments = null, string skipReason = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
         {
             SharedData = WpfTestSharedData.Instance;
             VisualStudioVersion = visualStudioVersion;
+            IsolatedInstanceMessage = isolatedInstanceMessage;
             if (!string.IsNullOrEmpty(skipReason))
             {
                 SkipReason = skipReason;
@@ -30,6 +31,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         }
 
         public VisualStudioVersion VisualStudioVersion
+        {
+            get;
+            private set;
+        }
+
+        public string IsolatedInstanceMessage
         {
             get;
             private set;
@@ -74,12 +81,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         {
             base.Serialize(data);
             data.AddValue(nameof(VisualStudioVersion), (int)VisualStudioVersion);
+            data.AddValue(nameof(IsolatedInstanceMessage), IsolatedInstanceMessage, typeof(string));
         }
 
         public override void Deserialize(IXunitSerializationInfo data)
         {
             base.Deserialize(data);
             VisualStudioVersion = (VisualStudioVersion)data.GetValue<int>(nameof(VisualStudioVersion));
+            IsolatedInstanceMessage = data.GetValue<string>(nameof(IsolatedInstanceMessage));
             SharedData = WpfTestSharedData.Instance;
         }
     }

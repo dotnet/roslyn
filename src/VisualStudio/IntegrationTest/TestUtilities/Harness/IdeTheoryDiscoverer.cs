@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         {
             foreach (var supportedVersion in GetSupportedVersions(theoryAttribute))
             {
-                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, supportedVersion, dataRow);
+                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, supportedVersion, theoryAttribute.GetNamedArgument<string>(nameof(IdeTheoryAttribute.Isolate)), dataRow);
             }
         }
 
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         {
             foreach (var supportedVersion in GetSupportedVersions(theoryAttribute))
             {
-                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, supportedVersion, dataRow, skipReason);
+                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, supportedVersion, theoryAttribute.GetNamedArgument<string>(nameof(IdeTheoryAttribute.Isolate)), dataRow, skipReason);
             }
         }
 

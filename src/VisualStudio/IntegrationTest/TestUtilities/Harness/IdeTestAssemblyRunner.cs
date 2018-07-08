@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                 {
                     using (var visualStudioInstanceFactory = Activator.CreateInstance<VisualStudioInstanceFactory>())
                     {
-                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, testCasesByTargetVersion.Key, completedTestCaseIds, messageBus, testCollection, testCasesByTargetVersion, cancellationTokenSource);
+                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, testCasesByTargetVersion.Key.visualStudioVersion, completedTestCaseIds, messageBus, testCollection, testCasesByTargetVersion, cancellationTokenSource);
                         result.Aggregate(summary.Item1);
                         testAssemblyFinishedMessages.Add(summary.Item2);
                     }
@@ -214,14 +213,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             };
         }
 
-        private VisualStudioVersion GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
+        private (VisualStudioVersion visualStudioVersion, Guid isolatedInstanceGuid) GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
         {
             if (testCase is IdeTestCase ideTestCase && string.IsNullOrEmpty(testCase.SkipReason))
             {
-                return ideTestCase.VisualStudioVersion;
+                var isolatedInstanceGuid = ideTestCase.IsolatedInstanceMessage is null ? Guid.Empty : Guid.NewGuid();
+                return (ideTestCase.VisualStudioVersion, isolatedInstanceGuid);
             }
 
-            return VisualStudioVersion.Unspecified;
+            return (VisualStudioVersion.Unspecified, Guid.Empty);
         }
 
         private class IpcMessageSink : MarshalByRefObject, IMessageSink

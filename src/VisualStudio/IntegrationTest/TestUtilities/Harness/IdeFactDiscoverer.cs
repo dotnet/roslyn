@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                     var testCases = new List<IXunitTestCase>();
                     foreach (var supportedVersion in GetSupportedVersions(factAttribute))
                     {
-                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, supportedVersion);
+                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, supportedVersion, factAttribute.GetNamedArgument<string>(nameof(IdeFactAttribute.Isolate)));
                     }
                 }
                 else
