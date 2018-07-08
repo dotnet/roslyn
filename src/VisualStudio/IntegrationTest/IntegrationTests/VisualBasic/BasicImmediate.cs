@@ -4,36 +4,29 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicImmediate : AbstractEditorTest
+    public class BasicImmediate : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicImmediate(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
-        {
-        }
 
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync().ConfigureAwait(true);
 
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicImmediate));
-            var testProj = new ProjectUtils.Project("TestProj");
-            VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+            await VisualStudio.SolutionExplorer.CreateSolutionAsync(nameof(BasicImmediate));
+            await VisualStudio.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/25814")]
-        public void DumpLocalVariableValue()
+        [IdeFact]
+        public async Task DumpLocalVariableValueAsync()
         {
-            VisualStudio.Editor.SetText(@"
+            await VisualStudio.Editor.SetTextAsync(@"
 Module Module1
     Sub Main()
         Dim n1Var As Integer = 42
@@ -42,14 +35,14 @@ Module Module1
 End Module
 ");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.SetBreakPoint("Module1.vb", "End Sub");
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.ImmediateWindow.ShowImmediateWindow(clearAll: true);
-            VisualStudio.SendKeys.Send("?");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-            VisualStudio.SendKeys.Send("n1", VirtualKey.Tab, VirtualKey.Enter);
-            Assert.Contains("?n1Var\r\n42", VisualStudio.ImmediateWindow.GetText());
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await VisualStudio.Debugger.SetBreakPointAsync("Module1.vb", "End Sub");
+            await VisualStudio.Debugger.GoAsync(waitForBreakMode: true);
+            await VisualStudio.ImmediateWindow.ShowImmediateWindowAsync(clearAll: true);
+            await VisualStudio.SendKeys.SendAsync("?");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet);
+            await VisualStudio.SendKeys.SendAsync("n1", VirtualKey.Tab, VirtualKey.Enter);
+            Assert.Contains("?n1Var\r\n42", await VisualStudio.ImmediateWindow.GetTextAsync());
         }
     }
 }
