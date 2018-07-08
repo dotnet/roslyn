@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             {
                 _description = value;
                 _uiThreadOperationScope.Description = value;
-                ForceUpdate();
-            }
-        }
-
-        private void ForceUpdate()
-        {
-            using (_uiThreadOperationScope.Context.AddScope(true, ""))
-            {
             }
         }
 
@@ -66,9 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         private void ReportProgress()
-        {
-            _uiThreadOperationScope.Progress.Report(new ProgressInfo(_completedItems, _totalItems));
-            ForceUpdate();
-        }
+            => _uiThreadOperationScope.Progress.Report(new ProgressInfo(_completedItems, _totalItems));
     }
 }
