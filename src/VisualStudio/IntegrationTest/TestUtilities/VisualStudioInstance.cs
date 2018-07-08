@@ -35,8 +35,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
 
-        public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
-
         public SendKeys SendKeys { get; }
 
         public Shell_OutOfProc Shell { get; }
@@ -116,7 +114,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Editor = new Editor_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
-            PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
