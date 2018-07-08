@@ -27,8 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
 
-        public Debugger_OutOfProc Debugger { get; }
-
         public Dialog_OutOfProc Dialog { get; }
 
         public Editor_OutOfProc Editor { get; }
@@ -40,8 +38,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
         public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
-
-        public LocalsWindow_OutOfProc LocalsWindow { get; set; }
 
         public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
 
@@ -120,14 +116,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             _inProc.WaitForSystemIdle();
 
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
-            Debugger = new Debugger_OutOfProc(this);
             Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             EncapsulateField = new EncapsulateField_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
-            LocalsWindow = new LocalsWindow_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);

@@ -4,7 +4,6 @@ using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
@@ -47,8 +46,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         public async Task SetBreakPointAsync(string fileName, string text, int charsOffset = 0)
         {
             await TestServices.Editor.SelectTextInCurrentDocumentAsync(text);
-            int lineNumber = await TestServices.Editor.GetLineAsync();
-            int columnIndex = await TestServices.Editor.GetColumnAsync();
+            var lineNumber = await TestServices.Editor.GetLineAsync();
+            var columnIndex = await TestServices.Editor.GetColumnAsync();
 
             await SetBreakPointAsync(fileName, lineNumber, columnIndex + charsOffset);
         }
@@ -109,7 +108,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         /// <param name="action">Action delegate to exectute.</param>
         private async Task WaitForRaiseDebuggerDteCommandAsync(Func<Task> action)
         {
-            bool actionSucceeded = false;
+            var actionSucceeded = false;
 
             Func<bool> predicate = delegate
             {
@@ -122,7 +121,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 {
                     if ((uint)ex.ErrorCode != OperationNotSupportedHResult)
                     {
-                        string message = string.Format(
+                        var message = string.Format(
                             CultureInfo.InvariantCulture,
                             "Failed to raise debugger command, an unexpected '{0}' was thrown with the HResult of '{1}'.",
                             typeof(COMException),
@@ -140,7 +139,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             // Repeat the command if "Operation Not Supported" is thrown.
             if (!await TryWaitForAsync(DebuggerCommandRetryTimeout, predicate))
             {
-                string message = string.Format(
+                var message = string.Format(
                     CultureInfo.InvariantCulture,
                     "Failed to raise debugger command within '{0}' seconds.",
                     DebuggerCommandRetryTimeout.TotalSeconds);
@@ -171,8 +170,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         /// </returns>
         private static async Task<bool> TryWaitForAsync(TimeSpan timeout, TimeSpan interval, Func<bool> predicate)
         {
-            DateTime endTime = DateTime.UtcNow + timeout;
-            bool validationDelegateSuccess = false;
+            var endTime = DateTime.UtcNow + timeout;
+            var validationDelegateSuccess = false;
 
             while (DateTime.UtcNow < endTime)
             {
