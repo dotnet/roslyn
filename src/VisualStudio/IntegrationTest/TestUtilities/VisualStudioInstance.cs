@@ -31,8 +31,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public Editor_OutOfProc Editor { get; }
 
-        public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
-
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
         public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
@@ -116,7 +114,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
-            FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
