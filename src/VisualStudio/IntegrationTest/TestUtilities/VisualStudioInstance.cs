@@ -35,8 +35,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public EncapsulateField_OutOfProc EncapsulateField { get; }
 
-        public ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog { get; }
-
         public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
@@ -128,7 +126,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             EncapsulateField = new EncapsulateField_OutOfProc(this);
-            ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
@@ -197,7 +194,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // Close any windows leftover from previous (failed) tests
             ObjectBrowserWindow.CloseWindow();
             GenerateTypeDialog.CloseWindow();
-            ExtractInterfaceDialog.CloseWindow();
         }
 
         public void Close(bool exitHostProcess = true)
