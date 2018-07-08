@@ -16,21 +16,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task ErrorListAsync()
         {
             await base.ErrorListAsync();
         }
 
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task ErrorLevelWarningAsync()
         {
             await base.ErrorLevelWarningAsync();
         }
 
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task ErrorsDuringMethodBodyEditingAsync()
         {

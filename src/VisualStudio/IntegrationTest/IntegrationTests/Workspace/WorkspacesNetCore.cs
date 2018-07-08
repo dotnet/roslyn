@@ -18,14 +18,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         {
         }
 
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task OpenCSharpThenVBSolutionAsync()
         {
             await base.OpenCSharpThenVBSolutionAsync();
         }
 
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [IdeFact(
+            Skip = "https://github.com/dotnet/roslyn/issues/28360",
+            Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task MetadataReferenceAsync()
         {
@@ -41,13 +44,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             await base.MetadataReferenceAsync();
         }
 
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public override async Task ProjectReferenceAsync()
         {
             await base.ProjectReferenceAsync();
         }
 
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [IdeFact(
+            Skip = "https://github.com/dotnet/roslyn/issues/28361",
+            Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task ProjectPropertiesAsync()
         {
@@ -56,7 +62,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             await base.ProjectPropertiesAsync();
         }
 
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task RenamingOpenFilesAsync()
         {

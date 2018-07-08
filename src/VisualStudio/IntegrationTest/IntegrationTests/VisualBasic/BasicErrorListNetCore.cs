@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task ErrorListAsync()
         {
@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task ErrorsDuringMethodBodyEditingAsync()
         {
