@@ -282,7 +282,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void EnsureTheCaretIsVisibleAfterALongEdit()
         {
             SetUpEditor(@"

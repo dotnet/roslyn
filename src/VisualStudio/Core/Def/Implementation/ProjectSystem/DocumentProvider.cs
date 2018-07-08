@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Creates a document provider.
         /// </summary>
+        /// <param name="projectTracker">Project tracker</param>
         /// <param name="serviceProvider">Service provider</param>
         /// <param name="documentTrackingService">An optional <see cref="VisualStudioDocumentTrackingService"/> to track active and visible documents.</param>
         public DocumentProvider(
