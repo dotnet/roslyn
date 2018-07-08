@@ -1,25 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicExpressionEvaluator : AbstractEditorTest
+    public class BasicExpressionEvaluator : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicExpressionEvaluator(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        public override async Task InitializeAsync()
         {
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
-            var testProj = new ProjectUtils.Project("TestProj");
-            VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+            await base.InitializeAsync();
 
-            VisualStudio.Editor.SetText(@"Imports System
+            await VisualStudio.SolutionExplorer.CreateSolutionAsync(nameof(BasicBuild));
+            await VisualStudio.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+
+            await VisualStudio.Editor.SetTextAsync(@"Imports System
 
 Module Module1
 
@@ -56,66 +57,66 @@ Module Module1
 End Module");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
-        public void ValidateLocalsWindow()
+        [IdeFact]
+        public async Task ValidateLocalsWindowAsync()
         {
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
+            await VisualStudio.Debugger.GoAsync(waitForBreakMode: true);
 
-            VisualStudio.LocalsWindow.Verify.CheckCount(20);
-            VisualStudio.LocalsWindow.Verify.CheckEntry("mySByte", "SByte", "64");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myShort", "Short", "16384");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myInt", "Integer", "1073741824");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myLong", "Long", "4611686018427387904");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myByte", "Byte", "128");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myUShort", "UShort", "32768");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myUInt", "UInteger", "2147483648");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myULong", "ULong", "9223372036854775808");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myFloat", "Single", "1.70141173E+38");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myDouble", "Double", "8.9884656743115785E+307");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myDecimal", "Decimal", "39614081257132168796771975168");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myChar", "Char", "\"A\"c");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myBool", "Boolean", "True");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myObject", "Object", "Nothing");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myString", "String", "\"\"");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myValueType", "System.ValueType {Short}", "16384");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myEnum", "System.Enum", "Nothing");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myArray", "System.Array", "Nothing");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myDelegate", "System.Delegate", "Nothing");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("myMulticastDelegate", "System.MulticastDelegate", "Nothing");
+            await VisualStudio.LocalsWindow.Verify.CheckCountAsync(20);
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("mySByte", "SByte", "64");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myShort", "Short", "16384");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myInt", "Integer", "1073741824");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myLong", "Long", "4611686018427387904");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myByte", "Byte", "128");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myUShort", "UShort", "32768");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myUInt", "UInteger", "2147483648");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myULong", "ULong", "9223372036854775808");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myFloat", "Single", "1.70141173E+38");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myDouble", "Double", "8.9884656743115785E+307");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myDecimal", "Decimal", "39614081257132168796771975168");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myChar", "Char", "\"A\"c");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myBool", "Boolean", "True");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myObject", "Object", "Nothing");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myString", "String", "\"\"");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myValueType", "System.ValueType {Short}", "16384");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myEnum", "System.Enum", "Nothing");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myArray", "System.Array", "Nothing");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myDelegate", "System.Delegate", "Nothing");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("myMulticastDelegate", "System.MulticastDelegate", "Nothing");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
-        public void EvaluatePrimitiveValues()
+        [IdeFact]
+        public async Task EvaluatePrimitiveValuesAsync()
         {
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
+            await VisualStudio.Debugger.GoAsync(waitForBreakMode: true);
 
             // It is better to use the Immediate Window but DTE does not provide an access to it.
-            VisualStudio.Debugger.CheckExpression("myByte", "Byte", "128");
-            VisualStudio.Debugger.CheckExpression("myFloat", "Single", "1.70141173E+38");
-            VisualStudio.Debugger.CheckExpression("myChar", "Char", "\"A\"c");
-            VisualStudio.Debugger.CheckExpression("myObject", "Object", "Nothing");
-            VisualStudio.Debugger.CheckExpression("myString", "String", "\"\"");
+            await VisualStudio.Debugger.CheckExpressionAsync("myByte", "Byte", "128");
+            await VisualStudio.Debugger.CheckExpressionAsync("myFloat", "Single", "1.70141173E+38");
+            await VisualStudio.Debugger.CheckExpressionAsync("myChar", "Char", "\"A\"c");
+            await VisualStudio.Debugger.CheckExpressionAsync("myObject", "Object", "Nothing");
+            await VisualStudio.Debugger.CheckExpressionAsync("myString", "String", "\"\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19526")]
-        public void EvaluateLambdaExpressions()
+        [IdeFact]
+        public async Task EvaluateLambdaExpressionsAsync()
         {
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
+            await VisualStudio.Debugger.GoAsync(waitForBreakMode: true);
             // It is better to use the Immediate Window but DTE does not provide an access to it.
-            VisualStudio.Debugger.CheckExpression("(Function(val)(val+val))(1)", "Integer", "2");
+            await VisualStudio.Debugger.CheckExpressionAsync("(Function(val As Integer)(val+val))(1)", "Integer", "2");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
-        public void EvaluateInvalidExpressions()
+        [IdeFact]
+        public async Task EvaluateInvalidExpressionsAsync()
         {
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Debugger.CheckExpression("myNonsense", "", "error BC30451: 'myNonsense' is not declared. It may be inaccessible due to its protection level.");
+            await VisualStudio.Debugger.GoAsync(waitForBreakMode: true);
+            await VisualStudio.Debugger.CheckExpressionAsync("myNonsense", "", "error BC30451: 'myNonsense' is not declared. It may be inaccessible due to its protection level.");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
-        public void StateMachineTypeParameters()
+        [IdeFact]
+        public async Task StateMachineTypeParametersAsync()
         {
-            VisualStudio.Editor.SetText(@"
+            await VisualStudio.Editor.SetTextAsync(@"
 Imports System
 Imports System.Collections.Generic
 
@@ -135,12 +136,12 @@ Module Module1
 
 End Module
 ");
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.LocalsWindow.Verify.CheckEntry("Type variables", "", "");
-            VisualStudio.LocalsWindow.Verify.CheckEntry( new string[] { "Type variables", "T" }, "String", "String");
+            await VisualStudio.Debugger.GoAsync(waitForBreakMode: true);
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync("Type variables", "", "");
+            await VisualStudio.LocalsWindow.Verify.CheckEntryAsync( new string[] { "Type variables", "T" }, "String", "String");
 
             // It is better to use the Immediate Window but DTE does not provide an access to it.
-            VisualStudio.Debugger.CheckExpression("GetType(T) = GetType(String)", "Boolean", "True");
+            await VisualStudio.Debugger.CheckExpressionAsync("GetType(T) = GetType(String)", "Boolean", "True");
         }
     }
 }
