@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticId(
             Document document, string diagnosticId, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textSpan = new TextSpan(0, text.Length);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var textSpan = new TextSpan(0, tree.Length);
 
             var fixCollection = await _codeFixServiceOpt.GetFixesAsync(
                 document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
