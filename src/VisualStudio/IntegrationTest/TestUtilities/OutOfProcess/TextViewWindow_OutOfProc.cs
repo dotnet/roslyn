@@ -54,9 +54,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _textViewWindowInProc.GetQuickInfo();
         }
 
-        public void VerifyTags(string tagTypeName, int expectedCount)
-            => _textViewWindowInProc.VerifyTags(tagTypeName, expectedCount);
-
         public void ShowLightBulb()
             => _textViewWindowInProc.ShowLightBulb();
 
@@ -66,20 +63,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public bool IsLightBulbSessionExpanded()
             => _textViewWindowInProc.IsLightBulbSessionExpanded();
 
-        public void DismissLightBulbSession()
-            => _textViewWindowInProc.DismissLightBulbSession();
-
         public string[] GetLightBulbActions()
             => _textViewWindowInProc.GetLightBulbActions();
 
         public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
             => _textViewWindowInProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
-
-        public void InvokeCompletionList()
-        {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-        }
 
         public void InvokeCodeActionList()
         {
@@ -89,16 +77,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             ShowLightBulb();
             WaitForLightBulbSession();
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-        }
-
-        /// <summary>
-        /// Invokes the lightbulb without waiting for diagnostics
-        /// Compare to <see cref="InvokeCodeActionList"/>
-        /// </summary>
-        public void InvokeCodeActionListWithoutWaiting()
-        {
-            ShowLightBulb();
-            WaitForLightBulbSession();
         }
 
         public void InvokeQuickInfo()

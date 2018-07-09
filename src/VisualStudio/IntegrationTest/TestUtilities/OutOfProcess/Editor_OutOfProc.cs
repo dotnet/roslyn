@@ -48,14 +48,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetCurrentLineText()
             => _editorInProc.GetCurrentLineText();
 
-        public string GetLineTextBeforeCaret()
-            => _editorInProc.GetLineTextBeforeCaret();
-
         public string GetSelectedText()
             => _editorInProc.GetSelectedText();
-
-        public string GetLineTextAfterCaret()
-            => _editorInProc.GetLineTextAfterCaret();
 
         public void MoveCaret(int position)
             => _editorInProc.MoveCaret(position);
@@ -78,40 +72,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return builder.ToImmutableAndFree();
         }
 
-        public string GetCurrentCompletionItem()
-        {
-            WaitForCompletionSet();
-            return _editorInProc.GetCurrentCompletionItem();
-        }
-
         public bool IsCompletionActive()
         {
             WaitForCompletionSet();
             return _editorInProc.IsCompletionActive();
-        }
-
-        public void InvokeSignatureHelp()
-        {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_ParameterInfo);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
-        }
-
-        public bool IsSignatureHelpActive()
-        {
-            WaitForSignatureHelp();
-            return _editorInProc.IsSignatureHelpActive();
-        }
-
-        public Signature[] GetSignatures()
-        {
-            WaitForSignatureHelp();
-            return _editorInProc.GetSignatures();
-        }
-
-        public Signature GetCurrentSignature()
-        {
-            WaitForSignatureHelp();
-            return _editorInProc.GetCurrentSignature();
         }
 
         public void InvokeNavigateTo(string text)
@@ -120,43 +84,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             NavigateToSendKeys(text);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigateTo);
         }
-
-        public void SelectTextInCurrentDocument(string text)
-        {
-            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
-            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
-        }
-
-        public int GetLine() => _editorInProc.GetLine();
-
-        public int GetColumn() => _editorInProc.GetColumn();
-
-        public void DeleteText(string text)
-        {
-            SelectTextInCurrentDocument(text);
-            SendKeys(VirtualKey.Delete);
-        }
-
-        public void ReplaceText(string oldText, string newText)
-            => _editorInProc.ReplaceText(oldText, newText);
-
-        public bool IsCaretOnScreen()
-            => _editorInProc.IsCaretOnScreen();
-
-        public void AddWinFormButton(string buttonName)
-            => _editorInProc.AddWinFormButton(buttonName);
-
-        public void DeleteWinFormButton(string buttonName)
-            => _editorInProc.DeleteWinFormButton(buttonName);
-
-        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
-            => _editorInProc.EditWinFormButtonProperty(buttonName, propertyName, propertyValue, propertyTypeName);
-
-        public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
-            => _editorInProc.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
-
-        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
-            => _editorInProc.GetWinFormButtonPropertyValue(buttonName, propertyName);
 
         /// <summary>
         /// Sends key strokes to the active editor in Visual Studio. Various types are supported by this method:
@@ -167,15 +94,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             Activate();
             VisualStudioInstance.SendKeys.Send(keys);
-        }
-
-        public void MessageBox(string message)
-            => _editorInProc.MessageBox(message);
-
-        public IUIAutomationElement GetDialog(string dialogAutomationId)
-        {
-            var dialog = DialogHelpers.GetOpenDialogById(_instance.Shell.GetHWnd(), dialogAutomationId);
-            return dialog;
         }
 
         public void VerifyDialog(string dialogName, bool isOpen)
@@ -192,30 +110,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
         }
 
-        public void FormatDocumentViaCommand()
-        {
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudioInstance.Dte.ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
-        }
-
-        public void FormatSelection() {
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
-        }
-
-        public void Paste(string text)
-        {
-            var thread = new Thread(() => Clipboard.SetText(text));
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-
-            VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
-        }
-
-        public void Undo()
-            => _editorInProc.Undo();
-
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
             
@@ -231,12 +125,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public List<string> GetF1Keyword()
             => _editorInProc.GetF1Keywords();        
 
-        public void ExpandProjectNavBar()
-        {
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-            _editorInProc.ExpandNavigationBar(0);
-        }
-
         public void ExpandTypeNavBar()
         {
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
@@ -247,12 +135,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
             _editorInProc.ExpandNavigationBar(2);
-        }
-
-        public string[] GetProjectNavBarItems()
-        {
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-            return _editorInProc.GetNavBarItems(0);
         }
 
         public string[] GetTypeNavBarItems()
@@ -267,12 +149,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.GetNavBarItems(2);
         }
 
-        public string GetProjectNavBarSelection()
-        {
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-            return _editorInProc.GetSelectedNavBarItem(0);
-        }
-
         public string GetTypeNavBarSelection()
         {
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
@@ -283,12 +159,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
             return _editorInProc.GetSelectedNavBarItem(2);
-        }
-
-        public void SelectProjectNavbarItem(string item)
-        {
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-             _editorInProc.SelectNavBarItem(0, item);
         }
 
         public void SelectTypeNavBarItem(string item)
@@ -337,8 +207,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void GoToImplementation()
             => _editorInProc.GoToImplementation();
-
-        public void SendExplicitFocus()
-            => _editorInProc.SendExplicitFocus();
     }
 }

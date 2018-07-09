@@ -69,6 +69,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            await WaitForCompletionSetAsync();
+
             var view = await GetActiveTextViewAsync();
             var broker = await GetComponentModelServiceAsync<ICompletionBroker>();
 

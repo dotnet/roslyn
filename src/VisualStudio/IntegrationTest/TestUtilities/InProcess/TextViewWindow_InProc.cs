@@ -43,25 +43,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
             });
 
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public string GetCurrentCompletionItem()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-                }
-
-                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-                return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
-            });
-
         public void ShowLightBulb()
         {
             InvokeOnUIThread(() =>
@@ -243,24 +224,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
             });
-
-        public void VerifyTags(string tagTypeName, int expectedCount)
-            => ExecuteOnActiveView(view =>
-        {
-            Type type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
-            bool filterTag(IMappingTagSpan<ITag> tag) { return tag.Tag.GetType().Equals(type); }
-            var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
-            var aggregator = service.CreateTagAggregator<ITag>(view);
-            var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
-            var tags = allTags.Where(filterTag).Cast<IMappingTagSpan<ITag>>();
-            var actualCount = tags.Count();
-
-            if (expectedCount != actualCount)
-            {
-                var tagsTypesString = string.Join(",", allTags.Select(tag => tag.Tag.ToString()));
-                throw new Exception($"Failed to verify {tagTypeName} tags. Expected count: {expectedCount}, Actual count: {actualCount}. All tags: {tagsTypesString}");
-            }
-        });
 
         public bool IsLightBulbSessionExpanded()
        => ExecuteOnActiveView(view =>
@@ -459,13 +422,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             return null;
         }
-
-        public void DismissLightBulbSession()   
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                broker.DismissSession(view);
-            });
 
         protected abstract IWpfTextView GetActiveTextView();
     }

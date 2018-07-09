@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
             }
 
-            public void CodeActions(
+            private void CodeActions(
                 IEnumerable<string> expectedItems,
                 string applyFix = null,
                 bool verifyNotShowing = false,
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 }
             }
 
-            public void CodeActionsNotShowing()
+            private void CodeActionsNotShowing()
             {
                 if (_textViewWindow.IsLightBulbSessionExpanded())
                 {

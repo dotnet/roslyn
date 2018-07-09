@@ -99,15 +99,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
-        public void ReplaceText(string oldText, string newText)
-            => ExecuteOnActiveView(view =>
-            {
-                var textSnapshot = view.TextSnapshot;
-                SelectText(oldText);                
-                var replacementSpan = new SnapshotSpan(textSnapshot, view.Selection.Start.Position, view.Selection.End.Position - view.Selection.Start.Position);
-                view.TextBuffer.Replace(replacementSpan, newText);
-            });
-
         public string GetCurrentLineText()
             => ExecuteOnActiveView(view =>
             {
@@ -116,42 +107,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var line = bufferPosition.GetContainingLine();
 
                 return line.GetText();
-            });
-
-        public int GetLine()
-            => ExecuteOnActiveView(view =>
-            {
-                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
-                return lineNumber;
-            });
-
-        public int GetColumn()
-            => ExecuteOnActiveView(view =>
-            {
-                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
-                return columnIndex;
-            });
-
-        public string GetLineTextBeforeCaret()
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var bufferPosition = view.Caret.Position.BufferPosition;
-                var line = bufferPosition.GetContainingLine();
-                var text = line.GetText();
-
-                return text.Substring(0, bufferPosition.Position - line.Start);
-            });
-
-        public string GetLineTextAfterCaret()
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var bufferPosition = view.Caret.Position.BufferPosition;
-                var line = bufferPosition.GetContainingLine();
-                var text = line.GetText();
-
-                return text.Substring(bufferPosition.Position - line.Start);
             });
 
         public string GetSelectedText()
@@ -169,17 +124,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
                 view.Caret.MoveTo(point);
-            });
-
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public bool IsSignatureHelpActive()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ISignatureHelpBroker>();
-                return broker.IsSignatureHelpActive(view);
             });
 
         public string[] GetErrorTags()
@@ -213,53 +157,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
             });
         }
-
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public Signature[] GetSignatures()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ISignatureHelpBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-                }
-
-                return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
-            });
-
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public Signature GetCurrentSignature()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ISignatureHelpBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-                }
-
-                return new Signature(sessions[0].SelectedSignature);
-            });
-
-        public bool IsCaretOnScreen()
-            => ExecuteOnActiveView(view =>
-            {
-                var caret = view.Caret;
-
-                return caret.Left >= view.ViewportLeft
-                    && caret.Right <= view.ViewportRight
-                    && caret.Top >= view.ViewportTop
-                    && caret.Bottom <= view.ViewportBottom;
-            });
 
         public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
         {
@@ -352,9 +249,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
             }
         }
-
-        public void MessageBox(string message)
-            => ExecuteOnActiveView(view => System.Windows.MessageBox.Show(message));
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
@@ -451,181 +345,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             while (true);
         }
 
-        public void AddWinFormButton(string buttonName)
-        {
-            using (var waitHandle = new ManualResetEvent(false))
-            {
-                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
-                var componentChangeService = (IComponentChangeService)designerHost;
-                void ComponentAdded(object sender, ComponentEventArgs e)
-                {
-                    var control = (System.Windows.Forms.Control)e.Component;
-                    if (control.Name == buttonName)
-                    {
-                        waitHandle.Set();
-                    }
-                }
-
-                componentChangeService.ComponentAdded += ComponentAdded;
-
-                try
-                {
-                    var mainForm = (Form)designerHost.RootComponent;
-                    InvokeOnUIThread(() =>
-                    {
-                        var newControl = (System.Windows.Forms.Button)designerHost.CreateComponent(typeof(System.Windows.Forms.Button), buttonName);
-                        newControl.Parent = mainForm;
-                    });
-                    waitHandle.WaitOne();
-                }
-                finally
-                {
-                    componentChangeService.ComponentAdded -= ComponentAdded;
-                }
-            }
-        }
-
-        public void DeleteWinFormButton(string buttonName)
-        {
-            using (var waitHandle = new ManualResetEvent(false))
-            {
-                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
-                var componentChangeService = (IComponentChangeService)designerHost;
-                void ComponentRemoved(object sender, ComponentEventArgs e)
-                {
-                    var control = (System.Windows.Forms.Control)e.Component;
-                    if (control.Name == buttonName)
-                    {
-                        waitHandle.Set();
-                    }
-                }
-
-                componentChangeService.ComponentRemoved += ComponentRemoved;
-
-                try
-                {
-                    InvokeOnUIThread(() =>
-                    {
-                        designerHost.DestroyComponent(designerHost.Container.Components[buttonName]);
-                    });
-                    waitHandle.WaitOne();
-                }
-                finally
-                {
-                    componentChangeService.ComponentRemoved -= ComponentRemoved;
-                }
-            }
-        }
-
-        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
-        {
-            using (var waitHandle = new ManualResetEvent(false))
-            {
-                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
-                var componentChangeService = (IComponentChangeService)designerHost;
-
-                object GetEnumPropertyValue(string typeName, string value)
-                {
-                    var type = Type.GetType(typeName);
-                    var converter = new EnumConverter(type);
-                    return converter.ConvertFromInvariantString(value);
-                }
-
-                bool EqualToPropertyValue(object newValue)
-                {
-                    if (propertyTypeName == null)
-                    {
-                        return (newValue as string)?.Equals(propertyValue) == true;
-                    }
-                    else
-                    {
-                        var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
-                        return newValue?.Equals(enumPropertyValue) == true;
-                    }
-                }
-
-                void ComponentChanged(object sender, ComponentChangedEventArgs e)
-                {
-                    if (e.Member.Name == propertyName && EqualToPropertyValue(e.NewValue))
-                    {
-                        waitHandle.Set();
-                    }
-                }
-
-                componentChangeService.ComponentChanged += ComponentChanged;
-
-                try
-                {
-                    InvokeOnUIThread(() =>
-                    {
-                        var button = designerHost.Container.Components[buttonName];
-                        var properties = TypeDescriptor.GetProperties(button);
-                        var property = properties[propertyName];
-                        if (propertyTypeName == null)
-                        {
-                            property.SetValue(button, propertyValue);
-                        }
-                        else
-                        {
-                            var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
-                            property.SetValue(button, enumPropertyValue);
-                        }
-                    });
-                    waitHandle.WaitOne();
-                }
-                finally
-                {
-                    componentChangeService.ComponentChanged -= ComponentChanged;
-                }
-            }
-        }
-
-        public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
-        {
-            using (var waitHandle = new ManualResetEvent(false))
-            {
-                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
-                var componentChangeService = (IComponentChangeService)designerHost;
-                void ComponentChanged(object sender, ComponentChangedEventArgs e)
-                {
-                    if (e.Member.Name == eventName)
-                    {
-                        waitHandle.Set();
-                    }
-                }
-
-                componentChangeService.ComponentChanged += ComponentChanged;
-
-                try
-                {
-                    InvokeOnUIThread(() =>
-                    {
-                        var button = designerHost.Container.Components[buttonName];
-                        var eventBindingService = (IEventBindingService)button.Site.GetService(typeof(IEventBindingService));
-                        var events = TypeDescriptor.GetEvents(button);
-                        var eventProperty = eventBindingService.GetEventProperty(events.Find(eventName, ignoreCase: true));
-                        eventProperty.SetValue(button, eventHandlerName);
-                    });
-                    waitHandle.WaitOne();
-                }
-                finally
-                {
-                    componentChangeService.ComponentChanged -= ComponentChanged;
-                }
-            }
-        }
-
-        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
-        {
-            var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
-            var button = designerHost.Container.Components[buttonName];
-            var properties = TypeDescriptor.GetProperties(button);
-            return properties[propertyName].GetValue(button) as string;
-        }
-
-        public void Undo()
-            => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Undo);
-
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return view.GetBufferContainingCaret();
@@ -700,13 +419,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
 
                 return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).SelectMany(t => new List<int> { t.Start, t.Length }).ToArray();
-            });
-
-        public void SendExplicitFocus()
-            => InvokeOnUIThread(() =>
-            {
-                var view = GetActiveVsTextView();
-                view.SendExplicitFocus();
             });
     }
 }
