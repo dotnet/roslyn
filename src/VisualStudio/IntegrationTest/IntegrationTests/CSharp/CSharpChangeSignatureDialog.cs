@@ -69,12 +69,12 @@ class C
             await ChangeSignatureDialog.ClickDownAsync();
             await ChangeSignatureDialog.ClickOkAsync();
             await ChangeSignatureDialog.VerifyClosedAsync();
-            var actuaText = await VisualStudio.Editor.GetTextAsync();
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"
 class C
 {
     public void Method(string b, int a) { }
-}", actuaText);
+}", actualText);
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -103,7 +103,7 @@ class C
             await ChangeSignatureDialog.ClickRemoveAsync();
             await ChangeSignatureDialog.ClickOkAsync();
             await ChangeSignatureDialog.VerifyClosedAsync();
-            var actuaText = await VisualStudio.Editor.GetTextAsync();
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"
 class C
 {
@@ -118,7 +118,7 @@ class C
     {
         Method(1);
     }
-}", actuaText);
+}", actualText);
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -156,20 +156,20 @@ End Class");
             await ChangeSignatureDialog.ClickUpAsync();
             await ChangeSignatureDialog.ClickOkAsync();
             await ChangeSignatureDialog.VerifyClosedAsync();
-            var actuaText = await VisualStudio.Editor.GetTextAsync();
-            Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actuaText);
+            var actualText = await VisualStudio.Editor.GetTextAsync();
+            Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actualText);
 
             await VisualStudio.SolutionExplorer.OpenFileAsync(vbProject.Name, "Class1.vb");
-            actuaText = await VisualStudio.Editor.GetTextAsync();
-            Assert.Contains(@"Public Sub Method(y As String, x As Integer)", actuaText);
+            actualText = await VisualStudio.Editor.GetTextAsync();
+            Assert.Contains(@"Public Sub Method(y As String, x As Integer)", actualText);
 
             await VisualStudio.Editor.UndoAsync();
-            actuaText = await VisualStudio.Editor.GetTextAsync();
-            Assert.Contains(@"Public Sub Method(x As Integer, y As String)", actuaText);
+            actualText = await VisualStudio.Editor.GetTextAsync();
+            Assert.Contains(@"Public Sub Method(x As Integer, y As String)", actualText);
 
             await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
-            actuaText = await VisualStudio.Editor.GetTextAsync();
-            Assert.Contains(@"vb.Method(2, ""world"");", actuaText);
+            actualText = await VisualStudio.Editor.GetTextAsync();
+            Assert.Contains(@"vb.Method(2, ""world"");", actualText);
         }
     }
 }
