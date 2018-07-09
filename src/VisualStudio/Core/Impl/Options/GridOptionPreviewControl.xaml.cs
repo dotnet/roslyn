@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
+        private readonly Func<OptionSet, string> _getCurrentEditorConfigOptionsString;
 
         public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
         public static string CodeStylePageHeader => ServicesVSResources.Code_style_header_use_editor_config;
@@ -26,13 +28,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         
         internal GridOptionPreviewControl(IServiceProvider serviceProvider,
             Func<OptionSet, IServiceProvider,
-            AbstractOptionPreviewViewModel> createViewModel)
+            AbstractOptionPreviewViewModel> createViewModel,
+            Func<OptionSet, string> getCurrentEditorConfigOptionsString)
             : base(serviceProvider)
         {
             InitializeComponent();
 
             _serviceProvider = serviceProvider;
             _createViewModel = createViewModel;
+            _getCurrentEditorConfigOptionsString = getCurrentEditorConfigOptionsString;
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -91,6 +95,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (this.ViewModel != null)
             {
                 this.ViewModel.Dispose();
+            }
+        }
+
+        private void Generate_Editorconfig(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var optionSet = this.ViewModel.ApplyChangedOptions(this.OptionService.GetOptions());
+            var editorconfig = _getCurrentEditorConfigOptionsString(optionSet);
+
+            var sfd = new System.Windows.Forms.SaveFileDialog
+            {
+                Filter = "All files (*.*)|",
+                FileName = ".editorconfig",
+                Title = "Save .editorconfig File"
+            };
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                var path = sfd.FileName;
+                var sw = new StreamWriter(File.Create(path));
+                sw.Write(editorconfig);
+                sw.Close();
             }
         }
     }
