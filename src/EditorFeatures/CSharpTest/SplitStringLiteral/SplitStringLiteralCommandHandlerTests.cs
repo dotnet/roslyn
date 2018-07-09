@@ -259,7 +259,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
             // When that issue is fixed, we can reenable verifyUndo
-            // </summary>
             TestHandled(
 @"class C
 {
@@ -429,7 +428,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
             // When that issue is fixed, we can reenable verifyUndo
-            // </summary>
             TestHandled(
 @"class Program
 {
@@ -467,7 +465,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
             // When that issue is fixed, we can reenable verifyUndo
-            // </summary>
             TestHandled(
 @"class Program
 {
@@ -505,7 +502,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
             // When that issue is fixed, we can reenable verifyUndo
-            // </summary>
             TestHandled(
 @"class Program
 {
@@ -543,7 +539,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
             // When that issue is fixed, we can reenable verifyUndo
-            // </summary>
             TestHandled(
 @"class Program
 {
@@ -581,7 +576,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
             // When that issue is fixed, we can reenable verifyUndo
-            // </summary>
             TestHandled(
 @"class Program
 {
@@ -619,7 +613,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
             // When that issue is fixed, we can reenable verifyUndo
-            // </summary>
             TestHandled(
 @"class Program
 {
