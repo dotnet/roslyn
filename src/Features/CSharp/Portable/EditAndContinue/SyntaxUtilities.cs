@@ -114,20 +114,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Debug.Assert(false);
         }
 
-        public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNode)
+        public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt)
         {
             leftNode = leftRoot;
-            rightNode = rightRoot;
+            rightNodeOpt = rightRoot;
             while (true)
             {
-                Debug.Assert(leftNode.RawKind == rightNode.RawKind);
+                Debug.Assert(leftNode.RawKind == rightNodeOpt.RawKind);
                 var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out var childIndex);
                 if (leftChild.IsToken)
                 {
                     return;
                 }
 
-                rightNode = rightNode.ChildNodesAndTokens()[childIndex].AsNode();
+                var rightNodeChildNodesAndTokens = rightNodeOpt.ChildNodesAndTokens();
+                if (childIndex >= 0 && childIndex < rightNodeChildNodesAndTokens.Count)
+                {
+                    rightNodeOpt = rightNodeOpt.ChildNodesAndTokens()[childIndex].AsNode();
+                }
+                else
+                {
+                    rightNodeOpt = null;
+                }
+
                 leftNode = leftChild.AsNode();
             }
         }
