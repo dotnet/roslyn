@@ -555,26 +555,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 tList.Add(MakeLineContinuationTrivia(GetText(1)))
                 tList.Add(MakeWhiteSpaceTrivia(GetText(Here)))
                 ScanCommentIfAny(tList)
-                ch = Peek(0)
-                atNewLine = IsNewLine(ch)
-            Else
-            While CanGet(Here)
-                ch = Peek(Here)
-                If IsWhitespace(ch) Then
-                    Here += 1
-                Else
-                    Exit While
+                If CanGet() Then
+                    ch = Peek()
+                    atNewLine = IsNewLine(ch)
                 End If
-            End While
+            Else
+                While CanGet(Here)
+                    ch = Peek(Here)
+                    If IsWhitespace(ch) Then
+                        Here += 1
+                    Else
+                        Exit While
+                    End If
+                End While
 
-            ' Line continuation is valid at the end of the
-            ' line or at the end of file only.
-            Dim atNewLine = IsNewLine(ch)
-            If Not atNewLine AndAlso CanGet(Here) Then
-                Return False
+                ' Line continuation is valid at the end of the
+                ' line or at the end of file only.
+                atNewLine = IsNewLine(ch)
+                If Not atNewLine AndAlso CanGet(Here) Then
+                    Return False
+                End If
+
+                tList.Add(MakeLineContinuationTrivia(GetText(1)))
             End If
-
-            tList.Add(MakeLineContinuationTrivia(GetText(1)))
             If Here > 1 Then
                 tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
             End If
