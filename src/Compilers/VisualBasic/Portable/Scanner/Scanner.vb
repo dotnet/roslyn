@@ -550,6 +550,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim Here = 1
+            Dim atNewLine As Boolean
+            If CanGet(Here + 1) AndAlso IsWhitespace(Peek(Here)) AndAlso IsSingleQuote(Peek(Here + 1)) Then
+                tList.Add(MakeLineContinuationTrivia(GetText(1)))
+                tList.Add(MakeWhiteSpaceTrivia(GetText(Here)))
+                ScanCommentIfAny(tList)
+                ch = Peek(0)
+                atNewLine = IsNewLine(ch)
+            Else
             While CanGet(Here)
                 ch = Peek(Here)
                 If IsWhitespace(ch) Then

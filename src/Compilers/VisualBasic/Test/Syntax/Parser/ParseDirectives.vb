@@ -2356,15 +2356,12 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation2()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning _ 'Comment]]>,
-            <errors>
-                <error id="30203" message="Identifier expected." start="16" end="17"/>
-            </errors>)
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning _ 'Comment]]>)
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.Single.Kind)
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).SingleOrDefault
+        Assert.Null(skippedTokens)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.Kind)

@@ -8440,6 +8440,34 @@ End Module
     Diagnostic(ERRID.ERR_LineContWithCommentOrNoPrecSpace, "_").WithLocation(6, 1)
 )
     End Sub
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithComment()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>
+        )
+    End Sub
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithoutComment()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _
+                    = 1
+            End Sub
+     End Module
+    ]]>
+        )
+    End Sub
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
