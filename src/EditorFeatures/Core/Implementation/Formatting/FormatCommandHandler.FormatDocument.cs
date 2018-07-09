@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
+<<<<<<< HEAD
+=======
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
+>>>>>>> Add telemetry for infobar selections
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -53,14 +58,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
+                                  Logger.Log(FunctionId.CodeCleanupInfobar_ConfigNow);
                                   optionPageService.ShowFormattingOptionPage();
                               }),
                 new InfoBarUI(EditorFeaturesResources.Do_not_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
+<<<<<<< HEAD
                                   workspace.Options = workspace.Options.WithChangedOption(
                                       CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language, value: true);
+=======
+                                  Logger.Log(FunctionId.CodeCleanupInfobar_DoNotShow);
+                                  var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
+                                  var oldOptions = optionService.GetOptions();
+                                  var newOptions = oldOptions.WithChangedOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain,
+                                      document.Project.Language, true);
+                                  optionService.SetOptions(newOptions);
+>>>>>>> Add telemetry for infobar selections
                               }));
         }
 
