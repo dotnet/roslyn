@@ -2189,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: !_compilation.IsEmitDeterministic, version: out version))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    bool foundBadWildcard = _compilation.IsEmitDeterministic && verString.Contains('*');
+                    bool foundBadWildcard = _compilation.IsEmitDeterministic && verString?.Contains('*') == true;
                     arguments.Diagnostics.Add(foundBadWildcard ? ErrorCode.ERR_InvalidVersionFormatDeterministic : ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
                 }
 
