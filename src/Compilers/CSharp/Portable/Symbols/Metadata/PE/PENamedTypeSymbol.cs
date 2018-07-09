@@ -424,6 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute = false)
         {
+            // PROTOTYPE(NullableReferenceTypes): confirm that the ignoreNonNullTypesAttribute and ignoreNullability flags are indeed different. Add a comment to clarify.
             return GetDeclaredBaseType(ignoreNullability: false);
         }
 
