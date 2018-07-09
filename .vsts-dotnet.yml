@@ -12,7 +12,7 @@ phases:
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(configuration)\Logs'
         ArtifactName: 'Build Diagnostic Files'
         publishLocation: Container
       continueOnError: true
@@ -24,7 +24,7 @@ phases:
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(configuration)\Logs'
         ArtifactName: 'Build Diagnostic Files'
         publishLocation: Container
       continueOnError: true
