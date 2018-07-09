@@ -112,8 +112,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 AssertIsForeground();
 
+#pragma warning disable VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
                 _newIdentifierBindsTask = _isRenamableIdentifierTask.SafeContinueWithFromAsync(
-                    async t => await t.ConfigureAwait(false) != TriggerIdentifierKind.NotRenamable &&
+                    async t => t.Result != TriggerIdentifierKind.NotRenamable &&
                                TriggerIdentifierKind.RenamableReference ==
                                    await DetermineIfRenamableIdentifierAsync(
                                        TrackingSpan.GetSpan(snapshot),
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     _cancellationToken,
                     TaskContinuationOptions.OnlyOnRanToCompletion,
                     TaskScheduler.Default);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
 
                 QueueUpdateToStateMachine(stateMachine, _newIdentifierBindsTask);
             }

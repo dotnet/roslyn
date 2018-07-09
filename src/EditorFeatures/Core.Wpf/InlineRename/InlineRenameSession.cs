@@ -492,10 +492,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
+#pragma warning disable VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(QueueApplyReplacements));
             _conflictResolutionTask
                 .SafeContinueWith(
-                    async t => await ComputeMergeResultAsync(await t.ConfigureAwait(false), _conflictResolutionTaskCancellationSource.Token).ConfigureAwait(false),
+                    t => ComputeMergeResultAsync(t.Result, _conflictResolutionTaskCancellationSource.Token),
                     _conflictResolutionTaskCancellationSource.Token,
                     TaskContinuationOptions.OnlyOnRanToCompletion,
                     TaskScheduler.Default)
@@ -506,6 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     TaskContinuationOptions.OnlyOnRanToCompletion,
                     ForegroundTaskScheduler)
                 .CompletesAsyncOperation(asyncToken);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
         }
 
         private async Task<(IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult)> ComputeMergeResultAsync(IInlineRenameReplacementInfo replacementInfo, CancellationToken cancellationToken)
