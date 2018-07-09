@@ -59,3 +59,9 @@ I recently had to test a [Roslyn change](https://github.com/dotnet/roslyn/pull/2
 1. In the sample code directory 
     1. Ran `dotnet build` and verified no stack printed 
     1. Ran ` dotnet build /p:RoslynTargetsPath=E:\code\roslyn\Binaries\Bootstrap\Microsoft.NETCore.Compilers\42.42.42.42\tools` and verified the stack trace was printed
+
+# Creating a dump file for a hung process
+Using the 32-bit Task Manager (`%WINDIR%\SysWow64\TaskMgr.exe` so that SoS will work), right-click on the hung process to produce a `.dmp` file. You can then share the file with the team via some online drive (dropbox and the like).
+
+![image](https://user-images.githubusercontent.com/12466233/42392334-4eed5286-8107-11e8-8212-26fa53383f19.png)
+
