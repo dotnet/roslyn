@@ -45,10 +45,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            await WaitForCompletionSetAsync();
+
             var view = await GetActiveTextViewAsync();
             var broker = await GetComponentModelServiceAsync<ICompletionBroker>();
-
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet);
 
             var sessions = broker.GetSessions(view);
             if (sessions.Count != 1)
@@ -114,6 +114,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         public async Task<bool> IsCompletionActiveAsync()
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            await WaitForCompletionSetAsync();
 
             var view = await GetActiveTextViewAsync();
             var broker = await GetComponentModelServiceAsync<ICompletionBroker>();
