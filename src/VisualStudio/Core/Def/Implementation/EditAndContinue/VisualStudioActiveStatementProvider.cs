@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                 // No exception should be thrown in case of errors on the debugger side. 
                 // The debugger is responsible to provide telemetry for error cases.
-                var workList = DkmWorkList.Create(CompletionRoutine: _ => { }); 
+                var workList = DkmWorkList.Create(null); 
 
                 void CancelWork()
                 {
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         FreeBuilders(builders);
                         builders = null;
 
-                        workList.Cancel();
+                        workList.Cancel(blockOnCompletion: false);
 
                         // make sure we cancel with the token we received from the caller:
                         completion.TrySetCanceled(cancellationToken);
@@ -93,6 +93,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                 int pendingStatements = instructionMap.Count;
                                 builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
                                 builders[runtimeIndex].Count = pendingStatements;
+
+                                if (instructionMap.Count == 0)
+                                {
+                                    if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                    {
+                                        completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                    }
+
+                                    return;
+                                }
 
                                 foreach (var (instructionId, (symbol, threads, index, flags)) in instructionMap)
                                 {
