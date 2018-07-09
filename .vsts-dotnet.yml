@@ -1,0 +1,31 @@
+phases:
+- phase: Windows_Unit_Tests
+  queue:
+    parallel: 2
+    matrix:
+      debug:
+        configuration: debug
+      release: 
+        configuration: release
+  steps:
+    - script: build/scripts/cibuild.cmd -$(configuration) -testDesktop -test32
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Logs'
+        ArtifactName: 'Build Diagnostic Files'
+        publishLocation: Container
+      continueOnError: true
+      condition: succeededOrFailed()
+           
+- phase: Windows_Determinism_Test
+  steps:
+    - script: build/scripts/cibuild.cmd -testDeterminism
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Logs'
+        ArtifactName: 'Build Diagnostic Files'
+        publishLocation: Container
+      continueOnError: true
+      condition: succeededOrFailed()
