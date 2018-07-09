@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="needs-review-translation">CodeFixProvider, намеревающемуся поддерживать случаи полного исправления, нужно классифицировать зарегистрированные действия кода по классам эквивалентности, назначив явный и отличный от Null ключ эквивалентности, который является уникальным для всех зарегистрированных действий кода в этом исправлении. Это позволяет FixAllProvider исправить всю диагностику в требуемой области, применив действия кода из этого исправления, входящие в класс эквивалентности для действия кода триггера.</target>
+        <target state="translated">CodeFixProvider, намеревающемуся поддерживать случаи полного исправления, нужно классифицировать зарегистрированные действия кода по классам эквивалентности, назначив явный и отличный от NULL ключ эквивалентности, который является уникальным для всех видов действий кода, созданных этим исправлением. Это позволяет FixAllProvider исправить всю диагностику в требуемой области, применив действия кода из этого исправления, входящие в класс эквивалентности для действия кода триггера.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="needs-review-translation">Укажите явный аргумент для необязательного параметра "{0}", который отличен от Null и уникален для всех действий кода, созданных этим исправлением.</target>
+        <target state="translated">Укажите явный аргумент для необязательного параметра "{0}", который отличен от NULL и уникален для всех видов действий кода, созданных этим исправлением.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">

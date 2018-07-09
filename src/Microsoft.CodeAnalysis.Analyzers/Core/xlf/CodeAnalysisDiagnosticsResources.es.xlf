@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="needs-review-translation">Un objeto CodeFixProvider destinado a reparar todas las repeticiones debe clasificar las acciones de código registradas en clases de equivalencia. Para ello, debe asignarles una clave de equivalencia explícita no NULL que es única en todas las acciones de código registradas por este reparador. Esto permite a FixAllProvider corregir todos los diagnósticos del ámbito requerido mediante la aplicación de acciones de código de este reparador que están en la clase de equivalencia de la acción de código desencadenador.</target>
+        <target state="translated">Un objeto CodeFixProvider destinado a corregir todas las repeticiones debe clasificar las acciones de código registradas en clases de equivalencia. Para ello, debe asignarles una clave de equivalencia explícita no nula que sea única para cada tipo de acción de código creada por este reparador. Esto permite a FixAllProvider corregir todos los diagnósticos del ámbito requerido aplicando acciones de código de este reparador que están en la clase de equivalencia de la acción de código desencadenador.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="needs-review-translation">Proporcione un argumento explícito para el parámetro “{0}” opcional, no NULL y único en todas las acciones de código creadas por este reparador.</target>
+        <target state="translated">Proporcione un argumento explícito para el parámetro opcional “{0}”, que no sea nulo y sea único para cada tipo de acción de código creada por este reparador.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
