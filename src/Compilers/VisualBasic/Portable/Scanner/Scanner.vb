@@ -555,10 +555,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 tList.Add(MakeLineContinuationTrivia(GetText(1)))
                 tList.Add(MakeWhiteSpaceTrivia(GetText(Here)))
                 ScanCommentIfAny(tList)
-                If CanGet() Then
-                    ch = Peek()
-                    atNewLine = IsNewLine(ch)
-                End If
+                ch = Peek()
+                atNewLine = IsNewLine(ch)
             Else
                 While CanGet(Here)
                     ch = Peek(Here)
