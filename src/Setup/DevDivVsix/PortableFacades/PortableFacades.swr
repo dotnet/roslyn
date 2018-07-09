@@ -1,7 +1,7 @@
 use vs
 
 package name=PortableFacades
-        version=1.13.0.0
+        version=1.11.0.0
 
 folder InstallDir:\Common7\IDE\PrivateAssemblies
     file source="$(NuGetPackageRoot)\Microsoft.Win32.Primitives\4.3.0\lib\net46\Microsoft.Win32.Primitives.dll" vs.file.ngen=yes
