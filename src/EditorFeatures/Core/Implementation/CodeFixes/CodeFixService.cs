@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 verifyArguments: false,
                 cancellationToken: cancellationToken);
 
-            var task = fixer.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
+            var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
             await task.ConfigureAwait(false);
             return fixes.ToImmutableAndFree();
         }
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // we do have fixer. now let's see whether it actually can fix it
             foreach (var fixer in allFixers)
             {
-                await extensionManager.PerformActionAsync(fixer, () => fixer.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask).ConfigureAwait(false);
+                await extensionManager.PerformActionAsync(fixer, () => fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask).ConfigureAwait(false);
                 foreach (var fix in fixes)
                 {
                     if (!fix.Action.PerformFinalApplicabilityCheck)

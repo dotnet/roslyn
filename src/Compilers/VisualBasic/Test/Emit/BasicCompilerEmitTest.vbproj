@@ -7,9 +7,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Emit.UnitTests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -24,15 +23,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.VisualBasic" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resource.Designer.vb">
@@ -125,6 +121,66 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resource.Designer.vb</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="CodeGen\ConversionsILGenTestBaseline.txt" />
+    <EmbeddedResource Include="CodeGen\ConversionsILGenTestBaseline1.txt" />
+    <EmbeddedResource Include="CodeGen\ConversionsILGenTestSource.vb" />
+    <EmbeddedResource Include="CodeGen\ConversionsILGenTestSource1.vb" />
+    <EmbeddedResource Include="CodeGen\ConversionsILGenTestSource2.vb" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedArithmeticBinaryOperators.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedArithmeticBinaryOperators.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndOrXor.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedAndOrXor.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedShortCircuit.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedShortCircuit.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedComparisonOperators.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedComparisonOperators.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedIsIsNotNothing.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedIsIsNot.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedConcatenate.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedConcatenate.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedLike.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedLike.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedWithDate.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Sources\ExprLambdaUtils.vb" />
+    <EmbeddedResource Include="ExpressionTrees\Sources\UserDefinedBinaryOperators.vb" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedUserDefinedBinaryOperators.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedUserDefinedBinaryOperators.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedNothingConversions.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedTypeParameters.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedDirectTrySpecificConversions.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedDirectTrySpecificConversions.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedCTypeAndImplicitConversionsEven.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedCTypeAndImplicitConversionsEven.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedCTypeAndImplicitConversionsOdd.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedCTypeAndImplicitConversionsOdd.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Tests\TestConversion_TypeMatrix_UserTypes.vb" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedUserTypeConversions.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Tests\TestConversion_Narrowing_UDC.vb" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedNarrowingUDC.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Tests\TestConversion_Widening_UDC.vb" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedWideningUDC.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedUnaryPlusMinusNot.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\UncheckedUnaryPlusMinusNot.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedIsTrueIsFalse.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedAndUncheckedUdoUnaryPlusMinusNot.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedCoalesceWithNullableBoolean.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Tests\TestUnary_UDO_PlusMinusNot.vb" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedCoalesceWithUserDefinedConversions.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedObjectInitializers.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedArrayInitializers.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedCollectionInitializers.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\CheckedMiscellaneousA.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Tests\TestUnary_UDO_IsTrueIsFalse.vb" />
+    <EmbeddedResource Include="ExpressionTrees\Sources\QueryHelper.vb" />
+    <EmbeddedResource Include="ExpressionTrees\Results\ExprTree_LegacyTests07_Result.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\ExprTree_LegacyTests08_Result.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\ExprTree_LegacyTests09_Result.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\XmlLiteralsInExprLambda01_Result.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\XmlLiteralsInExprLambda02_Result.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\XmlLiteralsInExprLambda03_Result.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\ExprTree_LegacyTests10_Result.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\ExprTree_LegacyTests02_v40_Result.txt" />
+    <EmbeddedResource Include="ExpressionTrees\Results\ExprTree_LegacyTests02_v45_Result.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             ProduceTags(context, spanToTag);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
