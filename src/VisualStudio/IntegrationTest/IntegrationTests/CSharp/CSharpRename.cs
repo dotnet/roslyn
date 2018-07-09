@@ -368,7 +368,7 @@ $$class RenameRocks
             var project2 = "Project2";
 
             await VisualStudio.SolutionExplorer.AddProjectAsync(project2, WellKnownProjectTemplates.ClassLibrary, LanguageName);
-            VisualStudio.SolutionExplorer.AddProjectReference(projectName: project1, projectToReferenceName: "Project2");
+            await VisualStudio.SolutionExplorer.AddProjectReferenceAsync(projectName: project1, projectToReferenceName: "Project2");
 
             await VisualStudio.SolutionExplorer.AddFileAsync(project2, "Class2.cs", @"");
             await VisualStudio.SolutionExplorer.OpenFileAsync(project2, "Class2.cs");

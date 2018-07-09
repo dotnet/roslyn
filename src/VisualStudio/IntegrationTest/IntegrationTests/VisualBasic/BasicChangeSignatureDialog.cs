@@ -111,7 +111,7 @@ public class CSharpClass
             await SolutionExplorer.SaveAllAsync();
             var project = new ProjectUtils.Project(ProjectName);
             var csharpProjectReference = new ProjectUtils.ProjectReference("CSharpProject");
-            SolutionExplorer.AddProjectReference(project.Name, csharpProjectReference.Name);
+            await SolutionExplorer.AddProjectReferenceAsync(project.Name, csharpProjectReference.Name);
             await SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb");
 
             await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);

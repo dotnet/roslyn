@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
@@ -70,18 +71,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             };
         }
 
-        public void AddMetadataReference(string assemblyName, string projectName)
+        public async Task AddMetadataReferenceAsync(string assemblyName, string projectName)
         {
             var project = GetProject(projectName);
             var vsproject = ((VSProject)project.Object);
             vsproject.References.Add(assemblyName);
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
         }
 
-        public void RemoveMetadataReference(string assemblyName, string projectName)
+        public async Task RemoveMetadataReferenceAsync(string assemblyName, string projectName)
         {
             var project = GetProject(projectName);
             var reference = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.Name == assemblyName).First();
             reference.Remove();
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
         }
 
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
@@ -187,7 +192,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                     var projectName = projectElement.Attribute("ProjectName").Value;
                     foreach (var projectReference in projectReferences.Split(';'))
                     {
-                        AddProjectReference(projectName, projectReference);
+                        await AddProjectReferenceAsync(projectName, projectReference);
                     }
                 }
             }
@@ -216,11 +221,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-        public void AddProjectReference(string projectName, string projectToReferenceName)
+        public async Task AddProjectReferenceAsync(string projectName, string projectToReferenceName)
         {
             var project = GetProject(projectName);
             var projectToReference = GetProject(projectToReferenceName);
             ((VSProject)project.Object).References.AddProject(projectToReference);
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
         }
 
 #if false
@@ -271,7 +278,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 #endif
 
-        public void RemoveProjectReference(string projectName, string projectReferenceName)
+        public async Task RemoveProjectReferenceAsync(string projectName, string projectReferenceName)
         {
             var project = GetProject(projectName);
             var vsproject = (VSProject)project.Object;
@@ -283,6 +290,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 throw new ArgumentException($"reference to project {projectReferenceName} not found, references: '{string.Join(", ", projectReference)}'");
             }
             reference.Remove();
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
         }
 
 #if false

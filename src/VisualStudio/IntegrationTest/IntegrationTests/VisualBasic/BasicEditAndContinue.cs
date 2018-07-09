@@ -163,7 +163,7 @@ Public Class Class1
 End Class
 ");
 
-            VisualStudio.SolutionExplorer.AddProjectReference(ProjectName, basicLibrary);
+            await VisualStudio.SolutionExplorer.AddProjectReferenceAsync(ProjectName, basicLibrary);
             await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, module1FileName);
 
             await VisualStudio.Editor.SetTextAsync(@"

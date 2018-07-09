@@ -147,7 +147,7 @@ Public Class VBClass
 End Class");
 
             await VisualStudio.SolutionExplorer.SaveAllAsync();
-            VisualStudio.SolutionExplorer.AddProjectReference(projectName: ProjectName, projectToReferenceName: vbProjectReference.Name);
+            await VisualStudio.SolutionExplorer.AddProjectReferenceAsync(projectName: ProjectName, projectToReferenceName: vbProjectReference.Name);
             await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
 
             await ChangeSignatureDialog.InvokeAsync();

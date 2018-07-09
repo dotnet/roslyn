@@ -214,7 +214,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public async Task ResetInteractiveFromProjectAndVerifyAsync()
         {
             var assemblyName = "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
-            VisualStudio.SolutionExplorer.AddMetadataReference(assemblyName, ProjectName);
+            await VisualStudio.SolutionExplorer.AddMetadataReferenceAsync(assemblyName, ProjectName);
 
             await VisualStudio.SolutionExplorer.SelectItemAsync(ProjectName);
             await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);

@@ -61,20 +61,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
-        public void AddMetadataReference(string assemblyName, string projectName)
-        {
-            var project = GetProject(projectName);
-            var vsproject = ((VSProject)project.Object);
-            vsproject.References.Add(assemblyName);
-        }
-
-        public void RemoveMetadataReference(string assemblyName, string projectName)
-        {
-            var project = GetProject(projectName);
-            var reference = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.Name == assemblyName).First();
-            reference.Remove();
-        }
-
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
         public string SolutionFileFullPath
@@ -111,177 +97,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             _solution = (Solution2)dte.Solution;
             _fileName = Path.Combine(solutionPath, $"{solutionName}.sln");
-        }
-
-        public string[] GetAssemblyReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>()
-                .Where(x => x.SourceProject == null)
-                .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
-            return references;
-        }
-
-        public void RenameFile(string projectName, string oldFileName, string newFileName)
-        {
-            var projectItem = GetProjectItem(projectName, oldFileName);
-
-            projectItem.Name = newFileName;
-        }
-
-        public void EditProjectFile(string projectName)
-        {
-            var solutionExplorer = ((DTE2)GetDTE()).ToolWindows.SolutionExplorer;
-            solutionExplorer.Parent.Activate();
-            var rootHierarchyItems = solutionExplorer.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
-            var solution = rootHierarchyItems.First();
-            var solutionHierarchyItems = solution.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
-            var project = solutionHierarchyItems.Where(x => x.Name == projectName).FirstOrDefault();
-            if (project == null)
-            {
-                throw new ArgumentException($"Could not find project file, current hierarchy items '{string.Join(", ", rootHierarchyItems.Select(x => x.Name))}'");
-            }
-            project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
-            ExecuteCommand("Project.EditProjectFile");
-        }
-
-        public string[] GetProjectReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.SourceProject != null).Select(x => x.Name).ToArray();
-            return references;
-        }
-
-        public void CreateSolution(string solutionName, string solutionElementString)
-        {
-            var solutionElement = XElement.Parse(solutionElementString);
-            if (solutionElement.Name != "Solution")
-            {
-                throw new ArgumentException(nameof(solutionElementString));
-            }
-            CreateSolution(solutionName);
-
-            foreach (var projectElement in solutionElement.Elements("Project"))
-            {
-                CreateProject(projectElement);
-            }
-
-            foreach (var projectElement in solutionElement.Elements("Project"))
-            {
-                var projectReferences = projectElement.Attribute("ProjectReferences")?.Value;
-                if (projectReferences != null)
-                {
-                    var projectName = projectElement.Attribute("ProjectName").Value;
-                    foreach (var projectReference in projectReferences.Split(';'))
-                    {
-                        AddProjectReference(projectName, projectReference);
-                    }
-                }
-            }
-        }
-
-        private void CreateProject(XElement projectElement)
-        {
-            const string language = "Language";
-            const string name = "ProjectName";
-            const string template = "ProjectTemplate";
-            var languageName = projectElement.Attribute(language)?.Value
-                ?? throw new ArgumentException($"You must specify an attribute called '{language}' on a project element.");
-            var projectName = projectElement.Attribute(name)?.Value
-                ?? throw new ArgumentException($"You must specify an attribute called '{name}' on a project element.");
-            var projectTemplate = projectElement.Attribute(template)?.Value
-                ?? throw new ArgumentException($"You must specify an attribute called '{template}' on a project element.");
-
-            var projectPath = Path.Combine(DirectoryName, projectName);
-            var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
-
-            _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
-            foreach (var documentElement in projectElement.Elements("Document"))
-            {
-                var fileName = documentElement.Attribute("FileName").Value;
-                UpdateOrAddFile(projectName, fileName, contents: documentElement.Value);
-            }
-        }
-
-        public void AddProjectReference(string projectName, string projectToReferenceName)
-        {
-            var project = GetProject(projectName);
-            var projectToReference = GetProject(projectToReferenceName);
-            ((VSProject)project.Object).References.AddProject(projectToReference);
-        }
-
-        public void AddReference(string projectName, string fullyQualifiedAssemblyName)
-        {
-            var project = GetProject(projectName);
-            ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
-        }
-
-        public void AddPackageReference(string projectName, string packageName, string version)
-        {
-            var project = GetProject(projectName);
-
-            if (project is IVsBrowseObjectContext browseObjectContext)
-            {
-                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
-
-                var result = threadingService.ExecuteSynchronously(async () =>
-                {
-                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
-                    return await configuredProject.Services.PackageReferences.AddAsync(packageName, version).ConfigureAwait(false);
-                });
-            }
-            else
-            {
-                throw new InvalidOperationException($"'{nameof(AddPackageReference)}' is not supported in project '{projectName}'.");
-            }
-        }
-
-        public void RemovePackageReference(string projectName, string packageName)
-        {
-            var project = GetProject(projectName);
-
-            if (project is IVsBrowseObjectContext browseObjectContext)
-            {
-                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
-
-                threadingService.ExecuteSynchronously(async () =>
-                {
-                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
-                    await configuredProject.Services.PackageReferences.RemoveAsync(packageName).ConfigureAwait(false);
-                });
-            }
-            else
-            {
-                throw new InvalidOperationException($"'{nameof(RemovePackageReference)}' is not supported in project '{projectName}'.");
-            }
-        }
-
-        public void RemoveProjectReference(string projectName, string projectReferenceName)
-        {
-            var project = GetProject(projectName);
-            var vsproject = (VSProject)project.Object;
-            var references = vsproject.References.Cast<Reference>();
-            var reference = references.Where(x => x.ContainingProject != null && x.Name == projectReferenceName).FirstOrDefault();
-            if (reference == null)
-            {
-                var projectReference = references.Where(x => x.ContainingProject != null).Select(x => x.Name);
-                throw new ArgumentException($"reference to project {projectReferenceName} not found, references: '{string.Join(", ", projectReference)}'");
-            }
-            reference.Remove();
-        }
-
-        public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
-        {
-            var dte = GetDTE();
-
-            if (dte.Solution.IsOpen)
-            {
-                CloseSolution(saveExistingSolutionIfExists);
-            }
-            dte.Solution.Open(path);
-
-            _solution = (EnvDTE80.Solution2)dte.Solution;
-            _fileName = path;
         }
 
         private static string ConvertLanguageName(string languageName)
@@ -371,68 +186,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
 
         /// <summary>
-        /// Update the given file if it already exists in the project, otherwise add a new file to the project.
-        /// </summary>
-        /// <param name="projectName">The project that contains the file.</param>
-        /// <param name="fileName">The name of the file to update or add.</param>
-        /// <param name="contents">The contents of the file to overwrite if the file already exists or set if the file it created. Empty string is used if null is passed.</param>
-        /// <param name="open">Whether to open the file after it has been updated/created.</param>
-        public void UpdateOrAddFile(string projectName, string fileName, string contents = null, bool open = false)
-        {
-            var project = GetProject(projectName);
-            if (project.ProjectItems.Cast<EnvDTE.ProjectItem>().Any(x => x.Name == fileName))
-            {
-                UpdateFile(projectName, fileName, contents, open);
-            }
-            else
-            {
-                AddFile(projectName, fileName, contents, open);
-            }
-        }
-
-        /// <summary>
-        /// Update the given file to have the contents given.
-        /// </summary>
-        /// <param name="projectName">The project that contains the file.</param>
-        /// <param name="fileName">The name of the file to update or add.</param>
-        /// <param name="contents">The contents of the file to overwrite. Empty string is used if null is passed.</param>
-        /// <param name="open">Whether to open the file after it has been updated.</param>
-        public void UpdateFile(string projectName, string fileName, string contents = null, bool open = false)
-        {
-            void SetText(string text)
-            {
-                InvokeOnUIThread(() =>
-                {
-                    // The active text view might not have finished composing yet, waiting for the application to 'idle'
-                    // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-                    WaitForApplicationIdle();
-
-                    var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
-                    var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
-                    Marshal.ThrowExceptionForHR(hresult);
-                    var activeVsTextView = (IVsUserData)vsTextView;
-
-                    var editorGuid = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
-                    hresult = activeVsTextView.GetData(editorGuid, out var wpfTextViewHost);
-                    Marshal.ThrowExceptionForHR(hresult);
-
-                    var view = ((IWpfTextViewHost)wpfTextViewHost).TextView;
-                    var textSnapshot = view.TextSnapshot;
-                    var replacementSpan = new Text.SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-                    view.TextBuffer.Replace(replacementSpan, text);
-                });
-            }
-
-            OpenFile(projectName, fileName);
-            SetText(contents ?? string.Empty);
-            CloseFile(projectName, fileName, saveFile: true);
-            if (open)
-            {
-                OpenFile(projectName, fileName);
-            }
-        }
-
-        /// <summary>
         /// Add new file to project.
         /// </summary>
         /// <param name="projectName">The project that contains the file.</param>
@@ -462,75 +215,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 OpenFile(projectName, fileName);
             }
-        }
-
-        /// <summary>
-        /// Adds a new standalone file to the Miscellaneous Files workspace.
-        /// </summary>
-        /// <param name="fileName">The name of the file to add.</param>
-        public void AddStandaloneFile(string fileName)
-        {
-            string itemTemplate;
-
-            var extension = Path.GetExtension(fileName).ToLowerInvariant();
-            switch (extension)
-            {
-                case ".cs":
-                    itemTemplate = @"General\Visual C# Class";
-                    break;
-                case ".csx":
-                    itemTemplate = @"Script\Visual C# Script";
-                    break;
-                case ".vb":
-                    itemTemplate = @"General\Visual Basic Class";
-                    break;
-                case ".txt":
-                    itemTemplate = @"General\Text File";
-                    break;
-                default:
-                    throw new NotSupportedException($"File type '{extension}' is not yet supported.");
-            }
-
-            GetDTE().ItemOperations.NewFile(itemTemplate, fileName);
-        }
-            
-
-        public void SetFileContents(string projectName, string relativeFilePath, string contents)
-        {
-            var project = GetProject(projectName);
-            var projectPath = Path.GetDirectoryName(project.FullName);
-            var filePath = Path.Combine(projectPath, relativeFilePath);
-
-            File.WriteAllText(filePath, contents);
-        }
-
-        public string GetFileContents(string projectName, string relativeFilePath)
-        {
-            var project = GetProject(projectName);
-            var projectPath = Path.GetDirectoryName(project.FullName);
-            var filePath = Path.Combine(projectPath, relativeFilePath);
-
-            return File.ReadAllText(filePath);
-        }
-
-        public void BuildSolution(bool waitForBuildToFinish)
-        {
-            var buildOutputWindowPane = GetBuildOutputWindowPane();
-            buildOutputWindowPane.Clear();
-            ExecuteCommand(WellKnownCommandNames.Build_BuildSolution);
-            WaitForBuildToFinish(buildOutputWindowPane);
-        }
-
-        public void ClearBuildOutputWindowPane()
-        {
-            var buildOutputWindowPane = GetBuildOutputWindowPane();
-            buildOutputWindowPane.Clear();
-        }
-
-        public void WaitForBuildToFinish()
-        {
-            var buildOutputWindowPane = GetBuildOutputWindowPane();
-            WaitForBuildToFinish(buildOutputWindowPane);
         }
 
         private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
@@ -707,19 +391,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void OpenFileWithDesigner(string projectName, string relativeFilePath)
-        {
-            var projectItem = GetProjectItem(projectName, relativeFilePath);
-            var window = projectItem.Open(EnvDTE.Constants.vsViewKindDesigner);
-            window.Activate();
-
-            var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(projectItem.Name))
-            {
-                Thread.Yield();
-            }
-        }
-
         public void OpenFile(string projectName, string relativeFilePath)
         {
             var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
@@ -784,11 +455,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return document;
         }
 
-        public void SaveFile(string projectName, string relativeFilePath)
-        {
-            SaveFileWithExtraValidation(GetOpenDocument(projectName, relativeFilePath));
-        }
-
         private static void SaveFileWithExtraValidation(EnvDTE.Document document)
         {
             var textDocument = (EnvDTE.TextDocument)document.Object(nameof(EnvDTE.TextDocument));
@@ -808,86 +474,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        public void ReloadProject(string projectRelativePath)
-        {
-            var solutionPath = Path.GetDirectoryName(_solution.FullName);
-            var projectPath = Path.Combine(solutionPath, projectRelativePath);
-            _solution.AddFromFile(projectPath);
-        }
-
-        public void RestoreNuGetPackages()
-            => ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages);
-
         public void SaveAll()
             => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
-
-        public void ShowErrorList()
-            => ExecuteCommand(WellKnownCommandNames.View_ErrorList);
-
-        public void ShowOutputWindow()
-            => ExecuteCommand(WellKnownCommandNames.View_Output);
-
-        public void UnloadProject(string projectName)
-        {
-            var projects = _solution.Projects;
-            EnvDTE.Project project = null;
-            for (int i = 1; i <= projects.Count; i++)
-            {
-                project = projects.Item(i);
-                if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)
-                {
-                    break;
-                }
-            }
-
-            _solution.Remove(project);
-        }
-
-        public void SelectItem(string itemName)
-        {
-            var dte = (DTE2)GetDTE();
-            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-
-            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
-            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
-            solutionExplorer.Parent.Activate();
-        }
-
-        public void SelectItemAtPath(params string[] path)
-        {
-            var dte = (DTE2)GetDTE();
-            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-
-            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
-            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
-            solutionExplorer.Parent.Activate();
-        }
-
-        public string[] GetChildrenOfItem(string itemName)
-        {
-            var dte = (DTE2)GetDTE();
-            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-
-            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
-
-            return item.UIHierarchyItems
-                .Cast<EnvDTE.UIHierarchyItem>()
-                .Select(i => i.Name)
-                .ToArray();
-        }
-
-        public string[] GetChildrenOfItemAtPath(params string[] path)
-        {
-            var dte = (DTE2)GetDTE();
-            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-
-            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
-
-            return item.UIHierarchyItems
-                .Cast<EnvDTE.UIHierarchyItem>()
-                .Select(i => i.Name)
-                .ToArray();
-        }
 
         private static EnvDTE.UIHierarchyItem FindItemAtPath(
             EnvDTE.UIHierarchyItems currentItems,

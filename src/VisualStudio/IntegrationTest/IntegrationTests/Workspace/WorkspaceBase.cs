@@ -52,11 +52,11 @@ End Class");
         {
             var windowsBase = "WindowsBase";
             var project = ProjectName;
-            VisualStudio.SolutionExplorer.AddMetadataReference(windowsBase, project);
+            await VisualStudio.SolutionExplorer.AddMetadataReferenceAsync(windowsBase, project);
             await VisualStudio.Editor.SetTextAsync("class C { System.Windows.Point p; }");
             await VisualStudio.Editor.PlaceCaretAsync("Point");
             await VisualStudio.Editor.Verify.CurrentTokenTypeAsync("struct name");
-            VisualStudio.SolutionExplorer.RemoveMetadataReference(windowsBase, project);
+            await VisualStudio.SolutionExplorer.RemoveMetadataReferenceAsync(windowsBase, project);
             await VisualStudio.Editor.Verify.CurrentTokenTypeAsync("identifier");
         }
 
@@ -66,13 +66,13 @@ End Class");
             var csProj2 = "CSProj2";
             var projectName = ProjectName;
             await VisualStudio.SolutionExplorer.AddProjectAsync(csProj2, projectTemplate: DefaultProjectTemplate, languageName: LanguageName);
-            VisualStudio.SolutionExplorer.AddProjectReference(projectName: csProj2, projectToReferenceName: projectName);
+            await VisualStudio.SolutionExplorer.AddProjectReferenceAsync(projectName: csProj2, projectToReferenceName: projectName);
             await VisualStudio.SolutionExplorer.AddFileAsync(project, "Program.cs", open: true, contents: "public class Class1 { }");
             await VisualStudio.SolutionExplorer.AddFileAsync(csProj2, "Program.cs", open: true, contents: "public class Class2 { Class1 c; }");
             await VisualStudio.SolutionExplorer.OpenFileAsync(csProj2, "Program.cs");
             await VisualStudio.Editor.PlaceCaretAsync("Class1");
             await VisualStudio.Editor.Verify.CurrentTokenTypeAsync("class name");
-            VisualStudio.SolutionExplorer.RemoveProjectReference(projectReferenceName: projectName, projectName: csProj2);
+            await VisualStudio.SolutionExplorer.RemoveProjectReferenceAsync(projectReferenceName: projectName, projectName: csProj2);
             await VisualStudio.Editor.Verify.CurrentTokenTypeAsync("identifier");
         }
 
