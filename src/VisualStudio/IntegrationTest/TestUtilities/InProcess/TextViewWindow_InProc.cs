@@ -70,17 +70,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public bool IsCompletionActive()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-                return broker.IsCompletionActive(view);
-            });
-
         protected abstract ITextBuffer GetBufferContainingCaret(IWpfTextView view);
 
         public string[] GetCurrentClassifications()

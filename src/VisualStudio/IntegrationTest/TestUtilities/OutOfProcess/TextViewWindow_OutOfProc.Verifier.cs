@@ -101,15 +101,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 Assert.NotEqual("text", tokenType);
             }
 
-            public void CompletionItemsExist(params string[] expectedItems)
-            {
-                var completionItems = _textViewWindow.GetCompletionItems();
-                foreach (var expectedItem in expectedItems)
-                {
-                    Assert.Contains(expectedItem, completionItems);
-                }
-            }
-
             public void CaretPosition(int expectedCaretPosition)
             {
                 var position = _textViewWindow.GetCaretPosition();

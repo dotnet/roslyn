@@ -26,12 +26,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public int GetCaretPosition()
             => _textViewWindowInProc.GetCaretPosition();
 
-        public string[] GetCompletionItems()
-        {
-            WaitForCompletionSet();
-            return _textViewWindowInProc.GetCompletionItems();
-        }
-
         public void PlaceCaret(
             string marker,
             int charsOffset = 0,

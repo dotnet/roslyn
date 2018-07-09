@@ -72,12 +72,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return builder.ToImmutableAndFree();
         }
 
-        public bool IsCompletionActive()
-        {
-            WaitForCompletionSet();
-            return _editorInProc.IsCompletionActive();
-        }
-
         public void InvokeNavigateTo(string text)
         {
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
