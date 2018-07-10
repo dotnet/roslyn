@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                         {
                             var textVersion = snapshot.Version;
                             var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                            return IntellisenseQuickInfoBuilder.BuildItem(trackingSpan, item);
+                            return await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan, item, snapshot, document, cancellationToken).ConfigureAwait(false);
                         }
 
                         return null;
