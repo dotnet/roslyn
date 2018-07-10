@@ -26,11 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
-                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId:
+                case IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId:
                     return string.Format(CSharpFeaturesResources.Simplify_name_0, nodeText);
 
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
-                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId:
                     return string.Format(CSharpFeaturesResources.Simplify_member_access_0, nodeText);
 
                 case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
