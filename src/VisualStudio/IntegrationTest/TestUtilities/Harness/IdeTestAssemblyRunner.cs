@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -29,24 +30,33 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             var result = new RunSummary();
             var testAssemblyFinishedMessages = new List<ITestAssemblyFinished>();
             var completedTestCaseIds = new HashSet<string>();
+            var exceptions = new List<Exception>();
             try
             {
                 ExecutionMessageSink.OnMessage(new TestCollectionStarting(testCases, testCollection));
 
                 foreach (var testCasesByTargetVersion in testCases.GroupBy(GetVisualStudioVersionForTestCase))
                 {
-                    using (var visualStudioInstanceFactory = Activator.CreateInstance<VisualStudioInstanceFactory>())
+                    try
                     {
-                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, testCasesByTargetVersion.Key.visualStudioVersion, completedTestCaseIds, messageBus, testCollection, testCasesByTargetVersion, cancellationTokenSource);
-                        result.Aggregate(summary.Item1);
-                        testAssemblyFinishedMessages.Add(summary.Item2);
+                        using (var visualStudioInstanceFactory = Activator.CreateInstance<VisualStudioInstanceFactory>())
+                        {
+                            var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, testCasesByTargetVersion.Key.visualStudioVersion, completedTestCaseIds, messageBus, testCollection, testCasesByTargetVersion, cancellationTokenSource);
+                            result.Aggregate(summary.Item1);
+                            testAssemblyFinishedMessages.Add(summary.Item2);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ReportHarnessFailure(testCasesByTargetVersion, completedTestCaseIds, ex);
+                        exceptions.Add(ex);
                     }
                 }
             }
             catch (Exception ex)
             {
                 ReportHarnessFailure(testCases, completedTestCaseIds, ex);
-                throw;
+                exceptions.Add(ex);
             }
             finally
             {
@@ -55,6 +65,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                 var testsFailed = testAssemblyFinishedMessages.Sum(message => message.TestsFailed);
                 var testsSkipped = testAssemblyFinishedMessages.Sum(message => message.TestsSkipped);
                 ExecutionMessageSink.OnMessage(new TestCollectionFinished(testCases, testCollection, totalExecutionTime, testsRun, testsFailed, testsSkipped));
+            }
+
+            if (exceptions.Any())
+            {
+                if (exceptions.Count > 1)
+                {
+                    throw new AggregateException(exceptions);
+                }
+                else
+                {
+                    ExceptionDispatchInfo.Capture(exceptions[0]).Throw();
+                }
             }
 
             return result;
@@ -78,6 +100,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 
                         var test = new XunitTest(testCase, testCase.DisplayName);
                         ExecutionMessageSink.OnMessage(new TestStarting(test));
+
+                        // Avoid reporting the same failure multiple times
+                        completedTestCaseIds.Add(testCase.UniqueID);
 
                         if (!string.IsNullOrEmpty(testCase.SkipReason))
                         {
