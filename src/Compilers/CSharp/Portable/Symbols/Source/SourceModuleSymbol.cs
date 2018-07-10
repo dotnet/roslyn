@@ -592,8 +592,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var early = (CommonModuleWellKnownAttributeData)GetAttributesBag()?.DecodedWellKnownAttributeData;
-                return early?.NonNullTypes ?? UtilizesNullableReferenceTypes;
+                var attributeData = (CommonModuleWellKnownAttributeData)GetAttributesBag().DecodedWellKnownAttributeData;
+                return attributeData?.NonNullTypes ?? UtilizesNullableReferenceTypes;
             }
         }
 
