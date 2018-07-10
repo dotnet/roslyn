@@ -3,12 +3,13 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
+namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
@@ -32,31 +33,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private static readonly DiagnosticDescriptor s_descriptorPreferIntrinsicTypeInDeclarations = new DiagnosticDescriptor(IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
-                                                            s_localizableTitleSimplifyNames,
-                                                            s_localizableMessage,
-                                                            DiagnosticCategory.Style,
-                                                            DiagnosticSeverity.Hidden,
-                                                            isEnabledByDefault: true,
-                                                            customTags: DiagnosticCustomTags.Unnecessary);
-
-        private static readonly DiagnosticDescriptor s_descriptorPreferIntrinsicTypeInMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId,
-                                                            s_localizableTitleSimplifyNames,
-                                                            s_localizableMessage,
-                                                            DiagnosticCategory.Style,
-                                                            DiagnosticSeverity.Hidden,
-                                                            isEnabledByDefault: true,
-                                                            customTags: DiagnosticCustomTags.Unnecessary);
+        private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = new DiagnosticDescriptor(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
+            s_localizableTitleSimplifyNames,
+            s_localizableMessage,
+            DiagnosticCategory.Style,
+            DiagnosticSeverity.Hidden,
+            isEnabledByDefault: true,
+            customTags: DiagnosticCustomTags.Unnecessary);
 
         internal abstract bool IsCandidate(SyntaxNode node);
-        internal abstract bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);
+        internal abstract bool CanSimplifyTypeNameExpression(
+            SemanticModel model, SyntaxNode node, OptionSet optionSet, 
+            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
+            CancellationToken cancellationToken);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
             = ImmutableArray.Create(
                     s_descriptorSimplifyNames,
                     s_descriptorSimplifyMemberAccess,
-                    s_descriptorPreferIntrinsicTypeInDeclarations,
-                    s_descriptorPreferIntrinsicTypeInMemberAccess);
+                    s_descriptorPreferBuiltinOrFrameworkType);
 
         private readonly ImmutableArray<TLanguageKindEnum> _kindsOfInterest;
 
@@ -86,7 +81,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 
-        protected abstract bool CanSimplifyTypeNameExpressionCore(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);
+        protected abstract bool CanSimplifyTypeNameExpressionCore(
+            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
+            CancellationToken cancellationToken);
 
         protected abstract string GetLanguageName();
 
@@ -101,7 +99,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                 return false;
             }
 
-            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out var issueSpan, out string diagnosticId, cancellationToken))
+            if (!CanSimplifyTypeNameExpressionCore(
+                    model, node, optionSet,
+                    out var issueSpan, out var diagnosticId, out var inDeclaration,
+                    cancellationToken))
             {
                 return false;
             }
@@ -126,18 +127,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     severity = descriptor.DefaultSeverity.ToReportDiagnostic();
                     break;
 
-                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId:
-                    option = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
-                    (descriptor, severity) = GetApplicablePredefinedTypeDiagnosticDescriptor(
-                        IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId, option, optionSet);
-                    break;
+                case IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId:
+                    option = inDeclaration 
+                        ? CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration
+                        : CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
+                    descriptor = s_descriptorPreferBuiltinOrFrameworkType;
 
-                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId:
-                    option = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
-                    (descriptor, severity) = GetApplicablePredefinedTypeDiagnosticDescriptor(
-                        IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId, option, optionSet);
+                    var optionValue = optionSet.GetOption(option, GetLanguageName());
+                    severity = optionValue.Notification.Severity;
                     break;
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(diagnosticId);
             }
@@ -153,31 +151,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             builder["OptionLanguage"] = model.Language;
             diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
             return true;
-        }
-
-        private (DiagnosticDescriptor descriptor, ReportDiagnostic severity) GetApplicablePredefinedTypeDiagnosticDescriptor<T>(string id, PerLanguageOption<T> option, OptionSet optionSet) where T : CodeStyleOption<bool>
-        {
-            var optionValue = optionSet.GetOption(option, GetLanguageName());
-
-            DiagnosticDescriptor descriptor = null;
-            if (optionValue.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
-            {
-                switch (id)
-                {
-                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId:
-                    descriptor = s_descriptorPreferIntrinsicTypeInDeclarations;
-                    break;
-
-                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId:
-                    descriptor = s_descriptorPreferIntrinsicTypeInMemberAccess;
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(id);
-                }
-            }
-
-            return (descriptor, optionValue.Notification.Severity);
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()

@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
@@ -91,13 +91,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return node is QualifiedCrefSyntax;
         }
 
-        protected sealed override bool CanSimplifyTypeNameExpressionCore(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
+        protected sealed override bool CanSimplifyTypeNameExpressionCore(
+            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
+            CancellationToken cancellationToken)
         {
-            return CanSimplifyTypeNameExpression(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken);
+            return CanSimplifyTypeNameExpression(
+                model, node, optionSet,
+                out issueSpan, out diagnosticId, out inDeclaration,
+                cancellationToken);
         }
 
-        internal override bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
+        internal override bool CanSimplifyTypeNameExpression(
+            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
+            CancellationToken cancellationToken)
         {
+            inDeclaration = false;
             issueSpan = default;
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;
 
@@ -144,11 +154,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 // set proper diagnostic ids.
                 if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
                 {
-                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId;
+                    inDeclaration = true;
+                    diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
                 }
                 else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
                 {
-                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId;
+                    inDeclaration = false;
+                    diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
                 }
                 else if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
