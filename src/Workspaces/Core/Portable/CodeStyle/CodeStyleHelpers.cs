@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     notification = NotificationOption.None;
                     return true;
 
+                case EditorConfigSeverityStrings.Refactoring:
                 case EditorConfigSeverityStrings.Silent:
                     notification = NotificationOption.Silent;
                     return true;
