@@ -1581,6 +1581,30 @@ public class D
 ");
         }
 
+        [Fact]
+        [WorkItem(27049, "https://github.com/dotnet/roslyn/issues/27049")]
+        public void BoxingRefStructForBaseCall()
+        {
+            CreateCompilation(@"
+ref struct S
+{
+    public override bool Equals(object obj) => base.Equals(obj);
+
+    public override int GetHashCode() => base.GetHashCode();
+
+    public override string ToString() => base.ToString();
+}").VerifyDiagnostics(
+                // (4,48): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override bool Equals(object obj) => base.Equals(obj);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(4, 48),
+                // (6,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override int GetHashCode() => base.GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(6, 42),
+                // (8,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override string ToString() => base.ToString();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(8, 42));
+        }
+
         #endregion
         #region "Enum"
 

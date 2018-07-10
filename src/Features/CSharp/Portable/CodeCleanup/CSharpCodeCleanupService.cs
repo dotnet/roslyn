@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
         private static ImmutableArray<Tuple<PerLanguageOption<bool>, ImmutableArray<string>>> GetCodeCleanupOptionMapping()
         {
-            return ImmutableArray.Create<Tuple<PerLanguageOption<bool>, ImmutableArray<string>>>
-            (
+            return ImmutableArray.Create(
                 Tuple.Create(
                     CodeCleanupOptions.ApplyImplicitExplicitTypePreferences,
                     ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
@@ -57,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 ),
                 Tuple.Create(
                     CodeCleanupOptions.ApplyLanguageFrameworkTypePreferences,
-                    ImmutableArray.Create(IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
-                                          IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId)
+                    ImmutableArray.Create(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)
                 ),
                 Tuple.Create(
                     CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements,
