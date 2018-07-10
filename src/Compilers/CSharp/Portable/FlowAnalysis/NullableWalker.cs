@@ -1183,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // PROTOTYPE(NullableReferenceTypes): node.Declarations includes
                 // explicitly-named properties only. For now, skip expressions
-                // with implicit names. See StaticNullChecking.AnonymousTypes_05.
+                // with implicit names. See NullableReferenceTypeTests.AnonymousTypes_05.
                 if (node.Declarations.Length < arguments.Length)
                 {
                     continue;
@@ -1999,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (refKind != RefKind.Out)
             {
                 // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
-                // for assignment. See `ref x3` in StaticNullChecking.PassingParameters_01.
+                // for assignment. See `ref x3` in NullableReferenceTypeTests.PassingParameters_01.
                 if (preserveConditionalState)
                 {
                     Visit(argument);
@@ -2880,7 +2880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // conversion "to" type -> final type
                         // PROTOTYPE(NullableReferenceTypes): If the original conversion was
                         // explicit, this conversion should not report nested nullability mismatches.
-                        // (see StaticNullChecking.ExplicitCast_UserDefined_02).
+                        // (see NullableReferenceTypeTests.ExplicitCast_UserDefined_02).
                         operandType = ClassifyAndApplyConversion(node, targetType, operandType);
                         return operandType;
                     }

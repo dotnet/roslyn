@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // PROTOTYPE(NullableReferenceTypes): Should ignore untyped
                     // expressions such as unbound lambdas and typeless tuples.
-                    // See StaticNullChecking.LocalVar_Array_02 test.
+                    // See NullableReferenceTypeTests.LocalVar_Array_02 test.
                     isNullable = true;
                     continue;
                 }
