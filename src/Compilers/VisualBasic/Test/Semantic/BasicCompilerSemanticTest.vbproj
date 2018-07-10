@@ -7,9 +7,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Semantic.UnitTests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -24,15 +23,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'netcoreapp2.0'" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
@@ -54,8 +49,6 @@
     <Content Include="Semantics\BinaryOperatorsTestBaseline3.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline4.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline5.txt" />
-    <EmbeddedResource Include="Binding\T_1247520.cs" />
-    <EmbeddedResource Include="Binding\T_68086.vb" />
     <Compile Remove="Binding\T_68086.vb" />
     <EmbeddedResource Update="Resource.resx">
       <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
@@ -63,8 +56,23 @@
       <LastGenOutput>Resource.Designer.vb</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Semantics\LongTypeName.vb.txt" />
+    <EmbeddedResource Include="Semantics\Async_Overload_Change_3.vb.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline1.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline2.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline3.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline4.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline5.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource1.vb" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource2.vb" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource3.vb" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource4.vb" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource5.vb" />
     <EmbeddedResource Include="Semantics\LongTypeNameNative.vb.txt" />
+    <EmbeddedResource Include="Semantics\LongTypeName.vb.txt" />
+    <EmbeddedResource Include="Semantics\OverloadResolutionTestSource.vb" />
+    <EmbeddedResource Include="Semantics\PrintResultTestSource.vb" />
+    <EmbeddedResource Include="Binding\T_1247520.cs" />
+    <EmbeddedResource Include="Binding\T_68086.vb" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

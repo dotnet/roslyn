@@ -361,7 +361,7 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_OutsideSwitchStatement()
         {
             string source = @"
@@ -376,8 +376,9 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto case 1;')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto case 1;')
+  Children(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0153: A goto case is only valid inside a switch statement

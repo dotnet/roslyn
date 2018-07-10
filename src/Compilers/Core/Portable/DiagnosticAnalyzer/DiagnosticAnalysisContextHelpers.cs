@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
@@ -150,12 +151,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static ControlFlowGraph GetControlFlowGraph(IOperation operation, Func<IOperation, ControlFlowGraph> getControlFlowGraphOpt)
+        internal static ControlFlowGraph GetControlFlowGraph(IOperation operation, Func<IOperation, ControlFlowGraph> getControlFlowGraphOpt, CancellationToken cancellationToken)
         {
             IOperation rootOperation = operation.GetRootOperation();
             return getControlFlowGraphOpt != null ?
                 getControlFlowGraphOpt(rootOperation) :
-                ControlFlowGraph.CreateCore(rootOperation, nameof(rootOperation));
+                ControlFlowGraph.CreateCore(rootOperation, nameof(rootOperation), cancellationToken);
         }
     }
 }

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
                 new MyCodeAction(
                     c => RemoveUnnecessaryImportsAsync(context.Document, c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private Task<Document> RemoveUnnecessaryImportsAsync(
