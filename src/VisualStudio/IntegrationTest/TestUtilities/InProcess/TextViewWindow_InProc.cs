@@ -23,26 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal abstract class TextViewWindow_InProc : InProcComponent
     {
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public string[] GetCompletionItems()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-                }
-
-                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-
-                return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
-            });
-
         public void ShowLightBulb()
         {
             InvokeOnUIThread(() =>
@@ -256,12 +236,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 task.Join();
             }
         }
-
-        /// <summary>
-        /// Non-blocking version of <see cref="ExecuteOnActiveView"/>
-        /// </summary>
-        private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
-            => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 
         private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {

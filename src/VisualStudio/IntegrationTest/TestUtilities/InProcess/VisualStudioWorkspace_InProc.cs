@@ -31,11 +31,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudioWorkspace_InProc Create()
             => new VisualStudioWorkspace_InProc();
 
-        private EnvDTE.Project GetProject(string nameOrFileName)
-            => GetDTE().Solution.Projects.OfType<EnvDTE.Project>().First(p =>
-               string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
-                || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
-
         private bool IsUseSuggestionModeOn()
             => _visualStudioWorkspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
 
@@ -56,32 +51,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
                     FeatureOnOffOptions.PrettyListing, languageName, value);
             });
-
-        private static object GetValue(object value, IOption option)
-        {
-            object result;
-            if (value is string stringValue)
-            {
-                result = TypeDescriptor.GetConverter(option.Type).ConvertFromString(stringValue);
-            }
-            else
-            {
-                result = value;
-            }
-
-            return result;
-        }
-
-        private static IOption GetOption(string optionName, string feature, IOptionService optionService)
-        {
-            var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
-            if (option == null)
-            {
-                throw new Exception($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
-            }
-
-            return option;
-        }
 
         private static TestingOnly_WaitingService GetWaitingService()
             => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;

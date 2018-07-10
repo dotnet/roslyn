@@ -30,7 +30,7 @@ using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal partial class Editor_InProc : TextViewWindow_InProc
+    internal class Editor_InProc : TextViewWindow_InProc
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
@@ -79,9 +79,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
-        public bool IsProjectItemDirty()
-            => GetDTE().ActiveDocument.ProjectItem.IsDirty;
-
         public string GetText()
             => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
 
@@ -92,12 +89,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
                 view.TextBuffer.Replace(replacementSpan, text);
             });
-
-        public void SelectText(string text)
-        {
-            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
-            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
-        }
 
         public string GetCurrentLineText()
             => ExecuteOnActiveView(view =>
@@ -206,28 +197,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
             DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
-        }
-
-        private IUIAutomationElement FindDialog(string dialogAutomationName, bool isOpen)
-        {
-            return Retry(
-                () => FindDialogWorker(dialogAutomationName),
-                stoppingCondition: automationElement => isOpen ? automationElement != null : automationElement == null,
-                delay: TimeSpan.FromMilliseconds(250));
-        }
-
-        private static IUIAutomationElement FindDialogWorker(string dialogAutomationName)
-        {
-            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
-
-            var elementCondition = Helper.Automation.CreateAndConditionFromArray(
-                new[]
-                {
-                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, dialogAutomationName),
-                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ControlTypeProperty.Id, ControlType.Window.Id),
-                });
-
-            return vsAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, elementCondition);
         }
 
         private static IUIAutomationElement FindNavigateTo()

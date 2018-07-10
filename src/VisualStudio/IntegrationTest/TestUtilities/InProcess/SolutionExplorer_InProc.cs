@@ -4,17 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using VSLangProj;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -217,33 +211,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
-        {
-            var dte = (DTE2)GetDTE();
-            var outputWindow = dte.ToolWindows.OutputWindow;
-            return outputWindow.OutputWindowPanes.Item("Build");
-        }
-
-        private void WaitForBuildToFinish(EnvDTE.OutputWindowPane buildOutputWindowPane)
-        {
-            var buildManager = GetGlobalService<SVsSolutionBuildManager, IVsSolutionBuildManager2>();
-            using (var semaphore = new SemaphoreSlim(1))
-            using (var solutionEvents = new UpdateSolutionEvents(buildManager))
-            {
-                semaphore.Wait();
-                void @event(bool succeeded, bool modified, bool canceled) => semaphore.Release();
-                solutionEvents.OnUpdateSolutionDone += @event;
-                try
-                {
-                    semaphore.Wait();
-                }
-                finally
-                {
-                    solutionEvents.OnUpdateSolutionDone -= @event;
-                }
-            }
-        }
-
         internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
         {
             private uint cookie;
@@ -431,30 +398,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return document;
         }
 
-        private EnvDTE.ProjectItem GetProjectItem(string projectName, string relativeFilePath)
-        {
-            var projects = _solution.Projects.Cast<EnvDTE.Project>();
-            var project = projects.FirstOrDefault(x => x.Name == projectName);
-
-            if (project == null)
-            {
-                throw new InvalidOperationException($"Project '{projectName} could not be found. Available projects: {string.Join(", ", projects.Select(x => x.Name))}.");
-            }
-
-            var projectPath = Path.GetDirectoryName(project.FullName);
-            var fullFilePath = Path.Combine(projectPath, relativeFilePath);
-
-            var projectItems = project.ProjectItems.Cast<EnvDTE.ProjectItem>();
-            var document = projectItems.FirstOrDefault(d => d.FileNames[1].Equals(fullFilePath));
-
-            if (document == null)
-            {
-                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.FileNames[1]))}.");
-            }
-
-            return document;
-        }
-
         private static void SaveFileWithExtraValidation(EnvDTE.Document document)
         {
             var textDocument = (EnvDTE.TextDocument)document.Object(nameof(EnvDTE.TextDocument));
@@ -476,26 +419,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SaveAll()
             => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
-
-        private static EnvDTE.UIHierarchyItem FindItemAtPath(
-            EnvDTE.UIHierarchyItems currentItems,
-            string[] path)
-        {
-            EnvDTE.UIHierarchyItem item = null;
-            foreach (var name in path)
-            {
-                item = currentItems.Cast<EnvDTE.UIHierarchyItem>().FirstOrDefault(i => i.Name == name);
-
-                if (item == null)
-                {
-                    return null;
-                }
-
-                currentItems = item.UIHierarchyItems;
-            }
-
-            return item;
-        }
 
         private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
             EnvDTE.UIHierarchyItems currentItems,
