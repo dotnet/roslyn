@@ -3118,7 +3118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // PROTOTYPE(NullableReferenceTypes): Checking [NullableOptOutForAssembly] can result
-        // in cycle decoding attributes. See StaticNullChecking.AllowAssemblyOptOut.
+        // in cycle decoding attributes. See NullableReferenceTypesTests.AllowAssemblyOptOut.
         private bool HaveNullableOptOutForAssembly(AssemblySymbol assembly)
         {
             //return ((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(assembly) &&
@@ -3127,7 +3127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // PROTOTYPE(NullableReferenceTypes): Checking [NullableOptOut] can result in cycle
-        // decoding attributes. See StaticNullChecking.NullableOptOut_DecodeAttributeCycle_02.
+        // decoding attributes. See NullableReferenceTypesTests.NullableOptOut_DecodeAttributeCycle_02.
         private bool HaveNullableOptOutForDefinition(Symbol definition)
         {
             //return definition.NullableOptOut &&

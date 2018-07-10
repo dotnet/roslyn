@@ -2363,7 +2363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the second attempt, although perhaps with different nullability.
 
                 // PROTOTYPE(NullableReferenceTypes): Results may differ by tuple names or dynamic.
-                // See StaticNullChecking.TypeInference_TupleNameDifferences_01 for example.
+                // See NullableReferenceTypesTests.TypeInference_TupleNameDifferences_01 for example.
                 if (!withNullability.TypeSymbol.Equals(withoutNullability.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
                     // The two results differ other than nullability.
