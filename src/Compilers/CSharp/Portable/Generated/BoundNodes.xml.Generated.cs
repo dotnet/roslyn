@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AssignmentOperator,
         DeconstructionAssignmentOperator,
         NullCoalescingOperator,
-        NullCoalesingAssignmentOperator,
+        NullCoalescingAssignmentOperator,
         ConditionalOperator,
         ArrayAccess,
         ArrayLength,
@@ -1335,10 +1335,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundNullCoalesingAssignmentOperator : BoundExpression
+    internal sealed partial class BoundNullCoalescingAssignmentOperator : BoundExpression
     {
-        public BoundNullCoalesingAssignmentOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.NullCoalesingAssignmentOperator, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors())
+        public BoundNullCoalescingAssignmentOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, bool isChecked, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.NullCoalescingAssignmentOperator, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors())
         {
 
             Debug.Assert(leftOperand != null, "Field 'leftOperand' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -1346,6 +1346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.LeftOperand = leftOperand;
             this.RightOperand = rightOperand;
+            this.IsChecked = isChecked;
         }
 
 
@@ -1353,16 +1354,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression RightOperand { get; }
 
+        public bool IsChecked { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
-            return visitor.VisitNullCoalesingAssignmentOperator(this);
+            return visitor.VisitNullCoalescingAssignmentOperator(this);
         }
 
-        public BoundNullCoalesingAssignmentOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol type)
+        public BoundNullCoalescingAssignmentOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, bool isChecked, TypeSymbol type)
         {
-            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || type != this.Type)
+            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || isChecked != this.IsChecked || type != this.Type)
             {
-                var result = new BoundNullCoalesingAssignmentOperator(this.Syntax, leftOperand, rightOperand, type, this.HasErrors);
+                var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, leftOperand, rightOperand, isChecked, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6462,8 +6465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeconstructionAssignmentOperator(node as BoundDeconstructionAssignmentOperator, arg);
                 case BoundKind.NullCoalescingOperator: 
                     return VisitNullCoalescingOperator(node as BoundNullCoalescingOperator, arg);
-                case BoundKind.NullCoalesingAssignmentOperator: 
-                    return VisitNullCoalesingAssignmentOperator(node as BoundNullCoalesingAssignmentOperator, arg);
+                case BoundKind.NullCoalescingAssignmentOperator: 
+                    return VisitNullCoalescingAssignmentOperator(node as BoundNullCoalescingAssignmentOperator, arg);
                 case BoundKind.ConditionalOperator: 
                     return VisitConditionalOperator(node as BoundConditionalOperator, arg);
                 case BoundKind.ArrayAccess: 
@@ -6836,7 +6839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
-        public virtual R VisitNullCoalesingAssignmentOperator(BoundNullCoalesingAssignmentOperator node, A arg)
+        public virtual R VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7460,7 +7463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
-        public virtual BoundNode VisitNullCoalesingAssignmentOperator(BoundNullCoalesingAssignmentOperator node)
+        public virtual BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
             return this.DefaultVisit(node);
         }
@@ -8115,7 +8118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.RightOperand);
             return null;
         }
-        public override BoundNode VisitNullCoalesingAssignmentOperator(BoundNullCoalesingAssignmentOperator node)
+        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
             this.Visit(node.LeftOperand);
             this.Visit(node.RightOperand);
@@ -8952,12 +8955,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(leftOperand, rightOperand, node.LeftConversion, type);
         }
-        public override BoundNode VisitNullCoalesingAssignmentOperator(BoundNullCoalesingAssignmentOperator node)
+        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
             BoundExpression leftOperand = (BoundExpression)this.Visit(node.LeftOperand);
             BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(leftOperand, rightOperand, type);
+            return node.Update(leftOperand, rightOperand, node.IsChecked, type);
         }
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
@@ -10015,12 +10018,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
-        public override TreeDumperNode VisitNullCoalesingAssignmentOperator(BoundNullCoalesingAssignmentOperator node, object arg)
+        public override TreeDumperNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node, object arg)
         {
-            return new TreeDumperNode("nullCoalesingAssignmentOperator", null, new TreeDumperNode[]
+            return new TreeDumperNode("nullCoalescingAssignmentOperator", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("leftOperand", null, new TreeDumperNode[] { Visit(node.LeftOperand, null) }),
                 new TreeDumperNode("rightOperand", null, new TreeDumperNode[] { Visit(node.RightOperand, null) }),
+                new TreeDumperNode("isChecked", node.IsChecked, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

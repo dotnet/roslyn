@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        public override BoundNode VisitNullCoalesingAssignmentOperator(BoundNullCoalesingAssignmentOperator node)
+        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
             SyntaxNode syntax = node.Syntax;
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredRight = VisitExpression(node.RightOperand);
 
             // Now that LHS is transformed with temporaries, we rewrite this node into a conditional expression:
-            // (xlhs != null) ? xlhs : (xlhs = rhs)
+            // (lhsRead != null) ? lhsRead : (transformedLHS = rhs)
 
-            // xlhs != null
+            // lhsRead != null
             BoundExpression nullCheck = MakeNullCheck(syntax, lhsRead, BinaryOperatorKind.NotEqual);
 
-            // xlhs = rhs
-            BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, node.LeftOperand.Type, used: true, isChecked: false, isCompoundAssignment: true);
+            // transformedLHS = rhs
+            BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, node.LeftOperand.Type, used: true, node.IsChecked, isCompoundAssignment: true);
 
-            // (xlhs != null) ? xlhs : (xlhs = rhs)
+            // (lhsRead != null) ? lhsRead : (transformedLHS = rhs)
             BoundExpression conditionalExpression = RewriteConditionalOperator(syntax, nullCheck, lhsRead, assignment, constantValueOpt: null, rewrittenType: node.LeftOperand.Type, isRef: false);
 
             BoundExpression result = (temps.Count == 0 && stores.Count == 0) ?

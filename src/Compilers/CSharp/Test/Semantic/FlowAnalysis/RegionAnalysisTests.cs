@@ -2276,10 +2276,10 @@ public class C
             var propertyDataFlowAnalysis = dataFlowAnalysisResults.First();
             var fieldDataFlowAnalysis = dataFlowAnalysisResults.Skip(1).Single();
 
-            AssertAllInfo(propertyDataFlowAnalysis, "x1", "y1", "x2", "y2");
-            AssertAllInfo(fieldDataFlowAnalysis, "x2", "y2", "x1", "y1");
+            assertAllInfo(propertyDataFlowAnalysis, "x1", "y1", "x2", "y2");
+            assertAllInfo(fieldDataFlowAnalysis, "x2", "y2", "x1", "y1");
 
-            void AssertAllInfo(DataFlowAnalysis dataFlowAnalysis, string currentX, string currentY, string otherX, string otherY)
+            void assertAllInfo(DataFlowAnalysis dataFlowAnalysis, string currentX, string currentY, string otherX, string otherY)
             {
                 Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared));
                 Assert.Equal(currentX, GetSymbolNamesJoined(dataFlowAnalysis.AlwaysAssigned));

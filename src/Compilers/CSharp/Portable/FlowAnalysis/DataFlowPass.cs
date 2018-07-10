@@ -2257,7 +2257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void ConditionallyAssignNullCoalescingOperator(BoundNullCoalesingAssignmentOperator node)
+        protected override void ConditionallyAssignNullCoalescingOperator(BoundNullCoalescingAssignmentOperator node)
         {
             Assign(node.LeftOperand, node.RightOperand);
         }

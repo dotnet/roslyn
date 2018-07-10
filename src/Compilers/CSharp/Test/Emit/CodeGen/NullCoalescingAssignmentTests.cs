@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     [CompilerTrait(CompilerFeature.NullCoalescingAssignment)]
     public class NullCoalescingAssignmentTests : CompilingTestBase
@@ -14,26 +14,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         [Fact]
         public void LocalLvalue()
         {
-
-            CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 using System;
 public class C
 {
     public static void Main()
     {
+        TestNullable();
+        TestObject();
+        TestAsStatement();
+    }
+    static void TestNullable()
+    {
         int? i1 = null;
         Console.WriteLine(i1 ??= GetInt());
+    }
+    static void TestObject()
+    {
+        string s1 = null;
+        Console.WriteLine(s1 ??= GetString());
+    }
+    static void TestAsStatement()
+    {
+        object o = null;
+        o ??= ""As Statement"";
+        Console.WriteLine(o);
     }
     static int GetInt()
     {
         Console.WriteLine(""In GetInt"");
         return 0;
     }
+    static string GetString()
+    {
+        Console.WriteLine(""In GetString"");
+        return ""Test"";
+    }
 }
 ", expectedOutput: @"
 In GetInt
 0
-").VerifyIL("C.Main()", @"
+In GetString
+Test
+As Statement
+");
+
+            // PROTOTYPE(null-operator-enhancements): lines 8 and 9 appear to be entirely redundant.
+            verifier.VerifyIL("C.TestNullable()", @"
 {
   // Code size       43 (0x2b)
   .maxstack  1
@@ -54,12 +81,49 @@ In GetInt
   IL_002a:  ret
 }
 ");
+
+            verifier.VerifyIL("C.TestObject()", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brtrue.s   IL_000c
+  IL_0005:  call       ""string C.GetString()""
+  IL_000a:  br.s       IL_000d
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}
+");
+
+            // PROTOTYPE(null-operator-enhancements): investigate extra store into slot 1
+            verifier.VerifyIL("C.TestAsStatement()", expectedIL: @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (object V_0, //o
+                object V_1)
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.1
+  IL_0005:  brtrue.s   IL_000d
+  IL_0007:  ldstr      ""As Statement""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""void System.Console.WriteLine(object)""
+  IL_0013:  ret
+}
+");
         }
 
         [Fact]
         public void FieldLvalue()
         {
-
             CompileAndVerify(@"
 using System;
 public class C
@@ -114,7 +178,6 @@ In GetInt
         [Fact]
         public void IndexerLvalue()
         {
-
             CompileAndVerify(@"
 using System;
 public class C
@@ -325,7 +388,6 @@ class C
         [Fact]
         public void InvalidLHS()
         {
-
             CreateCompilation(@"
 public class C
 {
@@ -427,7 +489,6 @@ In TestMethod
         [Fact]
         public void InvalidRHS()
         {
-
             CreateCompilation(@"
 public class C
 {
@@ -580,7 +641,6 @@ public class C
         public void NonNullableLHS()
         {
             CreateCompilation(@"
-using System;
 public class C
 {
     public static void Main()
@@ -591,10 +651,7 @@ public class C
 }").VerifyDiagnostics(
                 // (8,9): error CS0019: Operator '??=' cannot be applied to operands of type 'int' and 'int'
                 //         i1 ??= 0;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i1 ??= 0").WithArguments("??=", "int", "int").WithLocation(8, 9),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i1 ??= 0").WithArguments("??=", "int", "int").WithLocation(7, 9)
             );
         }
 
@@ -763,7 +820,6 @@ public class C
         [Fact]
         public void ValidRHSConversions()
         {
-
             CompileAndVerify(@"
 class C
 {
@@ -905,7 +961,7 @@ class C
         [Fact]
         public void DynamicLHS()
         {
-            CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 using System;
 using System.Collections.Generic;
 public class C
@@ -977,7 +1033,9 @@ In P1 Setter
 1
 In Indexer Getter
 In Indexer Setter
-2").VerifyIL("C.VerifyField()", expectedIL: @"
+2");
+
+            verifier.VerifyIL("C.VerifyField()", expectedIL: @"
 {
   // Code size      247 (0xf7)
   .maxstack  10
@@ -1025,7 +1083,7 @@ In Indexer Setter
   IL_008d:  brtrue.s   IL_00f0
   IL_008f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic, dynamic>> C.<>o__1.<>p__1""
   IL_0094:  brtrue.s   IL_00d3
-  IL_0096:  ldc.i4     0x80
+  IL_0096:  ldc.i4     0x81
   IL_009b:  ldstr      ""F1""
   IL_00a0:  ldtoken    ""C""
   IL_00a5:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1058,7 +1116,9 @@ In Indexer Setter
   IL_00f1:  callvirt   ""int? System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
   IL_00f6:  ret
 }
-").VerifyIL("C.VerifyProperty()", expectedIL: @"
+");
+
+            verifier.VerifyIL("C.VerifyProperty()", expectedIL: @"
 {
   // Code size      247 (0xf7)
   .maxstack  10
@@ -1106,7 +1166,7 @@ In Indexer Setter
   IL_008d:  brtrue.s   IL_00f0
   IL_008f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic, dynamic>> C.<>o__2.<>p__1""
   IL_0094:  brtrue.s   IL_00d3
-  IL_0096:  ldc.i4     0x80
+  IL_0096:  ldc.i4     0x81
   IL_009b:  ldstr      ""P1""
   IL_00a0:  ldtoken    ""C""
   IL_00a5:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1139,7 +1199,9 @@ In Indexer Setter
   IL_00f1:  callvirt   ""int? System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
   IL_00f6:  ret
 }
-").VerifyIL("C.VerifyIndexer()", expectedIL: @"
+");
+
+            verifier.VerifyIL("C.VerifyIndexer()", expectedIL: @"
 {
   // Code size      259 (0x103)
   .maxstack  9
@@ -1193,7 +1255,7 @@ In Indexer Setter
   IL_0093:  brtrue.s   IL_00fc
   IL_0095:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic, dynamic>> C.<>o__3.<>p__1""
   IL_009a:  brtrue.s   IL_00de
-  IL_009c:  ldc.i4     0x80
+  IL_009c:  ldc.i4     0x81
   IL_00a1:  ldtoken    ""C""
   IL_00a6:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_00ab:  ldc.i4.3
@@ -1281,13 +1343,16 @@ In get_Property1
         [Fact]
         public void UseBeforeAssignment()
         {
-            var compilation = CreateCompilation(@"
+            CreateCompilation(@"
 public class C
 {
     public static void Main()
     {
-        C c;
-        c ??= new C();
+        C c1, c2;
+        c1 ??= new C(); // LHS unassigned
+
+        c1 = null;
+        c1 ??= c2; // RHS unassigned
 
         object x1;
         object y1;
@@ -1305,15 +1370,18 @@ public class C
     object Prop { get; set; }
     object Field;
 }").VerifyDiagnostics(
-                // (7,9): error CS0165: Use of unassigned local variable 'c'
-                //         c ??= new C();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(7, 9),
-                // (13,9): error CS0165: Use of unassigned local variable 'y1'
+                // (7,9): error CS0165: Use of unassigned local variable 'c1'
+                //         c1 ??= new C(); // LHS unassigned
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "c1").WithArguments("c1").WithLocation(7, 9),
+                // (10,16): error CS0165: Use of unassigned local variable 'c2'
+                //         c1 ??= c2; // RHS unassigned
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "c2").WithArguments("c2").WithLocation(10, 16),
+                // (16,9): error CS0165: Use of unassigned local variable 'y1'
                 //         y1.ToString();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(13, 9),
-                // (19,9): error CS0165: Use of unassigned local variable 'y2'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(16, 9),
+                // (22,9): error CS0165: Use of unassigned local variable 'y2'
                 //         y2.ToString();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(19, 9)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(22, 9)
             );
         }
 

@@ -2768,7 +2768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitNullCoalesingAssignmentOperator(BoundNullCoalesingAssignmentOperator node)
+        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
             LocalState savedState;
             if (RegularPropertyAccess(node.LeftOperand))
@@ -2777,8 +2777,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var property = left.PropertySymbol;
                 if (property.RefKind == RefKind.None)
                 {
-                    var readMethod = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
-                    var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
+                    var readMethod = property.GetOwnOrInheritedGetMethod() ?? property.GetMethod;
+                    var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.SetMethod;
 
                     Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
 
@@ -2808,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected virtual void ConditionallyAssignNullCoalescingOperator(BoundNullCoalesingAssignmentOperator node)
+        protected virtual void ConditionallyAssignNullCoalescingOperator(BoundNullCoalescingAssignmentOperator node)
         {
             // No assignments are recorded in the PreciseAbstractFlowPass; this is overridden in implementors that need
             // to track this

@@ -3505,16 +3505,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
         }
 
-
         private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
+            // If either operand's Type is dynamic, then we potentially need to check overflow at runtime
+            bool isChecked = leftOperand.HasDynamicType() || rightOperand.HasDynamicType() ? CheckOverflowAtCompileTime : false;
+
             // If either operand is bad, bail out preventing more cascading errors
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
-                return new BoundNullCoalesingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, isChecked, CreateErrorType(), hasErrors: true);
             }
 
             // Unlike a standard null coalescing expression, the resulting type of the expression a ??= b
@@ -3527,10 +3529,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If A is not a nullable type or reference type, a compile-time error occurs
             if (!leftType.IsReferenceType && !leftType.IsNullableType())
             {
-                return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
+                return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, isChecked, diagnostics);
             }
 
-            // If implicit conversion exists from B to A, we store that conversion. At runtime, a is first evaluated. If
+            // If an implicit conversion exists from B to A, we store that conversion. At runtime, a is first evaluated. If
             // a is not null, b is not evaluated. If a is null, b is evaluated and converted to type A, and is stored in a.
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, leftType, ref useSiteDiagnostics);
@@ -3538,18 +3540,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rightConversion.Exists)
             {
                 var convertedRightOperand = CreateConversion(rightOperand, rightConversion, leftType, diagnostics);
-                return new BoundNullCoalesingAssignmentOperator(node, leftOperand, convertedRightOperand, leftType);
+                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, isChecked, leftType);
             }
 
             // a and b are incompatible and a compile-time error occurs
-            return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
-
+            return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, isChecked, diagnostics);
         }
 
-        private BoundExpression GenerateNullCoalescingAssignmentBadBinaryOpsError(AssignmentExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, DiagnosticBag diagnostics)
+        private BoundExpression GenerateNullCoalescingAssignmentBadBinaryOpsError(AssignmentExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, bool isChecked, DiagnosticBag diagnostics)
         {
             Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
-            return new BoundNullCoalesingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+            return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, isChecked, CreateErrorType(), hasErrors: true);
         }
 
         /// <remarks>
