@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -30,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(FormatOnSemicolonCheckBox, FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp);
             BindToOption(FormatOnReturnCheckBox, FeatureOnOffOptions.AutoFormattingOnReturn, LanguageNames.CSharp);
             BindToOption(FormatOnPasteCheckBox, FeatureOnOffOptions.FormatOnPaste, LanguageNames.CSharp);
-            SetNestedCheckboxesEnabled();
 
             FormatDocumentSettingsGroupBox.Header = CSharpVSResources.Format_document_settings;
             AllCSharpFormattingRulesCheckBox.Content = CSharpVSResources.Apply_all_csharp_formatting_rules_indentation_wrapping_spacing;
@@ -51,7 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             RemoveUnusedVariablesCheckBox.Content = CSharpVSResources.Remove_unused_variables;
 
             BindToOption(PerformAdditionalCodeCleanupDuringFormattingCheckBox, CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, LanguageNames.CSharp);
-            CodeCleanupRulesStackPanel.IsEnabled = (PerformAdditionalCodeCleanupDuringFormattingCheckBox.IsChecked == true);
 
             BindToOption(RemoveUnusedUsingsCheckBox, CodeCleanupOptions.RemoveUnusedImports, LanguageNames.CSharp);
             BindToOption(SortUsingsCheckBox, CodeCleanupOptions.SortImports, LanguageNames.CSharp);
@@ -69,50 +65,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(RemoveUnusedVariablesCheckBox, CodeCleanupOptions.RemoveUnusedVariables, LanguageNames.CSharp);
         }
 
-        private void FormatWhenTypingCheckBox_Checked(object sender, RoutedEventArgs e)
+        internal override void SaveSettings()
         {
-            FormatOnCloseBraceCheckBox.IsChecked = true;
-            FormatOnSemicolonCheckBox.IsChecked = true;
+            base.SaveSettings();
 
-            SetNestedCheckboxesEnabled();
-        }
+            // once formatting option is set, we never show code cleanup info bar again
+            var oldOptions = OptionService.GetOptions();
+            var newOptions = oldOptions.WithChangedOption(
+                CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, LanguageNames.CSharp, value: true);
 
-        private void FormatWhenTypingCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            FormatOnCloseBraceCheckBox.IsChecked = false;
-            FormatOnSemicolonCheckBox.IsChecked = false;
-
-            SetNestedCheckboxesEnabled();
-        }
-
-        private void SetNestedCheckboxesEnabled()
-        {
-            FormatOnCloseBraceCheckBox.IsEnabled = FormatWhenTypingCheckBox.IsChecked == true;
-            FormatOnSemicolonCheckBox.IsEnabled = FormatWhenTypingCheckBox.IsChecked == true;
-        }
-
-        internal void SetCodeCleanupAsConfigured()
-        {
-            var areCodeCleanupRulesConfigured = OptionService.GetOption<bool>(CodeCleanupOptions.AreCodeCleanupRulesConfigured, LanguageNames.CSharp);
-
-            if (!areCodeCleanupRulesConfigured)
-            {
-                var oldOptions = OptionService.GetOptions();
-                var newOptions = oldOptions.WithChangedOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured, LanguageNames.CSharp, true);
-
-                OptionService.SetOptions(newOptions);
-                OptionLogger.Log(oldOptions, newOptions);
-            }
-        }
-
-        private void PerformAdditionalCodeCleanupDuringFormattingCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            CodeCleanupRulesStackPanel.IsEnabled = true;
-        }
-
-        private void PerformAdditionalCodeCleanupDuringFormattingCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            CodeCleanupRulesStackPanel.IsEnabled = false;
+            OptionService.SetOptions(newOptions);
+            OptionLogger.Log(oldOptions, newOptions);
         }
     }
 }

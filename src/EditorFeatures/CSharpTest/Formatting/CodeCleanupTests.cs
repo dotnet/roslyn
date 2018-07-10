@@ -52,7 +52,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.RemoveUnusedImports, enabled: true),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
@@ -85,7 +85,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.SortImports, enabled: true),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
@@ -117,7 +117,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements, enabled: true),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
@@ -142,7 +142,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.RemoveUnusedVariables, enabled: true),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
@@ -168,7 +168,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: true));
         }
 
