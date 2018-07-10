@@ -72,36 +72,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected abstract ITextBuffer GetBufferContainingCaret(IWpfTextView view);
 
-        public string[] GetCurrentClassifications()
-            => InvokeOnUIThread(() =>
-            {
-                IClassifier classifier = null;
-                try
-                {
-                    var textView = GetActiveTextView();
-                    var selectionSpan = textView.Selection.StreamSelectionSpan.SnapshotSpan;
-                    if (selectionSpan.Length == 0)
-                    {
-                        var textStructureNavigatorSelectorService = GetComponentModelService<ITextStructureNavigatorSelectorService>();
-                        selectionSpan = textStructureNavigatorSelectorService
-                            .GetTextStructureNavigator(textView.TextBuffer)
-                            .GetExtentOfWord(selectionSpan.Start).Span;
-                    }
-
-                    var classifierAggregatorService = GetComponentModelService<IViewClassifierAggregatorService>();
-                    classifier = classifierAggregatorService.GetClassifier(textView);
-                    var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
-                    return classifiedSpans.Select(x => x.ClassificationType.Classification).ToArray();
-                }
-                finally
-                {
-                    if (classifier is IDisposable classifierDispose)
-                    {
-                        classifierDispose.Dispose();
-                    }
-                }
-            });
-
         public void PlaceCaret(
             string marker,
             int charsOffset,

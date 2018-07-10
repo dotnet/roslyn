@@ -39,9 +39,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 extendSelection,
                 selectBlock);
 
-        public string[] GetCurrentClassifications()
-            => _textViewWindowInProc.GetCurrentClassifications();
-
         public string GetQuickInfo()
         {
             WaitForQuickInfo();

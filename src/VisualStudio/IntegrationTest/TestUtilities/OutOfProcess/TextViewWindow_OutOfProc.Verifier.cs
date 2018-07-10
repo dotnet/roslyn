@@ -90,17 +90,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 }
             }
 
-            public void CurrentTokenType(string tokenType)
-            {
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Classification);
-                var actualTokenTypes = _textViewWindow.GetCurrentClassifications();
-                Assert.Equal(actualTokenTypes.Length, 1);
-                Assert.Contains(tokenType, actualTokenTypes[0]);
-                Assert.NotEqual("text", tokenType);
-            }
-
             public void CaretPosition(int expectedCaretPosition)
             {
                 var position = _textViewWindow.GetCaretPosition();
