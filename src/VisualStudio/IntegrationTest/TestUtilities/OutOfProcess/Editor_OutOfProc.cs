@@ -106,9 +106,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
-            
-        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
-            _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);

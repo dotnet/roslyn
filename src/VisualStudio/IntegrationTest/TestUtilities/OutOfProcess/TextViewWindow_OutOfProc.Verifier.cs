@@ -89,12 +89,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     throw new InvalidOperationException("Expected no light bulb session, but one was found.");
                 }
             }
-
-            public void CaretPosition(int expectedCaretPosition)
-            {
-                var position = _textViewWindow.GetCaretPosition();
-                Assert.Equal(expectedCaretPosition, position);
-            }
         }
     }
 }

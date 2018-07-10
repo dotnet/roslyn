@@ -2,7 +2,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Roslyn.Test.Utilities;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -76,11 +75,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 VisualStudio.Workspace.SetPrettyListing(LanguageName, originalValue);
             }
-        }
-
-        protected ClassifiedToken[] GetLightbulbPreviewClassification(string menuText)
-        {
-            return VisualStudio.Editor.GetLightbulbPreviewClassification(menuText);
         }
     }
 }
