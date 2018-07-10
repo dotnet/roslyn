@@ -447,8 +447,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var window = GetCurrentWindowOrThrow();
             var resetOptions = ResetOptions;
 
-            _interactiveHost.Output = window.OutputWriter;
-            _interactiveHost.ErrorOutput = window.ErrorOutputWriter;
+            _interactiveHost.SetOutput(window.OutputWriter);
+            _interactiveHost.SetErrorOutput(window.ErrorOutputWriter);
 
             return ResetAsyncWorker(GetHostOptions(initialize: true, resetOptions.Is64Bit));
         }
