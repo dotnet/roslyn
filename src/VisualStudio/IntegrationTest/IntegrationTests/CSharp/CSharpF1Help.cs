@@ -1,25 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpF1Help : AbstractEditorTest
+    public class CSharpF1Help : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.CSharp;
-
-        public CSharpF1Help(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpF1Help))
+        public CSharpF1Help()
+            : base(nameof(CSharpF1Help))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        void F1Help()
+        protected override string LanguageName => LanguageNames.CSharp;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task F1HelpAsync()
         {
             var text = @"
 using System;
@@ -64,17 +64,17 @@ namespace F1TestNamespace
     #endregion TaoRegion
 }";
 
-            SetUpEditor(text);
-            Verify("abstract", "abstract_CSharpKeyword");
-            Verify("ascending", "ascending_CSharpKeyword");
-            Verify("from", "from_CSharpKeyword");
-            Verify("First();", "System.Linq.Enumerable.First``1");
+            await SetUpEditorAsync(text);
+            await VerifyAsync("abstract", "abstract_CSharpKeyword");
+            await VerifyAsync("ascending", "ascending_CSharpKeyword");
+            await VerifyAsync("from", "from_CSharpKeyword");
+            await VerifyAsync("First();", "System.Linq.Enumerable.First``1");
         }
 
-        private void Verify(string word, string expectedKeyword)
+        private async Task VerifyAsync(string word, string expectedKeyword)
         {
-            VisualStudio.Editor.PlaceCaret(word, charsOffset: -1);
-            Assert.Contains(expectedKeyword, VisualStudio.Editor.GetF1Keyword());
+            await VisualStudio.Editor.PlaceCaretAsync(word, charsOffset: -1);
+            Assert.Contains(expectedKeyword, await VisualStudio.Editor.GetF1KeywordsAsync());
         }
     }
 }

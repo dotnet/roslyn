@@ -17,15 +17,16 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionExtensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
+using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
-using WinForms = System.Windows.Forms;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
-using Microsoft.VisualStudio.Text.Tagging;
+using WinForms = System.Windows.Forms;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -712,40 +713,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 .ToArray();
         }
 
-#if false
-        public List<string> GetF1Keywords()
+        public async Task<List<string>> GetF1KeywordsAsync()
         {
-            return InvokeOnUIThread(() =>
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var vsView = await GetActiveVsTextViewAsync();
+
+            var results = new List<string>();
+            vsView.GetBuffer(out var textLines);
+            Marshal.ThrowExceptionForHR(textLines.GetLanguageServiceID(out var languageServiceGuid));
+            Marshal.ThrowExceptionForHR(Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
+            var languageContextProvider = languageService as IVsLanguageContextProvider;
+
+            var monitorUserContext = await GetGlobalServiceAsync<SVsMonitorUserContext, IVsMonitorUserContext>();
+            Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
+            Marshal.ThrowExceptionForHR(vsView.GetCaretPos(out var line, out var column));
+            var span = new TextManager.Interop.TextSpan()
             {
-                var results = new List<string>();
-                GetActiveVsTextView().GetBuffer(out var textLines);
-                Marshal.ThrowExceptionForHR(textLines.GetLanguageServiceID(out var languageServiceGuid));
-                Marshal.ThrowExceptionForHR(Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
-                var languageContextProvider = languageService as IVsLanguageContextProvider;
-
-                IVsMonitorUserContext monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
-                Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
-                Marshal.ThrowExceptionForHR(GetActiveVsTextView().GetCaretPos(out var line, out var column));
-                var span = new TextManager.Interop.TextSpan()
-                {
-                    iStartLine = line,
-                    iStartIndex = column,
-                    iEndLine = line,
-                    iEndIndex = column
-                };
+                iStartLine = line,
+                iStartIndex = column,
+                iEndLine = line,
+                iEndIndex = column
+            };
                 
-                Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
-                Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
-                for (int i = 0; i < count; i++)
-                {
-                    emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out var key, out var value);
-                    results.Add(value);
-                }
+            Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
+            Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
+            for (var i = 0; i < count; i++)
+            {
+                emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out var key, out var value);
+                results.Add(value);
+            }
 
-                return results;
-            });
+            return results;
         }
-#endif
 
         public async Task GoToDefinitionAsync()
         {
