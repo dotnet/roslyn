@@ -14,7 +14,7 @@ using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class NullableReferenceTypeTests : CSharpTestBase
+    public class NullableReferenceTypesTests : CSharpTestBase
     {
         private const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
