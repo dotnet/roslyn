@@ -141,7 +141,7 @@ namespace N
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code, metaDatacode, False))
                 Dim library = state.GetLibrary()
-                Dim list = library.GetProjectList().GetReferenceList(0).GetNamespaceList(0).GetTypeList(0)
+                Dim list = library.GetProjectList().GetReferenceList(0).GetNamespaceList(0).GetTypeList(1)
                 list.VerifyNames("C", "C.PublicEnumTest")
             End Using
         End Sub

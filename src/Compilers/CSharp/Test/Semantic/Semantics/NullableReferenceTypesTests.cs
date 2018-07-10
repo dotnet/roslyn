@@ -238,7 +238,7 @@ class C
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 17));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void UnannotatedAssemblies_WithSomeExtraAnnotations()
         {
             // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
@@ -33883,6 +33883,30 @@ class Program
                 // (25,9): warning CS8602: Possible dereference of a null reference.
                 //         b.Q.P2.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Q.P2").WithLocation(25, 9));
+        }
+
+        [Fact]
+        public void Members_ObjectInitializer_Events()
+        {
+            var source =
+@"delegate void D();
+class C
+{
+    event D? E;
+    static void F()
+    {
+        C c;
+        c = new C() { };
+        c.E.Invoke(); // warning
+        c = new C() { E = F };
+        c.E.Invoke();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         c.E.Invoke(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.E").WithLocation(9, 9));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Support assignment of derived type instances.

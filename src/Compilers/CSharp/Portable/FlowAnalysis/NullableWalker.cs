@@ -616,16 +616,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
-                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, field, isByRefTarget, slotWatermark);
+                InheritNullableStateOfMember(targetSlot, valueSlot, field, isByRefTarget, slotWatermark);
             }
         }
 
         // 'slotWatermark' is used to avoid inheriting members from inherited members.
-        private void InheritNullableStateOfFieldOrProperty(int targetContainerSlot, int valueContainerSlot, Symbol fieldOrProperty, bool isByRefTarget, int slotWatermark)
+        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isByRefTarget, int slotWatermark)
         {
             Debug.Assert(valueContainerSlot <= slotWatermark);
 
-            TypeSymbolWithAnnotations fieldOrPropertyType = fieldOrProperty.GetTypeOrReturnType();
+            TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
             if (fieldOrPropertyType.IsReferenceType)
             {
@@ -633,17 +633,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Declaration information takes priority.
                 if (fieldOrPropertyType.IsNullable != false)
                 {
-                    int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
+                    int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                     bool? value = !fieldOrPropertyType.IsNullable;
                     if (isByRefTarget)
                     {
-                        // This is a property/field access through a by ref entity and it isn't considered declared as not-nullable. 
-                        // Since reference can point to the heap, we cannot assume the property/field doesn't have null value after this assignment,
-                        // regardless of what value is being assigned.
+                        // This is a member access through a by ref entity and it isn't considered declared as not-nullable. 
+                        // Since reference can point to the heap, we cannot assume the member doesn't have null value
+                        // after this assignment, regardless of what value is being assigned.
                     }
                     else if (valueContainerSlot > 0)
                     {
-                        int valueMemberSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
+                        int valueMemberSlot = VariableSlot(member, valueContainerSlot);
                         value = valueMemberSlot > 0 && valueMemberSlot < this.State.Capacity ?
                             this.State[valueMemberSlot] :
                             null;
@@ -654,23 +654,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (valueContainerSlot > 0)
                 {
-                    int valueMemberSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
+                    int valueMemberSlot = VariableSlot(member, valueContainerSlot);
                     if (valueMemberSlot > 0 && valueMemberSlot <= slotWatermark)
                     {
-                        int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
+                        int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                         InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, isByRefTarget, slotWatermark);
                     }
                 }
             }
             else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.TypeSymbol))
             {
-                int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
+                int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                 if (targetMemberSlot > 0)
                 {
                     int valueMemberSlot = -1;
                     if (valueContainerSlot > 0)
                     {
-                        int slot = GetOrCreateSlot(fieldOrProperty, valueContainerSlot);
+                        int slot = GetOrCreateSlot(member, valueContainerSlot);
                         if (slot < slotWatermark)
                         {
                             valueMemberSlot = slot;
@@ -712,8 +712,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var member = variable.Symbol;
-                Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property);
-                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, member, isByRefTarget, slotWatermark);
+                Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event);
+                InheritNullableStateOfMember(targetSlot, valueSlot, member, isByRefTarget, slotWatermark);
             }
         }
 
