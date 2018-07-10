@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         {
             _codeFixServiceOpt = codeFixService;
         }
-
+        
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
         /// </summary>
@@ -46,29 +45,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                  CodeCleanupOptions.ApplyImplicitExplicitTypePreferences,
                  ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                                        IDEDiagnosticIds.UseExplicitTypeDiagnosticId)),
+
                 (CSharpFeaturesResources.Apply_this_qualification_preferences,
                  CodeCleanupOptions.ApplyThisQualificationPreferences,
                  ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId,
                                        IDEDiagnosticIds.RemoveQualificationDiagnosticId)),
+
                 (CSharpFeaturesResources.Apply_language_framework_type_preferences,
                  CodeCleanupOptions.ApplyLanguageFrameworkTypePreferences,
-                 ImmutableArray.Create(IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
-                                      IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId)),
+                 ImmutableArray.Create(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)),
+
                 (CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements,
                  CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements,
                  ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId)),
+
                 (CSharpFeaturesResources.Add_accessibility_modifiers,
                  CodeCleanupOptions.AddAccessibilityModifiers,
                  ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)),
+
                 (CSharpFeaturesResources.Sort_accessibility_modifiers,
                  CodeCleanupOptions.SortAccessibilityModifiers,
                  ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId)),
+
                 (CSharpFeaturesResources.Make_private_field_readonly_when_possible,
                  CodeCleanupOptions.MakePrivateFieldReadonlyWhenPossible,
                  ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)),
+
                 (CSharpFeaturesResources.Remove_unnecessary_casts,
                  CodeCleanupOptions.RemoveUnnecessaryCasts,
                  ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)),
+
                 (CSharpFeaturesResources.Apply_expression_block_body_preferences,
                  CodeCleanupOptions.ApplyExpressionBlockBodyPreferences,
                  ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
@@ -78,13 +84,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                                        IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
                                        IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
                                        IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)),
+
                 (CSharpFeaturesResources.Apply_inline_out_variable_preferences,
                  CodeCleanupOptions.ApplyInlineOutVariablePreferences,
                  ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId)),
+
                 (CSharpFeaturesResources.Remove_unused_variables,
                  CodeCleanupOptions.RemoveUnusedVariables,
                  ImmutableArray.Create(CSharpRemoveUnusedVariableCodeFixProvider.CS0168,
                                        CSharpRemoveUnusedVariableCodeFixProvider.CS0219)),
+
                 (CSharpFeaturesResources.Apply_object_collection_initialization_preferences,
                  CodeCleanupOptions.ApplyObjectCollectionInitializationPreferences,
                  ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,

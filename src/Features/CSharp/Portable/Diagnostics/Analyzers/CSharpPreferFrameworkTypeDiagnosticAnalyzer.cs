@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType;
+using Microsoft.CodeAnalysis.PreferFrameworkType;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 {
