@@ -21,11 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
         Protected Overrides Function GetTitle(simplifyDiagnosticId As String, nodeText As String) As String
             Select Case simplifyDiagnosticId
                 Case IDEDiagnosticIds.SimplifyNamesDiagnosticId,
-                     IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId
+                     IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
                     Return String.Format(VBFeaturesResources.Simplify_name_0, nodeText)
 
-                Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                     IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId
+                Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
                     Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
                 Case IDEDiagnosticIds.RemoveQualificationDiagnosticId
