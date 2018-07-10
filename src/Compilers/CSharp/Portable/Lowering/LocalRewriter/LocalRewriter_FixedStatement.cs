@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // either should lower into addressof
             Debug.Assert(initializerExpr.Kind == BoundKind.AddressOfOperator);
 
-            TypeSymbol initializerType = ((PointerTypeSymbol)initializerExpr.Type).PointedAtType;
+            TypeSymbol initializerType = ((PointerTypeSymbol)initializerExpr.Type).PointedAtType.TypeSymbol;
 
             // initializer expressions are bound/lowered right into addressof operators here
             // that is a bit too far

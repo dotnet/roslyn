@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             => isRef &&
                right is BoundFieldAccess fieldAccess &&
                fieldAccess.FieldSymbol.IsFixed &&
-               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType, TypeCompareKind.AllIgnoreOptions);
+               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
 
         // indirect assignment is assignment to a value referenced indirectly
         // it may only happen if 

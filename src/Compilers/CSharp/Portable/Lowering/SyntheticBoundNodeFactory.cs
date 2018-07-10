@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (conversion.Kind != ConversionKind.Identity)
                 {
                     Debug.Assert(CurrentFunction.RefKind == RefKind.None);
-                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, false, ConstantValue.NotAvailable, CurrentFunction.ReturnType.TypeSymbol);
+                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, CurrentFunction.ReturnType.TypeSymbol);
                 }
             }
 

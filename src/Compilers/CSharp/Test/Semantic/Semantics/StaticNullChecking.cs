@@ -17372,7 +17372,7 @@ class C
 
 class CL1<T>
 {}
-", new[] { SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,54): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1<string?>>'.
@@ -18469,7 +18469,7 @@ class C
         x2 = x2[0] ?? x2;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -18537,7 +18537,7 @@ class C
         x2[(dynamic)0] = y2;
         z2[0] = y2;
     }
-}
+} 
 
 class CL0
 {
@@ -18562,7 +18562,7 @@ class CL1
         set { }
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (14,26): warning CS8601: Possible null reference assignment.
@@ -18885,7 +18885,7 @@ class C
         x2 = x2.M1(0) ?? x2;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -18999,7 +18999,7 @@ class C
         dynamic y3 = x3.M1;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (19,22): warning CS8602: Possible dereference of a null reference.
@@ -20085,7 +20085,7 @@ class C
         dynamic z2 = x2 + y2 ?? """";
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -21196,7 +21196,7 @@ class CL1 {}
 class CL2 {}
 class CL3 {}
 class CL4 : CL3 {}
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (10,18): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0.implicit operator CL1(CL0 x)'.
@@ -21273,7 +21273,7 @@ class C
 class CL0<T>
 {
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,26): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
@@ -22245,7 +22245,7 @@ class C
         dynamic u5 = --x5;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (16,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -22730,7 +22730,7 @@ class Test
         dynamic u4 = x4 += y4;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );

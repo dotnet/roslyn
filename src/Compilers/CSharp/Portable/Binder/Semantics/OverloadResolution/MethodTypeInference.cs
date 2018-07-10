@@ -514,9 +514,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression argument = _arguments[arg];
                 bool? isNullable = IsNullable(argument);
                 TypeSymbolWithAnnotations target = _formalParameterTypes[arg];
-                bool isExactInference = GetRefKind(arg).IsManagedReference() || target.IsPointerType();
+                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.IsPointerType() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
 
-                MakeExplicitParameterTypeInferences(binder, argument, isNullable, target, isExactInference, ref useSiteDiagnostics);
+                MakeExplicitParameterTypeInferences(binder, argument, isNullable, target, kind, ref useSiteDiagnostics);
             }
         }
 
@@ -1628,11 +1628,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool ExactPointerInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool ExactPointerInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (source.TypeKind == TypeKind.Pointer && target.TypeKind == TypeKind.Pointer)
             {
-                ExactInference(((PointerTypeSymbol)source).PointedAtType, ((PointerTypeSymbol)target).PointedAtType, ref useSiteDiagnostics);
+                ExactInference(((PointerTypeSymbol)source.TypeSymbol).PointedAtType, ((PointerTypeSymbol)target.TypeSymbol).PointedAtType, ref useSiteDiagnostics);
                 return true;
             }
 

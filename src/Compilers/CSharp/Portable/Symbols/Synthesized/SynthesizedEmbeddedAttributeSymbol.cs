@@ -195,32 +195,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            factory.CurrentMethod = this;
+            factory.CurrentFunction = this;
 
             var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
             if (baseConstructorCall == null)
             {
-                if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
-                {
-                    // System_Attribute is missing. Don't generate anything
-                    return;
-                }
-
-                var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                factory.CurrentFunction = this;
-
-                var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
-                if (baseConstructorCall == null)
-                {
-                    // This may happen if Attribute..ctor is not found or is inaccessible
-                    return;
-                }
-
-                var block = factory.Block(
-                    factory.ExpressionStatement(baseConstructorCall),
-                    factory.Return());
-
-                factory.CloseMethod(block);
+                // This may happen if Attribute..ctor is not found or is inaccessible
+                return;
             }
 
             var block = factory.Block(
