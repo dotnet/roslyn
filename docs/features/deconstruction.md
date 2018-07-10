@@ -76,6 +76,7 @@ We noted already that tuples (which are syntactic sugar for the `System.ValueTup
 The .Net framework also includes a set of `System.Tuple` types. Those are not recognized as C# tuples, and so will rely on the *Deconstruct* pattern. Those `Deconstruct` methods will be provided as extension methods for `System.Tuple` for up to 3 nestings deep (that is 21 elements).
 
 A *deconstruction-assignment* returns a tuple value (with elements using default names) which is shaped and typed like the left-hand-side and holds the (converted) parts resulting from deconstruction.
+But if the return value of the deconstruction isn't used, the compiler avoids constructing a `ValueTuple` instance when we'll only used it to retrieve its elements (we can use temporary variables instead). This relies on the assumption that the `ValueTuple` constructors are free of side-effects. For instance, swapping values with `(x, y) = (y, x);` does not construct a `ValueTuple`, but `var tuple = ((x, y) = (y, x));` does.
 
 #### Evaluation order
 
