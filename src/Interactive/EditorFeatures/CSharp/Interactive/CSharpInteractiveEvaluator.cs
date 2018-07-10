@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 commands,
                 (responseFileDirectory != null) ? Path.Combine(responseFileDirectory, InteractiveResponseFile) : null,
                 initialWorkingDirectory,
-                typeof(InteractiveHostEntryPoint).Assembly.Location,
                 typeof(CSharpReplServiceProvider))
         {
         }

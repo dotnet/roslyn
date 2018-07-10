@@ -1,14 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -287,8 +292,10 @@ if (true)
             Assert.NotEqual(0, info.RelatedSpans.Length);
             var tabSize = document.Project.Solution.Workspace.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
             var text = await document.GetTextAsync();
-            var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, info.RelatedSpans, tabSize);
-            var actualText = string.Concat(spans.Select(s => text.GetSubText(s).ToString()));
+
+            var classifiedSpans = info.RelatedSpans.Select(s => new ClassifiedSpan(ClassificationTypeNames.Text, s));
+            var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans.ToImmutableArray(), tabSize);
+            var actualText = string.Concat(spans.Select(s => text.GetSubText(s.TextSpan).ToString()));
             Assert.Equal(expectedContent, actualText);
         }
 

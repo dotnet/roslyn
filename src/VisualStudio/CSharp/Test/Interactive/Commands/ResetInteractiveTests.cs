@@ -49,14 +49,14 @@ namespace ResetInteractiveTestsDocument
 
                 var expectedReferences = replReferenceCommands.ToList();
                 var expectedUsings = new List<string> { @"using ""System"";", @"using ""ResetInteractiveTestsDocument"";" };
-                await AssertResetInteractive(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
+                await AssertResetInteractiveAsync(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
 
                 // Test that no submissions are executed if the build fails.
-                await AssertResetInteractive(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
+                await AssertResetInteractiveAsync(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
             }
         }
 
-        private async Task AssertResetInteractive(
+        private async Task AssertResetInteractiveAsync(
             TestWorkspace workspace,
             Project project,
             bool buildSucceeds,
@@ -66,18 +66,18 @@ namespace ResetInteractiveTestsDocument
             expectedReferences = expectedReferences ?? new List<string>();
             expectedUsings = expectedUsings ?? new List<string>();
 
-            InteractiveWindowTestHost testHost = new InteractiveWindowTestHost(workspace.ExportProvider);
-            List<string> executedSubmissionCalls = new List<string>();
-            void ExecuteSubmission(object _, string code) { executedSubmissionCalls.Add(code); }
+            var testHost = new InteractiveWindowTestHost(workspace.ExportProvider);
+            var executedSubmissionCalls = new List<string>();
 
-            testHost.Evaluator.OnExecute += ExecuteSubmission;
+            void executeSubmission(object _, string code) => executedSubmissionCalls.Add(code);
+            testHost.Evaluator.OnExecute += executeSubmission;
 
-            IWaitIndicator waitIndicator = workspace.GetService<IWaitIndicator>();
-            IEditorOptionsFactoryService editorOptionsFactoryService = workspace.GetService<IEditorOptionsFactoryService>();
+            var waitIndicator = workspace.GetService<IWaitIndicator>();
+            var editorOptionsFactoryService = workspace.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactoryService.GetOptions(testHost.Window.CurrentLanguageBuffer);
             var newLineCharacter = editorOptions.GetNewLineCharacter();
 
-            TestResetInteractive resetInteractive = new TestResetInteractive(
+            var resetInteractive = new TestResetInteractive(
                 waitIndicator,
                 editorOptionsFactoryService,
                 CreateReplReferenceCommand,
@@ -90,6 +90,7 @@ namespace ResetInteractiveTestsDocument
                 ProjectNamespaces = ImmutableArray.Create("System", "ResetInteractiveTestsDocument", "VisualBasicResetInteractiveTestsDocument"),
                 NamespacesToImport = ImmutableArray.Create("System", "ResetInteractiveTestsDocument"),
                 ProjectDirectory = "pj",
+                Is64Bit = true,
             };
 
             await resetInteractive.Execute(testHost.Window, "Interactive C#");
@@ -97,6 +98,15 @@ namespace ResetInteractiveTestsDocument
             // Validate that the project was rebuilt.
             Assert.Equal(1, resetInteractive.BuildProjectCount);
             Assert.Equal(0, resetInteractive.CancelBuildProjectCount);
+
+            if (buildSucceeds)
+            {
+                Assert.Equal(true, testHost.Evaluator.ResetOptions.Is64Bit);
+            }
+            else
+            {
+                Assert.Null(testHost.Evaluator.ResetOptions);
+            }
 
             var expectedSubmissions = new List<string>();
             if (expectedReferences.Any())
@@ -110,7 +120,7 @@ namespace ResetInteractiveTestsDocument
 
             AssertEx.Equal(expectedSubmissions, executedSubmissionCalls);
 
-            testHost.Evaluator.OnExecute -= ExecuteSubmission;
+            testHost.Evaluator.OnExecute -= executeSubmission;
         }
 
         /// <summary>

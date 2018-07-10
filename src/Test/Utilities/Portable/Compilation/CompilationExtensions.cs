@@ -161,10 +161,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static void VerifyOperationTree(this Compilation compilation, SyntaxNode node, string expectedOperationTree)
         {
-            var actualTextBuilder = new StringBuilder();
             SemanticModel model = compilation.GetSemanticModel(node.SyntaxTree);
-            AppendOperationTree(model, node, actualTextBuilder);
-            OperationTreeVerifier.Verify(expectedOperationTree, actualTextBuilder.ToString());
+            model.VerifyOperationTree(node, expectedOperationTree);
         }
 
         internal static void VerifyOperationTree(this Compilation compilation, string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
@@ -216,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     foreach (SyntaxNode executableCodeBlock in executableCodeBlocks)
                     {
                         actualTextBuilder.Append(Environment.NewLine);
-                        AppendOperationTree(model, executableCodeBlock, actualTextBuilder, initialIndent: 2);
+                        model.AppendOperationTree(executableCodeBlock, actualTextBuilder, initialIndent: 2);
                     }
                 }
 
@@ -224,20 +222,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             OperationTreeVerifier.Verify(expectedOperationTree, actualTextBuilder.ToString());
-        }
-
-        private static void AppendOperationTree(SemanticModel model, SyntaxNode node, StringBuilder actualTextBuilder, int initialIndent = 0)
-        {
-            IOperation operation = model.GetOperation(node);
-            if (operation != null)
-            {
-                string operationTree = OperationTreeVerifier.GetOperationTree(model.Compilation, operation, initialIndent);
-                actualTextBuilder.Append(operationTree);
-            }
-            else
-            {
-                actualTextBuilder.Append($"  SemanticModel.GetOperation() returned NULL for node with text: '{node.ToString()}'");
-            }
         }
 
         internal static bool CanHaveExecutableCodeBlock(ISymbol symbol)
@@ -293,6 +277,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
 
                         Assert.True(operation.Type == null || !operation.MustHaveNullType(), $"Unexpected non-null type: {operation.Type}");
+
+                        Assert.Same(semanticModel, operation.SemanticModel);
+                        Assert.NotSame(semanticModel, ((Operation)operation).OwningSemanticModel);
+                        Assert.NotNull(((Operation)operation).OwningSemanticModel);
+                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingModelOrSelf);
+                        Assert.Same(semanticModel, semanticModel.ContainingModelOrSelf);
 
                         if (operation.Parent == null)
                         {

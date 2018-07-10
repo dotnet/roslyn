@@ -33,7 +33,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
                        commands,
                        Path.Combine(responseFileDirectory, s_interactiveResponseFile),
                        initialWorkingDirectory,
-                       GetType(InteractiveHostEntryPoint).Assembly.Location,
                        GetType(VisualBasicReplServiceProvider))
         End Sub
 

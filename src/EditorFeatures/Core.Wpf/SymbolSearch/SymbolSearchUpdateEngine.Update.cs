@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (ourSentinel != currentSentinel)
             {
                 // We already have an update loop for this source.  Nothing for us to do.
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             // We were the first ones to try to update this source.  Spawn off a task to do

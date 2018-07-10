@@ -44,26 +44,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var type = operation.Type;
                 var constantValue = operation.ConstantValue;
 
-                // operation.Language can throw due to https://github.com/dotnet/roslyn/issues/23819
+                Assert.NotNull(syntax);
+                // operation.Language can throw due to https://github.com/dotnet/roslyn/issues/23821
                 // Conditional logic below should be removed once the issue is fixed
-                if (syntax != null)
+                if (syntax is Microsoft.CodeAnalysis.Syntax.SyntaxList)
                 {
-                    // operation.Language can throw due to https://github.com/dotnet/roslyn/issues/23821
-                    // Conditional logic below should be removed once the issue is fixed
-                    if (syntax is Microsoft.CodeAnalysis.Syntax.SyntaxList)
-                    {
-                        Assert.Equal(OperationKind.None, operation.Kind);
-                        Assert.Equal(LanguageNames.CSharp, operation.Parent.Language);
-                    }
-                    else
-                    {
-                        var language = operation.Language;
-                    }
+                    Assert.Equal(OperationKind.None, operation.Kind);
+                    Assert.Equal(LanguageNames.CSharp, operation.Parent.Language);
                 }
                 else
                 {
-                    Assert.Equal(OperationKind.ConditionalAccessInstance, operation.Kind);
-                    Assert.Equal(LanguageNames.VisualBasic, operation.Parent.Language);
+                    var language = operation.Language;
                 }
 
                 var isImplicit = operation.IsImplicit;
@@ -71,6 +62,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 foreach (IOperation child in operation.Children)
                 {
                     Assert.NotNull(child);
+                }
+
+                if (operation.SemanticModel != null)
+                {
+                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingModelOrSelf);
                 }
             }
             base.Visit(operation);
@@ -937,6 +933,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArrayInitializer(IArrayInitializerOperation operation)
         {
             Assert.Equal(OperationKind.ArrayInitializer, operation.Kind);
+            Assert.Null(operation.Type);
             AssertEx.Equal(operation.ElementValues, operation.Children);
         }
 
