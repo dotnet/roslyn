@@ -2387,19 +2387,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.UsingKeyword);
                 N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IdentifierName, "T");
                     {
                         N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.VariableDeclarator);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
                         {
-                            N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.EqualsValueClause);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "b");
                             {
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken);
-                                }
+                                N(SyntaxKind.IdentifierToken);
                             }
                         }
                     }
@@ -2486,16 +2486,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.VariableDeclarator);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
                         {
-                            N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.EqualsValueClause);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken);
-                                }
+                                N(SyntaxKind.IdentifierToken);
                             }
                         }
                     }
@@ -2598,16 +2598,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.VariableDeclarator);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
                         {
-                            N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.EqualsValueClause);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken);
-                                }
+                                N(SyntaxKind.IdentifierToken);
                             }
                         }
                     }
@@ -2682,32 +2682,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.VariableDeclarator);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
                         {
-                            N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.EqualsValueClause);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ConditionalExpression);
                             {
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.ConditionalExpression);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.QuestionToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken);
-                                    }
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.ColonToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
                                 }
                             }
                         }
-
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -2769,9 +2768,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             N(SyntaxKind.IdentifierToken);
                         }
-
+                        N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.QuestionToken);
                     N(SyntaxKind.VariableDeclarator);
                     N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.EqualsValueClause);
@@ -2842,8 +2840,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             N(SyntaxKind.IdentifierToken);
                         }
-                    }
-                    N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.QuestionToken);
+                    }                    
                     N(SyntaxKind.VariableDeclarator);
                     N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.CommaToken);
@@ -2854,7 +2852,197 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             N(SyntaxKind.SemicolonToken);
         }
 
+        [Fact]
+        public void TestUsingVarRefTree()
+        {
+            UsingStatement("using ref int x = ref y;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
 
+        [Fact]
+        public void TestUsingVarRefReadonlyTree()
+        {
+            UsingStatement("using ref readonly int x = ref y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingVarRefVarTree()
+        {
+            UsingStatement("using ref var x = ref y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingVarRefVarIsYTree()
+        {
+            UsingStatement("using ref var x = y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingVarReadonlyMultipleDeclarations()
+        {
+            UsingStatement("using readonly var x, y = ref z;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2),
+                // (1,7): error CS0106: The modifier 'readonly' is not valid for this item
+                // using readonly var x, y = ref z;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1,7));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.ReadOnlyKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
 
         [Fact]
         public void TestContextualKeywordsAsLocalVariableTypes()

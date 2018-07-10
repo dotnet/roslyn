@@ -8204,6 +8204,7 @@ tryAgain:
         private StatementSyntax ParseLocalDeclarationStatement()
         {
             var mods = _pool.Allocate();
+            var usingKeyword = this.CurrentToken.Kind == SyntaxKind.UsingKeyword ? this.EatToken() : null;
             this.ParseDeclarationModifiers(mods);
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
@@ -8211,8 +8212,6 @@ tryAgain:
             {
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
-
-                var usingKeyword = this.CurrentToken.Kind == SyntaxKind.UsingKeyword ? this.EatToken() : null;
 
                 this.ParseLocalDeclaration(variables,
                     allowLocalFunctions: true,
