@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -10,21 +11,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicSquigglesDesktop : BasicSquigglesCommon
     {
-        public BasicSquigglesDesktop(VisualStudioInstanceFactory instanceFactory)
-            :base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
+        public BasicSquigglesDesktop()
+            : base(WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        public override void VerifySyntaxErrorSquiggles()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public override async Task VerifySyntaxErrorSquigglesAsync()
         {
-            base.VerifySyntaxErrorSquiggles();
+            await base.VerifySyntaxErrorSquigglesAsync();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        public override void VerifySemanticErrorSquiggles()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public override async Task VerifySemanticErrorSquigglesAsync()
         {
-            base.VerifySemanticErrorSquiggles();
+            await base.VerifySemanticErrorSquigglesAsync();
         }
     }
 }
