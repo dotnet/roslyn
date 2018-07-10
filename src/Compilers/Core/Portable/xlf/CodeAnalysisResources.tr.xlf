@@ -513,7 +513,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Değişiklikler sıralanmalı ve çakışmamalıdır.</target>
+        <target state="translated">Değişiklikler çakışmamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
-        <target state="new">'If' statement can be simplified</target>
+        <target state="translated">'if' 문을 간단하게 줄일 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_0">
@@ -50,6 +50,11 @@
       <trans-unit id="Delete_the_0_statement2">
         <source>Delete the '{0}' statement.</source>
         <target state="translated">{0}' 문을 삭제합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;여러 형식&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
@@ -1819,7 +1824,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Invert_If">
         <source>Invert If</source>
-        <target state="new">Invert If</target>
+        <target state="translated">if 반전</target>
         <note />
       </trans-unit>
     </body>

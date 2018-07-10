@@ -2002,22 +2002,22 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Parentheses_can_be_removed">
         <source>Parentheses can be removed</source>
-        <target state="new">Parentheses can be removed</target>
+        <target state="translated">可以删除括号</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
-        <target state="new">Remove unnecessary parentheses</target>
+        <target state="translated">删除不必要的括号</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
-        <target state="new">Add parentheses for clarity</target>
+        <target state="translated">为清楚起见，请添加括号</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_should_be_added_for_clarity">
         <source>Parentheses should be added for clarity</source>
-        <target state="new">Parentheses should be added for clarity</target>
+        <target state="translated">为清楚起见，应添加括号</target>
         <note />
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
@@ -2052,7 +2052,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">转换为条件表达式</target>
         <note />
       </trans-unit>
     </body>

@@ -513,7 +513,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Le modifiche devono essere ordinate e non sovrapposte.</target>
+        <target state="translated">Le modifiche non devono sovrapporsi.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -588,7 +588,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">Il nodo da tracciare non è un discendente della radice.</target>
+        <target state="translated">Il nodo di cui tenere traccia non è un discendente della radice.</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">

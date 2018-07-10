@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
-        <target state="new">Always for clarity</target>
+        <target state="translated">为始终保持清楚起见</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
@@ -19,22 +19,22 @@
       </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
-        <target state="new">In other operators</target>
+        <target state="translated">在其他运算符中</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
-        <target state="new">Keep all parentheses in:</target>
+        <target state="translated">保留所有括号:</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
-        <target state="new">Never if unnecessary</target>
+        <target state="translated">从不(若无必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
-        <target state="new">Parentheses preferences:</target>
+        <target state="translated">括号首选项:</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
@@ -1533,29 +1533,29 @@ I agree to all of the foregoing:</source>
         <target state="translated">首选只读</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">分析“{0}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
         <target state="translated">管理命名样式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Analyzing_0">
-        <source>Analyzing '{0}'</source>
-        <target state="new">Analyzing '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">实时代码分析</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <target state="translated">首选条件表达式而非赋值的“if”</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
         <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <target state="translated">首选条件表达式而非带有返回结果的“if”</target>
         <note />
       </trans-unit>
     </body>

@@ -325,7 +325,10 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse packageName = "System.IO.Pipes.AccessControl"))
+                                                                isFacade:=(frameworkAssemblies IsNot Nothing AndAlso
+                                                                           packageName <> "Microsoft.Build" AndAlso
+                                                                           packageName <> "Microsoft.DiaSymReader") OrElse
+                                                                           packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
