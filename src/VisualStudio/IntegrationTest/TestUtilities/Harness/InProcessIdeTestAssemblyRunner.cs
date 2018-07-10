@@ -104,8 +104,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
         {
             switch (ex)
             {
-                case XunitException _:
                 case RemotingException _:
+                    return !ex.Message.Contains("The pipe has been ended.");
+
+                case XunitException _:
                 case SerializationException _:
                 case TargetInvocationException _:
                     return true;
