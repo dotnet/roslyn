@@ -592,4 +592,7 @@
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</value>
   </data>
+  <data name="Select_which_rules_you_want_to_fix_as_part_of_document_cleanup_Note_that_the_number_of_items_selected_may_impact_performance_of_Format_Document" xml:space="preserve">
+    <value>Select which rules you want to fix as part of document cleanup. Note that the number of items selected may impact performance of Format Document</value>
+  </data>
 </root>

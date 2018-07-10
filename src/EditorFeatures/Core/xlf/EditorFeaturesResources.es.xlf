@@ -27,6 +27,11 @@
         <target state="translated">Puntuación</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_can_take_several_seconds_when_there_are_many_changes">
+        <source>This can take several seconds when there are many changes.</source>
+        <target state="new">This can take several seconds when there are many changes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">Tipos de usuario: clases</target>

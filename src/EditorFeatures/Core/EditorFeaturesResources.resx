@@ -815,4 +815,7 @@ Do you want to proceed?</value>
   <data name="Do_not_show_this_message_again" xml:space="preserve">
     <value>Do not show this message again</value>
   </data>
+  <data name="This_can_take_several_seconds_when_there_are_many_changes" xml:space="preserve">
+    <value>This can take several seconds when there are many changes.</value>
+  </data>
 </root>

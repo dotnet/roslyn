@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Options.OptionServiceFactory;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
@@ -93,13 +92,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     {
                         if (docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
                         {
-                            // Code cleanup
-                            var oldDoc = document;
-                            var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, codeCleanupService, cancellationToken).WaitAndGetResult(cancellationToken);
-
-                            if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
+                            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.This_can_take_several_seconds_when_there_are_many_changes))
                             {
-                                ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
+                                // Code cleanup
+                                var oldDoc = document;
+                                var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, codeCleanupService, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                                if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
+                                {
+                                    ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
+                                }
                             }
                         }
                         else
