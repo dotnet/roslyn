@@ -2777,8 +2777,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var property = left.PropertySymbol;
                 if (property.RefKind == RefKind.None)
                 {
-                    var readMethod = property.GetOwnOrInheritedGetMethod() ?? property.GetMethod;
-                    var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.SetMethod;
+                    var readMethod = property.GetOwnOrInheritedGetMethod();
+                    var writeMethod = property.GetOwnOrInheritedSetMethod();
 
                     Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
 
