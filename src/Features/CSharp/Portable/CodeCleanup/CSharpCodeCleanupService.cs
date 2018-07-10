@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -119,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
             if (_codeFixServiceOpt != null)
             {
-                document = await ApplyCodeFixesAsync(
-                    document, docOptions, progressTracker, cancellationToken).ConfigureAwait(false);
+                Logger.Log(FunctionId.Rename_InlineSession_Session, CodeCleanupLogMessage.Create(docOptions));
+                document = await ApplyCodeFixesAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
             }
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
