@@ -230,12 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return false;
             }
 
-            // TODO: Use GetTextSynchronously https://github.com/dotnet/roslyn/issues/27425
-            if (!document.TryGetText(out var sourceText))
-            {
-                applicableSpan = default;
-                return false;
-            }
+            var sourceText = document.GetTextSynchronously(cancellationToken);
 
             // TODO: TypeChar of 0 means Invoke or InvokeAndCommitIfUnique. An API update will make this better. https://github.com/dotnet/roslyn/issues/27426
             if (typeChar != 0 && !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, RoslynTrigger.CreateInsertionTrigger(typeChar)))
