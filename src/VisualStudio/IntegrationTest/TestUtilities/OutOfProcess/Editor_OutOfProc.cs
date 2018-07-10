@@ -113,9 +113,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
 
-        public string[] GetErrorTags()
-            => _editorInProc.GetErrorTags();
-
         public List<string> GetF1Keyword()
             => _editorInProc.GetF1Keywords();        
 

@@ -126,9 +126,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 view.Caret.MoveTo(point);
             });
 
-        public string[] GetErrorTags()
-            => GetTags<IErrorTag>();
-
         public string[] GetHighlightTags()
            => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
 

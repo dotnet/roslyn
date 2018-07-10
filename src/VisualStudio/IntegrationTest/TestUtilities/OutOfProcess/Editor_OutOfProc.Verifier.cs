@@ -135,14 +135,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
                 _textViewWindow.VerifyDialog(dialogName, isOpen);
             }
-
-            public void ErrorTags(params string[] expectedTags)
-            {
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
-                var actualTags = _textViewWindow.GetErrorTags();
-                Assert.Equal(expectedTags, actualTags);
-            }
         }
     }
 }
