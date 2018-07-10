@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 
@@ -101,12 +100,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected virtual MessageFilter RegisterMessageFilter()
             => new MessageFilter();
 
-        protected void Wait(double seconds)
-        {
-            var timeout = TimeSpan.FromMilliseconds(seconds * 1000);
-            Thread.Sleep(timeout);
-        }
-
         /// <summary>
         /// This method provides the implementation for <see cref="IDisposable.Dispose"/>. This method via the
         /// <see cref="IDisposable"/> interface (i.e. <paramref name="disposing"/> is <see langword="true"/>) if the
@@ -121,16 +114,5 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 _messageFilter.Dispose();
             }
         }
-
-        protected KeyPress Ctrl(VirtualKey virtualKey)
-            => new KeyPress(virtualKey, ShiftState.Ctrl);
-
-        protected KeyPress Shift(VirtualKey virtualKey)
-            => new KeyPress(virtualKey, ShiftState.Shift);
-
-        protected KeyPress Alt(VirtualKey virtualKey)
-            => new KeyPress(virtualKey, ShiftState.Alt);
-
-
     }
 }
