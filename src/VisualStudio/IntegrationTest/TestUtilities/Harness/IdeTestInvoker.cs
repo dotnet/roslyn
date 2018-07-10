@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             {
                 await task;
             }
-            catch (Exception ex) when (!InProcessIdeTestAssemblyRunner.IsCapturedFirstChangeException(ex))
+            catch (Exception ex) when (!InProcessIdeTestAssemblyRunner.IsCapturedFirstChanceException(ex))
             {
                 // This exception failed a test, but wasn't by the first-chance exception handler. Make sure to record
                 // it here.

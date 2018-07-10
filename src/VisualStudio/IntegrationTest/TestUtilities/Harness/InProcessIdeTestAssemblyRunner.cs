@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             {
                 s_inHandler = true;
 
-                if (!IsCapturedFirstChangeException(eventArgs.Exception))
+                if (!IsCapturedFirstChanceException(eventArgs.Exception))
                 {
                     return;
                 }
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             }
         }
 
-        internal static bool IsCapturedFirstChangeException(Exception ex)
+        internal static bool IsCapturedFirstChanceException(Exception ex)
         {
             switch (ex)
             {
