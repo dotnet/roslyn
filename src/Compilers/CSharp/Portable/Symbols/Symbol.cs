@@ -1343,21 +1343,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
-        protected static bool? SyntaxBasedNonNullTypes(ImmutableArray<SyntaxList<AttributeListSyntax>> attributeLists)
-        {
-            foreach (var attributeList in attributeLists)
-            {
-                bool? nonNullTypes = SyntaxBasedNonNullTypes(attributeList);
-                if (nonNullTypes.HasValue)
-                {
-                    return nonNullTypes.Value;
-                }
-            }
-
-            return null;
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): temporary solution while working on cycles
         protected static bool? SyntaxBasedNonNullTypes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeLists)
         {
             for (int i = 0; i < attributeLists.Count; i++)
