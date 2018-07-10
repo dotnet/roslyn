@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
-        <target state="translated"></target>
+        <target state="translated">out 変数を ref ローカルと宣言することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
