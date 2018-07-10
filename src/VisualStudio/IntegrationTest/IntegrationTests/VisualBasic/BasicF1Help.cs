@@ -1,25 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.Basic
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicF1Help : AbstractEditorTest
+    public class BasicF1Help : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicF1Help(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicF1Help))
+        public BasicF1Help()
+            : base(nameof(BasicF1Help))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        void F1Help()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task F1HelpAsync()
         {
             var text = @"
 Imports System
@@ -38,20 +38,20 @@ Module Program$$
     End Function
 End Module";
 
-            SetUpEditor(text);
-            Verify("Linq", "System.Linq");
-            Verify("String", "vb.String");
-            Verify("Any", "System.Linq.Enumerable.Any");
-            Verify("From", "vb.QueryFrom");
-            Verify("+=", "vb.+=");
-            Verify("Nothing", "vb.Nothing");
+            await SetUpEditorAsync(text);
+            await VerifyAsync("Linq", "System.Linq");
+            await VerifyAsync("String", "vb.String");
+            await VerifyAsync("Any", "System.Linq.Enumerable.Any");
+            await VerifyAsync("From", "vb.QueryFrom");
+            await VerifyAsync("+=", "vb.+=");
+            await VerifyAsync("Nothing", "vb.Nothing");
 
         }
 
-        private void Verify(string word, string expectedKeyword)
+        private async Task VerifyAsync(string word, string expectedKeyword)
         {
-            VisualStudio.Editor.PlaceCaret(word, charsOffset: -1);
-            Assert.Contains(expectedKeyword, VisualStudio.Editor.GetF1Keyword());
+            await VisualStudio.Editor.PlaceCaretAsync(word, charsOffset: -1);
+            Assert.Contains(expectedKeyword, await VisualStudio.Editor.GetF1KeywordsAsync());
         }
     }
 }

@@ -2,27 +2,28 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.Basic
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicOutlining : AbstractEditorTest
+    public class BasicOutlining : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicOutlining(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicOutlining))
+        public BasicOutlining()
+            : base(nameof(BasicOutlining))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void Outlining()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task OutliningAsync()
         {
             var input = @"
 [|Imports System
@@ -36,8 +37,8 @@ Imports System.Text|]
     End Module|]
 End Namespace|]";
             MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
-            VisualStudio.Editor.SetText(text);
-            Assert.Equal(spans.OrderBy(s => s.Start), VisualStudio.Editor.GetOutliningSpans());
+            await VisualStudio.Editor.SetTextAsync(text);
+            Assert.Equal(spans.OrderBy(s => s.Start), await VisualStudio.Editor.GetOutliningSpansAsync());
         }
     }
 }

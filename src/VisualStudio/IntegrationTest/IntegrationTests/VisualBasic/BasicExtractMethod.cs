@@ -1,20 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.Basic
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicExtractMethod : AbstractEditorTest
+    public class BasicExtractMethod : AbstractIdeEditorTest
     {
         private const string TestSource = @"
 Imports System
@@ -36,20 +39,20 @@ Module Program
     End Function
 End Module";
 
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicExtractMethod(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicExtractMethod))
+        public BasicExtractMethod()
+            : base(nameof(BasicExtractMethod))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public void SimpleExtractMethod()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task SimpleExtractMethodAsync()
         {
-            VisualStudio.Editor.SetText(TestSource);
-            VisualStudio.Editor.PlaceCaret("Console", charsOffset: -1);
-            VisualStudio.Editor.PlaceCaret("Hello VB!", charsOffset: 3, extendSelection: true);
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.Refactor_ExtractMethod);
+            await VisualStudio.Editor.SetTextAsync(TestSource);
+            await VisualStudio.Editor.PlaceCaretAsync("Console", charsOffset: -1);
+            await VisualStudio.Editor.PlaceCaretAsync("Hello VB!", charsOffset: 3, extendSelection: true);
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.Refactor_ExtractMethod);
 
             var expectedMarkup = @"
 Imports System
@@ -76,23 +79,23 @@ Module Program
 End Module";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
-            VisualStudio.Editor.Verify.TextContains(expectedText);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
-            AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(RenameFieldBackgroundAndBorderTag.TagId));
+            await VisualStudio.Editor.Verify.TextContainsAsync(expectedText);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Rename);
+            AssertEx.SetEqual(spans, await VisualStudio.Editor.GetTagSpansAsync(RenameFieldBackgroundAndBorderTag.TagId));
 
-            VisualStudio.Editor.SendKeys("SayHello", VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"    Private Sub SayHello()
+            await VisualStudio.Editor.SendKeysAsync("SayHello", VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"    Private Sub SayHello()
         Console.WriteLine(""Hello VB!"")
     End Sub");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public void ExtractViaCodeAction()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractViaCodeActionAsync()
         {
-            VisualStudio.Editor.SetText(TestSource);
-            VisualStudio.Editor.PlaceCaret("a = 5", charsOffset: -1);
-            VisualStudio.Editor.PlaceCaret("a * b", charsOffset: 1, extendSelection: true);
-            VisualStudio.Editor.Verify.CodeAction("Extract Method", applyFix: true, blockUntilComplete: true);
+            await VisualStudio.Editor.SetTextAsync(TestSource);
+            await VisualStudio.Editor.PlaceCaretAsync("a = 5", charsOffset: -1);
+            await VisualStudio.Editor.PlaceCaretAsync("a * b", charsOffset: 1, extendSelection: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Method", applyFix: true, willBlockUntilComplete: true);
 
             var expectedMarkup = @"
 Imports System
@@ -120,20 +123,20 @@ Module Program
 End Module";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
-            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
-            AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(RenameFieldBackgroundAndBorderTag.TagId));
+            Assert.Equal(expectedText, await VisualStudio.Editor.GetTextAsync());
+            AssertEx.SetEqual(spans, await VisualStudio.Editor.GetTagSpansAsync(RenameFieldBackgroundAndBorderTag.TagId));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public void ExtractViaCodeActionWithMoveLocal()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractViaCodeActionWithMoveLocalAsync()
         {
-            VisualStudio.Editor.SetText(TestSource);
-            VisualStudio.Editor.PlaceCaret("a = 5", charsOffset: -1);
-            VisualStudio.Editor.PlaceCaret("a * b", charsOffset: 1, extendSelection: true);
+            await VisualStudio.Editor.SetTextAsync(TestSource);
+            await VisualStudio.Editor.PlaceCaretAsync("a = 5", charsOffset: -1);
+            await VisualStudio.Editor.PlaceCaretAsync("a * b", charsOffset: 1, extendSelection: true);
             try
             {
-                VisualStudio.Workspace.SetFeatureOption("ExtractMethodOptions", "AllowMovingDeclaration", LanguageNames.VisualBasic, "true");
-                VisualStudio.Editor.Verify.CodeAction("Extract Method + Local", applyFix: true, blockUntilComplete: true);
+                await VisualStudio.Workspace.SetFeatureOptionAsync(ExtractMethodOptions.AllowMovingDeclaration, LanguageNames.VisualBasic, true);
+                await VisualStudio.Editor.Verify.CodeActionAsync("Extract Method + Local", applyFix: true, willBlockUntilComplete: true);
 
                 var expectedMarkup = @"
 Imports System
@@ -160,12 +163,12 @@ Module Program
 End Module";
 
                 MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
-                Assert.Equal(expectedText, VisualStudio.Editor.GetText());
-                AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(RenameFieldBackgroundAndBorderTag.TagId));
+                Assert.Equal(expectedText, await VisualStudio.Editor.GetTextAsync());
+                AssertEx.SetEqual(spans, await VisualStudio.Editor.GetTagSpansAsync(RenameFieldBackgroundAndBorderTag.TagId));
             }
             finally
             {
-                VisualStudio.Workspace.SetFeatureOption("ExtractMethodOptions", "AllowMovingDeclaration", LanguageNames.VisualBasic, "false");
+                await VisualStudio.Workspace.SetFeatureOptionAsync(ExtractMethodOptions.AllowMovingDeclaration, LanguageNames.VisualBasic, false);
             }
         }
     }
