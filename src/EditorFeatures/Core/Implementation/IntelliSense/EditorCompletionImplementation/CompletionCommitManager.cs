@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         /// This method needs to support custom procesing of commit characters to be on par with the old completion implementation.
         /// TODO we should consider removign this method and arrange better processing of commit characters.
         /// </summary>
-        private  bool IsCommitCharacter(char typeChar, ImmutableArray<CharacterSetModificationRule> rules)
+        private bool IsCommitCharacter(char typeChar, ImmutableArray<CharacterSetModificationRule> rules)
         {
             // Tab, Enter and Null (call invoke commit) are always a commit character
             if (typeChar == '\t' || typeChar == '\n' || typeChar == '\0') 
