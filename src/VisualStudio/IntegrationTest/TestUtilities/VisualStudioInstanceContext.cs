@@ -23,18 +23,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public void Dispose()
         {
-            try
-            {
-                Instance.CleanUp();
-                _instanceFactory.NotifyCurrentInstanceContextDisposed(canReuse: true);
-            }
-            catch (Exception)
-            {
-                // If the cleanup process fails, we want to make sure the next test gets a new instance. However,
-                // we still want to raise this exception to fail this test
-                _instanceFactory.NotifyCurrentInstanceContextDisposed(canReuse: false);
-                throw;
-            }
+            _instanceFactory.NotifyCurrentInstanceContextDisposed(canReuse: true);
         }
     }
 }
