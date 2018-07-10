@@ -25,9 +25,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetPrettyListing(string languageName, bool value)
             => _inProc.SetPrettyListing(languageName, value);
 
-        public void SetPerLanguageOption(string optionName, string feature, string language, object value)
-            => _inProc.SetPerLanguageOption(optionName, feature, language, value);
-
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 

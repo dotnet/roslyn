@@ -57,15 +57,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     FeatureOnOffOptions.PrettyListing, languageName, value);
             });
 
-        public void SetPerLanguageOption(string optionName, string feature, string language, object value)
-        {
-            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
-            var option = GetOption(optionName, feature, optionService);
-            var result = GetValue(value, option);
-            var optionKey = new OptionKey(option, language);
-            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
-        }
-
         private static object GetValue(object value, IOption option)
         {
             object result;
