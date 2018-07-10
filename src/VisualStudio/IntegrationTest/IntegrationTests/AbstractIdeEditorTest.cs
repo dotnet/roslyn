@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -80,7 +81,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        protected async Task<ClassifiedToken[]> GetLightbulbPreviewClassificationAsync(string menuText)
+        protected async Task<ClassificationSpan[]> GetLightbulbPreviewClassificationAsync(string menuText)
         {
             return await Editor.GetLightbulbPreviewClassificationsAsync(menuText);
         }

@@ -6,9 +6,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
-using Roslyn.Test.Utilities;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -91,8 +89,8 @@ Class VBTest
         x.Method$$(0, ""str"", 3.0)
     End Sub
 End Class");
-            var csharpProject = new ProjectUtils.Project("CSharpProject");
-            await SolutionExplorer.AddProjectAsync(csharpProject.Name, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+            var csharpProject = "CSharpProject";
+            await SolutionExplorer.AddProjectAsync(csharpProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
             await Editor.SetTextAsync(@"
 public class CSharpClass
 {
@@ -109,9 +107,9 @@ public class CSharpClass
     }
 }");
             await SolutionExplorer.SaveAllAsync();
-            var project = new ProjectUtils.Project(ProjectName);
-            var csharpProjectReference = new ProjectUtils.ProjectReference("CSharpProject");
-            await SolutionExplorer.AddProjectReferenceAsync(project.Name, csharpProjectReference.Name);
+            var project = ProjectName;
+            var csharpProjectReference = "CSharpProject";
+            await SolutionExplorer.AddProjectReferenceAsync(project, csharpProjectReference);
             await SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb");
 
             await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
@@ -132,7 +130,7 @@ public class CSharpClass
             await commandTask;
             var actualText = await Editor.GetTextAsync();
             Assert.Contains(@"x.Method(""str"")", actualText);
-            await SolutionExplorer.OpenFileAsync(csharpProject.Name, "Class1.cs");
+            await SolutionExplorer.OpenFileAsync(csharpProject, "Class1.cs");
             actualText = await Editor.GetTextAsync();
             var expectedText = @"
 public class CSharpClass

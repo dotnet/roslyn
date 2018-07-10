@@ -283,7 +283,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
-        public async Task<Signature> GetCurrentSignatureAsync()
+        public async Task<ISignature> GetCurrentSignatureAsync()
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -298,7 +298,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
             }
 
-            return new Signature(sessions[0].SelectedSignature);
+            return sessions[0].SelectedSignature;
         }
 
         public async Task<bool> IsCaretOnScreenAsync()
@@ -314,7 +314,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 && caret.Bottom <= view.ViewportBottom;
         }
 
-        public async Task<ClassifiedToken[]> GetLightbulbPreviewClassificationsAsync(string menuText)
+        public async Task<ClassificationSpan[]> GetLightbulbPreviewClassificationsAsync(string menuText)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -328,7 +328,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 classifierAggregatorService);
         }
 
-        private async Task<ClassifiedToken[]> GetLightbulbPreviewClassificationsAsync(
+        private async Task<ClassificationSpan[]> GetLightbulbPreviewClassificationsAsync(
             string menuText,
             ILightBulbBroker broker,
             IWpfTextView view,
@@ -379,11 +379,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 activeSession.Collapse();
                 var classifier = viewClassifierAggregator.GetClassifier(preview);
                 var classifiedSpans = classifier.GetClassificationSpans(new SnapshotSpan(preview.TextBuffer.CurrentSnapshot, 0, preview.TextBuffer.CurrentSnapshot.Length));
-                return classifiedSpans.Select(x => new ClassifiedToken(x.Span.GetText().ToString(), x.ClassificationType.Classification)).ToArray();
+                return classifiedSpans.ToArray();
             }
 
             activeSession.Collapse();
-            return Array.Empty<ClassifiedToken>();
+            return Array.Empty<ClassificationSpan>();
         }
 
         private static IEnumerable<T> FindDescendants<T>(DependencyObject rootObject) where T : DependencyObject

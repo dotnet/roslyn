@@ -136,10 +136,10 @@ class Program
     }
 }");
 
-            var vbProject = new ProjectUtils.Project("VBProject");
-            var vbProjectReference = new ProjectUtils.ProjectReference(vbProject.Name);
+            var vbProject = "VBProject";
+            var vbProjectReference = vbProject;
             var project = new ProjectUtils.Project(ProjectName);
-            await VisualStudio.SolutionExplorer.AddProjectAsync(vbProject.Name, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            await VisualStudio.SolutionExplorer.AddProjectAsync(vbProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
             await VisualStudio.Editor.SetTextAsync(@"
 Public Class VBClass
     Public Sub Method(x As Integer, y As String)
@@ -147,7 +147,7 @@ Public Class VBClass
 End Class");
 
             await VisualStudio.SolutionExplorer.SaveAllAsync();
-            await VisualStudio.SolutionExplorer.AddProjectReferenceAsync(projectName: ProjectName, projectToReferenceName: vbProjectReference.Name);
+            await VisualStudio.SolutionExplorer.AddProjectReferenceAsync(projectName: ProjectName, projectToReferenceName: vbProjectReference);
             await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
 
             await ChangeSignatureDialog.InvokeAsync();
@@ -159,7 +159,7 @@ End Class");
             var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actualText);
 
-            await VisualStudio.SolutionExplorer.OpenFileAsync(vbProject.Name, "Class1.vb");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(vbProject, "Class1.vb");
             actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"Public Sub Method(y As String, x As Integer)", actualText);
 

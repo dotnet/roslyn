@@ -291,7 +291,7 @@ class Program
 }");
             await VisualStudio.Editor.InvokeCodeActionListAsync();
             var classifiedTokens = await GetLightbulbPreviewClassificationAsync("Generate method 'Program.Foo'");
-            Assert.True(classifiedTokens.Any(c => c.Text == "void" && c.Classification == "keyword"));
+            Assert.True(classifiedTokens.Any(c => c.Span.GetText() == "void" && c.ClassificationType.Classification == "keyword"));
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
