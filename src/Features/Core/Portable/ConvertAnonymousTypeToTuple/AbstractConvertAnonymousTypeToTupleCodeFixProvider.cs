@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                     e => FixInCurrentMember(context.Document, e, context.Diagnostics[0], c), c)),
                 context.Diagnostics);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private async Task FixInCurrentMember(
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                 ReplaceWithTuple(editor, node);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private void ReplaceWithTuple(SyntaxEditor editor, TAnonymousObjectCreationExpressionSyntax node)

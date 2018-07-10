@@ -121,19 +121,20 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             var optionValue = optionSet.GetOption(applicableOption, context.Operation.Syntax.Language);
 
             var shouldOptionBePresent = optionValue.Value;
-            var isQualificationPresent = IsAlreadyQualifiedMemberAccess(simpleName);
-            if (shouldOptionBePresent && !isQualificationPresent)
+            var severity = optionValue.Notification.Severity;
+            if (!shouldOptionBePresent || severity == ReportDiagnostic.Suppress)
             {
-                var severity = optionValue.Notification.Severity;
-                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
-                {
-                    context.ReportDiagnostic(DiagnosticHelper.Create(
-                        Descriptor, 
-                        GetLocation(operation),
-                        severity,
-                        additionalLocations: null,
-                        properties: null));
-                }
+                return;
+            }
+
+            if (!IsAlreadyQualifiedMemberAccess(simpleName))
+            {
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor, 
+                    GetLocation(operation),
+                    severity,
+                    additionalLocations: null,
+                    properties: null));
             }
         }
 
