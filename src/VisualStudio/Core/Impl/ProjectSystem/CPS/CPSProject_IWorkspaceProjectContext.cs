@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Experiment;
@@ -200,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             ExecuteForegroundAction(() =>
             {
-                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, _ => folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory: null);
+                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory: null);
             });
         }
 
@@ -211,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             ExecuteForegroundAction(() =>
             {
-                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, _ => folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory);
+                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory);
             });
         }
 
@@ -221,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             ExecuteForegroundAction(() =>
             {
-                AddFile(filePath, sourceTextContainer, sourceCodeKind, _ => isInCurrentContext, _ => folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory);
+                AddFile(filePath, sourceTextContainer, sourceCodeKind, _ => isInCurrentContext, folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory);
             });
         }
 

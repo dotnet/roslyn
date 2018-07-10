@@ -166,7 +166,7 @@ End Module
             Return MetadataReference.CreateFromImage(libraryCompilation.EmitToArray())
         End Function
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestOptionalInteger()
             Dim source =
 <compilation>
@@ -201,7 +201,7 @@ Parameter: Type=System.Int32, Name=i, Optional=True, DefaultValue=1
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestIntegerOptionalAttribute()
             Dim source =
 <compilation>
@@ -236,7 +236,7 @@ Parameter: Type=System.Int32, Name=i, Optional=True, DefaultValue=System.Reflect
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestOptionalString()
             Dim source =
 <compilation>
@@ -274,7 +274,7 @@ Parameter: Type=System.String, Name=i, Optional=True, DefaultValue=hello world
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestOptionalDateTime()
             Dim source =
 <compilation>
@@ -313,7 +313,7 @@ Attribute: System.Runtime.CompilerServices.DateTimeConstantAttribute(1/26/2012 1
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestOptionalDecimal()
             Dim source =
 <compilation>
@@ -392,7 +392,7 @@ End Class
                              expectedOutput:="Nothing;Nothing;C1;")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestDateTimeConstantAttribute()
             Dim source =
 <compilation>
@@ -430,7 +430,7 @@ Attribute: System.Runtime.CompilerServices.DateTimeConstantAttribute(1/26/2012 1
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestDateTimeOptionalAttributeConstantAttribute()
             Dim source =
 <compilation>
@@ -573,7 +573,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestOptionalWithNothing()
             Dim source =
 <compilation>
@@ -814,7 +814,8 @@ Class P
         Report(C.F6())
     End Sub
     Shared Sub Report(o As Object)
-        System.Console.WriteLine("{0}: {1}", o.GetType(), o)
+        Dim value As Object = If (TypeOf o is Date, DirectCast(o, Date).ToString("MM/dd/yyyy HH:mm:ss"), o)
+        System.Console.WriteLine("{0}: {1}", o.GetType(), value)
     End Sub
 End Class
 ]]>
@@ -1208,7 +1209,7 @@ False
         End Sub
 
         <WorkItem(543076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543076")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestPropertyIntegerOptionalDouble()
             Dim source =
 <compilation>
@@ -1319,7 +1320,7 @@ End Module
         End Sub
 
         <WorkItem(543227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543227")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub TestMultipleEnumDefaultValuesFromMetadata()
             Dim source =
 <compilation>

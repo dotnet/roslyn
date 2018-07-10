@@ -2,22 +2,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// An IVisualStudioDocument which represents the secondary buffer to the workspace API.
     /// </summary>
@@ -42,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             DocumentProvider documentProvider,
             AbstractProject project,
             DocumentKey documentKey,
-            Func<uint, IReadOnlyList<string>> getFolderNames,
+            ImmutableArray<string> folderNames,
             SourceTextContainer sourceTextContainer,
             SourceCodeKind sourceCodeKind,
             DocumentId id,
@@ -61,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var itemid = this.GetItemId();
             this.Folders = itemid == (uint)VSConstants.VSITEMID.Nil
                 ? SpecializedCollections.EmptyReadOnlyList<string>()
-                : getFolderNames(itemid);
+                : folderNames;
 
             _documentProvider = documentProvider;
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -15,7 +16,6 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
         public IVisualStudioHostDocument TryGetDocumentForFile(
-            IVisualStudioHostProject hostProject,
+            AbstractProject hostProject,
             string filePath,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
@@ -96,12 +96,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             EventHandler<bool> openedHandler = null,
             EventHandler<bool> closingHandler = null)
         {
+            var itemid = hostProject.Hierarchy.TryGetItemId(filePath);
+
+            var folderNames = getFolderNames(itemid).AsImmutableOrEmpty();
             return TryGetDocumentForFile(
-                (AbstractProject)hostProject,
+                hostProject,
                 filePath,
                 sourceCodeKind,
                 canUseTextBuffer,
-                getFolderNames,
+                folderNames,
                 updatedOnDiskHandler,
                 openedHandler,
                 closingHandler);
@@ -112,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filePath,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
-            Func<uint, IReadOnlyList<string>> getFolderNames,
+            ImmutableArray<string> folderNames,
             EventHandler updatedOnDiskHandler = null,
             EventHandler<bool> openedHandler = null,
             EventHandler<bool> closingHandler = null,
@@ -124,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 sourceTextContainer: null,
                 sourceCodeKind,
                 canUseTextBuffer,
-                getFolderNames,
+                folderNames,
                 updatedOnDiskHandler,
                 openedHandler,
                 closingHandler,
@@ -144,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SourceTextContainer sourceTextContainer,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
-            Func<uint, IReadOnlyList<string>> getFolderNames,
+            ImmutableArray<string> folderNames,
             EventHandler updatedHandler = null,
             EventHandler<bool> openedHandler = null,
             EventHandler<bool> closingHandler = null,
@@ -211,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         this,
                         hostProject,
                         documentKey,
-                        getFolderNames,
+                        folderNames,
                         sourceCodeKind,
                         _fileChangeService,
                         openTextBuffer,
@@ -233,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         this,
                         hostProject,
                         documentKey,
-                        getFolderNames,
+                        folderNames,
                         sourceTextContainer,
                         sourceCodeKind,
                         id,

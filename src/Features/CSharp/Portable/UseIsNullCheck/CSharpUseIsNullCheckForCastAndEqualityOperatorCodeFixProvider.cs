@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 new MyCodeAction(CSharpFeaturesResources.Use_is_null_check,
                 c => this.FixAsync(context.Document, diagnostic, c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     (current, g) => Rewrite((BinaryExpressionSyntax)current));
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private static ExpressionSyntax Rewrite(BinaryExpressionSyntax binary)

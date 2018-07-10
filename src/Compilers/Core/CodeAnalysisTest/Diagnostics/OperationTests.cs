@@ -130,11 +130,11 @@ class C
 
                 if (expectException)
                 {
-                    Assert.Throws<InvalidOperationException>(() => SemanticModel.GetControlFlowGraph(operation));
+                    Assert.Throws<InvalidOperationException>(() => ControlFlowGraph.Create(operation));
                 }
                 else
                 {
-                    ControlFlowGraph graph = SemanticModel.GetControlFlowGraph(operation);
+                    ControlFlowGraph graph = ControlFlowGraph.Create(operation);
                     Assert.NotNull(graph);
                     Assert.NotEmpty(graph.Blocks);
                 }
@@ -160,12 +160,12 @@ class C
         [Fact]
         public void TestGetFlowGraphNullArgument()
         {
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IBlockOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IFieldInitializerOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IPropertyInitializerOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IParameterInitializerOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IConstructorBodyOperation)null));
-            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IMethodBodyOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IBlockOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IFieldInitializerOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IPropertyInitializerOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IParameterInitializerOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IConstructorBodyOperation)null));
+            Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IMethodBodyOperation)null));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -187,18 +187,23 @@ class C
 
         private void TestGetFlowGraphInvalidArgumentCore(string argumentExceptionMessage, IOperation parent)
         {
+            bool exceptionThrown = false;
             try
             {
                 IBlockOperation block = new BlockStatement(
                     ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
                     semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
                 block = Operation.SetParentOperation(block, parent);
-                _ = SemanticModel.GetControlFlowGraph(block);
+                _ = ControlFlowGraph.Create(block);
             }
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "body").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -207,12 +212,16 @@ class C
                     value: null, kind: OperationKind.FieldInitializer,
                     semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
-                _ = SemanticModel.GetControlFlowGraph(initializer);
+                _ = ControlFlowGraph.Create(initializer);
             }
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "initializer").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -221,12 +230,16 @@ class C
                     value: null, kind: OperationKind.PropertyInitializer,
                     semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
-                _ = SemanticModel.GetControlFlowGraph(initializer);
+                _ = ControlFlowGraph.Create(initializer);
             }
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "initializer").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -235,12 +248,16 @@ class C
                                     value: null, kind: OperationKind.ParameterInitializer,
                                     semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
-                _ = SemanticModel.GetControlFlowGraph(initializer);
+                _ = ControlFlowGraph.Create(initializer);
             }
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "initializer").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -251,12 +268,16 @@ class C
                                     expressionBody: null,
                                     semanticModel: null, syntax: null);
                 constructorBody = Operation.SetParentOperation(constructorBody, parent);
-                _ = SemanticModel.GetControlFlowGraph(constructorBody);
+                _ = ControlFlowGraph.Create(constructorBody);
             }
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "constructorBody").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
 
             try
             {
@@ -265,12 +286,114 @@ class C
                                                     expressionBody: null,
                                                     semanticModel: null, syntax: null);
                 methodBody = Operation.SetParentOperation(methodBody, parent);
-                _ = SemanticModel.GetControlFlowGraph(methodBody);
+                _ = ControlFlowGraph.Create(methodBody);
             }
             catch (ArgumentException ex)
             {
                 Assert.Equal(new ArgumentException(argumentExceptionMessage, "methodBody").Message, ex.Message);
+                exceptionThrown = true;
             }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TestControlFlowGraphCreateFromSyntax()
+        {
+            var source = @"
+class C
+{
+    void M(int x)
+    {
+        x = 0;
+    }
+}";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("flow-analysis", "true") });
+            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
+            var compilation = CSharpCompilation.Create("c", new[] { tree });
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Last();
+
+            // Verify ArgumentNullException
+            bool exceptionThrown = false;
+            try
+            {
+                _ = ControlFlowGraph.Create(node: null, model);
+            }
+            catch (ArgumentNullException ex)
+            {
+                Assert.Equal(ex.Message, new ArgumentNullException("node").Message);
+                exceptionThrown = true;
+            }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
+
+            try
+            {
+                _ = ControlFlowGraph.Create(methodBodySyntax, semanticModel: null);
+            }
+            catch (ArgumentNullException ex)
+            {
+                Assert.Equal(ex.Message, new ArgumentNullException("semanticModel").Message);
+                exceptionThrown = true;
+            }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
+
+            // Verify argument exception on providing a syntax node in executable code which does not produce root operation.
+            try
+            {
+                var literal = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+                _ = ControlFlowGraph.Create(literal, model);
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.Equal(ex.Message, new ArgumentException(CodeAnalysisResources.NotARootOperation, "operation").Message);
+                exceptionThrown = true;
+            }
+
+            Assert.True(exceptionThrown);
+            exceptionThrown = false;
+
+            // Verify null return for non-executable code syntax node, which does not produce an operation.
+            var classDecl = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            Assert.Null(ControlFlowGraph.Create(classDecl, model));
+
+            // Verify identical CFG from method body syntax and operation. 
+            var cfgFromSyntax = ControlFlowGraph.Create(methodBodySyntax, model);
+            Assert.NotNull(cfgFromSyntax);
+
+            var operation = (IMethodBodyOperation)model.GetOperation(methodBodySyntax);
+            var cfgFromOperation = ControlFlowGraph.Create(operation);
+            Assert.NotNull(cfgFromOperation);
+
+            var expectedCfg = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = 0;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[missing], IsInvalid) (Syntax: 'x = 0')
+              Left: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32[missing]) (Syntax: 'x')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromSyntax);
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromOperation);
         }
     }
 }

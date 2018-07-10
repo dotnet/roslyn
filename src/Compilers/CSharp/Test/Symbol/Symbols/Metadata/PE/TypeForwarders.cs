@@ -1742,5 +1742,69 @@ public class Forwarded<T>
                 }
             }
         }
+
+        /// <summary>
+        /// Aliases to forwarded types are not supported currently.
+        /// </summary>
+        [WorkItem(27375, "https://github.com/dotnet/roslyn/issues/27375")]
+        [Fact]
+        public void AliasToTypeForwarder()
+        {
+            // Library v1: no forwarding.
+            const string sourceA1 =
+@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+namespace MyNamespace
+{
+    public class MyClass { }
+}";
+            var compA1 = CreateCompilation(sourceA1, assemblyName: "A");
+            var refA1 = compA1.EmitToImageReference(aliases: ImmutableArray.Create("A"));
+
+            const string sourceB1 = sourceA1;
+            var compB1 = CreateCompilation(sourceB1, assemblyName: "B");
+            var refB1 = compB1.EmitToImageReference(aliases: ImmutableArray.Create("B"));
+
+            const string sourceProgram =
+@"extern alias A;
+extern alias B;
+class Program
+{
+    static void Main()
+    {
+        var a = new A::MyNamespace.MyClass();
+        var b = new B::MyNamespace.MyClass();
+    }
+}";
+            var comp = CreateCompilation(sourceProgram, references: new[] { refA1, refB1 });
+            comp.VerifyDiagnostics();
+
+            // Library v2: forwarding to implementation assembly.
+            const string sourceBImpl =
+@"namespace MyNamespace
+{
+    public class MyClass { }
+}";
+            var compBImpl = CreateCompilation(sourceBImpl, assemblyName: "BImpl");
+            var refBImpl = compBImpl.EmitToImageReference();
+
+            const string sourceB2 =
+@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(MyNamespace.MyClass))]";
+            var compB2 = CreateCompilation(sourceB2, references: new[] { refBImpl }, assemblyName: "B");
+
+            // Alias to PE assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, compB2.EmitToImageReference(aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,36): error CS1069: The type name 'MyClass' could not be found in the namespace 'MyNamespace'. This type has been forwarded to assembly 'BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         var b = new B::MyNamespace.MyClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "MyClass").WithArguments("MyClass", "MyNamespace", "BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 36));
+
+            // Alias to source assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, new CSharpCompilationReference(compB2, aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0234: The type or namespace name 'MyNamespace' does not exist in the namespace 'B' (are you missing an assembly reference?)
+                //         var b = new B::MyNamespace.MyClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "MyNamespace").WithArguments("MyNamespace", "B").WithLocation(8, 24));
+        }
     }
 }
