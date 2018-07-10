@@ -69,7 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             base.SaveSettings();
 
-            // once formatting option is set, we never show code cleanup info bar again
+            // once formatting option is explicitly set (regardless codeclean is on or off), 
+            // we never show code cleanup info bar again
             var oldOptions = OptionService.GetOptions();
             var newOptions = oldOptions.WithChangedOption(
                 CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, LanguageNames.CSharp, value: true);
