@@ -2,17 +2,15 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
-using ServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -32,8 +30,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected AbstractIdeIntegrationTest()
         {
-            var componentModel = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
-            JoinableTaskContext = componentModel.GetExtensions<JoinableTaskContext>().SingleOrDefault() ?? new JoinableTaskContext();
+            JoinableTaskContext = ThreadHelper.JoinableTaskContext;
 
             _hangMitigatingCancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
             _watchdogCompletionTokenSource = new CancellationTokenSource();
