@@ -47,12 +47,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Get
         End Property
 
-        Friend ReadOnly Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
-            Get
-                Return SessionTestState.CurrentCompletionPresenterSession
-            End Get
-        End Property
-
         Private Sub New(workspaceElement As XElement,
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
                         Optional excludedTypes As List(Of Type) = Nothing,
