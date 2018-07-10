@@ -411,7 +411,7 @@
       </trans-unit>
       <trans-unit id="UnsupportedHashAlgorithm">
         <source>Unsupported hash algorithm.</source>
-        <target state="translated">Nepodporovaný algoritmus hash</target>
+        <target state="translated">Nepodporovaný hashovací algoritmus</target>
         <note />
       </trans-unit>
       <trans-unit id="InconsistentLanguageVersions">
@@ -513,7 +513,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Změny musí být seřazené a nesmí se překrývat.</target>
+        <target state="translated">Změny se nesmí překrývat.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

@@ -513,7 +513,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Die Änderungen müssen sortiert sein und dürfen sich nicht überschneiden.</target>
+        <target state="translated">Die Änderungen dürfen sich nicht überschneiden.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

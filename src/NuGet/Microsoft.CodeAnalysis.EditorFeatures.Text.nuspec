@@ -14,9 +14,20 @@
       More details at https://aka.ms/roslyn-packages
 
       $commitPathMessage$
+      This depends on:
+          Microsoft.VisualStudio.CoreUtility version $MicrosoftVisualStudioCoreUtilityVersion$ or higher
+          Microsoft.VisualStudio.Text.Data version $MicrosoftVisualStudioTextDataVersion$ or higher
+          Microsoft.VisualStudio.Text.Logic version $MicrosoftVisualStudioTextLogicVersion$ or higher
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
+      <!--This package depends on the following 4 packages, however we can not enforce them in there.
+      Roslyn depends on Editor packages which are not released yet, enforcing these dependenceis will delay the release of roslyn package,
+      while roslyn and editor packages are supposed to release together with Visual Studio.-->
+      <!--<dependency id="Microsoft.VisualStudio.CoreUtility" version="$MicrosoftVisualStudioCoreUtilityVersion$" />
+      <dependency id="Microsoft.VisualStudio.Text.Data" version="$MicrosoftVisualStudioTextDataVersion$" />
+      <dependency id="Microsoft.VisualStudio.Text.Logic" version="$MicrosoftVisualStudioTextLogicVersion$" />
+      <dependency id="Microsoft.VisualStudio.Utilities" version="$MicrosoftVisualStudioUtilitiesVersion$" />-->
     </dependencies>
 
     <language>en-US</language>

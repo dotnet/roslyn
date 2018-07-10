@@ -1134,6 +1134,11 @@ Do you want to proceed?</source>
         <target state="translated">Интерактивный режим</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Вставить в интерактивном режиме</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
         <source>Navigate To Highlighted Reference</source>
         <target state="translated">Перейти к выделенной ссылке</target>
@@ -1157,11 +1162,6 @@ Do you want to proceed?</source>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Средство форматирования смарт-токена</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">Вставить в интерактивном режиме</target>
         <note />
       </trans-unit>
     </body>

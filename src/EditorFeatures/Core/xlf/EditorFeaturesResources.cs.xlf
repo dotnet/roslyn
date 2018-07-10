@@ -1134,6 +1134,11 @@ Chcete pokračovat?</target>
         <target state="translated">Interactive</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Vložit do Interactive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
         <source>Navigate To Highlighted Reference</source>
         <target state="translated">Přejít na zvýrazněný odkaz</target>
@@ -1157,11 +1162,6 @@ Chcete pokračovat?</target>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Inteligentní formátování tokenů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">Vložit do Interactive</target>
         <note />
       </trans-unit>
     </body>

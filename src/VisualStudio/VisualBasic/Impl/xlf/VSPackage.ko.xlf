@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off</source>
-        <target state="translated">맺음 구문 자동 삽입;서식 다시 적용 설정 변경;개요 모드 변경;인터페이스 및 MustOverride 멤버 자동 삽입;프로시저 줄 구분선 표시/숨기기;오류 수정 제안 설정/해제;참조 및 키워드의 강조 표시 설정/해제</target>
+        <target state="translated">맺음 구문 자동 삽입;자동 서식 지정 설정 변경;개요 모드 변경;인터페이스 및 MustOverride 멤버 자동 삽입;프로시저 줄 구분선 표시/숨기기;오류 수정 제안 설정/해제;참조 및 키워드의 강조 표시 설정/해제</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

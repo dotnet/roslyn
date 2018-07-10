@@ -513,7 +513,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">변경 내용의 순서를 지정해야 하고 겹쳐서는 안 됩니다.</target>
+        <target state="translated">변경 내용은 겹치지 않아야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
