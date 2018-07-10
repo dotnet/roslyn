@@ -215,8 +215,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             bool alive = process.IsAlive();
             if (!alive)
             {
-                _errorOutput.WriteLine(FeaturesResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode);
-                _errorOutput.WriteLine(process.StandardError.ReadToEnd());
+                string errorString = process.StandardError.ReadToEnd();
+                lock (_errorOutputGuard)
+                {
+                    _errorOutput.WriteLine(FeaturesResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode);
+                    _errorOutput.WriteLine(errorString);
+                }
             }
 
             return alive;
