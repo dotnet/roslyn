@@ -40,6 +40,12 @@ namespace Microsoft.CodeAnalysis.Completion
             new CompletionTrigger(CompletionTriggerKind.Invoke);
 
         /// <summary>
+        /// The <see cref="CompletionTrigger"/> associated with using snippets.
+        /// </summary>
+        public static readonly CompletionTrigger Snippets =
+            new CompletionTrigger(CompletionTriggerKind.Snippets);
+
+        /// <summary>
         /// Creates a new instance of a <see cref="CompletionTrigger"/> association with the insertion of a typed character into the document.
         /// </summary>
         public static CompletionTrigger CreateInsertionTrigger(char insertedCharacter)

@@ -91,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 case EditorCompletion.InitialTriggerReason.Deletion:
                     return RoslynTrigger.CreateDeletionTrigger(trigger.Character);
                 case EditorCompletion.InitialTriggerReason.Snippets:
-                    // TODO: Exclusive snippet mode isn't currently supported https://github.com/dotnet/roslyn/issues/27423
-                    return default;
+                    return RoslynTrigger.Snippets;
                 default:
                     return default;
             }
