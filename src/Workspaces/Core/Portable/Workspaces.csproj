@@ -99,8 +99,8 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ISetExtensions.cs">
       <Link>InternalUtilities\ISetExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePair.cs">
-      <Link>InternalUtilities\KeyValuePair.cs</Link>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs">
+      <Link>InternalUtilities\KeyValuePairUtil.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\MultiDictionary.cs">
       <Link>InternalUtilities\MultiDictionary.cs</Link>
@@ -242,6 +242,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Desktop" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
@@ -266,6 +267,7 @@
     <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding.Tests" />
     <InternalsVisibleToMonodevelop Include="Xamarin.Ide" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
@@ -278,6 +280,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
@@ -326,7 +329,6 @@
     <PackageReference Include="System.Diagnostics.Contracts" Version="$(SystemDiagnosticsContractsVersion)" />
     <PackageReference Include="System.Linq.Parallel" Version="$(SystemLinqParallelVersion)" />
     <PackageReference Include="System.ObjectModel" Version="$(SystemObjectModelVersion)" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
     <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
   </ItemGroup>

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
                 var asyncListener = new AsynchronousOperationListener();
 
-                WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
+                WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 
                 var notificationService = workspace.GetService<IForegroundNotificationService>();
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         {
             using (var workspace = TestWorkspace.CreateCSharp("class Program {\r\n\r\n}"))
             {
-                WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
+                WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
 
                 var tagProvider = new VisualStudio14StructureTaggerProvider(
                     workspace.GetService<IForegroundNotificationService>(),
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                     }
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 

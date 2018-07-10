@@ -205,8 +205,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 allSymbols = skipSymbolInfoLookup
                     ? ImmutableArray<ISymbol>.Empty
                     : semanticFacts
-                        .GetSymbolInfo(semanticModel, bindableParent, token, cancellationToken)
-                        .GetBestOrAllSymbols()
+                        .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
                         .WhereAsArray(s => !s.Equals(declaredSymbol))
                         .SelectAsArray(s => MapSymbol(s, type));
             }

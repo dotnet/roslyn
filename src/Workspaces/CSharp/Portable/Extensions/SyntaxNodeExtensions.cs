@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(
-            this SyntaxNode node, SourceText sourceText = null, 
+            this SyntaxNode node, SourceText sourceText = null,
             bool includePreviousTokenTrailingTriviaOnlyIfOnSameLine = false)
             => node.GetFirstToken().GetAllPrecedingTriviaToPreviousToken(
                 sourceText, includePreviousTokenTrailingTriviaOnlyIfOnSameLine);
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// the previous token's trailing trivia and this token's leading trivia).
         /// </summary>
         public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(
-            this SyntaxToken token, SourceText sourceText = null, 
+            this SyntaxToken token, SourceText sourceText = null,
             bool includePreviousTokenTrailingTriviaOnlyIfOnSameLine = false)
         {
             var prevToken = token.GetPreviousToken(includeSkipped: true);
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return token.LeadingTrivia;
             }
 
-            if (includePreviousTokenTrailingTriviaOnlyIfOnSameLine && 
+            if (includePreviousTokenTrailingTriviaOnlyIfOnSameLine &&
                 !sourceText.AreOnSameLine(prevToken, token))
             {
                 return token.LeadingTrivia;
@@ -284,6 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                     return true;
@@ -745,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static StatementSyntax GetEmbeddedStatement(this SyntaxNode node)
         {
             switch (node)
-            { 
+            {
                 case DoStatementSyntax n: return n.Statement;
                 case ElseClauseSyntax n: return n.Statement;
                 case FixedStatementSyntax n: return n.Statement;

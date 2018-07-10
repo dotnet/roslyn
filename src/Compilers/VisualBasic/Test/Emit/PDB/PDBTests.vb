@@ -189,7 +189,7 @@ End Class
 </compilation>
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
@@ -450,7 +450,7 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyPdb("C..ctor",
 <symbols>
     <files>
@@ -509,7 +509,7 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyPdb("C..ctor",
 <symbols>
     <files>
@@ -3820,7 +3820,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
 
             compilation.VerifyPdb("C..ctor",
 <symbols>
@@ -3980,7 +3980,7 @@ End Class
 </compilation>
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
@@ -4293,11 +4293,11 @@ End Class
 </compilation>
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(
                 OutputKind.WindowsApplication,
-                KeyValuePair.Create(Of String, Object)("_MyType", "WindowsForms"),
-                KeyValuePair.Create(Of String, Object)("Config", "Debug"),
-                KeyValuePair.Create(Of String, Object)("DEBUG", -1),
-                KeyValuePair.Create(Of String, Object)("TRACE", -1),
-                KeyValuePair.Create(Of String, Object)("PLATFORM", "AnyCPU"))
+                KeyValuePairUtil.Create(Of String, Object)("_MyType", "WindowsForms"),
+                KeyValuePairUtil.Create(Of String, Object)("Config", "Debug"),
+                KeyValuePairUtil.Create(Of String, Object)("DEBUG", -1),
+                KeyValuePairUtil.Create(Of String, Object)("TRACE", -1),
+                KeyValuePairUtil.Create(Of String, Object)("PLATFORM", "AnyCPU"))
 
             Dim parseOptions As VisualBasicParseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(
@@ -4609,7 +4609,7 @@ End Class"
 
                 Assert.False(result.Success)
                 ' // error BC2032: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                result.Diagnostics.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("test\\?.pdb").WithLocation(1, 1))
+                result.Diagnostics.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1))
             End Using
         End Sub
     End Class

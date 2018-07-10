@@ -201,14 +201,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return null;
         }
 
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <remarks>
         /// The corresponding native code is in EEUserStringBuilder::ErrTryAppendConstantEnum.
         /// The corresponding roslyn code is in 
         /// <see cref="M:Microsoft.CodeAnalysis.SymbolDisplay.AbstractSymbolDisplayVisitor`1.AddEnumConstantValue(Microsoft.CodeAnalysis.INamedTypeSymbol, System.Object, System.Boolean)"/>.
         /// NOTE: no curlies for enum values.
         /// </remarks>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
         private string GetEnumDisplayString(Type lmrType, DkmClrValue value, ObjectDisplayOptions options, bool includeTypeName, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(lmrType.IsEnum);

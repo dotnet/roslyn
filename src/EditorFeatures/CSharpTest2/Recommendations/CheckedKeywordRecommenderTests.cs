@@ -104,5 +104,12 @@ class C
     {
         var c = new C { x = 2, y = 3, $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$"));
+        }
     }
 }

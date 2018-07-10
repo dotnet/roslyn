@@ -121,22 +121,22 @@
       </trans-unit>
       <trans-unit id="MapSourceRoots.ContainsDuplicate">
         <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
-        <target state="new">{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</target>
+        <target state="translated">{0} obsahuje duplicitní položky {1} s konfliktními metadaty {2}: {3} a {4}</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
         <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
-        <target state="new">{0} paths are required to end with a slash or backslash: '{1}'</target>
+        <target state="translated">Cesty {0} musí končit lomítkem nebo zpětným lomítkem: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
         <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
-        <target state="new">{0} items must include at least one top-level (not nested) item when {1} is true</target>
+        <target state="translated">Položky {0} musí zahrnovat nejméně jednu položku nejvyšší úrovně (nevnořenou), pokud {1} má hodnotu true.</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
         <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
-        <target state="new">The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</target>
+        <target state="translated">Hodnota {0} nebyla v položkách {1} nalezena nebo odpovídající položka není zdrojový kořen nejvyšší úrovně: {2}</target>
         <note />
       </trans-unit>
     </body>

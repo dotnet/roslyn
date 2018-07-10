@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
                 workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
 
-                WpfTestCase.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
+                WpfTestRunner.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
                 Dim highlightingService = workspace.GetService(Of IHighlightingService)()
                 Dim tagProducer = New HighlighterViewTaggerProvider(

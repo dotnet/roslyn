@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly bool _isReadonly;
             private readonly bool _isConstant;
             private readonly RefKind _refKind;
-            private readonly SemanticDocument _document;
+            private readonly SemanticDocument _semanticDocument;
             private readonly string _equivalenceKey;
 
             public GenerateVariableCodeAction(
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 RefKind refKind)
             {
                 _service = service;
-                _document = document;
+                _semanticDocument = document;
                 _state = state;
                 _generateProperty = generateProperty;
                 _isReadonly = isReadonly;
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var solution = _document.Project.Solution;
-                var syntaxTree = _document.SyntaxTree;
+                var solution = _semanticDocument.Project.Solution;
+                var syntaxTree = _semanticDocument.SyntaxTree;
                 var generateUnsafe = _state.TypeMemberType.IsUnsafe() &&
                                      !_state.IsContainedInUnsafeType;
 
@@ -109,10 +109,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private ImmutableArray<SyntaxNode> GenerateStatements(
                 CancellationToken cancellationToken)
             {
-                var syntaxFactory = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
+                var syntaxFactory = _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
 
                 var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(
-                    syntaxFactory, this._document, "System.NotImplementedException", cancellationToken);
+                    syntaxFactory, this._semanticDocument, "System.NotImplementedException", cancellationToken);
 
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                     ? ImmutableArray.Create(throwStatement)
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // Otherwise, figure out what accessibility modifier to use and optionally mark
                 // it as static.
-                var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsAttributeNamedArgumentIdentifier(state.SimpleNameOrMemberAccessExpressionOpt))
                 {
                     return Accessibility.Public;

@@ -9,8 +9,9 @@
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <AssemblyName>Microsoft.Build.Tasks.CodeAnalysis</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
-    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
+    <NoWarn>$(NoWarn);CA1819</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -69,8 +70,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildFixedVersion)" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreFixedVersion)" />
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" />
-    <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+    <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />

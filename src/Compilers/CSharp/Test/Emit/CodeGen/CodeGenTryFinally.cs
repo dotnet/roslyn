@@ -51,13 +51,116 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   .maxstack  0
   IL_0000:  ret
 }");
-            // the nop below is to work around a verifier bug.
-            // See DevDiv 563799.
             compilation.VerifyIL("C.EmptyTryFinallyInFinally",
 @"{
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
+}");
+        }
+
+        [Theory, WorkItem(4729, "https://github.com/dotnet/roslyn/issues/4729")]
+        [InlineData("")]
+        [InlineData(";")]
+        public void NopInTryCatchFinally(string doNothingStatements)
+        {
+            var source =
+$@"class C
+{{
+    static void M1()
+    {{
+        try {{ {doNothingStatements} }}
+        catch (System.Exception) {{ {doNothingStatements} }}
+        finally {{ {doNothingStatements} }}
+    }}
+    static void M2()
+    {{
+        try {{
+            try {{ {doNothingStatements} }}
+            catch (System.Exception) {{ {doNothingStatements} }}
+            finally {{ {doNothingStatements} }}
+        }}
+        catch (System.Exception) {{
+            try {{ {doNothingStatements} }}
+            catch (System.Exception) {{ {doNothingStatements} }}
+            finally {{ {doNothingStatements} }}
+        }}
+        finally {{
+            try {{ {doNothingStatements} }}
+            catch (System.Exception) {{ {doNothingStatements} }}
+            finally {{ {doNothingStatements} }}
+        }}
+    }}
+    static void M3()
+    {{
+        try {{ System.Console.WriteLine(1); }}
+        catch (System.Exception) {{ {doNothingStatements} }}
+        finally {{ {doNothingStatements} }}
+    }}
+    static void M4()
+    {{
+        try {{ {doNothingStatements} }}
+        catch (System.Exception) {{ System.Console.WriteLine(1); }}
+        finally {{ {doNothingStatements} }}
+    }}
+    static void M5()
+    {{
+        try {{ {doNothingStatements} }}
+        catch (System.Exception) {{ {doNothingStatements} }}
+        finally {{ System.Console.WriteLine(1); }}
+    }}
+}}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.M1",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            compilation.VerifyIL("C.M2",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            compilation.VerifyIL("C.M3",
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  call       ""void System.Console.WriteLine(int)""
+    IL_0006:  leave.s    IL_000b
+  }
+  catch System.Exception
+  {
+    IL_0008:  pop
+    IL_0009:  leave.s    IL_000b
+  }
+  IL_000b:  ret
+}");
+            compilation.VerifyIL("C.M4",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            compilation.VerifyIL("C.M5",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  leave.s    IL_0009
+  }
+  finally
+  {
+    IL_0002:  ldc.i4.1
+    IL_0003:  call       ""void System.Console.WriteLine(int)""
+    IL_0008:  endfinally
+  }
+  IL_0009:  ret
 }");
         }
 

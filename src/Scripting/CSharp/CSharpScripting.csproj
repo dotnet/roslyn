@@ -51,6 +51,5 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
-    <PackageReference Include="System.Dynamic.Runtime" Version="$(SystemDynamicRuntimeVersion)" />
   </ItemGroup>
 </Project>

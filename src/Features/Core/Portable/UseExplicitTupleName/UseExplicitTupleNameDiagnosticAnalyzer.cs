@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             }
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
-            var severity = option.Notification.Value;
-            if (severity == DiagnosticSeverity.Hidden)
+            var severity = option.Notification.Severity;
+            if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) >= ReportDiagnostic.Hidden)
             {
                 return;
             }
@@ -62,9 +62,11 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                         {
                             var properties = ImmutableDictionary<string, string>.Empty.Add(
                                 nameof(ElementName), namedField.Name);
-                            context.ReportDiagnostic(Diagnostic.Create(
-                                GetDescriptorWithSeverity(severity),
+                            context.ReportDiagnostic(DiagnosticHelper.Create(
+                                Descriptor,
                                 nameNode.GetLocation(),
+                                severity,
+                                additionalLocations: null,
                                 properties));
                         }
                     }

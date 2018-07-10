@@ -36,7 +36,7 @@ class 123 { }
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                WpfTestCase.RequireWpfFact("This test uses IForegroundNotificationService")
+                WpfTestRunner.RequireWpfFact($"This test uses {NameOf(IForegroundNotificationService)}")
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
                 Dim provider = New DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)

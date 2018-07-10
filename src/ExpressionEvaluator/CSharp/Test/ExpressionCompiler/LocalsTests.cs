@@ -3420,7 +3420,7 @@ class C
 }
 ";
             var libRef = CreateCompilation(libSource).EmitToImageReference();
-            var comp = CreateCompilation(source, new[] { SystemRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef }, runtime =>
             {
@@ -3575,7 +3575,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
             string typeName;
@@ -3671,7 +3671,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
             string typeName;
@@ -3743,7 +3743,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
             string typeName;

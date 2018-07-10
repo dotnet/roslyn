@@ -179,6 +179,7 @@
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
+                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
@@ -215,7 +216,7 @@
                 case ErrorCode.FTL_DebugEmitFailure:
                 case ErrorCode.FTL_BadCodepage:
                 case ErrorCode.FTL_InvalidTarget:
-                case ErrorCode.FTL_InputFileNameTooLong:
+                case ErrorCode.FTL_InvalidInputFileName:
                 case ErrorCode.FTL_OutputFileExists:
                 case ErrorCode.FTL_BadChecksumAlgorithm:
                     return true;

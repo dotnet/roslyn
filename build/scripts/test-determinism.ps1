@@ -29,7 +29,7 @@ function Run-Build([string]$rootDir, [switch]$restore = $false, [string]$logFile
             Restore-Project $dotnet "Roslyn.sln"
         }
 
-        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false Roslyn.sln"
+        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false /p:DeployExtension=false Roslyn.sln"
         if ($logFile -ne $null) {
             $logFile = Join-Path $binariesDir $logFile
             $args += " /bl:$logFile"
@@ -191,6 +191,10 @@ function Run-Test() {
     $altRootDir = Join-Path "$repoDir\Binaries" "q"
     Remove-Item -re -fo $altRootDir -ErrorAction SilentlyContinue
     & robocopy $repoDir $altRootDir /E /XD $binariesDir /XD ".git" /njh /njs /ndl /nc /ns /np /nfl
+
+    # Symlink the .git directory to make SourceLink think Binaries/q is the repo root:
+    & cmd /c mklink /d (Join-Path $altRootDir ".git") (Join-Path $repoDir ".git")
+
     Test-Build -rootDir $altRootDir -dataMap $dataMap -logFile "test2.binlog" -restore
 }
 

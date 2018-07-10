@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         _fileChangeService.AdviseFileChange(_filePath, FileChangeFlags, this, out var newCookie));
                     return newCookie;
                 }
-                catch (Exception e) when (ShouldTrapException(e))
+                catch (Exception e) when (ReportException(e))
                 {
                     return null;
                 }
@@ -108,25 +108,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private static bool ShouldTrapException(Exception e)
+        private static bool ReportException(Exception e)
         {
-            if (e is FileNotFoundException)
+            // If we got a PathTooLongException there's really nothing we can do about it; we will fail to read the file later which is fine
+            if (!(e is PathTooLongException))
             {
-                // The IVsFileChange implementation shouldn't ever be throwing exceptions like this, but it's a
-                // transient file system issue (perhaps the file being deleted while we're changing subscriptions)
-                // and so there's nothing better to do. We'll still non-fatal to track the rate this is happening
                 return FatalError.ReportWithoutCrash(e);
             }
-            else if (e is PathTooLongException)
-            {
-                // Nothing better we can do. We won't be able to open this file either, and thus we'll do our usual
-                // reporting of unopenable/missing files to the output window as usual.
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+
+            // We'll always capture all exceptions regardless. If we don't, then the exception is captured by our lazy and will be potentially rethrown from
+            // StopFileChangeListening or Dispose which causes all sorts of downstream problems.
+            return true;
         }
 
         public void StopFileChangeListening()
@@ -155,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     Marshal.ThrowExceptionForHR(
                         _fileChangeService.UnadviseFileChange(fileChangeCookie.Value));
                 }
-                catch (Exception e) when (ShouldTrapException(e))
+                catch (Exception e) when (ReportException(e))
                 {
                 }
             }

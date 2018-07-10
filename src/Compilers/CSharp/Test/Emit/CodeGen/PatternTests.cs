@@ -303,7 +303,7 @@ class Program
         System.Console.WriteLine(null != (x as Derived));
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True
@@ -366,6 +366,160 @@ True";
   IL_0057:  call       ""void System.Console.WriteLine(bool)""
   IL_005c:  nop
   IL_005d:  ret
+}");
+        }
+
+        [Fact, WorkItem(26387, "https://github.com/dotnet/roslyn/issues/26387")]
+        public void ValueTypeArgument01()
+        {
+            var source =
+@"using System;
+
+class TestHelper
+{
+    static void Main()
+    {
+        Console.WriteLine(IsValueTypeT0(new S()));
+        Console.WriteLine(IsValueTypeT1(new S()));
+        Console.WriteLine(IsValueTypeT2(new S()));
+    }
+
+    static bool IsValueTypeT0<T>(T result)
+    {
+        return result is T;
+    }
+    static bool IsValueTypeT1<T>(T result)
+    {
+        return result is T v;
+    }
+    static bool IsValueTypeT2<T>(T result)
+    {
+        return result is T _;
+    }
+}
+
+struct S { }
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True
+True
+True";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("TestHelper.IsValueTypeT0<T>(T)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T""
+  IL_0007:  ldnull
+  IL_0008:  cgt.un
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}");
+            compVerifier.VerifyIL("TestHelper.IsValueTypeT1<T>(T)",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (T V_0, //v
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  box        ""T""
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  stloc.1
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.1
+  IL_0010:  ret
+}");
+            compVerifier.VerifyIL("TestHelper.IsValueTypeT2<T>(T)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T""
+  IL_0007:  ldnull
+  IL_0008:  cgt.un
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}");
+        }
+
+        [Fact, WorkItem(26387, "https://github.com/dotnet/roslyn/issues/26387")]
+        public void ValueTypeArgument02()
+        {
+            var source =
+@"namespace ConsoleApp1
+{
+    public class TestHelper
+    {
+        public static void Main()
+        {
+            IsValueTypeT(new Result<(Cls, IInt)>((new Cls(), new Int())));
+            System.Console.WriteLine(""done"");
+        }
+
+        public static void IsValueTypeT<T>(Result<T> result)
+        {
+            if (!(result.Value is T v))
+                throw new NotPossibleException();
+        }
+    }
+
+    public class Result<T>
+    {
+        public T Value { get; }
+
+        public Result(T value)
+        {
+            Value = value;
+        }
+    }
+
+    public class Cls { }
+    public interface IInt { }
+
+    public class Int : IInt { }
+
+    public class NotPossibleException : System.Exception { }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"done";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("ConsoleApp1.TestHelper.IsValueTypeT<T>(ConsoleApp1.Result<T>)",
+@"{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (T V_0, //v
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  callvirt   ""T ConsoleApp1.Result<T>.Value.get""
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  box        ""T""
+  IL_000e:  ldnull
+  IL_000f:  ceq
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  brfalse.s  IL_001b
+  IL_0015:  newobj     ""ConsoleApp1.NotPossibleException..ctor()""
+  IL_001a:  throw
+  IL_001b:  ret
 }");
         }
     }

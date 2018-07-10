@@ -1268,8 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_DateTime:
                     return true;
                 default:
-                    var ont = t.OriginalDefinition as TypeSymbol;
-                    return ont?.SpecialType == SpecialType.System_Nullable_T;
+                    return t.IsNullableType();
             }
         }
 

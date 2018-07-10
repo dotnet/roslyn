@@ -344,9 +344,9 @@ using Bar;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedReadOnly()
+        public async Task TestAfterNestedReadOnly()
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyKeywordAsync(@"class C {
     readonly $$");
         }
 

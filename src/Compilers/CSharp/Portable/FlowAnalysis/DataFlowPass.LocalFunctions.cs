@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
-            var oldMethodOrLambda = this.currentMethodOrLambda;
+            var oldSymbol = this.currentSymbol;
             var localFuncSymbol = localFunc.Symbol;
-            this.currentMethodOrLambda = localFuncSymbol;
+            this.currentSymbol = localFuncSymbol;
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
@@ -205,14 +205,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             this.State = savedState;
-            this.currentMethodOrLambda = oldMethodOrLambda;
+            this.currentSymbol = oldSymbol;
 
             return null;
         }
 
         private void RecordReadInLocalFunction(int slot)
         {
-            var localFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
+            var localFunc = GetNearestLocalFunctionOpt(currentSymbol);
 
             Debug.Assert(localFunc != null);
 
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // A variable is captured in a local function iff its
             // container is higher in the tree than the nearest
             // local function
-            var nearestLocalFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
+            var nearestLocalFunc = GetNearestLocalFunctionOpt(currentSymbol);
 
             return !(nearestLocalFunc is null) && IsCaptured(rootSymbol, nearestLocalFunc);
         }

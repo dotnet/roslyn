@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -16,7 +18,8 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
-using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
@@ -87,34 +90,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return _host;
-            }, cancellationToken);
-        }
-
-        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async token =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
-                {
-                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
-                }
-            }, cancellationToken);
-        }
-
-        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async token =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, token))
-                {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, token).ConfigureAwait(false);
-
-                    foreach (var asset in assets)
-                    {
-                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
-                    }
-                }
             }, cancellationToken);
         }
 
@@ -284,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Set LoadLibrary search directory to %VSINSTALLDIR%\Common7\IDE so that the compiler
                 // can P/Invoke to Microsoft.DiaSymReader.Native when emitting Windows PDBs.
                 //
-                // The AppDomain base directory is specified in VisualStudio\Setup.Next\codeAnalysisService.servicehub.service.json
+                // The AppDomain base directory is specified in VisualStudio\Setup\codeAnalysisService.servicehub.service.json
                 // to be the directory where devenv.exe is -- which is exactly the directory we need to add to the search paths:
                 //
                 //   "appBasePath": "%VSAPPIDDIR%"
@@ -305,6 +280,132 @@ namespace Microsoft.CodeAnalysis.Remote
                     Environment.SetEnvironmentVariable("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", loadDir);
                 }
             }
+        }
+
+        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
+                {
+                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
+                }
+            }, cancellationToken);
+        }
+
+        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, token))
+                {
+                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, token).ConfigureAwait(false);
+
+                    foreach (var asset in assets)
+                    {
+                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
+                    }
+                }
+            }, cancellationToken);
+        }
+
+        public Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, Checksum.GetChecksumLogInfo, baseTextChecksum, token))
+                {
+                    var service = SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>();
+                    if (service == null)
+                    {
+                        return;
+                    }
+
+                    var text = await TryGetSourceTextAsync().ConfigureAwait(false);
+                    if (text == null)
+                    {
+                        // it won't bring in base text if it is not there already.
+                        // text needed will be pulled in when there is request
+                        return;
+                    }
+
+                    var newText = new WrappedText(text.WithChanges(textChanges));
+                    var newChecksum = service.CreateChecksum(newText, token);
+
+                    // save new text in the cache so that when asked, the data is most likely already there
+                    //
+                    // this cache is very short live. and new text created above is ChangedText which share
+                    // text data with original text except the changes.
+                    // so memory wise, this doesn't put too much pressure on the cache. it will not duplicates
+                    // same text multiple times.
+                    //
+                    // also, once the changes are picked up and put into Workspace, normal Workspace 
+                    // caching logic will take care of the text
+                    AssetStorage.TryAddAsset(newChecksum, newText);
+                }
+
+                async Task<SourceText> TryGetSourceTextAsync()
+                {
+                    // check the cheap and fast one first.
+                    // see if the cache has the source text
+                    if (AssetStorage.TryGetAsset<SourceText>(baseTextChecksum, out var sourceText))
+                    {
+                        return sourceText;
+                    }
+
+                    // do slower one
+                    // check whether existing solution has it
+                    var document = SolutionService.PrimaryWorkspace.CurrentSolution.GetDocument(documentId);
+                    if (document == null)
+                    {
+                        return null;
+                    }
+
+                    // check checksum whether it is there.
+                    // since we lazily synchronize whole solution (SynchronizePrimaryWorkspaceAsync) when things are idle,
+                    // soon or later this will get hit even if text changes got out of sync due to issues in VS side
+                    // such as file is first opened and there is no SourceText in memory yet.
+                    if (!document.State.TryGetStateChecksums(out var state) ||
+                        !state.Text.Equals(baseTextChecksum))
+                    {
+                        return null;
+                    }
+
+                    return await document.GetTextAsync(token).ConfigureAwait(false);
+                }
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// workaround until (https://github.com/dotnet/roslyn/issues/26305) is fixed.
+        /// 
+        /// this will always return whole file as changed.
+        /// </summary>
+        private class WrappedText : SourceText
+        {
+            private readonly SourceText _text;
+
+            public WrappedText(SourceText text)
+            {
+                _text = text;
+            }
+
+            public override char this[int position] => _text[position];
+            public override Encoding Encoding => _text.Encoding;
+            public override int Length => _text.Length;
+            public override SourceText GetSubText(TextSpan span) => _text.GetSubText(span);
+            public override SourceText WithChanges(IEnumerable<TextChange> changes) => _text.WithChanges(changes);
+            public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
+                => _text.Write(writer, span, cancellationToken);
+            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+                => _text.CopyTo(sourceIndex, destination, destinationIndex, count);
+            public override IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)
+                => ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), _text.Length));
+            public override int GetHashCode() => _text.GetHashCode();
+            public override bool Equals(object obj) => _text.Equals(obj);
+            public override string ToString() => _text.ToString();
+            public override string ToString(TextSpan span) => _text.ToString(span);
         }
     }
 }

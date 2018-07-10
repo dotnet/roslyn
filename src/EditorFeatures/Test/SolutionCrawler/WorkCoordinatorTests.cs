@@ -2,11 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -807,10 +810,19 @@ End Class";
 
                 // set up events
                 bool started = false;
-                reporter.Started += (o, a) => { started = true; };
-
                 bool stopped = false;
-                reporter.Stopped += (o, a) => { stopped = true; };
+
+                reporter.ProgressChanged += (o, s) =>
+                {
+                    if (s)
+                    {
+                        started = true;
+                    }
+                    else
+                    {
+                        stopped = true;
+                    }
+                };
 
                 var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 registrationService.Register(workspace);
@@ -839,7 +851,8 @@ End Class";
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25931")]
+        [Fact]
+        [WorkItem(26244, "https://github.com/dotnet/roslyn/issues/26244")]
         public async Task FileFromSameProjectTogetherTest()
         {
             var projectId1 = ProjectId.CreateNewId();
@@ -871,9 +884,53 @@ End Class";
 
                 await WaitWaiterAsync(workspace.ExportProvider);
 
-                // mutate solution
-                workspace.OnSolutionAdded(solution);
+                // we want to test order items processed by solution crawler.
+                // but since everything async, lazy and cancellable, order is not 100% deterministic. an item might 
+                // start to be processed, and get cancelled due to newly enqueued item requiring current work to be re-processed 
+                // (ex, new file being added).
+                // this behavior is expected in real world, but it makes testing hard. so to make ordering deterministic
+                // here we first block solution crawler from processing any item using global operation.
+                // and then make sure all delayed work item enqueue to be done through waiters. work item enqueue is async
+                // and delayed since one of responsibility of solution cralwer is aggregating workspace events to fewer
+                // work items.
+                // once we are sure everything is stablized, we let solution crawler to process by releasing global operation.
+                // what this test is interested in is the order solution crawler process the pending works. so this should
+                // let the test not care about cancellation or work not enqueued yet.
 
+                // block solution cralwer from processing.
+                var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
+                using (var operation = globalOperation.Start("Block SolutionCrawler"))
+                {
+                    // make sure global operaiton is actually started
+                    // otherwise, solution crawler might processed event we are later waiting for
+                    var operationWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.GlobalOperation);
+                    await operationWaiter.CreateWaitTask();
+
+                    // mutate solution
+                    workspace.OnSolutionAdded(solution);
+
+                    // wait for workspace events to be all processed
+                    var workspaceWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.Workspace);
+                    await workspaceWaiter.CreateWaitTask();
+
+                    // now wait for semantic processor to finish
+                    var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
+
+                    // first, wait for first work to be queued.
+                    //
+                    // since asyncToken doesn't distinguish whether (1) certain event is happened but all processed or (2) it never happened yet,
+                    // to check (1), we must wait for first item, and then wait for all items to be processed.
+                    await crawlerListener.WaitUntilConditionIsMetAsync(
+                        pendingTokens => pendingTokens.Any(token => token.Tag == (object)SolutionCrawlerRegistrationService.EnqueueItem));
+
+                    // and then wait them to be processed
+                    await crawlerListener.WaitUntilConditionIsMetAsync(pendingTokens => pendingTokens.Where(token => token.Tag == workspace).IsEmpty());
+
+                    // let analyzer to process
+                    operation.Done();
+                }
+
+                // wait analyzers to finish process
                 await WaitAsync(service, workspace);
 
                 Assert.Equal(1, worker.DocumentIds.Take(5).Select(d => d.ProjectId).Distinct().Count());
@@ -1114,7 +1171,7 @@ End Class";
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.ProjectIds.Add(project.Id);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -1124,14 +1181,14 @@ End Class";
                     this.DocumentIds.Add(document.Id);
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.SyntaxDocumentIds.Add(document.Id);
                 Process(document.Id, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveDocument(DocumentId documentId)
@@ -1171,22 +1228,22 @@ End Class";
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
             #endregion
         }
@@ -1198,17 +1255,17 @@ End Class";
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.DocumentIds.Add(document.Id);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             #region unused 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e) => false;
-            public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public void RemoveDocument(DocumentId documentId) { }
             public void RemoveProject(ProjectId projectId) { }
             #endregion

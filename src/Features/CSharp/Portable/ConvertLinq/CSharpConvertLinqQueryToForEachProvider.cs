@@ -509,9 +509,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 ExpressionSyntax expression,
                 bool generateTypeFromExpression)
             {
-                var typeSyntax = generateTypeFromExpression ?
-                     _semanticModel.GetTypeInfo(expression, _cancellationToken).ConvertedType.GenerateTypeSyntax() :
-                     VarNameIdentifier;
+                var typeSyntax = generateTypeFromExpression
+                    ? _semanticModel.GetTypeInfo(expression, _cancellationToken).ConvertedType.GenerateTypeSyntax()
+                    : VarNameIdentifier;
                 return SyntaxFactory.LocalDeclarationStatement(
                             SyntaxFactory.VariableDeclaration(
                                 typeSyntax,

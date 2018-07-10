@@ -827,7 +827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ElseIf value = "?" Then
                                 displayLangVersions = True
                             Else
-                                If Not value.TryParse(languageVersion) Then
+                                If Not TryParse(value, languageVersion) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End If
                             End If
@@ -1625,8 +1625,8 @@ lVbRuntimePlus:
                 Return Nothing
             End If
 
-            If fullPath Is Nothing OrElse Not PathUtilities.IsValidFilePath(fileName) Then
-                AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, filePath)
+            If Not PathUtilities.IsValidFilePath(fullPath) Then
+                AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, filePath)
                 Return Nothing
             End If
 
@@ -2208,7 +2208,7 @@ lVbRuntimePlus:
                     outputFileName = simpleName & kind.GetDefaultExtension()
 
                     If simpleName.Length = 0 AndAlso Not kind.IsNetModule() Then
-                        AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, outputFileName)
+                        AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, outputFileName)
                         simpleName = Nothing
                         outputFileName = Nothing
                     End If
@@ -2235,7 +2235,7 @@ lVbRuntimePlus:
                         ' /out:".exe"
                         ' Dev11 emits assembly with an empty name, we don't
                         If simpleName.Length = 0 Then
-                            AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, outputFileName)
+                            AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, outputFileName)
                             simpleName = Nothing
                             outputFileName = Nothing
                         End If

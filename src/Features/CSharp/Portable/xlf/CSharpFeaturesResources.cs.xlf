@@ -12,11 +12,6 @@
         <target state="translated">Zjistily se konflikty.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_if_statement">
-        <source>Invert if statement</source>
-        <target state="translated">Obrátit příkaz If</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">Zjednodušit výraz lambda</target>
@@ -30,6 +25,11 @@
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
         <target state="translated">Odebrat nepotřebné direktivy using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="new">'if' statement can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -70,16 +70,6 @@
       <trans-unit id="Autoselect_disabled_due_to_potential_range_variable_declaration">
         <source>Autoselect disabled due to potential range variable declaration.</source>
         <target state="translated">Automatický výběr je zakázaný kvůli možné deklaraci proměnné rozsahu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Odebrat nepotřebné přetypování</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">Přetypování je redundantní.</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
@@ -624,22 +614,27 @@
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
-        <target state="new">Add parentheses</target>
+        <target state="translated">Přidat závorky</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch">
         <source>Convert to 'switch'</source>
-        <target state="new">Convert to 'switch'</target>
+        <target state="translated">Převést na switch</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
-        <target state="new">Convert to 'foreach'</target>
+        <target state="translated">Převést na foreach</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_for">
         <source>Convert to 'for'</source>
-        <target state="new">Convert to 'for'</target>
+        <target state="translated">Převést na for</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_if">
+        <source>Invert if</source>
+        <target state="new">Invert if</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">

@@ -40,6 +40,7 @@
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
 
     <contentFiles>
       <files include="**/*.targets" buildAction="None" copyToOutput="true" />
@@ -55,5 +56,9 @@
     <file src="Dlls\MSBuildTask\net46\Microsoft.CSharp.Core.targets" target="contentFiles\any\any" />
     <file src="Dlls\MSBuildTask\net46\Microsoft.VisualBasic.Core.targets" target="contentFiles\any\any" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\MSBuildTask\netcoreapp2.0\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" target="lib\netcoreapp2.0" />
+    <file src="Dlls\MSBuildTask\net46\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" target="lib\net46" />
   </files>
 </package>

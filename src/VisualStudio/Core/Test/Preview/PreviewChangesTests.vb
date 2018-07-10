@@ -144,7 +144,7 @@ Class C
                     workspace.CurrentSolution,
                     componentModel)
 
-                WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
+                WpfTestRunner.RequireWpfFact($"Test explicitly creates an {NameOf(IWpfTextView)}")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
                 Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
                     previewEngine.SetTextView(disposableView.TextView)
@@ -210,7 +210,7 @@ Class C
                     workspace.CurrentSolution,
                     componentModel)
 
-                WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
+                WpfTestRunner.RequireWpfFact($"Test explicitly creates an {NameOf(IWpfTextView)}")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
                 Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
                     previewEngine.SetTextView(disposableView.TextView)

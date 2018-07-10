@@ -17,29 +17,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
-    <Reference Include="$(NuGetPackageRoot)\system.runtime.loader\$(SystemRuntimeLoaderVersion)\ref\netstandard1.5\System.Runtime.Loader.dll">
-      <Private>False</Private>
-    </Reference>
-    <PackageReference Include="System.AppContext" Version="$(SystemAppContextVersion)" />
-    <PackageReference Include="System.Console" Version="$(SystemConsoleVersion)" />
-    <PackageReference Include="System.Collections" Version="$(SystemCollectionsVersion)" />
-    <PackageReference Include="System.Diagnostics.Debug" Version="$(SystemDiagnosticsDebugVersion)" />
+    <!-- 
+      Workaround for https://github.com/NuGet/Home/issues/1471.
+
+      RoslynTools.LightUp.System.Runtime.Loader distributes System.Runtime.Loader in ref/netstandard1.3 directory,
+      so that it can be referenced in libraries targeting netstandard1.3 once they check that the executing runtime 
+      is .NET Core.
+    -->
+    <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" />
     <PackageReference Include="System.Diagnostics.StackTrace" Version="$(SystemDiagnosticsStackTraceVersion)" />
-    <PackageReference Include="System.Diagnostics.Tools" Version="$(SystemDiagnosticsToolsVersion)" />
-    <PackageReference Include="System.Globalization" Version="$(SystemGlobalizationVersion)" />
-    <PackageReference Include="System.IO" Version="$(SystemIOVersion)" />
-    <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
-    <PackageReference Include="System.Linq" Version="$(SystemLinqVersion)" />
-    <PackageReference Include="System.Linq.Expressions" Version="$(SystemLinqExpressionsVersion)" />
-    <PackageReference Include="System.Reflection" Version="$(SystemReflectionVersion)" />
-    <PackageReference Include="System.Reflection.Extensions" Version="$(SystemReflectionExtensionsVersion)" />
-    <PackageReference Include="System.Resources.ResourceManager" Version="$(SystemResourcesResourceManagerVersion)" />
-    <PackageReference Include="System.Runtime" Version="$(SystemRuntimeVersion)" />
-    <PackageReference Include="System.Runtime.Extensions" Version="$(SystemRuntimeExtensionsVersion)" />
-    <PackageReference Include="System.Runtime.InteropServices" Version="$(SystemRuntimeInteropServicesVersion)" />
-    <PackageReference Include="System.Threading" Version="$(SystemThreadingVersion)" />
-    <PackageReference Include="System.Threading.Tasks" Version="$(SystemThreadingTasksVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">

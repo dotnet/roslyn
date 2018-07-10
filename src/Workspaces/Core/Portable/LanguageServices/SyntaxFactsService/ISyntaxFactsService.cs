@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNullLiteralExpression(SyntaxNode node);
         bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
+        bool IsFalseLiteralExpression(SyntaxNode expression);
+        bool IsTrueLiteralExpression(SyntaxNode expression);
+
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -77,7 +80,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetObjectCreationType(SyntaxNode node);
 
         bool IsBinaryExpression(SyntaxNode node);
-        void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
+        void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
         bool IsCastExpression(SyntaxNode node);
@@ -89,12 +93,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
 
+        bool IsAwaitExpression(SyntaxNode node);
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
         bool IsLogicalAndExpression(SyntaxNode node);
+        bool IsLogicalOrExpression(SyntaxNode node);
         bool IsLogicalNotExpression(SyntaxNode node);
+        bool IsConditionalAnd(SyntaxNode node);
+        bool IsConditionalOr(SyntaxNode node);
+
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
+        SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
@@ -122,8 +132,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         /// <summary>
         /// Returns the expression node the member is being accessed off of.  If <paramref name="allowImplicitTarget"/>
-        /// is <code>false</code>, this will be the node directly to the left of the dot-token.  If <paramref name="allowImplicitTarget"/>
-        /// is <code>true</code>, then this can return another node in the tree that the member will be accessed
+        /// is <see langword="false"/>, this will be the node directly to the left of the dot-token.  If <paramref name="allowImplicitTarget"/>
+        /// is <see langword="true"/>, then this can return another node in the tree that the member will be accessed
         /// off of.  For example, in VB, if you have a member-access-expression of the form ".Length" then this
         /// may return the expression in the surrounding With-statement.
         /// </summary>
@@ -155,6 +165,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
+
+        bool IsParenthesizedExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
+
+        bool IsIfStatement(SyntaxNode node);
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
@@ -255,8 +270,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsAnonymousFunction(SyntaxNode n);
 
-        bool IsLocalFunction(SyntaxNode n);
-
         bool IsInConstantContext(SyntaxNode node);
         bool IsInConstructor(SyntaxNode node);
         bool IsMethodLevelMember(SyntaxNode node);
@@ -279,13 +292,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken FindTokenOnLeftOfPosition(SyntaxNode node, int position, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false);
         SyntaxToken FindTokenOnRightOfPosition(SyntaxNode node, int position, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false);
 
-        SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true);
+        void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
+        SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
         SyntaxNode WalkDownParentheses(SyntaxNode node);
 
         SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false);
 
         SyntaxToken ToIdentifierToken(string name);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
+        SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
         int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
@@ -348,6 +363,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         Location GetDeconstructionReferenceLocation(SyntaxNode node);
 
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
+
+        bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
     }
 
     [Flags]

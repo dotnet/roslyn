@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.ProtectedKeyword,
                 SyntaxKind.SealedKeyword,
                 SyntaxKind.StaticKeyword,
-                SyntaxKind.UnsafeKeyword
+                SyntaxKind.UnsafeKeyword,
+                SyntaxKind.ReadOnlyKeyword,
+                SyntaxKind.RefKeyword
             };
 
         public static readonly ISet<SyntaxKind> AllMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)

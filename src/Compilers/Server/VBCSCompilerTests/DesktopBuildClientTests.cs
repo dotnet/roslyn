@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
-#if NET461
+#if NET46
             [Fact]
             public void TestMutexConstructorException()
             {

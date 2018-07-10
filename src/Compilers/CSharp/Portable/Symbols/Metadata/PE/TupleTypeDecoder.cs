@@ -144,6 +144,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // the type. Bad metadata.
             }
 
+            if (metadataType.HasUseSiteError)
+            {
+                return metadataType;
+            }
+
             // Bad metadata
             return new UnsupportedMetadataTypeSymbol();
         }

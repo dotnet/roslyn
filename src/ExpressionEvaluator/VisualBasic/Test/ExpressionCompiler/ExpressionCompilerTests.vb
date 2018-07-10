@@ -173,6 +173,45 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub GenericWithInterfaceConstraint()
+            Const source = "
+Public Interface I
+    Property Key As String
+End Interface
+
+Class C
+    Public Shared Sub M(Of T As I)(tt As T)
+    End Sub
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(
+                compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    Dim result = context.CompileExpression(expr:="tt.Key", error:=errorMessage, testData:=testData)
+                    Dim methodData = testData.GetMethodData("<>x.<>m0(Of T)(T)")
+                    Dim method = methodData.Method
+                    Assert.Equal(1, method.Parameters.Length)
+                    Dim eeTypeParameterSymbol = DirectCast(method.Parameters(0).Type, EETypeParameterSymbol)
+                    Assert.Equal(1, eeTypeParameterSymbol.ConstraintTypesNoUseSiteDiagnostics.Length)
+                    Assert.Equal("I", eeTypeParameterSymbol.ConstraintTypesNoUseSiteDiagnostics(0).Name)
+
+                    methodData.VerifyIL(
+"{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""Function I.get_Key() As String""
+  IL_000d:  ret
+}")
+                End Sub)
+        End Sub
+
+        <Fact>
         Public Sub EmitError()
             Const source = "
 Class C

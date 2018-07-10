@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 // Use the type inferrer to get the type being initialized.
-                var typeInferenceService = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>();
                 var expectedType = typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
                 return Tuple.Create(expectedType, token.GetLocation());
@@ -177,6 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return base.IsInitializable(member, containingType);
+        }
+
+        protected override string EscapeIdentifier(ISymbol symbol)
+        {
+            return symbol.Name.EscapeIdentifier();
         }
     }
 }

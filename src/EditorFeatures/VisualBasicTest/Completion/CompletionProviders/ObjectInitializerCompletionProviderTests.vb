@@ -435,6 +435,32 @@ End Program"
             Await VerifySendEnterThroughToEditorAsync(code, "bar", expected:=False)
         End Function
 
+        <WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestKeywordsEscaped() As Task
+            Dim text = <a>Class C
+    Public Property [Wend] As Integer
+
+    Public Property [New] As Integer
+
+    Public Property A As Integer
+End Class
+
+
+Class Program
+    Sub Main()
+        Dim c As New C With { .$$ }
+    End Sub
+End Class</a>.Value
+
+            Await VerifyItemExistsAsync(text, "[Wend]")
+            Await VerifyItemExistsAsync(text, "[New]")
+            Await VerifyItemExistsAsync(text, "A")
+
+            Await VerifyItemIsAbsentAsync(text, "Wend")
+            Await VerifyItemIsAbsentAsync(text, "New")
+        End Function
+
         Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New ObjectInitializerCompletionProvider()
         End Function

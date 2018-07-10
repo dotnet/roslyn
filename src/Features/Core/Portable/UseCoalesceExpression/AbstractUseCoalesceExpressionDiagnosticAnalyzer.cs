@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         }
 
         public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
@@ -128,10 +129,12 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 conditionPartToCheck.GetLocation(),
                 whenPartToCheck.GetLocation());
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(option.Notification.Value),
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 conditionalExpression.GetLocation(),
-                locations));
+                option.Notification.Severity,
+                locations,
+                properties: null));
         }
     }
 }

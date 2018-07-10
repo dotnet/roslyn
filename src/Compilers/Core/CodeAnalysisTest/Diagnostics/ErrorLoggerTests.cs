@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var descriptor = new DiagnosticDescriptor("TST", "_TST_", "", "", DiagnosticSeverity.Error, false);
 
                 IEnumerable<Location> additionalLocations = new[] {
-                    Location.Create(@"Relative Additional\Location.cs", span, position),
+                    Location.Create(@"Relative Additional/Location.cs", span, position),
                     Location.Create(@"a:cannot/interpret/as\uri", span, position),
                 };
                 

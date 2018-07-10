@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
@@ -778,6 +779,130 @@ class MyClass
     }
 
     partial struct MyClass { }");
+        }
+
+        [WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInCtor_InParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    MyClass()
+    {
+        (_goo) = 0;
+    }
+}",
+@"class MyClass
+{
+    private readonly int _goo;
+    MyClass()
+    {
+        (_goo) = 0;
+    }
+}");
+        }
+
+        [WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInCtor_QualifiedWithThis_InParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    MyClass()
+    {
+        (this._goo) = 0;
+    }
+}",
+@"class MyClass
+{
+    private readonly int _goo;
+    MyClass()
+    {
+        (this._goo) = 0;
+    }
+}");
+        }
+
+        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInMethod_InDeconstruction()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    [|int i;|]
+    int j;
+
+    void M()
+    {
+        (i, j) = (1, 2);
+    }
+}");
+        }
+
+        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInMethod_InDeconstruction_InParens()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    [|int i;|]
+    int j;
+
+    void M()
+    {
+        ((i, j), j) = ((1, 2), 3);
+    }
+}");
+        }
+
+        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInMethod_InDeconstruction_WithThis_InParens()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    [|int i;|]
+    int j;
+
+    void M()
+    {
+        ((this.i, j), j) = (1, 2);
+    }
+}");
+        }
+
+        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldUsedInTupleExpressionOnRight()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    [|int i;|]
+    int j;
+
+    void M()
+    {
+        (j, j) = (i, i);
+    }
+}",
+@"class C
+{
+    readonly int i;
+    int j;
+
+    void M()
+    {
+        (j, j) = (i, i);
+    }
+}");
         }
     }
 }

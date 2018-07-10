@@ -691,7 +691,7 @@ class Test
     unsafe async static Task M1(ref int* i) { }
 }";
             CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,42): error CS1988: Async methods cannot have ref or out parameters
+                // (6,42): error CS1988: Async methods cannot have ref, in or out parameters
                 //     unsafe async static Task M1(ref int* i)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"),
                 // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -713,7 +713,7 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,42): error CS1988: Async methods cannot have ref or out parameters
+                // (6,42): error CS1988: Async methods cannot have ref, in or out parameters
                 //     unsafe async static Task M1(ref int* i) { }
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"));
         }
@@ -732,9 +732,29 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,34): error CS1988: Async methods cannot have ref or out parameters
+                // (6,34): error CS1988: Async methods cannot have ref, in or out parameters
                 //     async static Task M1(out int i) { }
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"));
+        }
+
+        [Fact]
+        public void InAsyncArgType()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Test
+{
+    async static Task M1(in int i)
+    {
+        await Task.Factory.StartNew(() => { });
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (6,33): error CS1988: Async methods cannot have ref, in or out parameters
+                //     async static Task M1(in int i)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i").WithLocation(6, 33)
+                );
         }
 
         [Fact]
@@ -2437,10 +2457,10 @@ class Test
                 // (41,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Meth(1); //warning CS4014
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(1)"),
-                // (47,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (47,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         test.Prop; //error CS0201
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "test.Prop"),
-                // (48,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (48,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         test[1]; //error CS0201
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "test[1]"),
                 // (44,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -3455,7 +3475,7 @@ class Driver
     { }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,35): error CS1988: Async methods cannot have ref or out parameters
+                // (9,35): error CS1988: Async methods cannot have ref, in or out parameters
                 //     public async void Goo(ref int x)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x"),
                 // (9,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -3697,7 +3717,7 @@ class C
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (11,38): error CS1988: Async methods cannot have ref or out parameters
+                // (11,38): error CS1988: Async methods cannot have ref, in or out parameters
                 //         D d = async delegate(ref int i)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i")
                 );

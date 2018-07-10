@@ -1176,6 +1176,140 @@ unsafe class C
 ");
         }
 
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Static()
+        {
+            CompileAndVerify(CreateCompilation(@"
+using System;
+unsafe class C
+{
+    static int* x;
+
+    static void Main()
+    {
+        fixed (int* y = new int[2])
+        {
+            x = y;
+        }
+
+        PrintSum();
+
+        int* first = &x[0];
+        *first = 5;
+        PrintSum();
+
+        int* second = &x[1];
+        *second = 2;
+        PrintSum();
+    }
+
+    static void PrintSum()
+    {
+        int sum = 0;
+        for (var i = 0; i < 2; i++)
+        {
+            sum += x[i];
+        }
+
+        Console.WriteLine(sum);
+    }
+}", options: TestOptions.UnsafeReleaseExe), verify: Verification.Fails, expectedOutput: @"
+0
+5
+7");
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Instance()
+        {
+            CompileAndVerify(CreateCompilation(@"
+using System;
+unsafe class C
+{
+    int* x;
+
+    static void Main()
+    {
+        new C().Calculate();
+    }
+
+    void Calculate()
+    {
+        fixed (int* y = new int[2])
+        {
+            x = y;
+        }
+
+        PrintSum();
+
+        int* first = &x[0];
+        *first = 5;
+        PrintSum();
+
+        int* second = &x[1];
+        *second = 2;
+        PrintSum();
+    }
+
+    void PrintSum()
+    {
+        int sum = 0;
+        for (var i = 0; i < 2; i++)
+        {
+            sum += x[i];
+        }
+
+        Console.WriteLine(sum);
+    }
+}", options: TestOptions.UnsafeReleaseExe), verify: Verification.Fails, expectedOutput: @"
+0
+5
+7");
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Local()
+        {
+            CompileAndVerify(CreateCompilation(@"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        int* x;
+
+        fixed (int* y = new int[2])
+        {
+            x = y;
+        }
+
+        PrintSum(x);
+
+        int* first = &x[0];
+        *first = 5;
+        PrintSum(x);
+
+        int* second = &x[1];
+        *second = 2;
+        PrintSum(x);
+    }
+
+    static void PrintSum(int* x)
+    {
+        int sum = 0;
+        for (var i = 0; i < 2; i++)
+        {
+            sum += x[i];
+        }
+
+        Console.WriteLine(sum);
+    }
+}", options: TestOptions.UnsafeReleaseExe), verify: Verification.Fails, expectedOutput: @"
+0
+5
+7");
+        }
+
         #endregion Pointer element access tests
 
         #region Fixed statement tests
@@ -4282,7 +4416,7 @@ public static class FixableExt
 
 ";
 
-            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef },options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text,options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -4513,7 +4647,7 @@ static class FixAllExt
 }
 ";
 
-            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef },  options: TestOptions.UnsafeReleaseExe, expectedOutput: @"20", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"20", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Test<T>(T)", @"
 {
@@ -4828,7 +4962,7 @@ static class FixAllExt
     }
 ";
 
-            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
 
             compVerifier.VerifyIL("C.Test<T>(ref T)", @"
 {
@@ -4888,7 +5022,7 @@ public static class FixableExt
 
 ";
 
-            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"23", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"23", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -4966,7 +5100,7 @@ public static class FixableExt
 
 ";
 
-            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -5072,12 +5206,9 @@ public static class FixableExt
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
 
             compVerifier.VerifyDiagnostics(
-                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                // (6,25): error CS8385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
-                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
-                // (6,25): error CS0122: 'FixableExt.GetPinnableReference(Fixable)' is inaccessible due to its protection level
-                //         fixed (int* p = new Fixable(1))
-                Diagnostic(ErrorCode.ERR_BadAccess, "new Fixable(1)").WithArguments("FixableExt.GetPinnableReference(Fixable)").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
                 );
         }
 
@@ -10350,7 +10481,7 @@ unsafe public struct FixedStruct
 {
   // Code size       20 (0x14)
   .maxstack  1
-  .locals init (pinned char*& V_0)
+  .locals init (pinned char& V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""char* FixedStruct.c""
   IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""
@@ -10403,7 +10534,7 @@ unsafe public struct FixedStruct
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  .locals init (pinned char*& V_0)
+  .locals init (pinned char& V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""char* FixedStruct.c""
   IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""

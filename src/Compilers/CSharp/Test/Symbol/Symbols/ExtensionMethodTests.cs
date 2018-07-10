@@ -1133,29 +1133,42 @@ static class S
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
+                //         o.E += o.E;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "o.E").WithArguments("E", "method group").WithLocation(5, 9),
                 // (6,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
+                //         if (o.E != null)
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "o.E != null").WithArguments("!=", "method group", "<null>").WithLocation(6, 13),
                 // (8,15): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
+                //             M(o.E);
                 Diagnostic(ErrorCode.ERR_BadArgType, "o.E").WithArguments("1", "method group", "object").WithLocation(8, 15),
-                // (9, 15): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
+                // (9,15): error CS0119: 'S.E(object)' is a method, which is not valid in the given context
+                //             o.E.ToString();
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(9, 15),
                 // (10,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
+                //             o = !o.E;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!o.E").WithArguments("!", "method group").WithLocation(10, 17),
-                // (12,11): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(12, 11),
-                // (12,18): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(12, 18),
-                // (13,15): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(13, 15),
-                // (15,17): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(15, 17),
-                // (16,15): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(16, 15),
-                // (17,20): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(17, 20),
-                // (19, 11): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(19, 11));
+                // (12,11): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         o.F += o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(12, 11),
+                // (12,18): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         o.F += o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(12, 18),
+                // (13,15): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         if (o.F != null)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(13, 15),
+                // (15,17): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             M(o.F);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(15, 17),
+                // (16,15): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             o.F.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(16, 15),
+                // (17,20): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             o = !o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(17, 20),
+                // (19,11): error CS0119: 'S.E(object)' is a method, which is not valid in the given context
+                //         o.E.F();
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(19, 11)
+            );
         }
 
         [Fact]
@@ -1180,14 +1193,19 @@ static class S
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,11): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(6, 11),
-                // (7,13): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(7, 13),
-                // (8,22): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(8, 22),
-                // (9,15): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(9, 15));
+                // (6,11): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         o.F();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(6, 11),
+                // (7,13): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         M(o.F);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(7, 13),
+                // (8,22): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         Action a = o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(8, 22),
+                // (9,15): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         o = o.F;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(9, 15)
+            );
         }
 
         [Fact(Skip = "528425")]
@@ -1384,12 +1402,16 @@ class B
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (15,13): error CS0122: 'S.E(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("S.E(object)").WithLocation(15, 13),
+                // (15,13): error CS1061: 'A' does not contain a definition for 'E' and no extension method 'E' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                //         M(a.E(), A.F(), a.G());
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E").WithArguments("A", "E").WithLocation(15, 13),
                 // (15,20): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         M(a.E(), A.F(), a.G());
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(15, 20),
                 // (15,27): error CS0122: 'A.G()' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("A.G()").WithLocation(15, 27));
+                //         M(a.E(), A.F(), a.G());
+                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("A.G()").WithLocation(15, 27)
+            );
         }
 
         [WorkItem(541330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541330")]
@@ -1446,10 +1468,13 @@ static class S2
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (11,15): error CS0122: 'N.A.F()' is inaccessible due to its protection level
+                // (11,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             a.F(); // instance and extension methods
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("N.A.F()").WithLocation(11, 15),
-                // (12,15): error CS0122: 'N.S1.G(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("N.S1.G(object)").WithLocation(12, 15));
+                // (12,15): error CS1061: 'A' does not contain a definition for 'G' and no extension method 'G' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                //             a.G(); // only extension methods
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "G").WithArguments("N.A", "G").WithLocation(12, 15)
+            );
         }
 
         [WorkItem(868538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868538")]

@@ -123,8 +123,8 @@
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>
-  <data name="Invert_if_statement" xml:space="preserve">
-    <value>Invert if statement</value>
+  <data name="Invert_if" xml:space="preserve">
+    <value>Invert if</value>
   </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">
     <value>Simplify lambda expression</value>
@@ -158,15 +158,6 @@
   </data>
   <data name="Autoselect_disabled_due_to_potential_range_variable_declaration" xml:space="preserve">
     <value>Autoselect disabled due to potential range variable declaration.</value>
-  </data>
-  <data name="Remove_Unnecessary_Cast" xml:space="preserve">
-    <value>Remove Unnecessary Cast</value>
-  </data>
-  <data name="Declare_as_nullable" xml:space="preserve">
-    <value>Declare as nullable</value>
-  </data>
-  <data name="Cast_is_redundant" xml:space="preserve">
-    <value>Cast is redundant</value>
   </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
@@ -529,5 +520,8 @@
   </data>
   <data name="Convert_to_for" xml:space="preserve">
     <value>Convert to 'for'</value>
+  </data>
+  <data name="if_statement_can_be_simplified" xml:space="preserve">
+    <value>'if' statement can be simplified</value>
   </data>
 </root>
