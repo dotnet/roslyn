@@ -351,6 +351,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return computedItems.SuggestionItem IsNot Nothing
         End Function
 
+        Public Sub AssertIsSoftSelected()
+            AssertNoAsynchronousOperationsRunning()
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim computedItems = session.GetComputedItems(CancellationToken.None)
+            Assert.True(computedItems.UsesSoftSelection)
+        End Sub
+
         Public Sub AssertItemsInOrder(expectedOrder As String())
             AssertNoAsynchronousOperationsRunning()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)

@@ -1899,7 +1899,7 @@ End Class
         End Function
 
         <WorkItem(916452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916452")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27447"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SoftSelectedWithNoFilterText() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -1911,7 +1911,7 @@ Class C
 End Class</Document>)
                 state.SendTypeChars("(")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.IsSoftSelected)
+                state.AssertIsSoftSelected()
             End Using
         End Function
 
