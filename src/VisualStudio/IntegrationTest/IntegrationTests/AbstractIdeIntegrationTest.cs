@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -23,10 +24,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
         private JoinableTaskCollection _joinableTaskCollection;
         private JoinableTaskFactory _joinableTaskFactory;
 
+        private CancellationTokenSource _hangMitigatingCancellationTokenSource;
+
         protected AbstractIdeIntegrationTest()
         {
             var componentModel = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
             JoinableTaskContext = componentModel.GetExtensions<JoinableTaskContext>().SingleOrDefault() ?? new JoinableTaskContext();
+
+            _hangMitigatingCancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
         }
 
         protected JoinableTaskContext JoinableTaskContext
@@ -66,6 +71,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             private set;
         }
 
+        protected CancellationToken HangMitigatingCancellationToken => _hangMitigatingCancellationTokenSource.Token;
+
         protected TestServices VisualStudio => TestServices;
 
         protected ChangeSignatureDialog_InProc2 ChangeSignatureDialog => TestServices.ChangeSignatureDialog;
@@ -84,7 +91,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             TestServices = await CreateTestServicesAsync();
 
+            _hangMitigatingCancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
             await CleanUpAsync();
+
+            _hangMitigatingCancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
         }
 
         public virtual async Task DisposeAsync()

@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
@@ -32,21 +30,19 @@ End Module";
         [IdeFact]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateThroughCommandAsync()
-        {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
-            {
-                await SetUpEditorAsync(TestSource);
+    {
+            await SetUpEditorAsync(TestSource);
 
-                var encapsulateField = VisualStudio.EncapsulateField;
-                var dialog = VisualStudio.PreviewChangesDialog;
-                await encapsulateField.InvokeAsync();
-                await dialog.VerifyOpenAsync(encapsulateField.DialogName, cancellationTokenSource.Token);
-                await dialog.ClickCancelAsync(encapsulateField.DialogName);
-                await dialog.VerifyClosedAsync(encapsulateField.DialogName, cancellationTokenSource.Token);
-                await encapsulateField.InvokeAsync();
-                await dialog.VerifyOpenAsync(encapsulateField.DialogName, cancellationTokenSource.Token);
-                await dialog.ClickApplyAndWaitForFeatureAsync(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
-                await VisualStudio.Editor.Verify.TextContainsAsync(@"    Private _name As Integer? = 0
+            var encapsulateField = VisualStudio.EncapsulateField;
+            var dialog = VisualStudio.PreviewChangesDialog;
+            await encapsulateField.InvokeAsync();
+            await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
+            await dialog.ClickCancelAsync(encapsulateField.DialogName);
+            await dialog.VerifyClosedAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
+            await encapsulateField.InvokeAsync();
+            await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
+            await dialog.ClickApplyAndWaitForFeatureAsync(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"    Private _name As Integer? = 0
 
     Public Property Name As Integer?
         Get
@@ -56,7 +52,6 @@ End Module";
             _name = value
         End Set
     End Property");
-            }
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
