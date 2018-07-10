@@ -35,6 +35,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public const string File_OpenFile = "File.OpenFile";
         public const string File_SaveAll = "File.SaveAll";
+        public const string File_SaveSelectedItems = "File.SaveSelectedItems";
 
         public const string InteractiveConsole_Reset = "InteractiveConsole.Reset";
         public const string InteractiveConsole_ClearScreen = "InteractiveConsole.ClearScreen";

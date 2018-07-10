@@ -1,144 +1,145 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
 using Xunit;
-using ProjName = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicLineCommit : AbstractEditorTest
+    public class BasicLineCommit : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicLineCommit(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicLineCommit))
+        public BasicLineCommit()
+            : base(nameof(BasicLineCommit))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CaseCorrection()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        public async Task CaseCorrectionAsync()
         {
-            VisualStudio.Editor.SetText(@"Module Goo
+            await VisualStudio.Editor.SetTextAsync(@"Module Goo
     Sub M()
 Dim x = Sub()
     End Sub
 End Module");
 
-            VisualStudio.Editor.PlaceCaret("Sub()", charsOffset: 1);
-            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
-            VisualStudio.Editor.Verify.CaretPosition(48);
+            await VisualStudio.Editor.PlaceCaretAsync("Sub()", charsOffset: 1);
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.CaretPositionAsync(48);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void UndoWithEndConstruct()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        public async Task UndoWithEndConstructAsync()
         {
-            VisualStudio.Editor.SetText(@"Module Module1
+            await VisualStudio.Editor.SetTextAsync(@"Module Module1
     Sub Main()
     End Sub
     REM
 End Module");
 
-            VisualStudio.Editor.PlaceCaret("    REM");
-            VisualStudio.Editor.SendKeys("sub", VirtualKey.Escape, " goo()", VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"Sub goo()
+            await VisualStudio.Editor.PlaceCaretAsync("    REM");
+            await VisualStudio.Editor.SendKeysAsync("sub", VirtualKey.Escape, " goo()", VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"Sub goo()
 
     End Sub");
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);
-            VisualStudio.Editor.Verify.CaretPosition(54);
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.Edit_Undo);
+            await VisualStudio.Editor.Verify.CaretPositionAsync(54);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void UndoWithoutEndConstruct()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        public async Task UndoWithoutEndConstructAsync()
         {
-            VisualStudio.Editor.SetText(@"Module Module1
+            await VisualStudio.Editor.SetTextAsync(@"Module Module1
 
     ''' <summary></summary>
     Sub Main()
     End Sub
 End Module");
 
-            VisualStudio.Editor.PlaceCaret("Module1");
-            VisualStudio.Editor.SendKeys(VirtualKey.Down, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"Module Module1
+            await VisualStudio.Editor.PlaceCaretAsync("Module1");
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Down, VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"Module Module1
 
 
     ''' <summary></summary>
     Sub Main()
     End Sub
 End Module");
-            VisualStudio.Editor.Verify.CaretPosition(18);
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);
-            VisualStudio.Editor.Verify.CaretPosition(16);
+            await VisualStudio.Editor.Verify.CaretPositionAsync(18);
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.Edit_Undo);
+            await VisualStudio.Editor.Verify.CaretPositionAsync(16);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20991"), Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CommitOnSave()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        public async Task CommitOnSaveAsync()
         {
-            VisualStudio.Editor.SetText(@"Module Module1
+            await VisualStudio.Editor.SetTextAsync(@"Module Module1
     Sub Main()
     End Sub
 End Module
 ");
 
-            VisualStudio.Editor.PlaceCaret("(", charsOffset: 1);
-            VisualStudio.Editor.SendKeys("x   as   integer", VirtualKey.Tab);
-            VisualStudio.ExecuteCommand("File.SaveSelectedItems");
-            VisualStudio.Editor.Verify.TextContains(@"Sub Main(x As Integer)");
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);
-            VisualStudio.Editor.Verify.TextContains(@"Sub Main(x   As   Integer)");
-            VisualStudio.Editor.Verify.CaretPosition(45);
+            await VisualStudio.Editor.PlaceCaretAsync("(", charsOffset: 1);
+            await VisualStudio.Editor.SendKeysAsync("x   as   integer", VirtualKey.Tab);
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.File_SaveSelectedItems);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"Sub Main(x As Integer)");
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.Edit_Undo);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"Sub Main(x   As   Integer)");
+            await VisualStudio.Editor.Verify.CaretPositionAsync(45);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CommitOnFocusLost()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        public async Task CommitOnFocusLostAsync()
         {
-            VisualStudio.Editor.SetText(@"Module M
+            await VisualStudio.Editor.SetTextAsync(@"Module M
     Sub M()
     End Sub
 End Module");
 
-            VisualStudio.Editor.PlaceCaret("End Sub", charsOffset: -1);
-            VisualStudio.Editor.SendKeys(" ");
-            VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
-            VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
-            VisualStudio.Editor.SendKeys("                  ");
-            VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.PlaceCaretAsync("End Sub", charsOffset: -1);
+            await VisualStudio.Editor.SendKeysAsync(" ");
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "TestZ.vb", open: true); // Cause focus lost
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
+            await VisualStudio.Editor.SendKeysAsync("                  ");
+            await VisualStudio.SolutionExplorer.CloseFileAsync(ProjectName, "TestZ.vb", saveFile: false);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
     Sub M()
     End Sub
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        public async Task CommitOnFocusLostDoesNotFormatWithPrettyListingOffAsync()
         {
             try
             {
-                VisualStudio.Workspace.SetPerLanguageOption("PrettyListing", "FeatureOnOffOptions", LanguageNames.VisualBasic, false);
-                VisualStudio.Editor.SetText(@"Module M
+                await VisualStudio.Workspace.SetPerLanguageOptionAsync(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, false);
+                await VisualStudio.Editor.SetTextAsync(@"Module M
     Sub M()
     End Sub
 End Module");
 
-                VisualStudio.Editor.PlaceCaret("End Sub", charsOffset: -1);
-                VisualStudio.Editor.SendKeys(" ");
-                VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
-                VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
-                VisualStudio.Editor.SendKeys("                  ");
-                VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
-                VisualStudio.Editor.Verify.TextContains(@"
+                await VisualStudio.Editor.PlaceCaretAsync("End Sub", charsOffset: -1);
+                await VisualStudio.Editor.SendKeysAsync(" ");
+                await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "TestZ.vb", open: true); // Cause focus lost
+                await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
+                await VisualStudio.Editor.SendKeysAsync("                  ");
+                await VisualStudio.SolutionExplorer.CloseFileAsync(ProjectName, "TestZ.vb", saveFile: false);
+                await VisualStudio.Editor.Verify.TextContainsAsync(@"
     Sub M()
      End Sub
 ");
             }
             finally
             {
-                VisualStudio.Workspace.SetPerLanguageOption("PrettyListing", "FeatureOnOffOptions", LanguageNames.VisualBasic, true);
+                await VisualStudio.Workspace.SetPerLanguageOptionAsync(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, true);
             }
         }
     }
