@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 case EditorCompletion.InitialTriggerReason.Deletion:
                     return RoslynTrigger.CreateDeletionTrigger(trigger.Character);
                 case EditorCompletion.InitialTriggerReason.Snippets:
-                    return RoslynTrigger.Snippets;
+                    return new RoslynTrigger(CompletionTriggerKind.Snippets);
                 default:
                     return default;
             }
