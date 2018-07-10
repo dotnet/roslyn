@@ -2120,7 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors)
                 {
                     Symbol accessedLocalOrParameterOpt;
-                    if (IsNonMoveableVariable(operand, out accessedLocalOrParameterOpt) == isFixedStatementAddressOfExpression)
+                    if (ExpressionRequiresFixing(operand, out accessedLocalOrParameterOpt) != isFixedStatementAddressOfExpression)
                     {
                         Error(diagnostics, isFixedStatementAddressOfExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedNeeded, node);
                         hasErrors = true;
@@ -2136,9 +2136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Basically a port of ExpressionBinder::isFixedExpression, which basically implements spec section 18.3.
-        // Renamed because there are already too many things called "fixed".
-        // NOTE: internal purely for testing purposes.
-        internal bool IsNonMoveableVariable(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
+        // NOTE: internal to allow using in tests.
+        internal bool ExpressionRequiresFixing(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
         {
             accessedLocalOrParameterOpt = null;
 
@@ -2163,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BoundEventAccess eventAccess = (BoundEventAccess)expr;
                                 if (!eventAccess.IsUsableAsField || eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                                 {
-                                    return false;
+                                    return true;
                                 }
                                 EventSymbol eventSymbol = eventAccess.EventSymbol;
                                 fieldSymbol = eventSymbol.AssociatedField;
@@ -2172,7 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if ((object)fieldSymbol == null || fieldSymbol.IsStatic || (object)receiver == null)
                             {
-                                return false;
+                                return true;
                             }
 
                             var unusedDiagnostics = DiagnosticBag.GetInstance();
@@ -2181,7 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (!receiverIsLValue)
                             {
-                                return false;
+                                return true;
                             }
 
                             // NOTE: type parameters will already have been weeded out, since a
@@ -2190,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // conversion isn't an lvalue.
                             if (receiver.Type.IsReferenceType)
                             {
-                                return false;
+                                return true;
                             }
 
                             expr = receiver;
@@ -2209,13 +2208,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundParameter parameterAccess = (BoundParameter)expr;
                             ParameterSymbol parameterSymbol = parameterAccess.ParameterSymbol;
                             accessedLocalOrParameterOpt = parameterSymbol;
-                            return parameterSymbol.RefKind == RefKind.None;
+                            return parameterSymbol.RefKind != RefKind.None;
                         }
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:
                         {
                             accessedLocalOrParameterOpt = this.ContainingMemberOrLambda.EnclosingThisSymbol();
-                            return false;
+                            return true;
                         }
                     case BoundKind.Local:
                         {
@@ -2225,19 +2224,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // NOTE: The spec says that this is moveable if it is captured by an anonymous function,
                             // but that will be reported separately and error-recovery is better if we say that
                             // such locals are not moveable.
-                            return localSymbol.RefKind == RefKind.None;
+                            return localSymbol.RefKind != RefKind.None;
                         }
                     case BoundKind.PointerIndirectionOperator: //Covers ->, since the receiver will be one of these.
-                    case BoundKind.PointerElementAccess:
                     case BoundKind.ConvertedStackAllocExpression:
                         {
-                            return true;
+                            return false;
+                        }
+                    case BoundKind.PointerElementAccess:
+                        {
+                            // When using pointers in unsafe code, it is generally left for the user to make sure memory is fixed/pinned correctly.
+                            // Except for fixed fields, we want to produce appropriate diagnostics if field is not fixed before access.
+                            BoundExpression underlyingExpr = ((BoundPointerElementAccess)expr).Expression;
+                            if (underlyingExpr.Kind == BoundKind.FieldAccess)
+                            {
+                                FieldSymbol field = ((BoundFieldAccess)underlyingExpr).FieldSymbol;
+                                if (field.IsFixed)
+                                {
+                                    return true;
+                                }
+                            }
+
+                            return false;
                         }
                     case BoundKind.PropertyAccess: // Never a variable.
                     case BoundKind.IndexerAccess: // Never a variable.
                     default:
                         {
-                            return false;
+                            return true;
                         }
                 }
             }

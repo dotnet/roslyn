@@ -2107,8 +2107,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //        Dim result As Boolean?
             //
             //        If left.GetValueOrDefault Then
-            //            result = left
-            //            GoTo done
+            //            GoTo resultIsLeft
             //        End If
             //
             //        If Not ((Not right).GetValueOrDefault) Then
@@ -2116,7 +2115,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //            GoTo done
             //        End If
             //
+            //resultIsLeft:
             //        result = left
+            //
             //done:
             //        Return result
 
@@ -2124,8 +2125,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //        Dim result As Boolean?
             //
             //        If (Not left).GetValueOrDefault() Then
-            //            result = left
-            //            GoTo done
+            //            GoTo resultIsLeft
             //        End If
             //
             //        If Not (right.GetValueOrDefault()) Then
@@ -2133,6 +2133,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //            GoTo done
             //        End If
             //
+            //resultIsLeft:
             //        result = left
             //
             //done:
@@ -2154,13 +2155,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             condition = UnwrapNullableValue(condition);
-            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(checkRight));
+            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: true, RegularBranch(resultIsLeft));
+            LinkBlocks(CurrentBasicBlock, checkRight);
             _currentBasicBlock = null;
 
             int resultId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
-            AddStatement(new FlowCapture(resultId, binOp.Syntax, OperationCloner.CloneOperation(capturedLeft)));
-            LinkBlocks(CurrentBasicBlock, done);
-            _currentBasicBlock = null;
 
             AppendNewBlock(checkRight);
 
