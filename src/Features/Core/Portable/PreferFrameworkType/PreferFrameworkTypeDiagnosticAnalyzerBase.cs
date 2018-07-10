@@ -110,7 +110,6 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             var optionValue = optionSet.GetOption(option, language);
 
             severity = optionValue.Notification.Severity;
-            properties = isMemberAccessOrCref ? MemberAccessEquivalenceKey : DeclarationsEquivalenceKey;
             return OptionSettingPrefersFrameworkType(optionValue, severity);
         }
 
