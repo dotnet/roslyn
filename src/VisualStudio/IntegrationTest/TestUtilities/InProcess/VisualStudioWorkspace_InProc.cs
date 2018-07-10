@@ -31,20 +31,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudioWorkspace_InProc Create()
             => new VisualStudioWorkspace_InProc();
 
-        public void SetOptionInfer(string projectName, bool value)
-            => InvokeOnUIThread(() =>
-            {
-                var convertedValue = value ? 1 : 0;
-                var project = GetProject(projectName);
-                project.Properties.Item("OptionInfer").Value = convertedValue;
-            });
-
         private EnvDTE.Project GetProject(string nameOrFileName)
             => GetDTE().Solution.Projects.OfType<EnvDTE.Project>().First(p =>
                string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
 
-        public bool IsUseSuggestionModeOn()
+        private bool IsUseSuggestionModeOn()
             => _visualStudioWorkspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
 
         public void SetUseSuggestionMode(bool value)
@@ -65,28 +57,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     FeatureOnOffOptions.PrettyListing, languageName, value);
             });
 
-        public void EnableQuickInfo(bool value)
-            => InvokeOnUIThread(() =>
-            {
-                _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
-                    InternalFeatureOnOffOptions.QuickInfo, value);
-            });
-
         public void SetPerLanguageOption(string optionName, string feature, string language, object value)
         {
             var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
             var option = GetOption(optionName, feature, optionService);
             var result = GetValue(value, option);
             var optionKey = new OptionKey(option, language);
-            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
-        }
-
-        public void SetOption(string optionName, string feature, object value)
-        {
-            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
-            var option = GetOption(optionName, feature, optionService);
-            var result = GetValue(value, option);
-            var optionKey = new OptionKey(option);
             optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
         }
 
