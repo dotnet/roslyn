@@ -1959,6 +1959,22 @@ class B : A
             Assert.False(true); // Test all combinations of base and derived.
         }
 
+        // Example where the bound expression type contains an unannotated type
+        // parameter but the inferred type contains a non-nullable type parameter.
+        [Fact]
+        public void CompareUnannotatedAndNonNullableTypeParameter()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C<T>
+{
+    T[] _f;
+    Task<T> F() => Task.FromResult(_f[0]);
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void AssignObliviousIntoLocals()
         {

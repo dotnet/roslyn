@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isNullableIfReferenceType != true && typeSymbol.TypeKind == TypeKind.TypeParameter)
             {
                 Debug.Assert(customModifiers.IsEmpty);
-                return new LazyNonNullableTypeParameter((TypeParameterSymbol)typeSymbol, isNullableIfReferenceType);
+                return new LazyUnannotatedTypeParameter((TypeParameterSymbol)typeSymbol, isNullableIfReferenceType);
             }
 
             if (isNullableIfReferenceType == false || !typeSymbol.IsReferenceType || typeSymbol.IsNullableType())
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract TypeSymbol AsTypeSymbolOnly();
 
         /// <summary>
-        /// Is this an equal type symbol without annotations/custom modifiers?
+        /// Is this the given type parameter?
         /// </summary>
         public abstract bool Is(TypeParameterSymbol other);
 
@@ -619,8 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public LazyNullableTypeParameter(AssemblySymbol assembly, TypeSymbolWithAnnotations underlying)
             {
-                //Debug.Assert(compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
-                Debug.Assert(underlying is LazyNonNullableTypeParameter || underlying.IsNullable != true);
+                Debug.Assert(underlying is LazyUnannotatedTypeParameter || underlying.IsNullable != true);
                 Debug.Assert(underlying.TypeKind == TypeKind.TypeParameter);
                 Debug.Assert(underlying.CustomModifiers.IsEmpty);
                 _assembly = assembly;
@@ -675,6 +674,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return TypeSymbol;
             }
 
+            // PROTOTYPE(NullableReferenceTypes): This implementation looks
+            // incorrect since a type parameter cannot be Nullable<T>.
             public override bool Is(TypeParameterSymbol other)
             {
                 if (!other.IsNullableType())
@@ -813,20 +814,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Non-nullable or null-oblivious type parameter. IsNullable is calculated
         /// lazily to avoid cycles when binding declarations.
         /// </summary>
-        private sealed class LazyNonNullableTypeParameter : TypeSymbolWithAnnotations
+        private sealed class LazyUnannotatedTypeParameter : TypeSymbolWithAnnotations
         {
             private readonly TypeParameterSymbol _typeParameter;
             private readonly bool? _isNullableIfReferenceType;
 
-            internal LazyNonNullableTypeParameter(TypeParameterSymbol typeParameter, bool? isNullableIfReferenceType)
+            internal LazyUnannotatedTypeParameter(TypeParameterSymbol typeParameter, bool? isNullableIfReferenceType)
             {
-                Debug.Assert(isNullableIfReferenceType != true); // Should use LazyNullableTypeParameter.
+                Debug.Assert(isNullableIfReferenceType != true); // Nullable type parameters should be represented with LazyNullableTypeParameter.
                 _typeParameter = typeParameter;
                 _isNullableIfReferenceType = isNullableIfReferenceType;
             }
 
             public override TypeSymbol TypeSymbol => _typeParameter;
-            public override bool? IsNullable =>  _isNullableIfReferenceType == false || !_typeParameter.IsReferenceType ? (bool?)false : null;
+            public override bool? IsNullable => _isNullableIfReferenceType == false || !_typeParameter.IsReferenceType ? (bool?)false : null;
 
             public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
@@ -834,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _isNullableIfReferenceType == false ?
                     this :
-                    new LazyNonNullableTypeParameter(_typeParameter, isNullableIfReferenceType: false);
+                    new LazyUnannotatedTypeParameter(_typeParameter, isNullableIfReferenceType: false);
             }
 
             public override TypeSymbolWithAnnotations AsNullableReferenceType()
@@ -846,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _isNullableIfReferenceType == null ?
                     this :
-                    new LazyNonNullableTypeParameter(_typeParameter, isNullableIfReferenceType: null);
+                    new LazyUnannotatedTypeParameter(_typeParameter, isNullableIfReferenceType: null);
             }
 
             public override TypeSymbol AsTypeSymbolOnly()
@@ -856,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool Is(TypeParameterSymbol other)
             {
-                return _typeParameter == other;
+                return _typeParameter.Equals(other);
             }
 
             public override TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap)
@@ -901,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
             {
-                var otherLazy = other as LazyNonNullableTypeParameter;
+                var otherLazy = other as LazyUnannotatedTypeParameter;
                 if ((object)otherLazy != null)
                 {
                     return
