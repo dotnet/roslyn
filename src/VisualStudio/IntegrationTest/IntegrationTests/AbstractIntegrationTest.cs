@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -16,6 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected readonly string ProjectName = "TestProj";
         protected readonly string SolutionName = "TestSolution";
 
+        private readonly CancellationTokenSource _watchdogCompletionTokenSource;
+
         private readonly MessageFilter _messageFilter;
         private readonly VisualStudioInstanceFactory _instanceFactory;
         private VisualStudioInstanceContext _visualStudioContext;
@@ -23,6 +27,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory)
         {
             Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
+
+            _watchdogCompletionTokenSource = new CancellationTokenSource();
 
             // Install a COM message filter to handle retry operations when the first attempt fails
             _messageFilter = RegisterMessageFilter();
@@ -44,14 +50,34 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         public virtual async Task InitializeAsync()
         {
+            var testName = CaptureTestNameAttribute.CurrentName;
+
             try
             {
                 _visualStudioContext = await _instanceFactory.GetNewOrUsedInstanceAsync(VisualStudioInstanceFactory.RequiredPackageIds).ConfigureAwait(false);
+
+                WatchdogAsync().Forget();
             }
             catch
             {
                 _messageFilter.Dispose();
                 throw;
+            }
+
+            return;
+
+            // Local function
+            async Task WatchdogAsync()
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(3 * Helper.HangMitigatingTimeout.TotalMilliseconds), _watchdogCompletionTokenSource.Token).ConfigureAwait(false);
+
+                var ex = new Exception($"Terminating test '{GetType().Name}.{testName}' run due to unrecoverable test timeout.");
+                InProcessIdeTestAssemblyRunner.SaveScreenshot(ex);
+
+                if (!Debugger.IsAttached)
+                {
+                    Environment.FailFast(ex.Message);
+                }
             }
         }
 
@@ -91,6 +117,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             if (disposing)
             {
+                _watchdogCompletionTokenSource.Cancel();
                 _messageFilter.Dispose();
             }
         }

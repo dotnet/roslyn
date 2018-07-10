@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Threading;
@@ -20,6 +22,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected readonly string ProjectName = "TestProj";
         protected readonly string SolutionName = "TestSolution";
 
+        private readonly CancellationTokenSource _watchdogCompletionTokenSource;
+
         private JoinableTaskContext _joinableTaskContext;
         private JoinableTaskCollection _joinableTaskCollection;
         private JoinableTaskFactory _joinableTaskFactory;
@@ -32,6 +36,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             JoinableTaskContext = componentModel.GetExtensions<JoinableTaskContext>().SingleOrDefault() ?? new JoinableTaskContext();
 
             _hangMitigatingCancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            _watchdogCompletionTokenSource = new CancellationTokenSource();
         }
 
         protected JoinableTaskContext JoinableTaskContext
@@ -89,6 +94,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         public virtual async Task InitializeAsync()
         {
+            var testName = CaptureTestNameAttribute.CurrentName;
+            WatchdogAsync().Forget();
+
             TestServices = await CreateTestServicesAsync();
 
             _hangMitigatingCancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
@@ -96,6 +104,22 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await CleanUpAsync();
 
             _hangMitigatingCancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
+            return;
+
+            // Local function
+            async Task WatchdogAsync()
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(3 * Helper.HangMitigatingTimeout.TotalMilliseconds), _watchdogCompletionTokenSource.Token).ConfigureAwait(false);
+
+                var ex = new Exception($"Terminating test '{GetType().Name}.{testName}' run due to unrecoverable test timeout.");
+                InProcessIdeTestAssemblyRunner.SaveScreenshot(ex);
+
+                if (!Debugger.IsAttached)
+                {
+                    Environment.FailFast(ex.Message);
+                }
+            }
         }
 
         public virtual async Task DisposeAsync()
@@ -112,6 +136,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected virtual void Dispose(bool disposing)
         {
+            if (disposing)
+            {
+                _watchdogCompletionTokenSource.Cancel();
+            }
         }
 
         protected virtual async Task<TestServices> CreateTestServicesAsync()
