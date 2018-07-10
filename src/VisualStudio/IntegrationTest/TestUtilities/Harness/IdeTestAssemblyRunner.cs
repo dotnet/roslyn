@@ -45,43 +45,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             }
             catch (Exception ex)
             {
-                var completedTestCases = testCases.Where(testCase => completedTestCaseIds.Contains(testCase.UniqueID));
-                var remainingTestCases = testCases.Except(completedTestCases);
-                foreach (var casesByTestClass in remainingTestCases.GroupBy(testCase => testCase.TestMethod.TestClass))
-                {
-                    ExecutionMessageSink.OnMessage(new TestClassStarting(casesByTestClass.ToArray(), casesByTestClass.Key));
-
-                    foreach (var casesByTestMethod in casesByTestClass.GroupBy(testCase => testCase.TestMethod))
-                    {
-                        ExecutionMessageSink.OnMessage(new TestMethodStarting(casesByTestMethod.ToArray(), casesByTestMethod.Key));
-
-                        foreach (var testCase in casesByTestMethod)
-                        {
-                            ExecutionMessageSink.OnMessage(new TestCaseStarting(testCase));
-
-                            var test = new XunitTest(testCase, testCase.DisplayName);
-                            ExecutionMessageSink.OnMessage(new TestStarting(test));
-
-                            if (!string.IsNullOrEmpty(testCase.SkipReason))
-                            {
-                                ExecutionMessageSink.OnMessage(new TestSkipped(test, testCase.SkipReason));
-                            }
-                            else
-                            {
-                                ExecutionMessageSink.OnMessage(new TestFailed(test, 0, null, new InvalidOperationException("Test did not run due to a harness failure.", ex)));
-                            }
-
-                            ExecutionMessageSink.OnMessage(new TestFinished(test, 0, null));
-
-                            ExecutionMessageSink.OnMessage(new TestCaseFinished(testCase, 0, 1, 1, 0));
-                        }
-
-                        ExecutionMessageSink.OnMessage(new TestMethodFinished(casesByTestMethod.ToArray(), casesByTestMethod.Key, 0, casesByTestMethod.Count(), casesByTestMethod.Count(), 0));
-                    }
-
-                    ExecutionMessageSink.OnMessage(new TestClassFinished(casesByTestClass.ToArray(), casesByTestClass.Key, 0, casesByTestClass.Count(), casesByTestClass.Count(), 0));
-                }
-
+                ReportHarnessFailure(testCases, completedTestCaseIds, ex);
                 throw;
             }
             finally
@@ -94,6 +58,46 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             }
 
             return result;
+        }
+
+        private void ReportHarnessFailure(IEnumerable<IXunitTestCase> testCases, HashSet<string> completedTestCaseIds, Exception ex)
+        {
+            var completedTestCases = testCases.Where(testCase => completedTestCaseIds.Contains(testCase.UniqueID));
+            var remainingTestCases = testCases.Except(completedTestCases);
+            foreach (var casesByTestClass in remainingTestCases.GroupBy(testCase => testCase.TestMethod.TestClass))
+            {
+                ExecutionMessageSink.OnMessage(new TestClassStarting(casesByTestClass.ToArray(), casesByTestClass.Key));
+
+                foreach (var casesByTestMethod in casesByTestClass.GroupBy(testCase => testCase.TestMethod))
+                {
+                    ExecutionMessageSink.OnMessage(new TestMethodStarting(casesByTestMethod.ToArray(), casesByTestMethod.Key));
+
+                    foreach (var testCase in casesByTestMethod)
+                    {
+                        ExecutionMessageSink.OnMessage(new TestCaseStarting(testCase));
+
+                        var test = new XunitTest(testCase, testCase.DisplayName);
+                        ExecutionMessageSink.OnMessage(new TestStarting(test));
+
+                        if (!string.IsNullOrEmpty(testCase.SkipReason))
+                        {
+                            ExecutionMessageSink.OnMessage(new TestSkipped(test, testCase.SkipReason));
+                        }
+                        else
+                        {
+                            ExecutionMessageSink.OnMessage(new TestFailed(test, 0, null, new InvalidOperationException("Test did not run due to a harness failure.", ex)));
+                        }
+
+                        ExecutionMessageSink.OnMessage(new TestFinished(test, 0, null));
+
+                        ExecutionMessageSink.OnMessage(new TestCaseFinished(testCase, 0, 1, 1, 0));
+                    }
+
+                    ExecutionMessageSink.OnMessage(new TestMethodFinished(casesByTestMethod.ToArray(), casesByTestMethod.Key, 0, casesByTestMethod.Count(), casesByTestMethod.Count(), 0));
+                }
+
+                ExecutionMessageSink.OnMessage(new TestClassFinished(casesByTestClass.ToArray(), casesByTestClass.Key, 0, casesByTestClass.Count(), casesByTestClass.Count(), 0));
+            }
         }
 
         protected virtual Task<Tuple<RunSummary, ITestAssemblyFinished>> RunTestCollectionForVersionAsync(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
@@ -141,8 +145,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                     using (await WpfTestSharedData.Instance.TestSerializationGate.DisposableWaitAsync(CancellationToken.None))
                     {
                         // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, visualStudioVersion, completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource);
-                        return await invoker().ConfigureAwait(true);
+                        return await InvokeTestCollectionOnMainThreadAsync(visualStudioInstanceFactory, visualStudioVersion, completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource.Token);
                     }
                 },
                 cancellationTokenSource.Token,
@@ -182,35 +185,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             }
         }
 
-        private Func<Task<Tuple<RunSummary, ITestAssemblyFinished>>> CreateTestCollectionInvoker(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private async Task<Tuple<RunSummary, ITestAssemblyFinished>> InvokeTestCollectionOnMainThreadAsync(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationToken cancellationToken)
         {
-            return async () =>
+            Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
+
+            // Install a COM message filter to handle retry operations when the first attempt fails
+            using (var messageFilter = new MessageFilter())
             {
-                Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
-
-                // Install a COM message filter to handle retry operations when the first attempt fails
-                using (var messageFilter = new MessageFilter())
+                Helper.Automation.TransactionTimeout = 20000;
+                using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(VisualStudioInstanceFactory.RequiredPackageIds).ConfigureAwait(true))
                 {
-                    Helper.Automation.TransactionTimeout = 20000;
-                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(VisualStudioInstanceFactory.RequiredPackageIds).ConfigureAwait(true))
+                    var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, completedTestCaseIds, cancellationToken);
+                    using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, new HashSet<string>(), cancellationToken), executionMessageSinkFilter, ExecutionOptions))
                     {
-                        var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, completedTestCaseIds, cancellationTokenSource.Token);
-                        using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, ExecutionOptions))
+                        var result = runner.RunTestCollection(new IpcMessageBus(messageBus), testCollection, testCases.ToArray());
+                        var runSummary = new RunSummary
                         {
-                            var result = runner.RunTestCollection(new IpcMessageBus(messageBus), testCollection, testCases.ToArray());
-                            var runSummary = new RunSummary
-                            {
-                                Total = result.Item1,
-                                Failed = result.Item2,
-                                Skipped = result.Item3,
-                                Time = result.Item4,
-                            };
+                            Total = result.Item1,
+                            Failed = result.Item2,
+                            Skipped = result.Item3,
+                            Time = result.Item4,
+                        };
 
-                            return Tuple.Create(runSummary, executionMessageSinkFilter.TestAssemblyFinished);
-                        }
+                        return Tuple.Create(runSummary, executionMessageSinkFilter.TestAssemblyFinished);
                     }
                 }
-            };
+            }
         }
 
         private (VisualStudioVersion visualStudioVersion, Guid isolatedInstanceGuid) GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
