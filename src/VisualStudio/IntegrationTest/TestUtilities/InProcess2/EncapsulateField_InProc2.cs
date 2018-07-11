@@ -14,7 +14,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         public string DialogName => "Preview Changes - Encapsulate Field";
 
-        public async Task InvokeAsync()
-            => await TestServices.Editor.SendKeysAsync(new KeyPress(VirtualKey.R, ShiftState.Ctrl), new KeyPress(VirtualKey.E, ShiftState.Ctrl));
+        public async Task InvokeAsync(bool waitForLightBulbSession = true)
+        {
+            if (waitForLightBulbSession)
+            {
+                await TestServices.Editor.WaitForLightBulbSessionAsync();
+            }
+
+            await TestServices.Editor.SendKeysAsync(new KeyPress(VirtualKey.R, ShiftState.Ctrl), new KeyPress(VirtualKey.E, ShiftState.Ctrl));
+        }
     }
 }
