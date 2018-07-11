@@ -282,9 +282,13 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+                    // We should only ever get a default array (meaning, update the root), or a
+                    // non-empty array.  We should never be asked to update exactly '0' nodes.
+                    Debug.Assert(!documentToUpdate.NodesToUpdate.IsEmpty);
+
                     // If we were given specific nodes to update, only update those.  Otherwise
                     // updated everything from the root down.
-                    var nodesToUpdate = documentToUpdate.NodesToUpdate.IsDefaultOrEmpty
+                    var nodesToUpdate = documentToUpdate.NodesToUpdate.IsDefault
                         ? ImmutableArray.Create(syntaxRoot)
                         : documentToUpdate.NodesToUpdate;
 
