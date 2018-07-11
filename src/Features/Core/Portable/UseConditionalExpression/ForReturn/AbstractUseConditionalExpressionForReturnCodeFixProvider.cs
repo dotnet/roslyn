@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixOneAsync(
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement);
 
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    syntaxFacts, ifOperation, 
+                    syntaxFacts, ifOperation,
                     out var trueReturn, out var falseReturn))
             {
                 return;
@@ -63,9 +63,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 document, ifOperation, trueReturn, falseReturn,
                 trueReturn.ReturnedValue, falseReturn.ReturnedValue,
                 IsRef(trueReturn), cancellationToken).ConfigureAwait(false);
-            
-            var returnStatement = (TStatementSyntax)editor.Generator.ReturnStatement(conditionalExpression)
-                                                                    .WithTriviaFrom(ifStatement);
+
+            var returnStatement = trueReturn.Kind == OperationKind.YieldReturn
+                ? (TStatementSyntax)editor.Generator.YieldReturnStatement(conditionalExpression)
+                : (TStatementSyntax)editor.Generator.ReturnStatement(conditionalExpression);
+
+            returnStatement = returnStatement.WithTriviaFrom(ifStatement);
+
             editor.ReplaceNode(
                 ifStatement,
                 this.WrapWithBlockIfAppropriate(ifStatement, returnStatement));

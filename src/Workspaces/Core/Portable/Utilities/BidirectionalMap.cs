@@ -17,7 +17,7 @@ namespace Roslyn.Utilities
         public BidirectionalMap(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
         {
             _forwardMap = ImmutableDictionary.CreateRange<TKey, TValue>(pairs);
-            _backwardMap = ImmutableDictionary.CreateRange<TValue, TKey>(pairs.Select(p => KeyValuePair.Create(p.Value, p.Key)));
+            _backwardMap = ImmutableDictionary.CreateRange<TValue, TKey>(pairs.Select(p => KeyValuePairUtil.Create(p.Value, p.Key)));
         }
 
         private BidirectionalMap(ImmutableDictionary<TKey, TValue> forwardMap, ImmutableDictionary<TValue, TKey> backwardMap)

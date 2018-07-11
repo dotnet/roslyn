@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 // Note: IFindAllReferenceWindow.Title is safe to set from any thread.
                 _findReferencesWindow.Title = title;
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public sealed override async Task OnCompletedAsync()
@@ -331,7 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 #endif
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             #endregion

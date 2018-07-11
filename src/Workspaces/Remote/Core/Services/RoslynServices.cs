@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 .Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly)
                 // This adds the exported MEF services from the RemoteWorkspaces assembly.
                 .Add(typeof(RoslynServices).Assembly)
+                .Add(typeof(ICodingConventionsManager).Assembly)
                 .Add(typeof(CSharp.CodeLens.CSharpCodeLensDisplayInfoService).Assembly)
                 .Add(typeof(VisualBasic.CodeLens.VisualBasicDisplayInfoService).Assembly);
 

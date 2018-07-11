@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             {
                 var codeAction = new MyCodeAction(context.Document);
                 context.RegisterRefactoring(codeAction);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             private class MyCodeAction : CodeAction

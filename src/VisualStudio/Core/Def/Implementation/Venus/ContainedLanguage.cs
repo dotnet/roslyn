@@ -36,6 +36,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // flickering.
         private ITagAggregator<ITag> _bufferTagAggregator;
 
+        // <Previous release> BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        // This is required for the Typescript Language Service
+        public ContainedLanguage(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            AbstractProject project,
+            IVsHierarchy hierarchy,
+            uint itemid,
+            TLanguageService languageService,
+            SourceCodeKind sourceCodeKind,
+            IFormattingRule vbHelperFormattingRule)
+            : this(bufferCoordinator,
+                   componentModel,
+                   project,
+                   hierarchy,
+                   itemid,
+                   languageService,
+                   sourceCodeKind,
+                   vbHelperFormattingRule,
+                   workspace: null)
+        {
+        }
+
         public ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,

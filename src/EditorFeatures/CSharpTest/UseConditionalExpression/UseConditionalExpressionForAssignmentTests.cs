@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
 
         private static readonly Dictionary<OptionKey, object> s_preferImplicitTypeAlways = new Dictionary<OptionKey, object>
         {
-            { CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement },
-            { CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement },
-            { CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement },
+            { CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSilentEnforcement },
         };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
@@ -495,7 +495,7 @@ class C
         var i = true ? 0 : 1;
     }
 }", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement }
+    {  CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSilentEnforcement }
 });
         }
 
@@ -527,7 +527,7 @@ class C
         int i = true ? 0 : 1;
     }
 }", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement }
+    {  CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSilentEnforcement }
 });
         }
 
@@ -559,7 +559,7 @@ class C
         int i = true ? 0 : 1;
     }
 }", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement }
+    {  CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSilentEnforcement }
 });
         }
 
