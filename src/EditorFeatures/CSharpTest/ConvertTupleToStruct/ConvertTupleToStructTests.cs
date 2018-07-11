@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -1859,6 +1859,171 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertWithDefaultNames1()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](1, 2);
+        var t2 = (1, 2);
+        var t3 = (a: 1, b: 2);
+        var t4 = (Item1: 1, Item2: 2);
+        var t5 = (Item1: 1, Item2: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(1, 2);
+        var t2 = new NewStruct(1, 2);
+        var t3 = (a: 1, b: 2);
+        var t4 = new NewStruct(Item1: 1, Item2: 2);
+        var t5 = new NewStruct(Item1: 1, Item2: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public NewStruct(int item1, int item2)
+    {
+        this.Item1 = item1;
+        this.Item2 = item2;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return this.Item1 == other.Item1 &&
+               this.Item2 == other.Item2;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1030903623;
+        hashCode = hashCode * -1521134295 + this.Item1.GetHashCode();
+        hashCode = hashCode * -1521134295 + this.Item2.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int item1, out int item2)
+    {
+        item1 = this.Item1;
+        item2 = this.Item2;
+    }
+
+    public static implicit operator (int, int) (NewStruct value)
+    {
+        return (value.Item1, value.Item2);
+    }
+
+    public static implicit operator NewStruct((int, int) value)
+    {
+        return new NewStruct(value.Item1, value.Item2);
+    }
+}";
+            await TestExactActionSetOfferedAsync(text, new[]
+            {
+                FeaturesResources.and_update_usages_in_containing_member,
+                FeaturesResources.and_update_usages_in_containing_type,
+            });
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertWithDefaultNames2()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (1, 2);
+        var t2 = (1, 2);
+        var t3 = (a: 1, b: 2);
+        var t4 = [||](Item1: 1, Item2: 2);
+        var t5 = (Item1: 1, Item2: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(1, 2);
+        var t2 = new NewStruct(1, 2);
+        var t3 = (a: 1, b: 2);
+        var t4 = new {|Rename:NewStruct|}(Item1: 1, Item2: 2);
+        var t5 = new NewStruct(Item1: 1, Item2: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int Item1;
+    public int Item2;
+
+    public NewStruct(int item1, int item2)
+    {
+        Item1 = item1;
+        Item2 = item2;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is NewStruct))
+        {
+            return false;
+        }
+
+        var other = (NewStruct)obj;
+        return Item1 == other.Item1 &&
+               Item2 == other.Item2;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1030903623;
+        hashCode = hashCode * -1521134295 + Item1.GetHashCode();
+        hashCode = hashCode * -1521134295 + Item2.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int item1, out int item2)
+    {
+        item1 = Item1;
+        item2 = Item2;
+    }
+
+    public static implicit operator (int Item1, int Item2) (NewStruct value)
+    {
+        return (value.Item1, value.Item2);
+    }
+
+    public static implicit operator NewStruct((int Item1, int Item2) value)
+    {
+        return new NewStruct(value.Item1, value.Item2);
+    }
+}";
+            await TestExactActionSetOfferedAsync(text, new[]
+            {
+                FeaturesResources.and_update_usages_in_containing_member,
+                FeaturesResources.and_update_usages_in_containing_type,
+            });
             await TestInRegularAndScriptAsync(text, expected);
         }
 
