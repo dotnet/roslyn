@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -15,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Hosting.Diagnostics.Waiters;
 
@@ -139,6 +142,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await LoadRoslynPackageAsync();
             _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
 
+            var textManager = await GetGlobalServiceAsync<SVsTextManager, IVsTextManager6>();
+            var viewPreferences = new[] { default(VIEWPREFERENCES5) };
+            ErrorHandler.ThrowOnFailure(textManager.GetUserPreferences6(viewPreferences, null, null));
+            viewPreferences[0].fShowBlockStructure = 0;
+            ErrorHandler.ThrowOnFailure(textManager.SetUserPreferences6(viewPreferences, null, null));
+
             // Prepare to reset all options. We explicitly read all option values from the OptionSet to ensure all
             // values changed from the defaults are detected.
             var optionService = _visualStudioWorkspace.Services.GetRequiredService<IOptionService>();
@@ -248,5 +257,48 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 return optionSet.GetChangedOptions(this);
             }
         }
+
+    }
+}
+
+namespace Microsoft.VisualStudio.TextManager.Interop
+{
+    [Guid("A50CF306-7BEE-4349-8789-DAE896A15E07"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [ComImport]
+    public interface IVsTextManager6
+    {
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.InternalCall)]
+        int GetUserPreferences6([MarshalAs(UnmanagedType.LPArray)] [Out] VIEWPREFERENCES5[] pViewPrefs, [MarshalAs(UnmanagedType.LPArray)] [In] [Out] LANGPREFERENCES3[] pLangPrefs, [MarshalAs(UnmanagedType.LPArray)] [In] [Out] FONTCOLORPREFERENCES2[] pColorPrefs);
+
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.InternalCall)]
+        int SetUserPreferences6([MarshalAs(UnmanagedType.LPArray)] [In] VIEWPREFERENCES5[] pViewPrefs, [MarshalAs(UnmanagedType.LPArray)] [In] LANGPREFERENCES3[] pLangPrefs, [MarshalAs(UnmanagedType.LPArray)] [In] FONTCOLORPREFERENCES2[] pColorPrefs);
+    }
+
+    [TypeIdentifier("96B36253-76A4-4DF5-9071-34CD1B5A5EFF", "Microsoft.VisualStudio.TextManager.Interop.VIEWPREFERENCES5")]
+    [StructLayout(LayoutKind.Sequential, Pack = 8)]
+    public struct VIEWPREFERENCES5
+    {
+        public uint fVisibleWhitespace;
+        public uint fSelectionMargin;
+        public uint fAutoDelimiterHighlight;
+        public uint fGoToAnchorAfterEscape;
+        public uint fDragDropEditing;
+        public uint fUndoCaretMovements;
+        public uint fOvertype;
+        public uint fDragDropMove;
+        public uint fWidgetMargin;
+        public uint fReadOnly;
+        public uint fActiveInModalState;
+        public uint fClientDragDropFeedback;
+        public uint fTrackChanges;
+        public uint uCompletorSize;
+        public uint fDetectUTF8;
+        public int lEditorEmulation;
+        public uint fHighlightCurrentLine;
+        public uint fShowBlockStructure;
+        public uint fEnableCodingConventions;
+        public uint fEnableClickGotoDef;
+        public uint uModifierKey;
+        public uint fOpenDefInPeek;
     }
 }
