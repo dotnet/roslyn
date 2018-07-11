@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         VariableDeclarationGroup = 0x3,
         /// <summary>Indicates an <see cref="ISwitchOperation"/>.</summary>
         Switch = 0x4,
-        /// <summary>Indicates an <see cref="ILoopOperation"/>.</summary>
+        /// <summary>Indicates an <see cref="ILoopOperation"/>, which is further differentiated by <see cref="ILoopOperation.LoopKind"/>.</summary>
         Loop = 0x5,
         /// <summary>Indicates an <see cref="ILabeledOperation"/>.</summary>
         Labeled = 0x6,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
         CatchClause = 0x50,
         /// <summary>Indicates an <see cref="ISwitchCaseOperation"/>.</summary>
         SwitchCase = 0x51,
-        /// <summary>Indicates different kinds of switch case clauses as defined by <see cref="CaseKind"/>.</summary>
+        /// <summary>Indicates an <see cref="ICaseClauseOperation"/>, which is further differentiated by <see cref="ICaseClauseOperation.CaseKind"/>.</summary>
         CaseClause = 0x52,
         /// <summary>Indicates an <see cref="IInterpolatedStringTextOperation"/>.</summary>
         InterpolatedStringText = 0x53,

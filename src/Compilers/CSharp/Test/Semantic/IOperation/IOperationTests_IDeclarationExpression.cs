@@ -57,6 +57,7 @@ Block[B0] - Entry
 .locals {R1}
 {
     Locals: [var i1] [var i2]
+    CaptureIds: [0]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)

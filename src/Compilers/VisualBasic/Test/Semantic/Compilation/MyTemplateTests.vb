@@ -104,7 +104,7 @@ End Class
             Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text, StringComparison.Ordinal)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MyConsoleApp()
 
 
@@ -139,7 +139,7 @@ End Module
 
         End Sub
 
-        <ConditionalFact(GetType(HasValidFonts))>
+        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(HasValidFonts), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MyWinformApp()
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[

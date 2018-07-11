@@ -530,6 +530,18 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return CreateInvalidExpressionForHasArgumentsExpression(null, boundObjectCreationExpression.Arguments, boundObjectCreationExpression.InitializerExpressionOpt, syntax, type, constantValue, isImplicit);
             }
+            else if (boundObjectCreationExpression.Type.IsAnonymousType)
+            {
+                // Workaround for https://github.com/dotnet/roslyn/issues/28157
+                Debug.Assert(isImplicit);
+                var memberInitializers = new Lazy<ImmutableArray<IOperation>>(() => GetAnonymousObjectCreationInitializers(
+                                                                                        boundObjectCreationExpression.Arguments,
+                                                                                        declarations: ImmutableArray<BoundAnonymousPropertyDeclaration>.Empty,
+                                                                                        syntax,
+                                                                                        type,
+                                                                                        isImplicit));
+                return new LazyAnonymousObjectCreationExpression(memberInitializers, _semanticModel, syntax, type, constantValue, isImplicit);
+            }
 
             Lazy<IObjectOrCollectionInitializerOperation> initializer = new Lazy<IObjectOrCollectionInitializerOperation>(() => (IObjectOrCollectionInitializerOperation)Create(boundObjectCreationExpression.InitializerExpressionOpt));
             Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() =>
@@ -1419,12 +1431,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation CreateBoundBlockOperation(BoundBlock boundBlock)
         {
             Lazy<ImmutableArray<IOperation>> statements =
-                new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => (bound: s, operation: Create(s)))
-                                                                                // Filter out all OperationKind.None except fixed statements for now.
-                                                                                // https://github.com/dotnet/roslyn/issues/21776
-                                                                                .Where(s => s.operation.Kind != OperationKind.None ||
-                                                                                s.bound.Kind == BoundKind.FixedStatement)
-                                                                                .Select(s => s.operation).ToImmutableArray());
+                new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => Create(s)).ToImmutableArray());
 
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundBlock.Syntax;

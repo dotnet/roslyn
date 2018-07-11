@@ -104,9 +104,9 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         {
             // we have a predefined type syntax that is either in a member access context or a declaration context. 
             // check the appropriate option and determine if we should report a diagnostic.
-            var isMemberAcessOrCref = IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode);
+            var isMemberAccessOrCref = IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode);
 
-            var option = isMemberAcessOrCref ? GetOptionForMemberAccessContext : GetOptionForDeclarationContext;
+            var option = isMemberAccessOrCref ? GetOptionForMemberAccessContext : GetOptionForDeclarationContext;
             var optionValue = optionSet.GetOption(option, language);
 
             severity = optionValue.Notification.Severity;

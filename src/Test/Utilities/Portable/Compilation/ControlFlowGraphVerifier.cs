@@ -1,12 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Extensions;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -90,6 +96,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             PooledDictionary<ControlFlowRegion, int> regionMap = buildRegionMap();
             var localFunctionsMap = PooledDictionary<IMethodSymbol, ControlFlowGraph>.GetInstance();
             var anonymousFunctionsMap = PooledDictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph>.GetInstance();
+            var referencedLocalsAndMethods = PooledHashSet<ISymbol>.GetInstance();
+            var referencedCaptureIds = PooledHashSet<CaptureId>.GetInstance();
 
             for (int i = 0; i < blocks.Length; i++)
             {
@@ -119,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Null(currentRegion.ExceptionType);
                         Assert.Empty(currentRegion.Locals);
                         Assert.Empty(currentRegion.LocalFunctions);
+                        Assert.Empty(currentRegion.CaptureIds);
                         Assert.Equal(ControlFlowRegionKind.Root, currentRegion.Kind);
                         Assert.True(block.IsReachable);
                         break;
@@ -286,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     validateBranch(block, nextBranch);
                 }
 
-                validateLocalsAndMethodsLifetime(block);
+                validateLifetimeOfReferences(block);
 
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
@@ -311,10 +320,872 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Assert.Same(pair.Value, graph.GetAnonymousFunctionControlFlowGraph(pair.Key));
             }
 
+            bool doCaptureVerification = true;
+
+            if (graph.OriginalOperation.Language == LanguageNames.VisualBasic)
+            {
+                var model = compilation.GetSemanticModel(graph.OriginalOperation.Syntax.SyntaxTree);
+                if (model.GetDiagnostics(graph.OriginalOperation.Syntax.Span).
+                        Any(d => d.Code == (int)VisualBasic.ERRID.ERR_GotoIntoWith ||
+                                 d.Code == (int)VisualBasic.ERRID.ERR_GotoIntoFor ||
+                                 d.Code == (int)VisualBasic.ERRID.ERR_GotoIntoSyncLock ||
+                                 d.Code == (int)VisualBasic.ERRID.ERR_GotoIntoUsing))
+                {
+                    // Invalid branches like that are often causing reports about
+                    // using captures before they are initialized.
+                    doCaptureVerification = false;
+                }
+            }
+
+            if (doCaptureVerification)
+            {
+                verifyCaptures();
+            }
+
             regionMap.Free();
             localFunctionsMap.Free();
             anonymousFunctionsMap.Free();
+            referencedLocalsAndMethods.Free();
+            referencedCaptureIds.Free();
             return;
+
+            void verifyCaptures()
+            {
+                var longLivedIds = PooledHashSet<CaptureId>.GetInstance();
+                var referencedIds = PooledHashSet<CaptureId>.GetInstance();
+                var entryStates = ArrayBuilder<PooledHashSet<CaptureId>>.GetInstance(blocks.Length, fillWithValue: null);
+                var regions = ArrayBuilder<ControlFlowRegion>.GetInstance();
+
+                for (int i = 1; i < blocks.Length - 1; i++)
+                {
+                    BasicBlock block = blocks[i];
+                    PooledHashSet<CaptureId> currentState = entryStates[i] ?? PooledHashSet<CaptureId>.GetInstance();
+                    entryStates[i] = null;
+
+                    foreach (ControlFlowBranch predecessor in block.Predecessors)
+                    {
+                        if (predecessor.Source.Ordinal >= i)
+                        {
+                            foreach (ControlFlowRegion region in predecessor.EnteringRegions)
+                            {
+                                if (region.FirstBlockOrdinal != block.Ordinal)
+                                {
+                                    foreach (CaptureId id in region.CaptureIds)
+                                    {
+                                        Assert.True(currentState.Contains(id), $"Backward branch from [{getBlockId(predecessor.Source)}] to [{getBlockId(block)}] before capture [{id.Value}] is initialized.");
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    for (var j = 0; j < block.Operations.Length; j++)
+                    {
+                        var operation = block.Operations[j];
+                        if (operation is IFlowCaptureOperation capture)
+                        {
+                            assertCaptureReferences(currentState, capture.Value, block, j, longLivedIds, referencedIds);
+                            Assert.True(currentState.Add(capture.Id), $"Operation [{j}] in [{getBlockId(block)}] re-initialized capture [{capture.Id.Value}].");
+                        }
+                        else
+                        {
+                            assertCaptureReferences(currentState, operation, block, j, longLivedIds, referencedIds);
+                        }
+                    }
+
+                    if (block.BranchValue != null)
+                    {
+                        assertCaptureReferences(currentState, block.BranchValue, block, block.Operations.Length, longLivedIds, referencedIds);
+
+                        if (block.ConditionalSuccessor != null)
+                        {
+                            adjustEntryStateForDestination(entryStates, block.ConditionalSuccessor, currentState);
+                        }
+                    }
+
+                    adjustEntryStateForDestination(entryStates, block.FallThroughSuccessor, currentState);
+
+                    if (blocks[i + 1].Predecessors.IsEmpty)
+                    {
+                        adjustAndGetEntryState(entryStates, blocks[i + 1], currentState);
+                    }
+
+                    verifyLeftRegions(block, longLivedIds, referencedIds, regions);
+
+                    currentState.Free();
+                }
+
+                foreach (PooledHashSet<CaptureId> state in entryStates)
+                {
+                    state?.Free();
+                }
+
+                entryStates.Free();
+                longLivedIds.Free();
+                referencedIds.Free();
+                regions.Free();
+            }
+
+            void verifyLeftRegions(BasicBlock block, PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds, ArrayBuilder<ControlFlowRegion> regions)
+            {
+                regions.Clear();
+
+                {
+                    ControlFlowRegion region = block.EnclosingRegion;
+
+                    while (region.LastBlockOrdinal == block.Ordinal)
+                    {
+                        regions.Add(region);
+                        region = region.EnclosingRegion;
+                    }
+                }
+
+                if (block.ConditionalSuccessor != null && block.ConditionalSuccessor.LeavingRegions.Length > regions.Count)
+                {
+                    regions.Clear();
+                    regions.AddRange(block.ConditionalSuccessor.LeavingRegions);
+                }
+
+                if (block.FallThroughSuccessor.LeavingRegions.Length > regions.Count)
+                {
+                    regions.Clear();
+                    regions.AddRange(block.FallThroughSuccessor.LeavingRegions);
+                }
+
+                if (regions.Count > 0)
+                {
+                    IOperation lastOperation = null;
+                    for (int i = block.Ordinal; i > 0 && lastOperation == null; i--)
+                    {
+                        lastOperation = blocks[i].BranchValue ?? blocks[i].Operations.LastOrDefault();
+                    }
+
+                    var referencedInLastOperation = PooledHashSet<CaptureId>.GetInstance();
+                    
+                    if (lastOperation != null)
+                    {
+                        foreach (IFlowCaptureReferenceOperation reference in lastOperation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
+                        {
+                            referencedInLastOperation.Add(reference.Id);
+                        }
+                    }
+
+                    foreach (ControlFlowRegion region in regions)
+                    {
+                        foreach (CaptureId id in region.CaptureIds)
+                        {
+                            if (referencedInLastOperation.Contains(id) ||
+                                longLivedIds.Contains(id) ||
+                                isCSharpEmptyObjectInitializerCapture(region, block, id) ||
+                                isWithStatementTargetCapture(region, block, id) ||
+                                isSwitchStatementTargetCapture(region, block, id) ||
+                                isForEachEnumeratorCapture(region, block, id) ||
+                                isConditionalXMLAccessReceiverCapture(region, block, id) ||
+                                isConditionalAccessCaptureUsedAfterNullCheck(lastOperation, region, block, id) ||
+                                (referencedIds.Contains(id) && isAggregateGroupCapture(lastOperation, region, block, id)))
+                            {
+                                continue;
+                            }
+
+                            if (region.LastBlockOrdinal != block.Ordinal && referencedIds.Contains(id))
+                            {
+                                continue;
+                            }
+
+                            IFlowCaptureReferenceOperation[] referencesAfter = getFlowCaptureReferenceOperationsInRegion(region, block.Ordinal + 1).Where(r => r.Id.Equals(id)).ToArray();
+
+                            Assert.True(referencesAfter.Length > 0 &&
+                                        referencesAfter.All(r => isLongLivedCaptureReferenceSyntax(r.Syntax)),
+                                $"Capture [{id.Value}] is not used in region [{getRegionId(region)}] before leaving it after block [{getBlockId(block)}]");
+                        }
+                    }
+
+                    referencedInLastOperation.Free();
+                }
+            }
+
+            bool isCSharpEmptyObjectInitializerCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
+            {
+                if (graph.OriginalOperation.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
+                {
+                    if (candidate.Id.Equals(id))
+                    {
+                        CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
+                        CSharpSyntaxNode parent = syntax;
+
+                        do
+                        {
+                            parent = parent.Parent;
+                        }
+                        while (parent != null && parent.Kind() != CSharp.SyntaxKind.SimpleAssignmentExpression);
+
+                        if (parent is AssignmentExpressionSyntax assignment &&
+                            assignment.Parent?.Kind() == CSharp.SyntaxKind.ObjectInitializerExpression &&
+                            assignment.Left.DescendantNodesAndSelf().Contains(syntax) &&
+                            assignment.Right is InitializerExpressionSyntax initializer &&
+                            initializer.Kind() == CSharp.SyntaxKind.ObjectInitializerExpression &&
+                            !initializer.Expressions.Any())
+                        {
+                            return true;
+                        }
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
+
+            bool isWithStatementTargetCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
+            {
+                if (graph.OriginalOperation.Language != LanguageNames.VisualBasic)
+                {
+                    return false;
+                }
+
+                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
+                {
+                    if (candidate.Id.Equals(id))
+                    {
+                        VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)candidate.Syntax);
+                        VisualBasicSyntaxNode parent = syntax.Parent;
+
+                        if (parent is WithStatementSyntax with &&
+                            with.Expression == syntax)
+                        {
+                            return true;
+                        }
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
+
+            bool isConditionalXMLAccessReceiverCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
+            {
+                if (graph.OriginalOperation.Language != LanguageNames.VisualBasic)
+                {
+                    return false;
+                }
+
+                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
+                {
+                    if (candidate.Id.Equals(id))
+                    {
+                        VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)candidate.Syntax);
+                        VisualBasicSyntaxNode parent = syntax.Parent;
+
+                        if (parent is VisualBasic.Syntax.ConditionalAccessExpressionSyntax conditional &&
+                            conditional.Expression == syntax &&
+                            conditional.WhenNotNull.DescendantNodesAndSelf().
+                                Any(n => 
+                                         n.IsKind(VisualBasic.SyntaxKind.XmlElementAccessExpression) ||
+                                         n.IsKind(VisualBasic.SyntaxKind.XmlDescendantAccessExpression) ||
+                                         n.IsKind(VisualBasic.SyntaxKind.XmlAttributeAccessExpression)))
+                        {
+                            // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
+                            // a None operation is created and all children are dropped.
+                            return true;
+                        }
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
+
+            bool isSwitchStatementTargetCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
+            {
+                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
+                {
+                    if (candidate.Id.Equals(id))
+                    {
+                        switch (candidate.Language)
+                        {
+                            case LanguageNames.CSharp:
+                                {
+                                    CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
+                                    if (syntax.Parent is CSharp.Syntax.SwitchStatementSyntax switchStmt && switchStmt.Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                }
+
+                                break;
+
+                            case LanguageNames.VisualBasic:
+                                {
+                                    VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)candidate.Syntax);
+                                    if (syntax.Parent is VisualBasic.Syntax.SelectStatementSyntax switchStmt && switchStmt.Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                }
+
+                                break;
+                        }
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
+
+            bool isForEachEnumeratorCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
+            {
+                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
+                {
+                    if (candidate.Id.Equals(id))
+                    {
+                        switch (candidate.Language)
+                        {
+                            case LanguageNames.CSharp:
+                                {
+                                    CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
+                                    if (syntax.Parent is CSharp.Syntax.CommonForEachStatementSyntax forEach && forEach.Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                }
+
+                                break;
+
+                            case LanguageNames.VisualBasic:
+                                {
+                                    VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)candidate.Syntax);
+                                    if (syntax.Parent is VisualBasic.Syntax.ForEachStatementSyntax forEach && forEach.Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                }
+
+                                break;
+                        }
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
+            
+            bool isAggregateGroupCapture(IOperation operation, ControlFlowRegion region, BasicBlock block, CaptureId id)
+            {
+                if (graph.OriginalOperation.Language != LanguageNames.VisualBasic)
+                {
+                    return false;
+                }
+
+                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
+                {
+                    if (candidate.Id.Equals(id))
+                    {
+                        VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)candidate.Syntax);
+
+                        foreach (ITranslatedQueryOperation query in operation.DescendantsAndSelf().OfType<ITranslatedQueryOperation>())
+                        {
+                            if (query.Syntax is VisualBasic.Syntax.QueryExpressionSyntax querySyntax &&
+                                querySyntax.Clauses.AsSingleton() is VisualBasic.Syntax.AggregateClauseSyntax aggregate &&
+                                aggregate.AggregateKeyword.SpanStart < candidate.Syntax.SpanStart &&
+                                aggregate.IntoKeyword.SpanStart > candidate.Syntax.SpanStart &&
+                                query.Operation.Kind == OperationKind.AnonymousObjectCreation)
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
+
+            void adjustEntryStateForDestination(ArrayBuilder<PooledHashSet<CaptureId>> entryStates, ControlFlowBranch branch, PooledHashSet<CaptureId> state)
+            {
+                if (branch.Destination != null)
+                {
+                    if (branch.Destination.Ordinal > branch.Source.Ordinal)
+                    {
+                        PooledHashSet<CaptureId> entryState = adjustAndGetEntryState(entryStates, branch.Destination, state);
+
+                        foreach (ControlFlowRegion region in branch.LeavingRegions)
+                        {
+                            entryState.RemoveAll(region.CaptureIds);
+                        }
+                    }
+                }
+                else if (branch.Semantics == ControlFlowBranchSemantics.Throw || 
+                         branch.Semantics == ControlFlowBranchSemantics.Rethrow ||
+                         branch.Semantics == ControlFlowBranchSemantics.Error ||
+                         branch.Semantics == ControlFlowBranchSemantics.StructuredExceptionHandling)
+                {
+                    ControlFlowRegion region = branch.Source.EnclosingRegion;
+
+                    while (region.Kind != ControlFlowRegionKind.Root)
+                    {
+                        if (region.Kind == ControlFlowRegionKind.Try && region.EnclosingRegion.Kind == ControlFlowRegionKind.TryAndFinally)
+                        {
+                            Debug.Assert(region.EnclosingRegion.NestedRegions[1].Kind == ControlFlowRegionKind.Finally);
+                            adjustAndGetEntryState(entryStates, blocks[region.EnclosingRegion.NestedRegions[1].FirstBlockOrdinal], state);
+                        }
+
+                        region = region.EnclosingRegion;
+                    }
+                }
+
+                foreach (ControlFlowRegion @finally in branch.FinallyRegions)
+                {
+                    adjustAndGetEntryState(entryStates, blocks[@finally.FirstBlockOrdinal], state);
+                }
+            }
+
+            PooledHashSet<CaptureId> adjustAndGetEntryState(ArrayBuilder<PooledHashSet<CaptureId>> entryStates, BasicBlock block, PooledHashSet<CaptureId> state)
+            {
+                PooledHashSet<CaptureId> entryState = entryStates[block.Ordinal];
+                if (entryState == null)
+                {
+                    entryState = PooledHashSet<CaptureId>.GetInstance();
+                    entryState.AddAll(state);
+                    entryStates[block.Ordinal] = entryState;
+                }
+                else
+                {
+                    entryState.RemoveWhere(id => !state.Contains(id));
+                }
+
+                return entryState;
+            }
+
+            void assertCaptureReferences(
+                PooledHashSet<CaptureId> state, IOperation operation, BasicBlock block, int operationIndex,
+                PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds)
+            {
+                foreach (IFlowCaptureReferenceOperation reference in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
+                {
+                    CaptureId id = reference.Id;
+                    referencedIds.Add(id);
+
+                    if (isLongLivedCaptureReference(reference, block.EnclosingRegion))
+                    {
+                        longLivedIds.Add(id);
+                    }
+
+                    Assert.True(state.Contains(id) || isCaptureFromEnclosingGraph(id),
+                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].");
+
+                    Assert.True(block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id) ||
+                                ((isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference) ||
+                                     isIncrementedNullableForToLoopControlVariable(reference) ||
+                                     isConditionalAccessReceiver(reference)) && 
+                                 block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
+                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?");
+                }
+            }
+
+            bool isConditionalAccessReceiver(IFlowCaptureReferenceOperation reference)
+            {
+                SyntaxNode captureReferenceSyntax = reference.Syntax;
+
+                switch (captureReferenceSyntax.Language)
+                {
+                    case LanguageNames.CSharp:
+                        {
+                            CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)captureReferenceSyntax);
+                            if (syntax.Parent is CSharp.Syntax.ConditionalAccessExpressionSyntax access &&
+                                access.Expression == syntax)
+                            {
+                                return true;
+                            }
+                        }
+                        break;
+
+                    case LanguageNames.VisualBasic:
+                        {
+                            VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)captureReferenceSyntax);
+                            if (syntax.Parent is VisualBasic.Syntax.ConditionalAccessExpressionSyntax access &&
+                                access.Expression == syntax)
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
+                }
+
+                return false;
+            }
+
+            bool isFirstOperandOfDynamicOrUserDefinedLogicalOperator(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Parent is IBinaryOperation binOp)
+                {
+                    if (binOp.LeftOperand == reference &&
+                        (binOp.OperatorKind == Operations.BinaryOperatorKind.And || binOp.OperatorKind == Operations.BinaryOperatorKind.Or) &&
+                        (binOp.OperatorMethod != null ||
+                         (ITypeSymbolHelpers.IsDynamicType(binOp.Type) &&
+                          (ITypeSymbolHelpers.IsDynamicType(binOp.LeftOperand.Type) || ITypeSymbolHelpers.IsDynamicType(binOp.RightOperand.Type)))))
+                    {
+                        if (reference.Language == LanguageNames.CSharp)
+                        {
+                            if (binOp.Syntax is CSharp.Syntax.BinaryExpressionSyntax binOpSyntax &&
+                                (binOpSyntax.Kind() == CSharp.SyntaxKind.LogicalAndExpression || binOpSyntax.Kind() == CSharp.SyntaxKind.LogicalOrExpression) &&
+                                binOpSyntax.Left == applyParenthesizedIfAnyCS((CSharpSyntaxNode)reference.Syntax) &&
+                                binOpSyntax.Right == applyParenthesizedIfAnyCS((CSharpSyntaxNode)binOp.RightOperand.Syntax))
+                            {
+                                return true;
+                            }
+                        }
+                        else if (reference.Language == LanguageNames.VisualBasic)
+                        {
+                            var referenceSyntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)reference.Syntax);
+                            if (binOp.Syntax is VisualBasic.Syntax.BinaryExpressionSyntax binOpSyntax &&
+                                (binOpSyntax.Kind() == VisualBasic.SyntaxKind.AndAlsoExpression || binOpSyntax.Kind() == VisualBasic.SyntaxKind.OrElseExpression) &&
+                                binOpSyntax.Left == referenceSyntax &&
+                                binOpSyntax.Right == applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)binOp.RightOperand.Syntax))
+                            {
+                                return true;
+                            }
+                            else if (binOp.Syntax is VisualBasic.Syntax.RangeCaseClauseSyntax range &&
+                                binOp.OperatorKind == Operations.BinaryOperatorKind.And &&
+                                range.LowerBound == referenceSyntax &&
+                                range.UpperBound == applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)binOp.RightOperand.Syntax))
+                            {
+                                return true;
+                            }
+                            else if (binOp.Syntax is VisualBasic.Syntax.CaseStatementSyntax caseStmt &&
+                                binOp.OperatorKind == Operations.BinaryOperatorKind.Or &&
+                                caseStmt.Cases.Count > 1 &&
+                                (caseStmt == referenceSyntax || caseStmt.Cases.Contains(referenceSyntax as CaseClauseSyntax)) &&
+                                caseStmt.Cases.Contains(applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)binOp.RightOperand.Syntax) as CaseClauseSyntax))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            bool isIncrementedNullableForToLoopControlVariable(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Parent is ISimpleAssignmentOperation assignment &&
+                    assignment.IsImplicit &&
+                    assignment.Target == reference &&
+                    ITypeSymbolHelpers.IsNullableType(reference.Type) &&
+                    assignment.Syntax.Parent is VisualBasic.Syntax.ForStatementSyntax forStmt &&
+                    assignment.Syntax == forStmt.ControlVariable &&
+                    reference.Syntax == assignment.Syntax &&
+                    assignment.Value.Syntax == forStmt.StepClause.StepValue)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool isLongLivedCaptureReference(IFlowCaptureReferenceOperation reference, ControlFlowRegion region)
+            {
+                if (isLongLivedCaptureReferenceSyntax(reference.Syntax))
+                {
+                    return true;
+                }
+
+                return isCaptureFromEnclosingGraph(reference.Id);
+            }
+
+            bool isCaptureFromEnclosingGraph(CaptureId id)
+            {
+                ControlFlowRegion region = graph.Root.EnclosingRegion;
+                
+                while (region != null)
+                {
+                    if (region.CaptureIds.Contains(id))
+                    {
+                        return true;
+                    }
+
+                    region = region.EnclosingRegion;
+                }
+
+                return false;
+            }
+
+            bool isConditionalAccessCaptureUsedAfterNullCheck(IOperation operation, ControlFlowRegion region, BasicBlock block, CaptureId id)
+            {
+                SyntaxNode whenNotNull = null;
+
+                if (operation.Parent == null && operation is IsNullOperation isNull && isNull.Operand.Kind == OperationKind.FlowCaptureReference)
+                {
+                    switch (isNull.Operand.Language)
+                    {
+                        case LanguageNames.CSharp:
+                            {
+                                CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)isNull.Operand.Syntax);
+                                if (syntax.Parent is CSharp.Syntax.ConditionalAccessExpressionSyntax access &&
+                                    access.Expression == syntax)
+                                {
+                                    whenNotNull = access.WhenNotNull;
+                                }
+                            }
+                            break;
+
+                        case LanguageNames.VisualBasic:
+                            {
+                                VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)isNull.Operand.Syntax);
+                                if (syntax.Parent is VisualBasic.Syntax.ConditionalAccessExpressionSyntax access &&
+                                    access.Expression == syntax)
+                                {
+                                    whenNotNull = access.WhenNotNull;
+                                }
+                            }
+
+                            break;
+                    }
+                }
+
+                if (whenNotNull == null)
+                {
+                    return false;
+                }
+
+                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, region.LastBlockOrdinal))
+                {
+                    if (candidate.Id.Equals(id))
+                    {
+                        if (whenNotNull.Contains(candidate.Syntax))
+                        {
+                            return true;
+                        }
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
+
+            bool isLongLivedCaptureReferenceSyntax(SyntaxNode captureReferenceSyntax)
+            {
+                switch (captureReferenceSyntax.Language)
+                {
+                    case LanguageNames.CSharp:
+                        {
+                            CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)captureReferenceSyntax);
+
+                            if (syntax.Parent?.Parent is CSharp.Syntax.UsingStatementSyntax usingStmt &&
+                                usingStmt.Declaration == syntax.Parent)
+                            {
+                                return true;
+                            }
+
+                            switch (syntax.Kind())
+                            {
+                                case CSharp.SyntaxKind.ObjectCreationExpression:
+                                    if (((CSharp.Syntax.ObjectCreationExpressionSyntax)syntax).Initializer?.Expressions.Any() == true)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+                            }
+
+                            CSharpSyntaxNode parent = syntax.Parent;
+                            switch (parent?.Kind())
+                            {
+                                case CSharp.SyntaxKind.ForEachStatement:
+                                case CSharp.SyntaxKind.ForEachVariableStatement:
+                                    if (((CommonForEachStatementSyntax)parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case CSharp.SyntaxKind.Argument:
+                                    if ((parent = parent.Parent)?.Kind() == CSharp.SyntaxKind.BracketedArgumentList &&
+                                        (parent = parent.Parent)?.Kind() == CSharp.SyntaxKind.ImplicitElementAccess &&
+                                        parent.Parent is AssignmentExpressionSyntax assignment && assignment.Kind() == CSharp.SyntaxKind.SimpleAssignmentExpression &&
+                                        assignment.Left == parent &&
+                                        assignment.Parent?.Kind() == CSharp.SyntaxKind.ObjectInitializerExpression &&
+                                        (assignment.Right.Kind() == CSharp.SyntaxKind.CollectionInitializerExpression ||
+                                        assignment.Right.Kind() == CSharp.SyntaxKind.ObjectInitializerExpression))
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case CSharp.SyntaxKind.LockStatement:
+                                    if (((LockStatementSyntax)syntax.Parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case CSharp.SyntaxKind.UsingStatement:
+                                    if (((CSharp.Syntax.UsingStatementSyntax)syntax.Parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case CSharp.SyntaxKind.SwitchStatement:
+                                    if (((CSharp.Syntax.SwitchStatementSyntax)syntax.Parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+                            }
+                        }
+
+                        break;
+
+                    case LanguageNames.VisualBasic:
+                        {
+                            VisualBasicSyntaxNode syntax = applyParenthesizedIfAnyVB((VisualBasicSyntaxNode)captureReferenceSyntax);
+
+                            switch (syntax.Kind())
+                            {
+                                case VisualBasic.SyntaxKind.ForStatement:
+                                case VisualBasic.SyntaxKind.ForBlock:
+                                    return true;
+
+                                case VisualBasic.SyntaxKind.ObjectCreationExpression:
+                                    var objCreation = (VisualBasic.Syntax.ObjectCreationExpressionSyntax)syntax;
+                                    if ((objCreation.Initializer is VisualBasic.Syntax.ObjectMemberInitializerSyntax memberInit && memberInit.Initializers.Any()) ||
+                                        (objCreation.Initializer is VisualBasic.Syntax.ObjectCollectionInitializerSyntax collectionInit && collectionInit.Initializer.Initializers.Any()))
+                                    {
+                                        return true;
+                                    }
+                                    break;
+                            }
+
+                            VisualBasicSyntaxNode parent = syntax.Parent;
+                            switch (parent?.Kind())
+                            {
+                                case VisualBasic.SyntaxKind.ForEachStatement:
+                                    if (((VisualBasic.Syntax.ForEachStatementSyntax)parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case VisualBasic.SyntaxKind.ForStatement:
+                                    if (((VisualBasic.Syntax.ForStatementSyntax)parent).ToValue == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case VisualBasic.SyntaxKind.ForStepClause:
+                                    if (((ForStepClauseSyntax)parent).StepValue == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case VisualBasic.SyntaxKind.SyncLockStatement:
+                                    if (((VisualBasic.Syntax.SyncLockStatementSyntax)parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case VisualBasic.SyntaxKind.UsingStatement:
+                                    if (((VisualBasic.Syntax.UsingStatementSyntax)parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case VisualBasic.SyntaxKind.WithStatement:
+                                    if (((VisualBasic.Syntax.WithStatementSyntax)parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case VisualBasic.SyntaxKind.SelectStatement:
+                                    if (((VisualBasic.Syntax.SelectStatementSyntax)parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+                            }
+                        }
+
+                        break;
+                }
+
+                return false;
+            }
+
+            CSharpSyntaxNode applyParenthesizedIfAnyCS(CSharpSyntaxNode syntax)
+            {
+                while (syntax.Parent?.Kind() == CSharp.SyntaxKind.ParenthesizedExpression)
+                {
+                    syntax = syntax.Parent;
+                }
+
+                return syntax;
+            }
+
+            VisualBasicSyntaxNode applyParenthesizedIfAnyVB(VisualBasicSyntaxNode syntax)
+            {
+                while (syntax.Parent?.Kind() == VisualBasic.SyntaxKind.ParenthesizedExpression)
+                {
+                    syntax = syntax.Parent;
+                }
+
+                return syntax;
+            }
+
+            IEnumerable<IFlowCaptureOperation> getFlowCaptureOperationsFromBlocksInRegion(ControlFlowRegion region, int lastBlockOrdinal)
+            {
+                Debug.Assert(lastBlockOrdinal <= region.LastBlockOrdinal);
+                for (int i = lastBlockOrdinal; i >= region.FirstBlockOrdinal; i--)
+                {
+                    for (var j = blocks[i].Operations.Length - 1; j >= 0; j--)
+                    {
+                        if (blocks[i].Operations[j] is IFlowCaptureOperation capture)
+                        {
+                            yield return capture;
+                        }
+                    }
+                }
+            }
+
+            IEnumerable<IFlowCaptureReferenceOperation> getFlowCaptureReferenceOperationsInRegion(ControlFlowRegion region, int firstBlockOrdinal)
+            {
+                Debug.Assert(firstBlockOrdinal >= region.FirstBlockOrdinal);
+                for (int i = firstBlockOrdinal; i <= region.LastBlockOrdinal; i++)
+                {
+                    BasicBlock block = blocks[i];
+                    foreach (IOperation operation in block.Operations)
+                    {
+                        foreach (IFlowCaptureReferenceOperation reference in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
+                        {
+                            yield return reference;
+                        }
+                    }
+
+                    if (block.BranchValue != null)
+                    {
+                        foreach (IFlowCaptureReferenceOperation reference in block.BranchValue.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
+                        {
+                            yield return reference;
+                        }
+                    }
+                }
+            }
 
             string getDestinationString(ref ControlFlowBranch branch)
             {
@@ -374,6 +1245,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                     stringBuilder.AppendLine();
                 }
+
+                if (!region.CaptureIds.IsEmpty)
+                {
+                    appendIndent();
+                    stringBuilder.Append("CaptureIds:");
+                    foreach (CaptureId id in region.CaptureIds)
+                    {
+                        stringBuilder.Append($" [{id.Value}]");
+                    }
+                    stringBuilder.AppendLine();
+                }
             }
 
             void enterRegions(ControlFlowRegion region, int firstBlockOrdinal)
@@ -393,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 enterRegions(region.EnclosingRegion, firstBlockOrdinal);
                 currentRegion = region;
                 lastPrintedBlockIsInCurrentRegion = true;
-
+                
                 switch (region.Kind)
                 {
                     case ControlFlowRegionKind.Filter:
@@ -432,7 +1314,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
                     case ControlFlowRegionKind.LocalLifetime:
                         Assert.Null(region.ExceptionType);
-                        Assert.False(region.Locals.IsEmpty && region.LocalFunctions.IsEmpty);
+                        Assert.False(region.Locals.IsEmpty && region.LocalFunctions.IsEmpty && region.CaptureIds.IsEmpty);
                         enterRegion($".locals {{{getRegionId(region)}}}");
                         break;
 
@@ -440,6 +1322,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case ControlFlowRegionKind.TryAndFinally:
                         Assert.Empty(region.Locals);
                         Assert.Empty(region.LocalFunctions);
+                        Assert.Empty(region.CaptureIds);
                         Assert.Null(region.ExceptionType);
                         break;
 
@@ -608,62 +1491,87 @@ endRegion:
                 }
             }
 
-            void validateLocalsAndMethodsLifetime(BasicBlock block)
+            void validateLifetimeOfReferences(BasicBlock block)
             {
-                ISymbol[] localsOrMethodsInBlock = Enumerable.Concat(block.Operations, new[] { block.BranchValue }).
-                                                   Where(o => o != null).
-                                                   SelectMany(o => o.DescendantsAndSelf().
-                                                                   Select(node =>
-                                                                          {
-                                                                              IMethodSymbol method;
+                referencedCaptureIds.Clear();
+                referencedLocalsAndMethods.Clear();
 
-                                                                              switch (node.Kind)
-                                                                              {
-                                                                                  case OperationKind.LocalReference:
-                                                                                      return ((ILocalReferenceOperation)node).Local;
-                                                                                  case OperationKind.MethodReference:
-                                                                                      method = ((IMethodReferenceOperation)node).Method;
-                                                                                      return method.MethodKind == MethodKind.LocalFunction ? method.OriginalDefinition : null;
-                                                                                  case OperationKind.Invocation:
-                                                                                      method = ((IInvocationOperation)node).TargetMethod;
-                                                                                      return method.MethodKind == MethodKind.LocalFunction ? method.OriginalDefinition : null;
-                                                                                  default:
-                                                                                      return (ISymbol)null;
-                                                                              }
-                                                                          }).
-                                                                    Where(s => s != null)).
-                                                   Distinct().ToArray();
-
-                if (localsOrMethodsInBlock.Length == 0)
+                foreach (IOperation operation in block.Operations)
                 {
-                    return;
+                    recordReferences(operation);
                 }
 
-                var localsAndMethodsInRegions = PooledHashSet<ISymbol>.GetInstance();
+                if (block.BranchValue != null)
+                {
+                    recordReferences(block.BranchValue);
+                }
+
                 ControlFlowRegion region = block.EnclosingRegion;
 
-                do
+                while ((referencedCaptureIds.Count != 0 || referencedLocalsAndMethods.Count != 0) && region != null)
                 {
-                    foreach(ILocalSymbol l in region.Locals)
+                    foreach (ILocalSymbol l in region.Locals)
                     {
-                        Assert.True(localsAndMethodsInRegions.Add(l));
+                        referencedLocalsAndMethods.Remove(l);
                     }
 
                     foreach (IMethodSymbol m in region.LocalFunctions)
                     {
-                        Assert.True(localsAndMethodsInRegions.Add(m));
+                        referencedLocalsAndMethods.Remove(m);
+                    }
+
+                    foreach (CaptureId id in region.CaptureIds)
+                    {
+                        referencedCaptureIds.Remove(id);
                     }
 
                     region = region.EnclosingRegion;
                 }
-                while (region != null);
 
-                foreach (ISymbol l in localsOrMethodsInBlock)
+                if (referencedLocalsAndMethods.Count != 0)
                 {
-                    Assert.False(localsAndMethodsInRegions.Add(l), $"Local/method without owning region {l.ToTestDisplayString()} in [{getBlockId(block)}]");
+                    Assert.True(false, $"Local/method without owning region {referencedLocalsAndMethods.First().ToTestDisplayString()} in [{getBlockId(block)}]");
                 }
 
-                localsAndMethodsInRegions.Free();
+                if (referencedCaptureIds.Count != 0)
+                {
+                    Assert.True(false, $"Capture [{referencedCaptureIds.First().Value}] without owning region in [{getBlockId(block)}]");
+                }
+            }
+
+            void recordReferences(IOperation operation)
+            {
+                foreach (IOperation node in operation.DescendantsAndSelf())
+                {
+                    IMethodSymbol method;
+
+                    switch (node.Kind)
+                    {
+                        case OperationKind.LocalReference:
+                            referencedLocalsAndMethods.Add(((ILocalReferenceOperation)node).Local);
+                            break;
+                        case OperationKind.MethodReference:
+                            method = ((IMethodReferenceOperation)node).Method;
+                            if (method.MethodKind == MethodKind.LocalFunction)
+                            {
+                                referencedLocalsAndMethods.Add(method.OriginalDefinition);
+                            }
+                            break;
+                        case OperationKind.Invocation:
+                            method = ((IInvocationOperation)node).TargetMethod;
+                            if (method.MethodKind == MethodKind.LocalFunction)
+                            {
+                                referencedLocalsAndMethods.Add(method.OriginalDefinition);
+                            }
+                            break;
+                        case OperationKind.FlowCapture:
+                            referencedCaptureIds.Add(((IFlowCaptureOperation)node).Id);
+                            break;
+                        case OperationKind.FlowCaptureReference:
+                            referencedCaptureIds.Add(((IFlowCaptureReferenceOperation)node).Id);
+                            break;
+                    }
+                }
             }
 
             string getBlockId(BasicBlock block)

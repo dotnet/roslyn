@@ -115,11 +115,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     var adjustedNewText = AdjustForVirtualSpace(textChange);
                     var editOptions = GetEditOptions(mappedSpan, adjustedNewText);
 
+                    // The immediate window is always marked read-only and the language service is
+                    // responsible for asking the buffer to make itself writable. We'll have to do that for
+                    // commit, so we need to drag the IVsTextLines around, too.
+                    // We have to ask the buffer to make itself writable, if it isn't already
+                    uint immediateWindowBufferUpdateCookie = 0;
+                    if (_isImmediateWindow)
+                    {
+                        immediateWindowBufferUpdateCookie = ((IDebuggerTextView)TextView).StartBufferUpdate();
+                    }
+
                     // Now actually make the text change to the document.
                     using (var textEdit = this.SubjectBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
                     {
                         textEdit.Replace(mappedSpan.Span, adjustedNewText);
                         textEdit.ApplyAndLogExceptions();
+                    }
+
+                    if (_isImmediateWindow)
+                    {
+                        ((IDebuggerTextView)TextView).EndBufferUpdate(immediateWindowBufferUpdateCookie);
                     }
 
                     // If the completion change requested a new position for the caret to go,

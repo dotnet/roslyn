@@ -30,5 +30,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     throw ExceptionUtilities.UnexpectedValue(syntaxKind);
             }
         }
+
+        public static bool IsWritableReference(this RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.Ref:
+                case RefKind.Out:
+                    return true;
+                case RefKind.None:
+                case RefKind.In:
+                    return false;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
+            }
+        }
     }
 }

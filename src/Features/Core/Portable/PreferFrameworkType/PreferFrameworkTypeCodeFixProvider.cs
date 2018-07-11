@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
                     context.Diagnostics);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
