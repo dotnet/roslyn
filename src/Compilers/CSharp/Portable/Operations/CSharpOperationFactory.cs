@@ -1967,7 +1967,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ISymbol variable = boundDeclarationPattern.Variable;
             if (variable == null && boundDeclarationPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
             {
-                variable = (IDiscardSymbol)(((BoundDiscardExpression)boundDeclarationPattern.VariableAccess).ExpressionSymbol);
+                variable = ((BoundDiscardExpression)boundDeclarationPattern.VariableAccess).ExpressionSymbol;
             }
 
             SyntaxNode syntax = boundDeclarationPattern.Syntax;
