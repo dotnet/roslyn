@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
@@ -138,9 +139,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await LoadRoslynPackageAsync();
             _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
 
-            // Prepare to reset all options
+            // Prepare to reset all options. We explicitly read all option values from the OptionSet to ensure all
+            // values changed from the defaults are detected.
             var optionService = _visualStudioWorkspace.Services.GetRequiredService<IOptionService>();
             var optionSet = optionService.GetOptions();
+            await ReadAllOptionValuesAsync(optionSet);
             foreach (var changedOptionKey in optionSet.GetChangedOptions(DefaultValueOptionSet.Instance).ToArray())
             {
                 optionSet = optionSet.WithChangedOption(changedOptionKey, changedOptionKey.Option.DefaultValue);
@@ -151,6 +154,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             optionSet = optionSet.WithChangedOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, LanguageNames.VisualBasic, true);
 
             optionService.SetOptions(optionSet);
+        }
+
+        private async Task ReadAllOptionValuesAsync(OptionSet optionSet)
+        {
+            foreach (var optionProvider in (await GetComponentModelAsync()).GetExtensions<IOptionProvider>())
+            {
+                foreach (var option in optionProvider.Options)
+                {
+                    if (option.IsPerLanguage)
+                    {
+                        _ = optionSet.GetOption(new OptionKey(option, LanguageNames.CSharp));
+                        _ = optionSet.GetOption(new OptionKey(option, LanguageNames.VisualBasic));
+                    }
+                    else
+                    {
+                        _ = optionSet.GetOption(new OptionKey(option));
+                    }
+                }
+            }
         }
 
         public async Task CleanUpWaitingServiceAsync()
