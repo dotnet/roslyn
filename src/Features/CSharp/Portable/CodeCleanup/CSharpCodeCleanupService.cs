@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
             if (_codeFixServiceOpt != null)
             {
-                Logger.Log(FunctionId.Rename_InlineSession_Session, CodeCleanupLogMessage.Create(docOptions));
-                document = await ApplyCodeFixesAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
+                document = await ApplyCodeFixesAsync(
+                    document, docOptions, progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
@@ -134,10 +134,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             }
 
             progressTracker.Description = FeaturesResources.Formatting_document;
-            var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
-            progressTracker.ItemCompleted();
+            using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
+            {
+                var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
+                progressTracker.ItemCompleted();
+                return result;
+            }
 
-            return result;
         }
 
         private async Task<Document> RemoveSortUsingsAsync(
@@ -148,13 +151,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
                 if (removeUsingsService != null)
                 {
-                    document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                    using (Logger.LogBlock(FunctionId.CodeCleanup_RemoveUnusedImports, cancellationToken))
+                    {
+                        document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
 
             if (docOptions.GetOption(CodeCleanupOptions.SortImports))
             {
-                document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                using (Logger.LogBlock(FunctionId.CodeCleanup_SortImports, cancellationToken))
+                {
+                    document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return document;

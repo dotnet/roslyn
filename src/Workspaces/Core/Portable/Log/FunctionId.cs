@@ -423,6 +423,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeCleanupInfobar_ConfigureNow,
         CodeCleanupInfobar_DoNotShow,
 
-        FormatDocument
+        FormatDocument,
+        CodeCleanup_ApplyCodeFixesAsync,
+        CodeCleanup_RemoveUnusedImports,
+        CodeCleanup_SortImports,
+        CodeCleanup_Format
     }
 }
