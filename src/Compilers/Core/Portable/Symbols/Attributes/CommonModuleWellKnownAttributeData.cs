@@ -60,24 +60,5 @@ namespace Microsoft.CodeAnalysis
             return value >= Cci.Constants.CharSet_None && value <= Cci.Constants.CharSet_Auto;
         }
         #endregion
-
-        #region NonNullTypesAttribute
-        private bool? _nonNullTypes;
-        public bool? NonNullTypes
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _nonNullTypes;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                Debug.Assert(value.HasValue);
-                _nonNullTypes = value;
-                SetDataStored();
-            }
-        }
-        #endregion
     }
 }

@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool _hasBadAttributes;
 
+        private bool? _lazyNonNullTypes; // null means un-initialized
+
         /// This maps from assembly name to a set of public keys. It uses concurrent dictionaries because it is built,
         /// one attribute at a time, in the callback that validates an attribute's application to a symbol. It is assumed
         /// to be complete after a call to GetAttributes(). 
@@ -520,11 +522,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DecodeOneNullableOptOutForAssemblyAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
+        }
+
+        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        {
+            bool hasAnyDiagnostics;
+            CSharpAttributeData boundAttribute;
+
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NonNullTypesAttribute))
             {
-                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-                arguments.GetOrCreateData<CommonModuleWellKnownAttributeData>().NonNullTypes = value;
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    bool value = boundAttribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                    arguments.GetOrCreateData<ModuleEarlyWellKnownAttributeData>().NonNullTypes = value;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
             }
+
+            return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 
         private void DecodeOneNullableOptOutForAssemblyAttribute(
@@ -592,9 +613,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var attributeData = (CommonModuleWellKnownAttributeData)GetAttributesBag().DecodedWellKnownAttributeData;
-                return attributeData?.NonNullTypes ?? UtilizesNullableReferenceTypes;
+                if (_lazyNonNullTypes.HasValue)
+                {
+                    return _lazyNonNullTypes.Value;
+                }
+
+                // We only bind early attributes, as binding all attributes leads to cycles
+                ModuleEarlyWellKnownAttributeData earlyAttributes = ComputeEarlyAttributes();
+                bool value = earlyAttributes?.NonNullTypes ?? UtilizesNullableReferenceTypes;
+                _lazyNonNullTypes = value;
+                return value;
             }
+        }
+
+        private ModuleEarlyWellKnownAttributeData ComputeEarlyAttributes()
+        {
+            CustomAttributesBag<CSharpAttributeData> bag = null;
+            var mergedAttributes = ((SourceAssemblySymbol)ContainingAssembly).GetAttributeDeclarations();
+            LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), ref bag, earlyDecodingOnly: true);
+            if (bag != null)
+            {
+                Debug.Assert(bag.IsEarlyDecodedWellKnownAttributeDataComputed);
+                return (ModuleEarlyWellKnownAttributeData)bag.EarlyDecodedWellKnownAttributeData;
+            }
+
+            return null;
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
