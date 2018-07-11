@@ -1,30 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
+    public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractIdeEditorTest
     {
-        private const string DialogName = "PickMembersDialog";
-
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicGenerateEqualsAndGetHashCodeDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicGenerateEqualsAndGetHashCodeDialog))
+        public BasicGenerateEqualsAndGetHashCodeDialog()
+            : base(nameof(BasicGenerateEqualsAndGetHashCodeDialog))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public void VerifyCodeRefactoringOfferedAndCanceled()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task VerifyCodeRefactoringOfferedAndCanceledAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Dim i as Integer
     Dim j as String
@@ -33,11 +31,14 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
-            VerifyDialog(isOpen: true);
-            Dialog_ClickCancel();
-            var actualText = VisualStudio.Editor.GetText();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate Equals(object)...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+            await VisualStudio.PickMembersDialog.ClickCancelAsync();
+
+            await codeAction;
+
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             var expectedText = @"
 Class C
     Dim i as Integer
@@ -49,10 +50,10 @@ End Class";
             Assert.Contains(expectedText, actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public void VerifyCodeRefactoringOfferedAndAccepted()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task VerifyCodeRefactoringOfferedAndAcceptedAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Imports TestProj
 
 Class C
@@ -63,12 +64,15 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
-            VerifyDialog(isOpen: true);
-            Dialog_ClickOk();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = VisualStudio.Editor.GetText();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate Equals(object)...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+            await VisualStudio.PickMembersDialog.ClickOkAsync();
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb);
+
+            await codeAction;
+
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             var expectedText = @"
 Imports TestProj
 
@@ -87,14 +91,5 @@ Class C
 End Class";
             Assert.Contains(expectedText, actualText);
         }
-
-        private void VerifyDialog(bool isOpen)
-            => VisualStudio.Editor.Verify.Dialog(DialogName, isOpen);
-
-        private void Dialog_ClickCancel()
-            => VisualStudio.Editor.PressDialogButton(DialogName, "CancelButton");
-
-        private void Dialog_ClickOk()
-            => VisualStudio.Editor.PressDialogButton(DialogName, "OkButton");
     }
 }

@@ -1,30 +1,31 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Automation;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicGenerateConstructorDialog : AbstractEditorTest
+    public class BasicGenerateConstructorDialog : AbstractIdeEditorTest
     {
-        private const string DialogName = "PickMembersDialog";
-
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicGenerateConstructorDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicGenerateConstructorDialog))
+        public BasicGenerateConstructorDialog()
+            : base(nameof(BasicGenerateConstructorDialog))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public void VerifyCodeRefactoringOfferedAndCanceled()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task VerifyCodeRefactoringOfferedAndCanceledAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Dim i as Integer
     Dim j as String
@@ -33,11 +34,14 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
-            VerifyDialog(isOpen: true);
-            Dialog_ClickCancel();
-            var actualText = VisualStudio.Editor.GetText();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+            await VisualStudio.PickMembersDialog.ClickCancelAsync();
+
+            await codeAction;
+
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(
 @"
 Class C
@@ -49,10 +53,10 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public void VerifyCodeRefactoringOfferedAndAccepted()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task VerifyCodeRefactoringOfferedAndAcceptedAsync()
         {
-            SetUpEditor(
+            await SetUpEditorAsync(
 @"
 Class C
     Dim i as Integer
@@ -62,12 +66,14 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
-            VerifyDialog(isOpen: true);
-            Dialog_ClickOk();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = VisualStudio.Editor.GetText();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+            await VisualStudio.PickMembersDialog.ClickOkAsync();
+
+            await codeAction;
+
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(
 @"
 Class C
@@ -83,10 +89,10 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public void VerifyReordering()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task VerifyReorderingAsync()
         {
-            SetUpEditor(
+            await SetUpEditorAsync(
 @"
 Class C
     Dim i as Integer
@@ -96,14 +102,23 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
-            VerifyDialog(isOpen: true);
-            VisualStudio.Editor.DialogSendKeys(DialogName, "{TAB}");
-            VisualStudio.Editor.PressDialogButton(DialogName, "Down");
-            Dialog_ClickOk();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = VisualStudio.Editor.GetText();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false);
+            var dialog = await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+
+            var peer = new ListViewAutomationPeer(dialog.GetTestAccessor().Members);
+            var firstItem = peer.GetChildren().OfType<ISelectionItemProvider>().First();
+            firstItem.Select();
+
+            // Wait for changes to propagate
+            await Task.Yield();
+
+            await VisualStudio.PickMembersDialog.ClickDownAsync();
+            await VisualStudio.PickMembersDialog.ClickOkAsync();
+
+            await codeAction;
+
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(
 @"
 Class C
@@ -119,10 +134,10 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public void VerifyDeselect()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task VerifyDeselectAsync()
         {
-            SetUpEditor(
+            await SetUpEditorAsync(
 @"
 Class C
     Dim i as Integer
@@ -132,14 +147,25 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
-            VerifyDialog(isOpen: true);
-            VisualStudio.Editor.DialogSendKeys(DialogName, "{TAB}");
-            VisualStudio.Editor.DialogSendKeys(DialogName, " ");
-            Dialog_ClickOk();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = VisualStudio.Editor.GetText();
+            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false);
+            var dialog = await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+
+            var peer = new ListViewAutomationPeer(dialog.GetTestAccessor().Members);
+            var firstItem = peer.GetChildren().Where(child => child is ISelectionItemProvider).First();
+            var firstItemToggle = firstItem.GetChildren().OfType<IToggleProvider>().First();
+            firstItemToggle.Toggle();
+
+            // Wait for changes to propagate
+            await Task.Yield();
+
+            Assert.Equal(ToggleState.Off, (ToggleState)firstItemToggle.ToggleState);
+
+            await VisualStudio.PickMembersDialog.ClickOkAsync();
+
+            await codeAction;
+
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(
 @"
 Class C
@@ -153,14 +179,5 @@ Class C
     End Sub
 End Class", actualText);
         }
-
-        private void VerifyDialog(bool isOpen)
-            => VisualStudio.Editor.Verify.Dialog(DialogName, isOpen);
-
-        private void Dialog_ClickCancel()
-            => VisualStudio.Editor.PressDialogButton(DialogName, "CancelButton");
-
-        private void Dialog_ClickOk()
-            => VisualStudio.Editor.PressDialogButton(DialogName, "OkButton");
     }
 }

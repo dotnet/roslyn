@@ -121,6 +121,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         public virtual async Task DisposeAsync()
         {
+            await CloseDialogsAsync();
+
             await _joinableTaskCollection.JoinTillEmptyAsync();
             JoinableTaskContext = null;
         }
@@ -152,12 +154,18 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync();
 
             // Close any windows leftover from previous (failed) tests
-            await VisualStudio.ChangeSignatureDialog.CloseWindowAsync();
-            await VisualStudio.GenerateTypeDialog.CloseWindowAsync();
-            await VisualStudio.ExtractInterfaceDialog.CloseWindowAsync();
+            await CloseDialogsAsync();
             await VisualStudio.InteractiveWindow.CloseWindowAsync();
             await VisualStudio.ImmediateWindow.CloseWindowAsync();
             await VisualStudio.ObjectBrowserWindow.CloseWindowAsync();
+        }
+
+        protected virtual async Task CloseDialogsAsync()
+        {
+            await VisualStudio.ChangeSignatureDialog.CloseWindowAsync();
+            await VisualStudio.GenerateTypeDialog.CloseWindowAsync();
+            await VisualStudio.ExtractInterfaceDialog.CloseWindowAsync();
+            await VisualStudio.PickMembersDialog.CloseWindowAsync();
         }
 
         protected KeyPress Ctrl(VirtualKey virtualKey)

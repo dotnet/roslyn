@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             ImmediateWindow = new ImmediateWindow_InProc2(this);
             InlineRenameDialog = new InlineRenameDialog_InProc2(this);
             ObjectBrowserWindow = new ObjectBrowserWindow_InProc2(this);
+            PickMembersDialog = new PickMembersDialog_InProc2(this);
             PreviewChangesDialog = new PreviewChangesDialog_InProc2(this);
             Shell = new Shell_InProc2(this);
 
@@ -106,6 +107,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public ObjectBrowserWindow_InProc2 ObjectBrowserWindow
+        {
+            get;
+        }
+
+        public PickMembersDialog_InProc2 PickMembersDialog
         {
             get;
         }
