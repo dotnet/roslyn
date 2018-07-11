@@ -1,79 +1,73 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpGoToImplementation : AbstractEditorTest
+    public class CSharpGoToImplementation : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.CSharp;
-
-        public CSharpGoToImplementation(VisualStudioInstanceFactory instanceFactory)
-                    : base(instanceFactory, nameof(CSharpGoToImplementation))
+        public CSharpGoToImplementation()
+            : base(nameof(CSharpGoToImplementation))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
-        public void SimpleGoToImplementation()
+        protected override string LanguageName => LanguageNames.CSharp;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        public async Task SimpleGoToImplementationAsync()
         {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileImplementation.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileImplementation.cs");
+            await VisualStudio.Editor.SetTextAsync(
 @"class Implementation : IGoo
 {
 }");
-            VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileInterface.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileInterface.cs");
+            await VisualStudio.Editor.SetTextAsync(
 @"interface IGoo 
 {
 }");
-            VisualStudio.Editor.PlaceCaret("interface IGoo");
-            VisualStudio.Editor.GoToImplementation();
-            VisualStudio.Editor.Verify.TextContains(@"class Implementation$$", assertCaretPosition: true);
-            Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
+            await VisualStudio.Editor.PlaceCaretAsync("interface IGoo");
+            await VisualStudio.Editor.GoToImplementationAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"class Implementation$$", assertCaretPosition: true);
+            Assert.False(await VisualStudio.Shell.IsActiveTabProvisionalAsync());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
-        public void GoToImplementationOpensProvisionalTabIfDocumentNotOpen()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        public async Task GoToImplementationOpensProvisionalTabIfDocumentNotOpenAsync()
         {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileImplementation.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileImplementation.cs");
+            await VisualStudio.Editor.SetTextAsync(
 @"class Implementation : IBar
 {
 }
 ");
-            VisualStudio.SolutionExplorer.CloseFile(project, "FileImplementation.cs", saveFile: true);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.CloseFileAsync(ProjectName, "FileImplementation.cs", saveFile: true);
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileInterface.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileInterface.cs");
+            await VisualStudio.Editor.SetTextAsync(
 @"interface IBar
 {
 }");
-            VisualStudio.Editor.PlaceCaret("interface IBar");
-            VisualStudio.Editor.GoToImplementation();
-            VisualStudio.Editor.Verify.TextContains(@"class Implementation$$", assertCaretPosition: true);
-            Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
+            await VisualStudio.Editor.PlaceCaretAsync("interface IBar");
+            await VisualStudio.Editor.GoToImplementationAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"class Implementation$$", assertCaretPosition: true);
+            Assert.True(await VisualStudio.Shell.IsActiveTabProvisionalAsync());
         }
 
-
-        // TODO: Enable this once the GoToDefinition tests are merged
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
-        public void GoToImplementationFromMetadataAsSource()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        public async Task GoToImplementationFromMetadataAsSourceAsync()
         {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileImplementation.cs");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileImplementation.cs");
+            await VisualStudio.Editor.SetTextAsync(
 @"using System;
 
 class Implementation : IDisposable
@@ -83,10 +77,10 @@ class Implementation : IDisposable
         IDisposable d;
     }
 }");
-            VisualStudio.Editor.PlaceCaret("IDisposable d", charsOffset: -1);
-            VisualStudio.Editor.GoToDefinition();
-            VisualStudio.Editor.GoToImplementation();
-            VisualStudio.Editor.Verify.TextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
+            await VisualStudio.Editor.PlaceCaretAsync("IDisposable d", charsOffset: -1);
+            await VisualStudio.Editor.GoToDefinitionAsync();
+            await VisualStudio.Editor.GoToImplementationAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
         }
     }
 }

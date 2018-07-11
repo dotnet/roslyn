@@ -1,40 +1,40 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicQuickInfo : AbstractEditorTest
+    public class BasicQuickInfo : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicQuickInfo(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicQuickInfo))
+        public BasicQuickInfo()
+            : base(nameof(BasicQuickInfo))
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void QuickInfo1()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfo1Async()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 ''' <summary>Hello!</summary>
 Class Program
     Sub Main(ByVal args As String$$())
     End Sub
 End Class");
-            VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
+            await VisualStudio.Editor.InvokeQuickInfoAsync();
+            Assert.Equal("Class\u200e System.String\r\nRepresents text as a series of Unicode characters.To browse the .NET Framework source code for this type, see the Reference Source.", await VisualStudio.Editor.GetQuickInfoAsync());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void International()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task InternationalAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 ''' <summary>
 ''' This is an XML doc comment defined in code.
 ''' </summary>
@@ -43,9 +43,9 @@ Class العربية123
          Dim goo as العربية123$$
     End Sub
 End Class");
-            VisualStudio.Editor.InvokeQuickInfo();
+            await VisualStudio.Editor.InvokeQuickInfoAsync();
             Assert.Equal(@"Class" + '\u200e' + @" TestProj.العربية123
-This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
+This is an XML doc comment defined in code.", await VisualStudio.Editor.GetQuickInfoAsync());
         }
     }
 }

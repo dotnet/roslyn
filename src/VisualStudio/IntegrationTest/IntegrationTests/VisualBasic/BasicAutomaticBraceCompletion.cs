@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10,88 +11,88 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicAutomaticBraceCompletion : AbstractEditorTest
+    public class BasicAutomaticBraceCompletion : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicAutomaticBraceCompletion))
+        public BasicAutomaticBraceCompletion()
+            : base(nameof(BasicAutomaticBraceCompletion))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Braces_InsertionAndTabCompleting()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Braces_InsertionAndTabCompletingAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim x = {");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {$$}", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Dim x = {");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim x = {$$}", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys(
+            await VisualStudio.Editor.SendKeysAsync(
                 "New Object",
                 VirtualKey.Escape,
                 VirtualKey.Tab);
 
-             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim x = {New Object}$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Braces_Overtyping()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Braces_OvertypingAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim x = {");
-             VisualStudio.Editor.SendKeys('}');
-             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {}$$", assertCaretPosition: true);
+             await VisualStudio.Editor.SendKeysAsync("Dim x = {");
+             await VisualStudio.Editor.SendKeysAsync('}');
+             await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim x = {}$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void ParenthesesTypeoverAfterStringLiterals()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task ParenthesesTypeoverAfterStringLiteralsAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Console.Write(");
-             VisualStudio.Editor.Verify.CurrentLineText("Console.Write($$)", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Console.Write(");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Console.Write($$)", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys('"');
-             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"$$\")", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync('"');
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Console.Write(\"$$\")", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys('"');
-             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"\"$$)", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync('"');
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Console.Write(\"\"$$)", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys(')');
-             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"\")$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync(')');
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Console.Write(\"\")$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBraceAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim x = {");
-             VisualStudio.Editor.SendKeys(VirtualKey.Enter);
-             VisualStudio.Editor.Verify.CurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
-             VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.SendKeysAsync("Dim x = {");
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Enter);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("            $$}", assertCaretPosition: true, trimWhitespace: false);
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 Class C
     Sub Goo()
         Dim x = {
@@ -101,91 +102,91 @@ End Class",
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Paren_InsertionAndTabCompleting()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Paren_InsertionAndTabCompletingAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     $$
 End Class");
 
-             VisualStudio.Editor.SendKeys("Sub Goo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Sub Goo(");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Sub Goo($$)", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys("x As Long");
-             VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo(x As Long)$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("x As Long");
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Escape);
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Tab);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Sub Goo(x As Long)$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Paren_Overtyping()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Paren_OvertypingAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     $$
 End Class");
 
-             VisualStudio.Editor.SendKeys("Sub Goo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Sub Goo(");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Sub Goo($$)", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-             VisualStudio.Editor.SendKeys(')');
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo()$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Escape);
+            await VisualStudio.Editor.SendKeysAsync(')');
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Sub Goo()$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Bracket_Insertion()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Bracket_InsertionAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim [Dim");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Dim [Dim");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim [Dim$$]", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Bracket_Overtyping()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Bracket_OvertypingAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim [Dim");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Dim [Dim");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim [Dim$$]", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys("] As Long");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim] As Long$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("] As Long");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim [Dim] As Long$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void DoubleQuote_InsertionAndTabCompletion()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task DoubleQuote_InsertionAndTabCompletionAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim str = \"");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"$$\"", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Dim str = \"");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim str = \"$$\"", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
-             VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Tab);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim str = \"\"$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Nested_AllKinds_1()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Nested_AllKinds_1Async()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub New([dim] As String)
     End Sub
@@ -195,19 +196,19 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys(
+            await VisualStudio.Editor.SendKeysAsync(
                 "Dim y = {New C([dim",
                 VirtualKey.Escape,
                 "]:=\"hello({[\")}",
                 VirtualKey.Enter);
-            var actualText = VisualStudio.Editor.GetText();
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Nested_AllKinds_2()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Nested_AllKinds_2Async()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub New([dim] As String)
     End Sub
@@ -217,7 +218,7 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys(
+            await VisualStudio.Editor.SendKeysAsync(
                 "Dim y = {New C([dim",
                 VirtualKey.Escape,
                 VirtualKey.Tab,
@@ -226,58 +227,58 @@ End Class");
                 VirtualKey.Tab,
                 VirtualKey.Tab,
                 VirtualKey.Enter);
-            var actualText = VisualStudio.Editor.GetText();
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionInComments()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionInCommentsAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         ' $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("{([\"");
-             VisualStudio.Editor.Verify.CurrentLineText("' {([\"$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("{([\"");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("' {([\"$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionInStringLiterals()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionInStringLiteralsAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim s = \"{([");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim s = \"{([$$\"", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Dim s = \"{([");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim s = \"{([$$\"", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionInXmlDocComment()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionInXmlDocCommentAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 $$
 Class C
 End Class");
 
-             VisualStudio.Editor.SendKeys("'''");
-             VisualStudio.Editor.SendKeys('{');
-             VisualStudio.Editor.SendKeys('(');
-             VisualStudio.Editor.SendKeys('[');
-             VisualStudio.Editor.SendKeys('"');
-             VisualStudio.Editor.Verify.CurrentLineText("''' {([\"$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("'''");
+            await VisualStudio.Editor.SendKeysAsync('{');
+            await VisualStudio.Editor.SendKeysAsync('(');
+            await VisualStudio.Editor.SendKeysAsync('[');
+            await VisualStudio.Editor.SendKeysAsync('"');
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("''' {([\"$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionInXmlDocCommentAtEndOfTag()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionInXmlDocCommentAtEndOfTagAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     ''' <summary>
     ''' <see></see>$$
@@ -286,47 +287,47 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("(");
-             VisualStudio.Editor.Verify.CurrentLineText("''' <see></see>($$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("(");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("''' <see></see>($$", assertCaretPosition: true);
         }
 
         [WorkItem(652015, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void LineCommittingIssue()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task LineCommittingIssueAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim x=\"\" '");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim x=\"\" '$$", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Dim x=\"\" '");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Dim x=\"\" '$$", assertCaretPosition: true);
         }
 
         [WorkItem(653399, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void VirtualWhitespaceIssue()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task VirtualWhitespaceIssueAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()$$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys(VirtualKey.Enter);
-             VisualStudio.Editor.SendKeys('(');
-             VisualStudio.Editor.SendKeys(VirtualKey.Backspace);
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Enter);
+            await VisualStudio.Editor.SendKeysAsync('(');
+            await VisualStudio.Editor.SendKeysAsync(VirtualKey.Backspace);
 
-             VisualStudio.Editor.Verify.CurrentLineText("        $$", assertCaretPosition: true, trimWhitespace: false);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("        $$", assertCaretPosition: true, trimWhitespace: false);
         }
 
         [WorkItem(659684, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void CompletionWithIntelliSenseWindowUp()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task CompletionWithIntelliSenseWindowUpAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Goo()
     End Sub
@@ -335,20 +336,20 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Goo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Goo($$)", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Goo(");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Goo($$)", assertCaretPosition: true);
         }
 
         [WorkItem(657451, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void CompletionAtTheEndOfFile()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task CompletionAtTheEndOfFileAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     $$");
 
-             VisualStudio.Editor.SendKeys("Sub Goo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
+            await VisualStudio.Editor.SendKeysAsync("Sub Goo(");
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("Sub Goo($$)", assertCaretPosition: true);
         }
     }
 }

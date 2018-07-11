@@ -1,43 +1,41 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicGoToImplementation : AbstractEditorTest
+    public class BasicGoToImplementation : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicGoToImplementation(VisualStudioInstanceFactory instanceFactory)
-                    : base(instanceFactory, nameof(BasicGoToImplementation))
+        public BasicGoToImplementation()
+            : base(nameof(BasicGoToImplementation))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
-        public void SimpleGoToImplementation()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        public async Task SimpleGoToImplementationAsync()
         {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.vb");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.vb");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileImplementation.vb");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileImplementation.vb");
+            await VisualStudio.Editor.SetTextAsync(
 @"Class Implementation
   Implements IGoo
 End Class");
-            VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.vb");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.vb");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileInterface.vb");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileInterface.vb");
+            await VisualStudio.Editor.SetTextAsync(
 @"Interface IGoo 
 End Interface");
-            VisualStudio.Editor.PlaceCaret("Interface IGoo");
-            VisualStudio.Editor.GoToImplementation();
-            VisualStudio.Editor.Verify.TextContains(@"Class Implementation$$", assertCaretPosition: true);
-            Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
+            await VisualStudio.Editor.PlaceCaretAsync("Interface IGoo");
+            await VisualStudio.Editor.GoToImplementationAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"Class Implementation$$", assertCaretPosition: true);
+            Assert.False(await VisualStudio.Shell.IsActiveTabProvisionalAsync());
         }
     }
 }

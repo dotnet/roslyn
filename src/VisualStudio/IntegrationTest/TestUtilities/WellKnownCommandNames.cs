@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_FormatDocument = "Edit.FormatDocument";
         public const string Edit_RemoveAndSort = "Edit.RemoveAndSort";
         public const string Edit_GoToDefinition = "Edit.GoToDefinition";
+        public const string Edit_GoToImplementation = "Edit.GoToImplementation";
         public const string Edit_ClearAll = "Edit.ClearAll";
         public const string Edit_NextHighlightedReference = "Edit.NextHighlightedReference";
 

@@ -1,28 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicFormatting : AbstractEditorTest
+    public class BasicFormatting : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicFormatting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicFormatting))
+        public BasicFormatting()
+            : base(nameof(BasicFormatting))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void VerifyFormattingIndent()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task VerifyFormattingIndentAsync()
         {
             var testCode = new StringBuilder()
                 .AppendLine("$$Module A")
@@ -32,10 +32,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
                 .AppendLine("End Module")
                 .ToString();
 
-            SetUpEditor(testCode);
+            await SetUpEditorAsync(testCode);
 
-            VisualStudio.Editor.FormatDocument();
-            VisualStudio.Editor.Verify.TextContains(
+            await VisualStudio.Editor.FormatDocumentAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(
 @"Module A
     Sub Main(args As String())
 
@@ -43,31 +43,31 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void VerifyCaseCorrection()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task VerifyCaseCorrectionAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 $$module A
 end module");
-            VisualStudio.Editor.FormatDocument();
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Editor.FormatDocumentAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 Module A
 End Module");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18065"), 
-         Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void ShiftEnterWithIntelliSenseAndBraceMatching()
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/18065")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ShiftEnterWithIntelliSenseAndBraceMatchingAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Module Program
     Function Main(ooo As Object) As Object
         Return Main$$
     End Function
 End Module");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Editor.SendKeys("(o", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "'comment");
-            VisualStudio.Editor.Verify.TextContains(@"
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+            await VisualStudio.Editor.SendKeysAsync("(o", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "'comment");
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"
 Module Program
     Function Main(ooo As Object) As Object
         Return Main(ooo)

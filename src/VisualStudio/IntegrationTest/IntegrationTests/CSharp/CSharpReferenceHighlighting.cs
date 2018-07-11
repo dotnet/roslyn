@@ -2,29 +2,31 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpReferenceHighlighting : AbstractEditorTest
+    public class CSharpReferenceHighlighting : AbstractIdeEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpReferenceHighlighting))
+        public CSharpReferenceHighlighting()
+            : base(nameof(CSharpReferenceHighlighting))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void Highlighting()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task HighlightingAsync()
         {
             var markup = @"
 class {|definition:C|}
@@ -34,16 +36,16 @@ class {|definition:C|}
         {|reference:C|} c = new {|reference:C|}();
     }
 }";
-            Test.Utilities.MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
-            VisualStudio.Editor.SetText(text);
-            Verify("C", spans);
+            MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            await VisualStudio.Editor.SetTextAsync(text);
+            await VerifyAsync("C", spans);
 
             // Verify tags disappear
-            VerifyNone("void");
+            await VerifyNoneAsync("void");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void WrittenReference()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task WrittenReferenceAsync()
         {
             var markup = @"
 class C
@@ -54,16 +56,16 @@ class C
         {|writtenreference:x|} = 3;
     }
 }";
-            Test.Utilities.MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
-            VisualStudio.Editor.SetText(text);
-            Verify("x", spans);
+            MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            await VisualStudio.Editor.SetTextAsync(text);
+            await VerifyAsync("x", spans);
 
             // Verify tags disappear
-            VerifyNone("void");
+            await VerifyNoneAsync("void");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void Navigation()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NavigationAsync()
         {
             var text = @"
 class C
@@ -74,49 +76,49 @@ class C
         x = 3;
     }
 }";
-            VisualStudio.Editor.SetText(text);
-            VisualStudio.Editor.PlaceCaret("x");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
+            await VisualStudio.Editor.SetTextAsync(text);
+            await VisualStudio.Editor.PlaceCaretAsync("x");
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.VisualStudio.ExecuteCommandAsync(WellKnownCommandNames.Edit_NextHighlightedReference);
+            await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
+            await VisualStudio.Editor.Verify.CurrentLineTextAsync("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        private void Verify(string marker, IDictionary<string, ImmutableArray<TextSpan>> spans)
+        private async Task VerifyAsync(string marker, IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
-            VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            await VisualStudio.Editor.PlaceCaretAsync(marker, charsOffset: -1);
+            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.ReferenceHighlighting);
 
-            AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId), message: "Testing 'definition'\r\n");
+            AssertEx.SetEqual(spans["definition"], await VisualStudio.Editor.GetTagSpansAsync(DefinitionHighlightTag.TagId), message: "Testing 'definition'\r\n");
 
             if (spans.ContainsKey("reference"))
             {
-                AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId), message: "Testing 'reference'\r\n");
+                AssertEx.SetEqual(spans["reference"], await VisualStudio.Editor.GetTagSpansAsync(ReferenceHighlightTag.TagId), message: "Testing 'reference'\r\n");
             }
 
             if (spans.ContainsKey("writtenreference"))
             {
-                AssertEx.SetEqual(spans["writtenreference"], VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId), message: "Testing 'writtenreference'\r\n");
+                AssertEx.SetEqual(spans["writtenreference"], await VisualStudio.Editor.GetTagSpansAsync(WrittenReferenceHighlightTag.TagId), message: "Testing 'writtenreference'\r\n");
             }
         }
 
-        private void VerifyNone(string marker)
+        private async Task VerifyNoneAsync(string marker)
         {
-            VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            await VisualStudio.Editor.PlaceCaretAsync(marker, charsOffset: -1);
+            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.ReferenceHighlighting);
 
-            Assert.Empty(VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId));
-            Assert.Empty(VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId));
+            Assert.Empty(await VisualStudio.Editor.GetTagSpansAsync(ReferenceHighlightTag.TagId));
+            Assert.Empty(await VisualStudio.Editor.GetTagSpansAsync(DefinitionHighlightTag.TagId));
         }
     }
 }

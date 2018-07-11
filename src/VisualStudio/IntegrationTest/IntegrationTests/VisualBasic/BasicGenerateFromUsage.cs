@@ -1,35 +1,34 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicGenerateFromUsage : AbstractEditorTest
+    public class BasicGenerateFromUsage : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicGenerateFromUsage(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicGenerateFromUsage))
+        public BasicGenerateFromUsage()
+            : base(nameof(BasicGenerateFromUsage))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
-        public void GenerateLocal()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
+        public async Task GenerateLocalAsync()
         {
-            SetUpEditor(
+            await SetUpEditorAsync(
 @"Module Program
     Sub Main(args As String())
         Dim x As String = $$xyz
     End Sub
 End Module");
-            VisualStudio.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
-            VisualStudio.Editor.Verify.TextContains(
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate local 'xyz'", applyFix: true);
+            await VisualStudio.Editor.Verify.TextContainsAsync(
 @"Module Program
     Sub Main(args As String())
         Dim xyz As String = Nothing
@@ -38,18 +37,18 @@ End Module");
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GenerateTypeInNewFile()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateTypeInNewFileAsync()
         {
-            SetUpEditor(
+            await SetUpEditorAsync(
 @"Module Program
     Sub Main(args As String())
         Dim x As New $$ClassInNewFile()
     End Sub
 End Module");
-            VisualStudio.Editor.Verify.CodeAction("Generate class 'ClassInNewFile' in new file", applyFix: true);
-            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "ClassInNewFile.vb");
-            VisualStudio.Editor.Verify.TextContains(
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate class 'ClassInNewFile' in new file", applyFix: true);
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "ClassInNewFile.vb");
+            await VisualStudio.Editor.Verify.TextContainsAsync(
 @"Friend Class ClassInNewFile
     Public Sub New()
     End Sub

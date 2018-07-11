@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
@@ -222,17 +223,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public async Task<string[]> GetErrorTagsAsync()
-            => await GetTagsAsync<IErrorTag>();
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-#if false
-        public string[] GetHighlightTags()
-           => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
-#endif
+            var view = await GetActiveTextViewAsync();
+            var tags = await GetTagsAsync<IErrorTag>();
+            return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
+        }
+
+        public async Task<TextSpan[]> GetKeywordHighlightTagsAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var tags = await GetTagsAsync<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
+            return tags.Select(tag => tag.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).ToArray();
+        }
 
         private string PrintSpan(SnapshotSpan span)
             => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
 
-        private async Task<string[]> GetTagsAsync<TTag>(Predicate<TTag> filter = null)
+        private async Task<IMappingTagSpan<ITag>[]> GetTagsAsync<TTag>(Predicate<TTag> filter = null)
             where TTag : ITag
         {
             bool Filter(TTag tag)
@@ -254,7 +265,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 .OrderBy(t => t.Span.GetSpans(view.TextBuffer).Single().Span.Start)
                 .ThenBy(t => t.Span.GetSpans(view.TextBuffer).Single().Span.End)
                 .Cast<IMappingTagSpan<ITag>>();
-            return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
+            return tags.ToArray();
         }
 
 #if false
@@ -752,10 +763,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await ExecuteCommandAsync(WellKnownCommandNames.Edit_GoToDefinition);
         }
 
-#if false
-        public void GoToImplementation()
-            => GetDTE().ExecuteCommand("Edit.GoToImplementation");
-#endif
+        public async Task GoToImplementationAsync()
+        {
+            await ExecuteCommandAsync(WellKnownCommandNames.Edit_GoToImplementation);
+        }
 
         /// <summary>
         /// Gets the spans where a particular tag appears in the active text view.

@@ -1,62 +1,61 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicGoToDefinition : AbstractEditorTest
+    public class BasicGoToDefinition : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        public BasicGoToDefinition(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicGoToDefinition))
+        public BasicGoToDefinition()
+            : base(nameof(BasicGoToDefinition))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
-        public void GoToClassDeclaration()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        public async Task GoToClassDeclarationAsync()
         {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileDef.vb");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileDef.vb");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileDef.vb");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileDef.vb");
+            await VisualStudio.Editor.SetTextAsync(
 @"Class SomeClass
 End Class");
-            VisualStudio.SolutionExplorer.AddFile(project, "FileConsumer.vb");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileConsumer.vb");
-            VisualStudio.Editor.SetText(
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, "FileConsumer.vb");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "FileConsumer.vb");
+            await VisualStudio.Editor.SetTextAsync(
 @"Class SomeOtherClass
     Dim gibberish As SomeClass
 End Class");
-            VisualStudio.Editor.PlaceCaret("SomeClass");
-            VisualStudio.Editor.GoToDefinition();
-            VisualStudio.Editor.Verify.TextContains(@"Class SomeClass$$", assertCaretPosition: true);
-            Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
+            await VisualStudio.Editor.PlaceCaretAsync("SomeClass");
+            await VisualStudio.Editor.GoToDefinitionAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync(@"Class SomeClass$$", assertCaretPosition: true);
+            Assert.False(await VisualStudio.Shell.IsActiveTabProvisionalAsync());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
-        public void ObjectBrowserNavigation()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        public async Task ObjectBrowserNavigationAsync()
         {
-            SetUpEditor(
+            await SetUpEditorAsync(
 @"Class C
     Dim i As Integer$$
 End Class");
-            VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "True");
+            await VisualStudio.Workspace.SetFeatureOptionAsync(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageName, true);
 
-            VisualStudio.Editor.GoToDefinition();
-            Assert.Equal("Object Browser", VisualStudio.Shell.GetActiveWindowCaption());
+            await VisualStudio.Editor.GoToDefinitionAsync();
+            Assert.Equal("Object Browser", await VisualStudio.Shell.GetActiveWindowCaptionAsync());
 
-            VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "False");
+            await VisualStudio.Workspace.SetFeatureOptionAsync(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageName, false);
 
-            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.vb");
-            VisualStudio.Editor.GoToDefinition();
-            VisualStudio.Editor.Verify.TextContains("Public Structure Int32");
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb");
+            await VisualStudio.Editor.GoToDefinitionAsync();
+            await VisualStudio.Editor.Verify.TextContainsAsync("Public Structure Int32");
         }
     }
 }

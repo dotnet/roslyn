@@ -2,28 +2,29 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpKeywordHighlighting : AbstractEditorTest
+    public class CSharpKeywordHighlighting : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.CSharp;
-
-        public CSharpKeywordHighlighting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpKeywordHighlighting))
+        public CSharpKeywordHighlighting()
+            : base(nameof(CSharpKeywordHighlighting))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void Foreach()
+        protected override string LanguageName => LanguageNames.CSharp;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ForeachAsync()
         {
             var input = @"class C
 {
@@ -33,18 +34,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     }
 }";
 
-            Roslyn.Test.Utilities.MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
 
-            VisualStudio.Editor.SetText(text);
+            await VisualStudio.Editor.SetTextAsync(text);
 
-            Verify("foreach", spans);
-            Verify("break", spans);
-            Verify("continue", spans);
-            Verify("in", ImmutableArray.Create<TextSpan>());
+            await VerifyAsync("foreach", spans);
+            await VerifyAsync("break", spans);
+            await VerifyAsync("continue", spans);
+            await VerifyAsync("in", ImmutableArray.Create<TextSpan>());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void PreprocessorConditionals()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PreprocessorConditionalsAsync()
         {
             var input = @"
 #define Debug
@@ -63,21 +64,21 @@ class PurchaseTransaction
         CommitHelper();
     }
 }";
-            Test.Utilities.MarkupTestFile.GetSpans(
+            MarkupTestFile.GetSpans(
                 input,
                 out var text,
                 out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
 
-            VisualStudio.Editor.SetText(text);
+            await VisualStudio.Editor.SetTextAsync(text);
 
-            Verify("#if", spans["if"]);
-            Verify("#else", spans["else"]);
-            Verify("#endif", spans["else"]);
+            await VerifyAsync("#if", spans["if"]);
+            await VerifyAsync("#else", spans["else"]);
+            await VerifyAsync("#endif", spans["else"]);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void PreprocessorRegions()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PreprocessorRegionsAsync()
         {
             var input = @"
 class C
@@ -89,28 +90,28 @@ class C
     [|#endregion|]
 }";
 
-            Test.Utilities.MarkupTestFile.GetSpans(
+            MarkupTestFile.GetSpans(
                 input,
                 out var text,
                 out ImmutableArray<TextSpan> spans);
 
-            VisualStudio.Editor.SetText(text);
+            await VisualStudio.Editor.SetTextAsync(text);
 
-            Verify("#region", spans);
-            Verify("#endregion", spans);
+            await VerifyAsync("#region", spans);
+            await VerifyAsync("#endregion", spans);
         }
 
-        private void Verify(string marker, ImmutableArray<TextSpan> expectedCount)
+        private async Task VerifyAsync(string marker, ImmutableArray<TextSpan> expectedKeywordSpans)
         {
-            VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            await VisualStudio.Editor.PlaceCaretAsync(marker, charsOffset: -1);
+            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.KeywordHighlighting);
 
-            Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTags());
+            Assert.Equal(expectedKeywordSpans, await VisualStudio.Editor.GetKeywordHighlightTagsAsync());
         }
     }
 }
