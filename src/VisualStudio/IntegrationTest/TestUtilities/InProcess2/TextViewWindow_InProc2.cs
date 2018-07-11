@@ -242,6 +242,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            await WaitForQuickInfoAsync();
+
             var view = await GetActiveTextViewAsync();
 #pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
             var broker = await GetComponentModelServiceAsync<IQuickInfoBroker>();

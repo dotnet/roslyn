@@ -23,28 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         internal abstract TextViewWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance);
 
-        public int GetCaretPosition()
-            => _textViewWindowInProc.GetCaretPosition();
-
-        public void PlaceCaret(
-            string marker,
-            int charsOffset = 0,
-            int occurrence = 0,
-            bool extendSelection = false,
-            bool selectBlock = false)
-            => _textViewWindowInProc.PlaceCaret(
-                marker,
-                charsOffset,
-                occurrence,
-                extendSelection,
-                selectBlock);
-
-        public string GetQuickInfo()
-        {
-            WaitForQuickInfo();
-            return _textViewWindowInProc.GetQuickInfo();
-        }
-
         public void ShowLightBulb()
             => _textViewWindowInProc.ShowLightBulb();
 
@@ -68,12 +46,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             ShowLightBulb();
             WaitForLightBulbSession();
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-        }
-
-        public void InvokeQuickInfo()
-        {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
         }
     }
 }

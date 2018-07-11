@@ -2,31 +2,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Outlining;
-using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using UIAutomationClient;
-using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
-using ControlType = System.Windows.Automation.ControlType;
-using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -90,16 +75,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 view.TextBuffer.Replace(replacementSpan, text);
             });
 
-        public string GetCurrentLineText()
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var bufferPosition = view.Caret.Position.BufferPosition;
-                var line = bufferPosition.GetContainingLine();
-
-                return line.GetText();
-            });
-
         public string GetSelectedText()
             => ExecuteOnActiveView(view =>
             {
@@ -116,35 +91,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 view.Caret.MoveTo(point);
             });
-
-        public string[] GetHighlightTags()
-           => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
-
-        private string PrintSpan(SnapshotSpan span)
-                => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
-
-        private string[] GetTags<TTag>(Predicate<TTag> filter = null)
-            where TTag : ITag
-        {
-            bool Filter(TTag tag)
-                => true;
-
-            if (filter == null)
-            {
-                filter = Filter;
-            }
-
-            return ExecuteOnActiveView(view =>
-            {
-                var viewTagAggregatorFactory = GetComponentModelService<IViewTagAggregatorFactoryService>();
-                var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
-                var tags = aggregator
-                  .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                  .Where(t => filter(t.Tag))
-                  .Cast<IMappingTagSpan<ITag>>();
-                return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
-            });
-        }
 
         private static IEnumerable<T> FindDescendants<T>(DependencyObject rootObject) where T : DependencyObject
         {
@@ -240,76 +186,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             return view.GetBufferContainingCaret();
         }
-
-        public string[] GetOutliningSpans()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var manager = GetComponentModelService<IOutliningManagerService>().GetOutliningManager(view);
-                var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
-                var regions = manager.GetAllRegions(span);
-                return regions
-                    .OrderBy(s => s.Extent.GetStartPoint(view.TextSnapshot))
-                    .Select(r => PrintSpan(r.Extent.GetSpan(view.TextSnapshot)))
-                    .ToArray();
-            });
-        }
-
-        public List<string> GetF1Keywords()
-        {
-            return InvokeOnUIThread(() =>
-            {
-                var results = new List<string>();
-                GetActiveVsTextView().GetBuffer(out var textLines);
-                Marshal.ThrowExceptionForHR(textLines.GetLanguageServiceID(out var languageServiceGuid));
-                Marshal.ThrowExceptionForHR(Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
-                var languageContextProvider = languageService as IVsLanguageContextProvider;
-
-                IVsMonitorUserContext monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
-                Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
-                Marshal.ThrowExceptionForHR(GetActiveVsTextView().GetCaretPos(out var line, out var column));
-                var span = new TextManager.Interop.TextSpan()
-                {
-                    iStartLine = line,
-                    iStartIndex = column,
-                    iEndLine = line,
-                    iEndIndex = column
-                };
-                
-                Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
-                Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
-                for (int i = 0; i < count; i++)
-                {
-                    emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out var key, out var value);
-                    results.Add(value);
-                }
-
-                return results;
-            });
-        }
-
-        public void GoToDefinition()
-            => GetDTE().ExecuteCommand("Edit.GoToDefinition");
-
-        public void GoToImplementation()
-            => GetDTE().ExecuteCommand("Edit.GoToImplementation");
-
-		/// <summary>
-        /// Gets the spans where a particular tag appears in the active text view.
-        /// </summary>
-        /// <returns>
-        /// Given a list of tag spans [s1, s2, ...], returns a decomposed array for serialization:
-        ///     [s1.Start, s1.Length, s2.Start, s2.Length, ...]
-        /// </returns>
-        public int[] GetTagSpans(string tagId)
-            => InvokeOnUIThread(() =>
-            {
-                var view = GetActiveTextView();
-                var tagAggregatorFactory = GetComponentModel().GetService<IViewTagAggregatorFactoryService>();
-                var tagAggregator = tagAggregatorFactory.CreateTagAggregator<ITextMarkerTag>(view);
-                var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
-
-                return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).SelectMany(t => new List<int> { t.Start, t.Length }).ToArray();
-            });
     }
 }

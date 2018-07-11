@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -38,12 +36,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void AddFile(ProjectUtils.Project project, string fileName, string contents = null, bool open = false)
             => _inProc.AddFile(project.Name, fileName, contents, open);
-
-        public void OpenFile(ProjectUtils.Project project, string fileName)
-            => _inProc.OpenFile(project.Name, fileName);
-
-        public void CloseFile(ProjectUtils.Project project, string fileName, bool saveFile)
-            => _inProc.CloseFile(project.Name, fileName, saveFile);
 
         public void SaveAll()
             => _inProc.SaveAll();

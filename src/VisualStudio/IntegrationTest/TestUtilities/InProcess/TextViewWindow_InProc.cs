@@ -52,85 +52,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected abstract ITextBuffer GetBufferContainingCaret(IWpfTextView view);
 
-        public void PlaceCaret(
-            string marker,
-            int charsOffset,
-            int occurrence,
-            bool extendSelection,
-            bool selectBlock)
-            => ExecuteOnActiveView(view =>
-            {
-                var dte = GetDTE();
-                dte.Find.FindWhat = marker;
-                dte.Find.MatchCase = true;
-                dte.Find.MatchInHiddenText = true;
-                dte.Find.Target = EnvDTE.vsFindTarget.vsFindTargetCurrentDocument;
-                dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
-
-                var originalPosition = GetCaretPosition();
-                view.Caret.MoveTo(new SnapshotPoint(GetBufferContainingCaret(view).CurrentSnapshot, 0));
-
-                if (occurrence > 0)
-                {
-                    var result = EnvDTE.vsFindResult.vsFindResultNotFound;
-                    for (var i = 0; i < occurrence; i++)
-                    {
-                        result = dte.Find.Execute();
-                    }
-
-                    if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                    {
-                        throw new Exception("Occurrence " + occurrence + " of marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                    }
-                }
-                else
-                {
-                    var result = dte.Find.Execute();
-                    if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                    {
-                        throw new Exception("Marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                    }
-                }
-
-                if (charsOffset > 0)
-                {
-                    for (var i = 0; i < charsOffset - 1; i++)
-                    {
-                        view.Caret.MoveToNextCaretPosition();
-                    }
-
-                    view.Selection.Clear();
-                }
-
-                if (charsOffset < 0)
-                {
-                    // On the first negative charsOffset, move to anchor-point position, as if the user hit the LEFT key
-                    view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, view.Selection.AnchorPoint.Position.Position));
-
-                    for (var i = 0; i < -charsOffset - 1; i++)
-                    {
-                        view.Caret.MoveToPreviousCaretPosition();
-                    }
-
-                    view.Selection.Clear();
-                }
-
-                if (extendSelection)
-                {
-                    var newPosition = view.Selection.ActivePoint.Position.Position;
-                    view.Selection.Select(new VirtualSnapshotPoint(view.TextSnapshot, originalPosition), new VirtualSnapshotPoint(view.TextSnapshot, newPosition));
-                    view.Selection.Mode = selectBlock ? TextSelectionMode.Box : TextSelectionMode.Stream;
-                }
-            });
-
-        public int GetCaretPosition()
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = GetBufferContainingCaret(view);
-                var bufferPosition = view.Caret.Position.BufferPosition;
-                return bufferPosition.Position;
-            });
-
         protected T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
             => InvokeOnUIThread(() =>
             {
@@ -147,22 +68,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var view = GetActiveTextView();
                 action(view);
             };
-
-        public string GetQuickInfo()
-            => ExecuteOnActiveView(view =>
-            {
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-                var broker = GetComponentModelService<IQuickInfoBroker>();
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one QuickInfo session, but found {sessions.Count}");
-                }
-
-                return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
-            });
 
         public bool IsLightBulbSessionExpanded()
        => ExecuteOnActiveView(view =>

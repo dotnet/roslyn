@@ -58,9 +58,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => GetWaitingService().WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
-        public void WaitForAllAsyncOperations(params string[] featureNames)
-            => GetWaitingService().WaitForAllAsyncOperations(featureNames);
-
         private static void LoadRoslynPackage()
         {
             var roslynPackageGuid = RoslynPackageId;
@@ -88,24 +85,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
 
                 GetWaitingService().EnableActiveTokenTracking(true);
-            });
-
-        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
-            => InvokeOnUIThread(() =>
-            {
-                var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
-                var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
-                if (option == null)
-                {
-                    throw new InvalidOperationException($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
-                }
-
-                var value = TypeDescriptor.GetConverter(option.Type).ConvertFromString(valueString);
-                var optionKey = string.IsNullOrWhiteSpace(language)
-                    ? new OptionKey(option)
-                    : new OptionKey(option, language);
-
-                optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, value));
             });
     }
 }
