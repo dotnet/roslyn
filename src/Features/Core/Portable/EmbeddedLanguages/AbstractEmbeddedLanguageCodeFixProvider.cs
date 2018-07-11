@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
                     context.Diagnostics);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
                 }
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
