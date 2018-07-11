@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Returns the string representation of a decimal integer, or null if
             /// the current lexeme is not an integer.
+            /// PROTOTYPE: parsing numbers is not completed.
             /// </summary>
             public string TryLexNumber()
             {
