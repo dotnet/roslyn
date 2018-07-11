@@ -103,8 +103,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsConditionalAnd(SyntaxNode node);
         bool IsConditionalOr(SyntaxNode node);
 
+        bool IsTupleExpression(SyntaxNode node);
+        bool IsTupleType(SyntaxNode node);
+
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
         SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
+
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);

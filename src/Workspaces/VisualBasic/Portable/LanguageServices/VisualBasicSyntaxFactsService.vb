@@ -1604,6 +1604,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.OrElseExpression
         End Function
 
+        Public Function IsTupleExpression(node As syntaxnode) As Boolean Implements ISyntaxFactsService.IsTupleExpression
+            Return node.kind() = SyntaxKind.TupleExpression
+        End Function
+
+        Public Function IsTupleType(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleType
+            Return node.Kind() = SyntaxKind.TupleType
+        End Function
+
         Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
             Return DirectCast(node, UnaryExpressionSyntax).Operand
         End Function
