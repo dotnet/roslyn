@@ -419,7 +419,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SymbolFinder_Project_Pattern_FindSourceDeclarationsAsync,
         Intellisense_Completion_Commit,
 
-        CodeCleanupInfobar_ConfigNow,
-        CodeCleanupInfobar_DoNotShow
+        CodeCleanupInfobar_ConfigureNow,
+        CodeCleanupInfobar_DoNotShow,
+
+        FormatDocument
     }
 }

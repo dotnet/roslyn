@@ -8,11 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
-<<<<<<< HEAD
-=======
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
->>>>>>> Add telemetry for infobar selections
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -58,24 +55,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
-                                  Logger.Log(FunctionId.CodeCleanupInfobar_ConfigNow);
+                                  Logger.Log(FunctionId.CodeCleanupInfobar_ConfigureNow, KeyValueLogMessage.NoProperty);
                                   optionPageService.ShowFormattingOptionPage();
                               }),
                 new InfoBarUI(EditorFeaturesResources.Do_not_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
-<<<<<<< HEAD
+                                  Logger.Log(FunctionId.CodeCleanupInfobar_DoNotShow, KeyValueLogMessage.NoProperty);
                                   workspace.Options = workspace.Options.WithChangedOption(
                                       CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language, value: true);
-=======
-                                  Logger.Log(FunctionId.CodeCleanupInfobar_DoNotShow);
-                                  var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-                                  var oldOptions = optionService.GetOptions();
-                                  var newOptions = oldOptions.WithChangedOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain,
-                                      document.Project.Language, true);
-                                  optionService.SetOptions(newOptions);
->>>>>>> Add telemetry for infobar selections
                               }));
         }
 
@@ -92,6 +81,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
+            var cancellationToken = context.OperationContext.UserCancellationToken;
+            var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
             context.OperationContext.TakeOwnership();
             _waitIndicator.Wait(
                 EditorFeaturesResources.Formatting_document,
@@ -99,9 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 allowCancel: true,
                 showProgress: true,
                 c =>
-                {
-                    var cancellationToken = context.OperationContext.UserCancellationToken;
-
+                { 
                     using (var transaction = new CaretPreservingEditTransaction(
                         EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
