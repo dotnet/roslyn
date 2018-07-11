@@ -26,16 +26,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             public INamedTypeSymbol AnonymousType { get; }
 
             /// <summary>
-            /// Holds the capture Ids for initialized anonymous type properties in an anonymous object initializer.
+            /// Holds the captured values for initialized anonymous type properties in an anonymous object initializer.
             /// </summary>
-            public PooledDictionary<IPropertySymbol, int> AnonymousTypePropertyCaptureIds { get; }
+            public PooledDictionary<IPropertySymbol, IOperation> AnonymousTypePropertyValues { get; }
 
             public ImplicitInstanceInfo(IOperation currentImplicitInstance)
             {
                 Debug.Assert(currentImplicitInstance != null);
                 ImplicitInstance = currentImplicitInstance;
                 AnonymousType = null;
-                AnonymousTypePropertyCaptureIds = null;
+                AnonymousTypePropertyValues = null;
             }
 
             public ImplicitInstanceInfo(INamedTypeSymbol currentInitializedAnonymousType)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 ImplicitInstance = null;
                 AnonymousType = currentInitializedAnonymousType;
-                AnonymousTypePropertyCaptureIds = PooledDictionary<IPropertySymbol, int>.GetInstance();
+                AnonymousTypePropertyValues = PooledDictionary<IPropertySymbol, IOperation>.GetInstance();
             }
 
             public ImplicitInstanceInfo(in Context context)
@@ -55,30 +55,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     ImplicitInstance = context.ImplicitInstance;
                     AnonymousType = null;
-                    AnonymousTypePropertyCaptureIds = null;
+                    AnonymousTypePropertyValues = null;
                 }
                 else if (context.AnonymousType != null)
                 {
                     ImplicitInstance = null;
                     AnonymousType = context.AnonymousType;
-                    AnonymousTypePropertyCaptureIds = PooledDictionary<IPropertySymbol, int>.GetInstance();
+                    AnonymousTypePropertyValues = PooledDictionary<IPropertySymbol, IOperation>.GetInstance();
 
-                    foreach (KeyValuePair<IPropertySymbol, int> pair in context.AnonymousTypePropertyCaptureIds)
+                    foreach (KeyValuePair<IPropertySymbol, IOperation> pair in context.AnonymousTypePropertyValues)
                     {
-                        AnonymousTypePropertyCaptureIds.Add(pair.Key, pair.Value);
+                        AnonymousTypePropertyValues.Add(pair.Key, pair.Value);
                     }
                 }
                 else
                 {
                     ImplicitInstance = null;
                     AnonymousType = null;
-                    AnonymousTypePropertyCaptureIds = null;
+                    AnonymousTypePropertyValues = null;
                 }
             }
 
             public void Free()
             {
-                AnonymousTypePropertyCaptureIds?.Free();
+                AnonymousTypePropertyValues?.Free();
             }
         }
     }

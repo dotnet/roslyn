@@ -278,6 +278,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// If this is a non-speculative member semantic model, then returns the containing semantic model for the entire tree.
+        /// Otherwise, returns this instance of the semantic model.
+        /// </summary>
+        internal abstract SemanticModel ContainingModelOrSelf
+        {
+            get;
+        }
+
+        /// <summary>
         /// Binds the name in the context of the specified location and sees if it resolves to an
         /// alias name. If it does, return the AliasSymbol corresponding to it. Otherwise, return null.
         /// </summary>
