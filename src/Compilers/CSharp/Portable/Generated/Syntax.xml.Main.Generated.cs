@@ -7669,6 +7669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       switch (openParenToken.Kind())
       {
         case SyntaxKind.OpenParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("openParenToken");
@@ -7678,6 +7679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       switch (closeParenToken.Kind())
       {
         case SyntaxKind.CloseParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("closeParenToken");
@@ -7691,13 +7693,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>Creates a new IfStatementSyntax instance.</summary>
     public static IfStatementSyntax IfStatement(ExpressionSyntax condition, StatementSyntax statement, ElseClauseSyntax @else)
     {
-      return SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), condition, SyntaxFactory.Token(SyntaxKind.CloseParenToken), statement, @else);
+      return SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), default(SyntaxToken), condition, default(SyntaxToken), statement, @else);
     }
 
     /// <summary>Creates a new IfStatementSyntax instance.</summary>
     public static IfStatementSyntax IfStatement(ExpressionSyntax condition, StatementSyntax statement)
     {
-      return SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), condition, SyntaxFactory.Token(SyntaxKind.CloseParenToken), statement, default(ElseClauseSyntax));
+      return SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), default(SyntaxToken), condition, default(SyntaxToken), statement, default(ElseClauseSyntax));
     }
 
     /// <summary>Creates a new ElseClauseSyntax instance.</summary>

@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.IfStatementSyntax GenerateIfStatement()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.IfStatement(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.IfKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock(), null);
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.IfStatement(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.IfKeyword), null, GenerateIdentifierName(), null, GenerateBlock(), null);
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ElseClauseSyntax GenerateElseClause()
@@ -2357,9 +2357,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateIfStatement();
             
             Assert.Equal(SyntaxKind.IfKeyword, node.IfKeyword.Kind);
-            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
+            Assert.Null(node.OpenParenToken);
             Assert.NotNull(node.Condition);
-            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
+            Assert.Null(node.CloseParenToken);
             Assert.NotNull(node.Statement);
             Assert.Null(node.Else);
             
@@ -9520,7 +9520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static IfStatementSyntax GenerateIfStatement()
         {
-            return SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock(), default(ElseClauseSyntax));
+            return SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), default(SyntaxToken), GenerateIdentifierName(), default(SyntaxToken), GenerateBlock(), default(ElseClauseSyntax));
         }
         
         private static ElseClauseSyntax GenerateElseClause()
@@ -11321,9 +11321,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateIfStatement();
             
             Assert.Equal(SyntaxKind.IfKeyword, node.IfKeyword.Kind());
-            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
+            Assert.Equal(SyntaxKind.None, node.OpenParenToken.Kind());
             Assert.NotNull(node.Condition);
-            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
+            Assert.Equal(SyntaxKind.None, node.CloseParenToken.Kind());
             Assert.NotNull(node.Statement);
             Assert.Null(node.Else);
             var newNode = node.WithIfKeyword(node.IfKeyword).WithOpenParenToken(node.OpenParenToken).WithCondition(node.Condition).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement).WithElse(node.Else);

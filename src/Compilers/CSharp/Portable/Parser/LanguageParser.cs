@@ -7847,9 +7847,19 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
             var @if = this.EatToken(SyntaxKind.IfKeyword);
-            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+
+            var noParens = this.CurrentToken.Kind == SyntaxKind.ExclamationToken &&
+                           this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
+
+            var openParen = noParens ? default : this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
-            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            var closeParen = noParens ? default : this.EatToken(SyntaxKind.CloseParenToken);
+
+            if (noParens)
+            {
+                condition = CheckFeatureAvailability(condition, MessageID.IDS_FeatureIfGuards);
+            }
+
             var statement = this.ParseEmbeddedStatement();
             var elseClause = ParseElseClauseOpt();
 

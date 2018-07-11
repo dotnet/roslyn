@@ -10647,6 +10647,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to if guards.
+        /// </summary>
+        internal static string IDS_FeatureIfGuards {
+            get {
+                return ResourceManager.GetString("IDS_FeatureIfGuards", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to implicitly typed array.
         /// </summary>
         internal static string IDS_FeatureImplicitArray {
