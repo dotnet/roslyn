@@ -596,7 +596,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                 Left: 
                   IFieldReferenceOperation: D1 C.Deconstruct (OperationKind.FieldReference, Type: D1, IsInvalid) (Syntax: 'Deconstruct')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Deconstruct')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Deconstruct')
                 Right: 
                   IDelegateCreationOperation (OperationKind.DelegateCreation, Type: D1, IsInvalid, IsImplicit) (Syntax: 'DeconstructMethod')
                     Target: 
@@ -655,11 +655,11 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                     Children(1):
                         IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Deconstruct')
                           Children(1):
-                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
                 Right: 
                   IOperation:  (OperationKind.None, Type: null) (Syntax: 'DeconstructMethod')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'DeconstructMethod')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'DeconstructMethod')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0102: The type 'C' already contains a definition for 'Deconstruct'
@@ -3458,7 +3458,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... in M()) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... in M()) { }')
   Locals: Local_1: System.Int32 x1
     Local_2: System.Int32 x2
   LoopControlVariable: 
@@ -3505,7 +3505,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... nt x1)) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... nt x1)) { }')
   Locals: Local_1: System.Int32 x1
     Local_2: System.Int32 x2
   LoopControlVariable: 

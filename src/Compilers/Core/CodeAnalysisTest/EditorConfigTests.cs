@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Diagnostics.CompilerAnalyzerConfigOptionsProvider;
 using static Roslyn.Test.Utilities.TestHelpers;
-using KeyValuePair = Roslyn.Utilities.KeyValuePair;
+using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

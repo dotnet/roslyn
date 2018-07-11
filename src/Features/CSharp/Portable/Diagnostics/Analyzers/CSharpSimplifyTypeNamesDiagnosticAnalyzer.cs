@@ -80,10 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
         }
 
-        internal static bool IsCandidate(SyntaxNode node)
-        {
-            return IsRegularCandidate(node) || IsCrefCandidate(node);
-        }
+        internal override bool IsCandidate(SyntaxNode node)
+            => IsRegularCandidate(node) || IsCrefCandidate(node);
 
         private static bool IsRegularCandidate(SyntaxNode node)
         {
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return CanSimplifyTypeNameExpression(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken);
         }
 
-        internal static bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
+        internal override bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
         {
             issueSpan = default;
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;

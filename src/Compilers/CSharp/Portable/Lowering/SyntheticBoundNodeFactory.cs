@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var label = GenerateLabel("case+" + value);
             var literal = Literal(value);
             var switchLabel = new BoundSwitchLabel(Syntax, label, literal, literal.ConstantValue) { WasCompilerGenerated = true };
-            return new BoundSwitchSection(Syntax, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
+            return new BoundSwitchSection(Syntax, locals: ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
 
         public BoundSwitchSection SwitchSection(List<int> values, params BoundStatement[] statements)
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(new BoundSwitchLabel(Syntax, label, expression, expression.ConstantValue) { WasCompilerGenerated = true });
             }
 
-            return new BoundSwitchSection(Syntax, builder.ToImmutableAndFree(), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
+            return new BoundSwitchSection(Syntax, locals: ImmutableArray<LocalSymbol>.Empty, builder.ToImmutableAndFree(), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
 
         public BoundGotoStatement Goto(LabelSymbol label)

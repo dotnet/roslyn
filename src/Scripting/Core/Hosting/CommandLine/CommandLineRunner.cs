@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             try
             {
-                _console.ForegroundColor = ConsoleColor.Red;
+                _console.SetForegroundColor(ConsoleColor.Red);
 
                 if (e is FileLoadException && e.InnerException is InteractiveAssemblyLoaderException)
                 {
@@ -368,14 +368,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 foreach (var diagnostic in ordered.Take(MaxDisplayCount))
                 {
-                    _console.ForegroundColor = (diagnostic.Severity == DiagnosticSeverity.Error) ? ConsoleColor.Red : ConsoleColor.Yellow;
+                    _console.SetForegroundColor(diagnostic.Severity == DiagnosticSeverity.Error ? ConsoleColor.Red : ConsoleColor.Yellow);
                     _console.Error.WriteLine(diagnostic.ToString());
                 }
 
                 if (diagnostics.Length > MaxDisplayCount)
                 {
                     int notShown = diagnostics.Length - MaxDisplayCount;
-                    _console.ForegroundColor = ConsoleColor.DarkRed;
+                    _console.SetForegroundColor(ConsoleColor.DarkRed);
                     _console.Error.WriteLine(string.Format(ScriptingResources.PlusAdditionalError, notShown));
                 }
             }

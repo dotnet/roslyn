@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
-        private static readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
-        private static readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private static readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
+        private static readonly CodeStyleOption<bool> offWithSilent = new CodeStyleOption<bool>(false, NotificationOption.Silent);
         private static readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
         private static readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
         private static readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithError),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
 
-        private IDictionary<OptionKey, object> ImplicitTypeNoneEnforcement() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
+        private IDictionary<OptionKey, object> ImplicitTypeSilentEnforcement() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
 
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
             => new Dictionary<OptionKey, object> { { option, value } };
@@ -1513,7 +1513,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task SuggestVarNotificationLevelNone()
+        public async Task SuggestVarNotificationLevelSilent()
         {
             var source =
 @"using System;
@@ -1525,7 +1525,7 @@ class C
     }
 }";
             await TestMissingInRegularAndScriptAsync(source,
-                new TestParameters(options: ImplicitTypeNoneEnforcement()));
+                new TestParameters(options: ImplicitTypeSilentEnforcement()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
