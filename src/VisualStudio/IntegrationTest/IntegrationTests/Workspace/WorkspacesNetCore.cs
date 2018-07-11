@@ -39,6 +39,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
   </PropertyGroup>
 </Project>");
             await VisualStudio.SolutionExplorer.SaveAllAsync();
+            await VisualStudio.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName);
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
             await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
             await base.MetadataReferenceAsync();
@@ -59,6 +60,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         {
             await VisualStudio.SolutionExplorer.CreateSolutionAsync(nameof(WorkspacesDesktop));
             await VisualStudio.SolutionExplorer.AddProjectAsync(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            await VisualStudio.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName);
             await base.ProjectPropertiesAsync();
         }
 

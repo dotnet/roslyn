@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using NuGet.VisualStudio;
 using VSLangProj;
 using Task = System.Threading.Tasks.Task;
 
@@ -980,6 +981,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         public void RestoreNuGetPackages()
             => ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages);
 #endif
+
+        public async Task RestoreNuGetPackagesAsync(string projectName)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var packageRestorer = (await GetComponentModelAsync()).GetExtensions<IVsPackageRestorer>().First();
+            packageRestorer.RestorePackages(GetProject(projectName));
+        }
 
         public async Task SaveAllAsync()
             => await ExecuteCommandAsync(WellKnownCommandNames.File_SaveAll);

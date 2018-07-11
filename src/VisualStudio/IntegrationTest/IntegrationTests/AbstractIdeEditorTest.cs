@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
@@ -45,6 +43,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 await SolutionExplorer.CreateSolutionAsync(_solutionName);
                 await SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, LanguageName);
+                await SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName);
 
                 // Winforms and XAML do not open text files on creation
                 // so these editor tasks will not work if that is the project template being used.
