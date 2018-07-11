@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 return;
             }
 
-            // Check if the anonymous type actually references another anonymous type inside of it.
+            // Check if the tuple type actually references another anonymous type inside of it.
             // If it does, we can't convert this.  There is no way to describe this anonymous type
             // in the concrete type we create.
             var fields = tupleType.TupleElements;
@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var scopes = ArrayBuilder<CodeAction>.GetInstance();
             scopes.Add(CreateAction(context, Scope.ContainingMember));
 
-            // If we captured any Method type-parameters, we can only replace the anonymous types we
-            // find in the containing method.  No other anonymous types in other members would be able
+            // If we captured any Method type-parameters, we can only replace the tuple types we
+            // find in the containing method.  No other tuple types in other members would be able
             // to reference this type parameter.
             if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Method))
             {
@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     scopes.Add(CreateAction(context, Scope.ContainingType));
                 }
 
-                // If we captured any Type type-parameters, we can only replace the anonymous
-                // types we find in the containing type.  No other anonymous types in other
-                // type would be able to reference this type parameter.
+                // If we captured any Type type-parameters, we can only replace the tuple
+                // types we find in the containing type.  No other tuple types in other
+                // types would be able to reference this type parameter.
                 if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Type))
                 {
                     // To do a global find/replace of matching tuples, we need to search for documents
