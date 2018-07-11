@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         VariableDeclarationGroup = 0x3,
         /// <summary>Indicates an <see cref="ISwitchOperation"/>.</summary>
         Switch = 0x4,
-        /// <summary>Indicates an <see cref="ILoopOperation"/>.</summary>
+        /// <summary>Indicates an <see cref="ILoopOperation"/>, which is further differentiated by <see cref="ILoopOperation.LoopKind"/>.</summary>
         Loop = 0x5,
         /// <summary>Indicates an <see cref="ILabeledOperation"/>.</summary>
         Labeled = 0x6,
@@ -112,6 +114,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IMemberInitializerOperation"/>.</summary>
         MemberInitializer = 0x33,
         /// <summary>Indicates an <see cref="ICollectionElementInitializerOperation"/>.</summary>
+        [Obsolete("ICollectionElementInitializerOperation has been replaced with " + nameof(IInvocationOperation) + " and " + nameof(IDynamicInvocationOperation), error: true)]
         CollectionElementInitializer = 0x34,
         /// <summary>Indicates an <see cref="INameOfOperation"/>.</summary>
         NameOf = 0x35,
@@ -171,7 +174,7 @@ namespace Microsoft.CodeAnalysis
         CatchClause = 0x50,
         /// <summary>Indicates an <see cref="ISwitchCaseOperation"/>.</summary>
         SwitchCase = 0x51,
-        /// <summary>Indicates different kinds of switch case clauses as defined by <see cref="CaseKind"/>.</summary>
+        /// <summary>Indicates an <see cref="ICaseClauseOperation"/>, which is further differentiated by <see cref="ICaseClauseOperation.CaseKind"/>.</summary>
         CaseClause = 0x52,
         /// <summary>Indicates an <see cref="IInterpolatedStringTextOperation"/>.</summary>
         InterpolatedStringText = 0x53,
@@ -189,6 +192,19 @@ namespace Microsoft.CodeAnalysis
         ConstructorBodyOperation = 0x59,
         /// <summary>Indicates an <see cref="IDiscardOperation"/>.</summary>
         Discard = 0x5A,
+
+        /// <summary>Indicates an <see cref="IFlowCaptureOperation"/>.</summary>
+        FlowCapture = 0x5B,
+        /// <summary>Indicates an <see cref="IFlowCaptureReferenceOperation"/>.</summary>
+        FlowCaptureReference = 0x5C,
+        /// <summary>Indicates an <see cref="IIsNullOperation"/>.</summary>
+        IsNull = 0x5D,
+        /// <summary>Indicates an <see cref="ICaughtExceptionOperation"/>.</summary>
+        CaughtException = 0x5E,
+        /// <summary>Indicates an <see cref="IStaticLocalInitializationSemaphoreOperation"/>.</summary>
+        StaticLocalInitializationSemaphore = 0x5F,
+        /// <summary>Indicates an <see cref="IFlowAnonymousFunctionOperation"/>.</summary>
+        FlowAnonymousFunction = 0x60,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281
