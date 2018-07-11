@@ -19,7 +19,7 @@
             "version": "2.9.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.8p5"]
+            "channels": [ "dev15.8", "dev15.8p5"]
         },
         "dev15.9.x-vs-deps": {
             "nugetKind": "PerBuildPreRelease",
