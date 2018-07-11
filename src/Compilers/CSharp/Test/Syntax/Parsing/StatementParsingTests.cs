@@ -2485,11 +2485,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierName, "var");
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "var");
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "a");
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -2597,17 +2597,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierName, "T");
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "T");
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "a");
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
                             N(SyntaxKind.IdentifierName, "b");
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
                     }
@@ -2615,13 +2615,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.CommaToken);
                 N(SyntaxKind.VariableDeclarator);
                 {
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "c");
                     N(SyntaxKind.EqualsValueClause);
                     {
                         N(SyntaxKind.EqualsToken);
                         N(SyntaxKind.IdentifierName, "d");
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "d");
                         }
                     }
                 }
@@ -2681,11 +2681,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierName, "var");
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "var");
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "x");
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -2693,17 +2693,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             {
                                 N(SyntaxKind.IdentifierName, "f");
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "f");
                                 }
                                 N(SyntaxKind.QuestionToken);
                                 N(SyntaxKind.IdentifierName, "a");
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.ColonToken);
                                 N(SyntaxKind.IdentifierName, "b");
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "b");
                                 }
                             }
                         }
@@ -2766,18 +2766,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         N(SyntaxKind.IdentifierName, "f");
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "f");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "x");
                     N(SyntaxKind.EqualsValueClause);
                     {
                         N(SyntaxKind.EqualsToken);
                         N(SyntaxKind.IdentifierName, "a");
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
                     }
                 }
@@ -2838,15 +2838,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         N(SyntaxKind.IdentifierName, "f");
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "f");
                         }
                         N(SyntaxKind.QuestionToken);
                     }                    
                     N(SyntaxKind.VariableDeclarator);
-                    N(SyntaxKind.IdentifierToken);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.VariableDeclarator);
-                    N(SyntaxKind.IdentifierToken);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
                 }
             }
             N(SyntaxKind.SemicolonToken);
@@ -2871,7 +2875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "x");
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -2880,7 +2884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.RefKeyword);
                                 N(SyntaxKind.IdentifierName, "y");
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "y");
                                 }
                             }
                         }
@@ -2910,7 +2914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "x");
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -2919,7 +2923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.RefKeyword);
                                 N(SyntaxKind.IdentifierName, "y");
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "y");
                                 }
                             }
                         }
@@ -2943,12 +2947,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.IdentifierName, "var");
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "var");
                         }
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "x");
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -2957,7 +2961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.RefKeyword);
                                 N(SyntaxKind.IdentifierName, "y");
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "y");
                                 }
                             }
                         }
@@ -2981,18 +2985,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.IdentifierName, "var");
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "var");
                         }
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "x");
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
                             N(SyntaxKind.IdentifierName, "y");
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "y");
                             }
                         }
                     }
@@ -3016,16 +3020,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierName, "var");
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "var");
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "x");
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "y");
                     }
                     N(SyntaxKind.EqualsValueClause);
                     {
@@ -3035,7 +3039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.RefKeyword);
                             N(SyntaxKind.IdentifierName, "z");
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "z");
                             }
                         }
                     }
