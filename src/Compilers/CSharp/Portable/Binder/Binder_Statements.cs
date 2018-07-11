@@ -618,6 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 kind = LocalDeclarationKind.Constant;
             }
+
             var variableList = node.Declaration.Variables;
             int variableCount = variableList.Count;
 

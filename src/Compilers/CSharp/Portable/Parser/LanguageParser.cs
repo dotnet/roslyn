@@ -8203,8 +8203,8 @@ tryAgain:
         /// </summary>
         private StatementSyntax ParseLocalDeclarationStatement()
         {
-            var mods = _pool.Allocate();
             var usingKeyword = this.CurrentToken.Kind == SyntaxKind.UsingKeyword ? this.EatToken() : null;
+            var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();

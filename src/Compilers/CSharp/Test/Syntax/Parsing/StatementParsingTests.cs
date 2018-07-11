@@ -2483,7 +2483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.UsingKeyword);
                 N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IdentifierName, "var");
                     {
                         N(SyntaxKind.IdentifierToken);
                     }
@@ -2493,7 +2493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IdentifierName, "b");
                             {
                                 N(SyntaxKind.IdentifierToken);
                             }
@@ -2595,7 +2595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.UsingKeyword);
                 N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IdentifierName, "T");
                     {
                         N(SyntaxKind.IdentifierToken);
                     }
@@ -2605,7 +2605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IdentifierName, "b");
                             {
                                 N(SyntaxKind.IdentifierToken);
                             }
@@ -2619,7 +2619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.EqualsValueClause);
                     {
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierName, "d");
                         {
                             N(SyntaxKind.IdentifierToken);
                         }
@@ -2679,7 +2679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.UsingKeyword);
                 N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IdentifierName, "var");
                     {
                         N(SyntaxKind.IdentifierToken);
                     }
@@ -2691,17 +2691,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.EqualsToken);
                             N(SyntaxKind.ConditionalExpression);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierName, "f");
                                 {
                                     N(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.QuestionToken);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierName, "a");
                                 {
                                     N(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.ColonToken);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierName, "b");
                                 {
                                     N(SyntaxKind.IdentifierToken);
                                 }
@@ -2764,7 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.NullableType);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierName, "f");
                         {
                             N(SyntaxKind.IdentifierToken);
                         }
@@ -2775,7 +2775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.EqualsValueClause);
                     {
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierName, "a");
                         {
                             N(SyntaxKind.IdentifierToken);
                         }
@@ -2836,7 +2836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.NullableType);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierName, "f");
                         {
                             N(SyntaxKind.IdentifierToken);
                         }
@@ -2878,7 +2878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.RefExpression);
                             {
                                 N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierName, "y");
                                 {
                                     N(SyntaxKind.IdentifierToken);
                                 }
@@ -2917,7 +2917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.RefExpression);
                             {
                                 N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierName, "y");
                                 {
                                     N(SyntaxKind.IdentifierToken);
                                 }
@@ -2941,7 +2941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.RefType);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierName, "var");
                         {
                             N(SyntaxKind.IdentifierToken);
                         }
@@ -2955,7 +2955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.RefExpression);
                             {
                                 N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierName, "y");
                                 {
                                     N(SyntaxKind.IdentifierToken);
                                 }
@@ -2979,7 +2979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.RefType);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierName, "var");
                         {
                             N(SyntaxKind.IdentifierToken);
                         }
@@ -2990,7 +2990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IdentifierName, "y");
                             {
                                 N(SyntaxKind.IdentifierToken);
                             }
@@ -3014,7 +3014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.ReadOnlyKeyword);
                 N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IdentifierName, "var");
                     {
                         N(SyntaxKind.IdentifierToken);
                     }
@@ -3033,7 +3033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.RefExpression);
                         {
                             N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IdentifierName, "z");
                             {
                                 N(SyntaxKind.IdentifierToken);
                             }
