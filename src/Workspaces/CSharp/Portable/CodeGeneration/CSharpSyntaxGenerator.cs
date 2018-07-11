@@ -2697,6 +2697,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((DestructorDeclarationSyntax)declaration).WithParameterList(list);
                 case SyntaxKind.IndexerDeclaration:
                     return ((IndexerDeclarationSyntax)declaration).WithParameterList(list);
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 case SyntaxKind.SimpleLambdaExpression:
@@ -2895,6 +2897,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((ConstructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
                 case SyntaxKind.DestructorDeclaration:
                     return ((DestructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).Body?.Statements ?? s_EmptyList;
+                case SyntaxKind.AnonymousMethodExpression:
+                    return (((AnonymousMethodExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return (((ParenthesizedLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
                 case SyntaxKind.SimpleLambdaExpression:
@@ -2927,6 +2933,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((ConstructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 case SyntaxKind.DestructorDeclaration:
                     return ((DestructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
+                case SyntaxKind.AnonymousMethodExpression:
+                    return ((AnonymousMethodExpressionSyntax)declaration).WithBody(body);
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).WithBody(body);
                 case SyntaxKind.SimpleLambdaExpression:
@@ -3555,14 +3565,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)
-        {
-            return SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
-        }
+            => SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
+
+        internal override SyntaxNode YieldReturnStatement(SyntaxNode expressionOpt = null)
+            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expressionOpt);
 
         public override SyntaxNode ThrowStatement(SyntaxNode expressionOpt = null)
-        {
-            return SyntaxFactory.ThrowStatement((ExpressionSyntax)expressionOpt);
-        }
+            => SyntaxFactory.ThrowStatement((ExpressionSyntax)expressionOpt);
 
         public override SyntaxNode ThrowExpression(SyntaxNode expression)
         {
@@ -3918,15 +3927,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode IdentifierName(string identifier)
-        {
-            return identifier.ToIdentifierName();
-        }
+            => identifier.ToIdentifierName();
 
         public override SyntaxNode GenericName(string identifier, IEnumerable<SyntaxNode> typeArguments)
-        {
-            return SyntaxFactory.GenericName(identifier.ToIdentifierToken(),
+            => GenericName(identifier.ToIdentifierToken(), typeArguments);
+
+        internal override SyntaxNode GenericName(SyntaxToken identifier, IEnumerable<SyntaxNode> typeArguments)
+            => SyntaxFactory.GenericName(identifier,
                 SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
-        }
 
         public override SyntaxNode WithTypeArguments(SyntaxNode expression, IEnumerable<SyntaxNode> typeArguments)
         {
@@ -4198,14 +4206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal override SyntaxNode IdentifierName(SyntaxToken identifier)
-        {
-            return SyntaxFactory.IdentifierName(identifier);
-        }
+            => SyntaxFactory.IdentifierName(identifier);
 
-        internal override SyntaxToken Identifier(string identifier)
-        {
-            return SyntaxFactory.Identifier(identifier);
-        }
+        internal override SyntaxToken Identifier(string identifier) 
+            => SyntaxFactory.Identifier(identifier);
 
         internal override SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression)
         {

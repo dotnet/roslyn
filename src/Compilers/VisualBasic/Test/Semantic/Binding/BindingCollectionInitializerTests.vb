@@ -41,9 +41,14 @@ IObjectCreationOperation (Constructor: Sub System.Collections.Generic.List(Of Sy
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'From {"Hello World!"}')
       Initializers(1):
-          ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '"Hello World!"')
+          IInvocationOperation ( Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '"Hello World!"')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List(Of System.String), IsImplicit) (Syntax: 'New List(Of ... lo World!"}')
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"Hello World!"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -82,15 +87,30 @@ IObjectCreationOperation (Constructor: Sub System.Collections.Generic.List(Of Sy
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'From {{"Hel ... {"World!"}}')
       Initializers(3):
-          ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '{"Hello"}')
+          IInvocationOperation ( Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{"Hello"}')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List(Of System.String), IsImplicit) (Syntax: 'New List(Of ... {"World!"}}')
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
-          ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '{" "}')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"Hello"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IInvocationOperation ( Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{" "}')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List(Of System.String), IsImplicit) (Syntax: 'New List(Of ... {"World!"}}')
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ") (Syntax: '" "')
-          ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '{"World!"}')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '" "')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ") (Syntax: '" "')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IInvocationOperation ( Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{"World!"}')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List(Of System.String), IsImplicit) (Syntax: 'New List(Of ... {"World!"}}')
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World!") (Syntax: '"World!"')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"World!"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World!") (Syntax: '"World!"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -133,14 +153,30 @@ IObjectCreationOperation (Constructor: Sub System.Collections.Generic.Dictionary
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32)) (Syntax: 'From {{"Hel ... orld", 42}}')
       Initializers(2):
-          ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.Dictionary(Of System.String, System.Int32).Add(key As System.String, value As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '{"Hello", 23}')
+          IInvocationOperation ( Sub System.Collections.Generic.Dictionary(Of System.String, System.Int32).Add(key As System.String, value As System.Int32)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{"Hello", 23}')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsImplicit) (Syntax: 'New Diction ... orld", 42}}')
             Arguments(2):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
-          ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.Dictionary(Of System.String, System.Int32).Add(key As System.String, value As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '{"World", 42}')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"Hello"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '23')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IInvocationOperation ( Sub System.Collections.Generic.Dictionary(Of System.String, System.Int32).Add(key As System.String, value As System.Int32)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{"World", 42}')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsImplicit) (Syntax: 'New Diction ... orld", 42}}')
             Arguments(2):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World") (Syntax: '"World"')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"World"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World") (Syntax: '"World"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '42')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -237,15 +273,30 @@ IObjectCreationOperation (Constructor: Sub Custom..ctor()) (OperationKind.Object
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Custom) (Syntax: 'From {"Hell ... ", "World"}')
       Initializers(3):
-          ICollectionElementInitializerOperation (AddMethod: Sub Custom.add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '"Hello"')
+          IInvocationOperation ( Sub Custom.add(p As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '"Hello"')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Custom, IsImplicit) (Syntax: 'New Custom( ... ", "World"}')
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
-          ICollectionElementInitializerOperation (AddMethod: Sub Custom.add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '" "')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"Hello"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IInvocationOperation ( Sub Custom.add(p As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '" "')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Custom, IsImplicit) (Syntax: 'New Custom( ... ", "World"}')
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ") (Syntax: '" "')
-          ICollectionElementInitializerOperation (AddMethod: Sub Custom.add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '"World"')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '" "')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ") (Syntax: '" "')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IInvocationOperation ( Sub Custom.add(p As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '"World"')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Custom, IsImplicit) (Syntax: 'New Custom( ... ", "World"}')
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World") (Syntax: '"World"')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"World"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World") (Syntax: '"World"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -405,7 +456,7 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                       Left: 
                         IFieldReferenceOperation: C2.a As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'a')
                           Instance Receiver: 
-                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim b As Ne ... lo World!"}')
@@ -421,9 +472,14 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
             Initializer: 
               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'From {"Hello World!"}')
                 Initializers(1):
-                    ICollectionElementInitializerOperation (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '"Hello World!"')
+                    IInvocationOperation ( Sub C2.Add(p As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '"Hello World!"')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Fr ... lo World!"}')
                       Arguments(1):
-                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"Hello World!"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim c As C2 ... lo World!"}')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c As C2 = N ... lo World!"}')
       Declarators:
@@ -437,9 +493,14 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
             Initializer: 
               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'From {"Hello World!"}')
                 Initializers(1):
-                    ICollectionElementInitializerOperation (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
+                    IInvocationOperation ( Sub C2.Add(p As System.String)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... lo World!"}')
                       Arguments(1):
-                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim d As C2 ... .a = "goo"}')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'd As C2 = N ... .a = "goo"}')
       Declarators:
@@ -457,7 +518,7 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                       Left: 
                         IFieldReferenceOperation: C2.a As System.String (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'a')
                           Instance Receiver: 
-                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
   ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
@@ -646,9 +707,14 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'From {1}')
       Initializers(1):
-          ICollectionElementInitializerOperation (AddMethod: Function C1.Add(p As System.Int32) As System.String) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.String, IsImplicit) (Syntax: '1')
+          IInvocationOperation ( Function C1.Add(p As System.Int32) As System.String) (OperationKind.Invocation, Type: System.String, IsImplicit) (Syntax: '1')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() From {1}')
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -742,13 +808,13 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
         Children(2):
             IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
               Children(1):
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
       IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
         Children(2):
             IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
               Children(1):
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Errors will be shown for each initializer element", IsInvalid) (Syntax: '"Errors wil ... er element"')
 ]]>.Value
 
@@ -828,12 +894,22 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'From {"Hell ... r element"}')
       Initializers(2):
-          ICollectionElementInitializerOperation (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '"Hello World!"')
+          IInvocationOperation (Sub C2.Add(p As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '"Hello World!"')
+            Instance Receiver: 
+              null
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
-          ICollectionElementInitializerOperation (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '"Errors wil ... er element"')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"Hello World!"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IInvocationOperation (Sub C2.Add(p As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '"Errors wil ... er element"')
+            Instance Receiver: 
+              null
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Errors will be shown for each initializer element") (Syntax: '"Errors wil ... er element"')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"Errors wil ... er element"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Errors will be shown for each initializer element") (Syntax: '"Errors wil ... er element"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1112,19 +1188,19 @@ ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation
             Children(2):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Hello"')
                   Children(1):
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello", IsInvalid) (Syntax: '"Hello"')
           IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '" "')
             Children(2):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '" "')
                   Children(1):
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ", IsInvalid) (Syntax: '" "')
           IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"World!"')
             Children(2):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"World!"')
                   Children(1):
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World!", IsInvalid) (Syntax: '"World!"')
 ]]>.Value
 
@@ -1175,7 +1251,7 @@ IObjectCreationOperation (Constructor: Sub System.Collections.Generic.Dictionary
             Children(2):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '{1}')
                   Children(1):
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: 'New Diction ...  From {{1}}')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: 'New Diction ...  From {{1}}')
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
@@ -1472,19 +1548,29 @@ IObjectCreationOperation (Constructor: Sub System.Collections.Generic.List(Of Sy
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'From {"1", x.Item(0)}')
       Initializers(2):
-          ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '"1"')
+          IInvocationOperation ( Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '"1"')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List(Of System.String), IsImplicit) (Syntax: 'New List(Of ...  x.Item(0)}')
             Arguments(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "1") (Syntax: '"1"')
-          ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: 'x.Item(0)')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"1"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "1") (Syntax: '"1"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IInvocationOperation ( Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x.Item(0)')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List(Of System.String), IsImplicit) (Syntax: 'New List(Of ...  x.Item(0)}')
             Arguments(1):
-                IPropertyReferenceOperation: Property System.Collections.Generic.List(Of System.String).Item(index As System.Int32) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'x.Item(0)')
-                  Instance Receiver: 
-                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'x')
-                  Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null) (Syntax: '0')
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x.Item(0)')
+                  IPropertyReferenceOperation: Property System.Collections.Generic.List(Of System.String).Item(index As System.Int32) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'x.Item(0)')
+                    Instance Receiver: 
+                      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'x')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null) (Syntax: '0')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1572,14 +1658,30 @@ IObjectCreationOperation (Constructor: Sub Custom..ctor()) (OperationKind.Object
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Custom) (Syntax: 'From {"Hell ... rld", "!"}}')
       Initializers(2):
-          ICollectionElementInitializerOperation (AddMethod: Sub Custom.add(p As System.String, [p2 As System.String = " "])) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '"Hello"')
+          IInvocationOperation ( Sub Custom.add(p As System.String, [p2 As System.String = " "])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '"Hello"')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Custom, IsImplicit) (Syntax: 'New Custom( ... rld", "!"}}')
             Arguments(2):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ", IsImplicit) (Syntax: '"Hello"')
-          ICollectionElementInitializerOperation (AddMethod: Sub Custom.add(p As System.String, [p2 As System.String = " "])) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '{"World", "!"}')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"Hello"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: p2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"Hello"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ", IsImplicit) (Syntax: '"Hello"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IInvocationOperation ( Sub Custom.add(p As System.String, [p2 As System.String = " "])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{"World", "!"}')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Custom, IsImplicit) (Syntax: 'New Custom( ... rld", "!"}}')
             Arguments(2):
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World") (Syntax: '"World"')
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "!") (Syntax: '"!"')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"World"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World") (Syntax: '"World"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"!"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "!") (Syntax: '"!"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1903,6 +2005,97 @@ End Class
                 Assert.Equal("System.Collections.Generic.List(Of System.String)", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString())
                 Assert.Null(semanticModel.GetTypeInfo(name).Type)
             Next
+        End Sub
+
+        <Fact()>
+        <WorkItem(27034, "https://github.com/dotnet/roslyn/issues/27034")>
+        Public Sub LateBoundCollectionInitializer()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+
+Module Mod1
+    Sub Main(args() As String)
+        Dim c As New C()
+        c.M(1)
+    End Sub
+
+    Class C
+        Implements IEnumerable(Of Integer)
+
+        Public Sub M(a As Object)
+            Dim c = New C From {a}
+        End Sub
+
+        Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Public Sub Add(i As Integer)
+            Console.WriteLine("Called Integer Add")
+        End Sub
+
+        Public Sub Add(l As Long)
+            Console.WriteLine("Called Long Add")
+        End Sub
+    End Class
+End Module
+        </file>
+    </compilation>
+
+            Dim verifier = CompileAndVerify(source, expectedOutput:="Called Integer Add")
+            verifier.VerifyIL("Mod1.C.M", <![CDATA[
+{
+  // Code size       62 (0x3e)
+  .maxstack  10
+  .locals init (Mod1.C V_0,
+                Object() V_1,
+                Boolean() V_2)
+  IL_0000:  newobj     "Sub Mod1.C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldnull
+  IL_0008:  ldstr      "Add"
+  IL_000d:  ldc.i4.1
+  IL_000e:  newarr     "Object"
+  IL_0013:  dup
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldarg.1
+  IL_0016:  stelem.ref
+  IL_0017:  dup
+  IL_0018:  stloc.1
+  IL_0019:  ldnull
+  IL_001a:  ldnull
+  IL_001b:  ldc.i4.1
+  IL_001c:  newarr     "Boolean"
+  IL_0021:  dup
+  IL_0022:  ldc.i4.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  stelem.i1
+  IL_0025:  dup
+  IL_0026:  stloc.2
+  IL_0027:  ldc.i4.1
+  IL_0028:  call       "Function Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object, System.Type, String, Object(), String(), System.Type(), Boolean(), Boolean) As Object"
+  IL_002d:  pop
+  IL_002e:  ldloc.2
+  IL_002f:  ldc.i4.0
+  IL_0030:  ldelem.u1
+  IL_0031:  brfalse.s  IL_003d
+  IL_0033:  ldloc.1
+  IL_0034:  ldc.i4.0
+  IL_0035:  ldelem.ref
+  IL_0036:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_003b:  starg.s    V_1
+  IL_003d:  ret
+}
+]]>)
         End Sub
 
     End Class

@@ -179,9 +179,7 @@ namespace RunTests
         /// </summary>
         private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
         {
-            var procDumpFilePath = GetProcDumpInfo(options).Value.ProcDumpFilePath;
-
-            async Task DumpProcess(Process targetProcess, string dumpFilePath)
+            async Task DumpProcess(Process targetProcess, string procDumpExeFilePath, string dumpFilePath)
             {
                 var name = targetProcess.ProcessName;
 
@@ -196,7 +194,7 @@ namespace RunTests
                 try
                 {
                     var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
-                    var processInfo = ProcessRunner.CreateProcess(procDumpFilePath, args, cancellationToken: cancellationToken);
+                    var processInfo = ProcessRunner.CreateProcess(procDumpExeFilePath, args, cancellationToken: cancellationToken);
                     var processOutput = await processInfo.Result;
 
                     // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
@@ -209,7 +207,7 @@ namespace RunTests
                     else
                     {
                         ConsoleUtil.WriteLine($"FAILED with {processOutput.ExitCode}");
-                        ConsoleUtil.WriteLine($"{procDumpFilePath} {args}");
+                        ConsoleUtil.WriteLine($"{procDumpExeFilePath} {args}");
                         ConsoleUtil.WriteLine(string.Join(Environment.NewLine, processOutput.OutputLines));
                     }
                 }
@@ -230,7 +228,7 @@ namespace RunTests
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, dumpFilePath);
+                    await DumpProcess(proc, procDumpInfo.Value.ProcDumpFilePath, dumpFilePath);
                     counter++;
                 }
             }

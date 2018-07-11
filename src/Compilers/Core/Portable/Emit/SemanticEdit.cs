@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// True if the edit is an update of an active method and local values should be preserved; false otherwise.
         /// </param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="oldSymbol"/> or <paramref name="newSymbol"/> is null and the edit isn't an <see cref="SemanticEditKind.Insert"/> or <see cref="SemanticEditKind.Delete"/>, respectively.
+        /// <paramref name="oldSymbol"/> or <paramref name="newSymbol"/> is null and the edit isn't a <see cref="SemanticEditKind.Insert"/> or <see cref="SemanticEditKind.Delete"/>, respectively.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="kind"/> is not a valid kind.

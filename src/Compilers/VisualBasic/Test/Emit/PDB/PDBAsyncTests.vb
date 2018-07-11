@@ -977,7 +977,7 @@ Class C
         End Try
     End Function
 End Class"
-            Dim v = CompileAndVerify(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerifyEx(src, references:=LatestVbReferences, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.Empty)
 
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>

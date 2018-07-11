@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly bool _isLocal;
             private readonly bool _isQueryLocal;
             private readonly TExpressionSyntax _expression;
-            private readonly SemanticDocument _document;
+            private readonly SemanticDocument _semanticDocument;
             private readonly TService _service;
 
             internal AbstractIntroduceVariableCodeAction(
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 bool isQueryLocal)
             {
                 _service = service;
-                _document = document;
+                _semanticDocument = document;
                 _expression = expression;
                 _allOccurrences = allOccurrences;
                 _isConstant = isConstant;
@@ -52,11 +53,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 if (_isQueryLocal)
                 {
-                    return await _service.IntroduceQueryLocalAsync(_document, _expression, _allOccurrences, cancellationToken).ConfigureAwait(false);
+                    return await _service.IntroduceQueryLocalAsync(_semanticDocument, _expression, _allOccurrences, cancellationToken).ConfigureAwait(false);
                 }
                 else if (_isLocal)
                 {
-                    return await _service.IntroduceLocalAsync(_document, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
+                    return await _service.IntroduceLocalAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -66,21 +67,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             private async Task<Document> IntroduceFieldAsync(CancellationToken cancellationToken)
             {
-                var result = await _service.IntroduceFieldAsync(_document, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
+                var result = await _service.IntroduceFieldAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
                 return result.Item1;
             }
 
             private string CreateDisplayText(TExpressionSyntax expression)
             {
-                var singleLineExpression = _document.Project.LanguageServices.GetService<ISyntaxFactsService>().ConvertToSingleLine(expression);
+                var singleLineExpression = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>().ConvertToSingleLine(expression);
                 var nodeString = singleLineExpression.ToString();
-
-                // prevent the display string from being too long
-                const int MaxLength = 40;
-                if (nodeString.Length > MaxLength)
-                {
-                    nodeString = nodeString.Substring(0, MaxLength) + "...";
-                }
 
                 return CreateDisplayText(nodeString);
             }
@@ -111,7 +105,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             protected ITypeSymbol GetExpressionType(
                 CancellationToken cancellationToken)
             {
-                var semanticModel = _document.SemanticModel;
+                var semanticModel = _semanticDocument.SemanticModel;
                 var typeInfo = semanticModel.GetTypeInfo(_expression, cancellationToken);
 
                 return typeInfo.Type ?? typeInfo.ConvertedType ?? semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);

@@ -246,6 +246,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // by the value escape of its receiverm, in this case the
                             // collection
                             local.SetRefEscape(collectionEscape);
+
+                            if (IsDirectlyInIterator)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, local.IdentifierToken.GetLocation());
+                            }
+                            else if (IsInAsyncMethod())
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadAsyncLocalType, local.IdentifierToken.GetLocation());
+                            }
                         }
 
                         if (!hasErrors)
@@ -310,6 +319,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Bind the expression for error recovery, but discard all new diagnostics
                             iterationErrorExpression = BindExpression(node.Variable, new DiagnosticBag());
+                            if (iterationErrorExpression.Kind == BoundKind.DiscardExpression)
+                            {
+                                iterationErrorExpression = ((BoundDiscardExpression)iterationErrorExpression).FailInference(this, diagnosticsOpt: null);
+                            }
                             hasErrors = true;
 
                             if (!node.HasErrors)

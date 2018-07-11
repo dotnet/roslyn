@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -733,10 +734,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
                     if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
                     {
-                        throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, tree), $"{nameof(trees)}[{i}]");
+                        throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, $"{nameof(trees)}[{i}]");
                     }
 
-                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, tree), $"{nameof(trees)}[{i}]");
+                    throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, $"{nameof(trees)}[{i}]");
                 }
 
                 removeSet.Add(tree);
@@ -801,10 +802,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
                 if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(oldTree, loadedSyntaxTreeMap))
                 {
-                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, oldTree), nameof(oldTree));
+                    throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, nameof(oldTree));
                 }
 
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, oldTree), nameof(oldTree));
+                throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, nameof(oldTree));
             }
 
             if (externalSyntaxTrees.Contains(newTree))
@@ -1273,6 +1274,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Symbol GetSpecialTypeMember(SpecialMember specialMember)
         {
             return Assembly.GetSpecialTypeMember(specialMember);
+        }
+
+        internal override ISymbol CommonGetSpecialTypeMember(SpecialMember specialMember)
+        {
+            return GetSpecialTypeMember(specialMember);
         }
 
         internal TypeSymbol GetTypeByReflectionType(Type type, DiagnosticBag diagnostics)
@@ -1746,6 +1752,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
+        /// to this compilation's programming language.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="CommonConversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
+        public override CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination)
+        {
+            return ClassifyConversion(source, destination).ToCommonConversion();
+        }
+
+        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue)
+        {
+            constantValue = default;
+
+            if (destination is null)
+            {
+                return Conversion.NoConversion;
+            }
+
+            ITypeSymbol sourceType = source.Type;
+
+            if (sourceType is null)
+            {
+                if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
+                {
+                    constantValue = source.ConstantValue;
+                    return Conversion.DefaultOrNullLiteral;
+                }
+
+                return Conversion.NoConversion;
+            }
+
+            Conversion result = ClassifyConversion(sourceType, destination);
+
+            if (result.IsReference && source.ConstantValue.HasValue && source.ConstantValue.Value is null)
+            {
+                constantValue = source.ConstantValue;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
         /// COR Library in this Compilation.
         /// </summary>
@@ -1788,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!_syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(syntaxTree))
             {
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, syntaxTree), nameof(syntaxTree));
+                throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
             }
 
             return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, ignoreAccessibility);
@@ -3049,12 +3100,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new PredicateSymbolSearcher(this, filter, predicate, cancellationToken).GetSymbolsWithName();
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Return true if there is a source declaration symbol name that matches the provided name.
         /// This will be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
         /// when predicate is just a simple string check.
         /// </summary>
-        internal override bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        public override bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (name == null)
             {
@@ -3071,10 +3123,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Return source declaration symbols whose name matches the provided name.  This will be
-        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
-        /// when predicate is just a simple string check.
+        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter,
+        /// CancellationToken)"/> when predicate is just a simple string check.  <paramref
+        /// name="name"/> is case sensitive.
         /// </summary>
-        internal override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        public override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (name == null)
             {
@@ -3088,6 +3141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new NameSymbolSearcher(this, filter, name, cancellationToken).GetSymbolsWithName();
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         #endregion
 

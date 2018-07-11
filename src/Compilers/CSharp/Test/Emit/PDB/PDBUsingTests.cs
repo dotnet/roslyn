@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET461
+#if NET46
 
 using System.Collections.Immutable;
 using System.IO;
@@ -2184,7 +2184,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
             var v = CompileAndVerify(comp, validator: (peAssembly) =>
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;
@@ -2528,7 +2528,7 @@ using System;
 class C6 { void F() {} }
 " };
 
-            var c = CreateCompilation(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
+            var c = CreateCompilationWithMscorlib40(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
             var pdbImage = pdbStream.ToImmutable();

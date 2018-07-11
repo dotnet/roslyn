@@ -78,6 +78,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+#if NET46
+        public string Dump()
+        {
+            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
+            {
+                string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
+                IList<ModuleData> moduleDatas = testEnvironment.GetAllModuleData();
+                string mainModuleSimpleName = moduleDatas.Single(md => md.FullName == mainModuleFullName).SimpleName;
+                RuntimeEnvironmentUtilities.DumpAssemblyData(moduleDatas, out var dumpDir);
+
+                string modulePath = Path.Combine(dumpDir, mainModuleSimpleName + ".dll");
+                var decompiler = new ICSharpCode.Decompiler.CSharp.CSharpDecompiler(modulePath, new ICSharpCode.Decompiler.DecompilerSettings());
+                var syntaxTree = decompiler.DecompileWholeModuleAsSingleFile();
+                return syntaxTree.ToString();
+            }
+        }
+#endif
+
         public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
         {
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))

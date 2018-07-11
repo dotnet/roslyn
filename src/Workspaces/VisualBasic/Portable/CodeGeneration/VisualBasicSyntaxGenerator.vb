@@ -151,8 +151,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overloads Overrides Function GenericName(identifier As String, typeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return GenericName(identifier.ToIdentifierToken(), typeArguments)
+        End Function
+
+        Friend Overrides Function GenericName(identifier As SyntaxToken, typeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.GenericName(
-                identifier.ToIdentifierToken,
+                identifier,
                 SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SeparatedList(typeArguments.Cast(Of TypeSyntax)()))).WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
@@ -327,6 +331,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ReturnStatement(Optional expressionOpt As SyntaxNode = Nothing) As SyntaxNode
             Return SyntaxFactory.ReturnStatement(DirectCast(expressionOpt, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function YieldReturnStatement(expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.YieldStatement(DirectCast(expression, ExpressionSyntax))
         End Function
 
         Public Overrides Function ThisExpression() As SyntaxNode

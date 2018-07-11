@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.IntegrationTest.Setup</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifierX86)</RuntimeIdentifier>
     <Nonshipping>true</Nonshipping>
     <RoslynProjectType>Vsix</RoslynProjectType>

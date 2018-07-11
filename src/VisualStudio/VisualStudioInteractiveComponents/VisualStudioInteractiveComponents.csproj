@@ -14,7 +14,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>Vsix</RoslynProjectType>
     <IsProductComponent>true</IsProductComponent>
@@ -22,6 +22,8 @@
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\InteractiveComponents</ExtensionInstallationFolder>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost32.csproj" />
+    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost64.csproj" />
     <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
       <Name>CSharpVisualStudioRepl</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -66,12 +68,6 @@
       <Ngen>true</Ngen>
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
-      <Name>InteractiveHost</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
       <Name>Scripting</Name>

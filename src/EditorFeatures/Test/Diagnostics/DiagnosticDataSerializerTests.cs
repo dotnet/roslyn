@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     private readonly Dictionary<object, Stream> _map = new Dictionary<object, Stream>();
 
-                    public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
                     {
                         var stream = _map[name];
                         stream.Position = 0;
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return Task.FromResult(stream);
                     }
 
-                    public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default)
                     {
                         var stream = _map[Tuple.Create(project, name)];
                         stream.Position = 0;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return Task.FromResult(stream);
                     }
 
-                    public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
                     {
                         var stream = _map[Tuple.Create(document, name)];
                         stream.Position = 0;
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return Task.FromResult(stream);
                     }
 
-                    public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default)
                     {
                         _map[name] = new MemoryStream();
                         stream.CopyTo(_map[name]);
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return SpecializedTasks.True;
                     }
 
-                    public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default)
                     {
                         _map[Tuple.Create(project, name)] = new MemoryStream();
                         stream.CopyTo(_map[Tuple.Create(project, name)]);
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return SpecializedTasks.True;
                     }
 
-                    public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
                     {
                         _map[Tuple.Create(document, name)] = new MemoryStream();
                         stream.CopyTo(_map[Tuple.Create(document, name)]);

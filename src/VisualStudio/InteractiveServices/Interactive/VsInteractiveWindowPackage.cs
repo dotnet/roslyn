@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-extern alias core;
-
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
@@ -56,16 +56,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         private static void SetErrorHandlers(Assembly assembly)
         {
-            Debug.Assert(core::Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler != null);
-            Debug.Assert(core::Microsoft.CodeAnalysis.ErrorReporting.FatalError.NonFatalHandler != null);
-            Debug.Assert(core::Microsoft.CodeAnalysis.Internal.Log.Logger.GetLogger() != null);
+            Debug.Assert(FatalError.Handler != null);
+            Debug.Assert(FatalError.NonFatalHandler != null);
+            Debug.Assert(Logger.GetLogger() != null);
 
             var type = assembly.GetType("Microsoft.VisualStudio.InteractiveWindow.FatalError", throwOnError: true).GetTypeInfo();
 
             var handlerSetter = type.GetDeclaredMethod("set_Handler");
             var nonFatalHandlerSetter = type.GetDeclaredMethod("set_NonFatalHandler");
 
-            handlerSetter.Invoke(null, new object[] { new Action<Exception>(core::Microsoft.CodeAnalysis.FailFast.OnFatalException) });
+            handlerSetter.Invoke(null, new object[] { new Action<Exception>(FailFast.OnFatalException) });
             nonFatalHandlerSetter.Invoke(null, new object[] { new Action<Exception>(WatsonReporter.Report) });
         }
 

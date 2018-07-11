@@ -198,15 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is AnonymousMethodExpressionSyntax;
         }
 
-        public bool IsLocalFunction(SyntaxNode node)
-        {
-            return node is LocalFunctionStatementSyntax;
-        }
-
         public bool IsGenericName(SyntaxNode node)
-        {
-            return node is GenericNameSyntax;
-        }
+            => node is GenericNameSyntax;
 
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
@@ -1048,6 +1041,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return list;
         }
 
+        public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
+            => ((TypeDeclarationSyntax)typeDeclaration).Members;
+
         private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
         {
             foreach (var member in node.GetMembers())
@@ -1589,6 +1585,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node != null && (node.Parent as InvocationExpressionSyntax)?.Expression == node;
         }
 
+        public bool IsAwaitExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.AwaitExpression);
+
         public bool IsExpressionOfAwaitExpression(SyntaxNode node)
         {
             return node != null && (node.Parent as AwaitExpressionSyntax)?.Expression == node;
@@ -1656,6 +1655,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsConditionalOr(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalOrExpression;
+
+        public bool IsTupleExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.TupleExpression;
+
+        public bool IsTupleType(SyntaxNode node)
+            => node.Kind() == SyntaxKind.TupleType;
 
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;

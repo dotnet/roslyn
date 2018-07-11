@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
             this SyntaxGenerator factory,
             Compilation compilation,
-            IList<IParameterSymbol> parameters,
+            ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
             bool addNullChecks,

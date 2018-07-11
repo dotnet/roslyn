@@ -545,7 +545,7 @@ End Class
             Dim vbx = <text>
 System.Console.WriteLine(1)
 </text>
-            Dim compilation = CreateCompilationWithMscorlib40(
+            Dim compilation = CreateEmptyCompilation(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -564,7 +564,7 @@ Public Class C
   End Sub
 End Class
 </text>
-            Dim compilation = CreateCompilationWithMscorlib40(
+            Dim compilation = CreateEmptyCompilation(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
                  VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
@@ -591,7 +591,7 @@ Public Class D
     End Sub
 End Class
 </text>
-            Dim compilation = CreateCompilationWithMscorlib40(
+            Dim compilation = CreateEmptyCompilation(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
                  VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 

@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             _renameAnnotations,
                             _cancellationToken);
 
-                        var renameRewriterLanguageService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
+                        var renameRewriterLanguageService = document.GetLanguageService<IRenameRewriterLanguageService>();
                         var newRoot = renameRewriterLanguageService.AnnotateAndRename(parameters);
 
                         if (newRoot == originalSyntaxRoot)

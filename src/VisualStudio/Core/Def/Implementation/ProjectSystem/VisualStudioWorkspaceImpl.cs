@@ -719,7 +719,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (hostDocument != null)
             {
                 var document = this.CurrentSolution.GetDocument(documentId);
-                var text = this.GetTextForced(document);
+                var text = document.GetTextSynchronously(CancellationToken.None);
 
                 var project = hostDocument.Project.Hierarchy as IVsProject3;
 
