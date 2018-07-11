@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         private CodeAction CreateAction(CodeRefactoringContext context, Scope scope)
             => new MyCodeAction(GetTitle(scope), c => ConvertToStructAsync(context.Document, context.Span, scope, c));
 
-        private string GetTitle(Scope scope)
+        private static string GetTitle(Scope scope)
         {
             switch (scope)
             {
