@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                                        .ToImmutableArray();
 
             // Next, generate the full struct that will be used to replace all instances of this
-            // anonymous type.
+            // tuple type.
             var namedTypeSymbol = await GenerateFinalNamedTypeAsync(
                 document, scope, structName, capturedTypeParameters, tupleType, cancellationToken).ConfigureAwait(false);
 
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var childType = semanticModel.GetTypeInfo(childCreation, cancellationToken).Type as INamedTypeSymbol;
                 if (childType == null)
                 {
-                    Debug.Fail("We should always be able to get an anonymous type for any anonymous creation node.");
+                    Debug.Fail("We should always be able to get an tuple type for any tuple expression node.");
                     continue;
                 }
 
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             ISyntaxFactsService syntaxFacts, SyntaxEditor editor, string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             TNameSyntax qualifiedTypeName, SyntaxNode startingCreationNode, TTupleExpressionSyntax childCreation)
         {
-            // Use the callback form as anonymous types may be nested, and we want to
+            // Use the callback form as tuples types may be nested, and we want to
             // properly replace them even in that case.
             editor.ReplaceNode(
                 childCreation,
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var childType = semanticModel.GetTypeInfo(childTupleType, cancellationToken).Type as INamedTypeSymbol;
                 if (childType == null)
                 {
-                    Debug.Fail("We should always be able to get an anonymous type for any anonymous creation node.");
+                    Debug.Fail("We should always be able to get an tuple type for any tuple type syntax node.");
                     continue;
                 }
 
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             SyntaxEditor editor, string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             TNameSyntax qualifiedTypeName, SyntaxNode startingNode, TTupleTypeSyntax childTupleType)
         {
-            // Use the callback form as anonymous types may be nested, and we want to
+            // Use the callback form as tuple types may be nested, and we want to
             // properly replace them even in that case.
             editor.ReplaceNode(
                 childTupleType,
