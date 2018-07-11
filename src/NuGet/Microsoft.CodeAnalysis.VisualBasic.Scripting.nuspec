@@ -21,7 +21,8 @@
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
-    
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
+
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Scripting.Common" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$version$]" />
@@ -34,5 +35,8 @@
     <file src="Dlls\BasicScripting\Microsoft.CodeAnalysis.VisualBasic.Scripting.xml" target="lib\dotnet" />
     <file src="Dlls\BasicScripting\Microsoft.CodeAnalysis.VisualBasic.Scripting.pdb*" target="lib\dotnet" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\BasicScripting\**\Microsoft.CodeAnalysis.VisualBasic.Scripting.resources.dll" target="lib\dotnet" />
   </files>
 </package>

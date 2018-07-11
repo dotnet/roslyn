@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
-            var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var service = document.GetLanguageService<ISyntaxFactsService>();
             var node = (await document.GetSyntaxRootAsync()).FindToken(position).Parent;
 
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;

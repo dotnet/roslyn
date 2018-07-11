@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     internal class ResettableDelay
     {
-        public static readonly ResettableDelay CompletedDelay = new ResettableDelay();
-
         private readonly int _delayInMilliseconds;
         private readonly TaskCompletionSource<object> _taskCompletionSource;
 
@@ -39,16 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             {
                 StartTimer(continueOnCapturedContext: false);
             }
-        }
-
-        private ResettableDelay()
-        {
-            // create resettableDelay with completed state
-            _delayInMilliseconds = 0;
-            _taskCompletionSource = new TaskCompletionSource<object>();
-            _taskCompletionSource.SetResult(null);
-
-            Reset();
         }
 
         public Task Task => _taskCompletionSource.Task;

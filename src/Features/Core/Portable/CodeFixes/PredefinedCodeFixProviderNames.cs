@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddAsync = nameof(AddAsync);
         public const string AddParameter = nameof(AddParameter);
         public const string AddParenthesesAroundConditionalExpressionInInterpolatedString = nameof(AddParenthesesAroundConditionalExpressionInInterpolatedString);
+        public const string AliasAmbiguousType = nameof(AliasAmbiguousType);
         public const string ApplyNamingStyle = nameof(ApplyNamingStyle);
         public const string AddBraces = nameof(AddBraces);
         public const string ChangeReturnType = nameof(ChangeReturnType);

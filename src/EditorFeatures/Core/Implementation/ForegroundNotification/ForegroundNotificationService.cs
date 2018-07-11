@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 {
@@ -35,7 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue = new PriorityQueue();
             _lastProcessedTimeInMS = Environment.TickCount;
 
-            Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
+            // Only start the background processing task if foreground work is allowed
+            if (ForegroundKind != ForegroundThreadDataKind.Unknown)
+            {
+                Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
+            }
         }
 
         public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
@@ -58,6 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 return;
             }
 
+            // Assert we have some kind of foreground thread
+            Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+
             var current = Environment.TickCount;
 
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
@@ -72,6 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 asyncToken?.Dispose();
                 return;
             }
+
+            // Assert we have some kind of foreground thread
+            Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
 
             var current = Environment.TickCount;
 
@@ -185,26 +196,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         private async Task WaitForPendingWorkAsync()
         {
-            await _workQueue.WaitForItemsAsync().ConfigureAwait(false);
             while (true)
             {
-                var current = Environment.TickCount;
-                var nextItem = _workQueue.PeekNextItemTime();
+                await _workQueue.WaitForItemsAsync().ConfigureAwait(false);
+                if (!_workQueue.TryPeekNextItemTime(out var nextItem))
+                {
+                    // Need to go back and wait for an item
+                    continue;
+                }
 
                 // The next item is ready to run
-                if (nextItem - current <= 0)
+                if (nextItem - Environment.TickCount <= 0)
                 {
                     break;
                 }
 
                 // wait some and re-check since there could be another one inserted before the first one while we were waiting.
-                await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(continueOnCapturedContext: false);
+                await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(false);
             }
 
             // Throttle how often we run by waiting MinimumDelayBetweenProcessing since the last time we processed notifications
             if (Environment.TickCount - _lastProcessedTimeInMS < MinimumDelayBetweenProcessing)
             {
-                await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(continueOnCapturedContext: false);
+                await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(false);
             }
         }
 
@@ -333,12 +347,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 return;
             }
 
-            public int PeekNextItemTime()
+            public bool TryPeekNextItemTime(out int minimumRunPoint)
             {
                 lock (_gate)
                 {
-                    Contract.Requires(_list.Count > 0);
-                    return _list.First.Value.MinimumRunPointInMS;
+                    if (_list.Count == 0)
+                    {
+                        minimumRunPoint = 0;
+                        return false;
+                    }
+
+                    minimumRunPoint = _list.First.Value.MinimumRunPointInMS;
+                    return true;
                 }
             }
 

@@ -59,7 +59,7 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
-        public override int FTL_InputFileNameTooLong
+        public override int FTL_InvalidInputFileName
         {
             get { throw new NotImplementedException(); }
         }

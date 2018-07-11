@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpFeaturesResources.resx">
     <body>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="new">Declare as nullable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">인라인 임시 변수</target>
@@ -10,11 +15,6 @@
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">충돌이 감지되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invert_if_statement">
-        <source>Invert if statement</source>
-        <target state="translated">If 문을 반대로 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
@@ -30,6 +30,11 @@
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
         <target state="translated">불필요한 Using 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="new">'if' statement can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -70,16 +75,6 @@
       <trans-unit id="Autoselect_disabled_due_to_potential_range_variable_declaration">
         <source>Autoselect disabled due to potential range variable declaration.</source>
         <target state="translated">범위 변수가 선언될 수 있어 자동 선택을 사용하지 않도록 설정했습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">불필요한 캐스트 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">캐스팅이 중복됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
@@ -624,27 +619,27 @@
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
-        <target state="new">Add parentheses</target>
+        <target state="translated">괄호 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch">
         <source>Convert to 'switch'</source>
-        <target state="new">Convert to 'switch'</target>
+        <target state="translated">'switch'로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
-        <target state="new">Convert to 'foreach'</target>
+        <target state="translated">'foreach'로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_for">
         <source>Convert to 'for'</source>
-        <target state="new">Convert to 'for'</target>
+        <target state="translated">'for'로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Declare_as_nullable">
-        <source>Declare as nullable</source>
-        <target state="new">Declare as nullable</target>
+      <trans-unit id="Invert_if">
+        <source>Invert if</source>
+        <target state="new">Invert if</target>
         <note />
       </trans-unit>
     </body>

@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <StartupObject />
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -31,7 +31,6 @@
     <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj" />
-    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj" />
     <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj" />

@@ -511,10 +511,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: For each of the method arguments Ei:
             for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
-                var argument = _arguments[arg];
-                var isNullable = IsNullable(argument);
-                var kind = GetRefKind(arg) == RefKind.None ? ExactOrBoundsKind.LowerBound : ExactOrBoundsKind.Exact;
-                var target = _formalParameterTypes[arg];
+                BoundExpression argument = _arguments[arg];
+                bool? isNullable = IsNullable(argument);
+                TypeSymbolWithAnnotations target = _formalParameterTypes[arg];
+                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.IsPointerType() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
+
                 MakeExplicitParameterTypeInferences(binder, argument, isNullable, target, kind, ref useSiteDiagnostics);
             }
         }
@@ -1470,6 +1471,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // This can be valid via (where T : unmanaged) constraints
+            if (ExactPointerInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
             // SPEC: * Otherwise no inferences are made.
         }
 
@@ -1619,6 +1626,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ExactTypeArgumentInference(namedSource, namedTarget, ref useSiteDiagnostics);
             return true;
+        }
+
+        private bool ExactPointerInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (source.TypeKind == TypeKind.Pointer && target.TypeKind == TypeKind.Pointer)
+            {
+                ExactInference(((PointerTypeSymbol)source.TypeSymbol).PointedAtType, ((PointerTypeSymbol)target.TypeSymbol).PointedAtType, ref useSiteDiagnostics);
+                return true;
+            }
+
+            return false;
         }
 
         private void ExactTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

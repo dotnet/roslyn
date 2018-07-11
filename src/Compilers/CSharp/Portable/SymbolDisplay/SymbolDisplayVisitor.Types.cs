@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandNullable))
             {
                 //if we're expanding nullable, we just visit nullable types normally
-                if (IsNullableType(symbol) && !symbol.IsDefinition)
+                if (ITypeSymbolHelpers.IsNullableType(symbol) && !symbol.IsDefinition)
                 {
                     // Can't have a type called "int*?".
                     var typeArg = symbol.TypeArguments[0];
@@ -291,12 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AddNameAndTypeArgumentsOrParameters(symbol);
-        }
-
-        private static bool IsNullableType(INamedTypeSymbol type)
-        {
-            var original = type.OriginalDefinition;
-            return original != null && original.SpecialType == SpecialType.System_Nullable_T;
         }
 
         private void AddNameAndTypeArgumentsOrParameters(INamedTypeSymbol symbol)

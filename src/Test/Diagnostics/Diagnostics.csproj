@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Hosting.Diagnostics</RootNamespace>
     <AssemblyName>Roslyn.Hosting.Diagnostics</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

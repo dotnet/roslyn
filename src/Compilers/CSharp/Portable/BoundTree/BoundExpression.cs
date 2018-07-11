@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
             ImmutableArray<BoundExpression> newArguments,
             ImmutableArray<RefKind> newRefKinds,
-            BoundExpression newInitializerExpression,
+            BoundObjectInitializerExpressionBase newInitializerExpression,
             TypeSymbol changeTypeOpt = null)
         {
             return Update(

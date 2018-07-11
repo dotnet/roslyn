@@ -66,7 +66,7 @@ class Class
 
     private void Goo() => throw new NotImplementedException();
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -6605,21 +6605,6 @@ class C
 }");
         }
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestGenerateMethodEquivalenceKey()
-        {
-            await TestEquivalenceKeyAsync(
-@"class C
-{
-    void M()
-    {
-        this.[|M1|](System.Exception.M2());
-    }
-}",
-string.Format(FeaturesResources.Generate_method_1_0, "M1", "C"));
-        }
-
         [WorkItem(5338, "https://github.com/dotnet/roslyn/issues/5338")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodLambdaOverload1()
@@ -7451,6 +7436,501 @@ class C
     }
 }",
 parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        public async Task TestTupleAssignment()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        int x, y;
+        (x, y) = [|Foo()|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        int x, y;
+        (x, y) = Foo();
+    }
+
+    private (int x, int y) Foo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        public async Task TestTupleAssignment2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        (x, y) = [|Foo()|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        (x, y) = Foo();
+    }
+
+    private (object x, object y) Foo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Goo|]();
+    }
+}
+
+class Goo { }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Goo();
+    }
+
+    private void Goo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class Goo { }",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName2()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Goo|]();
+    }
+}
+
+interface Goo { }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Goo();
+    }
+
+    private void Goo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+interface Goo { }",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName3()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Goo|]();
+    }
+}
+
+struct Goo { }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Goo();
+    }
+
+    private void Goo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+struct Goo { }",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName4()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Goo|]();
+    }
+}
+
+delegate void Goo()",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Goo();
+    }
+
+    private void Goo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+delegate void Goo()",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName5()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Goo|]();
+    }
+}
+
+namespace Goo { }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Goo();
+    }
+
+    private void Goo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+namespace Goo { }",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName6()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Goo|]();
+    }
+}
+
+enum Goo { One }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Goo();
+    }
+
+    private void Goo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+enum Goo { One }",
+parseOptions: TestOptions.Regular);
+        }
+
+        [WorkItem(26957, "https://github.com/dotnet/roslyn/issues/26957")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task NotOnNonExistedMetadataMemberWhenInsideLambda()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Test(Action<string> action)
+    {
+    }
+
+    static void Main(string[] args)
+    {
+        Test(arg =>
+        {
+            Console.WriteLine(arg.[|NotFound|]());
+        });
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInExpressionBodiedGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int Property
+    {
+        get => [|GenerateMethod|]();
+    }
+}",
+@"using System;
+
+class Class
+{
+    int Property
+    {
+        get => GenerateMethod();
+    }
+
+    private int GenerateMethod()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInExpressionBodiedSetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int Property
+    {
+        set => [|GenerateMethod|](value);
+    }
+}",
+@"using System;
+
+class Class
+{
+    int Property
+    {
+        set => GenerateMethod(value);
+    }
+
+    private void GenerateMethod(int value)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInExpressionBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        int Local() => [|GenerateMethod()|];
+    }
+}",
+@"using System;
+
+class Class
+{
+    void Method()
+    {
+        int Local() => GenerateMethod();
+    }
+
+    private int GenerateMethod()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInBlockBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        int Local()
+        {
+            return [|GenerateMethod()|];
+        }
+    }
+}",
+@"using System;
+
+class Class
+{
+    void Method()
+    {
+        int Local()
+        {
+            return GenerateMethod();
+        }
+    }
+
+    private int GenerateMethod()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInBlockBodiedLocalFunctionInsideLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Action action = () =>  
+        {
+            int Local()
+            {
+                return [|GenerateMethod()|];
+            }
+        }
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Action action = () =>  
+        {
+            int Local()
+            {
+                return GenerateMethod();
+            }
+        }
+    }
+
+    private int GenerateMethod()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInExpressionBodiedLocalFunctionInsideLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Action action = () =>  
+        {
+            int Local() => [|GenerateMethod()|];
+        }
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Action action = () =>  
+        {
+            int Local() => GenerateMethod();
+        }
+    }
+
+    private int GenerateMethod()
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
     }
 }

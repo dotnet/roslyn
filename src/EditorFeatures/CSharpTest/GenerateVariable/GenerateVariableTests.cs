@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
 {
     public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private const int ReadonlyFieldIndex = 1;
+        private const int PropertyIndex = 2;
+        private const int LocalIndex = 3;
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
 
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         goo;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -106,7 +110,7 @@ index: 1);
         goo;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -151,7 +155,7 @@ index: 2);
         Goo;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -174,7 +178,7 @@ index: 1);
         Goo;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -255,7 +259,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), str
         goo = 1;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -303,7 +307,7 @@ class Class
     {
         Method(ref this.goo);
     }
-}", index: 1);
+}", index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -329,7 +333,7 @@ class Class
     {
         Method(in this.goo);
     }
-}", index: 2);
+}", index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -432,7 +436,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), str
         goo;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -455,7 +459,7 @@ index: 1);
         goo;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -500,7 +504,7 @@ index: 2);
         this.goo;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -523,7 +527,7 @@ index: 1);
         this.goo;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -568,7 +572,7 @@ index: 2);
         this.goo = 1;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -613,7 +617,7 @@ index: 1);
         Class.goo;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -636,7 +640,7 @@ index: 1);
         Class.goo;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -681,7 +685,7 @@ index: 2);
         Class.goo = 1;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -843,7 +847,7 @@ interface I
 interface I
 {
     object Goo { get; set; }
-}", index: 1);
+}", index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -1537,7 +1541,7 @@ interface ITest
 interface ITest
 {
     bool SomeProp { get; set; }
-}", index: 1);
+}", index: ReadonlyFieldIndex);
         }
 
         [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
@@ -1842,7 +1846,7 @@ class Program
         new(goo)();
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(539665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
@@ -2361,7 +2365,7 @@ static class MyExtension
         P = 10;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2385,7 +2389,7 @@ index: 1);
         P = 10;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2438,7 +2442,7 @@ index: 0);
         A = 9;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2586,7 +2590,7 @@ class ProgramAttribute : Attribute
     {
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
@@ -3204,7 +3208,7 @@ parseOptions: null);
         a = new { x = HERE };
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(543124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543124")]
@@ -3429,7 +3433,7 @@ class Bar
         var c = new Goo { Gibberish = 24 };
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -3459,7 +3463,7 @@ class Bar
         var c = new Goo { Gibberish = Gibberish };
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -3490,7 +3494,7 @@ class Bar
         var c = new Goo { Gibberish = Gibberish };
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -3538,7 +3542,7 @@ class Bar
         var c = new Goo { Gibberish = blah };
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [WorkItem(544319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
@@ -3731,7 +3735,7 @@ class D
     {
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -3773,7 +3777,7 @@ index: 3);
     {
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
@@ -3804,7 +3808,7 @@ index: 1);
 #endif
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
@@ -3837,7 +3841,7 @@ index: 1);
 #endif
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -3999,7 +4003,7 @@ index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
     {
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -4296,7 +4300,7 @@ class Program
         var undefined = 1;
     }
 }",
-index: 2, options: ImplicitTypingEverywhere());
+index: PropertyIndex, options: ImplicitTypingEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -4317,7 +4321,7 @@ index: 2, options: ImplicitTypingEverywhere());
         System.Func<object, int> undefined = (x) => 2;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(545273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
@@ -4339,7 +4343,7 @@ index: 2);
         int undefined = 1;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(545273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
@@ -4361,7 +4365,7 @@ index: 2);
         var undefined = new { P = ""1"" };
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(545269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
@@ -4486,7 +4490,7 @@ namespace CSharpDemoApp
     }
 }
 ",
-index: 3);
+index: LocalIndex);
         }
 
         [WorkItem(863346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
@@ -4527,7 +4531,7 @@ class TestClass<T1>
     }
 }
 ",
-index: 3);
+index: LocalIndex);
         }
 
         [WorkItem(863346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
@@ -4624,7 +4628,7 @@ class Program
     {
         throw MyExp;
     }
-}", index: 1);
+}", index: ReadonlyFieldIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -4775,7 +4779,7 @@ class Program
         int* a = goo;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -4799,7 +4803,7 @@ index: 1);
         int*[] a = goo;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -4823,7 +4827,7 @@ index: 1);
         int* a = goo;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -4853,7 +4857,7 @@ index: 1);
         }
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -4883,7 +4887,7 @@ index: 1);
         }
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -4907,7 +4911,7 @@ index: 1);
         int* a = goo;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -4931,7 +4935,7 @@ index: 2);
         int*[] a = goo;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -4955,7 +4959,7 @@ index: 2);
         int* a = goo;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -4985,7 +4989,7 @@ index: 2);
         }
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5015,7 +5019,7 @@ index: 2);
         }
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5062,7 +5066,7 @@ index: 2);
         var x = nameof(Z);
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5086,7 +5090,7 @@ index: 1);
         var x = nameof(Z);
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5109,7 +5113,7 @@ index: 2);
         var x = nameof(Z);
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5156,7 +5160,7 @@ index: 3);
         var x = nameof(Z.X);
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5180,7 +5184,7 @@ index: 1);
         var x = nameof(Z.X);
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5203,7 +5207,7 @@ index: 2);
         var x = nameof(Z.X);
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5250,7 +5254,7 @@ index: 3);
         var x = nameof(Z.X.Y);
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5274,7 +5278,7 @@ index: 1);
         var x = nameof(Z.X.Y);
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5297,7 +5301,7 @@ index: 2);
         var x = nameof(Z.X.Y);
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5366,7 +5370,7 @@ index: 3);
         var x = nameof(y, z);
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5413,7 +5417,7 @@ index: 2);
         var x = nameof(y, z);
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5436,7 +5440,7 @@ index: 1);
         var x = nameof(y, z);
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5470,7 +5474,7 @@ index: 3);
         return null;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5537,7 +5541,7 @@ index: 2);
         return null;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
@@ -5570,7 +5574,7 @@ index: 1);
         return null;
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -5617,7 +5621,7 @@ index: 3);
         C x = a?.Instance;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -5641,7 +5645,7 @@ index: 1);
         C x = a?.Instance;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -5688,7 +5692,7 @@ index: 2);
         var x = a?.Instance;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -5712,7 +5716,7 @@ index: 1);
         var x = a?.Instance;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -5759,7 +5763,7 @@ index: 2);
         int? x = a?.B;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -5783,7 +5787,7 @@ index: 1);
         int? x = a?.B;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -5954,7 +5958,7 @@ index: 2);
         internal C C;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -5989,7 +5993,7 @@ index: 1);
         internal int C;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -6024,7 +6028,7 @@ index: 1);
         internal int C;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -6059,7 +6063,7 @@ index: 1);
         internal object C;
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -6094,7 +6098,7 @@ index: 1);
         internal readonly C C;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -6129,7 +6133,7 @@ index: 2);
         internal readonly int C;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -6164,7 +6168,7 @@ index: 2);
         internal readonly int C;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -6199,7 +6203,7 @@ index: 2);
         internal readonly object C;
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6252,7 +6256,7 @@ class Program
 
     public int MyProperty { get; } = y;
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6278,7 +6282,7 @@ class Program
     public static int y { get; private set; }
     public int MyProperty { get; } = y;
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6311,7 +6315,7 @@ index: 2);
 
     public int Y => y;
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6328,7 +6332,7 @@ index: 1);
 
     public int y { get; private set; }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6361,7 +6365,7 @@ index: 2);
 
     public static C operator --(C p) => x;
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6378,7 +6382,7 @@ index: 1);
 
     public static C operator --(C p) => x;
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6411,7 +6415,7 @@ index: 2);
 
     public static C GetValue(C p) => x;
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6428,7 +6432,7 @@ index: 1);
 
     public static C GetValue(C p) => x;
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6533,7 +6537,7 @@ class Program
         var x = new Dictionary<string, int> { [key] = 0 };
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6560,7 +6564,7 @@ class Program
         var x = new Dictionary<string, int> { [""Zero""] = 0, [One] = 1, [""Two""] = 2 };
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6587,7 +6591,7 @@ class Program
         var x = new Dictionary<string, int> { [""Zero""] = i };
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6614,7 +6618,7 @@ class Program
         var x = new Dictionary<string, int> { [key] = 0 };
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6641,7 +6645,7 @@ class Program
         var x = new Dictionary<string, int> { [""Zero""] = 0, [One] = 1, [""Two""] = 2 };
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6668,7 +6672,7 @@ class Program
         var x = new Dictionary<string, int> { [""Zero""] = i };
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6694,7 +6698,7 @@ class Program
         var x = new Dictionary<string, int> { [key] = 0 };
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6720,7 +6724,7 @@ class Program
         var x = new Dictionary<string, int> { [""Zero""] = 0, [One] = 1, [""Two""] = 2 };
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6746,7 +6750,7 @@ class Program
         var x = new Dictionary<string, int> { [""Zero""] = i };
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6807,7 +6811,7 @@ class Program
         };
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -6837,7 +6841,7 @@ class Program
         };
     }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
@@ -6904,7 +6908,7 @@ public class Test
         }
     }
 }",
-index: 1);
+index: ReadonlyFieldIndex);
         }
 
         [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
@@ -6938,7 +6942,7 @@ public class Test
 
     public static int _field { get; private set; }
 }",
-index: 2);
+index: PropertyIndex);
         }
 
         [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
@@ -6971,7 +6975,7 @@ public class Test
         }
     }
 }",
-index: 3);
+index: LocalIndex);
         }
 
         [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
@@ -7234,7 +7238,7 @@ public class Goo
     }
 
     public string String { get; private set; }
-}", index: 1);
+}", index: ReadonlyFieldIndex);
         }
 
         [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
@@ -7531,7 +7535,7 @@ class C
     {
         this.y = 0;
     }
-}", index: 1);
+}", index: ReadonlyFieldIndex);
         }
 
         [WorkItem(20791, "https://github.com/dotnet/roslyn/issues/20791")]
@@ -7648,6 +7652,493 @@ class C
     void Goo(ref bool b) { }
     void Goo(int i) { }
 }");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Property
+    {
+        get => [|_field|];
+    }
+}",
+@"class Program
+{
+    private int _field;
+
+    public int Property
+    {
+        get => _field;
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedGetterWithDifferentAccessibility()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Property
+    {
+        protected get => [|_field|];
+        set => throw new System.NotImplementedException();
+    }
+}",
+@"class Program
+{
+    private int _field;
+
+    public int Property
+    {
+        protected get => _field;
+        set => throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateReadonlyFieldInExpressionBodiedGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Property
+    {
+        get => [|_readonlyField|];
+    }
+}",
+@"class Program
+{
+    private readonly int _readonlyField;
+
+    public int Property
+    {
+        get => _readonlyField;
+    }
+}",
+index: ReadonlyFieldIndex);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInExpressionBodiedGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Property
+    {
+        get => [|prop|];
+    }
+}",
+@"class Program
+{
+    public int Property
+    {
+        get => prop;
+    }
+    public int prop { get; private set; }
+}",
+index: PropertyIndex);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedSetterInferredFromType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Property
+    {
+        set => [|_field|] = value;
+    }
+}",
+@"class Program
+{
+    private int _field;
+
+    public int Property
+    {
+        set => _field = value;
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        int Local() => [|_field|];
+    }
+}",
+@"class Program
+{
+    private int _field;
+
+    public void Method()
+    {
+        int Local() => _field;
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateReadonlyFieldInExpressionBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        int Local() => [|_readonlyField|];
+    }
+}",
+@"class Program
+{
+    private readonly int _readonlyField;
+
+    public void Method()
+    {
+        int Local() => _readonlyField;
+    }
+}",
+index: ReadonlyFieldIndex);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInExpressionBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        int Local() => [|prop|];
+    }
+}",
+@"class Program
+{
+    public int prop { get; private set; }
+
+    public void Method()
+    {
+        int Local() => prop;
+    }
+}",
+index: PropertyIndex);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedLocalFunctionInferredFromType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        int Local() => [|_field|] = 12;
+    }
+}",
+@"class Program
+{
+    private int _field;
+
+    public void Method()
+    {
+        int Local() => _field = 12;
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInBlockBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        int Local()
+        {
+            return [|_field|];
+        }
+    }
+}",
+@"class Program
+{
+    private int _field;
+
+    public void Method()
+    {
+        int Local()
+        {
+            return _field;
+        }
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateReadonlyFieldInBlockBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        int Local()
+        {
+            return [|_readonlyField|];
+        }
+    }
+}",
+@"class Program
+{
+    private readonly int _readonlyField;
+
+    public void Method()
+    {
+        int Local()
+        {
+            return _readonlyField;
+        }
+    }
+}",
+index: ReadonlyFieldIndex);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInBlockBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        int Local()
+        {
+            return [|prop|];
+        }
+    }
+}",
+@"class Program
+{
+    public int prop { get; private set; }
+
+    public void Method()
+    {
+        int Local()
+        {
+            return prop;
+        }
+    }
+}",
+index: PropertyIndex);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInBlockBodiedLocalFunctionInferredFromType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        int Local() 
+        {
+            return [|_field|] = 12;
+        }
+    }
+}",
+@"class Program
+{
+    private int _field;
+
+    public void Method()
+    {
+        int Local() 
+        {
+            return _field = 12;
+        }
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInBlockBodiedLocalFunctionInsideLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    public void Method()
+    {
+        Action action = () => 
+        {
+            int Local()
+            {
+                return [|_field|];
+            }
+        };
+    }
+}",
+@"
+using System;
+
+class Program
+{
+    private int _field;
+
+    public void Method()
+    {
+        Action action = () => 
+        {
+            int Local()
+            {
+                return _field;
+            }
+        };
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedLocalFunctionInsideLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    public void Method()
+    {
+        Action action = () => 
+        {
+            int Local() => [|_field|];
+        };
+    }
+}",
+@"
+using System;
+
+class Program
+{
+    private int _field;
+
+    public void Method()
+    {
+        Action action = () => 
+        {
+            int Local() => _field;
+        };
+    }
+}");
+        }
+
+        [WorkItem(26406, "https://github.com/dotnet/roslyn/issues/26406")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestIdentifierInsideLock1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        lock ([|goo|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    private object goo;
+
+    void Method()
+    {
+        lock (goo)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(26406, "https://github.com/dotnet/roslyn/issues/26406")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestIdentifierInsideLock2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        lock ([|goo|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    private readonly object goo;
+
+    void Method()
+    {
+        lock (goo)
+        {
+        }
+    }
+}", index: 1);
+        }
+
+        [WorkItem(26406, "https://github.com/dotnet/roslyn/issues/26406")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestIdentifierInsideLock3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        lock ([|goo|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    public object goo { get; private set; }
+
+    void Method()
+    {
+        lock (goo)
+        {
+        }
+    }
+}", index: 2);
         }
     }
 }

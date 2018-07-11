@@ -3006,7 +3006,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.DebugDll)
 
             Dim verifier = CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub

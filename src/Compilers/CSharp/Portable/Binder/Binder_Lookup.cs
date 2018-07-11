@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -1154,17 +1153,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         ref useSiteDiagnostics,
                                         basesBeingResolved))
             {
-                if (inaccessibleViaQualifier)
-                {
-                    diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType) : null;
-                }
-                else
-                {
-                    var unwrappedSymbols = ImmutableArray.Create<Symbol>(unwrappedSymbol);
-                    diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, unwrappedSymbols, additionalLocations: ImmutableArray<Location>.Empty) : null;
-                }
-
-                return LookupResult.Inaccessible(symbol, diagInfo);
+                 if (!diagnose)
+                 {
+                     diagInfo = null;
+                 }
+                 else if (inaccessibleViaQualifier)
+                 {
+                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType);
+                 }
+                 else if (IsBadIvtSpecification())
+                 {
+                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.Compilation.Assembly.PublicKey));
+                 }
+                 else
+                 {
+                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty);
+                 }
+                 
+                 return LookupResult.Inaccessible(symbol, diagInfo);
             }
             else if (!InCref && unwrappedSymbol.MustCallMethodsDirectly())
             {
@@ -1195,8 +1201,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return LookupResult.Good(symbol);
             }
-        }
 
+            bool IsBadIvtSpecification()
+            {
+                // Ensures that during binding we don't ask for public key which results in attribute binding and stack overflow.
+                // If looking up attributes, don't ask for public key.
+                if ((unwrappedSymbol.DeclaredAccessibility == Accessibility.Internal ||
+                    unwrappedSymbol.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
+                    unwrappedSymbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
+                    && !options.IsAttributeTypeLookup())
+                {
+                    var keys = unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName);
+                    if (!keys.Any())
+                    {
+                        return false;
+                    }
+                    foreach (ImmutableArray<byte> key in keys)
+                    {
+                        if (key.SequenceEqual(this.Compilation.Assembly.Identity.PublicKey))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+ 
         private CSDiagnosticInfo MakeCallMethodsDirectlyDiagnostic(Symbol symbol)
         {
             Debug.Assert(symbol.MustCallMethodsDirectly());

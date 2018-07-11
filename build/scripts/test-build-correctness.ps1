@@ -11,9 +11,8 @@
 
 [CmdletBinding(PositionalBinding=$false)]
 param(
-    [string]$config = "",
-    [string]$msbuild = ""
-)
+    [switch]$release = $false,
+    [switch]$cibuild = $false)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -21,25 +20,18 @@ $ErrorActionPreference="Stop"
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
+    $buildConfiguration = if ($release) { "Release" } else { "Debug" }
+    $releaseArg = if ($release) { "-release" } else { "" }
+    $configDir = Join-Path $binariesDir $buildConfiguration
 
-    # Need to parse out the current NuGet package version of Structured Logger
-    $structuredLoggerPath = Join-Path (Get-PackageDir "Microsoft.Build.Logging.StructuredLogger") "lib\net46\StructuredLogger.dll"
-    $configDir = Join-Path $binariesDir $config
-    $logPath = Join-Path $configDir "roslyn.buildlog"
-    $solution = Join-Path $repoDir "Roslyn.sln"
+    Write-Host "Building Roslyn"
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -cibuild:$cibuild -release:$release -pack -binaryLog }
 
-    if ($msbuild -eq "") {
-        $msbuild = Ensure-MSBuild
-    }
-
-    Write-Host "Building Roslyn.sln with logging support"
-    Exec-Console $msbuild "/noconlog /v:m /m /p:Configuration=$config /logger:StructuredLogger,$structuredLoggerPath;$logPath /nodeReuse:false /p:DeployExtension=false $solution"
-    Write-Host ""
 
     # Verify the state of our various build artifacts
     Write-Host "Running BuildBoss"
     $buildBossPath = Join-Path $configDir "Exes\BuildBoss\BuildBoss.exe"
-    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln SourceBuild.sln build\Targets $logPath"
+    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln SourceBuild.sln -r $repoDir $releaseArg"
     Write-Host ""
 
     # Verify the state of our generated syntax files

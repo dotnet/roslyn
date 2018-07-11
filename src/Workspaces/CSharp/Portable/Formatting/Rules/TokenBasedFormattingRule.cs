@@ -201,6 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // new (int, int)[]
+            if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
+                previousToken.Kind() == SyntaxKind.NewKeyword &&
+                previousToken.Parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression))
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // some * "(" cases
             if (currentToken.Kind() == SyntaxKind.OpenParenToken)
             {

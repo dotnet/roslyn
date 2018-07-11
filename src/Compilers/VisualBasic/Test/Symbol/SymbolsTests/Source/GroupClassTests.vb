@@ -361,7 +361,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.ReleaseDll)
 
             Dim MyGroupCollectionAttribute = compilation.GetTypeByMetadataName("Microsoft.VisualBasic.MyGroupCollectionAttribute")
 
@@ -488,7 +488,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -3457,7 +3457,7 @@ End Class
             CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub Is_IsNot()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -3544,7 +3544,7 @@ True
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub BackingFieldToHaveEditorBrowsableNeverAttribute()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -3595,7 +3595,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="1 Never").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub Using001()
             Dim compilationDef =
 <compilation name="SimpleTest1">

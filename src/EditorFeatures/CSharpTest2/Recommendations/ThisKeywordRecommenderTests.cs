@@ -270,6 +270,79 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        public async Task TestInLocalFunction()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        void local()
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        public async Task TestInNestedLocalFunction()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        void local()
+        {
+            void nested()
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        public async Task TestInLocalFunctionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    static int Method()
+    {
+        void local()
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        public async Task TestInNestedLocalFunctionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        void local()
+        {
+            void nested()
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAttribute()
         {
             await VerifyKeywordAsync(
@@ -775,6 +848,13 @@ public static class Extensions
 {
     public void Extension(in $$ object obj, int x) { }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$"));
         }
     }
 }

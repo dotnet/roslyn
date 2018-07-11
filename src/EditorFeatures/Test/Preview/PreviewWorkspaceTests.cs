@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 var newDocument = oldDocument.WithText(oldText.WithChanges(new TextChange(new TextSpan(0, oldText.Length), "class C { }")));
 
                 // create a diff view
-                WpfTestCase.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
+                WpfTestRunner.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
 
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
                 using (var diffView = (DifferenceViewerPreview)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None)))

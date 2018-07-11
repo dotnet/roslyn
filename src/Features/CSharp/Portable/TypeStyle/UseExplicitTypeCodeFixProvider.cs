@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             TypeSyntax typeSyntax = null;
             ParenthesizedVariableDesignationSyntax parensDesignation = null;
+            if (declarationContext is RefTypeSyntax refType)
+            {
+                declarationContext = declarationContext.Parent;
+            }
+
             if (declarationContext is VariableDeclarationSyntax varDecl)
             {
                 typeSyntax = varDecl.Type;
@@ -78,8 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             if (parensDesignation is null)
             {
-                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
-                var typeName = typeSymbol.GenerateTypeSyntax()
+                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded()).ConvertedType;
+
+                // We're going to be passed through the simplifier.  Tell it to not just convert
+                // this back to var (as that would defeat the purpose of this refactoring entirely).
+                var typeName = typeSymbol.GenerateTypeSyntax(allowVar: false)
                     .WithLeadingTrivia(node.GetLeadingTrivia())
                     .WithTrailingTrivia(node.GetTrailingTrivia());
                 Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");

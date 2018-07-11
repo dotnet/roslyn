@@ -13330,6 +13330,66 @@ public static class P
             var compilation = CompileAndVerifyWithMscorlib40(code, expectedOutput: "4");
         }
 
+        [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void VarargByRef()
+        {
+            var code = @"
+using System;
+class A
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref int a = ref __refvalue(args.GetNextArg(), int);
+        a = 5;
+    }
+    static void Main()
+    {
+        int a = 0;
+        Test(__arglist(ref a));
+        Console.WriteLine(a);
+    }
+}
+";
+            var comp = CompileAndVerify(code, expectedOutput: "5", options: TestOptions.DebugExe);
+            comp.VerifyIL("A.Main",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (int V_0) //a
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""void A.Test(__arglist) with __arglist( ref int)""
+  IL_000a:  nop
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""void System.Console.WriteLine(int)""
+  IL_0011:  nop
+  IL_0012:  ret
+}
+");
+
+            comp = CompileAndVerify(code, expectedOutput: "5", options: TestOptions.ReleaseExe);
+            comp.VerifyIL("A.Main",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (int V_0) //a
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""void A.Test(__arglist) with __arglist( ref int)""
+  IL_0009:  ldloc.0
+  IL_000a:  call       ""void System.Console.WriteLine(int)""
+  IL_000f:  ret
+}
+");
+        }
+
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void VarargBridgeMeta()
@@ -16095,16 +16155,11 @@ class Test
 {
   // Code size       49 (0x31)
   .maxstack  2
-  .locals init (System.Span<int> V_0, //x
-                int V_1)
-  IL_0000:  ldc.i4.s   33
-  IL_0002:  stloc.1
-  IL_0003:  ldloc.1
-  IL_0004:  conv.u
-  IL_0005:  ldc.i4.4
-  IL_0006:  mul.ovf.un
-  IL_0007:  localloc
-  IL_0009:  ldloc.1
+  .locals init (System.Span<int> V_0) //x
+  IL_0000:  ldc.i4     0x84
+  IL_0005:  conv.u
+  IL_0006:  localloc
+  IL_0008:  ldc.i4.s   33
   IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
   IL_000f:  stloc.0
   IL_0010:  ldloca.s   V_0

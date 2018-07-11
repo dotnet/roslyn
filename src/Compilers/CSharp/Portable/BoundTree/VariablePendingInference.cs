@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    localSymbol.SetTypeSymbol(TypeSymbolWithAnnotations.Create(type));
+                    localSymbol.SetType(TypeSymbolWithAnnotations.Create(type));
                     return new BoundLocal(this.Syntax, localSymbol, BoundLocalDeclarationKind.WithInferredType, constantValueOpt: null, isNullableUnknown: false, type: type, hasErrors: this.HasErrors || inferenceFailed);
 
                 case SymbolKind.Field:

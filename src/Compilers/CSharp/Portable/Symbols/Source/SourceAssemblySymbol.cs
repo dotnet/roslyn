@@ -1917,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (conclusion == IVTConclusion.PublicKeyDoesntMatch)
                         bag.Add(ErrorCode.ERR_FriendRefNotEqualToThis, NoLocation.Singleton,
-                                                                      otherAssembly.Identity);
+                                                                      otherAssembly.Identity, this.Identity);
                     else if (conclusion == IVTConclusion.OneSignedOneNot)
                         bag.Add(ErrorCode.ERR_FriendRefSigningMismatch, NoLocation.Singleton,
                                                                       otherAssembly.Identity);
@@ -2197,7 +2197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: !_compilation.IsEmitDeterministic, version: out version))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    bool foundBadWildcard = _compilation.IsEmitDeterministic && verString.Contains('*');
+                    bool foundBadWildcard = _compilation.IsEmitDeterministic && verString?.Contains('*') == true;
                     arguments.Diagnostics.Add(foundBadWildcard ? ErrorCode.ERR_InvalidVersionFormatDeterministic : ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
                 }
 
@@ -2459,7 +2459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // since there will be nothing left in the map/set the second time.
                 bool internalsAreVisible =
                     this.InternalsAreVisible ||
-                    this.DeclaringCompilation.Options.OutputKind.IsNetModule();
+                    this.IsNetModule();
 
                 HashSet<FieldSymbol> handledUnreadFields = null;
 

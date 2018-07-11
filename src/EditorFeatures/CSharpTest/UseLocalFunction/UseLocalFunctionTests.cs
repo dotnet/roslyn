@@ -275,6 +275,46 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_AnonymousMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = delegate (int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SimpleLambda_ExprBody()
         {
             await TestInRegularAndScriptAsync(
@@ -525,6 +565,46 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_AnonymousMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var [||]fibonacci = (Func<int, int>)(delegate (int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        });
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SimpleLambda_ExprBody()
         {
             await TestInRegularAndScriptAsync(
@@ -673,6 +753,47 @@ class C
     void M()
     {
         Func<int, int> [||]fibonacci = null;
+        fibonacci = v =>
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SimpleLambda_Block_NoInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci;
         fibonacci = v =>
         {
             if (v <= 1)
@@ -909,6 +1030,47 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_AnonymousMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = null;
+        fibonacci = delegate (int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SimpleLambda_ExprBody()
         {
             await TestInRegularAndScriptAsync(
@@ -1103,6 +1265,42 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestFixAll4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> {|FixAllInDocument:fibonacci|} = null;
+        fibonacci = v =>
+        {
+            Func<int, int> fibonacciHelper = null;
+            fibonacciHelper = n => fibonacci.Invoke(n - 1) + fibonacci(arg: n - 2);
+
+            return fibonacciHelper(v);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            int fibonacciHelper(int n) => fibonacci(n - 1) + fibonacci(v: n - 2);
+            return fibonacciHelper(v);
+        }
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestTrivia()
         {
@@ -1240,8 +1438,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Task f(string x)
-        { return Task.CompletedTask; }
+        Task f(string x) { return Task.CompletedTask; }
         Func<string, Task> actual = null;
         AssertSame(f, actual);
     }
@@ -1694,6 +1891,1036 @@ class Enclosing<T> where T : class
             var val = local(t);
             local(t);
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364807853")]
+        public async Task TestWithRecursiveInvokeMethod1()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Action [||]local = null;
+        local = () => local.Invoke();
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        void local() => local();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364807853")]
+        public async Task TestWithRecursiveInvokeMethod2()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Action [||]local = null;
+        local = () => { local.Invoke(); }
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        void local() { local(); }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364935495")]
+        public async Task TestWithNestedInvokeMethod()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string, string> [||]a = s => s;
+        a.Invoke(a.Invoke(null));
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        string a(string s) => s;
+        a(a(null));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithNestedRecursiveInvokeMethod()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string, string> [||]a = null;
+        a = s => a.Invoke(a.Invoke(s));
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        string a(string s) => a(a(s));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithDefaultParameter1()
+        {
+           await TestInRegularAndScript1Async(
+@"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        MyDelegate [||]local = (s) => s;
+    }
+}",
+@"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        string local(string s = ""hello"") => s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364655480")]
+        public async Task TestWithDefaultParameter2()
+        {
+            await TestInRegularAndScript1Async(
+ @"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        MyDelegate [||]local = (string s) => s;
+    }
+}",
+ @"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        string local(string s = ""hello"") => s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithDefaultParameter3()
+        {
+            await TestInRegularAndScript1Async(
+ @"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        MyDelegate [||]local = delegate (string s) { return s; };
+    }
+}",
+ @"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        string local(string s = ""hello"") { return s; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364764542")]
+        public async Task TestWithUnmatchingParameterList1()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Action [||]x = (a, b) => { };
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        void x(object a, object b) { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithUnmatchingParameterList2()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Action [||]x = (string a, int b) => { };
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        void x(string a, int b) { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithAsyncLambdaExpression()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Func<Task> [||]f = async () => await Task.Yield();
+    }
+}",
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        async Task f() => await Task.Yield();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithAsyncAnonymousMethod()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Func<Task<int>> [||]f = async delegate () { return 0; };
+    }
+}",
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        async Task<int> f() { return 0; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithParameterlessAnonymousMethod()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        EventHandler [||]handler = delegate { };
+
+        E += handler;
+    }
+
+    event EventHandler E;
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        void handler(object sender, EventArgs e) { }
+
+        E += handler;
+    }
+
+    event EventHandler E;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24764, "https://github.com/dotnet/roslyn/issues/24764")]
+        public async Task TestWithNamedArguments1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action<string, int, int> [||]x = (a1, a2, a3) => { };
+
+        x(arg1: null, 0, 0);
+        x.Invoke(arg1: null, 0, 0);
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        void x(string a1, int a2, int a3) { }
+
+        x(a1: null, 0, 0);
+        x(a1: null, 0, 0);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24764, "https://github.com/dotnet/roslyn/issues/24764")]
+        public async Task TestWithNamedArguments2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action<string, int, int> [||]x = (a1, a2, a3) =>
+        {
+            x(null, arg3: 0, arg2: 0);
+            x.Invoke(null, arg3: 0, arg2: 0);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        void x(string a1, int a2, int a3)
+        {
+            x(null, a3: 0, a2: 0);
+            x(null, a3: 0, a2: 0);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithNamedArgumentsAndBrokenCode1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action<string, int, int> [||]x = (int a1, string a2, string a3, a4) => { };
+
+        x(null, arg3: 0, arg2: 0, arg4: 0);
+        x.Invoke(null, arg3: 0, arg2: 0, arg4: 0);
+        x.Invoke(0, null, null, null, null, null);
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        void x(int a1, string a2, string a3, object a4) { }
+
+        x(null, a3: 0, a2: 0, arg4: 0);
+        x(null, a3: 0, a2: 0, arg4: 0);
+        x(0, null, null, null, null, null);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithNamedArgumentsAndBrokenCode2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action<string, int, int> [||]x = (a1, a2) =>
+        {
+            x(null, arg3: 0, arg2: 0);
+            x.Invoke(null, arg3: 0, arg2: 0);
+            x.Invoke();
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        void x(string a1, int a2)
+        {
+            x(null, arg3: 0, a2: 0);
+            x(null, arg3: 0, a2: 0);
+            x();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithNamedAndDefaultArguments()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    delegate string MyDelegate(string arg1, int arg2 = 2, int arg3 = 3);
+
+    void M()
+    {
+        MyDelegate [||]x = null;
+        x = (a1, a2, a3) =>
+        {
+            x(null, arg3: 42);
+            return x.Invoke(null, arg3: 42);
+        };
+    }
+}",
+@"class C
+{
+    delegate string MyDelegate(string arg1, int arg2 = 2, int arg3 = 3);
+
+    void M()
+    {
+        string x(string a1, int a2 = 2, int a3 = 3)
+        {
+            x(null, a3: 42);
+            return x(null, a3: 42);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithNamedAndDefaultArgumentsAndNestedRecursiveInvocations_FixAll()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    delegate string MyDelegate(string arg1, int arg2 = 2, int arg3 = 3);
+
+    void M()
+    {
+        var x = (MyDelegate)delegate
+        {
+            MyDelegate {|FixAllInDocument:a|} = null;
+            a = (string a1, int a2, int a3) =>
+            {
+                MyDelegate b = null;
+                b = (b1, b2, b3) =>
+                    b.Invoke(arg1: b(null), arg2: a(arg1: a.Invoke(null)).Length, arg3: 42) +
+                    b(arg1: b.Invoke(null), arg3: a(arg1: a.Invoke(null)).Length, arg2: 42);
+
+                return b(arg1: a1, b(arg1: a1).Length);
+            };
+
+            return a(arg1: null);
+        };
+
+        x(arg1: null);
+    }
+}",
+@"class C
+{
+    delegate string MyDelegate(string arg1, int arg2 = 2, int arg3 = 3);
+
+    void M()
+    {
+        string x(string arg1, int arg2 = 2, int arg3 = 3)
+        {
+            string a(string a1, int a2 = 2, int a3 = 3)
+            {
+                string b(string b1, int b2 = 2, int b3 = 3) =>
+                    b(b1: b(null), b2: a(a1: a(null)).Length, b3: 42) +
+                    b(b1: b(null), b3: a(a1: a(null)).Length, b2: 42);
+                return b(b1: a1, b(b1: a1).Length);
+            }
+
+            return a(a1: null);
+        }
+
+        x(arg1: null);
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action [||]onUpdateSolutionCancel = () => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel() { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = a => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine2Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = async a => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine2MultiToken()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        Func<int, int[]> [||]onUpdateSolutionCancel = a => { return null; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        int[] onUpdateSolutionCancel(int a) { return null; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine2MultiTokenAsync()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    void Goo()
+    {
+        Func<int, Task<int[]>> [||]onUpdateSolutionCancel = async a => { return null; };
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    void Goo()
+    {
+        async Task<int[]> onUpdateSolutionCancel(int a) { return null; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = (int a) => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = delegate (int a) { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine4Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = async delegate (int a) { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action)(() => { buildCancelled = true; });
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel() { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)(a => { buildCancelled = true; });
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine2Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)(async a => { buildCancelled = true; });
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)((int a) => { buildCancelled = true; });
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)(delegate (int a) { buildCancelled = true; });
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine4Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)(async delegate (int a) { buildCancelled = true; });
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = () => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel() { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = a => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine2Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = async a => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = (int a) => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = delegate (int a) { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine4Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = async delegate (int a) { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
     }
 }");
         }

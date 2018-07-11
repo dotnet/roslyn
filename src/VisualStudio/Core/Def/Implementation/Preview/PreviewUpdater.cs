@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
         {
-            var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
+            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
             TextView.TextBuffer.ChangeContentType(contentType, null);

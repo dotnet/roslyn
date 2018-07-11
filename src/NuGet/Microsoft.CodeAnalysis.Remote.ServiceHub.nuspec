@@ -29,6 +29,7 @@
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
@@ -36,5 +37,8 @@
     <file src="Dlls\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.xml" target="lib\net46" />
     <file src="Dlls\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\ServiceHub\**\Microsoft.CodeAnalysis.Remote.ServiceHub.resources.dll" target="lib\net46" />
   </files>
 </package>

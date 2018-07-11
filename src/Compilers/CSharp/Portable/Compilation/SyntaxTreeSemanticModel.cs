@@ -593,6 +593,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return null; }
         }
 
+        internal override SemanticModel ContainingModelOrSelf
+        {
+            get { return this; }
+        }
+
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
@@ -912,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ImmutableInterlocked.GetOrAdd(ref _memberModels, defaultValueSyntax, 
                                                          (equalsValue, tuple) =>
                                                             InitializerSemanticModel.Create(
-                                                                tuple.compilation,
+                                                                this,
                                                                 tuple.paramDecl,
                                                                 tuple.parameterSymbol,
                                                                 tuple.containing.GetEnclosingBinder(tuple.paramDecl.SpanStart).
@@ -987,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return MethodBodySemanticModel.Create(this.Compilation, symbol, binder, memberDecl);
+                        return MethodBodySemanticModel.Create(this, symbol, binder, memberDecl);
                     }
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
@@ -1003,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return MethodBodySemanticModel.Create(this.Compilation, symbol, binder, accessorDecl);
+                        return MethodBodySemanticModel.Create(this, symbol, binder, accessorDecl);
                     }
 
                 case SyntaxKind.Block:
@@ -1020,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 SourceMemberFieldSymbol fieldSymbol = GetDeclaredFieldSymbol(variableDecl);
 
                                 return InitializerSemanticModel.Create(
-                                    this.Compilation,
+                                    this,
                                     variableDecl,   //pass in the entire field initializer to permit region analysis. 
                                     fieldSymbol,
                                     //if we're in regular C#, then insert an extra binder to perform field initialization checks
@@ -1032,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var propertyDecl = (PropertyDeclarationSyntax)node.Parent;
                                 var propertySymbol = (SourcePropertySymbol)GetDeclaredSymbol(propertyDecl);
                                 return InitializerSemanticModel.Create(
-                                    this.Compilation,
+                                    this,
                                     propertyDecl,
                                     propertySymbol,
                                     GetFieldOrPropertyInitializerBinder(propertySymbol.BackingField, defaultOuter(), propertyDecl.Initializer));
@@ -1049,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return null;
 
                                 return InitializerSemanticModel.Create(
-                                    this.Compilation,
+                                    this,
                                     parameterDecl,
                                     parameterSymbol,
                                     defaultOuter().CreateBinderForParameterDefaultValue(parameterSymbol, (EqualsValueClauseSyntax)node));
@@ -1063,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return null;
 
                                 return InitializerSemanticModel.Create(
-                                    this.Compilation,
+                                    this,
                                     enumDecl,
                                     enumSymbol,
                                     GetFieldOrPropertyInitializerBinder(enumSymbol, defaultOuter(), enumDecl.EqualsValue));
@@ -1095,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return MethodBodySemanticModel.Create(_compilation, symbol, binder, exprDecl);
+                        return MethodBodySemanticModel.Create(this, symbol, binder, exprDecl);
                     }
 
                 case SyntaxKind.GlobalStatement:
@@ -1120,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             return MethodBodySemanticModel.Create(
-                                this.Compilation,
+                                this,
                                 scriptInitializer,
                                 new ExecutableCodeBinder(node, scriptInitializer, new ScriptLocalScopeBinder(_globalStatementLabels, defaultOuter())),
                                 node);
@@ -1135,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute)
+        private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute)
         {
             AliasSymbol aliasOpt;
             DiagnosticBag discarded = DiagnosticBag.GetInstance();
@@ -1143,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             discarded.Free();
 
             return AttributeSemanticModel.Create(
-                enclosingBinder.Compilation,
+                this,
                 attribute,
                 attributeType,
                 aliasOpt,

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Execution
                         //
                         // analyzer assembly path to load analyzer acts like
                         // snapshot version for analyzer (since it is based on shadow copy)
-                        // we can't send over bits and load analyer from memory (image) due to CLR not being able
+                        // we can't send over bits and load analyzer from memory (image) due to CLR not being able
                         // to find satellite dlls for analyzers.
                         writer.WriteString(file.FullPath);
                         writer.WriteString(assemblyPath);
@@ -707,6 +708,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
+        [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
         private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
         {
             private readonly Metadata _metadata;

@@ -2,10 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
-    <NonShipping>true</NonShipping>
-    <OutputType>Library</OutputType>
-    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <TargetFrameworks>net46;netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Net.Sdk" Version="$(MicrosoftNetSdkVersion)" ExcludeAssets="all" />
@@ -18,8 +15,9 @@
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.ReferenceAssemblies" Version="$(RoslynToolsReferenceAssembliesVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.DiaSymReader.Pdb2Pdb" Version="$(MicrosoftDiaSymReaderPdb2PdbVersion)" ExcludeAssets="all" />
+    <PackageReference Include="RoslynTools.BuildTasks" Version="$(RoslynToolsBuildTasksVersion)" ExcludeAssets="all" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
     <PackageReference Include="FakeSign" Version="$(FakeSignVersion)" ExcludeAssets="all" />
     <PackageReference Include="MicroBuild.Core.Sentinel" Version="$(MicroBuildCoreSentinelVersion)" ExcludeAssets="all" />
     <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)" ExcludeAssets="all" />
@@ -39,6 +37,5 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <PackageReference Include="dotnet-xunit" Version="$(dotnetxunitVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.NETCore.Compilers" Version="$(MicrosoftNETCoreCompilersVersion)" ExcludeAssets="all" />
-    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" ExcludeAssets="all" />
   </ItemGroup>
 </Project>

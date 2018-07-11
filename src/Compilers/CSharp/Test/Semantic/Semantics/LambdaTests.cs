@@ -76,7 +76,7 @@ class C
 
         D1 q10 = (x10,y10,z10)=>{}; 
 
-        // COMPATIBILITY: THe C# 4 compiler produces two errors:
+        // COMPATIBILITY: The C# 4 compiler produces two errors:
         //
         // error CS0127: Since 'System.Action' returns void, a return keyword must 
         // not be followed by an object expression
@@ -108,7 +108,7 @@ class C
 
         object q19 = new Action( (int x)=>{} );
  
-        Expression<int> ex1 = ()=>1;  
+        Expression<int> ex1 = ()=>1;
 
     }
 }");
@@ -162,7 +162,7 @@ class C
     // (52,28): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
     //         Action q11 = ()=>{ return 1; };
     Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(52, 28),
-    // (54,26): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (54,26): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         Action q12 = ()=>1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(54, 26),
     // (56,42): warning CS0162: Unreachable code detected
@@ -245,6 +245,36 @@ class C
                 // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(Func<IComparable<I>>)' and 'C.Goo(Func<I>)'
                 //         Goo(() => null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(System.Func<System.IComparable<I>>)", "C.Goo(System.Func<I>)").WithLocation(12, 9));
+        }
+
+        [WorkItem(18645, "https://github.com/dotnet/roslyn/issues/18645")]
+        [Fact]
+        public void LambdaExpressionTreesErrors()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M()
+    {
+        Expression<Func<int,int>> ex1 = () => 1;
+        Expression<Func<int,int>> ex2 = (double d) => 1;
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,41): error CS1593: Delegate 'Func<int, int>' does not take 0 arguments
+                //         Expression<Func<int,int>> ex1 = () => 1;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => 1").WithArguments("System.Func<int, int>", "0").WithLocation(9, 41),
+                // (10,41): error CS1661: Cannot convert lambda expression to type 'Expression<Func<int, int>>' because the parameter types do not match the delegate parameter types
+                //         Expression<Func<int,int>> ex2 = (double d) => 1;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(double d) => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<int, int>>").WithLocation(10, 41),
+                // (10,49): error CS1678: Parameter 1 is declared as type 'double' but should be 'int'
+                //         Expression<Func<int,int>> ex2 = (double d) => 1;
+                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("1", "", "double", "", "int").WithLocation(10, 49));
         }
 
         [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
@@ -561,7 +591,7 @@ class Program
     // (9,32): error CS0020: Division by constant zero
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0").WithLocation(9, 32),
-    // (9,32): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,32): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IllegalStatement, "1 / 0").WithLocation(9, 32),
     // (9,21): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
@@ -612,10 +642,10 @@ class Program
             // statement expression.
 
             CreateCompilation(csSource).VerifyDiagnostics(
-                // (7,21): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (7,21): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         D d = () => new D(() => { });
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(() => { })"),
-                // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         new D(()=>{});
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(()=>{})"));
         }
@@ -1315,7 +1345,7 @@ class Program
 }
 ");
             comp.VerifyDiagnostics(
-                // (6,41): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,41): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         var d = new System.Action(() => (new object()));
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(6, 41));
         }
@@ -1537,7 +1567,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -1575,7 +1605,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 

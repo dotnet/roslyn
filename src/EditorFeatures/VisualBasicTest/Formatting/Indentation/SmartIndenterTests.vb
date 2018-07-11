@@ -2953,7 +2953,7 @@ End Class
                             Return p
                         End Function)
 
-                WpfTestCase.RequireWpfFact("Test helper creates mocks of ITextView")
+                WpfTestRunner.RequireWpfFact($"Test helper creates mocks of {NameOf(ITextView)}")
 
                 Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
                 textView.Setup(Function(x) x.Options).Returns(TestEditorOptions.Instance)

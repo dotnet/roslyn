@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET461
+#if NET46
 
 using System;
 using System.Collections.Immutable;
@@ -4898,7 +4898,7 @@ class C4
         return d(ref o, 2);
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, references: new[] { CSharpRef });
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {

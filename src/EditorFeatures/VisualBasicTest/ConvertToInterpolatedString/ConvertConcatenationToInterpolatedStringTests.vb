@@ -266,5 +266,59 @@ Public Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithStringLiteralWithBraces() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = 1 & [||]""{string}""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""{1}{{string}}""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithStringLiteralWithDoubleBraces() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = 1 & [||]""{{string}}""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""{1}{{{{string}}}}""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithMultipleStringLiteralsWithBraces() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = ""{"" & 1 & [||]""}""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""{{{1}}}""
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

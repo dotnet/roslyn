@@ -59,7 +59,7 @@ class Z
 
     public Z(int a{|Navigation:)|} => this.a = a;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -80,7 +80,7 @@ class Z
 
     public Z(int a{|Navigation:)|} => this.a = a;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -107,7 +107,7 @@ class Z
         this.b = b;
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -847,7 +847,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithNoneEnforcement)));
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -944,6 +944,82 @@ class Z
     public int Prop { get; set; }
 }",
 options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+
+        [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestWithDialogNoBackingField()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int F { get; set; }
+    [||]
+}",
+@"
+class Program
+{
+    public int F { get; set; }
+
+    public Program(int f{|Navigation:)|}
+    {
+        F = f;
+    }
+}",
+chosenSymbols: null);
+        }
+
+        [WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestWithDialogNoIndexer()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int this[int index] { get => 0; set { } }
+    [||]
+}",
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int this[int index] { get => 0; set { } }
+
+    public Program(int p{|Navigation:)|}
+    {
+        P = p;
+    }
+}",
+chosenSymbols: null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogSetterOnlyProperty()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int S { set { } }
+    [||]
+}",
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int S { set { } }
+
+    public Program(int p, int s{|Navigation:)|}
+    {
+        P = p;
+        S = s;
+    }
+}",
+chosenSymbols: null);
         }
     }
 }

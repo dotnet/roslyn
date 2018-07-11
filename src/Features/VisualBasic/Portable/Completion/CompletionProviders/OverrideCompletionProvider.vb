@@ -37,16 +37,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return token.GetAncestor(Of MethodStatementSyntax)()
         End Function
 
-        Protected Overrides Function GetToken(completionItem As CompletionItem, commonTree As SyntaxTree, cancellationToken As CancellationToken) As SyntaxToken
+        Protected Overrides Function GetToken(completionItem As CompletionItem, syntaxTree As SyntaxTree, cancellationToken As CancellationToken) As SyntaxToken
             Dim tokenSpanEnd = MemberInsertionCompletionItem.GetTokenSpanEnd(completionItem)
-            Dim tree = DirectCast(commonTree, SyntaxTree)
-            Return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken)
+            Return syntaxTree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken)
         End Function
 
 
         Public Overrides Function FindStartingToken(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken
-            Dim tree = DirectCast(syntaxTree, SyntaxTree)
-            Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Return token.GetPreviousTokenIfTouchingWord(position)
         End Function
 

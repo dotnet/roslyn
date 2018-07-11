@@ -22,14 +22,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("#cls");
         }
 
-        protected override void Dispose(bool disposing)
+        public override Task DisposeAsync()
         {
-            if (disposing)
-            {
-                VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
-            }
-
-            base.Dispose(disposing);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+            return base.DisposeAsync();
         }
 
         [WpfFact]

@@ -148,16 +148,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             Contract.ThrowIfFalse(DocumentProvider == null);
             Contract.ThrowIfFalse(MetadataReferenceProvider == null);
-            Contract.ThrowIfFalse(RuleSetFileProvider == null);
+            Contract.ThrowIfFalse(RuleSetFileManager == null);
 
             DocumentProvider = documentProvider;
             MetadataReferenceProvider = metadataReferenceProvider;
-            RuleSetFileProvider = ruleSetFileProvider;
+            RuleSetFileManager = ruleSetFileProvider;
         }
 
         public DocumentProvider DocumentProvider { get; private set; }
         public VisualStudioMetadataReferenceManager MetadataReferenceProvider { get; private set; }
-        public VisualStudioRuleSetManager RuleSetFileProvider { get; private set; }
+        public VisualStudioRuleSetManager RuleSetFileManager { get; private set; }
 
         internal AbstractProject GetProject(ProjectId id)
         {
@@ -588,8 +588,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectPathToIdMap.Clear();
             }
 
-            RuleSetFileProvider.ClearCachedRuleSetFiles();
-
             _solutionAdded = false;
             _pushedProjects.Clear();
 
@@ -605,7 +603,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _solutionLoadComplete = true;
 
             // Check that the set of analyzers is complete and consistent.
-            GetAnalyzerDependencyCheckingService()?.CheckForConflictsAsync();
+            GetAnalyzerDependencyCheckingService()?.ReanalyzeSolutionForConflicts();
         }
 
         private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
@@ -627,7 +625,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            if (!fIsBackgroundIdleBatch)
+            if (!fIsBackgroundIdleBatch && _projectsLoadedThisBatch.Count > 0)
             {
                 // This batch was loaded eagerly. This might be because the user is force expanding the projects in the
                 // Solution Explorer, or they had some files open in an .suo we need to push.
@@ -646,6 +644,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // remaining information we have to the Workspace.  If DPL is enabled, this is never
             // called.
             FinishLoad();
+        }
+
+        internal void OnBeforeOpenSolution()
+        {
+            AssertIsForeground();
+
+            _solutionLoadComplete = false;
         }
     }
 }

@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal string BinOutputPath { get; private set; }
 
-        public IRuleSetFile RuleSetFile { get; private set; }
+        public IReferenceCountedDisposable<IRuleSetFile> RuleSetFile { get; private set; }
 
         protected VisualStudioProjectTracker ProjectTracker { get; }
 
@@ -624,6 +624,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
+                if (_metadataReferences.Contains(r => StringComparer.OrdinalIgnoreCase.Equals(r.FilePath, reference.FilePath)))
+                {
+                    // TODO: Added in order to diagnose why duplicate references get added to the project. See https://github.com/dotnet/roslyn/issues/26437
+                    FatalError.ReportWithoutCrash(new InvalidOperationException($"Reference with path '{reference.FilePath}' already exists in project '{DisplayName}'."));
+                    return;
+                }
+
                 _metadataReferences.Add(reference);
             }
 
@@ -952,7 +959,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filename,
             SourceCodeKind sourceCodeKind,
             Func<IVisualStudioHostDocument, bool> getIsCurrentContext,
-            Func<uint, IReadOnlyList<string>> getFolderNames)
+            ImmutableArray<string> folderNames)
         {
             AssertIsForeground();
 
@@ -962,7 +969,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this,
                 filePath: filename,
                 sourceCodeKind: sourceCodeKind,
-                getFolderNames: getFolderNames,
+                folderNames: folderNames,
                 canUseTextBuffer: CanUseTextBuffer,
                 updatedOnDiskHandler: s_documentUpdatedOnDiskEventHandler,
                 openedHandler: s_documentOpenedEventHandler,
@@ -1529,9 +1536,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #region FolderNames
         private readonly List<string> _tmpFolders = new List<string>();
-        private readonly Dictionary<uint, IReadOnlyList<string>> _folderNameMap = new Dictionary<uint, IReadOnlyList<string>>();
+        private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = new Dictionary<uint, ImmutableArray<string>>();
 
-        public IReadOnlyList<string> GetFolderNamesFromHierarchy(uint documentItemID)
+        public ImmutableArray<string> GetFolderNamesFromHierarchy(uint documentItemID)
         {
             AssertIsForeground();
 
@@ -1544,10 +1551,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            return SpecializedCollections.EmptyReadOnlyList<string>();
+            return ImmutableArray<string>.Empty;
         }
 
-        private IReadOnlyList<string> GetFolderNamesForFolder(uint folderItemID)
+        private ImmutableArray<string> GetFolderNamesForFolder(uint folderItemID)
         {
             AssertIsForeground();
 

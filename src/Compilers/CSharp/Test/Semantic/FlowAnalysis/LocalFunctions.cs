@@ -1513,7 +1513,7 @@ class c
 }");
 
             comp.VerifyDiagnostics(
-                // (6,83): error CS1623: Iterators cannot have ref or out parameters
+                // (6,83): error CS1623: Iterators cannot have ref, in or out parameters
                 //         System.Collections.Generic.IEnumerable<string> getGoo(int count, out bool goobar)
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "output"),
                 // (6,56): error CS0177: The out parameter 'goobar' must be assigned to before control leaves the current method
@@ -1546,7 +1546,7 @@ class c
 }");
 
             comp.VerifyDiagnostics(
-                // (6,83): error CS1623: Iterators cannot have ref or out parameters
+                // (6,83): error CS1623: Iterators cannot have ref, in or out parameters
                 //         System.Collections.Generic.IEnumerable<string> getGoo(int count, out bool goobar)
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "output"),
                 // (6,56): error CS0177: The out parameter 'goobar' must be assigned to before control leaves the current method

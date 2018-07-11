@@ -186,10 +186,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplPrompt()
-            => WaitForPredicate(() => GetReplText().EndsWith(ReplPromptText));
+            => WaitForPredicate(GetReplText, value => value.EndsWith(ReplPromptText));
 
         public void WaitForReplOutput(string outputText)
-            => WaitForPredicate(() => GetReplText().EndsWith(outputText + Environment.NewLine + ReplPromptText));
+            => WaitForPredicate(GetReplText, value => value.EndsWith(outputText + Environment.NewLine + ReplPromptText));
 
         public void ClearScreen()
         {
@@ -202,26 +202,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForLastReplOutput(string outputText)
-            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
 
         public void WaitForLastReplOutputContains(string outputText)
-            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
 
         public void WaitForLastReplInputContains(string outputText)
-            => WaitForPredicate(() => GetLastReplInput().Contains(outputText));
+            => WaitForPredicate(GetLastReplInput, value => value.Contains(outputText));
 
-        private void WaitForPredicate(Func<bool> predicate)
+        private void WaitForPredicate(Func<string> getValue, Func<string, bool> isExpectedValue)
         {
             var beginTime = DateTime.UtcNow;
-            while (!predicate() && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
+            string value;
+            while (!isExpectedValue(value = getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
             {
                 Thread.Sleep(50);
             }
 
-            if (!predicate())
+            if (!isExpectedValue(value = getValue()))
             {
-                var replText = GetReplText();
-                throw new Exception($"Predicate never assigned a value after {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. REPL text: {replText}.");
+                throw new Exception($"Unable to find expected content in REPL within {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. Actual content:{Environment.NewLine}[[{value}]]");
             }
         }
 

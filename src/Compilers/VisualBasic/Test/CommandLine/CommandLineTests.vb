@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.ComponentModel
 Imports System.Globalization
 Imports System.IO
+Imports System.IO.MemoryMappedFiles
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
@@ -54,6 +55,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
             Return VisualBasicCommandLineParser.Script.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         End Function
+
+        <Fact>
+        Public Sub XmlMemoryMapped()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.cs").WriteAllText("
+Class C
+End Class")
+            Dim docName As String = "doc.xml"
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/t:library", "/preferreduilang:en", $"/doc:{docName}", src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal("", outWriter.ToString())
+
+            Dim xmlPath = Path.Combine(dir.Path, docName)
+            Using fileStream = New FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
+                Using mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen:=True)
+                    exitCode = cmd.Run(outWriter)
+                    Assert.Equal(1, exitCode)
+                    Assert.StartsWith($"vbc : error BC2012: can't open '{xmlPath}' for writing:", outWriter.ToString())
+                End Using
+            End Using
+        End Sub
 
         <Fact>
         <WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")>
@@ -895,12 +921,12 @@ End Module").Path
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "D:rive\relative\path,someName,public", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("D:rive\relative\path"))
+            diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("D:rive\relative\path"))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "inva\l*d?path,someName,public", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("inva\l*d?path"))
+            diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("inva\l*d?path"))
             diags.Clear()
             Assert.Null(desc)
 
@@ -991,7 +1017,7 @@ End Module").Path
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("", String.Format("{0},e,private", longI), _baseDirectory, diags, embedded:=False)
             ' // error BC2032: File name 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-            diags.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1))
+            diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1))
         End Sub
 
         <Fact>
@@ -1110,7 +1136,7 @@ End Module").Path
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
             parsedArgs = InteractiveParse({"\\"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(".exe"))
 
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
@@ -1779,7 +1805,7 @@ End Module").Path
             InlineData("bad", False, LanguageVersion.Default)>
         Public Sub LanguageVersion_TryParseDisplayString(input As String, success As Boolean, expected As LanguageVersion)
             Dim version As LanguageVersion
-            Assert.Equal(success, input.TryParse(version))
+            Assert.Equal(success, TryParse(input, version))
             Assert.Equal(expected, version)
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
@@ -2143,6 +2169,66 @@ End Module").Path
 
             parsedArgs = DefaultParse({"/reference-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/reference-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
+        End Sub
+
+        Private Class SimpleMetadataResolver
+            Inherits MetadataReferenceResolver
+
+            Private ReadOnly _pathResolver As RelativePathResolver
+
+            Public Sub New(baseDirectory As String)
+                _pathResolver = New RelativePathResolver(ImmutableArray(Of String).Empty, baseDirectory)
+            End Sub
+
+            Public Overrides Function ResolveReference(reference As String, baseFilePath As String, properties As MetadataReferenceProperties) As ImmutableArray(Of PortableExecutableReference)
+                Dim resolvedPath = _pathResolver.ResolvePath(reference, baseFilePath)
+
+                If resolvedPath Is Nothing OrElse Not File.Exists(reference) Then
+                    Return Nothing
+                End If
+
+                Return ImmutableArray.Create(MetadataReference.CreateFromFile(resolvedPath, properties))
+            End Function
+
+            Public Overrides Function Equals(other As Object) As Boolean
+                Return True
+            End Function
+
+            Public Overrides Function GetHashCode() As Integer
+                Return 1
+            End Function
+        End Class
+
+        <Fact>
+        Public Sub Reference_CorLibraryAddedWhenThereAreUnresolvedReferences()
+            Dim parsedArgs = DefaultParse({"/r:unresolved", "a.vb"}, _baseDirectory)
+
+            Dim metadataResolver = New SimpleMetadataResolver(_baseDirectory)
+            Dim references = parsedArgs.ResolveMetadataReferences(metadataResolver).ToImmutableArray()
+
+            Assert.Equal(4, references.Length)
+            Assert.Contains(references, Function(r) r.IsUnresolved)
+            Assert.Contains(references, Function(r)
+                                            Dim peRef = TryCast(r, PortableExecutableReference)
+                                            Return peRef IsNot Nothing AndAlso
+                                                   peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
+                                        End Function)
+        End Sub
+
+        <Fact>
+        Public Sub Reference_CorLibraryAddedWhenThereAreNoUnresolvedReferences()
+            Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+
+            Dim metadataResolver = New SimpleMetadataResolver(_baseDirectory)
+            Dim references = parsedArgs.ResolveMetadataReferences(metadataResolver).ToImmutableArray()
+
+            Assert.Equal(3, references.Length)
+            Assert.DoesNotContain(references, Function(r) r.IsUnresolved)
+            Assert.Contains(references, Function(r)
+                                            Dim peRef = TryCast(r, PortableExecutableReference)
+                                            Return peRef IsNot Nothing AndAlso
+                                                   peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
+                                        End Function)
         End Sub
 
         <Fact>
@@ -3018,16 +3104,16 @@ print Goodbye, World"
 
             parsedArgs = DefaultParse({"/pathmap:K1=V1", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePair.Create("K1\", "V1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("K1\", "V1\"), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({"/pathmap:C:\goo\=/", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePair.Create("C:\goo\", "/"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("C:\goo\", "/"), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({"/pathmap:K1=V1,K2=V2", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePair.Create("K1\", "V1\"), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePair.Create("K2\", "V2\"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePairUtil.Create("K1\", "V1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("K2\", "V2\"), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:,,,", "a.vb"}, _baseDirectory)
             Assert.Equal(4, parsedArgs.Errors.Count())
@@ -3047,17 +3133,17 @@ print Goodbye, World"
 
             parsedArgs = DefaultParse({"/pathmap:""supporting spaces=is hard""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePair.Create("supporting spaces\", "is hard\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("supporting spaces\", "is hard\"), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({"/pathmap:""K 1=V 1"",""K 2=V 2""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePair.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePair.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePairUtil.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:""K 1""=""V 1"",""K 2""=""V 2""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePair.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePair.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePairUtil.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
         End Sub
 
         ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an
@@ -3221,7 +3307,7 @@ End Module
 
             parsedArgs = DefaultParse({"/out:C:\""My Folder""\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
-                    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("C:""My Folder\MyBinary.dll").WithLocation(1, 1))
+                    Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("C:""My Folder\MyBinary.dll").WithLocation(1, 1))
 
             parsedArgs = DefaultParse({"/out:MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
@@ -3288,7 +3374,7 @@ End Module
             Dim currentDrive As Char = Directory.GetCurrentDirectory()(0)
             parsedArgs = DefaultParse({currentDrive + ":a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(currentDrive + ":a.vb"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(currentDrive + ":a.vb"))
 
             Assert.Null(parsedArgs.CompilationName)
             Assert.Null(parsedArgs.OutputFileName)
@@ -3298,7 +3384,7 @@ End Module
             ' UNC
             parsedArgs = DefaultParse({"/out:\\b", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("\\b"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("\\b"))
 
             Assert.Equal("a.exe", parsedArgs.OutputFileName)
             Assert.Equal("a", parsedArgs.CompilationName)
@@ -3315,7 +3401,7 @@ End Module
             ' invalid name
             parsedArgs = DefaultParse({"/out:a.b" & vbNullChar & "b", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("a.b" & vbNullChar & "b"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("a.b" & vbNullChar & "b"))
 
             Assert.Equal("a.exe", parsedArgs.OutputFileName)
             Assert.Equal("a", parsedArgs.CompilationName)
@@ -3324,7 +3410,7 @@ End Module
             ' Temp Skip: Unicode?
             ' parsedArgs = DefaultParse({"/out:a" & ChrW(&HD800) & "b.dll", "a.vb"}, _baseDirectory)
             ' parsedArgs.Errors.Verify(
-            '    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("a" & ChrW(&HD800) & "b.dll"))
+            '    Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("a" & ChrW(&HD800) & "b.dll"))
 
             ' Assert.Equal("a.exe", parsedArgs.OutputFileName)
             ' Assert.Equal("a", parsedArgs.CompilationName)
@@ -3333,7 +3419,7 @@ End Module
             ' Temp Skip: error message changed (path)
             'parsedArgs = DefaultParse({"/out:"" a.dll""", "a.vb"}, _baseDirectory)
             'parsedArgs.Errors.Verify(
-            '    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(" a.dll"))
+            '    Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(" a.dll"))
 
             'Assert.Equal("a.exe", parsedArgs.OutputFileName)
             'Assert.Equal("a", parsedArgs.CompilationName)
@@ -3342,7 +3428,7 @@ End Module
             ' Dev11 reports BC2012: can't open 'a<>.z' for writing
             parsedArgs = DefaultParse({"/out:""a<>.dll""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("a<>.dll"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("a<>.dll"))
 
             Assert.Equal("a.exe", parsedArgs.OutputFileName)
             Assert.Equal("a", parsedArgs.CompilationName)
@@ -3369,7 +3455,7 @@ End Module
 
             parsedArgs = DefaultParse({"/out:.exe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(".exe"))
 
             Assert.Null(parsedArgs.OutputFileName)
             Assert.Null(parsedArgs.CompilationName)
@@ -3377,7 +3463,7 @@ End Module
 
             parsedArgs = DefaultParse({"/t:exe", "/out:.exe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(".exe"))
 
             Assert.Null(parsedArgs.OutputFileName)
             Assert.Null(parsedArgs.CompilationName)
@@ -3385,7 +3471,7 @@ End Module
 
             parsedArgs = DefaultParse({"/t:library", "/out:.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".dll"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(".dll"))
 
             Assert.Null(parsedArgs.OutputFileName)
             Assert.Null(parsedArgs.CompilationName)
@@ -3400,7 +3486,7 @@ End Module
 
             parsedArgs = DefaultParse({".vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(".exe"))
 
             Assert.Null(parsedArgs.OutputFileName)
             Assert.Null(parsedArgs.CompilationName)
@@ -3408,7 +3494,7 @@ End Module
 
             parsedArgs = DefaultParse({"/t:exe", ".vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(".exe"))
 
             Assert.Null(parsedArgs.OutputFileName)
             Assert.Null(parsedArgs.CompilationName)
@@ -3416,7 +3502,7 @@ End Module
 
             parsedArgs = DefaultParse({"/t:library", ".vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".dll"))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(".dll"))
 
             Assert.Null(parsedArgs.OutputFileName)
             Assert.Null(parsedArgs.CompilationName)
@@ -3448,7 +3534,7 @@ End Module
             Assert.Equal(".x.eXe", parsedArgs.CompilationOptions.ModuleName)
 
             parsedArgs = DefaultParse({"/target:winexe", "/out:.exe", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(".exe"))
 
             Assert.Null(parsedArgs.CompilationName)
             Assert.Null(parsedArgs.OutputFileName)
@@ -3470,7 +3556,7 @@ End Module
             Assert.Equal(".X.Dll", parsedArgs.CompilationOptions.ModuleName)
 
             parsedArgs = DefaultParse({"/target:library", "/out:.dll", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".dll"))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(".dll"))
 
             Assert.Null(parsedArgs.CompilationName)
             Assert.Null(parsedArgs.OutputFileName)
@@ -4047,7 +4133,7 @@ End Class
             ' Quote after a \ is treated as an escape
             parsedArgs = DefaultParse({"/errorlog:C:\""My Folder""\MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
-                    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("C:""My Folder\MyBinary.xml").WithLocation(1, 1))
+                    Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("C:""My Folder\MyBinary.xml").WithLocation(1, 1))
 
             ' Should expand partially qualified paths
             parsedArgs = DefaultParse({"/errorlog:MyBinary.xml", "a.vb"}, baseDirectory)
@@ -4065,7 +4151,7 @@ End Class
             Dim filePath = currentDrive + ":a.xml"
             parsedArgs = DefaultParse({"/errorlog:" + filePath, "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(filePath))
+                Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(filePath))
 
             Assert.Null(parsedArgs.ErrorLogPath)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
@@ -6834,7 +6920,7 @@ End Module
             parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/out:com1.exe", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("\\.\com1").WithLocation(1, 1))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("\\.\com1").WithLocation(1, 1))
 
             parsedArgs = DefaultParse({"/doc:..\lpt2.xml", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments("..\lpt2.xml", "The system cannot find the path specified").WithLocation(1, 1))
@@ -8306,7 +8392,7 @@ End Class
         <ConditionalFact(GetType(WindowsOnly))>
         Public Sub SourceFile_BadPath()
             Dim args = DefaultParse({"e:c:\test\test.cs", "/t:library"}, _baseDirectory)
-            args.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("e:c:\test\test.cs").WithLocation(1, 1))
+            args.Errors.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("e:c:\test\test.cs").WithLocation(1, 1))
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly))>

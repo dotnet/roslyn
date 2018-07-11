@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(concurrentTypeResolutions < 50);
 #endif
                     TypeSymbolWithAnnotations localType = GetTypeSymbol();
-                    SetTypeSymbol(localType);
+                    SetType(localType);
                 }
 
                 return _type;
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type;
         }
 
-        internal void SetTypeSymbol(TypeSymbolWithAnnotations newType)
+        internal void SetType(TypeSymbolWithAnnotations newType)
         {
             TypeSymbolWithAnnotations originalType = _type;
 
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Symbol for a deconstruction local that might require type inference.
-        /// For instance, local `x` in `var (x, y) = ...` or `(var x, int y) = ...`.
+        /// For instance, local <c>x</c> in <c>var (x, y) = ...</c> or <c>(var x, int y) = ...</c>.
         /// </summary>
         private class DeconstructionLocalSymbol : SourceLocalSymbol
         {
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)this._type == null)
                 {
                     Debug.Assert(this.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
-                    SetTypeSymbol(TypeSymbolWithAnnotations.Create(_nodeBinder.CreateErrorType("var")));
+                    SetType(TypeSymbolWithAnnotations.Create(_nodeBinder.CreateErrorType("var")));
                 }
 
                 return this._type;

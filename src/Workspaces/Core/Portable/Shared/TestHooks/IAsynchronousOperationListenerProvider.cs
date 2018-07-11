@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             s_enableDiagnosticTokens = diagnostics;
         }
 
-        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AsynchronousOperationListenerProvider()
         {
             _singletonListeners = new ConcurrentDictionary<string, AsynchronousOperationListener>(concurrencyLevel: 2, capacity: 20);

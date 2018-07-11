@@ -22,6 +22,7 @@
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
 
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common"    version="[$version$]"/>
@@ -52,5 +53,8 @@
     <file src="Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.xml" target="lib\netstandard1.3" />
     <file src="Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\Scripting\**\Microsoft.CodeAnalysis.Scripting.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>
