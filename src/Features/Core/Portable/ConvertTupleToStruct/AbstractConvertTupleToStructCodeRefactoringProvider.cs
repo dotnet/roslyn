@@ -519,7 +519,6 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         updatedDocument, cancellationToken).ConfigureAwait(false);
                 }
 
-
                 currentSolution = updatedDocument.Project.Solution;
             }
 
