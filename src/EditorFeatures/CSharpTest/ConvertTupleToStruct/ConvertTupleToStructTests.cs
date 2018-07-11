@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -470,7 +470,7 @@ class Test
 {
     void Method()
     {
-        var t1 = [||](a: Foo(), b: Bar());
+        var t1 = [||](a: Goo(), b: Bar());
     }
 }
 ";
@@ -479,7 +479,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(Foo(), Bar());
+        var t1 = new {|Rename:NewStruct|}(Goo(), Bar());
     }
 }
 
