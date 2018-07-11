@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
         }
 
+        public new IntPtr MainWindowHandle => base.MainWindowHandle;
+
 #if false
         public string[] GetAvailableCommands()
         {

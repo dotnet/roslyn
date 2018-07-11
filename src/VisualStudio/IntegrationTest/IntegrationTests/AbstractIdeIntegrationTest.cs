@@ -152,16 +152,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync();
 
             // Close any windows leftover from previous (failed) tests
+            await VisualStudio.ChangeSignatureDialog.CloseWindowAsync();
+            await VisualStudio.GenerateTypeDialog.CloseWindowAsync();
+            await VisualStudio.ExtractInterfaceDialog.CloseWindowAsync();
             await VisualStudio.InteractiveWindow.CloseWindowAsync();
             await VisualStudio.ImmediateWindow.CloseWindowAsync();
-#if false
-            VisualStudio.ObjectBrowserWindow.CloseWindow();
-#endif
-            await VisualStudio.ChangeSignatureDialog.CloseWindowAsync();
-#if false
-            VisualStudio.GenerateTypeDialog.CloseWindow();
-#endif
-            await VisualStudio.ExtractInterfaceDialog.CloseWindowAsync();
+            await VisualStudio.ObjectBrowserWindow.CloseWindowAsync();
         }
 
         protected KeyPress Ctrl(VirtualKey virtualKey)

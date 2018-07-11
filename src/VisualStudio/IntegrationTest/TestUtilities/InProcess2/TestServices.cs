@@ -25,8 +25,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             ErrorList = new ErrorList_InProc2(this);
             ExtractInterfaceDialog = new ExtractInterfaceDialog_InProc2(this);
             FindReferencesWindow = new FindReferencesWindow_InProc2(this);
+            GenerateTypeDialog = new GenerateTypeDialog_InProc2(this);
             ImmediateWindow = new ImmediateWindow_InProc2(this);
             InlineRenameDialog = new InlineRenameDialog_InProc2(this);
+            ObjectBrowserWindow = new ObjectBrowserWindow_InProc2(this);
             PreviewChangesDialog = new PreviewChangesDialog_InProc2(this);
             Shell = new Shell_InProc2(this);
 
@@ -78,6 +80,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             get;
         }
 
+        public GenerateTypeDialog_InProc2 GenerateTypeDialog
+        {
+            get;
+        }
+
         public ImmediateWindow_InProc2 ImmediateWindow
         {
             get;
@@ -94,6 +101,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public LocalsWindow_InProc2 LocalsWindow
+        {
+            get;
+        }
+
+        public ObjectBrowserWindow_InProc2 ObjectBrowserWindow
         {
             get;
         }

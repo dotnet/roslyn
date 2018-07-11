@@ -139,7 +139,9 @@
             Orientation="Horizontal"
             Height="21" Width="147" Margin="0,15,21,0">
             <Button 
-                x:Uid="OkButton" AutomationProperties.AutomationId="OkButton"
+                x:Uid="OkButton"
+                Name="OkButton"
+                AutomationProperties.AutomationId="OkButton"
                 Content="{Binding ElementName=dialog, Path=OK}"
                 Margin="0,0,0,0"
                 Click="OK_Click"
@@ -147,7 +149,9 @@
                 MinHeight="20"
                 MinWidth="70"/>
             <Button 
-                x:Uid="CancelButton" AutomationProperties.AutomationId="CancelButton"
+                x:Uid="CancelButton"
+                Name="CancelButton"
+                AutomationProperties.AutomationId="CancelButton"
                 Content="{Binding ElementName=dialog, Path=Cancel}"
                 Margin="7,0,0,0"
                 Click="Cancel_Click"

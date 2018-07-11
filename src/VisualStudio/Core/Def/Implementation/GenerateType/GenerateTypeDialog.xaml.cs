@@ -147,5 +147,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             DialogResult = false;
         }
+
+        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly GenerateTypeDialog _dialog;
+
+            public TestAccessor(GenerateTypeDialog dialog)
+            {
+                _dialog = dialog;
+            }
+
+            public Button OKButton => _dialog.OkButton;
+
+            public Button CancelButton => _dialog.CancelButton;
+        }
     }
 }
