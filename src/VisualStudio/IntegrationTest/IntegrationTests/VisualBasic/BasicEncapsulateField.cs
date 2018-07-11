@@ -30,7 +30,7 @@ End Module";
         [IdeFact]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateThroughCommandAsync()
-    {
+        {
             await SetUpEditorAsync(TestSource);
 
             var encapsulateField = VisualStudio.EncapsulateField;
