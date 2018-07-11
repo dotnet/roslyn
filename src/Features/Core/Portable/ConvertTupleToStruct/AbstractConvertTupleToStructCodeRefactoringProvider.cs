@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             });
         }
 
-        private async Task<Solution> ApplyChangesAsync(
+        private static async Task<Solution> ApplyChangesAsync(
             Document startingDocument, Dictionary<Document, SyntaxEditor> documentToEditorMap, CancellationToken cancellationToken)
         {
             var currentSolution = startingDocument.Project.Solution;
