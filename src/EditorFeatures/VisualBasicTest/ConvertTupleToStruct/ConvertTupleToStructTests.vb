@@ -1468,6 +1468,147 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertWithDefaultNames1() As Task
+            Dim text As String = "
+class Test
+    sub Method()
+        dim t1 = [||](1, 2)
+        dim t2 = (1, 2)
+        dim t3 = (a:=1, b:=2)
+        dim t4 = (Item1:=1, Item2:=2)
+        dim t5 = (item1:=1, item2:=2)
+    end sub
+end class
+"
+            Dim expected As String = "
+class Test
+    sub Method()
+        dim t1 = New {|Rename:NewStruct|}(1, 2)
+        dim t2 = New NewStruct(1, 2)
+        dim t3 = (a:=1, b:=2)
+        dim t4 = New NewStruct(Item1:=1, Item2:=2)
+        dim t5 = New NewStruct(item1:=1, item2:=2)
+    end sub
+end class
+
+Friend Structure NewStruct
+    Public Sub New(item1 As Integer, item2 As Integer)
+        Me.Item1 = item1
+        Me.Item2 = item2
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is NewStruct) Then
+            Return False
+        End If
+
+        Dim other = DirectCast(obj, NewStruct)
+        Return Me.Item1 = other.Item1 AndAlso
+               Me.Item2 = other.Item2
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode As Long = -1030903623
+        hashCode = (hashCode * -1521134295 + Me.Item1.GetHashCode()).GetHashCode()
+        hashCode = (hashCode * -1521134295 + Me.Item2.GetHashCode()).GetHashCode()
+        Return hashCode
+    End Function
+
+    Public Sub Deconstruct(ByRef item1 As Integer, ByRef item2 As Integer)
+        item1 = Me.Item1
+        item2 = Me.Item2
+    End Sub
+
+    Public Shared Widening Operator CType(value As NewStruct) As (Integer, Integer)
+        Return (value.Item1, value.Item2)
+    End Operator
+
+    Public Shared Widening Operator CType(value As (Integer, Integer)) As NewStruct
+        Return New NewStruct(value.Item1, value.Item2)
+    End Operator
+End Structure
+"
+            Await TestExactActionSetOfferedAsync(text, {
+                FeaturesResources.and_update_usages_in_containing_member,
+                FeaturesResources.and_update_usages_in_containing_type
+            })
+
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertWithDefaultNames2() As Task
+            Dim text As String = "
+class Test
+    sub Method()
+        dim t1 = (1, 2)
+        dim t2 = (1, 2)
+        dim t3 = (a:=1, b:=2)
+        dim t4 = [||](Item1:=1, Item2:=2)
+        dim t5 = (item1:=1, item2:=2)
+    end sub
+end class
+"
+            Dim expected As String = "
+class Test
+    sub Method()
+        dim t1 = New NewStruct(1, 2)
+        dim t2 = New NewStruct(1, 2)
+        dim t3 = (a:=1, b:=2)
+        dim t4 = New {|Rename:NewStruct|}(Item1:=1, Item2:=2)
+        dim t5 = New NewStruct(item1:=1, item2:=2)
+    end sub
+end class
+
+Friend Structure NewStruct
+    Public Item1 As Integer
+    Public Item2 As Integer
+
+    Public Sub New(item1 As Integer, item2 As Integer)
+        Me.Item1 = item1
+        Me.Item2 = item2
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is NewStruct) Then
+            Return False
+        End If
+
+        Dim other = DirectCast(obj, NewStruct)
+        Return Item1 = other.Item1 AndAlso
+               Item2 = other.Item2
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode As Long = -1030903623
+        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
+        hashCode = (hashCode * -1521134295 + Item2.GetHashCode()).GetHashCode()
+        Return hashCode
+    End Function
+
+    Public Sub Deconstruct(ByRef item1 As Integer, ByRef item2 As Integer)
+        item1 = Me.Item1
+        item2 = Me.Item2
+    End Sub
+
+    Public Shared Widening Operator CType(value As NewStruct) As (Item1 As Integer, Item2 As Integer)
+        Return (value.Item1, value.Item2)
+    End Operator
+
+    Public Shared Widening Operator CType(value As (Item1 As Integer, Item2 As Integer)) As NewStruct
+        Return New NewStruct(value.Item1, value.Item2)
+    End Operator
+End Structure
+"
+            Await TestExactActionSetOfferedAsync(text, {
+                FeaturesResources.and_update_usages_in_containing_member,
+                FeaturesResources.and_update_usages_in_containing_type
+            })
+
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return Nothing
         End Function
