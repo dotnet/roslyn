@@ -415,10 +415,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var fixedRoot = await document.GetSyntaxRootAsync();
             var actualText = fixedRoot.ToFullString();
 
+            // To help when a user just writes a test (and supplied no 'expectedText') just print
+            // out the entire 'actualText' (without any trimming).  in the case that we have both,
+            // call the normal Assert helper which will print out a good trimmed diff. 
             if (expectedText == "")
             {
-                // if not expected text has been provided, call the overload that prints out
-                // the full actual text.
                 Assert.Equal((object)expectedText, actualText);
             }
             else

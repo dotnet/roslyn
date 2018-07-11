@@ -880,6 +880,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to class.
+        /// </summary>
+        internal static string Convert_to_class {
+            get {
+                return ResourceManager.GetString("Convert_to_class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to conditional expression.
         /// </summary>
         internal static string Convert_to_conditional_expression {
