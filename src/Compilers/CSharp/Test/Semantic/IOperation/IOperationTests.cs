@@ -114,7 +114,7 @@ class C
             var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
             comp.VerifyOperationTree(m, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (ref re ... }')
+  IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (ref re ... }')
     Locals: Local_1: C.LinkedList cur
     Condition: 
       IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'cur != null')
@@ -206,7 +206,7 @@ class RefEnumerable
             var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
             comp.VerifyOperationTree(m, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (re ... }')
+  IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (re ... }')
     Locals: Local_1: System.Int32 x
     LoopControlVariable: 
       IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
@@ -419,6 +419,101 @@ public class Test
 
             // Verify we return null operation for child nodes of member access expression.
             Assert.Null(model.GetOperation(expr.Name));
+        }
+
+        [Fact]
+        public void TestSemanticModelOnOperationAncestors()
+        {
+            var compilation = CreateCompilation(@"
+class C 
+{
+  void M(bool flag)
+  {
+    if (flag)
+    {
+        int y = 1000;
+    }
+  }
+}
+");
+
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var literal = root.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var methodDeclSyntax = literal.Ancestors().OfType<MethodDeclarationSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+            IOperation operation = model.GetOperation(literal);
+            VerifyRootAndModelForOperationAncestors(operation, model, expectedRootOperationKind: OperationKind.MethodBodyOperation, expectedRootSyntax: methodDeclSyntax);
+        }
+
+        [Fact]
+        public void TestGetOperationOnSpeculativeSemanticModel()
+        {
+            var compilation = CreateCompilation(@"
+class C 
+{
+  void M(int x)
+  {
+    int y = 1000;     
+  }
+}
+");
+
+            var speculatedBlock = (BlockSyntax)SyntaxFactory.ParseStatement(@"
+{ 
+   int z = 0;
+}
+");
+
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var typeDecl = (TypeDeclarationSyntax)root.Members[0];
+            var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            SemanticModel speculativeModel;
+            bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].SpanStart, speculatedBlock, out speculativeModel);
+            Assert.True(success);
+            Assert.NotNull(speculativeModel);
+
+            var localDecl = (LocalDeclarationStatementSyntax)speculatedBlock.Statements[0];
+            IOperation operation = speculativeModel.GetOperation(localDecl);
+            VerifyRootAndModelForOperationAncestors(operation, speculativeModel, expectedRootOperationKind: OperationKind.Block, expectedRootSyntax: speculatedBlock);
+
+            speculativeModel.VerifyOperationTree(localDecl, expectedOperationTree: @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int z = 0;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int z = 0')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 z) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'z = 0')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+    Initializer: 
+      null
+");
+        }
+
+        private static void VerifyRootAndModelForOperationAncestors(
+            IOperation operation,
+            SemanticModel model,
+            OperationKind expectedRootOperationKind,
+            SyntaxNode expectedRootSyntax)
+        {
+            SemanticModel memberModel = ((Operation)operation).OwningSemanticModel;
+            while (true)
+            {
+                Assert.Same(model, operation.SemanticModel);
+                Assert.Same(memberModel, ((Operation)operation).OwningSemanticModel);
+
+                if (operation.Parent == null)
+                {
+                    Assert.Equal(expectedRootOperationKind, operation.Kind);
+                    Assert.Same(expectedRootSyntax, operation.Syntax);
+                    break;
+                }
+
+                operation = operation.Parent;
+            }
         }
     }
 }

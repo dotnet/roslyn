@@ -888,9 +888,9 @@ CodeStyleOptions.QualifyEventAccess);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyMemberAccessNotPresentOnNotificationOptionNone()
+        public async Task QualifyMemberAccessOnNotificationOptionSilent()
         {
-            await TestMissingAsyncWithOptionAndNotificationOption(
+            await TestAsyncWithOptionAndNotificationOption(
 @"class Class
 {
     int Property { get; set; };
@@ -900,7 +900,16 @@ CodeStyleOptions.QualifyEventAccess);
         [|Property|] = 1;
     }
 }",
-CodeStyleOptions.QualifyPropertyAccess, NotificationOption.None);
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        this.Property = 1;
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Silent);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]

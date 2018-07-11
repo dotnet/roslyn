@@ -395,33 +395,42 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return allAliasReferences.ToImmutableAndFree();
         }
 
-        protected Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        private Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(Project project, IImmutableSet<Document> documents, Func<SyntaxTreeIndex, bool> predicate, CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
                 var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
-                return info.ContainsForEachStatement;
+                return predicate(info);
             }, cancellationToken);
         }
+
+        protected Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsForEachStatement, cancellationToken);
 
         protected Task<ImmutableArray<Document>> FindDocumentsWithDeconstructionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
-        {
-            return FindDocumentsAsync(project, documents, async (d, c) =>
-            {
-                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
-                return info.ContainsDeconstruction;
-            }, cancellationToken);
-        }
+            => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsDeconstruction, cancellationToken);
 
-        protected async Task<ImmutableArray<ReferenceLocation>> FindReferencesInForEachStatementsAsync(
+        protected Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsAwait, cancellationToken);
+
+        /// <summary>
+        /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
+        /// </summary>
+        private delegate void CollectMatchingReferences(ISymbol symbol, SyntaxNode node,
+            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<ReferenceLocation> locations);
+
+        private async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            Func<SyntaxTreeIndex, bool> isRelevantDocument,
+            CollectMatchingReferences collectMatchingReferences,
             CancellationToken cancellationToken)
         {
             var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
-            if (syntaxTreeInfo.ContainsForEachStatement)
+            if (isRelevantDocument(syntaxTreeInfo))
             {
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
                 var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -432,50 +441,57 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 foreach (var node in syntaxRoot.DescendantNodesAndSelf())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var info = semanticFacts.GetForEachSymbols(semanticModel, node);
-
-                    if (Matches(info.GetEnumeratorMethod, originalUnreducedSymbolDefinition) ||
-                        Matches(info.MoveNextMethod, originalUnreducedSymbolDefinition) ||
-                        Matches(info.CurrentProperty, originalUnreducedSymbolDefinition) ||
-                        Matches(info.DisposeMethod, originalUnreducedSymbolDefinition))
-                    {
-                        var location = node.GetFirstToken().GetLocation();
-                        locations.Add(new ReferenceLocation(
-                            document, alias: null, location: location, isImplicit: true, isWrittenTo: false, candidateReason: CandidateReason.None));
-                    }
+                    collectMatchingReferences(originalUnreducedSymbolDefinition, node, syntaxFacts, semanticFacts, locations);
                 }
 
                 return locations.ToImmutableAndFree();
             }
-            else
-            {
-                return ImmutableArray<ReferenceLocation>.Empty;
-            }
+
+            return ImmutableArray<ReferenceLocation>.Empty;
         }
 
-        protected async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDeconstructionAsync(
+        protected Task<ImmutableArray<ReferenceLocation>> FindReferencesInForEachStatementsAsync(
             ISymbol symbol,
             Document document,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
-            if (!syntaxTreeInfo.ContainsDeconstruction)
+            return FindReferencesInDocumentAsync(symbol, document, semanticModel, isRelevantDocument, collectMatchingReferences, cancellationToken);
+
+            bool isRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+                => syntaxTreeInfo.ContainsForEachStatement;
+
+            void collectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
+                ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<ReferenceLocation> locations)
             {
-                return ImmutableArray<ReferenceLocation>.Empty;
+                var info = semanticFacts.GetForEachSymbols(semanticModel, node);
+
+                if (Matches(info.GetEnumeratorMethod, originalUnreducedSymbolDefinition) ||
+                    Matches(info.MoveNextMethod, originalUnreducedSymbolDefinition) ||
+                    Matches(info.CurrentProperty, originalUnreducedSymbolDefinition) ||
+                    Matches(info.DisposeMethod, originalUnreducedSymbolDefinition))
+                {
+                    var location = node.GetFirstToken().GetLocation();
+                    locations.Add(new ReferenceLocation(
+                        document, alias: null, location: location, isImplicit: true, isWrittenTo: false, candidateReason: CandidateReason.None));
+                }
             }
+        }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        protected Task<ImmutableArray<ReferenceLocation>> FindReferencesInDeconstructionAsync(
+            ISymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInDocumentAsync(symbol, document, semanticModel, isRelevantDocument, collectMatchingReferences, cancellationToken);
 
-            var locations = ArrayBuilder<ReferenceLocation>.GetInstance();
+            bool isRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+                => syntaxTreeInfo.ContainsDeconstruction;
 
-            var originalUnreducedSymbolDefinition = symbol.GetOriginalUnreducedDefinition();
-
-            foreach (var node in syntaxRoot.DescendantNodesAndSelf())
+            void collectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
+                ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<ReferenceLocation> locations)
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 var deconstructMethods = semanticFacts.GetDeconstructionAssignmentMethods(semanticModel, node);
                 if (deconstructMethods.IsEmpty)
                 {
@@ -490,8 +506,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         document, alias: null, location, isImplicit: true, isWrittenTo: false, CandidateReason.None));
                 }
             }
+        }
 
-            return locations.ToImmutableAndFree();
+        protected Task<ImmutableArray<ReferenceLocation>> FindReferencesInAwaitExpressionAsync(
+            ISymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInDocumentAsync(symbol, document, semanticModel, isRelevantDocument, collectMatchingReferences, cancellationToken);
+
+            bool isRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+                => syntaxTreeInfo.ContainsAwait;
+
+            void collectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
+                ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<ReferenceLocation> locations)
+            {
+                var awaitExpressionMethod = semanticFacts.GetGetAwaiterMethod(semanticModel, node);
+
+                if (Matches(awaitExpressionMethod, originalUnreducedSymbolDefinition))
+                {
+                    var location = node.GetFirstToken().GetLocation();
+                    locations.Add(new ReferenceLocation(
+                        document, alias: null, location, isImplicit: true, isWrittenTo: false, CandidateReason.None));
+                }
+            }
         }
 
         private static bool Matches(ISymbol symbol1, ISymbol notNulloriginalUnreducedSymbol2)

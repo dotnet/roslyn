@@ -8041,13 +8041,13 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Los iteradores no pueden tener variables locales por referencia.</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Los iteradores no pueden tener variables locales por referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">Los métodos asincrónicos no pueden tener variables locales por referencia.</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">Los métodos asincrónicos no pueden tener variables locales por referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

@@ -712,4 +712,7 @@
   <data name="Regex_issue_0" xml:space="preserve">
     <value>Regex issue: {0}</value>
   </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
 </root>

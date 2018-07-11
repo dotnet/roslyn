@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    internal abstract class InteractiveEvaluator : IInteractiveEvaluator
+    internal abstract class InteractiveEvaluator : IResettableInteractiveEvaluator
     {
         private const string CommandPrefix = "#";
 
@@ -66,9 +66,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private int _submissionCount = 0;
         private readonly EventHandler<ContentTypeChangedEventArgs> _contentTypeChangedHandler;
 
+        internal InteractiveEvaluatorResetOptions ResetOptions { get; set; }
+            = new InteractiveEvaluatorResetOptions(is64Bit: true);
+
         public ImmutableArray<string> ReferenceSearchPaths { get; private set; }
         public ImmutableArray<string> SourceSearchPaths { get; private set; }
         public string WorkingDirectory { get; private set; }
+
+        InteractiveEvaluatorResetOptions IResettableInteractiveEvaluator.ResetOptions { get => ResetOptions; set => ResetOptions = value; }
 
         internal InteractiveEvaluator(
             IContentType contentType,
@@ -78,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             ImmutableArray<IInteractiveWindowCommand> commands,
             string responseFilePath,
             string initialWorkingDirectory,
-            string interactiveHostPath,
             Type replType)
         {
             Debug.Assert(responseFilePath == null || PathUtilities.IsAbsolute(responseFilePath));
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _metadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, _initialWorkingDirectory);
             _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, _initialWorkingDirectory);
 
-            _interactiveHost = new InteractiveHost(replType, interactiveHostPath, initialWorkingDirectory);
+            _interactiveHost = new InteractiveHost(replType, initialWorkingDirectory);
             _interactiveHost.ProcessStarting += ProcessStarting;
         }
 
@@ -137,8 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 _currentWindow = value;
                 _workspace.Window = value;
 
-                _interactiveHost.Output = _currentWindow.OutputWriter;
-                _interactiveHost.ErrorOutput = _currentWindow.ErrorOutputWriter;
+                _interactiveHost.SetOutput( _currentWindow.OutputWriter);
+                _interactiveHost.SetErrorOutput(_currentWindow.ErrorOutputWriter);
 
                 _currentWindow.SubmissionBufferAdded += SubmissionBufferAdded;
                 _interactiveCommands = _commandsFactory.CreateInteractiveCommands(_currentWindow, CommandPrefix, _commands);
@@ -149,6 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         protected abstract CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver, ImmutableArray<string> imports);
         protected abstract ParseOptions ParseOptions { get; }
         protected abstract CommandLineParser CommandLineParser { get; }
+
+        public event Action<InteractiveHostOptions> OnBeforeReset;
 
         #region Initialization
 
@@ -166,14 +172,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
 
             return window;
-        }
-
-        public Task<ExecutionResult> InitializeAsync()
-        {
-            var window = GetCurrentWindowOrThrow();
-            _interactiveHost.Output = window.OutputWriter;
-            _interactiveHost.ErrorOutput = window.ErrorOutputWriter;
-            return ResetAsyncWorker();
         }
 
         public void Dispose()
@@ -444,24 +442,41 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return false;
         }
 
-        public Task<ExecutionResult> ResetAsync(bool initialize = true)
+        Task<ExecutionResult> IInteractiveEvaluator.InitializeAsync()
         {
             var window = GetCurrentWindowOrThrow();
+            var resetOptions = ResetOptions;
+
+            _interactiveHost.SetOutput(window.OutputWriter);
+            _interactiveHost.SetErrorOutput(window.ErrorOutputWriter);
+
+            return ResetAsyncWorker(GetHostOptions(initialize: true, resetOptions.Is64Bit));
+        }
+
+        Task<ExecutionResult> IInteractiveEvaluator.ResetAsync(bool initialize)
+        {
+            var window = GetCurrentWindowOrThrow();
+
+            var resetOptions = ResetOptions;
             Debug.Assert(_interactiveCommands.CommandPrefix == CommandPrefix);
-            window.AddInput(CommandPrefix + ResetCommand.CommandName);
+            window.AddInput(CommandPrefix + ResetCommand.GetCommandLine(initialize, resetOptions.Is64Bit));
             window.WriteLine(InteractiveEditorFeaturesResources.Resetting_execution_engine);
             window.FlushOutput();
 
-            return ResetAsyncWorker(initialize);
+            return ResetAsyncWorker(GetHostOptions(initialize, resetOptions.Is64Bit));
         }
 
-        private async Task<ExecutionResult> ResetAsyncWorker(bool initialize = true)
+        public InteractiveHostOptions GetHostOptions(bool initialize, bool? is64bit)
+            => new InteractiveHostOptions(
+                 initializationFile: initialize ? _responseFilePath : null,
+                 culture: CultureInfo.CurrentUICulture,
+                 is64Bit: is64bit ?? _interactiveHost.OptionsOpt?.Is64Bit ?? InteractiveHost.DefaultIs64Bit);
+
+        private async Task<ExecutionResult> ResetAsyncWorker(InteractiveHostOptions options)
         {
             try
             {
-                var options = new InteractiveHostOptions(
-                    initializationFile: initialize ? _responseFilePath : null,
-                    culture: CultureInfo.CurrentUICulture);
+                OnBeforeReset(options);
 
                 var result = await _interactiveHost.ResetAsync(options).ConfigureAwait(false);
 

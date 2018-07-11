@@ -86,4 +86,16 @@
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragment>
   </Target>
+
+  <Target Name="_AddCommitHashAttribute"
+          DependsOnTargets="InitializeSourceControlInformation" 
+          BeforeTargets="GenerateAssemblyInfoFile"
+          Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true'">
+    <ItemGroup>
+      <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
+        <_Parameter1 Condition="'$(OfficialBuild)' == 'true'">$(SourceRevisionId)</_Parameter1>
+        <_Parameter1 Condition="'$(OfficialBuild)' != 'true'">&lt;developer build&gt;</_Parameter1>
+      </AssemblyVersionAttribute>
+    </ItemGroup>
+  </Target>
 </Project>
