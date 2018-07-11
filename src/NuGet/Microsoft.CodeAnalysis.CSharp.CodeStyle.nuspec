@@ -25,6 +25,7 @@
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
     <developmentDependency>true</developmentDependency>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <file src="Dlls\CSharpCodeStyle\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll" target="analyzers\dotnet\cs" />

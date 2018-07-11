@@ -324,7 +324,7 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 # Locate the xcopy version of MSBuild
 function Get-MSBuildDirXCopy() {
     $p = Ensure-BasicTool "RoslynTools.MSBuild"
-    $p = Join-Path $p "tools\msbuild"
+    $p = Join-Path $p "tools\MSBuild\15.0\Bin"
     return $p
 }
 

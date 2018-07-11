@@ -143,10 +143,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Overrides Function CloneOperationCore(operation As IOperation) As IOperation
-            Return VisualBasicOperationCloner.Instance.Visit(operation)
-        End Function
-
         ''' <summary>
         ''' Returns what symbol(s), if any, the given expression syntax bound to in the program.
         '''
@@ -984,7 +980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If useOfLocalBeforeDeclaration AndAlso Not type.IsErrorType() Then
                                 conversion = New Conversion(Conversions.ClassifyConversion(type, convertedType, Nothing))
                             Else
-                                conversion = New Conversion(KeyValuePair.Create(conversionNode.ConversionKind,
+                                conversion = New Conversion(KeyValuePairUtil.Create(conversionNode.ConversionKind,
                                                                                 TryCast(conversionNode.ExpressionSymbol, MethodSymbol)))
                             End If
                         End If

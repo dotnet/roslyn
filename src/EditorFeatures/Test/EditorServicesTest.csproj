@@ -43,7 +43,6 @@
     <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj" />
     <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj" />
-    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj" />
   </ItemGroup>

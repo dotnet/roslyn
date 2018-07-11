@@ -697,4 +697,7 @@
   <data name="Enable_JSON_editor_features" xml:space="preserve">
     <value>Enable JSON editor features</value>
   </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
 </root>

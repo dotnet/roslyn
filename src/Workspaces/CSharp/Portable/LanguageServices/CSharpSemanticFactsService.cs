@@ -231,6 +231,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node is AwaitExpressionSyntax awaitExpression)
+            {
+                var info = semanticModel.GetAwaitExpressionInfo(awaitExpression);
+                return info.GetAwaiterMethod;
+            }
+
+            return null;
+        }
+
         public ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node)
         {
             if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
