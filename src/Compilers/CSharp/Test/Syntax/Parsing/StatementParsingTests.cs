@@ -2611,17 +2611,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             }
                         }
                     }
-                }
-                N(SyntaxKind.CommaToken);
-                N(SyntaxKind.VariableDeclarator);
-                {
-                    N(SyntaxKind.IdentifierToken, "c");
-                    N(SyntaxKind.EqualsValueClause);
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.IdentifierName, "d");
+                        N(SyntaxKind.IdentifierToken, "c");
+                        N(SyntaxKind.EqualsValueClause);
                         {
-                            N(SyntaxKind.IdentifierToken, "d");
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "d");
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
                         }
                     }
                 }
