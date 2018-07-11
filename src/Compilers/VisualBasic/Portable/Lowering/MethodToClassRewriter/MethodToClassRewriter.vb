@@ -122,6 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                isLValue:=node.IsLValue,
                                receiverOpt:=rewrittenReceiver,
                                arguments:=newArguments.AsImmutableOrNull,
+                               defaultArguments:=node.DefaultArguments,
                                type:=VisitType(node.Type))
         End Function
 
@@ -141,6 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                Nothing,
                                rewrittenReceiverOpt,
                                arguments,
+                               node.DefaultArguments,
                                node.ConstantValueOpt,
                                isLValue:=node.IsLValue,
                                suppressObjectClone:=node.SuppressObjectClone,
@@ -236,6 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     rewritten = node.Update(
                         newConstructor,
                         rewritten.Arguments,
+                        rewritten.DefaultArguments,
                         rewritten.InitializerOpt,
                         rewritten.Type)
                 End If

@@ -41,17 +41,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     Guid.NewGuid(), "Property",
                     ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property))),
                     new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
-                    enforcementLevel: DiagnosticSeverity.Hidden),
+                    enforcementLevel: ReportDiagnostic.Hidden),
                 new NamingRule(new SymbolSpecification(
                     Guid.NewGuid(), "Field",
                     ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
                     new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
-                    enforcementLevel: DiagnosticSeverity.Hidden),
+                    enforcementLevel: ReportDiagnostic.Hidden),
                 new NamingRule(new SymbolSpecification(
                     Guid.NewGuid(), "FieldWithUnderscore",
                     ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
                     new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
-                    enforcementLevel: DiagnosticSeverity.Hidden));
+                    enforcementLevel: ReportDiagnostic.Hidden));
 
         protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 

@@ -9,36 +9,31 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     {
         public static void SizeToFit(this IWpfTextView view)
         {
-            // Computing the height of something is easy.
-            view.VisualElement.Height = view.LineHeight * view.TextBuffer.CurrentSnapshot.LineCount;
-
-            // Computing the width... less so. We need "MaxTextRightCoordinate", but we won't have
-            // that until a layout occurs.  Fortunately, a layout is going to occur because we set
-            // 'Height' above.
             void firstLayout(object sender, TextViewLayoutChangedEventArgs args)
             {
                 view.VisualElement.Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    var newWidth = view.MaxTextRightCoordinate;
-                    var currentWidth = view.VisualElement.Width;
-
-                    // If the element already was given a width, then only set the width if we
-                    // wouldn't make it any smaller.
-                    if (IsNormal(newWidth) && IsNormal(currentWidth) && newWidth <= currentWidth)
+                    var newHeight = view.LineHeight * view.TextBuffer.CurrentSnapshot.LineCount;             
+                    if (IsGreater(newHeight, view.VisualElement.Height))
                     {
-                        return;
+                        view.VisualElement.Height = newHeight;
                     }
 
-                    view.VisualElement.Width = view.MaxTextRightCoordinate;
-                }));
+                    var newWidth = view.MaxTextRightCoordinate;
+                    if (IsGreater(newWidth, view.VisualElement.Width))
+                    {
+                        view.VisualElement.Width = newWidth;
+                    }
+                }));                
+                view.LayoutChanged -= firstLayout;
             }
-
             view.LayoutChanged += firstLayout;
-        }
+            
+            bool IsGreater(double value, double other)
+                => IsNormal(value) && (!IsNormal(other) || value > other);
 
-        private static bool IsNormal(double value)
-        {
-            return !double.IsNaN(value) && !double.IsInfinity(value);
+            bool IsNormal(double value)
+                => !double.IsNaN(value) && !double.IsInfinity(value);
         }
     }
 }

@@ -8,12 +8,9 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
-using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -54,7 +51,7 @@ class Program
             return AssertCodeCleanupResult(expected, code,
                 (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
                 (CodeCleanupOptions.RemoveUnusedImports, enabled: true),
-                (CodeCleanupOptions.FixAccessibilityModifiers, enabled: false));
+                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
 
         [Fact]
@@ -87,7 +84,8 @@ class Program
             return AssertCodeCleanupResult(expected, code,
                 (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
                 (CodeCleanupOptions.SortImports, enabled: true),
-                (CodeCleanupOptions.FixAccessibilityModifiers, enabled: false));
+                (CodeCleanupOptions.ApplyImplicitExplicitTypePreferences, enabled: false),
+                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
 
         [Fact]
@@ -118,8 +116,8 @@ class Program
 ";
             return AssertCodeCleanupResult(expected, code,
                 (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
-                (CodeCleanupOptions.FixAddRemoveBraces, enabled: true),
-                (CodeCleanupOptions.FixAccessibilityModifiers, enabled: false));
+                (CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements, enabled: true),
+                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
 
         [Fact]
@@ -144,7 +142,7 @@ class Program
             return AssertCodeCleanupResult(expected, code,
                 (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
                 (CodeCleanupOptions.RemoveUnusedVariables, enabled: true),
-                (CodeCleanupOptions.FixAccessibilityModifiers, enabled: false));
+                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
 
         [Fact]
@@ -169,7 +167,7 @@ class Program
 ";
             return AssertCodeCleanupResult(expected, code,
                 (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
-                (CodeCleanupOptions.FixAccessibilityModifiers, enabled: true));
+                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: true));
         }
 
         protected static async Task AssertCodeCleanupResult(string expected, string code, params (PerLanguageOption<bool> option, bool enabled)[] options)

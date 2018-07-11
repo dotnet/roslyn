@@ -446,9 +446,6 @@
   <data name="InvalidDiagnosticIdReported" xml:space="preserve">
     <value>Reported diagnostic has an ID '{0}', which is not a valid identifier.</value>
   </data>
-  <data name="CompilerDiagnosticIdReported" xml:space="preserve">
-    <value>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</value>
-  </data>
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
@@ -614,5 +611,17 @@
   </data>
   <data name="ExceptionEnablingMulticoreJit" xml:space="preserve">
     <value>Warning: Could not enable multicore JIT due to exception: {0}.</value>
+  </data>
+  <data name="FlowAnalysisFeatureDisabled" xml:space="preserve">
+    <value>Feature 'Flow-Analysis' is disabled.</value>
+  </data>
+  <data name="NotARootOperation" xml:space="preserve">
+    <value>Given operation has a non-null parent.</value>
+  </data>
+  <data name="OperationHasNullSemanticModel" xml:space="preserve">
+    <value>Given operation has a null semantic model.</value>
+  </data>
+  <data name="InvalidOperationBlockForAnalysisContext" xml:space="preserve">
+    <value>Given operation block does not belong to the current analysis context.</value>
   </data>
 </root>

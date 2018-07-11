@@ -709,4 +709,7 @@
   <data name="x_y_range_in_reverse_order" xml:space="preserve">
     <value>[x-y] range in reverse order</value>
   </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
 </root>
