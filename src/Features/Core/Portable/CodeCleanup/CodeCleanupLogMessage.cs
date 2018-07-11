@@ -11,21 +11,21 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         {
             return KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
-                m["AreCodeCleanupRulesConfigured"] = docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured);
-                m["AddAccessibilityModifiers"] = docOptions.GetOption(CodeCleanupOptions.AddAccessibilityModifiers);
-                m["AddRemoveBracesForSingleLineControlStatements"] = docOptions.GetOption(CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements);
-                m["ApplyExpressionBlockBodyPreferences"] = docOptions.GetOption(CodeCleanupOptions.ApplyExpressionBlockBodyPreferences);
-                m["ApplyLanguageFrameworkTypePreferences"] = docOptions.GetOption(CodeCleanupOptions.ApplyLanguageFrameworkTypePreferences);
-                m["ApplyImplicitExplicitTypePreferences"] = docOptions.GetOption(CodeCleanupOptions.ApplyImplicitExplicitTypePreferences);
-                m["ApplyInlineOutVariablePreferences"] = docOptions.GetOption(CodeCleanupOptions.ApplyInlineOutVariablePreferences);
-                m["ApplyObjectCollectionInitializationPreferences"] = docOptions.GetOption(CodeCleanupOptions.ApplyObjectCollectionInitializationPreferences);
-                m["ApplyThisQualificationPreferences"] = docOptions.GetOption(CodeCleanupOptions.ApplyThisQualificationPreferences);
-                m["MakePrivateFieldReadonlyWhenPossible"] = docOptions.GetOption(CodeCleanupOptions.MakePrivateFieldReadonlyWhenPossible);
-                m["RemoveUnnecessaryCasts"] = docOptions.GetOption(CodeCleanupOptions.RemoveUnnecessaryCasts);
-                m["RemoveUnusedImports"] = docOptions.GetOption(CodeCleanupOptions.RemoveUnusedImports);
-                m["RemoveUnusedVariables"] = docOptions.GetOption(CodeCleanupOptions.RemoveUnusedVariables);
-                m["SortAccessibilityModifiers"] = docOptions.GetOption(CodeCleanupOptions.SortAccessibilityModifiers);
-                m["SortImports"] = docOptions.GetOption(CodeCleanupOptions.SortImports);
+                m[nameof(CodeCleanupOptions.AreCodeCleanupRulesConfigured)] = docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured);
+                m[nameof(CodeCleanupOptions.AddAccessibilityModifiers)] = docOptions.GetOption(CodeCleanupOptions.AddAccessibilityModifiers);
+                m[nameof(CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements)] = docOptions.GetOption(CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements);
+                m[nameof(CodeCleanupOptions.ApplyExpressionBlockBodyPreferences)] = docOptions.GetOption(CodeCleanupOptions.ApplyExpressionBlockBodyPreferences);
+                m[nameof(CodeCleanupOptions.ApplyLanguageFrameworkTypePreferences)] = docOptions.GetOption(CodeCleanupOptions.ApplyLanguageFrameworkTypePreferences);
+                m[nameof(CodeCleanupOptions.ApplyImplicitExplicitTypePreferences)] = docOptions.GetOption(CodeCleanupOptions.ApplyImplicitExplicitTypePreferences);
+                m[nameof(CodeCleanupOptions.ApplyInlineOutVariablePreferences)] = docOptions.GetOption(CodeCleanupOptions.ApplyInlineOutVariablePreferences);
+                m[nameof(CodeCleanupOptions.ApplyObjectCollectionInitializationPreferences)] = docOptions.GetOption(CodeCleanupOptions.ApplyObjectCollectionInitializationPreferences);
+                m[nameof(CodeCleanupOptions.ApplyThisQualificationPreferences)] = docOptions.GetOption(CodeCleanupOptions.ApplyThisQualificationPreferences);
+                m[nameof(CodeCleanupOptions.MakePrivateFieldReadonlyWhenPossible)] = docOptions.GetOption(CodeCleanupOptions.MakePrivateFieldReadonlyWhenPossible);
+                m[nameof(CodeCleanupOptions.RemoveUnnecessaryCasts)] = docOptions.GetOption(CodeCleanupOptions.RemoveUnnecessaryCasts);
+                m[nameof(CodeCleanupOptions.RemoveUnusedImports)] = docOptions.GetOption(CodeCleanupOptions.RemoveUnusedImports);
+                m[nameof(CodeCleanupOptions.RemoveUnusedVariables)] = docOptions.GetOption(CodeCleanupOptions.RemoveUnusedVariables);
+                m[nameof(CodeCleanupOptions.SortAccessibilityModifiers)] = docOptions.GetOption(CodeCleanupOptions.SortAccessibilityModifiers);
+                m[nameof(CodeCleanupOptions.SortImports)] = docOptions.GetOption(CodeCleanupOptions.SortImports);
                 });
         }
     }
