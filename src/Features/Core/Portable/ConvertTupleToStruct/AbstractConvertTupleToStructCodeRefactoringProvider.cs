@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 : (TNameSyntax)generator.GenericName(structNameToken, typeParameters.Select(tp => generator.IdentifierName(tp.Name)));
         }
 
-        private async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateAsync(
+        private static async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateAsync(
             Document document, SyntaxNode tupleExprOrTypeNode,
             INamedTypeSymbol tupleType, Scope scope, CancellationToken cancellationToken)
         {
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             }
         }
 
-        private async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForDependentProjectAsync(
+        private static async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForDependentProjectAsync(
             Project startingProject, INamedTypeSymbol tupleType, CancellationToken cancellationToken)
         {
             var solution = startingProject.Solution;
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return result.ToImmutableAndFree();
         }
 
-        private async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingProjectAsync(
+        private static async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingProjectAsync(
             Project project, INamedTypeSymbol tupleType, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return result.ToImmutableAndFree();
         }
 
-        private async Task AddDocumentsToUpdateForProjectAsync(Project project, ArrayBuilder<DocumentToUpdate> result, ImmutableArray<string> tupleFieldNames, CancellationToken cancellationToken)
+        private static async Task AddDocumentsToUpdateForProjectAsync(Project project, ArrayBuilder<DocumentToUpdate> result, ImmutableArray<string> tupleFieldNames, CancellationToken cancellationToken)
         {
             foreach (var document in project.Documents)
             {
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             }
         }
 
-        private bool InfoProbablyContainsTupleFieldNames(SyntaxTreeIndex info, ImmutableArray<string> tupleFieldNames)
+        private static bool InfoProbablyContainsTupleFieldNames(SyntaxTreeIndex info, ImmutableArray<string> tupleFieldNames)
         {
             foreach (var name in tupleFieldNames)
             {
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return true;
         }
 
-        private async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingTypeAsync(
+        private static async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingTypeAsync(
             Document startingDocument, SyntaxNode tupleExprOrTypeNode, CancellationToken cancellationToken)
         {
             var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return result.ToImmutableAndFree();
         }
 
-        private ImmutableArray<DocumentToUpdate> GetDocumentsToUpdateForContainingMember(
+        private static ImmutableArray<DocumentToUpdate> GetDocumentsToUpdateForContainingMember(
             Document document, SyntaxNode tupleExprOrTypeNode)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
