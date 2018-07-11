@@ -253,7 +253,10 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             foreach (var group in documentsToUpdate.GroupBy(d => d.Document.Project))
             {
                 // grab the compilation and keep it around as long as we're processing
-                // the project so we don't clean things up in the middle.
+                // the project so we don't clean things up in the middle.  To do this
+                // we use a GC.KeepAlive below so that we can mark that this compilation
+                // should stay around (even though we don't reference is directly in 
+                // any other way here).
                 var project = group.Key;
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
