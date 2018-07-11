@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
                 analyzer.VerifyAllAnalyzerMembersWereCalled();
                 analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-                // PROTOTYPE(null-operator-enhancements): re-enable and add to AllInOneCSharpCode when bind is implemented
                 var missingSyntaxNodes = new HashSet<SyntaxKind>();
-                missingSyntaxNodes.Add(SyntaxKind.CoalesceAssignmentExpression);
                 analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxNodes);
                 analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
             }

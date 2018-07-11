@@ -507,6 +507,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SubtractAssignmentExpression:
                     return BindCompoundAssignment((AssignmentExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.CoalesceAssignmentExpression:
+                    return BindNullCoalescingAssignmentOperator((AssignmentExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.AliasQualifiedName:
                 case SyntaxKind.PredefinedType:
                     return this.BindNamespaceOrType(node, diagnostics);
@@ -639,6 +642,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var binaryParent = (BinaryExpressionSyntax)parent;
                         return node == binaryParent.Right;
+                    }
+                case SyntaxKind.CoalesceAssignmentExpression: // ??=
+                    {
+                        var assignmentParent = (AssignmentExpressionSyntax)parent;
+                        return node == assignmentParent.Right;
                     }
                 case SyntaxKind.ArrowExpressionClause:
                 case SyntaxKind.ParenthesizedLambdaExpression:
