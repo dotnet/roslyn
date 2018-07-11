@@ -1,31 +1,31 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpGenerateTypeDialog : AbstractEditorTest
+    public class CSharpGenerateTypeDialog : AbstractIdeEditorTest
     {
+        public CSharpGenerateTypeDialog()
+            : base(nameof(CSharpGenerateTypeDialog))
+        {
+        }
+
         protected override string LanguageName => LanguageNames.CSharp;
 
-        private GenerateTypeDialog_OutOfProc GenerateTypeDialog => VisualStudio.GenerateTypeDialog;
+        private GenerateTypeDialog_InProc2 GenerateTypeDialog => VisualStudio.GenerateTypeDialog;
 
-        public CSharpGenerateTypeDialog(VisualStudioInstanceFactory instanceFactory)
-                    : base(instanceFactory, nameof(CSharpGenerateTypeDialog))
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task OpenAndCloseDialogAsync()
         {
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void OpenAndCloseDialog()
-        {
-            SetUpEditor(@"class C
+            await SetUpEditorAsync(@"class C
 {
     void Method() 
     { 
@@ -34,25 +34,24 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            GenerateTypeDialog.VerifyOpen();
-            GenerateTypeDialog.ClickCancel();
-            GenerateTypeDialog.VerifyClosed();
+            await GenerateTypeDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+            await GenerateTypeDialog.ClickCancelAsync();
+            await GenerateTypeDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
+
+            await codeAction;
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void CSharpToBasic()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task CSharpToBasicAsync()
         {
-            var vbProj = new ProjectUtils.Project("VBProj");
-            VisualStudio.SolutionExplorer.AddProject(vbProj, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            await VisualStudio.SolutionExplorer.AddProjectAsync("VBProj", WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
 
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-
-            SetUpEditor(@"class C
+            await SetUpEditorAsync(@"class C
 {
     void Method() 
     { 
@@ -61,26 +60,28 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            GenerateTypeDialog.VerifyOpen();
-            GenerateTypeDialog.SetAccessibility("public");
-            GenerateTypeDialog.SetKind("interface");
-            GenerateTypeDialog.SetTargetProject("VBProj");
-            GenerateTypeDialog.SetTargetFileToNewName("GenerateTypeTest");
-            GenerateTypeDialog.ClickOK();
-            GenerateTypeDialog.VerifyClosed();
+            await GenerateTypeDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+            await GenerateTypeDialog.SetAccessibilityAsync("public");
+            await GenerateTypeDialog.SetKindAsync("interface");
+            await GenerateTypeDialog.SetTargetProjectAsync("VBProj");
+            await GenerateTypeDialog.SetTargetFileToNewNameAsync("GenerateTypeTest");
+            await GenerateTypeDialog.ClickOkAsync();
+            await GenerateTypeDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
-            VisualStudio.SolutionExplorer.OpenFile(vbProj, "GenerateTypeTest.vb");
-            var actualText = VisualStudio.Editor.GetText();
+            await codeAction;
+
+            await VisualStudio.SolutionExplorer.OpenFileAsync("VBProj", "GenerateTypeTest.vb");
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"Public Interface A
 End Interface
 ", actualText);
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            actualText = VisualStudio.Editor.GetText();
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
+            actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"using VBProj;
 
 class C

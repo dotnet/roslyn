@@ -162,6 +162,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             public Button OKButton => _dialog.OkButton;
 
             public Button CancelButton => _dialog.CancelButton;
+
+            public ComboBox AccessListComboBox => _dialog.accessListComboBox;
+
+            public ComboBox KindListComboBox => _dialog.kindListComboBox;
+
+            public TextBox TypeNameTextBox => _dialog.TypeNameTextBox;
+
+            public ComboBox ProjectListComboBox => _dialog.projectListComboBox;
+
+            public RadioButton AddToExistingFileRadioButton => _dialog.addToExistingFileRadioButton;
+
+            public ComboBox AddToExistingFileComboBox => _dialog.AddToExistingFileComboBox;
+
+            public RadioButton CreateNewFileRadioButton => _dialog.createNewFileRadioButton;
+
+            public ComboBox CreateNewFileComboBox => _dialog.CreateNewFileComboBox;
         }
     }
 }

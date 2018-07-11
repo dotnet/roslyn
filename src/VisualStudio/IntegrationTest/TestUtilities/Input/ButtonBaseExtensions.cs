@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
@@ -26,8 +28,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 return false;
             }
 
-            button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-            ExecuteCommandSource(button, true);
+            if (button is RadioButton radioButton)
+            {
+                ISelectionItemProvider peer = new RadioButtonAutomationPeer(radioButton);
+                peer.Select();
+            }
+            else
+            {
+                button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                ExecuteCommandSource(button, true);
+            }
+
             return true;
         }
 

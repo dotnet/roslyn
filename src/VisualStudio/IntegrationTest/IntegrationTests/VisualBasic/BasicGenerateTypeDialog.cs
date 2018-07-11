@@ -1,55 +1,55 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicGenerateTypeDialog : AbstractEditorTest
+    public class BasicGenerateTypeDialog : AbstractIdeEditorTest
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        private GenerateTypeDialog_OutOfProc GenerateTypeDialog => VisualStudio.GenerateTypeDialog;
-
-        public BasicGenerateTypeDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicGenerateTypeDialog))
+        public BasicGenerateTypeDialog()
+            : base(nameof(BasicGenerateTypeDialog))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void BasicToCSharp()
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        private GenerateTypeDialog_InProc2 GenerateTypeDialog => VisualStudio.GenerateTypeDialog;
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task BasicToCSharpAsync()
         {
-            var csProj = new ProjectUtils.Project("CSProj");
-            VisualStudio.SolutionExplorer.AddProject(csProj, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+            await VisualStudio.SolutionExplorer.AddProjectAsync("CSProj", WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb");
 
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.vb");
-
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Method()
         $$Dim _A As A
     End Sub
 End Class
 ");
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            GenerateTypeDialog.VerifyOpen();
-            GenerateTypeDialog.SetAccessibility("Public");
-            GenerateTypeDialog.SetKind("Structure");
-            GenerateTypeDialog.SetTargetProject(csProj.Name);
-            GenerateTypeDialog.SetTargetFileToNewName("GenerateTypeTest.cs");
-            GenerateTypeDialog.ClickOK();
-            GenerateTypeDialog.VerifyClosed();
-            var actualText = VisualStudio.Editor.GetText();
+            await GenerateTypeDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+            await GenerateTypeDialog.SetAccessibilityAsync("Public");
+            await GenerateTypeDialog.SetKindAsync("Structure");
+            await GenerateTypeDialog.SetTargetProjectAsync("CSProj");
+            await GenerateTypeDialog.SetTargetFileToNewNameAsync("GenerateTypeTest.cs");
+            await GenerateTypeDialog.ClickOkAsync();
+            await GenerateTypeDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
+
+            await codeAction;
+
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"Imports CSProj
 
 Class C
@@ -59,8 +59,8 @@ Class C
 End Class
 ", actualText);
 
-            VisualStudio.SolutionExplorer.OpenFile(csProj, "GenerateTypeTest.cs");
-            actualText = VisualStudio.Editor.GetText();
+            await VisualStudio.SolutionExplorer.OpenFileAsync("CSProj", "GenerateTypeTest.cs");
+            actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"namespace CSProj
 {
     public struct A
@@ -69,10 +69,10 @@ End Class
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void SameProject()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task SameProjectAsync()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 Class C
     Sub Method()
         $$Dim _A As A
@@ -80,26 +80,27 @@ Class C
 End Class
 ");
 
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
-                blockUntilComplete: false);
-            var project = new ProjectUtils.Project(ProjectName);
+                willBlockUntilComplete: false);
 
-            GenerateTypeDialog.VerifyOpen();
-            GenerateTypeDialog.SetAccessibility("Public");
-            GenerateTypeDialog.SetKind("Structure");
-            GenerateTypeDialog.SetTargetFileToNewName("GenerateTypeTest");
-            GenerateTypeDialog.ClickOK();
-            GenerateTypeDialog.VerifyClosed();
+            await GenerateTypeDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+            await GenerateTypeDialog.SetAccessibilityAsync("Public");
+            await GenerateTypeDialog.SetKindAsync("Structure");
+            await GenerateTypeDialog.SetTargetFileToNewNameAsync("GenerateTypeTest");
+            await GenerateTypeDialog.ClickOkAsync();
+            await GenerateTypeDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "GenerateTypeTest.vb");
-            var actualText = VisualStudio.Editor.GetText();
+            await codeAction;
+
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "GenerateTypeTest.vb");
+            var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"Public Structure A
 End Structure
 ", actualText);
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.vb");
-            actualText = VisualStudio.Editor.GetText();
+            await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb");
+            actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"Class C
     Sub Method()
         Dim _A As A
@@ -108,31 +109,32 @@ End Class
 ", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void CheckFoldersPopulateComboBox()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task CheckFoldersPopulateComboBoxAsync()
         {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, @"folder1\folder2\GenerateTypeTests.vb", open: true);
+            await VisualStudio.SolutionExplorer.AddFileAsync(ProjectName, @"folder1\folder2\GenerateTypeTests.vb", open: true);
 
-            SetUpEditor(@"Class C
+            await SetUpEditorAsync(@"Class C
     Sub Method() 
         $$Dim _A As A
     End Sub
 End Class
 ");
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
-                blockUntilComplete: false);
+                willBlockUntilComplete: false);
 
-            GenerateTypeDialog.VerifyOpen();
-            GenerateTypeDialog.SetTargetFileToNewName("Other");
+            await GenerateTypeDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
+            await GenerateTypeDialog.SetTargetFileToNewNameAsync("Other");
 
-            var folders = GenerateTypeDialog.GetNewFileComboBoxItems();
+            var folders = await GenerateTypeDialog.GetNewFileComboBoxItemsAsync();
 
             Assert.Contains(@"\folder1\", folders);
             Assert.Contains(@"\folder1\folder2\", folders);
 
-            GenerateTypeDialog.ClickCancel();
+            await GenerateTypeDialog.ClickCancelAsync();
+
+            await codeAction;
         }
     }
 }

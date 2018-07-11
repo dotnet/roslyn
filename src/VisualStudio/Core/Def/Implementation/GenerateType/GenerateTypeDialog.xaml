@@ -55,7 +55,9 @@
                 Grid.Column="1"
                 Margin="0,0,20,0"/>
             <TextBox 
-                x:Uid="TypeNameTextBoxUid" AutomationProperties.AutomationId="TypeNameTextBox"
+                x:Uid="TypeNameTextBoxUid"
+                Name="TypeNameTextBox"
+                AutomationProperties.AutomationId="TypeNameTextBox"
                 AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabel}"
                 Grid.Row="1"
                 Grid.Column="2"
@@ -100,7 +102,9 @@
                 x:Name="createNewFileRadioButton"
                 IsChecked="{Binding IsNewFile, Mode=TwoWay}"/>
             <ComboBox 
-                x:Uid="CreateNewFileComboBox" AutomationProperties.AutomationId="CreateNewFileComboBox" 
+                x:Uid="CreateNewFileComboBox"
+                Name="CreateNewFileComboBox"
+                AutomationProperties.AutomationId="CreateNewFileComboBox" 
                 Margin="48,1,20,0"
                 IsEditable="True"
                 Text="{Binding FileName, Mode=TwoWay}"
@@ -117,7 +121,9 @@
                 IsEnabled="{Binding IsExistingFileEnabled, Mode=TwoWay}"
                 IsChecked="{Binding IsExistingFile, Mode=TwoWay}"/>
             <ComboBox
-                x:Uid="AddToExistingFileComboBox" AutomationProperties.AutomationId="AddToExistingFileComboBox"
+                x:Uid="AddToExistingFileComboBox"
+                Name="AddToExistingFileComboBox"
+                AutomationProperties.AutomationId="AddToExistingFileComboBox"
                 SelectedIndex="{Binding DocumentSelectIndex, Mode=Twoway}"
                 ItemsSource="{Binding DocumentList, Mode=OneWay}"
                 DisplayMemberPath="Name"
