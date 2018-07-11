@@ -1539,8 +1539,10 @@ class C
         [|var|] n1 = new C();
     }
 }";
-            await TestMissingInRegularAndScriptAsync(source,
-                new TestParameters(options: ExplicitTypeSilentEnforcement()));
+            await TestDiagnosticInfoAsync(source,
+                options: ExplicitTypeSilentEnforcement(),
+                diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]

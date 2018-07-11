@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return GenericName(identifier.ToIdentifierToken(), typeArguments)
         End Function
 
-        Friend Overloads Overrides Function GenericName(identifier As SyntaxToken, typeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+        Friend Overrides Function GenericName(identifier As SyntaxToken, typeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.GenericName(
                 identifier,
                 SyntaxFactory.TypeArgumentList(

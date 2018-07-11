@@ -40,6 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             _taskCenterService = (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService));
             _diagnosticService = diagnosticService;
 
+            _options = new TaskHandlerOptions()
+            {
+                Title = ServicesVSResources.Live_code_analysis,
+                ActionsAfterCompletion = CompletionActions.None
+            };
+
             var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(workspace);
 
@@ -48,12 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // no event unsubscription since it will remain alive until VS shutdown
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
-
-            _options = new TaskHandlerOptions()
-            {
-                Title = ServicesVSResources.Live_code_analysis,
-                ActionsAfterCompletion = CompletionActions.None
-            };
         }
 
         private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
