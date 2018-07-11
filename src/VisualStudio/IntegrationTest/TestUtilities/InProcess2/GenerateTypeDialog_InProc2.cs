@@ -82,95 +82,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             var dialog = await GetDialogAsync();
-
-            Assert.Contains(accessibility, dialog.GetTestAccessor().AccessListComboBox.ItemsSource.Cast<string>());
-            Assert.True(dialog.GetTestAccessor().AccessListComboBox.IsEnabled);
-            Assert.True(dialog.GetTestAccessor().AccessListComboBox.IsVisible);
-
-            dialog.GetTestAccessor().AccessListComboBox.SelectedItem = accessibility;
-
-            // Wait for changes to propagate
-            await Task.Yield();
-
-            Assert.Equal(accessibility, dialog.GetTestAccessor().AccessListComboBox.SelectedItem);
+            Assert.True(await dialog.GetTestAccessor().AccessListComboBox.SimulateSelectItemAsync(JoinableTaskFactory, accessibility));
         }
 
         public async Task SetKindAsync(string kind)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             var dialog = await GetDialogAsync();
-
-            Assert.Contains(kind, dialog.GetTestAccessor().KindListComboBox.ItemsSource.Cast<string>());
-            Assert.True(dialog.GetTestAccessor().KindListComboBox.IsEnabled);
-            Assert.True(dialog.GetTestAccessor().KindListComboBox.IsVisible);
-
-            dialog.GetTestAccessor().KindListComboBox.SelectedItem = kind;
-
-            // Wait for changes to propagate
-            await Task.Yield();
-
-            Assert.Equal(kind, dialog.GetTestAccessor().KindListComboBox.SelectedItem);
+            Assert.True(await dialog.GetTestAccessor().KindListComboBox.SimulateSelectItemAsync(JoinableTaskFactory, kind));
         }
 
         public async Task SetTargetProjectAsync(string projectName)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             var dialog = await GetDialogAsync();
-
-            var itemSource = (List<GenerateTypeDialogViewModel.ProjectSelectItem>)dialog.GetTestAccessor().ProjectListComboBox.ItemsSource;
-            var index = itemSource.FindIndex(item => item.Name == projectName);
-            Assert.True(index >= 0, $"Failed to find project '{projectName}'");
-            Assert.True(dialog.GetTestAccessor().ProjectListComboBox.IsEnabled);
-            Assert.True(dialog.GetTestAccessor().ProjectListComboBox.IsVisible);
-
-            dialog.GetTestAccessor().ProjectListComboBox.SelectedIndex = index;
-
-            // Wait for changes to propagate
-            await Task.Yield();
-
-            Assert.Equal(projectName, ((GenerateTypeDialogViewModel.ProjectSelectItem)dialog.GetTestAccessor().ProjectListComboBox.SelectedItem).Name);
+            Assert.True(await dialog.GetTestAccessor().ProjectListComboBox.SimulateSelectItemAsync(JoinableTaskFactory, projectName));
         }
 
         public async Task SetTargetFileToNewNameAsync(string newFileName)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             var dialog = await GetDialogAsync();
-            dialog.GetTestAccessor().CreateNewFileRadioButton.SimulateClick();
-
-            // Wait for changes to propagate
-            await Task.Yield();
-
-            Assert.True(dialog.GetTestAccessor().CreateNewFileRadioButton.IsChecked);
-
-            var newFileItems = (IList<string>)dialog.GetTestAccessor().CreateNewFileComboBox.ItemsSource;
-            var index = newFileItems.IndexOf(newFileName);
-            if (index < 0)
-            {
-                Assert.True(dialog.GetTestAccessor().CreateNewFileComboBox.IsEditable);
-                dialog.GetTestAccessor().CreateNewFileComboBox.Text = newFileName;
-            }
-            else
-            {
-                dialog.GetTestAccessor().CreateNewFileComboBox.SelectedIndex = index;
-            }
-
-            // Wait for changes to propagate
-            await Task.Yield();
+            Assert.True(await dialog.GetTestAccessor().CreateNewFileRadioButton.SimulateClickAsync(JoinableTaskFactory));
+            Assert.True(await dialog.GetTestAccessor().CreateNewFileComboBox.SimulateSelectItemAsync(JoinableTaskFactory, newFileName, mustExist: false));
         }
 
         public async Task SetTargetFileToExistingAsync(string existingFileName)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             var dialog = await GetDialogAsync();
-            dialog.GetTestAccessor().AddToExistingFileRadioButton.SimulateClick();
-
-            // Wait for changes to propagate
-            await Task.Yield();
-
-            dialog.GetTestAccessor().AddToExistingFileComboBox.SelectedItem = existingFileName;
-
-            // Wait for changes to propagate
-            await Task.Yield();
+            Assert.True(await dialog.GetTestAccessor().AddToExistingFileRadioButton.SimulateClickAsync(JoinableTaskFactory));
+            Assert.True(await dialog.GetTestAccessor().AddToExistingFileComboBox.SimulateSelectItemAsync(JoinableTaskFactory, existingFileName, mustExist: false));
         }
 
         /// <summary>
@@ -196,7 +138,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             var dialog = await GetDialogAsync();
             var button = buttonSelector(dialog.GetTestAccessor());
-            Assert.True(button.SimulateClick());
+            Assert.True(await button.SimulateClickAsync(JoinableTaskFactory));
         }
 
         public async Task<string[]> GetNewFileComboBoxItemsAsync()

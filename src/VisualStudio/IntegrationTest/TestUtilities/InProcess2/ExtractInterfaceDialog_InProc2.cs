@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             var dialog = await GetDialogAsync();
             var button = buttonSelector(dialog.GetTestAccessor());
-            Assert.True(button.SimulateClick());
+            Assert.True(await button.SimulateClickAsync(JoinableTaskFactory));
         }
     }
 }
