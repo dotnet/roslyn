@@ -1,15 +1,19 @@
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.AnalyzerConfigOptionsProvider() -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigPropertyMap
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigPropertyMap.AnalyzerConfigPropertyMap() -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerOptions(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText> additionalFiles, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider optionsProvider) -> void
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
-abstract Microsoft.CodeAnalysis.Diagnostics.PerTreeOptionsProvider.GetOptions(Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Options.OptionSet
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.AdditionalText textFile) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigPropertyMap
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigPropertyMap
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigPropertyMap.TryGetValue(string key, out string value) -> bool
 abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.CommandLineArguments.AnalyzerConfigPaths.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Compilation.HasImplicitConversion(Microsoft.CodeAnalysis.ITypeSymbol fromType, Microsoft.CodeAnalysis.ITypeSymbol toType) -> bool
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerOptions(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText> additionalFiles, Microsoft.CodeAnalysis.Diagnostics.PerTreeOptionsProvider optionsProvider) -> void
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.PerTreeOptions.get -> Microsoft.CodeAnalysis.Diagnostics.PerTreeOptionsProvider
-Microsoft.CodeAnalysis.Diagnostics.PerTreeOptionsProvider
-Microsoft.CodeAnalysis.Diagnostics.PerTreeOptionsProvider.PerTreeOptionsProvider() -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.set -> void
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool

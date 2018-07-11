@@ -20,16 +20,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<AdditionalText> AdditionalFiles { get; }
 
         /// <summary>
-        /// A set of options keyed to <see cref="SyntaxTree"/>s.
+        /// A set of options keyed to <see cref="SyntaxTree"/> or <see cref="AdditionalText"/>.
         /// </summary>
-        public PerTreeOptionsProvider PerTreeOptions { get; }
+        public AnalyzerConfigOptionsProvider AnalyzerConfigOptionsProvider { get; }
 
         /// <summary>
         /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
         /// </summary>
         /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
         /// <param name="optionsProvider">A set of per-tree options that can be used by analyzers.</param>
-        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, PerTreeOptionsProvider optionsProvider)
+        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, AnalyzerConfigOptionsProvider optionsProvider)
         {
             if (optionsProvider is null)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             AdditionalFiles = additionalFiles.NullToEmpty();
-            PerTreeOptions = optionsProvider;
+            AnalyzerConfigOptionsProvider = optionsProvider;
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
         public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles)
-            : this(additionalFiles, CompilerPerTreeOptionsProvider.Empty)
+            : this(additionalFiles, CompilerAnalyzerConfigOptionsProvider.Empty)
         { }
 
         /// <summary>

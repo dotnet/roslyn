@@ -65,6 +65,7 @@ Class C
         Dim x As Integer
     End Sub
 End Class")
+            Dim additionalFile = dir.CreateFile("file.txt")
             Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
 [*.vb]
 dotnet_diagnostic.bc42024.severity = suppress")
@@ -77,10 +78,12 @@ dotnet_diagnostic.bc42024.severity = suppress")
 
             Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
 
-            Dim outWriter = new StringWriter(CultureInfo.InvariantCulture)
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = cmd.Run(outWriter)
             Assert.Equal(0, exitCode)
             Assert.Equal("", outWriter.ToString())
+
+            Assert.Null(cmd.AnalyzerOptions)
         End Sub
 
         <Fact>
@@ -92,14 +95,25 @@ Class C
         Dim x As Integer
     End Sub
 End Class")
+            Dim additionalFile = dir.CreateFile("file.txt")
             Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
 [*.vb]
 dotnet_diagnostic.bc42024.severity = suppress
-my_option = my_val")
+dotnet_diagnostic.warning01.severity = suppress
+dotnet_diagnostic.Warning03.severity = suppress
+my_option = my_val
+
+[*.txt]
+dotnet_diagnostic.bc42024.severity = suppress
+my_option2 = my_val2")
             Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
                 "/nologo",
                 "/t:library",
+                "/preferreduilang:en",
                 "/analyzerconfig:" + analyzerConfig.Path,
+                "/analyzer:" + Assembly.GetExecutingAssembly().Location,
+                "/nowarn:42376",
+                "/additionalfile:" + additionalFile.Path,
                 src.Path})
 
             Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
@@ -110,14 +124,28 @@ my_option = my_val")
             Assert.Equal("", outWriter.ToString())
 
             Dim comp = cmd.Compilation
+            Dim tree = comp.SyntaxTrees.Single()
+            AssertEx.SetEqual({
+                KeyValuePair.Create("bc42024", ReportDiagnostic.Suppress),
+                KeyValuePair.Create("warning01", ReportDiagnostic.Suppress),
+                KeyValuePair.Create("warning03", ReportDiagnostic.Suppress)
+                }, tree.DiagnosticOptions)
 
-            Dim compilerTreeOptions = Assert.IsType(Of CompilerPerTreeOptionsProvider)(
-                cmd.TreeOptionsProvider)
-            Dim options = compilerTreeOptions.GetOptions(comp.SyntaxTrees.Single())
+            Dim provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider
+            Dim options = provider.GetOptions(tree)
             Assert.NotNull(options)
-            Dim val = options.GetOption(
-                New [Option](Of String)(CompilerPerTreeOptionsProvider.OptionFeatureName, "my_option"))
+            Dim val As String = Nothing
+            Assert.True(options.TryGetValue("my_option", val))
             Assert.Equal("my_val", val)
+            Assert.False(options.TryGetValue("my_option2", Nothing))
+            Assert.False(options.TryGetValue("dotnet_diagnostic.bc42024.severity", Nothing))
+
+            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single())
+            Assert.NotNull(options)
+            Assert.True(options.TryGetValue("my_option2", val))
+            Assert.Equal("my_val2", val)
+            Assert.False(options.TryGetValue("my_option", Nothing))
+            Assert.False(options.TryGetValue("dotnet_diagnostic.bc42024.severity", Nothing))
         End Sub
 
         <Fact>
@@ -268,7 +296,7 @@ End Class"
             file.WriteAllText(source)
 
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keyfile:key.snk"})
-            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
 
             Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
         End Sub
@@ -287,7 +315,7 @@ End Class"
             file.WriteAllText(source)
 
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keycontainer:aaa"})
-            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
 
             Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
         End Sub
@@ -306,7 +334,7 @@ End Class"
             file.WriteAllText(source)
 
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/features:UseLegacyStrongNameProvider"})
-            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
 
             Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
         End Sub
@@ -9114,7 +9142,7 @@ End Module
 
             Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
                               {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"})
-            Dim comp = vbc.CreateCompilation(New StringWriter(), New TouchedFileLogger(), errorLogger:=Nothing)
+            Dim comp = vbc.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
             Dim desktopProvider = Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
             Using inputStream = Assert.IsType(Of DesktopStrongNameProvider.TempFileStream)(desktopProvider.CreateInputStream())
                 Assert.Equal(tempDir.Path, Path.GetDirectoryName(inputStream.Path))

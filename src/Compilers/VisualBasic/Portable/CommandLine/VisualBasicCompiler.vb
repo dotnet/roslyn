@@ -6,9 +6,6 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports TreeDiagnosticOptions = System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic)
-Imports AnalyzerDiagnosticOptions = Microsoft.CodeAnalysis.Options.OptionSet
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -66,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim content = TryReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
-                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)
+                ReportDiagnostics(fileReadDiagnostics, consoleOutput, errorLogger)
                 fileReadDiagnostics.Clear()
                 hadErrors = True
                 Return Nothing
@@ -87,7 +84,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return tree
         End Function
 
-        Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
+        Public Overrides Function CreateCompilation(consoleOutput As TextWriter,
+                                                    touchedFilesLogger As TouchedFileLogger,
+                                                    errorLogger As ErrorLogger,
+                                                    syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of ImmutableDictionary(Of String, ReportDiagnostic))) As Compilation
             Dim parseOptions = Arguments.ParseOptions
 
             ' We compute script parse options once so we don't have to do it repeatedly in
@@ -98,24 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceFiles As ImmutableArray(Of CommandLineSourceFile) = Arguments.SourceFiles
             Dim trees(sourceFiles.Length - 1) As SyntaxTree
-            Dim bag = DiagnosticBag.GetInstance()
-
-            Dim allTreeDiagnosticOptions As ImmutableArray(Of
-                (treeOptions As TreeDiagnosticOptions, analyzerOptions As AnalyzerDiagnosticOptions)) = Nothing
-            If Arguments.AnalyzerConfigPaths.Length > 0 Then
-                allTreeDiagnosticOptions = ProcessAnalyzerConfigFiles(
-                    Arguments.AnalyzerConfigPaths,
-                    sourceFiles,
-                    hadErrors,
-                    bag)
-            End If
-
-            Debug.Assert(hadErrors = bag.HasAnyErrors())
-
-            If hadErrors Then
-                ReportErrors(bag.ToReadOnlyAndFree(), consoleOutput, errorLogger)
-                Return Nothing
-            End If
 
             If Arguments.CompilationOptions.ConcurrentBuild Then
                 Parallel.For(0, sourceFiles.Length,
@@ -126,9 +108,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 consoleOutput,
                                 parseOptions,
                                 scriptParseOptions,
-                                If(allTreeDiagnosticOptions.IsDefault,
+                                If(syntaxTreeDiagnosticOptionsOpt.IsDefault,
                                     Nothing,
-                                    allTreeDiagnosticOptions(i).treeOptions),
+                                    syntaxTreeDiagnosticOptionsOpt(i)),
                                 hadErrors,
                                 sourceFiles(i),
                                 errorLogger)
@@ -140,33 +122,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         consoleOutput,
                         parseOptions,
                         scriptParseOptions,
-                        If(allTreeDiagnosticOptions.IsDefault,
+                        If(syntaxTreeDiagnosticOptionsOpt.IsDefault,
                             Nothing,
-                            allTreeDiagnosticOptions(i).treeOptions),
+                            syntaxTreeDiagnosticOptionsOpt(i)),
                         hadErrors,
                         sourceFiles(i),
                         errorLogger)
                 Next
             End If
 
-            ' If there were any errors while trying to read files, then exit.
             If hadErrors Then
                 Return Nothing
-            End If
-
-            If allTreeDiagnosticOptions.IsDefault Then
-                TreeOptionsProvider = CompilerPerTreeOptionsProvider.Empty
-            Else
-                Dim combined = ImmutableDictionary.CreateBuilder(Of SyntaxTree, OptionSet)()
-                For i = 0 To allTreeDiagnosticOptions.Length - 1
-                    Dim analyzerOptions As OptionSet = allTreeDiagnosticOptions(i).analyzerOptions
-
-                    If analyzerOptions IsNot Nothing Then
-                        combined(trees(i)) = analyzerOptions
-                    End If
-                Next
-
-                TreeOptionsProvider = New CompilerPerTreeOptionsProvider(combined.ToImmutable())
             End If
 
             If Arguments.TouchedFilesPath IsNot Nothing Then
@@ -176,16 +142,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim diagnostics = New List(Of DiagnosticInfo)()
-            For Each diag In bag.ToReadOnlyAndFree()
-                diagnostics.Add(New DiagnosticInfo(MessageProvider, diag.Code, diag.Arguments.ToArray()))
-            Next
 
             Dim assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default
 
             Dim referenceDirectiveResolver As MetadataReferenceResolver = Nothing
             Dim resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, referenceDirectiveResolver)
 
-            If ReportErrors(diagnostics, consoleOutput, errorLogger) Then
+            If ReportDiagnostics(diagnostics, consoleOutput, errorLogger) Then
                 Return Nothing
             End If
 

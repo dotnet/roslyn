@@ -128,8 +128,7 @@ dotnet_diagnostic.cs0169.severity = suppress");
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString());
 
-            var compilerTreeOptions = Assert.IsType<CompilerPerTreeOptionsProvider>(cmd.TreeOptionsProvider);
-            Assert.True(compilerTreeOptions.IsEmpty);
+            Assert.Null(cmd.AnalyzerOptions);
         }
 
         [Fact]
@@ -141,14 +140,23 @@ class C
 {
     int _f;
 }");
+            var additionalFile = dir.CreateFile("file.txt");
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
 [*.cs]
 dotnet_diagnostic.cs0169.severity = suppress
-my_option = my_val");
+dotnet_diagnostic.Warning01.severity = suppress
+my_option = my_val
+
+[*.txt]
+dotnet_diagnostic.cs0169.severity = suppress
+my_option2 = my_val2");
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] {
                 "/nologo",
                 "/t:library",
                 "/analyzerconfig:" + analyzerConfig.Path,
+                "/analyzer:" + Assembly.GetExecutingAssembly().Location,
+                "/nowarn:8032",
+                "/additionalfile:" + additionalFile.Path,
                 src.Path });
 
             Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
@@ -159,13 +167,26 @@ my_option = my_val");
             Assert.Equal("", outWriter.ToString());
 
             var comp = cmd.Compilation;
-
-            var compilerTreeOptions = Assert.IsType<CompilerPerTreeOptionsProvider>(cmd.TreeOptionsProvider);
-            var options = compilerTreeOptions.GetOptions(comp.SyntaxTrees.Single());
+            var tree = comp.SyntaxTrees.Single();
+            AssertEx.SetEqual(new[] {
+                KeyValuePair.Create("cs0169", ReportDiagnostic.Suppress),
+                KeyValuePair.Create("warning01", ReportDiagnostic.Suppress)
+            }, tree.DiagnosticOptions);
+                
+            var provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            var options = provider.GetOptions(tree);
             Assert.NotNull(options);
-            var val = options.GetOption(new Option<string>(
-                CompilerPerTreeOptionsProvider.OptionFeatureName, "my_option"));
+            Assert.True(options.TryGetValue("my_option", out string val));
             Assert.Equal("my_val", val);
+            Assert.False(options.TryGetValue("my_option2", out _));
+            Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
+
+            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
+            Assert.NotNull(options);
+            Assert.True(options.TryGetValue("my_option2", out val));
+            Assert.Equal("my_val2", val);
+            Assert.False(options.TryGetValue("my_option", out _));
+            Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
         }
 
         [Fact]
@@ -197,8 +218,7 @@ $@"warning CS8500: The diagnostic 'cs0169' was given an invalid severity 'garbag
 test.cs(4,9): warning CS0169: The field 'C._f' is never used
 ", outWriter.ToString());
 
-            var compilerTreeOptions = Assert.IsType<CompilerPerTreeOptionsProvider>(cmd.TreeOptionsProvider);
-            Assert.True(compilerTreeOptions.IsEmpty);
+            Assert.Null(cmd.AnalyzerOptions);
         }
 
         [Fact]

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Diagnostics.CompilerPerTreeOptionsProvider;
+using static Microsoft.CodeAnalysis.Diagnostics.CompilerAnalyzerConfigOptionsProvider;
 using static Roslyn.Test.Utilities.TestHelpers;
 using KeyValuePair = Roslyn.Utilities.KeyValuePair;
 
@@ -423,7 +423,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
-            }, options.Select(x => x.treeOptions));
+            }, options.treeOptions);
         }
 
         [Fact]
@@ -448,7 +448,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
-            }, options.Select(x => x.treeOptions));
+            }, options.treeOptions);
         }
 
         [Fact]
@@ -472,7 +472,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info)),
-            }, options.Select(x => x.treeOptions));
+            }, options.treeOptions);
         }
 
         [Fact]
@@ -486,7 +486,7 @@ dotnet_diagnostic.cs000.severity = suppress
 [test.*]
 dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var (treeOptions, _) = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
                 configs,
                 messageProvider: null,
@@ -498,7 +498,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info))
-            }, options.Select(x => x.treeOptions));
+            }, treeOptions);
         }
 
         [Fact]
@@ -518,7 +518,7 @@ dotnet_diagnostic.cs000.severity = warn
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var (treeOptions, _) = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/subdir/test.cs", "/subdir/test.vb" },
                 configs,
                 messageProvider: null,
@@ -533,7 +533,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn),
                     ("cs001", ReportDiagnostic.Info))
-            }, options.Select(x => x.treeOptions));
+            }, treeOptions);
         }
 
         [Fact]
@@ -550,7 +550,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var (treeOptions, _) = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/subdir/test.cs", "/subdir/test.vb" },
                 configs,
                 messageProvider: null,
@@ -566,7 +566,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                     ("cs001", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, options.Select(x => x.treeOptions));
+            }, treeOptions);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -577,7 +577,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 [*.cs]
 dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var (treeOptions, _) = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "Z:\\test.cs" },
                 configs,
                 messageProvider: null,
@@ -588,44 +588,28 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
             {
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, options.Select(x => x.treeOptions));
-        }
-
-        private class AnalyzerOptionDictComparer : IEqualityComparer<KeyValuePair<Option<string>, string>>
-        {
-            public static readonly AnalyzerOptionDictComparer Instance = new AnalyzerOptionDictComparer();
-            private AnalyzerOptionDictComparer() { }
-
-            public bool Equals(KeyValuePair<Option<string>, string> x, KeyValuePair<Option<string>, string> y)
-                => CompilerOptionSet.CompilerOptionSetKeyComparer.Instance.Equals(x.Key, y.Key) &&
-                   StringOrdinalComparer.Equals(x.Value, y.Value);
-
-            public int GetHashCode(KeyValuePair<Option<string>, string> obj)
-                => CompilerOptionSet.CompilerOptionSetKeyComparer.Instance.GetHashCode(obj.Key);
+            }, treeOptions);
         }
 
         private void VerifyAnalyzerOptions(
             (string key, string val)[][] expected,
-            ImmutableArray<(ImmutableDictionary<string, ReportDiagnostic>, OptionSet analyzerOptions)> options)
+            (ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>>,
+             ImmutableArray<ImmutableDictionary<string, string>> analyzerOptions) options)
         {
-            Assert.Equal(expected.Length, options.Length);
+            var analyzerOptions = options.analyzerOptions;
+            Assert.Equal(expected.Length, analyzerOptions.Length);
 
             for (int i = 0; i < expected.Length; i++)
             {
                 if (expected[i] is null)
                 {
-                    Assert.Null(options[i].analyzerOptions);
+                    Assert.Null(analyzerOptions[i]);
                 }
                 else
                 {
-                    var compilerSet = Assert.IsType<CompilerOptionSet>(options[i].analyzerOptions);
                     AssertEx.SetEqual(
-                        compilerSet,
-                        expected[i].Select(x =>
-                            KeyValuePair.Create(
-                                new Option<string>(OptionFeatureName, x.key),
-                                x.val)),
-                        AnalyzerOptionDictComparer.Instance);
+                        analyzerOptions[i],
+                        expected[i].Select(KeyValuePair.ToKeyValuePair));
                 }
             }
         }
