@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return;
             }
 
-            var severity = option.Notification.Value;
+            var severity = option.Notification.Severity;
             context.ReportDiagnostic(
-                Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity), binaryExpression.GetLocation(), s_properties));
+                DiagnosticHelper.Create(
+                    Descriptor, binaryExpression.GetLocation(), severity, additionalLocations: null, s_properties));
         }
 
         private static bool IsObjectCastAndNullCheck(

@@ -996,6 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     (renameSymbol.Kind == SymbolKind.Method &&
                         (string.Compare(renameSymbol.Name, WellKnownMemberNames.MoveNextMethodName, StringComparison.OrdinalIgnoreCase) == 0 ||
                         string.Compare(renameSymbol.Name, WellKnownMemberNames.GetEnumeratorMethodName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                        string.Compare(renameSymbol.Name, WellKnownMemberNames.GetAwaiter, StringComparison.OrdinalIgnoreCase) == 0 ||
                         string.Compare(renameSymbol.Name, WellKnownMemberNames.DeconstructMethodName, StringComparison.OrdinalIgnoreCase) == 0));
 
             // TODO: handle Dispose for using statement and Add methods for collection initializers.
@@ -1013,6 +1014,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         {
                             case SyntaxKind.ForEachKeyword:
                                 return ImmutableArray.Create(((CommonForEachStatementSyntax)token.Parent).Expression.GetLocation());
+                            case SyntaxKind.AwaitKeyword:
+                                return ImmutableArray.Create(token.GetLocation());
                         }
 
                         if (token.Parent.IsInDeconstructionLeft(out var deconstructionLeft))

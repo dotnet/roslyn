@@ -404,7 +404,7 @@ class Program
                 CompilationName,
                 new[] { tree },
                 References,
-                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new[] { KeyValuePair.Create("CS0219", ReportDiagnostic.Suppress) }));
+                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new[] { KeyValuePairUtil.Create("CS0219", ReportDiagnostic.Suppress) }));
         }
 
         protected override bool CompilationSucceeded(Compilation compilation, Stream temporaryStream)
