@@ -64,9 +64,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
-        public string GetText()
-            => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
-
         public void SetText(string text)
             => ExecuteOnActiveView(view =>
             {
@@ -92,42 +89,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 view.Caret.MoveTo(point);
             });
 
-        private static IEnumerable<T> FindDescendants<T>(DependencyObject rootObject) where T : DependencyObject
-        {
-            if (rootObject != null)
-            {
-                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
-                {
-                    DependencyObject child = VisualTreeHelper.GetChild(rootObject, i);
-
-                    if (child != null && child is T)
-                        yield return (T)child;
-
-                    foreach (T descendant in FindDescendants<T>(child))
-                        yield return descendant;
-                }
-            }
-        }
-
-        public void VerifyDialog(string dialogAutomationId, bool isOpen)
-        {
-            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
-
-            if ((isOpen && dialogAutomationElement == null) ||
-                (!isOpen && dialogAutomationElement != null))
-            {
-                throw new InvalidOperationException($"Expected the {dialogAutomationId} dialog to be {(isOpen ? "open" : "closed")}, but it is not.");
-            }
-        }
-
-        public void DialogSendKeys(string dialogAutomationName, string keys)
-        {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialogById((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName);
-
-            dialogAutomationElement.SetFocus();
-            SendKeys.SendWait(keys);
-        }
-
         public void SendKeysToNavigateTo(string keys)
         {
             var dialogAutomationElement = FindNavigateTo();
@@ -138,11 +99,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             dialogAutomationElement.SetFocus();
             SendKeys.SendWait(keys);
-        }
-
-        public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
-        {
-            DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
 
         private static IUIAutomationElement FindNavigateTo()
@@ -180,11 +136,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
             }
             while (true);
-        }
-
-        protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
-        {
-            return view.GetBufferContainingCaret();
         }
     }
 }

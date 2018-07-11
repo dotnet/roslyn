@@ -8,10 +8,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// <summary>
     /// Provides a means of interacting with the Visual Studio editor by remoting calls into Visual Studio.
     /// </summary>
-    public partial class Editor_OutOfProc : TextViewWindow_OutOfProc
+    public class Editor_OutOfProc : TextViewWindow_OutOfProc
     {
-        public new Verifier Verify { get; }
-
         private readonly Editor_InProc _editorInProc;
         private readonly VisualStudioInstance _instance;
 
@@ -20,7 +18,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance = visualStudioInstance;
             _editorInProc = (Editor_InProc)_textViewWindowInProc;
-            Verify = new Verifier(this, _instance);
         }
 
         internal override TextViewWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance)
@@ -28,9 +25,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void Activate()
             => _editorInProc.Activate();
-
-        public string GetText()
-            => _editorInProc.GetText();
 
         public void SetText(string value)
             => _editorInProc.SetText(value);
@@ -47,15 +41,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             NavigateToSendKeys(text);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigateTo);
         }
-
-        public void VerifyDialog(string dialogName, bool isOpen)
-            => _editorInProc.VerifyDialog(dialogName, isOpen);
-
-        public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
-            => _editorInProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
-
-        public void DialogSendKeys(string dialogAutomationName, string keys)
-            => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
