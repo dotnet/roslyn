@@ -19,11 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             internal TypeSymbolWithAnnotations Type => _symbolOrTypeSymbolWithAnnotations as TypeSymbolWithAnnotations;
-            internal Symbol Symbol => _symbolOrTypeSymbolWithAnnotations as Symbol;
+            internal Symbol Symbol => _symbolOrTypeSymbolWithAnnotations as Symbol ?? Type?.TypeSymbol;
             internal bool IsType => !(Type is null);
-            internal bool IsAlias => Symbol?.Kind == SymbolKind.Alias;
-            internal Symbol SymbolOrType => Symbol ?? Type?.TypeSymbol;
-            internal NamespaceOrTypeSymbol NamespaceOrTypeSymbol => SymbolOrType as NamespaceOrTypeSymbol;
+            internal bool IsAlias => (_symbolOrTypeSymbolWithAnnotations as Symbol)?.Kind == SymbolKind.Alias;
+            internal NamespaceOrTypeSymbol NamespaceOrTypeSymbol => Symbol as NamespaceOrTypeSymbol;
             internal bool IsDefault => _symbolOrTypeSymbolWithAnnotations is null;
 
             internal static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateNonNull(bool nonNullTypes, Symbol symbol)
