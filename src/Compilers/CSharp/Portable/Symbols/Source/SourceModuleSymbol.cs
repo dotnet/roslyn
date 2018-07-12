@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to be complete after a call to GetAttributes(). 
         private ConcurrentDictionary<string, ConcurrentSet<ImmutableArray<byte>>> _lazyNullableOptOutForAssemblyMap;
 
+        private ThreeState _lazyNonNullTypes;
+
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
             DeclarationTable declarations,
@@ -587,8 +589,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
-                return SyntaxBasedNonNullTypes(((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations()) ?? this.UtilizesNullableReferenceTypes;
+                if (!_lazyNonNullTypes.HasValue())
+                {
+                    // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
+                    bool value = SyntaxBasedNonNullTypes(((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations()) ?? this.UtilizesNullableReferenceTypes;
+                    _lazyNonNullTypes = value.ToThreeState();
+                }
+                return _lazyNonNullTypes.Value();
             }
         }
 
