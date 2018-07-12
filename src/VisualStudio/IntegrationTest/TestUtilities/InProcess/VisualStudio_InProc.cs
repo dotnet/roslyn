@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Diagnostics;
-
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal partial class VisualStudio_InProc : InProcComponent
@@ -14,9 +11,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudio_InProc Create()
             => new VisualStudio_InProc();
 
-        new public void WaitForApplicationIdle()
-            => InProcComponent.WaitForApplicationIdle();
-
         new public void WaitForSystemIdle()
             => InProcComponent.WaitForSystemIdle();
 
@@ -25,22 +19,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         new public void ExecuteCommand(string commandName, string args = "")
             => InProcComponent.ExecuteCommand(commandName, args);
-
-        public void ActivateMainWindow(bool skipAttachingThreads = false)
-            => InvokeOnUIThread(() => {
-                var dte = GetDTE();
-
-                var activeVisualStudioWindow = (IntPtr)dte.ActiveWindow.HWnd;
-                Debug.WriteLine($"DTE.ActiveWindow.HWnd = {activeVisualStudioWindow}");
-
-                if (activeVisualStudioWindow == IntPtr.Zero)
-                {
-                    activeVisualStudioWindow = (IntPtr)dte.MainWindow.HWnd;
-                    Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
-                }
-
-                IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow, skipAttachingThreads);
-            });
 
         public void Quit()
             => GetDTE().Quit();

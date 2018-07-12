@@ -7,12 +7,9 @@ using System.Linq;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
-using System.Threading;
-using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 
 using Process = System.Diagnostics.Process;
@@ -25,13 +22,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IpcChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
-        public Editor_OutOfProc Editor { get; }
-
-        public SendKeys SendKeys { get; }
-
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
-
-        public VisualStudioWorkspace_OutOfProc Workspace { get; }
 
         public TestInvoker_OutOfProc TestInvoker { get; }
 
@@ -99,15 +90,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
-            Editor = new Editor_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
-            Workspace = new VisualStudioWorkspace_OutOfProc(this);
             TestInvoker = new TestInvoker_OutOfProc(this);
-
-            SendKeys = new SendKeys(this);
-
-            // Ensure we are in a known 'good' state by cleaning up anything changed by the previous instance
-            CleanUp();
         }
 
         public void ExecuteInHostProcess(Type type, string methodName)
@@ -126,21 +110,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow(bool skipAttachingThreads = false)
-            => _inProc.ActivateMainWindow(skipAttachingThreads);
-
-        public void WaitForApplicationIdle(CancellationToken cancellationToken)
-        {
-            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-            task.Wait(cancellationToken);
-        }
-
         public bool IsRunning => !HostProcess.HasExited;
 
         public void CleanUp()
         {
-            Workspace.CleanUpWaitingService();
-            Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
         }
 
