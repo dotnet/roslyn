@@ -835,6 +835,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Perform additional code cleanup during formatting.
+        /// </summary>
+        internal static string Perform_additional_code_cleanup_during_formatting {
+            get {
+                return ResourceManager.GetString("Perform_additional_code_cleanup_during_formatting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Performance.
         /// </summary>
         internal static string Performance {
