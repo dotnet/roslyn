@@ -153,11 +153,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
         /// </summary>
-        internal abstract NamedTypeSymbol BaseTypeNoUseSiteDiagnostics { get; }
+        internal abstract NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute);
 
-        internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => GetBaseTypeNoUseSiteDiagnostics(ignoreNonNullTypesAttribute: false);
+
+        internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool ignoreNonNullTypesAttribute = false)
         {
-            var result = BaseTypeNoUseSiteDiagnostics;
+            var result = GetBaseTypeNoUseSiteDiagnostics(ignoreNonNullTypesAttribute);
 
             if ((object)result != null)
             {
@@ -257,7 +259,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+            // Ignoring NonNullTypes breaks cycles (such as when binding attributes)
+            bool ignoreNonNullTypesAttribute = (comparison & TypeCompareKind.CompareNullableModifiersForReferenceTypes) == 0;
+
+            var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics, ignoreNonNullTypesAttribute);
             while ((object)t != null)
             {
                 if (type.Equals(t, comparison))
@@ -265,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics, ignoreNonNullTypesAttribute);
             }
 
             return false;

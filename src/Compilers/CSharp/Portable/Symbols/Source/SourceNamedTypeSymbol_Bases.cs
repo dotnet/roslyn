@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal partial class SourceNamedTypeSymbol
     {
         private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> _lazyDeclaredBases;
+        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> _lazyDeclaredBasesIgnoringNonNullTypesAttribute;
 
         private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces;
@@ -28,30 +29,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
         /// </summary>
-        internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal sealed override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
         {
-            get
+            if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
+                // force resolution of bases in containing type
+                // to make base resolution errors more deterministic
+                if ((object)ContainingType != null)
                 {
-                    // force resolution of bases in containing type
-                    // to make base resolution errors more deterministic
-                    if ((object)ContainingType != null)
-                    {
-                        var tmp = ContainingType.BaseTypeNoUseSiteDiagnostics;
-                    }
-
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    var acyclicBase = this.MakeAcyclicBaseType(diagnostics);
-                    if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType))
-                    {
-                        AddDeclarationDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
+                    var tmp = ContainingType.BaseTypeNoUseSiteDiagnostics;
                 }
 
-                return _lazyBaseType;
+                var diagnostics = DiagnosticBag.GetInstance();
+                var acyclicBase = this.MakeAcyclicBaseType(diagnostics, ignoreNonNullTypesAttribute);
+                if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType))
+                {
+                    AddDeclarationDiagnostics(diagnostics);
+                }
+                diagnostics.Free();
             }
+
+            return _lazyBaseType;
         }
 
         /// <summary>
@@ -204,33 +202,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> GetDeclaredBases(ConsList<Symbol> basesBeingResolved)
+        /// <summary>
+        /// ignoreNonNullTypesAttribute is used when we need to break cycles
+        /// </summary>
+        internal Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> GetDeclaredBases(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute)
         {
             if (ReferenceEquals(_lazyDeclaredBases, null))
             {
-                DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-                if (Interlocked.CompareExchange(ref _lazyDeclaredBases, MakeDeclaredBases(basesBeingResolved, diagnostics), null) == null)
+                if (ReferenceEquals(_lazyDeclaredBasesIgnoringNonNullTypesAttribute, null))
                 {
-                    AddDeclarationDiagnostics(diagnostics);
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    if (Interlocked.CompareExchange(ref _lazyDeclaredBasesIgnoringNonNullTypesAttribute, MakeDeclaredBases(basesBeingResolved, ignoreNonNullTypesAttribute: true, diagnostics), null) == null)
+                    {
+                        AddDeclarationDiagnostics(diagnostics);
+                    }
+                    diagnostics.Free();
                 }
 
-                diagnostics.Free();
+                if (ignoreNonNullTypesAttribute)
+                {
+                    return _lazyDeclaredBasesIgnoringNonNullTypesAttribute;
+                }
+
+                // We already computed bases ignoring NonNullTypes (ie. assuming NonNullTypes is true),
+                // so diagnostics were already reported and we can just fix the base and interfaces up with NonNullTypes information
+                var lazyDeclaredBases = NonNullTypes ?
+                    _lazyDeclaredBasesIgnoringNonNullTypesAttribute :
+                    new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(
+                        (NamedTypeSymbol)_lazyDeclaredBasesIgnoringNonNullTypesAttribute.Item1?.SetUnknownNullabilityForReferenceTypes(),
+                        _lazyDeclaredBasesIgnoringNonNullTypesAttribute.Item2.SelectAsArray(i => (NamedTypeSymbol)i.SetUnknownNullabilityForReferenceTypes()));
+
+                Interlocked.CompareExchange(ref _lazyDeclaredBases, lazyDeclaredBases, null);
             }
 
             return _lazyDeclaredBases;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute)
         {
-            return GetDeclaredBases(basesBeingResolved).Item1;
+            return GetDeclaredBases(basesBeingResolved, ignoreNonNullTypesAttribute).Item1;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
         {
-            return GetDeclaredBases(basesBeingResolved).Item2;
+            return GetDeclaredBases(basesBeingResolved, ignoreNonNullTypesAttribute: false).Item2;
         }
 
-        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> MakeDeclaredBases(ConsList<Symbol> basesBeingResolved, DiagnosticBag diagnostics)
+        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> MakeDeclaredBases(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute, DiagnosticBag diagnostics)
         {
             if (this.TypeKind == TypeKind.Enum)
             {
@@ -249,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var decl in this.declaration.Declarations)
             {
-                Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> one = MakeOneDeclaredBases(newBasesBeingResolved, decl, diagnostics);
+                Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> one = MakeOneDeclaredBases(newBasesBeingResolved, decl, ignoreNonNullTypesAttribute, diagnostics);
                 if ((object)one == null) continue;
 
                 var partBase = one.Item1;
@@ -338,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // process the base list for one part of a partial class, or for the only part of any other type declaration.
-        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> MakeOneDeclaredBases(ConsList<Symbol> newBasesBeingResolved, SingleTypeDeclaration decl, DiagnosticBag diagnostics)
+        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> MakeOneDeclaredBases(ConsList<Symbol> newBasesBeingResolved, SingleTypeDeclaration decl, bool ignoringNonNullTypesAttribute, DiagnosticBag diagnostics)
         {
             BaseListSyntax bases = GetBaseListOpt(decl);
             if (bases == null)
@@ -354,6 +372,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // (to avoid cycles if the constraint types are not bound yet). Instead, constraint checks
             // are handled by the caller.
             baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+            if (ignoringNonNullTypesAttribute)
+            {
+                baseBinder = baseBinder.WithAdditionalFlags(BinderFlags.NonNullTypesTrue);
+            }
 
             int i = -1;
             foreach (var baseTypeSyntax in bases.Types)
@@ -594,19 +616,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return isClass ? declaredInterfaces : result.ToImmutableAndFree();
         }
 
-        private NamedTypeSymbol MakeAcyclicBaseType(DiagnosticBag diagnostics)
+        private NamedTypeSymbol MakeAcyclicBaseType(DiagnosticBag diagnostics, bool ignoreNonNullTypesAttribute)
         {
             var typeKind = this.TypeKind;
             var compilation = this.DeclaringCompilation;
             NamedTypeSymbol declaredBase;
             if (typeKind == TypeKind.Enum)
             {
-                Debug.Assert((object)GetDeclaredBaseType(basesBeingResolved: null) == null, "Computation skipped for enums");
+                Debug.Assert((object)GetDeclaredBaseType(basesBeingResolved: null, ignoreNonNullTypesAttribute) == null, "Computation skipped for enums");
                 declaredBase = compilation.GetSpecialType(SpecialType.System_Enum);
             }
             else
             {
-                declaredBase = GetDeclaredBaseType(basesBeingResolved: null);
+                declaredBase = GetDeclaredBaseType(basesBeingResolved: null, ignoreNonNullTypesAttribute);
             }
 
             if ((object)declaredBase == null)

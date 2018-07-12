@@ -338,9 +338,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+            internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
             {
-                get { return this.Manager.System_Object; }
+                return this.Manager.System_Object;
             }
 
             public override TypeKind TypeKind
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return this; }
             }
 
-            internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+            internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute)
             {
                 return this.Manager.System_Object;
             }

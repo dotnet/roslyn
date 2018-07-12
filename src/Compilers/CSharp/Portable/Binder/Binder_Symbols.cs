@@ -365,7 +365,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PredefinedType:
                     {
                         var type = BindPredefinedTypeSymbol((PredefinedTypeSyntax)syntax, diagnostics);
-                        return TypeSymbolWithAnnotations.CreateNonNull(NonNullTypes, type);
+                        if (type.SpecialType == SpecialType.System_Boolean)
+                        {
+                            // Breaking a cycle when binding the `NonNullTypes` attribute constructor
+                            // PROTOTYPE(NullableReferenceTypes): test this with some extra/unrelated constructors on NonNullTypesAttribute
+                            return TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes: true, type);
+                        }
+                        else
+                        {
+                            return TypeSymbolWithAnnotations.CreateNonNull(NonNullTypes, type);
+                        }
                     }
 
                 case SyntaxKind.IdentifierName:

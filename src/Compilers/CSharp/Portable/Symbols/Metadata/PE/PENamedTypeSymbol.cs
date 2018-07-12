@@ -397,17 +397,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
         {
-            get
+            if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
-                {
-                    Interlocked.CompareExchange(ref _lazyBaseType, MakeAcyclicBaseType(), ErrorTypeSymbol.UnknownResultType);
-                }
-
-                return _lazyBaseType;
+                Interlocked.CompareExchange(ref _lazyBaseType, MakeAcyclicBaseType(), ErrorTypeSymbol.UnknownResultType);
             }
+
+            return _lazyBaseType;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
@@ -425,8 +422,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return InterfacesNoUseSiteDiagnostics();
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute = false)
         {
+            // PROTOTYPE(NullableReferenceTypes): confirm that the ignoreNonNullTypesAttribute and ignoreNullability flags are indeed different. Add a comment to clarify.
             return GetDeclaredBaseType(ignoreNullability: false);
         }
 

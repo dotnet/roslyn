@@ -1831,12 +1831,13 @@ class E
             var obliviousLib = @"
 using System.Runtime.CompilerServices;
 
-[module: NonNullTypes(false)]
+[module: NonNullTypesAttribute(false)]
 public class Oblivious { }
 ";
 
             var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
-            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), false);
+            obliviousComp.VerifyDiagnostics();
+            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
 
             var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
@@ -1844,7 +1845,55 @@ public class Oblivious { }
             VerifyNonNullTypes(compilation.GetMember("Oblivious"), false);
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): syntax-based detection of NonNullTypes is temporary")]
+        [Fact(Skip = "Hit assertion in BindNamespaceOrTypeOrAliasSymbol, since only bool is special-cased")]
+        public void NonNullTypes_OnModule_WithExtraConstructor()
+        {
+            var obliviousLib = @"
+[module: System.Runtime.CompilerServices.NonNullTypesAttribute(false)]
+public class Oblivious { }
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All)]
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+        public NonNullTypesAttribute(string x) { }
+    }
+}
+";
+
+            var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
+            obliviousComp.VerifyDiagnostics();
+            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
+
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
+            compilation.VerifyDiagnostics();
+            VerifyNonNullTypes(compilation.GetMember("Oblivious"), expectNonNullTypes: false);
+        }
+
+        [Fact]
+        public void NonNullTypes_OnModule_WithAlias()
+        {
+            var obliviousLib = @"
+using NonNullTypesAlias = System.Runtime.CompilerServices.NonNullTypesAttribute;
+
+[module: NonNullTypesAlias(false)]
+public class Oblivious { }
+";
+
+            var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
+            obliviousComp.VerifyDiagnostics();
+            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
+
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
+            compilation.VerifyDiagnostics();
+            VerifyNonNullTypes(compilation.GetMember("Oblivious"), expectNonNullTypes: false);
+        }
+
+        [Fact]
         public void NonNullTypes_OnAssembly()
         {
             var obliviousLib = @"
@@ -1856,9 +1905,9 @@ public class Oblivious { }
 
             var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
             obliviousComp.VerifyDiagnostics(
-                // (4,12): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return' declarations.
+                // (4,12): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 // [assembly: NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(4, 12)
                 );
             VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), true); // PROTOTYPE(NullableReferenceTypes): should be false
         }
@@ -35430,7 +35479,7 @@ public class A2<T> { }
             Assert.Equal("A2<System.Object?>!", typeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): SetUnknownNullabilityForReferenceTypes should leave string? alone")]
         public void UnannotatedConstraint_Override()
         {
             var source0 =

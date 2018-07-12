@@ -229,9 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return Accessibility.Public; }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
         {
-            get { return ContainingAssembly.GetSpecialType(SpecialType.System_ValueType); }
+            return ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
         }
     }
 }
