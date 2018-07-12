@@ -11007,6 +11007,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to target typed new.
+        /// </summary>
+        internal static string IDS_FeatureTargetTypedNew {
+            get {
+                return ResourceManager.GetString("IDS_FeatureTargetTypedNew", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to throw expression.
         /// </summary>
         internal static string IDS_FeatureThrowExpression {

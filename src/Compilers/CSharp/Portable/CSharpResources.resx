@@ -5351,4 +5351,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DefaultValueTypeCtorInTargetTypedNew" xml:space="preserve">
     <value>The default constructor of the value type '{0}' may not be used with target-typed 'new'. Consider using 'default' instead.</value>
   </data>
+  <data name="IDS_FeatureTargetTypedNew" xml:space="preserve">
+    <value>target-typed new</value>
+  </data>
 </root>
