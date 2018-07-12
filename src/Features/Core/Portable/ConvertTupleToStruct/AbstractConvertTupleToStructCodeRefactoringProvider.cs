@@ -383,7 +383,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             //      starting project.
 
             var dependentProjects = graph.GetProjectsThatDirectlyDependOnThisProject(startingProject.Id);
-            var allProjects = dependentProjects.Select(solution.GetProject).Concat(startingProject).ToSet();
+            var allProjects = dependentProjects.Select(solution.GetProject)
+                                               .Where(p => p.SupportsCompilation)
+                                               .Concat(startingProject).ToSet();
 
             var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
             var tupleFieldNames = tupleType.TupleElements.SelectAsArray(f => f.Name);
