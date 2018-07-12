@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis;
@@ -48,13 +49,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             /// <summary>
             /// Creates a <see cref="StandardTextDocument"/>.
-            /// <para>Note: getFolderNames maps from a VSITEMID to the folders this document should be contained in.</para>
             /// </summary>
             public StandardTextDocument(
                 DocumentProvider documentProvider,
                 AbstractProject project,
                 DocumentKey documentKey,
-                Func<uint, IReadOnlyList<string>> getFolderNames,
+                ImmutableArray<string> folderNames,
                 SourceCodeKind sourceCodeKind,
                 IVsFileChangeEx fileChangeService,
                 ITextBuffer openTextBuffer,
@@ -69,10 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
                 _itemMoniker = documentKey.Moniker;
 
-                var itemid = this.GetItemId();
-                this.Folders = itemid == (uint)VSConstants.VSITEMID.Nil
-                    ? SpecializedCollections.EmptyReadOnlyList<string>()
-                    : getFolderNames(itemid);
+                this.Folders = folderNames;
 
                 _documentProvider = documentProvider;
 
@@ -241,9 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return (uint)VSConstants.VSITEMID.Nil;
                 }
 
-                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out var itemId) == VSConstants.S_OK
-                    ? itemId
-                    : (uint)VSConstants.VSITEMID.Nil;
+                return Project.Hierarchy.TryGetItemId(_itemMoniker);
             }
         }
     }

@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck;
+using Microsoft.CodeAnalysis.CSharp.SpellCheck;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -576,6 +576,21 @@ class C
 }",
 @"class C<T> where T : unmanaged
 {
+}");
+        }
+
+        [WorkItem(28244, "https://github.com/dotnet/roslyn/issues/28244")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        public async Task TestMisspelledConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class SomeClass
+{
+    public [|SomeClss|]() { }
+}",
+@"public class SomeClass
+{
+    public SomeClass() { }
 }");
         }
     }

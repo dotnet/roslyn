@@ -55,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                    itemid,
                    languageService,
                    sourceCodeKind,
+                   documentServiceFactory: null,
                    vbHelperFormattingRule,
                    workspace: null)
         {

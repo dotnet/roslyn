@@ -302,9 +302,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If localForFunctionValue IsNot Nothing Then
                 ' Declare local variable for function return 
-                statements.Add(New BoundLocalDeclaration(methodBlock.BlockStatement,
-                                                         localForFunctionValue,
-                                                         Nothing))
+                Dim localDeclaration = New BoundLocalDeclaration(methodBlock.BlockStatement,
+                                                                 localForFunctionValue,
+                                                                 Nothing)
+                localDeclaration.SetWasCompilerGenerated()
+                statements.Add(localDeclaration)
             End If
 
             Dim blockBinder = Me.GetBinder(DirectCast(methodBlock, VisualBasicSyntaxNode))

@@ -476,6 +476,12 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestYieldReturnStatements()
+            VerifySyntax(Of YieldStatementSyntax)(Generator.YieldReturnStatement(Generator.LiteralExpression(1)), "Yield 1")
+            VerifySyntax(Of YieldStatementSyntax)(Generator.YieldReturnStatement(Generator.IdentifierName("x")), "Yield x")
+        End Sub
+
+        <Fact>
         Public Sub TestThrowStatements()
             VerifySyntax(Of ThrowStatementSyntax)(Generator.ThrowStatement(), "Throw")
             VerifySyntax(Of ThrowStatementSyntax)(Generator.ThrowStatement(Generator.IdentifierName("x")), "Throw x")

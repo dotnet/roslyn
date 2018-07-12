@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static HostAnalyzerManager CreateHostAnalyzerManager(string language, ImmutableArray<DiagnosticAnalyzer> analyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             var map = ImmutableDictionary.CreateRange(
-                SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(language, analyzers)));
+                SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(language, analyzers)));
             return CreateHostAnalyzerManager(map, hostDiagnosticUpdateSource);
         }
 

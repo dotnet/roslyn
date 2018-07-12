@@ -751,7 +751,7 @@ struct C
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
-            var graphM = SemanticModel.GetControlFlowGraph((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single()));
+            var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single()));
 
             Assert.NotNull(graphM);
 
