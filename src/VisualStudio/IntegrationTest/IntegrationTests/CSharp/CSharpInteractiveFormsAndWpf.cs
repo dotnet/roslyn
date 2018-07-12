@@ -12,7 +12,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         public override async Task InitializeAsync()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
+            await base.InitializeAsync();
             await VisualStudio.InteractiveWindow.SubmitTextAsync(@"#r ""System.Windows.Forms""
 #r ""WindowsBase""
 #r ""PresentationCore""

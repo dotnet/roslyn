@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 
         public override async Task InitializeAsync()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
+            await base.InitializeAsync();
             await VisualStudio.Workspace.SetFullSolutionAnalysisAsync(true);
         }
 

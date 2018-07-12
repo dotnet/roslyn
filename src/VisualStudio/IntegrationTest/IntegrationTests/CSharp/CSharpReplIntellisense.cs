@@ -15,7 +15,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         public override async Task InitializeAsync()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
+            await base.InitializeAsync();
             await VisualStudio.Workspace.SetUseSuggestionModeAsync(true);
         }
 

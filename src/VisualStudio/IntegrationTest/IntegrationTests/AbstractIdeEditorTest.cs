@@ -38,7 +38,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         public override async Task InitializeAsync()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
+            await base.InitializeAsync();
 
             if (_solutionName != null)
             {
