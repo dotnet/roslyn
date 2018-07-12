@@ -180,22 +180,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
             foreach (var (description, diagnosticIds) in enabledOptions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                progressTracker.Description = description;
-                document = await ApplyCodeFixesForSpecificDiagnosticIds(
-                    document, diagnosticIds, cancellationToken).ConfigureAwait(false);
-
-                // Mark this option as being completed.
-                progressTracker.ItemCompleted();
-
                 using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    progressTracker.Description = description;
+                    document = await ApplyCodeFixesForSpecificDiagnosticIds(
+                        document, diagnosticIds, cancellationToken).ConfigureAwait(false);
+
+                    // Mark this option as being completed.
+                    progressTracker.ItemCompleted();
+
                     var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
                     progressTracker.ItemCompleted();
                     return result;
                 }
-
             }
 
             return document;
