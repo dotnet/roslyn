@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         }
                         else
                         {
-                            CodeCleanupOrFormatAsync(args, document, c.ProgressTracker, cancellationToken).Wait(cancellationToken);
+                            CodeCleanupOrFormat(args, document, c.ProgressTracker, cancellationToken);
                         }
 
                         transaction.Complete();
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return true;
         }
 
-        private async Task CodeCleanupOrFormatAsync(
+        private void CodeCleanupOrFormat(
             FormatDocumentCommandArgs args, Document document,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
@@ -123,9 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 // Code cleanup
                 var oldDoc = document;
 
-                // ConfigureAwait(true) so we come back to the UI thread to apply changes.
-                var codeCleanupChanges = await GetCodeCleanupAndFormatChangesAsync(
-                    document, codeCleanupService, progressTracker, cancellationToken).ConfigureAwait(true);
+                var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(
+                    document, codeCleanupService, progressTracker, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 if (codeCleanupChanges != null && codeCleanupChanges.Length > 0)
                 {
