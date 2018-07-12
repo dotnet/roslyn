@@ -786,9 +786,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            await TestServices.SendKeys.SendAsync(new KeyPress(VirtualKey.T, ShiftState.Ctrl));
-            await TestServices.SendKeys.SendAsync(searchText);
-            await TestServices.SendKeys.SendAsync(VirtualKey.Enter);
+            await TestServices.SendKeys.SendAsync(
+                new KeyPress(VirtualKey.T, ShiftState.Ctrl),
+                searchText,
+                VirtualKey.Enter);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigateTo);
         }
 
