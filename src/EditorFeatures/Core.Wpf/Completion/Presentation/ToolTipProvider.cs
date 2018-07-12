@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly ClassificationTypeMap _typeMap;
         private readonly IClassificationFormatMap _formatMap;
 
-        // The textblock containing "..." that will be displayed until the actual completion 
+        // The textblock containing "..." that will be displayed until the actual completion
         // description has been computed.
         private readonly TextBlock _defaultTextBlock;
 
@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // Set our content to be "..." initially.
                 this.Content = toolTipProvider._defaultTextBlock;
 
-                // Kick off the task to produce the new content.  When it completes, call back on 
+                // Kick off the task to produce the new content.  When it completes, call back on
                 // the UI thread to update the display.
                 var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
                 item.GetDescriptionAsync(_cancellationTokenSource.Token)
-                              .ContinueWith(ProcessDescription, _cancellationTokenSource.Token,
-                                            TaskContinuationOptions.OnlyOnRanToCompletion, scheduler);
+                    .ContinueWith(ProcessDescription, _cancellationTokenSource.Token,
+                                  TaskContinuationOptions.OnlyOnRanToCompletion, scheduler);
 
-                // If we get unloaded (i.e. the user scrolls down in the completion list and VS 
+                // If we get unloaded (i.e. the user scrolls down in the completion list and VS
                 // dismisses the existing tooltip), then cancel the work we're doing
                 this.Unloaded += (s, e) => _cancellationTokenSource.Cancel();
             }
