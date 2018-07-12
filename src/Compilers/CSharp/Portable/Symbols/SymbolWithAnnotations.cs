@@ -49,6 +49,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator ==(Symbol x, TypeSymbolWithAnnotations y)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator !=(Symbol x, TypeSymbolWithAnnotations y)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator ==(TypeSymbolWithAnnotations x, Symbol y)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator !=(TypeSymbolWithAnnotations x, Symbol y)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,

@@ -15,51 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        internal struct NamespaceOrTypeOrAliasSymbolWithAnnotations
-        {
-            internal static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateNonNull(bool nonNullTypes, Symbol symbol)
-            {
-                if (symbol is null)
-                {
-                    return default;
-                }
-                var type = symbol as TypeSymbol;
-                if (type is null)
-                {
-                    return new NamespaceOrTypeOrAliasSymbolWithAnnotations(null, symbol);
-                }
-                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes, type), null);
-            }
-
-            internal readonly TypeSymbolWithAnnotations Type;
-            internal readonly Symbol Symbol;
-
-            internal bool IsType => !(Type is null);
-            internal bool IsAlias => Symbol?.Kind == SymbolKind.Alias;
-            internal Symbol SymbolOrType => Symbol ?? Type?.TypeSymbol;
-            internal NamespaceOrTypeSymbol NamespaceOrTypeSymbol => (NamespaceOrTypeSymbol)SymbolOrType;
-
-            internal bool IsDefault => Symbol is null && Type is null;
-
-            private NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type, Symbol symbol)
-            {
-                Debug.Assert((type is null) || (symbol is null));
-                Debug.Assert(!(symbol is TypeSymbol));
-                Type = type;
-                Symbol = symbol;
-            }
-
-            public static implicit operator NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type)
-            {
-                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(type, null);
-            }
-
-            public static explicit operator TypeSymbolWithAnnotations(NamespaceOrTypeOrAliasSymbolWithAnnotations type)
-            {
-                return type.Type;
-            }
-        }
-
         /// <summary>
         /// Binds the type for the syntax taking into account possibility of "var" type.
         /// </summary>
