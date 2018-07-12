@@ -17,7 +17,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private Snapshot _currentSnapshot;
 
-        public event EventHandler UpdatedOnDisk;
+        /// <summary>
+        /// Event that is raised on the UI thread when this metadata reference is updated on disk.
+        /// </summary>
+        public event EventHandler<UpdatedOnDiskEventArgs> UpdatedOnDisk;
 
         public VisualStudioMetadataReference(
             VisualStudioMetadataReferenceManager provider,
@@ -61,7 +64,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnUpdatedOnDisk(object sender, EventArgs e)
         {
-            UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
+            var beforeSnapshot = CurrentSnapshot;
+
+            UpdateSnapshot();
+            UpdatedOnDisk?.Invoke(this, new UpdatedOnDiskEventArgs(beforeSnapshot, _currentSnapshot));
         }
 
         public void Dispose()
@@ -70,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _fileChangeTracker.UpdatedOnDisk -= OnUpdatedOnDisk;
         }
 
-        public void UpdateSnapshot()
+        private void UpdateSnapshot()
         {
             _currentSnapshot = new Snapshot(_provider, Properties, this.FilePath, _fileChangeTracker);
         }
@@ -78,6 +84,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string GetDebuggerDisplay()
         {
             return Path.GetFileName(this.FilePath);
+        }
+
+        public class UpdatedOnDiskEventArgs : EventArgs
+        {
+            public UpdatedOnDiskEventArgs(PortableExecutableReference before, PortableExecutableReference after)
+            {
+                Before = before;
+                After = after;
+            }
+
+            public PortableExecutableReference Before { get; }
+            public PortableExecutableReference After { get; }
         }
     }
 }

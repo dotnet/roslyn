@@ -74,6 +74,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly Dictionary<VisualStudioMetadataReference, CancellationTokenSource> _donotAccessDirectlyChangedReferencesPendingUpdate
             = new Dictionary<VisualStudioMetadataReference, CancellationTokenSource>();
+
+        /// <summary>
+        /// Holds the "original" snapshot in the project that needs to be updated due a reference changing. Because we defer updating after a metadata
+        /// reference change, we need to rememeber the original before so we can do the removal/add correctly.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="OnImportChangedAfterDelay(System.Threading.Tasks.Task, object)" /> is what consumes this.</remarks>
+        private readonly Dictionary<VisualStudioMetadataReference, PortableExecutableReference> _originalSnapshotOfReferenceNeedingUpdate
+            = new Dictionary<VisualStudioMetadataReference, PortableExecutableReference>();
+
         private Dictionary<VisualStudioMetadataReference, CancellationTokenSource> ChangedReferencesPendingUpdate
         {
             get
@@ -668,7 +678,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Called when a referenced metadata file changes on disk.
         /// </summary>
-        private void OnImportChanged(object sender, EventArgs e)
+        private void OnImportChanged(object sender, VisualStudioMetadataReference.UpdatedOnDiskEventArgs e)
         {
             AssertIsForeground();
 
@@ -680,6 +690,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             delayTaskCancellationTokenSource = new CancellationTokenSource();
             ChangedReferencesPendingUpdate[reference] = delayTaskCancellationTokenSource;
+
+            // We need to record what the "before" snapshot is so we know what to remove later. If we get a series of these events, we'll
+            // record the very first one and use that once we process all of the events
+            if (!_originalSnapshotOfReferenceNeedingUpdate.ContainsKey(reference))
+            {
+                _originalSnapshotOfReferenceNeedingUpdate.Add(reference, e.Before);
+            }
 
             var task = Task.Delay(TimeSpan.FromSeconds(5), delayTaskCancellationTokenSource.Token)
                 .ContinueWith(
@@ -696,6 +713,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var reference = (VisualStudioMetadataReference)state;
             ChangedReferencesPendingUpdate.Remove(reference);
+            var originalSnapshot = _originalSnapshotOfReferenceNeedingUpdate[reference];
+            _originalSnapshotOfReferenceNeedingUpdate.Remove(reference);
 
             lock (_gate)
             {
@@ -704,14 +723,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (metadataReferenceDisposable != null)
                 {
-                    // remove the old metadata reference
-                    this.RemoveMetadataReferenceCore(metadataReferenceDisposable, disposeReference: false);
-
-                    // Signal to update the underlying reference snapshot
-                    reference.UpdateSnapshot();
-
-                    // add it back (it will now be based on the new file contents)
-                    this.AddMetadataReferenceCore(metadataReferenceDisposable);
+                    if (PushingChangesToWorkspace)
+                    {
+                        this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnMetadataReferenceRemoved(this.Id, originalSnapshot));
+                        this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnMetadataReferenceAdded(this.Id, reference.CurrentSnapshot));
+                    }
                 }
             }
         }
@@ -1149,6 +1165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     ChangedReferencesPendingUpdate.Clear();
+                    _originalSnapshotOfReferenceNeedingUpdate.Clear();
 
                     ProjectCodeModel?.OnProjectClosed();
 
