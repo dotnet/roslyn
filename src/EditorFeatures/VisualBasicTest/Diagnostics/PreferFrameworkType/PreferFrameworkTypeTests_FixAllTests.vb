@@ -346,9 +346,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class ProgramA
-    Dim x As Integer = 0
-    Dim y As Integer = 0
-    Dim z As Integer = 0
+    Dim x As Int32 = 0
+    Dim y As Int32 = 0
+    Dim z As Int32 = 0
 
     Private Function F(p1 As System.Int32, p2 As System.Int16) As System.Int32
         Dim i1 As System.Int32 = Me.x
@@ -364,9 +364,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class ProgramA2
-    Dim x As Integer = 0
-    Dim y As Integer = 0
-    Dim z As Integer = 0
+    Dim x As Int32 = 0
+    Dim y As Int32 = 0
+    Dim z As Int32 = 0
 
     Private Function F(p1 As System.Int32, p2 As System.Int16) As System.Int32
         Dim i1 As System.Int32 = Me.x
@@ -385,9 +385,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class ProgramA3
-    Dim x As Integer = 0
-    Dim y As Integer = 0
-    Dim z As Integer = 0
+    Dim x As Int32 = 0
+    Dim y As Int32 = 0
+    Dim z As Int32 = 0
 
     Private Function F(p1 As System.Int32, p2 As System.Int16) As System.Int32
         Dim i1 As System.Int32 = Me.x
