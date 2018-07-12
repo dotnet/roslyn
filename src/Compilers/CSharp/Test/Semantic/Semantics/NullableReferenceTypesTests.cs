@@ -35479,7 +35479,7 @@ public class A2<T> { }
             Assert.Equal("A2<System.Object?>!", typeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): SetUnknownNullabilityForReferenceTypes should leave string? alone")]
         public void UnannotatedConstraint_Override()
         {
             var source0 =

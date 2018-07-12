@@ -209,44 +209,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ReferenceEquals(_lazyDeclaredBases, null))
             {
+                initDeclaredBasesIgnoringNonNullTypesAttributeIfNeeded();
                 if (ignoreNonNullTypesAttribute)
                 {
-                    if (ReferenceEquals(_lazyDeclaredBasesIgnoringNonNullTypesAttribute, null))
-                    {
-                        initDeclaredBases(ref _lazyDeclaredBasesIgnoringNonNullTypesAttribute);
-                    }
-
                     return _lazyDeclaredBasesIgnoringNonNullTypesAttribute;
                 }
 
-                if (ReferenceEquals(_lazyDeclaredBasesIgnoringNonNullTypesAttribute, null))
-                {
-                    initDeclaredBases(ref _lazyDeclaredBases);
-                }
-                else
-                {
-                    // If we had already computed bases ignoring NonNullTypes, diagnostics were already reported
-                    // and we can just fix the base and interfaces up with NonNullTypes information
-                    var lazyDeclaredBases = NonNullTypes ?
-                        _lazyDeclaredBasesIgnoringNonNullTypesAttribute :
-                        new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(
-                            (NamedTypeSymbol)_lazyDeclaredBasesIgnoringNonNullTypesAttribute.Item1.SetUnknownNullabilityForReferenceTypes(),
-                            _lazyDeclaredBasesIgnoringNonNullTypesAttribute.Item2.SelectAsArray(i => (NamedTypeSymbol)i.SetUnknownNullabilityForReferenceTypes()));
+                // We already computed bases ignoring NonNullTypes (ie. assuming NonNullTypes is true),
+                // so diagnostics were already reported and we can just fix the base and interfaces up with NonNullTypes information
+                var lazyDeclaredBases = NonNullTypes ?
+                    _lazyDeclaredBasesIgnoringNonNullTypesAttribute :
+                    new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(
+                        (NamedTypeSymbol)_lazyDeclaredBasesIgnoringNonNullTypesAttribute.Item1?.SetUnknownNullabilityForReferenceTypes(),
+                        _lazyDeclaredBasesIgnoringNonNullTypesAttribute.Item2.SelectAsArray(i => (NamedTypeSymbol)i.SetUnknownNullabilityForReferenceTypes()));
 
-                    Interlocked.CompareExchange(ref _lazyDeclaredBases, lazyDeclaredBases, null);
-                }
+                Interlocked.CompareExchange(ref _lazyDeclaredBases, lazyDeclaredBases, null);
             }
 
             return _lazyDeclaredBases;
 
-            void initDeclaredBases(ref Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> lazyDeclaredBases)
+            void initDeclaredBasesIgnoringNonNullTypesAttributeIfNeeded()
             {
-                var diagnostics = DiagnosticBag.GetInstance();
-                if (Interlocked.CompareExchange(ref lazyDeclaredBases, MakeDeclaredBases(basesBeingResolved, ignoreNonNullTypesAttribute, diagnostics), null) == null)
+                if (ReferenceEquals(_lazyDeclaredBasesIgnoringNonNullTypesAttribute, null))
                 {
-                    AddDeclarationDiagnostics(diagnostics);
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    if (Interlocked.CompareExchange(ref _lazyDeclaredBasesIgnoringNonNullTypesAttribute, MakeDeclaredBases(basesBeingResolved, ignoreNonNullTypesAttribute: true, diagnostics), null) == null)
+                    {
+                        AddDeclarationDiagnostics(diagnostics);
+                    }
+                    diagnostics.Free();
                 }
-                diagnostics.Free();
             }
         }
 
