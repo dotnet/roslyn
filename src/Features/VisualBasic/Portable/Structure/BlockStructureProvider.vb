@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' <param name="block"></param>
         ''' <param name="cancellationToken"></param>
         ''' <returns></returns>
-        Friend Overridable Function GetInternalBlocks(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
+        Friend Function GetInternalBlocks(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
             Dim InternalSpans = ArrayBuilder(Of BlockSpan).GetInstance
             InternalSpans.AddIfNotNull(GetPreBlock(block, cancellationToken))
             InternalSpans.AddRange(GetInnerBlocksSpans(block, cancellationToken))
