@@ -434,9 +434,10 @@ CodeStyleOptions.QualifyEventAccess)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
-        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionSilent() As Task
-            Await TestMissingAsyncWithOptionAndNotification(
+        Public Async Function QualifyMemberAccessOnNotificationOptionSilent() As Task
+            Await TestAsyncWithOptionAndNotification(
 "Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
+"Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Silent)
         End Function
 

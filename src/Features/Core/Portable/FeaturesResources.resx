@@ -1376,4 +1376,10 @@ This version used in: {2}</value>
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
   </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
+  <data name="Convert_to_class" xml:space="preserve">
+    <value>Convert to class</value>
+  </data>
 </root>

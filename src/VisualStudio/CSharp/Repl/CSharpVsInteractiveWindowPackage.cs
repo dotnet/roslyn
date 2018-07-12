@@ -11,7 +11,7 @@ using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 {
     [Guid(LanguageServiceGuids.CSharpReplPackageIdString)]
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideMenuResource("Menus.ctmenu", 17)]
     [ProvideLanguageExtension(LanguageServiceGuids.CSharpLanguageServiceIdString, ".csx")]
     [ProvideInteractiveWindow(

@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsIndexerMemberCref = false;
                 var containsDeconstruction = false;
                 var containsAwait = false;
+                var containsTupleExpressionOrTupleType = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -98,6 +99,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 || syntaxFacts.IsDeconstructionForEachStatement(node);
 
                             containsAwait = containsAwait || syntaxFacts.IsAwaitExpression(node);
+                            containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
+                                syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
 
                             // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
                             // crash because the document's syntax root doesn't contain the span of the node returned
@@ -207,7 +210,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsElementAccess,
                             containsIndexerMemberCref,
                             containsDeconstruction,
-                            containsAwait),
+                            containsAwait,
+                            containsTupleExpressionOrTupleType),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutableAndFree()));
             }
