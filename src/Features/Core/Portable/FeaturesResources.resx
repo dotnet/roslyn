@@ -1385,16 +1385,16 @@ This version used in: {2}</value>
   <data name="Convert_to_struct" xml:space="preserve">
     <value>Convert to struct</value>
   </data>
-  <data name="and_update_usages_in_containing_member" xml:space="preserve">
-    <value>and update usages in containing member</value>
+  <data name="updating_usages_in_containing_member" xml:space="preserve">
+    <value>updating usages in containing member</value>
   </data>
-  <data name="and_update_usages_in_containing_project" xml:space="preserve">
-    <value>and update usages in containing project</value>
+  <data name="updating_usages_in_containing_project" xml:space="preserve">
+    <value>updating usages in containing project</value>
   </data>
-  <data name="and_update_usages_in_containing_type" xml:space="preserve">
-    <value>and update usages in containing type</value>
+  <data name="updating_usages_in_containing_type" xml:space="preserve">
+    <value>updating usages in containing type</value>
   </data>
-  <data name="and_update_usages_in_dependent_projects" xml:space="preserve">
-    <value>and update usages in dependent projects</value>
+  <data name="updating_usages_in_dependent_projects" xml:space="preserve">
+    <value>updating usages in dependent projects</value>
   </data>
 </root>

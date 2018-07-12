@@ -1375,7 +1375,7 @@ internal struct NewStruct<X, Y>
 
             await TestExactActionSetOfferedAsync(text, new[]
             {
-                FeaturesResources.and_update_usages_in_containing_member
+                FeaturesResources.updating_usages_in_containing_member
             });
             await TestInRegularAndScriptAsync(text, expected);
         }
@@ -1937,8 +1937,8 @@ internal struct NewStruct
 }";
             await TestExactActionSetOfferedAsync(text, new[]
             {
-                FeaturesResources.and_update_usages_in_containing_member,
-                FeaturesResources.and_update_usages_in_containing_type,
+                FeaturesResources.updating_usages_in_containing_member,
+                FeaturesResources.updating_usages_in_containing_type,
             });
             await TestInRegularAndScriptAsync(text, expected);
         }
@@ -2021,8 +2021,8 @@ internal struct NewStruct
 }";
             await TestExactActionSetOfferedAsync(text, new[]
             {
-                FeaturesResources.and_update_usages_in_containing_member,
-                FeaturesResources.and_update_usages_in_containing_type,
+                FeaturesResources.updating_usages_in_containing_member,
+                FeaturesResources.updating_usages_in_containing_type,
             });
             await TestInRegularAndScriptAsync(text, expected);
         }
@@ -2131,8 +2131,8 @@ internal struct NewStruct<T>
 
             await TestExactActionSetOfferedAsync(text, new[]
             {
-                FeaturesResources.and_update_usages_in_containing_member,
-                FeaturesResources.and_update_usages_in_containing_type
+                FeaturesResources.updating_usages_in_containing_member,
+                FeaturesResources.updating_usages_in_containing_type
             });
             await TestInRegularAndScriptAsync(text, expected, index: 1);
         }

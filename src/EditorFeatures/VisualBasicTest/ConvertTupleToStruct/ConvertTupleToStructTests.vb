@@ -1141,7 +1141,7 @@ End Structure
 "
 
             Await TestExactActionSetOfferedAsync(text, {
-                FeaturesResources.and_update_usages_in_containing_member
+                FeaturesResources.updating_usages_in_containing_member
             })
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
@@ -1530,8 +1530,8 @@ Friend Structure NewStruct
 End Structure
 "
             Await TestExactActionSetOfferedAsync(text, {
-                FeaturesResources.and_update_usages_in_containing_member,
-                FeaturesResources.and_update_usages_in_containing_type
+                FeaturesResources.updating_usages_in_containing_member,
+                FeaturesResources.updating_usages_in_containing_type
             })
 
             Await TestInRegularAndScriptAsync(text, expected)
@@ -1602,8 +1602,8 @@ Friend Structure NewStruct
 End Structure
 "
             Await TestExactActionSetOfferedAsync(text, {
-                FeaturesResources.and_update_usages_in_containing_member,
-                FeaturesResources.and_update_usages_in_containing_type
+                FeaturesResources.updating_usages_in_containing_member,
+                FeaturesResources.updating_usages_in_containing_type
             })
 
             Await TestInRegularAndScriptAsync(text, expected)
@@ -1696,8 +1696,8 @@ End Structure
 "
 
             Await TestExactActionSetOfferedAsync(text, {
-                FeaturesResources.and_update_usages_in_containing_member,
-                FeaturesResources.and_update_usages_in_containing_type
+                FeaturesResources.updating_usages_in_containing_member,
+                FeaturesResources.updating_usages_in_containing_type
             })
             Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function

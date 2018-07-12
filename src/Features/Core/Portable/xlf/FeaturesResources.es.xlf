@@ -52,26 +52,6 @@
         <target state="new">Related method signatures found in metadata will not be updated.</target>
         <note />
       </trans-unit>
-      <trans-unit id="and_update_usages_in_containing_member">
-        <source>and update usages in containing member</source>
-        <target state="new">and update usages in containing member</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="and_update_usages_in_containing_project">
-        <source>and update usages in containing project</source>
-        <target state="new">and update usages in containing project</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="and_update_usages_in_containing_type">
-        <source>and update usages in containing type</source>
-        <target state="new">and update usages in containing type</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="and_update_usages_in_dependent_projects">
-        <source>and update usages in dependent projects</source>
-        <target state="new">and update usages in dependent projects</target>
-        <note />
-      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">sobrecarga genérica</target>
@@ -2088,6 +2068,26 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="new">Convert to conditional expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_member">
+        <source>updating usages in containing member</source>
+        <target state="new">updating usages in containing member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_project">
+        <source>updating usages in containing project</source>
+        <target state="new">updating usages in containing project</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_type">
+        <source>updating usages in containing type</source>
+        <target state="new">updating usages in containing type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_dependent_projects">
+        <source>updating usages in dependent projects</source>
+        <target state="new">updating usages in dependent projects</target>
         <note />
       </trans-unit>
     </body>

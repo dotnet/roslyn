@@ -133,10 +133,10 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         {
             switch (scope)
             {
-                case Scope.ContainingMember: return FeaturesResources.and_update_usages_in_containing_member;
-                case Scope.ContainingType: return FeaturesResources.and_update_usages_in_containing_type;
-                case Scope.ContainingProject: return FeaturesResources.and_update_usages_in_containing_project;
-                case Scope.DependentProjects: return FeaturesResources.and_update_usages_in_dependent_projects;
+                case Scope.ContainingMember: return FeaturesResources.updating_usages_in_containing_member;
+                case Scope.ContainingType: return FeaturesResources.updating_usages_in_containing_type;
+                case Scope.ContainingProject: return FeaturesResources.updating_usages_in_containing_project;
+                case Scope.DependentProjects: return FeaturesResources.updating_usages_in_dependent_projects;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(scope);
             }
