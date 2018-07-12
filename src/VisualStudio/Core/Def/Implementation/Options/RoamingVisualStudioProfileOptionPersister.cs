@@ -8,16 +8,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -31,8 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
         private class SVsSettingsPersistenceManager { };
 
-        private readonly ISettingsManager _settingManager;
+        private readonly Shell.IAsyncServiceProvider _serviceProvider;
         private readonly IGlobalOptionService _globalOptionService;
+
+        private ISettingsManager _settingManager;
 
         /// <summary>
         /// The list of options that have been been fetched from <see cref="_settingManager"/>, by key. We track this so
@@ -44,13 +46,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         /// <remarks>We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.</remarks>
         [ImportingConstructor]
-        public RoamingVisualStudioProfileOptionPersister(IGlobalOptionService globalOptionService, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public RoamingVisualStudioProfileOptionPersister(
+            IGlobalOptionService globalOptionService, [Import(typeof(SAsyncServiceProvider))] Shell.IAsyncServiceProvider serviceProvider)
             : base(assertIsForeground: true) // The GetService call requires being on the UI thread or else it will marshal and risk deadlock
         {
             Contract.ThrowIfNull(globalOptionService);
+            Contract.ThrowIfNull(serviceProvider);
 
-            _settingManager = (ISettingsManager)serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
             _globalOptionService = globalOptionService;
+            _serviceProvider = serviceProvider;
+        }
+
+        public async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _settingManager = (ISettingsManager)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(false);
+            Assumes.Present(_settingManager);
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
             // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
@@ -142,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     value = Enum.ToObject(optionKey.Option.Type, value);
                 }
             }
-            else if (typeof(ICodeStyleOption).IsAssignableFrom (optionKey.Option.Type))
+            else if (typeof(ICodeStyleOption).IsAssignableFrom(optionKey.Option.Type))
             {
                 return DeserializeCodeStyleOption(ref value, optionKey.Option.Type);
             }

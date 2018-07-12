@@ -5,9 +5,9 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
@@ -52,6 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
+        System.Threading.Tasks.Task IOptionPersister.InitializeAsync(CancellationToken cancellationToken)
+            => System.Threading.Tasks.Task.CompletedTask;
+
         bool IOptionPersister.TryFetch(OptionKey optionKey, out object value)
         {
             if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
@@ -82,13 +85,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         switch (untypedValue)
                         {
                             case string stringValue:
-                                {
-                                    // Due to a previous bug we were accidentally serializing longs as strings.
-                                    // Gracefully convert those back.
-                                    var suceeded = long.TryParse(stringValue, out long longValue);
-                                    value = longValue;
-                                    return suceeded;
-                                }
+                            {
+                                // Due to a previous bug we were accidentally serializing longs as strings.
+                                // Gracefully convert those back.
+                                var suceeded = long.TryParse(stringValue, out long longValue);
+                                value = longValue;
+                                return suceeded;
+                            }
 
                             case long longValue:
                                 value = longValue;
@@ -101,13 +104,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         switch (untypedValue)
                         {
                             case string stringValue:
-                                {
-                                    // Due to a previous bug we were accidentally serializing ints as strings. 
-                                    // Gracefully convert those back.
-                                    var suceeded = int.TryParse(stringValue, out int intValue);
-                                    value = intValue;
-                                    return suceeded;
-                                }
+                            {
+                                // Due to a previous bug we were accidentally serializing ints as strings. 
+                                // Gracefully convert those back.
+                                var suceeded = int.TryParse(stringValue, out int intValue);
+                                value = intValue;
+                                return suceeded;
+                            }
 
                             case int intValue:
                                 value = intValue;

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
@@ -14,21 +14,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     [Export(typeof(IOptionPersister))]
     internal class CommentTaskTokenSerializer : IOptionPersister
     {
-        private readonly ITaskList _taskList;
+        private readonly Shell.IAsyncServiceProvider _serviceProvider;
         private readonly IOptionService _optionService;
 
+        private ITaskList _taskList;
         private string _lastCommentTokenCache = null;
 
         [ImportingConstructor]
         public CommentTaskTokenSerializer(
-            VisualStudioWorkspace workspace,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            VisualStudioWorkspace workspace, [Import(typeof(SAsyncServiceProvider))] Shell.IAsyncServiceProvider serviceProvider)
         {
             _optionService = workspace.Services.GetService<IOptionService>();
+            _serviceProvider = serviceProvider;
+        }
+
+        public async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
             // The SVsTaskList may not be available or doesn't actually implement ITaskList
             // in the "devenv /build" scenario
-            _taskList = serviceProvider.GetService(typeof(SVsTaskList)) as ITaskList;
+            _taskList = (ITaskList)await _serviceProvider.GetServiceAsync(typeof(SVsTaskList)).ConfigureAwait(false);
+            Assumes.Present(_taskList);
 
             // GetTaskTokenList is safe in the face of nulls
             _lastCommentTokenCache = GetTaskTokenList(_taskList);

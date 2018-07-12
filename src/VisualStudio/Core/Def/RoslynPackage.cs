@@ -44,30 +44,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
+
+            await InitializeFromBackgroundAsync(cancellationToken).ConfigureAwait(false);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
-            Assumes.Present(_componentModel);
-
-            FatalError.Handler = FailFast.OnFatalException;
-            FatalError.NonFatalHandler = WatsonReporter.Report;
-
-            // We also must set the FailFast handler for the compiler layer as well
-            var compilerAssembly = typeof(Compilation).Assembly;
-            var compilerFatalError = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true);
-            var property = compilerFatalError.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public);
-            var compilerFailFast = compilerAssembly.GetType(typeof(FailFast).FullName, throwOnError: true);
-            var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
-            property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
-            _componentModel.GetExtensions<IOptionPersister>();
+            foreach (var optionPersister in _componentModel.GetExtensions<IOptionPersister>())
+            {
+                await optionPersister.InitializeAsync(cancellationToken).ConfigureAwait(true);
+            }
 
             RoslynTelemetrySetup.Initialize(this);
 
@@ -80,6 +72,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             LoadComponentsInUIContextOnceSolutionFullyLoaded(cancellationToken);
 
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
+        }
+
+        private async Task InitializeFromBackgroundAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            FatalError.Handler = FailFast.OnFatalException;
+            FatalError.NonFatalHandler = WatsonReporter.Report;
+
+            // We also must set the FailFast handler for the compiler layer as well
+            var compilerAssembly = typeof(Compilation).Assembly;
+            var compilerFatalError = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true);
+            var property = compilerFatalError.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public);
+            var compilerFailFast = compilerAssembly.GetType(typeof(FailFast).FullName, throwOnError: true);
+            var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
+            property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
+
+            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            Assumes.Present(_componentModel);
         }
 
         private void InitializeColors()

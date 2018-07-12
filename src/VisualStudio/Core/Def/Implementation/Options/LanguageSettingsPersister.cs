@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -26,10 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     [Export(typeof(IOptionPersister))]
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
-        private readonly IVsTextManager4 _textManager;
+        private readonly Shell.IAsyncServiceProvider _serviceProvider;
         private readonly IGlobalOptionService _optionService;
-
-        private readonly ComEventSink _textManagerEvents2Sink;
 
         /// <summary>
         /// The mapping between language names and Visual Studio language service GUIDs.
@@ -40,17 +38,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// but the ngen image will exist for the basic map between two reference types, since those are reused.</remarks>
         private readonly IBidirectionalMap<string, Tuple<Guid>> _languageMap;
 
+        private IVsTextManager4 _textManager;
+        private ComEventSink _textManagerEvents2Sink;
+
         /// <remarks>
         /// We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.
         /// </remarks>
         [ImportingConstructor]
         public LanguageSettingsPersister(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IGlobalOptionService optionService)
+            IGlobalOptionService optionService, [Import(typeof(SAsyncServiceProvider))] Shell.IAsyncServiceProvider serviceProvider)
             : base(assertIsForeground: true)
         {
-            _textManager = (IVsTextManager4)serviceProvider.GetService(typeof(SVsTextManager));
             _optionService = optionService;
+            _serviceProvider = serviceProvider;
 
             // TODO: make this configurable
             _languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty.Add(LanguageNames.CSharp, Tuple.Create(Guids.CSharpLanguageServiceId))
@@ -58,6 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                                                                .Add("TypeScript", Tuple.Create(new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77")))
                                                                .Add("F#", Tuple.Create(new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B")))
                                                                .Add("Xaml", Tuple.Create(new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41")));
+        }
+
+        public async Task InitializeAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _textManager = (IVsTextManager4)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
+            Assumes.Present(_textManager);
 
             foreach (var languageGuid in _languageMap.Values)
             {
