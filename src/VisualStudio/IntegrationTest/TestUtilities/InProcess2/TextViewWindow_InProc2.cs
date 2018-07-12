@@ -345,14 +345,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await lightBulbAction(activeTextView);
         }
 
-#if false
-        /// <summary>
-        /// Non-blocking version of <see cref="ExecuteOnActiveView"/>
-        /// </summary>
-        private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
-            => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
-#endif
-
         private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {
             return async view =>
@@ -472,14 +464,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return null;
         }
 
-#if false
-        public void DismissLightBulbSession()   
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                broker.DismissSession(view);
-            });
-#endif
+        public async Task DismissLightBulbSessionAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>();
+            broker.DismissSession(view);
+        }
 
         protected abstract Task<IWpfTextView> GetActiveTextViewAsync();
 
