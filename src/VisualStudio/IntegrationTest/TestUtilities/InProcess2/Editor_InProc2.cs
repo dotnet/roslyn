@@ -14,7 +14,6 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionExtensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -77,17 +76,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return (IWpfTextViewHost)wpfTextViewHost;
         }
 
-#if false
-        public string GetActiveBufferName()
+        private async Task<string> GetActiveBufferNameAsync()
         {
-            return GetDTE().ActiveDocument.Name;
+            return (await GetDTEAsync()).ActiveDocument.Name;
         }
 
-        public void WaitForActiveView(string expectedView)
+        public async Task WaitForActiveViewAsync(string expectedView, CancellationToken cancellationToken)
         {
-            Retry(GetActiveBufferName, (actual) => actual == expectedView, TimeSpan.FromMilliseconds(100));
+            await RetryAsync(GetActiveBufferNameAsync, (actual) => actual == expectedView, TimeSpan.FromMilliseconds(100), cancellationToken);
         }
-#endif
 
         public async Task ActivateAsync()
         {
@@ -185,15 +182,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
                 return text.Substring(bufferPosition.Position - line.Start);
             });
-
-        public string GetSelectedText()
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var selectedSpan = view.Selection.SelectedSpans[0];
-                return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
-            });
 #endif
+
+        public async Task<string> GetSelectedTextAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var view = await GetActiveTextViewAsync();
+            var subjectBuffer = view.GetBufferContainingCaret();
+            var selectedSpan = view.Selection.SelectedSpans[0];
+            return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
+        }
 
         public async Task MoveCaretAsync(int position)
         {
@@ -450,18 +449,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             SendKeys.SendWait(keys);
         }
 
-        public void SendKeysToNavigateTo(string keys)
-        {
-            var dialogAutomationElement = FindNavigateTo();
-            if (dialogAutomationElement == null)
-            {
-                throw new InvalidOperationException($"Expected the NavigateTo dialog to be open, but it is not.");
-            }
-
-            dialogAutomationElement.SetFocus();
-            SendKeys.SendWait(keys);
-        }
-
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
             DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
@@ -488,14 +475,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             return vsAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, elementCondition);
         }
+#endif
 
-        private static IUIAutomationElement FindNavigateTo()
-        {
-            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
-            return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
-        }
-
-        private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
+        private async Task<T> RetryAsync<T>(Func<Task<T>> action, Func<T, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
             var beginTime = DateTime.UtcNow;
             var retval = default(T);
@@ -504,13 +486,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             {
                 try
                 {
-                    retval = action();
+                    retval = await action();
                 }
                 catch (COMException)
                 {
                     // Devenv can throw COMExceptions if it's busy when we make DTE calls.
-
-                    Thread.Sleep(delay);
+                    await Task.Delay(delay, cancellationToken);
                     continue;
                 }
 
@@ -520,12 +501,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 }
                 else
                 {
-                    Thread.Sleep(delay);
+                    await Task.Delay(delay, cancellationToken);
                 }
             }
             while (true);
         }
-#endif
 
         public async Task AddWinFormButtonAsync(string buttonName)
         {
@@ -802,14 +782,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp);
         }
 
-#if false
-        public void InvokeNavigateTo(string text)
+        public async Task InvokeNavigateToAsync(string searchText)
         {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
-            NavigateToSendKeys(text);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigateTo);
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            await TestServices.SendKeys.SendAsync(new KeyPress(VirtualKey.T, ShiftState.Ctrl));
+            await TestServices.SendKeys.SendAsync(searchText);
+            await TestServices.SendKeys.SendAsync(VirtualKey.Enter);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigateTo);
         }
-#endif
 
         public async Task SelectTextInCurrentDocumentAsync(string text)
         {
