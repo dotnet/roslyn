@@ -16,14 +16,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task VerifySyntaxErrorSquigglesAsync()
         {
             await base.VerifySyntaxErrorSquigglesAsync();
         }
 
-        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [IdeFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task VerifySemanticErrorSquigglesAsync()
         {

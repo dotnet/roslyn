@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280")]
+        [IdeFact]
         [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task VerifySyntaxErrorSquigglesAsync()
@@ -27,7 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [IdeFact(Isolate = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280")]
+        [IdeFact]
         [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override async Task VerifySemanticErrorSquigglesAsync()

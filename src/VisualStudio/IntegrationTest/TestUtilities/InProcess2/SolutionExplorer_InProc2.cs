@@ -121,14 +121,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await CloseSolutionAsync();
 
             var solutionPath = IntegrationHelper.CreateTemporaryPath();
+            var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
+            Directory.CreateDirectory(solutionPath);
 
             var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
-            ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
+            ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
+            ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
 
             var dte = await GetDTEAsync();
             _solution = (Solution2)dte.Solution;
-            _fileName = Path.Combine(solutionPath, $"{solutionName}.sln");
+            _fileName = Path.Combine(solutionPath, solutionFileName);
         }
 
         public string[] GetAssemblyReferences(string projectName)
@@ -335,7 +338,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
             var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName));
 
-            _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
+            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution6>();
+            ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out var newProject));
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
         }
 
         // TODO: Adjust language name based on whether we are using a web template
@@ -447,7 +453,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 }
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
         }
 
         private sealed class SolutionEvents : IVsSolutionEvents, IDisposable
