@@ -180,21 +180,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
             foreach (var (description, diagnosticIds) in enabledOptions)
             {
-                using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    progressTracker.Description = description;
-                    document = await ApplyCodeFixesForSpecificDiagnosticIds(
-                        document, diagnosticIds, cancellationToken).ConfigureAwait(false);
+                progressTracker.Description = description;
+                document = await ApplyCodeFixesForSpecificDiagnosticIds(
+                    document, diagnosticIds, cancellationToken).ConfigureAwait(false);
 
-                    // Mark this option as being completed.
-                    progressTracker.ItemCompleted();
+                // Mark this option as being completed.
+                progressTracker.ItemCompleted();
 
-                    var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
-                    progressTracker.ItemCompleted();
-                    return result;
-                }
+                var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
+                progressTracker.ItemCompleted();
+                return result;
             }
 
             return document;
@@ -205,8 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         {
             foreach (var diagnosticId in diagnosticIds)
             {
-                document = await ApplyCodeFixesForSpecificDiagnosticId(
+                using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
+                {
+                    document = await ApplyCodeFixesForSpecificDiagnosticId(
                     document, diagnosticId, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return document;
