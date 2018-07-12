@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
             CancellationToken cancellationToken)
         {
             var verbatimInterpolatedLocation = diagnostic.Location;
-            var verbatimInterpolated = (InterpolatedStringExpressionSyntax)verbatimInterpolatedLocation.FindNode(cancellationToken);
+            var verbatimInterpolated = (InterpolatedStringExpressionSyntax)verbatimInterpolatedLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
             var newStartToken = SyntaxFactory.Token(SyntaxKind.InterpolatedVerbatimStringStartToken).WithTriviaFrom(verbatimInterpolated.StringStartToken);
             var interpolatedVerbatim = verbatimInterpolated.WithStringStartToken(newStartToken);

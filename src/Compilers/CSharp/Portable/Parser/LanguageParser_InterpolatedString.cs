@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalText[openQuoteIndex] == '"');
 
             var openQuoteKind = isVerbatimInterpolated
-                ? SyntaxKind.VerbatimInterpolatedStringStartToken // @S
+                ? SyntaxKind.VerbatimInterpolatedStringStartToken // @$
                 : isVerbatim
                     ? SyntaxKind.InterpolatedVerbatimStringStartToken // $@
                     : SyntaxKind.InterpolatedStringStartToken; // $

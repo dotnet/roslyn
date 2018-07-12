@@ -38,6 +38,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseInterpolatedVerbatim
         }
 
         [Fact]
+        public async Task AfterString()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var s = @$""hello""[||];
+    }
+}", parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+        }
+
+        [Fact]
+        public async Task InCall()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(string x)
+    {
+        var s = M(@[||]$""hello"");
+    }
+}",
+@"class C
+{
+    void M(string x)
+    {
+        var s = M($@""hello"");
+    }
+}", parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+        }
+
+        [Fact]
         public async Task FixAllInDocument()
         {
             await TestInRegularAndScript1Async(
