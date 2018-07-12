@@ -19,6 +19,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         public new IntPtr MainWindowHandle => base.MainWindowHandle;
 
+        public string InstallationPath => throw new NotImplementedException();
+
 #if false
         public string[] GetAvailableCommands()
         {

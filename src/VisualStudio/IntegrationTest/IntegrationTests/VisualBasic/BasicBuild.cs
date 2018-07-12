@@ -4,30 +4,24 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicBuild : AbstractIntegrationTest
+    public class BasicBuild : AbstractIdeIntegrationTest
     {
-        public BasicBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
-        {
-        }
-
         public override async Task InitializeAsync()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
-            var testProj = new ProjectUtils.Project("TestProj");
-            VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+            await base.InitializeAsync();
+
+            await VisualStudio.SolutionExplorer.CreateSolutionAsync(nameof(BasicBuild));
+            await VisualStudio.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
-        public void BuildProject()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Build)]
+        public async Task BuildProjectAsync()
         {
             var editorText = @"Module Program
 
@@ -37,7 +31,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
 End Module";
 
-            VisualStudio.Editor.SetText(editorText);
+            await VisualStudio.Editor.SetTextAsync(editorText);
 
             // TODO: Validate build works as expected
         }

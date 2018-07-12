@@ -6,29 +6,25 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpBuild : AbstractIntegrationTest
+    public class CSharpBuild : AbstractIdeIntegrationTest
     {
-        public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
-        {
-        }
-
         public override async Task InitializeAsync()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
-            VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project("TestProj"), WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
+            await base.InitializeAsync();
+
+            await VisualStudio.SolutionExplorer.CreateSolutionAsync(nameof(CSharpBuild));
+            await VisualStudio.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
-        public void BuildProject()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.Build)]
+        public async Task BuildProjectAsync()
         {
             var editorText = @"using System;
 
@@ -40,17 +36,17 @@ class Program
     }
 }";
 
-            VisualStudio.Editor.SetText(editorText);
+            await VisualStudio.Editor.SetTextAsync(editorText);
 
             // TODO: Validate build works as expected
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18204"), Trait(Traits.Feature, Traits.Features.Build)]
-        public void BuildWithCommandLine()
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/18204"), Trait(Traits.Feature, Traits.Features.Build)]
+        public async Task BuildWithCommandLineAsync()
         {
-            VisualStudio.SolutionExplorer.SaveAll();
+            await VisualStudio.SolutionExplorer.SaveAllAsync();
 
-            var pathToDevenv = Path.Combine(VisualStudio.InstallationPath, @"Common7\IDE\devenv.exe");
+            var pathToDevenv = Path.Combine(VisualStudio.VisualStudio.InstallationPath, @"Common7\IDE\devenv.exe");
             var pathToSolution = VisualStudio.SolutionExplorer.SolutionFileFullPath;
             var logFileName = pathToSolution + ".log";
 
@@ -59,7 +55,7 @@ class Program
             var commandLine = $"\"{pathToSolution}\" /Rebuild Debug /Out \"{logFileName}\" {VisualStudioInstanceFactory.VsLaunchArgs}";
 
             var process = Process.Start(pathToDevenv, commandLine);
-            process.WaitForExit();
+            await process.WaitForExitAsync();
 
             Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
 
