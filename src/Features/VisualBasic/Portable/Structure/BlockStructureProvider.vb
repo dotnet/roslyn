@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
+
     Friend MustInherit Class BlockStructureProvider(Of TBlock As SyntaxNode, THeaderStatement As SyntaxNode, TInnerBlock As SyntaxNode, TPreEndBlock As SyntaxNode, TEndOfBlockStatement As SyntaxNode)
         Inherits AbstractSyntaxNodeStructureProvider(Of TBlock)
 
@@ -263,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     Return MakeIfHasLineDeltaGreaterThanX(0, StartingTrivia.Value, FinishingTrivia.Value, BannerText)
                 End If
             End If
-                Return Nothing
+            Return Nothing
         End Function
 
         Friend Function BlockHasStatements_IncludingHeader(block As SyntaxNode, Header As SyntaxNode, NextSection As SyntaxNode, Statements As SyntaxList(Of StatementSyntax), BannerText As String, IgnoreHeader As Boolean) As BlockSpan?
@@ -331,6 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Private Function LineDelta(A As Int32, B As Int32) As Int32
             Return B - A
         End Function
+
         Private Function LineDelta(a As SyntaxTrivia, b As SyntaxTrivia) As Integer
             Return LineDelta(a.GetLocation.GetMappedLineSpan.StartLinePosition.Line, b.GetLocation.GetMappedLineSpan.StartLinePosition.Line)
         End Function

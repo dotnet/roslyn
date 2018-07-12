@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class CommentTriviaStructureProvider
         Inherits AbstractSyntaxTriviaStructureProvider
+
         Public Overrides Sub CollectBlockSpans(
                                               document As Document,
                                               trivia As SyntaxTrivia,
@@ -18,5 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 VisualBasicOutliningHelpers.CollectCommentsRegions(trivia.Token.TrailingTrivia, spans)
             End If
         End Sub
+
     End Class
 End Namespace

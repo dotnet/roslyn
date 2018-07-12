@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Friend Overrides Function GetPreBlock(block As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As BlockSpan?
             Return If(block Is Nothing OrElse block.IsMissing, Nothing, GetFirstBlockSpan(block))
         End Function
+
         Friend Overrides Function GetFirstStatementOfPreBlock(block As MultiLineIfBlockSyntax) As SyntaxNode
             Return If(block.Statements.Count > 0, block.Statements(0), Nothing)
         End Function

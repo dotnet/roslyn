@@ -22,15 +22,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Friend Overrides Function GetBlockHeader(block As TryBlockSyntax) As TryStatementSyntax
             Return block.TryStatement
         End Function
+
         Friend Overrides Function GetPreBlock(block As TryBlockSyntax, cancellationToken As Threading.CancellationToken) As BlockSpan?
             Return If(block Is Nothing OrElse block.IsMissing, Nothing, GetFirstBlockSpan(block))
         End Function
+
         Friend Overrides Function GetFirstStatementOfPreBlock(block As TryBlockSyntax) As SyntaxNode
             Return If(block.Statements.Count > 0, block.Statements(0), Nothing)
         End Function
+
         Friend Overrides Function GetInnerBlocks(block As TryBlockSyntax) As SyntaxList(Of CatchBlockSyntax)
             Return block.CatchBlocks
         End Function
+
         Friend Overrides Function GetInnerBlockBanner(InnerBlock As CatchBlockSyntax) As String
             Return If(InnerBlock IsNot Nothing,
                       If(InnerBlock.CatchStatement IsNot Nothing, InnerBlock.CatchStatement.ToString, String.Empty),
