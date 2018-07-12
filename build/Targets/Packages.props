@@ -244,7 +244,7 @@
     <VSSDKComponentModelHostVersion>12.0.4</VSSDKComponentModelHostVersion>
     <VsWebsiteInteropVersion>8.0.0.0-alpha</VsWebsiteInteropVersion>
     <vswhereVersion>2.4.1</vswhereVersion>
-    <XliffTasksVersion>0.2.0-beta-63004-01</XliffTasksVersion>
+    <XliffTasksVersion>0.2.0-beta-63013-01</XliffTasksVersion>
     <xunitVersion>2.3.1</xunitVersion>
     <xunitanalyzersVersion>0.8.0</xunitanalyzersVersion>
     <xunitassertVersion>2.3.1</xunitassertVersion>
