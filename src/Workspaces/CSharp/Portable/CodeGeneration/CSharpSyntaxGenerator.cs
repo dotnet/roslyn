@@ -3927,15 +3927,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode IdentifierName(string identifier)
-        {
-            return identifier.ToIdentifierName();
-        }
+            => identifier.ToIdentifierName();
 
         public override SyntaxNode GenericName(string identifier, IEnumerable<SyntaxNode> typeArguments)
-        {
-            return SyntaxFactory.GenericName(identifier.ToIdentifierToken(),
+            => GenericName(identifier.ToIdentifierToken(), typeArguments);
+
+        internal override SyntaxNode GenericName(SyntaxToken identifier, IEnumerable<SyntaxNode> typeArguments)
+            => SyntaxFactory.GenericName(identifier,
                 SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
-        }
 
         public override SyntaxNode WithTypeArguments(SyntaxNode expression, IEnumerable<SyntaxNode> typeArguments)
         {
@@ -4207,14 +4206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal override SyntaxNode IdentifierName(SyntaxToken identifier)
-        {
-            return SyntaxFactory.IdentifierName(identifier);
-        }
+            => SyntaxFactory.IdentifierName(identifier);
 
-        internal override SyntaxToken Identifier(string identifier)
-        {
-            return SyntaxFactory.Identifier(identifier);
-        }
+        internal override SyntaxToken Identifier(string identifier) 
+            => SyntaxFactory.Identifier(identifier);
 
         internal override SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression)
         {

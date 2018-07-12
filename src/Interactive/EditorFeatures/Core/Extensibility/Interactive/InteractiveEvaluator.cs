@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 _currentWindow = value;
                 _workspace.Window = value;
 
-                _interactiveHost.Output = _currentWindow.OutputWriter;
-                _interactiveHost.ErrorOutput = _currentWindow.ErrorOutputWriter;
+                _interactiveHost.SetOutput( _currentWindow.OutputWriter);
+                _interactiveHost.SetErrorOutput(_currentWindow.ErrorOutputWriter);
 
                 _currentWindow.SubmissionBufferAdded += SubmissionBufferAdded;
                 _interactiveCommands = _commandsFactory.CreateInteractiveCommands(_currentWindow, CommandPrefix, _commands);
@@ -447,8 +447,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var window = GetCurrentWindowOrThrow();
             var resetOptions = ResetOptions;
 
-            _interactiveHost.Output = window.OutputWriter;
-            _interactiveHost.ErrorOutput = window.ErrorOutputWriter;
+            _interactiveHost.SetOutput(window.OutputWriter);
+            _interactiveHost.SetErrorOutput(window.ErrorOutputWriter);
 
             return ResetAsyncWorker(GetHostOptions(initialize: true, resetOptions.Is64Bit));
         }

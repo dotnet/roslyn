@@ -1521,6 +1521,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node IsNot Nothing AndAlso TryCast(node.Parent, InvocationExpressionSyntax)?.Expression Is node
         End Function
 
+        Public Function IsAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAwaitExpression
+            Return node.IsKind(SyntaxKind.AwaitExpression)
+        End Function
+
         Public Function IsExpressionOfAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfAwaitExpression
             Return node IsNot Nothing AndAlso TryCast(node.Parent, AwaitExpressionSyntax)?.Expression Is node
         End Function
@@ -1598,6 +1602,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsConditionalOr(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalOr
             Return node.Kind() = SyntaxKind.OrElseExpression
+        End Function
+
+        Public Function IsTupleExpression(node As syntaxnode) As Boolean Implements ISyntaxFactsService.IsTupleExpression
+            Return node.kind() = SyntaxKind.TupleExpression
+        End Function
+
+        Public Function IsTupleType(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleType
+            Return node.Kind() = SyntaxKind.TupleType
         End Function
 
         Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
