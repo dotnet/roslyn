@@ -287,7 +287,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
                     // We should only ever get a default array (meaning, update the root), or a
                     // non-empty array.  We should never be asked to update exactly '0' nodes.
-                    Debug.Assert(!documentToUpdate.NodesToUpdate.IsEmpty);
+                    Debug.Assert(documentToUpdate.NodesToUpdate.IsDefault ||
+                                 documentToUpdate.NodesToUpdate.Length >= 1);
 
                     // If we were given specific nodes to update, only update those.  Otherwise
                     // updated everything from the root down.
