@@ -27,108 +27,122 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+        Entering: {R1} {R2}
 
 .locals {R1}
 {
     Locals: [c1 As C] [c2 As C]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (6)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
-              Value: 
-                IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C With  ... nction() 1}')
-                  Arguments(0)
-                  Initializer: 
-                    null
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (3)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
+                  Value: 
+                    IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C With  ... nction() 1}')
+                      Arguments(0)
+                      Initializer: 
+                        null
 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.A = Function() 1')
-              Left: 
-                IPropertyReferenceOperation: Property C.A As System.Func(Of System.Int32) (OperationKind.PropertyReference, Type: System.Func(Of System.Int32)) (Syntax: 'A')
-                  Instance Receiver: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.A = Function() 1')
+                  Left: 
+                    IPropertyReferenceOperation: Property C.A As System.Func(Of System.Int32) (OperationKind.PropertyReference, Type: System.Func(Of System.Int32)) (Syntax: 'A')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
+                  Right: 
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function() 1')
+                      Target: 
+                        IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Function() 1')
+                        {
+                            Block[B0#A0] - Entry
+                                Statements (0)
+                                Next (Regular) Block[B1#A0]
+                                    Entering: {R1#A0}
+
+                            .locals {R1#A0}
+                            {
+                                Locals: [<anonymous local> As System.Int32]
+                                Block[B1#A0] - Block
+                                    Predecessors: [B0#A0]
+                                    Statements (0)
+                                    Next (Return) Block[B2#A0]
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                        Leaving: {R1#A0}
+                            }
+
+                            Block[B2#A0] - Exit
+                                Predecessors: [B1#A0]
+                                Statements (0)
+                        }
+
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... nction() 1}')
+                  Left: 
+                    ILocalReferenceOperation: c1 (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c1')
+                  Right: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
-              Right: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function() 1')
-                  Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Function() 1')
-                    {
-                        Block[B0#A0] - Entry
-                            Statements (0)
-                            Next (Regular) Block[B1#A0]
-                                Entering: {R1#A0}
 
-                        .locals {R1#A0}
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+                Entering: {R3}
+    }
+    .locals {R3}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (3)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
+                  Value: 
+                    IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C With  ... nction() 1}')
+                      Arguments(0)
+                      Initializer: 
+                        null
+
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.A = Function() 1')
+                  Left: 
+                    IPropertyReferenceOperation: Property C.A As System.Func(Of System.Int32) (OperationKind.PropertyReference, Type: System.Func(Of System.Int32)) (Syntax: 'A')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
+                  Right: 
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function() 1')
+                      Target: 
+                        IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Function() 1')
                         {
-                            Locals: [<anonymous local> As System.Int32]
-                            Block[B1#A0] - Block
-                                Predecessors: [B0#A0]
+                            Block[B0#A1] - Entry
                                 Statements (0)
-                                Next (Return) Block[B2#A0]
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                    Leaving: {R1#A0}
+                                Next (Regular) Block[B1#A1]
+                                    Entering: {R1#A1}
+
+                            .locals {R1#A1}
+                            {
+                                Locals: [<anonymous local> As System.Int32]
+                                Block[B1#A1] - Block
+                                    Predecessors: [B0#A1]
+                                    Statements (0)
+                                    Next (Return) Block[B2#A1]
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                        Leaving: {R1#A1}
+                            }
+
+                            Block[B2#A1] - Exit
+                                Predecessors: [B1#A1]
+                                Statements (0)
                         }
 
-                        Block[B2#A0] - Exit
-                            Predecessors: [B1#A0]
-                            Statements (0)
-                    }
-
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... nction() 1}')
-              Left: 
-                ILocalReferenceOperation: c1 (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c1')
-              Right: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
-
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
-              Value: 
-                IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C With  ... nction() 1}')
-                  Arguments(0)
-                  Initializer: 
-                    null
-
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.A = Function() 1')
-              Left: 
-                IPropertyReferenceOperation: Property C.A As System.Func(Of System.Int32) (OperationKind.PropertyReference, Type: System.Func(Of System.Int32)) (Syntax: 'A')
-                  Instance Receiver: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... nction() 1}')
+                  Left: 
+                    ILocalReferenceOperation: c2 (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c2')
+                  Right: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
-              Right: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function() 1')
-                  Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Function() 1')
-                    {
-                        Block[B0#A1] - Entry
-                            Statements (0)
-                            Next (Regular) Block[B1#A1]
-                                Entering: {R1#A1}
 
-                        .locals {R1#A1}
-                        {
-                            Locals: [<anonymous local> As System.Int32]
-                            Block[B1#A1] - Block
-                                Predecessors: [B0#A1]
-                                Statements (0)
-                                Next (Return) Block[B2#A1]
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                    Leaving: {R1#A1}
-                        }
-
-                        Block[B2#A1] - Exit
-                            Predecessors: [B1#A1]
-                            Statements (0)
-                    }
-
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... nction() 1}')
-              Left: 
-                ILocalReferenceOperation: c2 (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c2')
-              Right: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... nction() 1}')
-
-        Next (Regular) Block[B2]
-            Leaving: {R1}
+            Next (Regular) Block[B3]
+                Leaving: {R3} {R1}
+    }
 }
 
-Block[B2] - Exit
-    Predecessors: [B1]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ]]>.Value
 
@@ -385,6 +399,7 @@ Block[B0] - Entry
 
     .static initializer {R2}
     {
+        CaptureIds: [0]
         Block[B2] - Block
             Predecessors: [B1]
             Statements (3)
@@ -448,6 +463,7 @@ Block[B0] - Entry
 
     .static initializer {R3}
     {
+        CaptureIds: [1]
         Block[B4] - Block
             Predecessors: [B3]
             Statements (3)
@@ -529,50 +545,75 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (2)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
+        Entering: {R1}
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
-          Value: 
-            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C) (Syntax: 'y')
+.locals {R1}
+{
+    CaptureIds: [0] [2]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'y')
-          Operand: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'y')
+        Next (Regular) Block[B2]
+            Entering: {R2}
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                  Value: 
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C) (Syntax: 'y')
+
+            Jump if True (Regular) to Block[B4]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'y')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'y')
+                Leaving: {R2}
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                  Value: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'y')
+
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'z')
+              Value: 
+                IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: C) (Syntax: 'z')
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = If(y, z)')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'x = If(y, z)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(y, z)')
+
+        Next (Regular) Block[B6]
+            Leaving: {R1}
+}
+
+Block[B6] - Block
+    Predecessors: [B5]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
-          Value: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'y')
-
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'z')
-          Value: 
-            IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: C) (Syntax: 'z')
-
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (2)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = If(y, z)')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'x = If(y, z)')
-              Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
-              Right: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(y, z)')
-
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd = Sub (re ... End Sub')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action(Of C, C, C), IsImplicit) (Syntax: 'd = Sub (re ... End Sub')
@@ -586,59 +627,80 @@ Block[B4] - Block
                         Block[B0#A0] - Entry
                             Statements (0)
                             Next (Regular) Block[B1#A0]
-                        Block[B1#A0] - Block
-                            Predecessors: [B0#A0]
-                            Statements (2)
-                                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result1')
-                                  Value: 
-                                    IParameterReferenceOperation: result1 (OperationKind.ParameterReference, Type: C) (Syntax: 'result1')
+                                Entering: {R1#A0}
 
-                                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
-                                  Value: 
-                                    IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: C) (Syntax: 'input1')
+                        .locals {R1#A0}
+                        {
+                            CaptureIds: [3] [5]
+                            Block[B1#A0] - Block
+                                Predecessors: [B0#A0]
+                                Statements (1)
+                                    IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result1')
+                                      Value: 
+                                        IParameterReferenceOperation: result1 (OperationKind.ParameterReference, Type: C) (Syntax: 'result1')
 
-                            Jump if True (Regular) to Block[B3#A0]
-                                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1')
-                                  Operand: 
-                                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input1')
+                                Next (Regular) Block[B2#A0]
+                                    Entering: {R2#A0}
 
-                            Next (Regular) Block[B2#A0]
-                        Block[B2#A0] - Block
-                            Predecessors: [B1#A0]
-                            Statements (1)
-                                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
-                                  Value: 
-                                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input1')
+                            .locals {R2#A0}
+                            {
+                                CaptureIds: [4]
+                                Block[B2#A0] - Block
+                                    Predecessors: [B1#A0]
+                                    Statements (1)
+                                        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
+                                          Value: 
+                                            IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: C) (Syntax: 'input1')
 
-                            Next (Regular) Block[B4#A0]
-                        Block[B3#A0] - Block
-                            Predecessors: [B1#A0]
-                            Statements (1)
-                                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input2')
-                                  Value: 
-                                    IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: C) (Syntax: 'input2')
+                                    Jump if True (Regular) to Block[B4#A0]
+                                        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1')
+                                          Operand: 
+                                            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input1')
+                                        Leaving: {R2#A0}
 
-                            Next (Regular) Block[B4#A0]
-                        Block[B4#A0] - Block
-                            Predecessors: [B2#A0] [B3#A0]
-                            Statements (1)
-                                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result1 = I ... t1, input2)')
-                                  Expression: 
-                                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result1 = I ... t1, input2)')
-                                      Left: 
-                                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result1')
-                                      Right: 
-                                        IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(input1, input2)')
+                                    Next (Regular) Block[B3#A0]
+                                Block[B3#A0] - Block
+                                    Predecessors: [B2#A0]
+                                    Statements (1)
+                                        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
+                                          Value: 
+                                            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input1')
 
-                            Next (Regular) Block[B5#A0]
-                        Block[B5#A0] - Exit
-                            Predecessors: [B4#A0]
+                                    Next (Regular) Block[B5#A0]
+                                        Leaving: {R2#A0}
+                            }
+
+                            Block[B4#A0] - Block
+                                Predecessors: [B2#A0]
+                                Statements (1)
+                                    IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input2')
+                                      Value: 
+                                        IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: C) (Syntax: 'input2')
+
+                                Next (Regular) Block[B5#A0]
+                            Block[B5#A0] - Block
+                                Predecessors: [B3#A0] [B4#A0]
+                                Statements (1)
+                                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result1 = I ... t1, input2)')
+                                      Expression: 
+                                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result1 = I ... t1, input2)')
+                                          Left: 
+                                            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result1')
+                                          Right: 
+                                            IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(input1, input2)')
+
+                                Next (Regular) Block[B6#A0]
+                                    Leaving: {R1#A0}
+                        }
+
+                        Block[B6#A0] - Exit
+                            Predecessors: [B5#A0]
                             Statements (0)
                     }
 
-    Next (Regular) Block[B5]
-Block[B5] - Exit
-    Predecessors: [B4]
+    Next (Regular) Block[B7]
+Block[B7] - Exit
+    Predecessors: [B6]
     Statements (0)
 ]]>.Value
 

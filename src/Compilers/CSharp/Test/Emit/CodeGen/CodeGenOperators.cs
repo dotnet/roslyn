@@ -5349,5 +5349,319 @@ class Program
             string expectedOutput = @"1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void TestNullCoalesce_NullableWithDefault_Optimization()
+        {
+            var source = @"
+class Program
+{
+    struct S
+    {
+        int _a;
+        System.Guid _b;
+
+        public S(int a, System.Guid b)
+        {
+            _a = a;
+            _b = b;
+        }
+
+        public override string ToString() => (_a, _b).ToString();
+    }
+
+    static int CoalesceInt32(int? x)
+    {
+        return x ?? 0;
+    }
+
+    static T CoalesceGeneric<T>(T? x) where T : struct
+    {
+        return x ?? default(T);
+    }
+
+    static (bool a, System.Guid b) CoalesceTuple((bool a, System.Guid b)? x)
+    {
+        return x ?? default((bool a, System.Guid b));
+    }
+
+    static S CoalesceUserStruct(S? x)
+    {
+        return x ?? default(S);
+    }
+
+    static S CoalesceStructWithImplicitConstructor(S? x)
+    {
+        return x ?? new S();
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(CoalesceInt32(42));
+        System.Console.WriteLine(CoalesceInt32(null));
+        System.Console.WriteLine(CoalesceGeneric<System.Guid>(new System.Guid(""44ed2f0b-c2fa-4791-81f6-97222fffa466"")));
+        System.Console.WriteLine(CoalesceGeneric<System.Guid>(null));
+        System.Console.WriteLine(CoalesceTuple((true, new System.Guid(""1c95cef0-1aae-4adb-a43c-54b2e7c083a0""))));
+        System.Console.WriteLine(CoalesceTuple(null));
+        System.Console.WriteLine(CoalesceUserStruct(new S(42, new System.Guid(""8683f371-81b4-45f6-aaed-1c665b371594""))));
+        System.Console.WriteLine(CoalesceUserStruct(null));
+        System.Console.WriteLine(CoalesceStructWithImplicitConstructor(new S()));
+        System.Console.WriteLine(CoalesceStructWithImplicitConstructor(null));
+    }
+}";
+            var expectedOutput =
+@"42
+0
+44ed2f0b-c2fa-4791-81f6-97222fffa466
+00000000-0000-0000-0000-000000000000
+(True, 1c95cef0-1aae-4adb-a43c-54b2e7c083a0)
+(False, 00000000-0000-0000-0000-000000000000)
+(42, 8683f371-81b4-45f6-aaed-1c665b371594)
+(0, 00000000-0000-0000-0000-000000000000)
+(0, 00000000-0000-0000-0000-000000000000)
+(0, 00000000-0000-0000-0000-000000000000)";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyIL("Program.CoalesceInt32", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int int?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+            comp.VerifyIL("Program.CoalesceGeneric<T>", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""T T?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+            comp.VerifyIL("Program.CoalesceTuple", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""(bool a, System.Guid b) (bool a, System.Guid b)?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+            comp.VerifyIL("Program.CoalesceUserStruct", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""Program.S Program.S?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+            comp.VerifyIL("Program.CoalesceStructWithImplicitConstructor", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""Program.S Program.S?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NullableWithConvertedDefault_Optimization()
+        {
+            var source = @"
+class Program
+{
+    static (bool a, System.Guid b, string c) CoalesceDifferentTupleNames((bool a, System.Guid b, string c)? x)
+    {
+        return x ?? default((bool c, System.Guid d, string e));
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(CoalesceDifferentTupleNames((true, new System.Guid(""533d4d3b-5013-461e-ae9e-b98eb593d761""), ""value"")));
+        System.Console.WriteLine(CoalesceDifferentTupleNames(null));
+    }
+}";
+            var expectedOutput = 
+ @"(True, 533d4d3b-5013-461e-ae9e-b98eb593d761, value)
+(False, 00000000-0000-0000-0000-000000000000, )";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyIL("Program.CoalesceDifferentTupleNames", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""(bool a, System.Guid b, string c) (bool a, System.Guid b, string c)?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NullableWithNonDefault_NoOptimization()
+        {
+            var source = @"
+class Program
+{
+    static int CoalesceWithNonDefault1(int? x)
+    {
+        return x ?? 2;
+    }
+
+    static int CoalesceWithNonDefault2(int? x, int y)
+    {
+        return x ?? y;
+    }
+
+    static int? CoalesceWithNonDefault3(int? x, int? y)
+    {
+        return x ?? y;
+    }
+
+    static int? CoalesceWithNonDefault4(int? x)
+    {
+        return x ?? default(int?);
+    }
+
+    static void Main()
+    {
+        void WriteLine(object value) => System.Console.WriteLine(value?.ToString() ?? ""*null*"");
+
+        WriteLine(CoalesceWithNonDefault1(42));
+        WriteLine(CoalesceWithNonDefault1(null));
+        WriteLine(CoalesceWithNonDefault2(12, 34));
+        WriteLine(CoalesceWithNonDefault2(null, 34));
+        WriteLine(CoalesceWithNonDefault3(123, 456));
+        WriteLine(CoalesceWithNonDefault3(123, null));
+        WriteLine(CoalesceWithNonDefault3(null, 456));
+        WriteLine(CoalesceWithNonDefault3(null, null));
+        WriteLine(CoalesceWithNonDefault4(42));
+        WriteLine(CoalesceWithNonDefault4(null));
+    }
+}";
+            var expectedOutput =
+@"42
+2
+12
+34
+123
+123
+456
+*null*
+42
+*null*";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyIL("Program.CoalesceWithNonDefault1", @"{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_000d
+  IL_000b:  ldc.i4.2
+  IL_000c:  ret
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int int?.GetValueOrDefault()""
+  IL_0014:  ret
+}");
+            comp.VerifyIL("Program.CoalesceWithNonDefault2", @"{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_000d
+  IL_000b:  ldarg.1
+  IL_000c:  ret
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int int?.GetValueOrDefault()""
+  IL_0014:  ret
+}");
+            comp.VerifyIL("Program.CoalesceWithNonDefault3", @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_000d
+  IL_000b:  ldarg.1
+  IL_000c:  ret
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}");
+            comp.VerifyIL("Program.CoalesceWithNonDefault4", @"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (int? V_0,
+                int? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""int?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloc.0
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NonNullableWithDefault_NoOptimization()
+        {
+            var source = @"
+class Program
+{
+    static string CoalesceNonNullableWithDefault(string x)
+    {
+        return x ?? default(string);
+    }
+
+    static void Main()
+    {
+        void WriteLine(object value) => System.Console.WriteLine(value?.ToString() ?? ""*null*"");
+
+        WriteLine(CoalesceNonNullableWithDefault(""value""));
+        WriteLine(CoalesceNonNullableWithDefault(null));
+    }
+}";
+            var expectedOutput =
+@"value
+*null*";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyIL("Program.CoalesceNonNullableWithDefault", @"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_0006
+  IL_0004:  pop
+  IL_0005:  ldnull
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
+        {
+            var source = @"
+class Program
+{
+    static int Coalesce(int? x)
+    {
+        return x ?? 0;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            
+            comp.VerifyEmitDiagnostics(
+                // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         return x ?? 0;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16),
+                // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         return x ?? 0;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16)
+                );
+        }
     }
 }

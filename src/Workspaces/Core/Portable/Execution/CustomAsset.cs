@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             _writer(writer, cancellationToken);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private static Checksum CreateChecksumFromStreamWriter(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Execution
             const bool usePathFromAssembly = false;
 
             _serializer.SerializeAnalyzerReference(_reference, writer, usePathFromAssembly, cancellationToken);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
     }
 }

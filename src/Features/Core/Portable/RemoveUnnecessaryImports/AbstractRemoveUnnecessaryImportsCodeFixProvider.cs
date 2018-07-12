@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                     GetTitle(),
                     c => RemoveUnnecessaryImportsAsync(context.Document, c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected abstract string GetTitle();
