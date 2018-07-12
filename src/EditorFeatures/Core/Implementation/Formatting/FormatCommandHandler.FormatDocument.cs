@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,9 +9,11 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -74,48 +77,62 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
-            {
-                var cancellationToken = context.OperationContext.UserCancellationToken;
-
-                using (var transaction = new CaretPreservingEditTransaction(
-                    EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+            context.OperationContext.TakeOwnership();
+            _waitIndicator.Wait(
+                EditorFeaturesResources.Formatting_document,
+                EditorFeaturesResources.Formatting_document,
+                allowCancel: true,
+                showProgress: true,
+                c =>
                 {
-                    var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-                    if (codeCleanupService == null)
-                    {
-                        Format(args.TextView, document, selectionOpt: null, cancellationToken);
-                    }
-                    else
-                    {
-                        CodeCleanupOrFormat(args, document, cancellationToken);
-                    }
+                    var cancellationToken = context.OperationContext.UserCancellationToken;
 
-                    transaction.Complete();
-                }
-            }
+                    using (var transaction = new CaretPreservingEditTransaction(
+                        EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                    {
+                        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+                        if (codeCleanupService == null)
+                        {
+                            Format(args.TextView, document, selectionOpt: null, cancellationToken);
+                        }
+                        else
+                        {
+                            CodeCleanupOrFormat(args, document, c.ProgressTracker, cancellationToken);
+                        }
+
+                        transaction.Complete();
+                    }
+                });
 
             return true;
         }
 
-        private void CodeCleanupOrFormat(FormatDocumentCommandArgs args, Document document, CancellationToken cancellationToken)
+        private void CodeCleanupOrFormat(
+            FormatDocumentCommandArgs args, Document document,
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
             var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-            // simplest pass. code cleanup is on. just run code clean up.
             if (docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting))
             {
+                // Start with a single progress item, which is the one to actually apply
+                // the changes.
+                progressTracker.AddItems(1);
+
                 // Code cleanup
                 var oldDoc = document;
-                var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, codeCleanupService, cancellationToken).WaitAndGetResult(cancellationToken);
 
-                if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
+                var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(
+                    document, codeCleanupService, progressTracker, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                if (codeCleanupChanges != null && codeCleanupChanges.Length > 0)
                 {
+                    progressTracker.Description = EditorFeaturesResources.Applying_changes;
                     ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
                 }
 
+                progressTracker.ItemCompleted();
                 return;
             }
 
@@ -123,11 +140,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             Format(args.TextView, document, selectionOpt: null, cancellationToken);
         }
 
-        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(Document document, ICodeCleanupService codeCleanupService, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<TextChange>> GetCodeCleanupAndFormatChangesAsync(
+            Document document, ICodeCleanupService codeCleanupService, 
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var newDoc = await codeCleanupService.CleanupAsync(document, cancellationToken).ConfigureAwait(false);
+            var newDoc = await codeCleanupService.CleanupAsync(
+                document, progressTracker, cancellationToken).ConfigureAwait(false);
 
-            return await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            var changes = await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            return changes.ToImmutableArrayOrEmpty();
         }
     }
 }

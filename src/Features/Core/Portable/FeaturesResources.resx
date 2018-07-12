@@ -1376,4 +1376,7 @@ This version used in: {2}</value>
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
   </data>
+  <data name="Formatting_document" xml:space="preserve">
+    <value>Formatting document</value>
+  </data>
 </root>
