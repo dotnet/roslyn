@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LazyObsoleteDiagnosticInfo(object symbol, Symbol containingSymbol, BinderFlags binderFlags)
             : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
+            Debug.Assert(symbol is Symbol || symbol is TypeSymbolWithAnnotations);
             _symbolOrSymbolWithAnnotations = symbol;
             _containingSymbol = containingSymbol;
             _binderFlags = binderFlags;
