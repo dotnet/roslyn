@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
         Inherits AbstractOptionPage
 
         Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider) As AbstractOptionPageControl
-            Return New GridOptionPreviewControl(serviceProvider, Function(o, s) New StyleViewModel(o, s), AddressOf GetCurrentEditorConfigOptionsString)
+            Return New GridOptionPreviewControl(serviceProvider, Function(o, s) New StyleViewModel(o, s), AddressOf GetCurrentEditorConfigOptionsString, LanguageNames.VisualBasic)
         End Function
 
         Friend Shared Function GetCurrentEditorConfigOptionsString(ByVal optionSet As OptionSet) As String
@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
             editorconfig.Append("indent_style = ")
             editorconfig.AppendLine(BasicCodeStyleOptions_GenerateEditorconfig(optionSet, FormattingOptions.UseTabs))
             editorconfig.Append("indent_size = ")
-            editorconfig.AppendLine(optionSet.GetOption(FormattingOptions.IndentationSize, "csharp").ToString())
+            editorconfig.AppendLine(optionSet.GetOption(FormattingOptions.IndentationSize, LanguageNames.VisualBasic).ToString())
             editorconfig.Append("insert_final_newline = ")
             editorconfig.AppendLine(optionSet.GetOption(FormattingOptions.InsertFinalNewLine).ToString().ToLower())
 
@@ -45,11 +45,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
             editorconfig.AppendLine("###############################")
             editorconfig.AppendLine("# Organize usings")
             editorconfig.Append("dotnet_sort_system_directives_first = ")
-            editorconfig.AppendLine(optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, "csharp").ToString().ToLower())
+            editorconfig.AppendLine(optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic).ToString().ToLower())
 
             editorconfig.AppendLine()
             ' this. preferences
-            editorconfig.AppendLine("# this. preferences")
+            editorconfig.AppendLine("# Me. preferences")
             editorconfig.Append("dotnet_style_qualification_for_field = ")
             editorconfig.AppendLine(BasicCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.QualifyFieldAccess))
             editorconfig.Append("dotnet_style_qualification_for_property = ")
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
             editorconfig.Append("dotnet_style_qualification_for_method = ")
             editorconfig.AppendLine(BasicCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.QualifyMethodAccess))
             editorconfig.Append("dotnet_style_qualification_for_event = ")
-            editorconfig.AppendLine(BasicCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.QualifyPropertyAccess))
+            editorconfig.AppendLine(BasicCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.QualifyEventAccess))
 
             editorconfig.AppendLine()
             ' Language keywords vs. BCL types preferences

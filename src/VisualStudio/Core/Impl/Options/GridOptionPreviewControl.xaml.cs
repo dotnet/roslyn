@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
         private readonly Func<OptionSet, string> _getCurrentEditorConfigOptionsString;
+        private readonly string _language;
 
         public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
         public static string CodeStylePageHeader => ServicesVSResources.Code_style_header_use_editor_config;
@@ -29,7 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal GridOptionPreviewControl(IServiceProvider serviceProvider,
             Func<OptionSet, IServiceProvider,
             AbstractOptionPreviewViewModel> createViewModel,
-            Func<OptionSet, string> getCurrentEditorConfigOptionsString)
+            Func<OptionSet, string> getCurrentEditorConfigOptionsString,
+            string language)
             : base(serviceProvider)
         {
             InitializeComponent();
@@ -37,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _serviceProvider = serviceProvider;
             _createViewModel = createViewModel;
             _getCurrentEditorConfigOptionsString = getCurrentEditorConfigOptionsString;
+            _language = language;
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
