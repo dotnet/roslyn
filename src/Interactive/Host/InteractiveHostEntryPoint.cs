@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    public static class InteractiveHostEntryPoint
+    internal static class InteractiveHostEntryPoint
     {
         private static int Main(string[] args)
         {

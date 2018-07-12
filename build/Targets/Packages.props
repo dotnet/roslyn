@@ -33,7 +33,7 @@
     <MicrosoftCodeAnalysisCSharpWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisCSharpWorkspacesVersion>
     <MicrosoftCodeAnalysisEditorFeaturesTextVersion>1.0.1</MicrosoftCodeAnalysisEditorFeaturesTextVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.11</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.12</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonVersion>1.0.1</MicrosoftCodeAnalysisWorkspacesCommonVersion>
@@ -105,6 +105,7 @@
     <MicrosoftVisualStudioProjectSystemManagedVersion>2.3.6152103</MicrosoftVisualStudioProjectSystemManagedVersion>
     <MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion>10.0.0.0-alpha</MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion>
     <MicrosoftVisualStudioRemoteControlVersion>14.0.249-master2E2DC10C</MicrosoftVisualStudioRemoteControlVersion>
+    <MicrosoftVisualStudioSDKAnalyzersVersion>15.7.7</MicrosoftVisualStudioSDKAnalyzersVersion>
     <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.15.103</MicrosoftVisualStudioSetupConfigurationInteropVersion>
     <MicrosoftVisualStudioSettings140Version>14.3.25407</MicrosoftVisualStudioSettings140Version>
     <MicrosoftVisualStudioShell140Version>14.3.25407</MicrosoftVisualStudioShell140Version>

@@ -535,7 +535,7 @@ class C
 /// <summary>
 /// This is <see cref=""MyDelegate""/>, which has these methods:
 ///     <see cref=""MyDelegate.MyDelegate(object, IntPtr)""/>
-///     <see cref=""MyDelegate.Invoke( bool, string)""/>
+///     <see cref=""MyDelegate.Invoke(bool, string)""/>
 ///     <see cref=""MyDelegate.EndInvoke(IAsyncResult)""/>
 ///     <see cref=""MyDelegate.BeginInvoke(int, string, bool, AsyncCallback, object)""/>
 /// </summary>

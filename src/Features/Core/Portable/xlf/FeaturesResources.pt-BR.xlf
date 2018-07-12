@@ -27,6 +27,21 @@
         <target state="new">Add to '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_class">
+        <source>Convert to class</source>
+        <target state="new">Convert to class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_typo_0">
+        <source>Fix typo '{0}'</source>
+        <target state="new">Fix typo '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="new">Related method signatures found in metadata will not be updated.</target>
@@ -1588,11 +1603,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Use_expression_body_for_properties">
         <source>Use expression body for properties</source>
         <target state="translated">Usar o corpo da expressão para propriedades</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Spell_check_0">
-        <source>Spell check '{0}'</source>
-        <target state="translated">Verificar ortografia de '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fully_qualify_0">
