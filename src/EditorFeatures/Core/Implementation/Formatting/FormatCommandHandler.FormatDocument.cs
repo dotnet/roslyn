@@ -92,21 +92,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 allowCancel: true,
                 showProgress: true,
                 c =>
-                { 
-                    using (var transaction = new CaretPreservingEditTransaction(
-                        EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                {
+                    using (Logger.LogBlock(FunctionId.FormatDocument, CodeCleanupLogMessage.Create(docOptions), cancellationToken))
                     {
-                        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-                        if (codeCleanupService == null)
+                        using (var transaction = new CaretPreservingEditTransaction(
+                            EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                         {
-                            Format(args.TextView, document, selectionOpt: null, cancellationToken);
-                        }
-                        else
-                        {
-                            CodeCleanupOrFormat(args, document, c.ProgressTracker, cancellationToken);
-                        }
+                            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+                            if (codeCleanupService == null)
+                            {
+                                Format(args.TextView, document, selectionOpt: null, cancellationToken);
+                            }
+                            else
+                            {
+                                CodeCleanupOrFormat(args, document, c.ProgressTracker, cancellationToken);
+                            }
 
-                        transaction.Complete();
+                            transaction.Complete();
+                        }
                     }
                 });
 
@@ -147,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private async Task<ImmutableArray<TextChange>> GetCodeCleanupAndFormatChangesAsync(
-            Document document, ICodeCleanupService codeCleanupService, 
+            Document document, ICodeCleanupService codeCleanupService,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var newDoc = await codeCleanupService.CleanupAsync(
