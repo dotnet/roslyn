@@ -25,13 +25,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 ///<summary>Hello!</summary>
 class Program
 {
-    static void Main(string$$[] args)
+    static int$$ Main(string[] args)
     {
+        return 0;
     }
 }");
             await VisualStudio.Editor.InvokeQuickInfoAsync();
             Assert.Equal(
-                "class\u200e System\u200e.String\r\nRepresents text as a series of Unicode characters.To browse the .NET Framework source code for this type, see the Reference Source.",
+                "struct\u200e System\u200e.Int32\r\nRepresents a 32-bit signed integer.To browse the .NET Framework source code for this type, see the Reference Source.",
                 await VisualStudio.Editor.GetQuickInfoAsync());
         }
 

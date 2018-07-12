@@ -24,11 +24,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             await SetUpEditorAsync(@"
 ''' <summary>Hello!</summary>
 Class Program
-    Sub Main(ByVal args As String$$())
-    End Sub
+    Function Main(ByVal args As String()) As Integer$$
+        Return 0
+    End Function
 End Class");
             await VisualStudio.Editor.InvokeQuickInfoAsync();
-            Assert.Equal("Class\u200e System.String\r\nRepresents text as a series of Unicode characters.To browse the .NET Framework source code for this type, see the Reference Source.", await VisualStudio.Editor.GetQuickInfoAsync());
+            Assert.Equal("Structure\u200e System.Int32\r\nRepresents a 32-bit signed integer.To browse the .NET Framework source code for this type, see the Reference Source.", await VisualStudio.Editor.GetQuickInfoAsync());
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
