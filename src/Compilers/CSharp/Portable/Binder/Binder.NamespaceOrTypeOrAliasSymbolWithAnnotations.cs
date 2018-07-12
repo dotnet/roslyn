@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal bool IsAlias => Symbol?.Kind == SymbolKind.Alias;
             internal Symbol SymbolOrType => Symbol ?? Type?.TypeSymbol;
             internal NamespaceOrTypeSymbol NamespaceOrTypeSymbol => (NamespaceOrTypeSymbol)SymbolOrType;
-            internal bool IsDefault => Symbol is null && Type is null;
+            internal bool IsDefault => _symbolOrTypeSymbolWithAnnotations is null;
 
             internal static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateNonNull(bool nonNullTypes, Symbol symbol)
             {
