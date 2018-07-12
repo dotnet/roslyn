@@ -12,16 +12,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// A simple class that combines a single symbol with annotations
+    /// A simple class that combines a single type symbol with annotations
     /// </summary>
-    internal abstract class SymbolWithAnnotations 
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+    internal abstract class TypeSymbolWithAnnotations : IFormattable
     {
-        public abstract Symbol Symbol { get; }
-
-        public sealed override string ToString() => Symbol.ToString();
-        public virtual string ToDisplayString(SymbolDisplayFormat format = null) => Symbol.ToDisplayString(format);
-        public string Name => Symbol.Name;
-        public SymbolKind Kind => Symbol.Kind;
+        public sealed override string ToString() => TypeSymbol.ToString();
+        public string Name => TypeSymbol.Name;
+        public SymbolKind Kind => TypeSymbol.Kind;
 
 #pragma warning disable CS0809
         [Obsolete("Unsupported", error: true)]
@@ -40,139 +38,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         [Obsolete("Unsupported", error: true)]
-        public static bool operator == (SymbolWithAnnotations x, SymbolWithAnnotations y)
+        public static bool operator ==(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
         [Obsolete("Unsupported", error: true)]
-        public static bool operator !=(SymbolWithAnnotations x, SymbolWithAnnotations y)
+        public static bool operator !=(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
         [Obsolete("Unsupported", error: true)]
-        public static bool operator ==(Symbol x, SymbolWithAnnotations y)
+        public static bool operator ==(Symbol x, TypeSymbolWithAnnotations y)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
         [Obsolete("Unsupported", error: true)]
-        public static bool operator !=(Symbol x, SymbolWithAnnotations y)
+        public static bool operator !=(Symbol x, TypeSymbolWithAnnotations y)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
         [Obsolete("Unsupported", error: true)]
-        public static bool operator ==(SymbolWithAnnotations x, Symbol y)
+        public static bool operator ==(TypeSymbolWithAnnotations x, Symbol y)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
         [Obsolete("Unsupported", error: true)]
-        public static bool operator !=(SymbolWithAnnotations x, Symbol y)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-    }
-
-    internal abstract class NamespaceOrTypeOrAliasSymbolWithAnnotations : SymbolWithAnnotations
-    {
-        [Obsolete("Unsupported", error: true)]
-        public new bool Equals(object other)
+        public static bool operator !=(TypeSymbolWithAnnotations x, Symbol y)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        [Obsolete("Unsupported", error: true)]
-        public new int GetHashCode()
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        public static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateNonNull(bool nonNullTypes, Symbol symbol)
-        {
-            if (symbol is null)
-            {
-                return null;
-            }
-
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Namespace:
-                    return new NamespaceSymbolWithAnnotations((NamespaceSymbol)symbol);
-                case SymbolKind.Alias:
-                    return new AliasSymbolWithAnnotations((AliasSymbol)symbol);
-                default:
-                    return TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes, (TypeSymbol)symbol);
-            }
-        }
-
-        public abstract bool IsAlias { get; }
-        public abstract bool IsNamespace { get; }
-        public abstract bool IsType { get; }
-    }
-
-    internal sealed class AliasSymbolWithAnnotations : NamespaceOrTypeOrAliasSymbolWithAnnotations
-    {
-        private readonly AliasSymbol _aliasSymbol;
-
-        public AliasSymbolWithAnnotations(AliasSymbol aliasSymbol)
-        {
-            Debug.Assert((object)aliasSymbol != null);
-            _aliasSymbol = aliasSymbol;
-        }
-
-        public sealed override Symbol Symbol => _aliasSymbol;
-        public AliasSymbol AliasSymbol => _aliasSymbol;
-
-        public override bool IsAlias => true;
-        public override bool IsNamespace => false;
-        public override bool IsType => false;
-    }
-
-    internal abstract class NamespaceOrTypeSymbolWithAnnotations : NamespaceOrTypeOrAliasSymbolWithAnnotations
-    {
-        public abstract NamespaceOrTypeSymbol NamespaceOrTypeSymbol { get; }
-
-        public static NamespaceOrTypeSymbolWithAnnotations CreateNonNull(bool nonNullTypes, NamespaceOrTypeSymbol symbol)
-        {
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Namespace:
-                    return new NamespaceSymbolWithAnnotations((NamespaceSymbol)symbol);
-                default:
-                    return TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes, (TypeSymbol)symbol);
-            }
-        }
-
-        public override bool IsAlias => false;
-    }
-
-    internal sealed class NamespaceSymbolWithAnnotations : NamespaceOrTypeSymbolWithAnnotations
-    {
-        private readonly NamespaceSymbol _namespaceSymbol;
-
-        public NamespaceSymbolWithAnnotations(NamespaceSymbol namespaceSymbol)
-        {
-            Debug.Assert((object)namespaceSymbol != null);
-            _namespaceSymbol = namespaceSymbol;
-        }
-
-        public sealed override Symbol Symbol => _namespaceSymbol;
-        public NamespaceSymbol NamespaceSymbol => _namespaceSymbol;
-        public sealed override NamespaceOrTypeSymbol NamespaceOrTypeSymbol => _namespaceSymbol;
-
-        public override bool IsNamespace => true;
-        public override bool IsType => false;
-    }
-
-    /// <summary>
-    /// A simple class that combines a single type symbol with annotations
-    /// </summary>
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class TypeSymbolWithAnnotations : NamespaceOrTypeSymbolWithAnnotations, IFormattable
-    {
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -271,12 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers);
 
-        public sealed override Symbol Symbol => TypeSymbol;
-        public sealed override NamespaceOrTypeSymbol NamespaceOrTypeSymbol => TypeSymbol;
-
-        public override bool IsNamespace => false;
-        public override bool IsType => true;
-
         public abstract TypeSymbol TypeSymbol { get; }
         public virtual TypeSymbol NullableUnderlyingTypeOrSelf => TypeSymbol.StrippedType();
 
@@ -322,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress);
         internal abstract bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress);
 
-        public abstract override string ToDisplayString(SymbolDisplayFormat format = null);
+        public abstract string ToDisplayString(SymbolDisplayFormat format = null);
         internal string GetDebuggerDisplay() => ToDisplayString(DebuggerDisplayFormat);
 
         // PROTOTYPE(NullableReferenceTypes): Remove IFormattable implementation

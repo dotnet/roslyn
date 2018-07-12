@@ -752,9 +752,9 @@ class C1<T>
 
     internal abstract class SymbolChecker
     {
-        public void CheckSymbols(SymbolWithAnnotations a, SymbolWithAnnotations b, bool recurse)
+        public void CheckSymbols(TypeSymbolWithAnnotations a, TypeSymbolWithAnnotations b, bool recurse)
         {
-            CheckSymbols(a.Symbol, b.Symbol, recurse);
+            CheckSymbols(a.TypeSymbol, b.TypeSymbol, recurse);
         }
 
         public void CheckSymbols(Symbol a, Symbol b, bool recurse)

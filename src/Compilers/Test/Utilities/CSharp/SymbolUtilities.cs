@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString(symbol);
         }
 
-        public static string ToTestDisplayString(this SymbolWithAnnotations symbol, bool includeNonNullable = false)
+        public static string ToTestDisplayString(this TypeSymbolWithAnnotations symbol, bool includeNonNullable = false)
         {
             var format = SymbolDisplayFormat.TestFormat;
             if (includeNonNullable)
