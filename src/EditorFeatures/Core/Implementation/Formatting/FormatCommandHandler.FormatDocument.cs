@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         {
                             CodeCleanupOrFormatAsync(args, document, c.ProgressTracker, cancellationToken).Wait(cancellationToken);
                         }
+
+                        transaction.Complete();
                     }
                 });
 
@@ -112,31 +114,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
             var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            if (!docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting))
+            if (docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting))
             {
-                ShowGoldBarForCodeCleanupConfigurationIfNeeded(document);
-                Format(args.TextView, document, selectionOpt: null, cancellationToken);
+                // Start with a single progress item, which is the one to actually apply
+                // the changes.
+                progressTracker.AddItems(1);
+
+                // Code cleanup
+                var oldDoc = document;
+
+                // ConfigureAwait(true) so we come back to the UI thread to apply changes.
+                var codeCleanupChanges = await GetCodeCleanupAndFormatChangesAsync(
+                    document, codeCleanupService, progressTracker, cancellationToken).ConfigureAwait(true);
+
+                if (codeCleanupChanges != null && codeCleanupChanges.Length > 0)
+                {
+                    progressTracker.Description = EditorFeaturesResources.Applying_changes;
+                    ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
+                }
+
+                progressTracker.ItemCompleted();
                 return;
             }
 
-            // Start with a single progress item, which is the one to actually apply
-            // the changes.
-            progressTracker.AddItems(1);
-
-            // Code cleanup
-            var oldDoc = document;
-
-            // ConfigureAwait(true) so we come back to the UI thread to apply changes.
-            var codeCleanupChanges = await GetCodeCleanupAndFormatChangesAsync(
-                document, codeCleanupService, progressTracker, cancellationToken).ConfigureAwait(true);
-
-            if (codeCleanupChanges != null && codeCleanupChanges.Length > 0)
-            {
-                progressTracker.Description = EditorFeaturesResources.Applying_changes;
-                ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
-            }
-
-            progressTracker.ItemCompleted();
+            ShowGoldBarForCodeCleanupConfigurationIfNeeded(document);
+            Format(args.TextView, document, selectionOpt: null, cancellationToken);
         }
 
         private async Task<ImmutableArray<TextChange>> GetCodeCleanupAndFormatChangesAsync(
