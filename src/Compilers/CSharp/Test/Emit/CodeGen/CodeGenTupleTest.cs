@@ -937,13 +937,18 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                // (6,22): error CS1525: Invalid expression term 'int'
                 //         var x = new (int, int)(1, 2);
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(6, 21),
-                // (9,17): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 22),
+                // (6,27): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int)(1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 27),
+                // (9,18): error CS1525: Invalid expression term 'int'
                 //         x = new (int, int)();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(9, 17)
-
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 18),
+                // (9,23): error CS1525: Invalid expression term 'int'
+                //         x = new (int, int)();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 23)
                 );
         }
 
@@ -964,10 +969,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                // (7,22): error CS1525: Invalid expression term 'int'
                 //         var x = new (int, int)(1, arg);
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(7, 21)
-
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 22),
+                // (7,27): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int)(1, arg);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 27)
                 );
         }
 
@@ -996,18 +1003,99 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                // (6,22): error CS1525: Invalid expression term 'int'
                 //         var x = new (int a, int b)(1, 2);
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int a, int b)").WithLocation(6, 21),
-                // (9,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 22),
+                // (6,26): error CS1003: Syntax error, ',' expected
+                //         var x = new (int a, int b)(1, 2);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(6, 26),
+                // (6,29): error CS1525: Invalid expression term 'int'
+                //         var x = new (int a, int b)(1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 29),
+                // (6,33): error CS1003: Syntax error, ',' expected
+                //         var x = new (int a, int b)(1, 2);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",", "").WithLocation(6, 33),
+                // (9,23): error CS1525: Invalid expression term 'int'
                 //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int a, int b)").WithLocation(9, 22),
-                // (12,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 23),
+                // (9,27): error CS1003: Syntax error, ',' expected
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(9, 27),
+                // (9,30): error CS1525: Invalid expression term 'int'
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 30),
+                // (9,34): error CS1003: Syntax error, ',' expected
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",", "").WithLocation(9, 34),
+                // (9,43): error CS1002: ; expected
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(9, 43),
+                // (9,50): error CS1002: ; expected
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(9, 50),
+                // (9,50): error CS1513: } expected
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(9, 50),
+                // (9,61): error CS1002: ; expected
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(9, 61),
+                // (12,23): error CS1525: Invalid expression term 'int'
                 //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int a, (int b, int c) d)").WithLocation(12, 22),
-                // (12,55): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(12, 23),
+                // (12,27): error CS1003: Syntax error, ',' expected
                 //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(12, 55)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(12, 27),
+                // (12,45): error CS1003: Syntax error, ',' expected
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",", "").WithLocation(12, 45),
+                // (12,56): error CS1525: Invalid expression term 'int'
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(12, 56),
+                // (12,61): error CS1525: Invalid expression term 'int'
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(12, 61),
+                // (12,73): error CS1002: ; expected
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(12, 73),
+                // (12,80): error CS1002: ; expected
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(12, 80),
+                // (12,80): error CS1513: } expected
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(12, 80),
+                // (12,86): error CS1525: Invalid expression term '{'
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(12, 86),
+                // (12,86): error CS1002: ; expected
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(12, 86),
+                // (12,92): error CS1002: ; expected
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(12, 92),
+                // (12,92): error CS1513: } expected
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(12, 92),
+                // (12,99): error CS1002: ; expected
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(12, 99),
+                // (9,45): error CS0103: The name 'a' does not exist in the current context
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(9, 45),
+                // (9,52): error CS0103: The name 'Item2' does not exist in the current context
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Item2").WithArguments("Item2").WithLocation(9, 52),
+                // (12,75): error CS0103: The name 'a' does not exist in the current context
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(12, 75),
+                // (12,82): error CS0103: The name 'd' does not exist in the current context
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(12, 82),
+                // (12,35): warning CS0219: The variable 'b' is assigned but its value is never used
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b").WithArguments("b").WithLocation(12, 35),
+                // (12,42): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(12, 42)
                 );
         }
 
@@ -1041,27 +1129,60 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                // (6,23): error CS1525: Invalid expression term 'int'
                 //         var x0 = new (int a, int b)(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int a, int b)").WithLocation(6, 22),
-                // (9,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 23),
+                // (6,27): error CS1003: Syntax error, ',' expected
+                //         var x0 = new (int a, int b)(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(6, 27),
+                // (6,30): error CS1525: Invalid expression term 'int'
+                //         var x0 = new (int a, int b)(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 30),
+                // (6,34): error CS1003: Syntax error, ',' expected
+                //         var x0 = new (int a, int b)(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",", "").WithLocation(6, 34),
+                // (9,23): error CS1525: Invalid expression term 'int'
                 //         var x1 = new (int, int)(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(9, 22),
-                // (12,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 23),
+                // (9,28): error CS1525: Invalid expression term 'int'
+                //         var x1 = new (int, int)(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 28),
+                // (12,23): error CS1525: Invalid expression term 'int'
                 //         var x2 = new (int, int)(1, "2");
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(12, 22),
-                // (15,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(12, 23),
+                // (12,28): error CS1525: Invalid expression term 'int'
+                //         var x2 = new (int, int)(1, "2");
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(12, 28),
+                // (15,23): error CS1525: Invalid expression term 'int'
                 //         var x3 = new (int, int)(1);
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(15, 22),
-                // (18,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(15, 23),
+                // (15,28): error CS1525: Invalid expression term 'int'
+                //         var x3 = new (int, int)(1);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(15, 28),
+                // (18,23): error CS1525: Invalid expression term 'int'
                 //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(18, 22),
-                // (18,40): error CS0117: '(int, int)' does not contain a definition for 'a'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(18, 23),
+                // (18,28): error CS1525: Invalid expression term 'int'
                 //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "a").WithArguments("(int, int)", "a").WithLocation(18, 40),
-                // (18,47): error CS0117: '(int, int)' does not contain a definition for 'Item3'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(18, 28),
+                // (18,39): error CS1002: ; expected
                 //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "Item3").WithArguments("(int, int)", "Item3").WithLocation(18, 47)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(18, 39),
+                // (18,45): error CS1002: ; expected
+                //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(18, 45),
+                // (18,45): error CS1513: } expected
+                //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(18, 45),
+                // (18,56): error CS1002: ; expected
+                //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(18, 56),
+                // (18,40): error CS0103: The name 'a' does not exist in the current context
+                //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(18, 40),
+                // (18,47): error CS0103: The name 'Item3' does not exist in the current context
+                //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Item3").WithArguments("Item3").WithLocation(18, 47)
                 );
         }
 
@@ -15408,13 +15529,58 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int, int, int, int, int, int, int)").WithLocation(6, 21),
-                // (7,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int, int, int, int, int, int, int, int)").WithLocation(7, 21)
 
+                // (6,22): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 22),
+                // (6,27): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 27),
+                // (6,32): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 32),
+                // (6,37): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 37),
+                // (6,42): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 42),
+                // (6,47): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 47),
+                // (6,52): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 52),
+                // (6,57): error CS1525: Invalid expression term 'int'
+                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 57),
+                // (7,22): error CS1525: Invalid expression term 'int'
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 22),
+                // (7,27): error CS1525: Invalid expression term 'int'
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 27),
+                // (7,32): error CS1525: Invalid expression term 'int'
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 32),
+                // (7,37): error CS1525: Invalid expression term 'int'
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 37),
+                // (7,42): error CS1525: Invalid expression term 'int'
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 42),
+                // (7,47): error CS1525: Invalid expression term 'int'
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 47),
+                // (7,52): error CS1525: Invalid expression term 'int'
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 52),
+                // (7,57): error CS1525: Invalid expression term 'int'
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 57),
+                // (7,62): error CS1525: Invalid expression term 'int'
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 62)
                 );
         }
 
