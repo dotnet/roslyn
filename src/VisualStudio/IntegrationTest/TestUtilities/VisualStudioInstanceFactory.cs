@@ -12,12 +12,11 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Setup.Configuration;
 using RunTests;
-using Xunit;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
-    public sealed class VisualStudioInstanceFactory : LongLivedMarshalByRefObject, IDisposable
+    public sealed class VisualStudioInstanceFactory : IDisposable
     {
         public const string MSBuildPackageId = "Microsoft.Component.MSBuild";
         public const string Net46TargetingPackPackageId = "Microsoft.Net.Component.4.6.TargetingPack";

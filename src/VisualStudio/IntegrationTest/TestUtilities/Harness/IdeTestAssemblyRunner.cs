@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                 {
                     try
                     {
-                        using (var visualStudioInstanceFactory = Activator.CreateInstance<VisualStudioInstanceFactory>())
+                        using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory())
                         {
                             var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, testCasesByTargetVersion.Key.visualStudioVersion, completedTestCaseIds, messageBus, testCollection, testCasesByTargetVersion, cancellationTokenSource);
                             result.Aggregate(summary.Item1);
