@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         CodeCleanupInfobar_BarDisplayed,
         CodeCleanupInfobar_ConfigureNow,
-        CodeCleanupInfobar_DoNotShow,
+        CodeCleanupInfobar_NeverShowCodeCleanupInfoBarAgain,
 
         FormatDocument,
         CodeCleanup_ApplyCodeFixesAsync,

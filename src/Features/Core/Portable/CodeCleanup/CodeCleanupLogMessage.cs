@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         {
             return KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
-                m[nameof(CodeCleanupOptions.CodeCleanupInfoBarShown)] = docOptions.GetOption(CodeCleanupOptions.CodeCleanupInfoBarShown);
                 m[nameof(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain)] = docOptions.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain);
                 m[nameof(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting)] = docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting);
                 m[nameof(CodeCleanupOptions.RemoveUnusedImports)] = docOptions.GetOption(CodeCleanupOptions.RemoveUnusedImports);

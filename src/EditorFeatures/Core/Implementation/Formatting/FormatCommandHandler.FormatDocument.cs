@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
-                                  Logger.Log(FunctionId.CodeCleanupInfobar_DoNotShow, KeyValueLogMessage.NoProperty);
+                                  Logger.Log(FunctionId.CodeCleanupInfobar_NeverShowCodeCleanupInfoBarAgain, KeyValueLogMessage.NoProperty);
                                   workspace.Options = workspace.Options.WithChangedOption(
                                       CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language, value: true);
                               }));
@@ -82,10 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            var cancellationToken = context.OperationContext.UserCancellationToken;
-            var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
             context.OperationContext.TakeOwnership();
+
             _waitIndicator.Wait(
                 EditorFeaturesResources.Formatting_document,
                 EditorFeaturesResources.Formatting_document,
@@ -93,7 +91,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 showProgress: true,
                 c =>
                 {
-                    using (Logger.LogBlock(FunctionId.FormatDocument, CodeCleanupLogMessage.Create(docOptions), cancellationToken))
+                    var docOptions = document.GetOptionsAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
+
+                    using (Logger.LogBlock(FunctionId.FormatDocument, CodeCleanupLogMessage.Create(docOptions), c.CancellationToken))
                     {
                         using (var transaction = new CaretPreservingEditTransaction(
                             EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                             var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
                             if (codeCleanupService == null)
                             {
-                                Format(args.TextView, document, selectionOpt: null, cancellationToken);
+                                Format(args.TextView, document, selectionOpt: null, c.CancellationToken);
                             }
                             else
                             {
-                                CodeCleanupOrFormat(args, document, c.ProgressTracker, cancellationToken);
+                                CodeCleanupOrFormat(args, document, c.ProgressTracker, c.CancellationToken);
                             }
 
                             transaction.Complete();

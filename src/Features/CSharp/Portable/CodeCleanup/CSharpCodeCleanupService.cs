@@ -188,6 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
                 // Mark this option as being completed.
                 progressTracker.ItemCompleted();
+
+                using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
+                {
+                    var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
+                    progressTracker.ItemCompleted();
+                    return result;
+                }
+
             }
 
             return document;
