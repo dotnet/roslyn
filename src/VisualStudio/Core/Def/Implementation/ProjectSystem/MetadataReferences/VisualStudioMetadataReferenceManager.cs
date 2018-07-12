@@ -86,9 +86,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
         }
 
+
+        private readonly object _sharedReferencesGate = new object();
+        private readonly Dictionary<(string filePath, MetadataReferenceProperties), ReferenceCountedDisposable<VisualStudioMetadataReference>.WeakReference> _sharedReferences
+            = new Dictionary<(string filePath, MetadataReferenceProperties), ReferenceCountedDisposable<VisualStudioMetadataReference>.WeakReference>();
+
         public ReferenceCountedDisposable<VisualStudioMetadataReference> CreateMetadataReference(string filePath, MetadataReferenceProperties properties)
         {
-            return new ReferenceCountedDisposable<VisualStudioMetadataReference>(new VisualStudioMetadataReference(this, filePath, properties));
+            var sharedReferencesKey = (filePath, properties);
+
+            lock (_sharedReferencesGate)
+            {
+                if (_sharedReferences.TryGetValue(sharedReferencesKey, out var weakReference))
+                {
+                    var strongReference = weakReference.TryAddReference();
+
+                    if (strongReference != null)
+                    {
+                        return strongReference;
+                    }
+                }
+
+                // We don't have one to return, so make a new one
+                var newStrongReference = new ReferenceCountedDisposable<VisualStudioMetadataReference>(new VisualStudioMetadataReference(this, filePath, properties));
+                _sharedReferences[sharedReferencesKey] = new ReferenceCountedDisposable<VisualStudioMetadataReference>.WeakReference(newStrongReference);
+                return newStrongReference;
+            }
+        }
+
+        internal void StopTrackingSharedMetadataReference(VisualStudioMetadataReference metadataReference)
+        {
+            lock (_sharedReferencesGate)
+            {
+                // Remove the shared reference. There is a possible "race" here where the final consumer of the shared
+                // reference disposed it, and  CreateMetadataReference already created a new one. Then, we call this
+                // method which removes it from the map. This would have the side effect  of us removing the reference
+                // and accidentally creating another one later, but this is fine -- this just means we're potentially creating
+                // duplicate file watchers which is harmless. Since practically this is all called on the UI thread (even
+                // though we do guarantee thread-safety), no such race could actually exist. We could get fancier here
+                // but it's just not worth it.
+                _sharedReferences.Remove((metadataReference.FilePath, metadataReference.Properties));
+            }
         }
 
         public void ClearCache()

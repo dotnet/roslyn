@@ -74,6 +74,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _fileChangeTracker.Dispose();
             _fileChangeTracker.UpdatedOnDisk -= OnUpdatedOnDisk;
+
+            _provider.StopTrackingSharedMetadataReference(this);
         }
 
         private void UpdateSnapshot()
