@@ -8,6 +8,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    /// <summary>
+    /// Holds a <see cref="Snapshot" /> that represents an individual metadata reference at a certain point in time. A <see cref="Snapshot"/>
+    /// is what is actually passed to the compiler as a <see cref="MetadataReference"/>. This type monitors the file for changes and provides new
+    /// <see cref="Snapshot"/>s if needed.
+    /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed partial class VisualStudioMetadataReference : IDisposable
     {
