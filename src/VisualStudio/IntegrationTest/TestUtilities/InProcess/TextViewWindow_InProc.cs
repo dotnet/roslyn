@@ -7,13 +7,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal abstract class TextViewWindow_InProc : InProcComponent
     {
-        protected T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
-            => InvokeOnUIThread(() =>
-            {
-                var view = GetActiveTextView();
-                return action(view);
-            });
-
         protected void ExecuteOnActiveView(Action<IWpfTextView> action)
             => InvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 

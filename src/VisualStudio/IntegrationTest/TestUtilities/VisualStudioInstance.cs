@@ -25,8 +25,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IpcChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
-        public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
-
         public Editor_OutOfProc Editor { get; }
 
         public SendKeys SendKeys { get; }
@@ -101,7 +99,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
-            ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
@@ -138,9 +135,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             task.Wait(cancellationToken);
         }
 
-        public void ExecuteCommand(string commandName, string argument = "")
-            => _inProc.ExecuteCommand(commandName, argument);
-
         public bool IsRunning => !HostProcess.HasExited;
 
         public void CleanUp()
@@ -148,9 +142,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-
-            // Close any windows leftover from previous (failed) tests
-            ObjectBrowserWindow.CloseWindow();
         }
 
         public void Close(bool exitHostProcess = true)
@@ -229,40 +220,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (_inProc.IsCommandAvailable(WellKnownCommandNames.Test_IntegrationTestService_Stop))
             {
                 _inProc.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Stop);
-            }
-        }
-
-        public TelemetryVerifier EnableTestTelemetryChannel()
-        {
-            _inProc.EnableTestTelemetryChannel();
-            return new TelemetryVerifier(this);
-        }
-
-        private void DisableTestTelemetryChannel()
-            => _inProc.DisableTestTelemetryChannel();
-
-        private void WaitForTelemetryEvents(string[] names)
-            => _inProc.WaitForTelemetryEvents(names);
-
-        public class TelemetryVerifier : IDisposable
-        {
-            internal VisualStudioInstance _instance;
-
-            public TelemetryVerifier(VisualStudioInstance instance)
-            {
-                _instance = instance;
-            }
-
-            public void Dispose() => _instance.DisableTestTelemetryChannel();
-
-            /// <summary>
-            /// Asserts that a telemetry event of the given name was fired. Does not
-            /// do any additional validation (of performance numbers, etc).
-            /// </summary>
-            /// <param name="expectedEventNames"></param>
-            public void VerifyFired(params string[] expectedEventNames)
-            {
-                _instance.WaitForTelemetryEvents(expectedEventNames);
             }
         }
     }

@@ -1,17 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows;
-using System.Windows.Forms;
-using System.Windows.Media;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using UIAutomationClient;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -51,19 +44,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return (IWpfTextViewHost)wpfTextViewHost;
         }
 
-        public string GetActiveBufferName()
-        {
-            return GetDTE().ActiveDocument.Name;
-        }
-
-        public void WaitForActiveView(string expectedView)
-        {
-            Retry(GetActiveBufferName, (actual) => actual == expectedView, TimeSpan.FromMilliseconds(100));
-        }
-
-        public void Activate()
-            => GetDTE().ActiveDocument.Activate();
-
         public void SetText(string text)
             => ExecuteOnActiveView(view =>
             {
@@ -71,71 +51,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
                 view.TextBuffer.Replace(replacementSpan, text);
             });
-
-        public string GetSelectedText()
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var selectedSpan = view.Selection.SelectedSpans[0];
-                return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
-            });
-
-        public void MoveCaret(int position)
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
-
-                view.Caret.MoveTo(point);
-            });
-
-        public void SendKeysToNavigateTo(string keys)
-        {
-            var dialogAutomationElement = FindNavigateTo();
-            if (dialogAutomationElement == null)
-            {
-                throw new InvalidOperationException($"Expected the NavigateTo dialog to be open, but it is not.");
-            }
-
-            dialogAutomationElement.SetFocus();
-            SendKeys.SendWait(keys);
-        }
-
-        private static IUIAutomationElement FindNavigateTo()
-        {
-            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
-            return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
-        }
-
-        private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
-        {
-            var beginTime = DateTime.UtcNow;
-            var retval = default(T);
-
-            do
-            {
-                try
-                {
-                    retval = action();
-                }
-                catch (COMException)
-                {
-                    // Devenv can throw COMExceptions if it's busy when we make DTE calls.
-
-                    Thread.Sleep(delay);
-                    continue;
-                }
-
-                if (stoppingCondition(retval))
-                {
-                    return retval;
-                }
-                else
-                {
-                    Thread.Sleep(delay);
-                }
-            }
-            while (true);
-        }
     }
 }

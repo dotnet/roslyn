@@ -8,12 +8,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public class SolutionExplorer_OutOfProc : OutOfProcComponent
     {
         private readonly SolutionExplorer_InProc _inProc;
-        private readonly VisualStudioInstance _instance;
 
         public SolutionExplorer_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
         }
 
@@ -33,9 +31,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
-
-        public void AddFile(ProjectUtils.Project project, string fileName, string contents = null, bool open = false)
-            => _inProc.AddFile(project.Name, fileName, contents, open);
 
         public void SaveAll()
             => _inProc.SaveAll();
