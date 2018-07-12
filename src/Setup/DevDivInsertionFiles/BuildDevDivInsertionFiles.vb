@@ -113,218 +113,6 @@ Public Class BuildDevDivInsertionFiles
         "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix"
     }
 
-    ' Files copied to Maddog machines running integration tests that are produced from our builds.
-    Private ReadOnly IntegrationTestFiles As String() = {
-        "xunit.*.dll",
-        "*.UnitTests.dll.config",
-        "InteractiveHost.exe",
-        "Microsoft.CodeAnalysis.CSharp.dll",
-        "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
-        "Microsoft.CodeAnalysis.CSharp.Features.dll",
-        "Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures.dll",
-        "Microsoft.CodeAnalysis.CSharp.Scripting.dll",
-        "Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
-        "Microsoft.CodeAnalysis.dll",
-        "Microsoft.CodeAnalysis.EditorFeatures.dll",
-        "Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
-        "Microsoft.CodeAnalysis.Features.dll",
-        "Microsoft.CodeAnalysis.InteractiveEditorFeatures.dll",
-        "Microsoft.CodeAnalysis.InteractiveFeatures.dll",
-        "Microsoft.CodeAnalysis.Scripting.dll",
-        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.Features.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
-        "Microsoft.CodeAnalysis.Workspaces.dll",
-        "Microsoft.Diagnostics.Runtime.dll",
-        "Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
-        "Microsoft.VisualStudio.IntegrationTest.Setup.vsix",
-        "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-        "Microsoft.VisualStudio.LanguageServices.dll",
-        "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
-        "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Roslyn.Compilers.Test.Resources.dll",
-        "Roslyn.Hosting.Diagnostics.dll",
-        "Roslyn.Test.PdbUtilities.dll"
-    }
-
-    ' Files needed by Mad dog tests that are produced by our internal builds.
-    Private ReadOnly IntegrationTestFilesExtra As String() = {
-        "IntegrationTests\*.xml",
-        "CodeMarkerListener.dll",
-        "CorApi.dll",
-        "CorApiRaw.dll",
-        "DbgHooksIdl.tlb",
-        "DbgHooksJitIdl.tlb",
-        "Default.vssettings",
-        "DiagnosticMargin.dll",
-        "EditorTestApp.exe",
-        "EditorTestApp.exe.config",
-        "Extensions.txt",
-        "GetNewestPid.exe",
-        "Handle.exe",
-        "Interop.DbgHooksIdl.dll",
-        "Interop.DbgHooksJitIdl.dll",
-        "KernelTraceControl.dll",
-        "MDbgCore.dll",
-        "MDbgEng.dll",
-        "MDbgExt.dll",
-        "MDbgUtility.dll",
-        "Microsoft.Diagnostics.Tracing.TraceEvent.dll",
-        "Microsoft.Internal.Performance.CodeMarkers.dll",
-        "Microsoft.Internal.VisualStudio.DelayTracker.Library.dll",
-        "Microsoft.Internal.VisualStudio.DelayTracker.TraceEvent.dll",
-        "Microsoft.Internal.VisualStudio.Shell.Interop.10.0.DesignTime.dll",
-        "Microsoft.Internal.VisualStudio.Shell.Interop.11.0.DesignTime.dll",
-        "Microsoft.Internal.VisualStudio.Shell.Interop.12.0.DesignTime.dll",
-        "Microsoft.Test.Apex.Framework.dll",
-        "Microsoft.Test.Apex.MSTestIntegration.dll",
-        "Microsoft.Test.Apex.OsIntegration.dll",
-        "Microsoft.Test.Apex.RemoteCodeInjector.dll",
-        "Microsoft.Test.Apex.VisualStudio.dll",
-        "Microsoft.Test.Apex.VisualStudio.Debugger.dll",
-        "Microsoft.Test.Apex.VisualStudio.Hosting.dll",
-        "Microsoft.VisualStudio.Web.Common.TestServices.dll",
-        "Microsoft.VisualStudio.Web.Project.TestServices.dll",
-        "NativeDebugWrappers.dll",
-        "Omni.Common.dll",
-        "Omni.Log.dll",
-        "Omni.Logging.Extended.dll",
-        "Perf-CheckTestFiles.cmd",
-        "Perf-Compiler-AssembliesToCopy.txt",
-        "Perf-Compiler-AssembliesToNGen.txt",
-        "Perf-DailyScorecard.bat",
-        "Perf-DeleteOldDirectories.cmd",
-        "Perf-DisableIbcCollection.bat",
-        "Perf-EnableIbcCollection.bat",
-        "Perf-IDE-Assemblies.txt",
-        "Perf-InstallRoslyn.cmd",
-        "Perf-MakeOptimizationPgos.bat",
-        "PerformanceTestLog.xslt",
-        "Perf-ProcessRunReports.bat",
-        "Perf-ResetRoslynOptions.cmd",
-        "Perf-Rolling-RunCompilerTests.bat",
-        "Perf-Rolling-RunServicesTests.bat",
-        "Perf-Rolling-RunServicesTestsWithServerGC.bat",
-        "Perf-RunCompilerTests.bat",
-        "Perf-RunOptProf.bat",
-        "Perf-RunPgoTraining.bat",
-        "Perf-RunServicesTests.bat",
-        "Perf-RunTestsInLab.bat",
-        "Perf-UninstallRoslyn.cmd",
-        "Prism.Monitor.Communication.dll",
-        "ProcDump.exe",
-        "dbgcore.dll",
-        "dbghelp.dll",
-        "regtlb.exe",
-        "ResourceManagerBasic.dll",
-        "Roslyn.Test.Performance.dll",
-        "RoslynETAHost.dll",
-        "RoslynTaoActions.dll",
-        "RPFPlayback.dll",
-        "RPFPlaybackWrapperVSTT.dll",
-        "RPFUiaManagedPlugin.dll",
-        "RunPrism.bat",
-        "StrongNameLowjack.bat",
-        "Tao.Engine.dll",
-        "Tao.exe",
-        "Tao.exe.config",
-        "Tao.Environment.dll",
-        "Tao.Utilities.dll",
-        "TaoConfig.txt",
-        "TraceEvent.dll",
-        "TypingDelayAnalyzer.exe",
-        "UISynch.dll",
-        "UITechnologyInterfaces.dll"
-    }
-
-    ' Files copied to Maddog machines running unit tests that are produced from our open build.
-    Private ReadOnly UnitTestFiles As String() = {
-        "*.UnitTests.dll.config",
-        "Microsoft.*.UnitTests*.dll",
-        "Roslyn.*.UnitTests*.dll",
-        "xunit.*.dll",
-        "PerfTests",
-        "BasicUndo.dll",
-        "InteractiveHost.exe",
-        "Microsoft.CodeAnalysis.CSharp.dll",
-        "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
-        "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll",
-        "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll",
-        "Microsoft.CodeAnalysis.CSharp.Features.dll",
-        "Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures.dll",
-        "Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
-        "Microsoft.CodeAnalysis.dll",
-        "Microsoft.CodeAnalysis.EditorFeatures.dll",
-        "Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
-        "Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll",
-        "Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll",
-        "Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll",
-        "Microsoft.CodeAnalysis.Features.dll",
-        "Microsoft.CodeAnalysis.InteractiveEditorFeatures.dll",
-        "Microsoft.CodeAnalysis.InteractiveFeatures.dll",
-        "Microsoft.CodeAnalysis.CSharp.Scripting.dll",
-        "Microsoft.CodeAnalysis.Scripting.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.Scripting.dll",
-        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.Features.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
-        "Microsoft.CodeAnalysis.Workspaces.dll",
-        "Microsoft.DiaSymReader.dll",
-        "Microsoft.DiaSymReader.Converter.dll",
-        "Microsoft.DiaSymReader.Converter.Xml.dll",
-        "Microsoft.DiaSymReader.Native.amd64.dll",
-        "Microsoft.DiaSymReader.Native.x86.dll",
-        "Microsoft.DiaSymReader.PortablePdb.dll",
-        "Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
-        "Microsoft.VisualStudio.Debugger.Engine.dll",
-        "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-        "Microsoft.VisualStudio.LanguageServices.dll",
-        "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
-        "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
-        "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Moq.dll",
-        "csc.exe",
-        "csc.exe.config",
-        "csc.rsp",
-        "csi.exe",
-        "Roslyn.Compilers.CSharp.Test.Utilities.dll",
-        "Roslyn.Compilers.Test.Resources.dll",
-        "Roslyn.Compilers.VisualBasic.Test.Utilities.dll",
-        "Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities.dll",
-        "Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities.dll",
-        "Roslyn.Hosting.Diagnostics.dll",
-        "Roslyn.Services.Test.Utilities.dll",
-        "Roslyn.Test.PdbUtilities.dll",
-        "Roslyn.Test.Utilities.dll",
-        "vbc.exe",
-        "vbc.exe.config",
-        "vbc.rsp",
-        "vbi.exe",
-        "VBCSCompiler.exe",
-        "VBCSCompiler.exe.config"
-    }
-
-    ' Files copied to Maddog machines running unit tests that are produced from our closed build.
-    Private ReadOnly UnitTestFilesExtra As String() = {
-        "CorApi.dll",
-        "CorApiRaw.dll",
-        "MDbgCore.dll",
-        "MDbgEng.dll",
-        "MDbgExt.dll",
-        "MDbgUtility.dll",
-        "NativeDebugWrappers.dll",
-        "Tao.Engine.dll",
-        "Tao.Environment.dll",
-        "Tao.Utilities.dll"
-    }
-
     Private Sub DeleteDirContents(dir As String)
         If Directory.Exists(dir) Then
             ' Delete everything within it. We'll keep the top-level one around.
@@ -381,13 +169,6 @@ Public Class BuildDevDivInsertionFiles
 
         ' Generate Roslyn.nuspec:
         GenerateRoslynNuSpec(filesToInsert)
-
-        ' Generate lists of files that are needed to run unit and integration tests in Maddog:
-        Dim insertedFiles = New HashSet(Of String)(filesToInsert.Select(Function(f) f.Path), StringComparer.OrdinalIgnoreCase)
-        GenerateTestFileDependencyList(NameOf(UnitTestFiles), ExpandTestDependencies(UnitTestFiles), insertedFiles)
-        GenerateTestFileDependencyList(NameOf(UnitTestFilesExtra), UnitTestFilesExtra, insertedFiles)
-        GenerateTestFileDependencyList(NameOf(IntegrationTestFiles), ExpandTestDependencies(IntegrationTestFiles), insertedFiles)
-        GenerateTestFileDependencyList(NameOf(IntegrationTestFilesExtra), IntegrationTestFilesExtra, insertedFiles)
     End Sub
 
     Private Function GetPathRelativeToBinaries(p As String) As String
@@ -666,15 +447,6 @@ Public Class BuildDevDivInsertionFiles
     End Sub
 
     ''' <summary>
-    ''' Generate a list of files which were not inserted and place them in the named file.
-    ''' </summary>
-    Private Sub GenerateTestFileDependencyList(outputFileName As String, fileSpecs As IEnumerable(Of String), insertedFiles As HashSet(Of String))
-        File.WriteAllLines(
-                Path.Combine(_outputDirectory, Path.ChangeExtension(outputFileName, ".txt")),
-                fileSpecs.Where(Function(f) Not insertedFiles.Contains(f)))
-    End Sub
-
-    ''' <summary>
     ''' Enumerate files specified in the list. The specifications may include file names, directory names, and patterns.
     ''' </summary>
     ''' <param name="fileSpecs">
@@ -791,7 +563,8 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\vbc\net46\vbc.exe.config")
         add("Exes\vbc\net46\vbc.rsp")
         add("Exes\VBCSCompiler\net46\VBCSCompiler.exe.config")
-        add("Exes\InteractiveHost\InteractiveHost.exe.config")
+        add("Exes\InteractiveHost32\InteractiveHost32.exe.config")
+        add("Exes\InteractiveHost64\InteractiveHost64.exe.config")
         add("Exes\csi\net46\csi.rsp")
         add("Exes\csi\net46\csi.exe.config")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")

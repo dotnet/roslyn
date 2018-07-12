@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal sealed class Snapshot : PortableExecutableReference, ISupportTemporaryStorage
         {
             private readonly VisualStudioMetadataReferenceManager _provider;
-            private readonly DateTime _timestamp;
+            private readonly Lazy<DateTime> _timestamp;
             private Exception _error;
 
             internal Snapshot(VisualStudioMetadataReferenceManager provider, MetadataReferenceProperties properties, string fullPath)
@@ -40,20 +41,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 Contract.Requires(Properties.Kind == MetadataImageKind.Assembly);
                 _provider = provider;
 
-                try
-                {
-                    _timestamp = FileUtilities.GetFileTimeStamp(this.FilePath);
-                }
-                catch (IOException e)
-                {
-                    // Reading timestamp of a file might fail. 
-                    // Let's remember the failure and report it to the compiler when it asks for metadata.
-                    _error = e;
-                }
+                _timestamp = new Lazy<DateTime>(() => {
+                    try
+                    {
+                        return FileUtilities.GetFileTimeStamp(this.FilePath);
+                    }
+                    catch (IOException e)
+                    {
+                        // Reading timestamp of a file might fail. 
+                        // Let's remember the failure and report it to the compiler when it asks for metadata.
+                        // We could let the Lazy hold onto this (since it knows how to rethrow exceptions), but
+                        // our support of GetStorages needs to gracefully handle the case where we have no timestamp.
+                        // If Lazy had a "IsValueFaulted" we could be cleaner here.
+                        _error = e;
+                        return DateTime.MinValue;
+                    }
+                }, LazyThreadSafetyMode.PublicationOnly);
             }
 
             protected override Metadata GetMetadataImpl()
             {
+                // Fetch the timestamp first, so as to populate _error if needed
+                var timestamp = _timestamp.Value;
+
                 if (_error != null)
                 {
                     throw _error;
@@ -61,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 try
                 {
-                    return _provider.GetMetadata(this.FilePath, _timestamp);
+                    return _provider.GetMetadata(this.FilePath, timestamp);
                 }
                 catch (Exception e) when (SaveMetadataReadingException(e))
                 {
@@ -98,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public IEnumerable<ITemporaryStreamStorage> GetStorages()
             {
-                return _provider.GetStorages(this.FilePath, _timestamp);
+                return _provider.GetStorages(this.FilePath, _timestamp.Value);
             }
         }
     }
