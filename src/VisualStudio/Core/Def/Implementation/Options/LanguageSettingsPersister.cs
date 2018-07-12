@@ -25,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// in Visual Studio and whose backing store is provided by the shell. This includes things like default tab size, tabs vs. spaces, etc.
     /// </summary>
     [Export(typeof(IOptionPersister))]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
         private readonly Shell.IAsyncServiceProvider _serviceProvider;
@@ -47,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.
         /// </remarks>
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageSettingsPersister(
             IGlobalOptionService optionService, [Import(typeof(SAsyncServiceProvider))] Shell.IAsyncServiceProvider serviceProvider)
             : base(assertIsForeground: true)
