@@ -10311,59 +10311,63 @@ tryAgain:
         private ExpressionSyntax ParseArrayOrObjectCreationExpression()
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
-            bool isPossibleArrayCreation = this.IsPossibleArrayCreationExpression(out ScanTypeFlags scanTypeFlags);
-            var type = isPossibleArrayCreation || scanTypeFlags == ScanTypeFlags.NullableType || this.CurrentToken.Kind != SyntaxKind.OpenParenToken
-                ? this.ParseType(
-                    isPossibleArrayCreation
-                        ? ParseTypeMode.ArrayCreation
-                        : ParseTypeMode.Normal,
-                    expectSizes: isPossibleArrayCreation)
-                : null;
 
-            if (type == null || type.Kind != SyntaxKind.ArrayType)
+            TypeSyntax type = null;
+            InitializerExpressionSyntax initializer = null;
+
+            if (this.IsTargetTypedNew(out bool isPossibleArrayCreation))
             {
-                ArgumentListSyntax argumentList = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
-                {
-                    argumentList = this.ParseParenthesizedArgumentList();
-                }
-
-                InitializerExpressionSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    initializer = this.ParseObjectOrCollectionInitializer();
-                }
-
-                // we need one or the other
-                if (argumentList == null && initializer == null)
-                {
-                    argumentList = _syntaxFactory.ArgumentList(
-                        this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
-                        default(SeparatedSyntaxList<ArgumentSyntax>),
-                        SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
-                }
-
-                return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureTargetTypedNew);
             }
             else
             {
-                // Check for an initializer.
-                InitializerExpressionSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    initializer = this.ParseArrayInitializer();
-                }
-                else
-                {
-                    var rankSpec = ((ArrayTypeSyntax)type).RankSpecifiers[0];
-                    if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
-                    {
-                        type = this.AddError(type, rankSpec, ErrorCode.ERR_MissingArraySize);
-                    }
-                }
+                type = this.ParseType(
+                    isPossibleArrayCreation
+                        ? ParseTypeMode.ArrayCreation
+                        : ParseTypeMode.Normal,
+                    expectSizes: isPossibleArrayCreation);
 
-                return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
+                if (type.Kind == SyntaxKind.ArrayType)
+                {
+                    // Check for an initializer.
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                    {
+                        initializer = this.ParseArrayInitializer();
+                    }
+                    else
+                    {
+                        var rankSpec = ((ArrayTypeSyntax)type).RankSpecifiers[0];
+                        if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
+                        {
+                            type = this.AddError(type, rankSpec, ErrorCode.ERR_MissingArraySize);
+                        }
+                    }
+
+                    return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
+                }
             }
+
+            ArgumentListSyntax argumentList = null;
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                argumentList = this.ParseParenthesizedArgumentList();
+            }
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                initializer = this.ParseObjectOrCollectionInitializer();
+            }
+
+            // we need one or the other
+            if (argumentList == null && initializer == null)
+            {
+                argumentList = _syntaxFactory.ArgumentList(
+                    this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
+                    default(SeparatedSyntaxList<ArgumentSyntax>),
+                    SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
+            }
+
+            return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
         }
 
         private static int GetNumberOfNonOmittedArraySizes(ArrayRankSpecifierSyntax rankSpec)
@@ -10380,21 +10384,28 @@ tryAgain:
             return result;
         }
 
-        private bool IsPossibleArrayCreationExpression(out ScanTypeFlags scanTypeFlags)
+        private bool IsTargetTypedNew(out bool isPossibleArrayCreation)
         {
             // previous token should be NewKeyword
 
+            ScanTypeFlags scanTypeFlags;
             var resetPoint = this.GetResetPoint();
             try
             {
                 scanTypeFlags = this.ScanNonArrayType();
-                return scanTypeFlags != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
+                isPossibleArrayCreation =
+                    scanTypeFlags != ScanTypeFlags.NotType &&
+                    this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
             }
             finally
             {
                 this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
             }
+
+            return !isPossibleArrayCreation &&
+                scanTypeFlags != ScanTypeFlags.NullableType &&
+                this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
         }
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()
