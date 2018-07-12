@@ -209,7 +209,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ReferenceEquals(_lazyDeclaredBases, null))
             {
-                initDeclaredBasesIgnoringNonNullTypesAttributeIfNeeded();
+                if (ReferenceEquals(_lazyDeclaredBasesIgnoringNonNullTypesAttribute, null))
+                {
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    if (Interlocked.CompareExchange(ref _lazyDeclaredBasesIgnoringNonNullTypesAttribute, MakeDeclaredBases(basesBeingResolved, ignoreNonNullTypesAttribute: true, diagnostics), null) == null)
+                    {
+                        AddDeclarationDiagnostics(diagnostics);
+                    }
+                    diagnostics.Free();
+                }
+
                 if (ignoreNonNullTypesAttribute)
                 {
                     return _lazyDeclaredBasesIgnoringNonNullTypesAttribute;
@@ -227,19 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return _lazyDeclaredBases;
-
-            void initDeclaredBasesIgnoringNonNullTypesAttributeIfNeeded()
-            {
-                if (ReferenceEquals(_lazyDeclaredBasesIgnoringNonNullTypesAttribute, null))
-                {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    if (Interlocked.CompareExchange(ref _lazyDeclaredBasesIgnoringNonNullTypesAttribute, MakeDeclaredBases(basesBeingResolved, ignoreNonNullTypesAttribute: true, diagnostics), null) == null)
-                    {
-                        AddDeclarationDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
-                }
-            }
         }
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute)
