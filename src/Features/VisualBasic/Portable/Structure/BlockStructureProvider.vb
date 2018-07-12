@@ -12,11 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend MustInherit Class BlockStructureProvider(Of TBlock As SyntaxNode, THeaderStatement As SyntaxNode, TInnerBlock As SyntaxNode, TPreEndBlock As SyntaxNode, TEndOfBlockStatement As SyntaxNode)
         Inherits AbstractSyntaxNodeStructureProvider(Of TBlock)
 
-        Public ReadOnly IncludeAdditionalInternalSpans As Boolean
+        Public ReadOnly IncludeAdditionalInternalStructuralOutlinings As Boolean
 
-        Friend Sub New(IncludeAdditionalInternalSpans As Boolean)
+        Friend Sub New(IncludeAdditionalInternalStructuralOutlinings As Boolean)
             MyBase.New()
-            Me.IncludeAdditionalInternalSpans = IncludeAdditionalInternalSpans
+            Me.IncludeAdditionalInternalStructuralOutlinings = IncludeAdditionalInternalStructuralOutlinings
         End Sub
 
 #Region "Block Provider Specific Methods"
@@ -39,63 +39,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' </summary>
         ''' <param name="block"></param>
         ''' <returns></returns>
-        Friend MustOverride Function GetFullBlockSpan(block As TBlock) As BlockSpan?
+        Friend MustOverride Function FullStructuralBlockOutlining(block As TBlock) As BlockSpan?
 
-        Friend Overridable Function GetFullBlockSpan(block As TBlock, statement As THeaderStatement) As BlockSpan?
+        Friend Overridable Function FullStructuralBlockOutlining(block As TBlock, statement As THeaderStatement) As BlockSpan?
             Return CreateBlockSpanFromBlock(
                              block, statement, autoCollapse:=False,
                              type:=BlockTypes.Statement, isCollapsible:=True)
         End Function
-
-        ''' <summary>
-        ''' Return the internal <see cref="BlockSpan"/>s of the strucure. 
-        ''' </summary>
-        ''' <param name="block"></param>
-        ''' <param name="cancellationToken"></param>
-        ''' <returns></returns>
-        Friend Function GetInternalBlocks(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
-            Dim InternalSpans = ArrayBuilder(Of BlockSpan).GetInstance
-            InternalSpans.AddIfNotNull(GetPreBlock(block, cancellationToken))
-            InternalSpans.AddRange(GetInnerBlocksSpans(block, cancellationToken))
-            InternalSpans.AddIfNotNull(GetPostBlockSpan(block, cancellationToken))
-            Return InternalSpans.ToImmutableOrEmptyAndFree
-        End Function
-
-        ''' <summary>
-        ''' Returns the InnerBlocks of the Block Structure.
-        ''' Eg Case .... 
-        ''' </summary>
-        ''' <param name="block"></param>
-        ''' <returns></returns>
-        Friend MustOverride Function GetInnerBlocks(block As TBlock) As SyntaxList(Of TInnerBlock)
-
-        ''' <summary>
-        ''' Return the 
-        ''' </summary>
-        ''' <param name="block"></param>
-        ''' <returns></returns>
-        Friend Overridable Function GetPostBlock(block As TBlock) As TPreEndBlock
-            Return Nothing
-        End Function
-
-        Friend Overridable Function GetPostBlockSpan(block As TBlock, cancellationToken As Threading.CancellationToken) As BlockSpan?
-            Return Nothing
-        End Function
-
-        ''' <summary>
-        ''' Return the End Statement of the Block Structure.
-        ''' Eg End Select
-        ''' </summary>
-        ''' <param name="block"></param>
-        ''' <returns></returns>
-        Friend MustOverride Function GetEndOfBlockStatement(block As TBlock) As TEndOfBlockStatement
-
-        ''' <summary>
-        ''' Return the Banner Text for the InnerBlock
-        ''' </summary>
-        ''' <param name="InnerBlock"></param>
-        ''' <returns></returns>
-        Friend MustOverride Function GetInnerBlockBanner(InnerBlock As TInnerBlock) As String
 
         ''' <summary>
         ''' Return the Block Header for the Block Structure
@@ -103,8 +53,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' </summary>
         ''' <param name="block"></param>
         ''' <returns></returns>
-        Friend MustOverride Function GetBlockHeader(block As TBlock) As THeaderStatement
+        Friend MustOverride Function GetBannerTextOfFullStructuralBlock(block As TBlock) As THeaderStatement
 
+        ''' <summary>
+        ''' Return the internal <see cref="BlockSpan"/>s of the strucure. 
+        ''' </summary>
+        ''' <param name="block"></param>
+        ''' <param name="cancellationToken"></param>
+        ''' <returns></returns>
+        Friend Function GetInternalStructuralOutlings(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
+            Dim InternalSpans = ArrayBuilder(Of BlockSpan).GetInstance
+            InternalSpans.AddIfNotNull(GetPreambleOutlining(block, cancellationToken))
+            InternalSpans.AddRange(GetInternalStructuralOutlinings(block, cancellationToken))
+            InternalSpans.AddIfNotNull(GetEpilogueBlockOutlining(block, cancellationToken))
+            Return InternalSpans.ToImmutableOrEmptyAndFree
+        End Function
+
+        ''' <summary>
+        ''' Returns the internal structural bLocks of the Block Structure.
+        ''' Eg Case .... 
+        ''' </summary>
+        ''' <param name="block"></param>
+        ''' <returns></returns>
+        Friend MustOverride Function GetInternalStructuralBlocks(block As TBlock) As SyntaxList(Of TInnerBlock)
         ''' <summary>
         ''' Some block structure allow statements aftet the header and before the First Inner Block.
         ''' Eg
@@ -126,12 +97,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' <param name="block"></param>
         ''' <param name="cancellationToken"></param>
         ''' <returns></returns>
-        Friend Overridable Function GetPreBlock(block As TBlock, cancellationToken As Threading.CancellationToken) As BlockSpan?
+        Friend Overridable Function GetPreambleOutlining(block As TBlock, cancellationToken As Threading.CancellationToken) As BlockSpan?
             Return Nothing
         End Function
 
+        Friend Function GetPreambleOutlining(block As TBlock) As BlockSpan?
+            Dim Header = GetBannerTextOfFullStructuralBlock(block)
+            Dim NextSection = GetFirstStructuralBlockAfterPreamble(block)
+            Return If(NextSection IsNot Nothing, GetBlockSpan(block, Header, NextSection, Ellipsis, IgnoreHeader:=True), Nothing)
+        End Function
+
         ''' <summary>
-        ''' Return the first statement of the PreBlock <seealso cref="GetPreBlock"/>
+        ''' Return the first statement of the Preamble <seealso cref="GetPreambleOutlining"/>
         ''' <code>
         '''   ' Comment 1
         '''   Console.WriteLine("Hello World!")
@@ -144,24 +121,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' </summary>
         ''' <param name="block"></param>
         ''' <returns></returns>
-        Friend Overridable Function GetFirstStatementOfPreBlock(block As TBlock) As SyntaxNode
+        Friend Overridable Function GetFirstStatementOfPreamble(block As TBlock) As SyntaxNode
             Return Nothing
         End Function
+
+        Friend Function GetFirstStructuralBlockAfterPreamble(block As TBlock) As SyntaxNode
+            Dim InnerBlocks = GetInternalStructuralBlocks(block)
+            If InnerBlocks.Count > 0 Then
+                Return InnerBlocks(0)
+            End If
+            Dim NextSection As SyntaxNode = GetEpilogueBlock(block)
+            If NextSection Is Nothing Then
+                NextSection = GetEnd_XXX_Statement(block)
+            End If
+            Return NextSection
+        End Function
+
+        ''' <summary>
+        ''' Return the Banner Text  internal structural bLock.
+        ''' </summary>
+        ''' <param name="InnerBlock"></param>
+        ''' <returns></returns>
+        Friend MustOverride Function GetBannerTextOfInternalStructuralBlock(InnerBlock As TInnerBlock) As String
+
+        ''' <summary>
+        ''' Return the Epilogue of the block structure.
+        ''' </summary>
+        ''' <param name="block"></param>
+        ''' <returns></returns>
+        Friend Overridable Function GetEpilogueBlock(block As TBlock) As TPreEndBlock
+            Return Nothing
+        End Function
+
+        Friend Overridable Function GetEpilogueBlockOutlining(block As TBlock, cancellationToken As Threading.CancellationToken) As BlockSpan?
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Return the End Statement of the full structral block.
+        ''' Eg End Select
+        ''' </summary>
+        ''' <param name="block"></param>
+        ''' <returns></returns>
+        Friend MustOverride Function GetEnd_XXX_Statement(block As TBlock) As TEndOfBlockStatement
+
+
+
+
+
 #End Region
 
         Protected Overrides Sub CollectBlockSpans(node As TBlock, spans As ArrayBuilder(Of BlockSpan), options As OptionSet, cancellationToken As CancellationToken)
-            Dim FullBlock = GetFullBlockSpan(node)
+            Dim FullBlock = FullStructuralBlockOutlining(node)
             spans.AddIfNotNull(FullBlock)
-            If IncludeAdditionalInternalSpans Then
-                Dim internalSpans = GetInternalBlocks(node, cancellationToken)
+            If IncludeAdditionalInternalStructuralOutlinings Then
+                Dim internalSpans = GetInternalStructuralOutlings(node, cancellationToken)
                 spans.AddRange(internalSpans)
             End If
         End Sub
 
-        Friend Function GetInnerBlocksSpans(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
+        Friend Function GetInternalStructuralOutlinings(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
             Dim InnerBlocksBlockSpans = ArrayBuilder(Of BlockSpan).GetInstance
             If block IsNot Nothing Then
-                Dim InnerBlocks = GetInnerBlocks(block)
+                Dim InnerBlocks = GetInternalStructuralBlocks(block)
                 If InnerBlocks.Count > 0 Then
                     Dim edx = InnerBlocks.Count - 1
                     For idx = 0 To edx
@@ -171,40 +193,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                         Dim NextBlock As SyntaxNode = Nothing
                         Dim InnerBlock = InnerBlocks(idx)
                         If idx = edx Then
-                            NextBlock = GetPostBlock(block)
+                            NextBlock = GetEpilogueBlock(block)
                             If NextBlock Is Nothing Then
-                                NextBlock = GetEndOfBlockStatement(block)
+                                NextBlock = GetEnd_XXX_Statement(block)
                                 If NextBlock Is Nothing Then Continue For
                             End If
                         Else
                             NextBlock = InnerBlocks(idx + 1)
                         End If
                         If NextBlock IsNot Nothing Then
-                            Dim ThisBlockSpan = GetBlockSpan(InnerBlock, InnerBlock, NextBlock, GetInnerBlockBanner(InnerBlock), False)
+                            Dim ThisBlockSpan = GetBlockSpan(InnerBlock, InnerBlock, NextBlock, GetBannerTextOfInternalStructuralBlock(InnerBlock), False)
                             InnerBlocksBlockSpans.AddIfNotNull(ThisBlockSpan)
                         End If
                     Next
                 End If
             End If
             Return InnerBlocksBlockSpans.ToImmutableOrEmptyAndFree
-        End Function
-
-        Friend Function GetNextSectionForFirstBlock(block As TBlock) As SyntaxNode
-            Dim InnerBlocks = GetInnerBlocks(block)
-            If InnerBlocks.Count > 0 Then
-                Return InnerBlocks(0)
-            End If
-            Dim NextSection As SyntaxNode = GetPostBlock(block)
-            If NextSection Is Nothing Then
-                NextSection = GetEndOfBlockStatement(block)
-            End If
-            Return NextSection
-        End Function
-
-        Friend Function GetFirstBlockSpan(block As TBlock) As BlockSpan?
-            Dim Header = GetBlockHeader(block)
-            Dim NextSection = GetNextSectionForFirstBlock(block)
-            Return If(NextSection IsNot Nothing, GetBlockSpan(block, Header, NextSection, Ellipsis, IgnoreHeader:=True), Nothing)
         End Function
 
         Friend Function GetBlockSpan(block As SyntaxNode, Header As SyntaxNode, NextSection As SyntaxNode, BannerText As String, IgnoreHeader As Boolean) As BlockSpan?

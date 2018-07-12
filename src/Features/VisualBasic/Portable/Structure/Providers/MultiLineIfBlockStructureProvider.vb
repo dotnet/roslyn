@@ -15,31 +15,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             MyBase.New(IncludeAdditionalInternalSpans)
         End Sub
 
-        Friend Overrides Function GetFullBlockSpan(block As MultiLineIfBlockSyntax) As BlockSpan?
-            Return MyBase.GetFullBlockSpan(block, block.IfStatement)
+        Friend Overrides Function FullStructuralBlockOutlining(block As MultiLineIfBlockSyntax) As BlockSpan?
+            Return MyBase.FullStructuralBlockOutlining(block, block.IfStatement)
         End Function
 
-        Friend Overrides Function GetBlockHeader(block As MultiLineIfBlockSyntax) As IfStatementSyntax
+        Friend Overrides Function GetBannerTextOfFullStructuralBlock(block As MultiLineIfBlockSyntax) As IfStatementSyntax
             Return block.IfStatement
         End Function
 
-        Friend Overrides Function GetPreBlock(block As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As BlockSpan?
-            Return If(block Is Nothing OrElse block.IsMissing, Nothing, GetFirstBlockSpan(block))
+        Friend Overrides Function GetPreambleOutlining(block As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As BlockSpan?
+            Return If(block Is Nothing OrElse block.IsMissing, Nothing, GetPreambleOutlining(block))
         End Function
 
-        Friend Overrides Function GetFirstStatementOfPreBlock(block As MultiLineIfBlockSyntax) As SyntaxNode
+        Friend Overrides Function GetFirstStatementOfPreamble(block As MultiLineIfBlockSyntax) As SyntaxNode
             Return If(block.Statements.Count > 0, block.Statements(0), Nothing)
         End Function
 
-        Friend Overrides Function GetInnerBlocks(block As MultiLineIfBlockSyntax) As SyntaxList(Of ElseIfBlockSyntax)
+        Friend Overrides Function GetInternalStructuralBlocks(block As MultiLineIfBlockSyntax) As SyntaxList(Of ElseIfBlockSyntax)
             Return block.ElseIfBlocks
         End Function
 
-        Friend Overrides Function GetInnerBlockBanner(InnerBlock As ElseIfBlockSyntax) As String
+        Friend Overrides Function GetBannerTextOfInternalStructuralBlock(InnerBlock As ElseIfBlockSyntax) As String
             Return InnerBlock.ElseIfStatement.ToString
         End Function
 
-        Friend Overrides Function GetPostBlockSpan(block As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As BlockSpan?
+        Friend Overrides Function GetEpilogueBlockOutlining(block As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As BlockSpan?
             If block Is Nothing Then
                 Return Nothing
             End If
@@ -52,11 +52,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Return GetBlockSpan(block.ElseBlock, block.ElseBlock.ElseStatement, block.EndIfStatement, block.ElseBlock.ElseStatement.ElseKeyword.Text, IgnoreHeader:=False)
         End Function
 
-        Friend Overrides Function GetPostBlock(block As MultiLineIfBlockSyntax) As ElseBlockSyntax
+        Friend Overrides Function GetEpilogueBlock(block As MultiLineIfBlockSyntax) As ElseBlockSyntax
             Return block.ElseBlock
         End Function
 
-        Friend Overrides Function GetEndOfBlockStatement(block As MultiLineIfBlockSyntax) As EndBlockStatementSyntax
+        Friend Overrides Function GetEnd_XXX_Statement(block As MultiLineIfBlockSyntax) As EndBlockStatementSyntax
             Return block.EndIfStatement
         End Function
 

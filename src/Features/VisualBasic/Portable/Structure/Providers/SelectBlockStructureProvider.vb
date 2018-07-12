@@ -15,23 +15,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             MyBase.New(IncludeAdditionalInternalSpans)
         End Sub
 
-        Friend Overrides Function GetFullBlockSpan(block As SelectBlockSyntax) As BlockSpan?
-            Return GetFullBlockSpan(block, block.SelectStatement)
+        Friend Overrides Function FullStructuralBlockOutlining(block As SelectBlockSyntax) As BlockSpan?
+            Return FullStructuralBlockOutlining(block, block.SelectStatement)
         End Function
 
-        Friend Overrides Function GetBlockHeader(block As SelectBlockSyntax) As SelectStatementSyntax
+        Friend Overrides Function GetBannerTextOfFullStructuralBlock(block As SelectBlockSyntax) As SelectStatementSyntax
             Return block.SelectStatement
         End Function
 
-        Friend Overrides Function GetInnerBlocks(block As SelectBlockSyntax) As SyntaxList(Of CaseBlockSyntax)
+        Friend Overrides Function GetInternalStructuralBlocks(block As SelectBlockSyntax) As SyntaxList(Of CaseBlockSyntax)
             Return block.CaseBlocks
         End Function
 
-        Friend Overrides Function GetEndOfBlockStatement(block As SelectBlockSyntax) As EndBlockStatementSyntax
+        Friend Overrides Function GetEnd_XXX_Statement(block As SelectBlockSyntax) As EndBlockStatementSyntax
             Return block.EndSelectStatement
         End Function
 
-        Friend Overrides Function GetInnerBlockBanner(InnerBlock As CaseBlockSyntax) As String
+        Friend Overrides Function GetBannerTextOfInternalStructuralBlock(InnerBlock As CaseBlockSyntax) As String
             Dim banner = String.Empty
             ' If the Case Statement contains more than 1 clause, use a shortened form 
             '   First Clause , ...

@@ -15,33 +15,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             MyBase.New(IncludeAdditionalInternalSpans)
         End Sub
 
-        Friend Overrides Function GetFullBlockSpan(block As TryBlockSyntax) As BlockSpan?
-            Return MyBase.GetFullBlockSpan(block, block.TryStatement)
+        Friend Overrides Function FullStructuralBlockOutlining(block As TryBlockSyntax) As BlockSpan?
+            Return MyBase.FullStructuralBlockOutlining(block, block.TryStatement)
         End Function
 
-        Friend Overrides Function GetBlockHeader(block As TryBlockSyntax) As TryStatementSyntax
+        Friend Overrides Function GetBannerTextOfFullStructuralBlock(block As TryBlockSyntax) As TryStatementSyntax
             Return block.TryStatement
         End Function
 
-        Friend Overrides Function GetPreBlock(block As TryBlockSyntax, cancellationToken As Threading.CancellationToken) As BlockSpan?
-            Return If(block Is Nothing OrElse block.IsMissing, Nothing, GetFirstBlockSpan(block))
+        Friend Overrides Function GetPreambleOutlining(block As TryBlockSyntax, cancellationToken As Threading.CancellationToken) As BlockSpan?
+            Return If(block Is Nothing OrElse block.IsMissing, Nothing, GetPreambleOutlining(block))
         End Function
 
-        Friend Overrides Function GetFirstStatementOfPreBlock(block As TryBlockSyntax) As SyntaxNode
+        Friend Overrides Function GetFirstStatementOfPreamble(block As TryBlockSyntax) As SyntaxNode
             Return If(block.Statements.Count > 0, block.Statements(0), Nothing)
         End Function
 
-        Friend Overrides Function GetInnerBlocks(block As TryBlockSyntax) As SyntaxList(Of CatchBlockSyntax)
+        Friend Overrides Function GetInternalStructuralBlocks(block As TryBlockSyntax) As SyntaxList(Of CatchBlockSyntax)
             Return block.CatchBlocks
         End Function
 
-        Friend Overrides Function GetInnerBlockBanner(InnerBlock As CatchBlockSyntax) As String
+        Friend Overrides Function GetBannerTextOfInternalStructuralBlock(InnerBlock As CatchBlockSyntax) As String
             Return If(InnerBlock IsNot Nothing,
                       If(InnerBlock.CatchStatement IsNot Nothing, InnerBlock.CatchStatement.ToString, String.Empty),
                       String.Empty)
         End Function
 
-        Friend Overrides Function GetPostBlockSpan(block As TryBlockSyntax, cancellationToken As Threading.CancellationToken) As BlockSpan?
+        Friend Overrides Function GetEpilogueBlockOutlining(block As TryBlockSyntax, cancellationToken As Threading.CancellationToken) As BlockSpan?
             If block Is Nothing Then
                 Return Nothing
             End If
@@ -54,11 +54,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Return GetBlockSpan(block.FinallyBlock, block.FinallyBlock.FinallyStatement, block.EndTryStatement, block.FinallyBlock.FinallyStatement.FinallyKeyword.Text, IgnoreHeader:=False)
         End Function
 
-        Friend Overrides Function GetPostBlock(block As TryBlockSyntax) As FinallyBlockSyntax
+        Friend Overrides Function GetEpilogueBlock(block As TryBlockSyntax) As FinallyBlockSyntax
             Return block.FinallyBlock
         End Function
 
-        Friend Overrides Function GetEndOfBlockStatement(block As TryBlockSyntax) As EndBlockStatementSyntax
+        Friend Overrides Function GetEnd_XXX_Statement(block As TryBlockSyntax) As EndBlockStatementSyntax
             Return block.EndTryStatement
         End Function
 
