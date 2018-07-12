@@ -175,6 +175,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                        uiVisibleOnly As Boolean,
                                        options As FindReferencesSearchOptions,
                                        outOfProcess As Boolean) As Task
+            options = If(options, FindReferencesSearchOptions.Default)
             Using workspace = TestWorkspace.Create(definition)
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
                                                       WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
