@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #region Mutable fields accessed from foreground or background threads - need locking for access.
         private readonly List<ProjectReference> _projectReferences = new List<ProjectReference>();
-        private readonly List<VisualStudioMetadataReference> _metadataReferences = new List<VisualStudioMetadataReference>();
+        private readonly List<ReferenceCountedDisposable<VisualStudioMetadataReference>> _metadataReferences = new List<ReferenceCountedDisposable<VisualStudioMetadataReference>>();
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _documents = new Dictionary<DocumentId, IVisualStudioHostDocument>();
         private readonly Dictionary<string, IVisualStudioHostDocument> _documentMonikers = new Dictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
@@ -308,7 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     compilationOptions: this.CurrentCompilationOptions,
                     parseOptions: this.CurrentParseOptions,
                     documents: _documents.Values.Select(d => d.GetInitialState()),
-                    metadataReferences: _metadataReferences.Select(r => r.CurrentSnapshot),
+                    metadataReferences: _metadataReferences.Select(r => r.Target.CurrentSnapshot),
                     projectReferences: _projectReferences,
                     analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
                     additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
@@ -370,11 +370,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        // Note: this API is called by https://github.com/Microsoft/visualfsharp/blob/247ea87234aa76043459ab0422f75f96fed00664/vsintegration/src/FSharp.Editor/LanguageService/LanguageService.fs#L527
         public ImmutableArray<VisualStudioMetadataReference> GetCurrentMetadataReferences()
         {
             lock (_gate)
             {
-                return ImmutableArray.CreateRange(_metadataReferences);
+                return _metadataReferences.SelectAsArray(r => r.Target);
             }
         }
 
@@ -437,18 +438,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                return _metadataReferences.Any(r => StringComparer.OrdinalIgnoreCase.Equals(r.FilePath, filename));
+                return _metadataReferences.Any(r => StringComparer.OrdinalIgnoreCase.Equals(r.Target.FilePath, filename));
             }
         }
 
-        public VisualStudioMetadataReference TryGetCurrentMetadataReference(string filename)
+        private ReferenceCountedDisposable<VisualStudioMetadataReference> TryGetCurrentMetadataReference(string filename)
         {
             // We must normalize the file path, since the paths we're comparing to are always normalized
             filename = FileUtilities.NormalizeAbsolutePath(filename);
 
             lock (_gate)
             {
-                return _metadataReferences.SingleOrDefault(r => StringComparer.OrdinalIgnoreCase.Equals(r.FilePath, filename));
+                return _metadataReferences.SingleOrDefault(r => StringComparer.OrdinalIgnoreCase.Equals(r.Target.FilePath, filename));
             }
         }
 
@@ -620,14 +621,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void AddMetadataReferenceCore(VisualStudioMetadataReference reference)
+        private void AddMetadataReferenceCore(ReferenceCountedDisposable<VisualStudioMetadataReference> reference)
         {
             lock (_gate)
             {
-                if (_metadataReferences.Contains(r => StringComparer.OrdinalIgnoreCase.Equals(r.FilePath, reference.FilePath)))
+                if (_metadataReferences.Contains(r => StringComparer.OrdinalIgnoreCase.Equals(r.Target.FilePath, reference.Target.FilePath)))
                 {
                     // TODO: Added in order to diagnose why duplicate references get added to the project. See https://github.com/dotnet/roslyn/issues/26437
-                    FatalError.ReportWithoutCrash(new InvalidOperationException($"Reference with path '{reference.FilePath}' already exists in project '{DisplayName}'."));
+                    FatalError.ReportWithoutCrash(new InvalidOperationException($"Reference with path '{reference.Target.FilePath}' already exists in project '{DisplayName}'."));
                     return;
                 }
 
@@ -636,14 +637,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (PushingChangesToWorkspace)
             {
-                var snapshot = reference.CurrentSnapshot;
+                var snapshot = reference.Target.CurrentSnapshot;
                 this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnMetadataReferenceAdded(this.Id, snapshot));
             }
 
-            reference.UpdatedOnDisk += OnImportChanged;
+            reference.Target.UpdatedOnDisk += OnImportChanged;
         }
 
-        private void RemoveMetadataReferenceCore(VisualStudioMetadataReference reference, bool disposeReference)
+        private void RemoveMetadataReferenceCore(ReferenceCountedDisposable<VisualStudioMetadataReference> reference, bool disposeReference)
         {
             lock (_gate)
             {
@@ -652,11 +653,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (PushingChangesToWorkspace)
             {
-                var snapshot = reference.CurrentSnapshot;
+                var snapshot = reference.Target.CurrentSnapshot;
                 this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnMetadataReferenceRemoved(this.Id, snapshot));
             }
 
-            reference.UpdatedOnDisk -= OnImportChanged;
+            reference.Target.UpdatedOnDisk -= OnImportChanged;
 
             if (disposeReference)
             {
@@ -699,16 +700,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 // Ensure that we are still referencing this binary
-                if (_metadataReferences.Contains(reference))
+                var metadataReferenceDisposable = _metadataReferences.FirstOrDefault(r => r.Target == reference);
+
+                if (metadataReferenceDisposable != null)
                 {
                     // remove the old metadata reference
-                    this.RemoveMetadataReferenceCore(reference, disposeReference: false);
+                    this.RemoveMetadataReferenceCore(metadataReferenceDisposable, disposeReference: false);
 
                     // Signal to update the underlying reference snapshot
                     reference.UpdateSnapshot();
 
                     // add it back (it will now be based on the new file contents)
-                    this.AddMetadataReferenceCore(reference);
+                    this.AddMetadataReferenceCore(metadataReferenceDisposable);
                 }
             }
         }
@@ -1225,8 +1228,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     var projectReference = new ProjectReference(
                         projectToReference.Id,
-                        metadataReference.Properties.Aliases,
-                        metadataReference.Properties.EmbedInteropTypes);
+                        metadataReference.Target.Properties.Aliases,
+                        metadataReference.Target.Properties.EmbedInteropTypes);
 
                     if (CanAddProjectReference(projectReference))
                     {
@@ -1276,7 +1279,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var existingReference = TryGetCurrentMetadataReference(file);
                 Contract.ThrowIfNull(existingReference);
 
-                var newProperties = existingReference.Properties.WithAliases(aliases);
+                var newProperties = existingReference.Target.Properties.WithAliases(aliases);
 
                 RemoveMetadataReferenceCore(existingReference, disposeReference: true);
 
