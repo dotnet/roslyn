@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var symbol = BindTypeOrAliasOrVarKeyword(syntax, diagnostics, out isVar);
             Debug.Assert(isVar == symbol.IsDefault);
-            return isVar ? null : (TypeSymbolWithAnnotations)UnwrapAlias(symbol, diagnostics, syntax);
+            return isVar ? null : UnwrapAlias(symbol, diagnostics, syntax).Type;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var symbol = BindTypeOrAliasOrUnmanagedKeyword(syntax, diagnostics, out isUnmanaged);
             Debug.Assert(isUnmanaged == symbol.IsDefault);
-            return isUnmanaged ? null : (TypeSymbolWithAnnotations)UnwrapAlias(symbol, diagnostics, syntax);
+            return isUnmanaged ? null : UnwrapAlias(symbol, diagnostics, syntax).Type;
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return (TypeSymbolWithAnnotations)UnwrapAlias(symbol, out alias, diagnostics, syntax);
+                return UnwrapAlias(symbol, out alias, diagnostics, syntax).Type;
             }
         }
 
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal TypeSymbolWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved = null)
         {
             var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved);
-            return (TypeSymbolWithAnnotations)UnwrapAlias(symbol, diagnostics, syntax, basesBeingResolved);
+            return UnwrapAlias(symbol, diagnostics, syntax, basesBeingResolved).Type;
         }
 
         // Binds the given expression syntax as Type.
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal TypeSymbolWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, out AliasSymbol alias, ConsList<Symbol> basesBeingResolved = null)
         {
             var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved);
-            return (TypeSymbolWithAnnotations)UnwrapAlias(symbol, out alias, diagnostics, syntax, basesBeingResolved);
+            return UnwrapAlias(symbol, out alias, diagnostics, syntax, basesBeingResolved).Type;
         }
 
         // Binds the given expression syntax as Type or an Alias to Type
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
-                    ((TypeSymbolWithAnnotations)symbol).ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
+                    symbol.Type.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
                 }
 
                 return symbol;

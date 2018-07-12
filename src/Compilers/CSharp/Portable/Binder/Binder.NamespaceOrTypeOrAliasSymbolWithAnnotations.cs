@@ -44,11 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new NamespaceOrTypeOrAliasSymbolWithAnnotations(type);
             }
-
-            public static explicit operator TypeSymbolWithAnnotations(NamespaceOrTypeOrAliasSymbolWithAnnotations type)
-            {
-                return type.Type;
-            }
         }
     }
 }
