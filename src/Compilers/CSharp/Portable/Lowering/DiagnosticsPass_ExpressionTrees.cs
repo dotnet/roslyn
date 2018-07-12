@@ -310,6 +310,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
+            if (_inExpressionLambda && node.Syntax.IsKind(SyntaxKind.ObjectCreationExpression) && ((ObjectCreationExpressionSyntax)node.Syntax).Type is null)
+            {
+                Error(ErrorCode.ERR_TargetTypedNewInExpressionTree, node);
+            }
+
             VisitCall(node.Constructor, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);
             return base.VisitObjectCreationExpression(node);
         }
