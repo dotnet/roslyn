@@ -1262,6 +1262,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         #region Utility
 
+        internal abstract SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list) where TElement : SyntaxNode;
+
         internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
         {
             // return tokens from newList, but use original tokens of kind matches
@@ -1689,6 +1691,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// The right operand can be either and identifier or generic name.
         /// </summary>
         public abstract SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right);
+
+        /// <summary>
+        /// Returns a new name node qualified with the 'global' alias ('Global' in VB).
+        /// </summary>
+        internal abstract SyntaxNode GlobalAliasedName(SyntaxNode name);
 
         /// <summary>
         /// Creates a name expression from a dotted name string.
