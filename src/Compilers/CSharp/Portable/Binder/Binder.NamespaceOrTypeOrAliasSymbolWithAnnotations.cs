@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal struct NamespaceOrTypeOrAliasSymbolWithAnnotations
         {
-            internal readonly TypeSymbolWithAnnotations Type;
-            internal readonly Symbol Symbol;
+            private readonly object _symbolOrTypeSymbolWithAnnotations;
 
-            private NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type, Symbol symbol)
+            private NamespaceOrTypeOrAliasSymbolWithAnnotations(object symbolOrTypeSymbolWithAnnotations)
             {
-                Debug.Assert((type is null) || (symbol is null));
-                Debug.Assert(!(symbol is TypeSymbol));
-                Type = type;
-                Symbol = symbol;
+                Debug.Assert(symbolOrTypeSymbolWithAnnotations != null);
+                Debug.Assert(!(symbolOrTypeSymbolWithAnnotations is TypeSymbol));
+                _symbolOrTypeSymbolWithAnnotations = symbolOrTypeSymbolWithAnnotations;
             }
 
+            internal TypeSymbolWithAnnotations Type => _symbolOrTypeSymbolWithAnnotations as TypeSymbolWithAnnotations;
+            internal Symbol Symbol => _symbolOrTypeSymbolWithAnnotations as Symbol;
             internal bool IsType => !(Type is null);
             internal bool IsAlias => Symbol?.Kind == SymbolKind.Alias;
             internal Symbol SymbolOrType => Symbol ?? Type?.TypeSymbol;
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = symbol as TypeSymbol;
                 if (type is null)
                 {
-                    return new NamespaceOrTypeOrAliasSymbolWithAnnotations(null, symbol);
+                    return new NamespaceOrTypeOrAliasSymbolWithAnnotations(symbol);
                 }
-                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes, type), null);
+                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes, type));
             }
 
             public static implicit operator NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type)
             {
-                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(type, null);
+                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(type);
             }
 
             public static explicit operator TypeSymbolWithAnnotations(NamespaceOrTypeOrAliasSymbolWithAnnotations type)
