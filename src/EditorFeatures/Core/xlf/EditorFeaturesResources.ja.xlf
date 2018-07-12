@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
         <source>Code cleanup is not configured</source>
-        <target state="new">Code cleanup is not configured</target>
+        <target state="translated">コードのクリーンアップは構成されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
-        <target state="new">Configure it now</target>
+        <target state="translated">今すぐ構成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
-        <target state="new">Do not show this message again</target>
+        <target state="translated">今後このメッセージを表示しない</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -880,7 +880,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="needs-review-translation">構造体の "out/ref" パラメーターを作成しないことによって、エラーを解決できます。
+        <target state="translated">構造体の "out/ref" パラメーターを作成しないことによって、エラーを解決できます。
 続行しますか?</target>
         <note />
       </trans-unit>

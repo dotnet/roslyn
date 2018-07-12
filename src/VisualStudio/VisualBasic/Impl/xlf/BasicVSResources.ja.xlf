@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
-        <target state="new">Prefer 'Is Nothing' for reference equality checks</target>
+        <target state="translated">参照の等値性のチェックには 'Is Nothing' を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
