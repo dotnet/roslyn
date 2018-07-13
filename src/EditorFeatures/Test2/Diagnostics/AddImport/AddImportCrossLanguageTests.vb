@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                             }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, glyphTags:=WellKnownTagArrays.VisualBasicProject)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                             End Class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, glyphTags:=WellKnownTagArrays.CSharpProject)
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
@@ -165,7 +165,7 @@ namespace CSAssembly1
 }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, codeActionIndex:=1, glyphTags:=WellKnownTagArrays.VisualBasicProject)
+            Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
         <WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
@@ -219,7 +219,7 @@ Namespace VBAssembly1
 End Namespace
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, codeActionIndex:=1, glyphTags:=WellKnownTagArrays.CSharpProject)
+            Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
