@@ -4,10 +4,10 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Fixtures
 {
-    public class CSharpClassLibraryProjectFixture : ClassLibraryProjectFixture
+    public class VisualBasicClassLibraryProjectFixture : ClassLibraryProjectFixture
     {
-        public CSharpClassLibraryProjectFixture()
-            : base(LanguageNames.CSharp)
+        public VisualBasicClassLibraryProjectFixture()
+            : base(LanguageNames.VisualBasic)
         {
         }
     }
