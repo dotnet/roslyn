@@ -288,7 +288,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("int*").WithLocation(20, 19),
                 // (21,19): error CS9367: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         int? v9 = new();
-                Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int?").WithLocation(21, 19),
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int").WithLocation(21, 19),
                 // (22,26): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         (int, int) v10 = new();
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new()").WithArguments("(int, int)").WithLocation(22, 26),
@@ -380,7 +380,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "(int*)new()").WithArguments("int*").WithLocation(19, 18),
                 // (20,24): error CS9367: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v9 = (int?)new();
-                Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int?").WithLocation(20, 24),
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int").WithLocation(20, 24),
                 // (21,19): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var v10 = ((int,int))new();
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "((int,int))new()").WithArguments("(int, int)").WithLocation(21, 19),
@@ -879,6 +879,28 @@ class Program
                 //         M(new(1), 1);
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new(1)").WithArguments("D", "1").WithLocation(18, 11)
                 );
+        }
+
+        [Fact]
+        public void TestNullableType()
+        {
+            var comp = CreateCompilation(@"
+using System;
+struct S
+{
+    public S(int i)
+    {
+        Console.Write(i);
+    }
+
+    public static void Main()
+    {
+        S? s = new(43);
+    }
+}
+", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "43");
         }
     }
 }

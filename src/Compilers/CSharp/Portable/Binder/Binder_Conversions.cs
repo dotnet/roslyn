@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node,
                         typeName: destination.Name,
                         typeNode: node,
-                        type: (NamedTypeSymbol)destination,
+                        type: (NamedTypeSymbol)destination.StrippedType(),
                         arguments,
                         diagnostics,
                         boundInitializerOpt,
@@ -206,7 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(
                 syntax,
                 operand,
-                conversion,
+                conversion: destination.IsNullableType()
+                    ? Conversion.MakeNullableConversion(ConversionKind.ImplicitNullable, conversion)
+                    : conversion,
                 @checked: false,
                 explicitCastInCode: isCast,
                 constantValueOpt: null, // A "target-typed new" would never produce a constant.
