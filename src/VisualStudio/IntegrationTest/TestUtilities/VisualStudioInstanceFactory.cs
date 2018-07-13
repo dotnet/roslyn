@@ -30,8 +30,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         private VisualStudioInstance _currentlyRunningInstance;
 
-        private bool _hasCurrentlyActiveContext;
-
         static VisualStudioInstanceFactory()
         {
             var majorVsProductVersion = VsProductVersion.Split('.')[0];
@@ -103,8 +101,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(ImmutableHashSet<string> requiredPackageIds)
         {
-            ThrowExceptionIfAlreadyHasActiveContext();
-
             try
             {
                 bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
@@ -122,10 +118,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         internal void NotifyCurrentInstanceContextDisposed(bool canReuse)
         {
-            ThrowExceptionIfAlreadyHasActiveContext();
-
-            _hasCurrentlyActiveContext = false;
-
             if (!canReuse)
             {
                 _currentlyRunningInstance?.Close();
@@ -143,14 +135,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return _currentlyRunningInstance == null
                 || (!requiredPackageIds.All(id => _currentlyRunningInstance.SupportedPackageIds.Contains(id)))
                 || !_currentlyRunningInstance.IsRunning;
-        }
-
-        private void ThrowExceptionIfAlreadyHasActiveContext()
-        {
-            if (_hasCurrentlyActiveContext)
-            {
-                throw new Exception($"The previous integration test failed to call {nameof(VisualStudioInstanceContext)}.{nameof(Dispose)}. Ensure that test does that to ensure the Visual Studio instance is correctly cleaned up.");
-            }
         }
 
         /// <summary>
@@ -330,9 +314,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             _currentlyRunningInstance?.Close();
             _currentlyRunningInstance = null;
-
-            // We want to make sure everybody cleaned up their contexts by the end of everything
-            ThrowExceptionIfAlreadyHasActiveContext();
 
             AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
             AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolveHandler;
