@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' Eg Case .... 
         ''' </summary>
         Friend MustOverride Function GetInternalStructuralBlocks(block As TBlock) As SyntaxList(Of TInnerBlock)
+
         ''' <summary>
         ''' Some block structure allow statements aftet the header and before the First Inner Block.
         ''' Eg
@@ -135,7 +136,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' Return the End Statement of the full structral block.
         ''' Eg End Select
         ''' </summary>
-
         Friend MustOverride Function GetEnd_XXX_Statement(block As TBlock) As TEndOfBlockStatement
 #End Region
 
@@ -159,17 +159,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                             Exit For
                         End If
                         Dim NextBlock As SyntaxNode = Nothing
-                        Dim InnerBlock = InnerBlocks(idx)
-                        If idx = edx Then
-                            NextBlock = GetEpilogueBlock(block)
-                            If NextBlock Is Nothing Then
-                                NextBlock = GetEnd_XXX_Statement(block)
-                                If NextBlock Is Nothing Then Continue For
-                            End If
-                        Else
+                        If idx < edx Then
                             NextBlock = InnerBlocks(idx + 1)
+                        Else
+                            NextBlock = If(DirectCast(GetEpilogueBlock(block), SyntaxNode), GetEnd_XXX_Statement(block))
                         End If
                         If NextBlock IsNot Nothing Then
+                            Dim InnerBlock = InnerBlocks(idx)
                             Dim ThisBlockSpan = GetBlockSpan(InnerBlock, InnerBlock, NextBlock, GetBannerTextOfInternalStructuralBlock(InnerBlock), False)
                             InnerBlocksBlockSpans.AddIfNotNull(ThisBlockSpan)
                         End If
@@ -247,7 +243,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Function
 #End Region
 
-#Region "Line Delta Helpers"
         Friend Function FirstTriviaAfterFirstEndOfLine(Trivias As SyntaxTriviaList) As SyntaxTrivia?
             Dim IsFirstOne = True
             Dim edx = Trivias.Count - 1
@@ -264,16 +259,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Function
 
         Private Function LastEndOfLineOrNullable(Trivias As SyntaxTriviaList) As SyntaxTrivia?
-            Dim IsFirstOne = True
-            Dim edx = Trivias.Count - 1
-            For idx = edx To 0 Step -1
-                If Trivias(idx).IsEndOfLine Then
-                    Return New SyntaxTrivia?(Trivias(idx))
-                End If
-            Next
-            Return New SyntaxTrivia?()
+            Return (From trivia As SyntaxTrivia? In Trivias Where trivia.HasValue AndAlso trivia.Value.IsEndOfLine
+                    Select trivia).LastOrDefault
         End Function
 
+#Region "Line Delta Helpers"
         Private Function LineDelta(A As Int32, B As Int32) As Int32
             Return B - A
         End Function
