@@ -68,7 +68,7 @@ class C {
         }
 
         [Fact]
-        public void TestParmas()
+        public void TestParams()
         {
             var comp = CreateCompilation(@"
 using System;
@@ -111,7 +111,7 @@ class C {
         }
 
         [Fact]
-        public void TestTrailingNamedArgs()
+        public void TestNonTrailingNamedArgs()
         {
             var comp = CreateCompilation(@"
 using System;
