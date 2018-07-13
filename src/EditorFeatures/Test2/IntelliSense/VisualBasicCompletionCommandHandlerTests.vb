@@ -1023,7 +1023,9 @@ End Class
         <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusiveNamedParameterCompletion() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateTestStateFromWorkspace(
+                      <Workspace>
+                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
                               <Document>
 Class Class1
     Private Sub Test()
@@ -1036,7 +1038,9 @@ Class Class1
     Private Sub Goo(str As String, bool As Boolean)
     End Sub
 End Class
-                              </Document>)
+                              </Document>
+                          </Project>
+                      </Workspace>)
 
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
@@ -1046,9 +1050,11 @@ End Class
         End Function
 
         <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+                                  <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusiveNamedParameterCompletion2() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateTestStateFromWorkspace(
+                      <Workspace>
+                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
                               <Document>
 Class Goo
     Private Sub Test()
@@ -1065,7 +1071,9 @@ Class Goo
     Private Sub Method(obj As Object, b As Boolean, str As String)
     End Sub
 End Class
-                              </Document>)
+                              </Document>
+                          </Project>
+                      </Workspace>)
 
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
@@ -1078,7 +1086,7 @@ End Class
         End Function
 
         <WorkItem(544471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544471")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+                                  <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDontCrashOnEmptyParameterList() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -1091,7 +1099,7 @@ End Class
         End Function
 
         <WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+                                          <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function OnlyMatchOnLowercaseIfPrefixWordMatch() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -1107,7 +1115,7 @@ End Module
         End Function
 
         <WorkItem(544989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544989")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+                                                  <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function MyBaseFinalize() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -1126,7 +1134,7 @@ End Class
         End Function
 
         <WorkItem(551117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551117")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+                                                          <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNamedParameterSortOrder() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -1148,7 +1156,7 @@ End Module
         End Function
 
         <WorkItem(546810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546810")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+                                                                  <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLineContinuationCharacter() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -1167,7 +1175,7 @@ End Module
         End Function
 
         <WorkItem(547287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547287")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+                                                                          <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNumberDismissesCompletion() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -1293,7 +1301,7 @@ End Module          </text>.NormalizedValue, state.GetDocumentText(), StringComp
         End Function
 
         <WorkItem(622957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622957")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+                                                                                      <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBangFiltersInDocComment() As Task
             Using state = TestState.CreateVisualBasicTestState(
                   <Document><![CDATA[
