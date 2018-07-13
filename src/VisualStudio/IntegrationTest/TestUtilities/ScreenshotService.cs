@@ -9,7 +9,7 @@ using PixelFormats = System.Windows.Media.PixelFormats;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
-    internal class ScreenshotService
+    internal static class ScreenshotService
     {
         private static readonly object s_gate = new object();
 
