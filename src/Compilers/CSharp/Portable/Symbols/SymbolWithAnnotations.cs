@@ -328,15 +328,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteDiagnostics);
         }
 
-        public virtual TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap)
+        public TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap)
         {
-            return SubstituteType(typeMap, (map, type) => map.SubstituteType(type));
+            return SubstituteType(typeMap, withTupleUnification: false);
         }
 
-        private TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap, Func<AbstractTypeMap, TypeSymbol, TypeSymbolWithAnnotations> substituteType)
+        public TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
+        {
+            return SubstituteType(typeMap, withTupleUnification: true);
+        }
+
+        protected virtual TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap, bool withTupleUnification)
         {
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
-            var newTypeWithModifiers = substituteType(typeMap, this.TypeSymbol);
+            var newTypeWithModifiers = typeMap.SubstituteType(this.TypeSymbol, withTupleUnification);
             bool? newIsNullable = (newTypeWithModifiers.IsNullable != null && this.IsNullable != true) ? newTypeWithModifiers.IsNullable : this.IsNullable;
 
             if (!TypeSymbolEquals(newTypeWithModifiers, TypeCompareKind.CompareNullableModifiersForReferenceTypes) ||
@@ -386,11 +391,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             binder.ReportDiagnosticsIfObsolete(diagnostics, TypeSymbol, syntax, hasBaseReceiver: false);
-        }
-
-        public virtual TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
-        {
-            return SubstituteType(typeMap, (map, type) => map.SubstituteTypeWithTupleUnification(type));
         }
 
         /// <summary>
@@ -737,14 +737,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            public override TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap)
+            protected override TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap, bool withTupleUnification)
             {
                 if ((object)_resolved != null)
                 {
-                    return base.SubstituteType(typeMap);
+                    return base.SubstituteType(typeMap, withTupleUnification);
                 }
 
-                var newUnderlying = typeMap.SubstituteType(this._underlying);
+                var newUnderlying = _underlying.SubstituteType(typeMap, withTupleUnification);
                 if ((object)newUnderlying != this._underlying)
                 {
                     if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.AllAspects) || 
@@ -754,32 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return new LazyNullableTypeParameter(_assembly, newUnderlying);
                     }
 
-                    return base.SubstituteType(typeMap);
-                }
-                else
-                {
-                    return this; // substitution had no effect on the type or modifiers
-                }
-            }
-
-            public override TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
-            {
-                if ((object)_resolved != null)
-                {
-                    return base.SubstituteTypeWithTupleUnification(typeMap);
-                }
-
-                var newUnderlying = typeMap.SubstituteTypeWithTupleUnification(this._underlying);
-                if ((object)newUnderlying != this._underlying)
-                {
-                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.AllAspects) ||
-                            newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
-                        newUnderlying.CustomModifiers.IsEmpty)
-                    {
-                        return new LazyNullableTypeParameter(_assembly, newUnderlying);
-                    }
-
-                    return base.SubstituteTypeWithTupleUnification(typeMap);
+                    return base.SubstituteType(typeMap, withTupleUnification);
                 }
                 else
                 {
@@ -860,9 +835,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _typeParameter.Equals(other);
             }
 
-            public override TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap)
+            protected override TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap, bool withTupleUnification)
             {
-                var newUnderlying = typeMap.SubstituteType(_typeParameter);
+                var newUnderlying = typeMap.SubstituteType(_typeParameter, withTupleUnification);
                 if ((object)newUnderlying != this)
                 {
                     if ((newUnderlying.TypeSymbol.Equals(_typeParameter, TypeCompareKind.AllAspects) ||
@@ -872,27 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return newUnderlying;
                     }
 
-                    return base.SubstituteType(typeMap);
-                }
-                else
-                {
-                    return this; // substitution had no effect on the type or modifiers
-                }
-            }
-
-            public override TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
-            {
-                var newUnderlying = typeMap.SubstituteTypeWithTupleUnification(_typeParameter);
-                if ((object)newUnderlying != this)
-                {
-                    if ((newUnderlying.TypeSymbol.Equals(_typeParameter, TypeCompareKind.AllAspects) ||
-                            newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
-                        newUnderlying.CustomModifiers.IsEmpty)
-                    {
-                        return newUnderlying;
-                    }
-
-                    return base.SubstituteTypeWithTupleUnification(typeMap);
+                    return base.SubstituteType(typeMap, withTupleUnification);
                 }
                 else
                 {
