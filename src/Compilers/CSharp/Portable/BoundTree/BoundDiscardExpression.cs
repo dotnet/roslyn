@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundExpression SetInferredType(TypeSymbolWithAnnotations type)
         {
-            Debug.Assert((object)Type == null && (object)type != null);
+            Debug.Assert((object)Type == null && type != null);
             // PROTOTYPE(NullableReferenceTypes): we're dropping the annotation
             return this.Update(type.TypeSymbol);
         }

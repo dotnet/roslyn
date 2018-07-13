@@ -9,21 +9,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal struct NamespaceOrTypeOrAliasSymbolWithAnnotations
         {
-            private readonly object _symbolOrTypeSymbolWithAnnotations;
+            private readonly TypeSymbolWithAnnotations _type;
+            private readonly Symbol _symbol;
 
-            private NamespaceOrTypeOrAliasSymbolWithAnnotations(object symbolOrTypeSymbolWithAnnotations)
+            private NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type, Symbol symbol)
             {
-                Debug.Assert(symbolOrTypeSymbolWithAnnotations != null);
-                Debug.Assert(!(symbolOrTypeSymbolWithAnnotations is TypeSymbol));
-                _symbolOrTypeSymbolWithAnnotations = symbolOrTypeSymbolWithAnnotations;
+                Debug.Assert(type == null != (symbol is null));
+                Debug.Assert(!(symbol is TypeSymbol));
+                _type = type;
+                _symbol = symbol;
             }
 
-            internal TypeSymbolWithAnnotations Type => _symbolOrTypeSymbolWithAnnotations as TypeSymbolWithAnnotations;
-            internal Symbol Symbol => _symbolOrTypeSymbolWithAnnotations as Symbol ?? Type?.TypeSymbol;
-            internal bool IsType => !(Type is null);
-            internal bool IsAlias => (_symbolOrTypeSymbolWithAnnotations as Symbol)?.Kind == SymbolKind.Alias;
+            internal TypeSymbolWithAnnotations Type => _type;
+            internal Symbol Symbol => _symbol ?? Type.TypeSymbol;
+            internal bool IsType => _type != null;
+            internal bool IsAlias => _symbol?.Kind == SymbolKind.Alias;
             internal NamespaceOrTypeSymbol NamespaceOrTypeSymbol => Symbol as NamespaceOrTypeSymbol;
-            internal bool IsDefault => _symbolOrTypeSymbolWithAnnotations is null;
+            internal bool IsDefault => _type == null && _symbol is null;
 
             internal static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, Symbol symbol)
             {
@@ -32,16 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return default;
                 }
                 var type = symbol as TypeSymbol;
-                if (type is null)
-                {
-                    return new NamespaceOrTypeOrAliasSymbolWithAnnotations(symbol);
-                }
-                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext, type));
+                return type is null ?
+                    new NamespaceOrTypeOrAliasSymbolWithAnnotations(default, symbol) :
+                    new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext, type), null);
             }
 
             public static implicit operator NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type)
             {
-                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(type);
+                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(type, null);
             }
         }
     }

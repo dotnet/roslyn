@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArrayType(symbol, typeOpt: null);
         }
 
-        private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations typeOpt)
+        private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations? typeOpt)
         {
             if (TryAddAlias(symbol, builder))
             {
@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            TypeSymbolWithAnnotations underlyingNonArrayTypeWithAnnotations = (symbol as ArrayTypeSymbol)?.ElementType;
+            TypeSymbolWithAnnotations underlyingNonArrayTypeWithAnnotations = (symbol as ArrayTypeSymbol)?.ElementType ?? default;
             var underlyingNonArrayType = symbol.ElementType;
             while (underlyingNonArrayType.Kind == SymbolKind.ArrayType)
             {
-                underlyingNonArrayTypeWithAnnotations = (underlyingNonArrayType as ArrayTypeSymbol)?.ElementType;
+                underlyingNonArrayTypeWithAnnotations = (underlyingNonArrayType as ArrayTypeSymbol)?.ElementType ?? default;
                 underlyingNonArrayType = ((IArrayTypeSymbol)underlyingNonArrayType).ElementType;
             }
 
-            if ((object)underlyingNonArrayTypeWithAnnotations != null)
+            if (underlyingNonArrayTypeWithAnnotations != null)
             {
                 VisitTypeSymbolWithAnnotations(underlyingNonArrayTypeWithAnnotations);
             }
@@ -90,22 +90,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddNullableAnnotations(TypeSymbolWithAnnotations typeOpt)
+        private void AddNullableAnnotations(TypeSymbolWithAnnotations? typeOpt)
         {
-            if (ReferenceEquals(typeOpt, null))
+            if (typeOpt == null)
             {
                 return;
             }
 
+            var type = typeOpt.Value;
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                !typeOpt.IsNullableType() &&
-                typeOpt.IsAnnotated)
+                !type.IsNullableType() &&
+                type.IsAnnotated)
             {
                 AddPunctuation(SyntaxKind.QuestionToken);
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                !typeOpt.IsValueType &&
-                typeOpt.IsNullable == false)
+                !type.IsValueType &&
+                type.IsNullable == false)
             {
                 AddPunctuation(SyntaxKind.ExclamationToken);
             }
@@ -731,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         visitor = this.NotFirstVisitorNamespaceOrType;
                     }
 
-                    if ((object)typeArgumentsWithAnnotations == null)
+                    if (typeArgumentsWithAnnotations == null)
                     {
                         typeArg.Accept(visitor);
                     }

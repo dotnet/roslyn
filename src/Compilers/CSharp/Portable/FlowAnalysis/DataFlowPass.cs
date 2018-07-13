@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We've already reported the use of a local before its declaration.  No need to emit
                 // another diagnostic for the same issue.
             }
-            else if (!_alreadyReported[slot] && VariableType(symbol)?.IsErrorType() != true)
+            else if (!_alreadyReported[slot] && VariableType(symbol).IsErrorType() != true)
             {
                 // CONSIDER: could suppress this diagnostic in cases where the local was declared in a using
                 // or fixed statement because there's a special error code for not initializing those.
@@ -1197,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingSlot != -1);
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot];
-            NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol)?.TypeSymbol;
+            NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol).TypeSymbol;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
@@ -1225,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
+            TypeSymbol type = VariableType(id.Symbol).TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (slot >= state.Assigned.Capacity) Normalize(ref state);
             if (state.IsAssigned(slot)) return; // was already fully assigned.
@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
+            TypeSymbol type = VariableType(id.Symbol).TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (!state.IsAssigned(slot)) return; // was already unassigned
             state.Unassign(slot);

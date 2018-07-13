@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isConst = false;
                         AliasSymbol alias;
                         var declType = BindVariableType(component.Designation, diagnostics, component.Type, ref isConst, out isVar, out alias);
-                        Debug.Assert(isVar == ((object)declType == null));
+                        Debug.Assert(isVar == (declType == null));
                         if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
                         {
                             // An explicit is not allowed with a parenthesized designation
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeSymbolWithAnnotations declType)
         {
-            return new BoundDiscardExpression(syntax, declType?.TypeSymbol);
+            return new BoundDiscardExpression(syntax, declType.TypeSymbol);
         }
 
         /// <summary>
@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // might own nested scope.
                 var hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-                if ((object)declType != null)
+                if (declType != null)
                 {
                     return new BoundLocal(syntax, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.TypeSymbol, hasErrors: hasErrors);
                 }
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,
                                             wasCompilerGenerated: true);
 
-            if ((object)declType != null)
+            if (declType != null)
             {
                 var fieldType = field.GetFieldType(this.FieldsBeingBound);
                 Debug.Assert(declType.TypeSymbol == fieldType.TypeSymbol);

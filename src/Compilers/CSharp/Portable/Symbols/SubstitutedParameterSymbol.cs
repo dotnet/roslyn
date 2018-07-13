@@ -45,24 +45,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var mapOrType = _mapOrType;
-                var type = mapOrType as TypeSymbolWithAnnotations;
-                if ((object)type != null)
+                if (mapOrType is TypeSymbolWithAnnotations)
                 {
-                    return type;
+                    return (TypeSymbolWithAnnotations)mapOrType;
                 }
 
                 TypeSymbolWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.Type);
-
-                type = substituted;
 
                 if (substituted.CustomModifiers.IsEmpty && 
                     this._underlyingParameter.Type.CustomModifiers.IsEmpty &&
                     this._underlyingParameter.RefCustomModifiers.IsEmpty)
                 {
-                    _mapOrType = type;
+                    _mapOrType = substituted;
                 }
 
-                return type;
+                return substituted;
             }
         }
 

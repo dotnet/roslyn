@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            TypeSymbol originalEventType = _eventType?.TypeSymbol;
-            if ((object)_eventType == null)
+            TypeSymbol originalEventType = _eventType.TypeSymbol;
+            if (_eventType == null)
             {
                 var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
                 originalEventType = metadataDecoder.GetTypeOfToken(eventType);

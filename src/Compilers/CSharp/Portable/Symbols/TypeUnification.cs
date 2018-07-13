@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MutableTypeMap substitution = null;
-            bool result = CanUnifyHelper((object)t1 == null ? null : TypeSymbolWithAnnotations.Create(t1),
-                                         (object)t2 == null ? null : TypeSymbolWithAnnotations.Create(t2), 
+            bool result = CanUnifyHelper(TypeSymbolWithAnnotations.Create(t1),
+                                         TypeSymbolWithAnnotations.Create(t2), 
                                          ref substitution);
 #if DEBUG
             if (result && ((object)t1 != null && (object)t2 != null))
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     previous = type;
                     type = type.SubstituteType(substitution);
-                } while ((object)type != previous);
+                } while (type != previous);
             }
 
             return type;
@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool CanUnifyHelper(TypeSymbolWithAnnotations t1, TypeSymbolWithAnnotations t2, ref MutableTypeMap substitution)
         {
-            if ((object)t1 == null || (object)t2 == null)
+            if (t1 == null || t2 == null)
             {
-                return (object)t1 == t2;
+                return t1 == t2;
             }
 
             if (t1.TypeSymbol == t2.TypeSymbol && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))

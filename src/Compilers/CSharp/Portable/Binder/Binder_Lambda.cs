@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var typeSyntax = p.Type;
-                    TypeSymbolWithAnnotations type = null;
+                    TypeSymbolWithAnnotations type = default;
                     var refKind = RefKind.None;
 
                     if (typeSyntax == null)
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var type in types)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
-                    if ((object)type != null && type.IsStatic)
+                    if (type != null && type.IsStatic)
                     {
                         Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type.TypeSymbol);
                     }

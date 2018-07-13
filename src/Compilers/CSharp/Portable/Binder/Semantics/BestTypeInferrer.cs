@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? isNullable = false;
             foreach (var type in types)
             {
-                if (type is null)
+                if (type == null)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Should ignore untyped
                     // expressions such as unbound lambdas and typeless tuples.
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var type = expr.GetTypeAndNullability(includeNullability);
 
-                if ((object)type != null)
+                if (type != null)
                 {
                     if (type.IsErrorType())
                     {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var type1 = expr1.GetTypeAndNullability(includeNullability);
 
-            if ((object)type1 != null)
+            if (type1 != null)
             {
                 if (type1.IsErrorType())
                 {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var type2 = expr2.GetTypeAndNullability(includeNullability);
 
-            if ((object)type2 != null)
+            if (type2 != null)
             {
                 if (type2.IsErrorType())
                 {
@@ -156,19 +156,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Short-circuit some common cases.
             if (types.IsEmpty)
             {
-                return null;
+                return default;
             }
             else if (types.Length == 1)
             {
                 return types[0];
             }
 
-            TypeSymbolWithAnnotations best = null;
+            TypeSymbolWithAnnotations best = default;
             int bestIndex = -1;
             for(int i = 0; i < types.Length; i++)
             {
                 var type = types[i];
-                if ((object)best == null)
+                if (best == null)
                 {
                     best = type;
                     bestIndex = i;
@@ -177,11 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var better = Better(best, type, conversions, ref useSiteDiagnostics);
 
-                    if ((object)better == null)
+                    if (better == null)
                     {
-                        best = null;
+                        best = default;
                     }
-                    else if ((object)better != (object)best)
+                    else
                     {
                         best = better;
                         bestIndex = i;
@@ -189,9 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if ((object)best == null)
+            if (best == null)
             {
-                return null;
+                return default;
             }
 
             // We have actually only determined that every type *after* best was worse. Now check
@@ -201,9 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbolWithAnnotations type = types[i];
                 TypeSymbolWithAnnotations better = Better(best, type, conversions, ref useSiteDiagnostics);
 
-                if (!best.Equals(better, TypeCompareKind.ConsiderEverything))
+                if (better == null || !best.Equals(better, TypeCompareKind.ConsiderEverything))
                 {
-                    return null;
+                    return default;
                 }
             }
 
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type2;
             }
 
-            if ((object)type2 == null || type2.IsErrorType())
+            if (type2 == null || type2.IsErrorType())
             {
                 return type1;
             }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MethodTypeInferrer.Merge(type1, type2, conversions.CorLibrary);
                 }
 
-                return null;
+                return default;
             }
 
             if (t1tot2)
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type1;
             }
 
-            return null;
+            return default;
         }
     }
 }

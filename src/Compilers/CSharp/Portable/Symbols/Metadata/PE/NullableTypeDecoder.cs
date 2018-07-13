@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule)
         {
-            Debug.Assert((object)metadataType != null);
+            Debug.Assert(metadataType != null);
 
             ImmutableArray<bool> nullableTransformFlags;
             containingModule.Module.HasNullableAttribute(targetSymbolToken, out nullableTransformFlags);

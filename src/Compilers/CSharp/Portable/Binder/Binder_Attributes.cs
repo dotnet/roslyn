@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var parameter in parameters)
             {
                 var paramType = parameter.Type;
-                Debug.Assert((object)paramType != null);
+                Debug.Assert(paramType != null);
 
                 if (!paramType.TypeSymbol.IsValidAttributeParameterType(Compilation))
                 {

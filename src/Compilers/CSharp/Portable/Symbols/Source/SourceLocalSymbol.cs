@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private readonly TypeSyntax _typeSyntax;
         private readonly LocalDeclarationKind _declarationKind;
-        private TypeSymbolWithAnnotations _type;
+        private TypeSymbolWithAnnotationsBuilder _type;
 
         /// <summary>
         /// Scope to which the local can "escape" via aliasing/ref assignment.
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // don't let the debugger force inference.
         internal new string GetDebuggerDisplay()
         {
-            return ((object)_type != null)
+            return !_type.IsNull
                 ? base.GetDebuggerDisplay()
                 : $"{this.Kind} <var> ${this.Name}";
         }
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)_type == null)
+                if (_type.IsNull)
                 {
 #if DEBUG
                     concurrentTypeResolutions++;
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     SetType(localType);
                 }
 
-                return _type;
+                return _type.ToType();
             }
         }
 
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // If we got a valid result that was not void then use the inferred type
                 // else create an error type.
-                if ((object)inferredType != null &&
+                if (inferredType != null &&
                     inferredType.SpecialType != SpecialType.System_Void)
                 {
                     declType = inferredType;
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            Debug.Assert((object)declType != null);
+            Debug.Assert(declType != null);
 
             //
             // Note that we drop the diagnostics on the floor! That is because this code is invoked mainly in
@@ -366,23 +366,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // TODO: this method must be overridden for pattern variables to bind the
             // expression or statement that is the nearest enclosing to the pattern variable's
             // declaration. That will cause the type of the pattern variable to be set as a side-effect.
-            return _type;
+            return _type.ToType();
         }
 
         internal void SetType(TypeSymbolWithAnnotations newType)
         {
-            TypeSymbolWithAnnotations originalType = _type;
+            TypeSymbol originalType = _type.DefaultType;
 
             // In the event that we race to set the type of a local, we should
             // always deduce the same type, or deduce that the type is an error.
 
             Debug.Assert((object)originalType == null ||
                 originalType.IsErrorType() && newType.IsErrorType() ||
-                originalType.TypeSymbol == newType.TypeSymbol);
+                originalType == newType.TypeSymbol);
 
             if ((object)originalType == null)
             {
-                Interlocked.CompareExchange(ref _type, newType, null);
+                _type.InterlockedInitialize(newType);
             }
         }
 
@@ -522,7 +522,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override TypeSymbolWithAnnotations InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
                 var initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
-                return initializerOpt?.GetTypeAndNullability(_initializer.IsFeatureStaticNullCheckingEnabled());
+                return initializerOpt == null ?
+                    default :
+                    initializerOpt.GetTypeAndNullability(_initializer.IsFeatureStaticNullCheckingEnabled());
             }
 
             internal override SyntaxNode ForbiddenZone => _initializer;
@@ -675,8 +677,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
-                Debug.Assert((object)this._type != null);
-                return this._type;
+                Debug.Assert(!this._type.IsNull);
+                return _type.ToType();
             }
 
             internal override SyntaxNode ForbiddenZone
@@ -763,13 +765,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if ((object)this._type == null)
+                if (this._type.IsNull)
                 {
                     Debug.Assert(this.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
                     SetType(TypeSymbolWithAnnotations.Create(_nodeBinder.CreateErrorType("var")));
                 }
 
-                return this._type;
+                return _type.ToType();
             }
         }
     }

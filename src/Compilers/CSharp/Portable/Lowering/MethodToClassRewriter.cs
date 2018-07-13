@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override TypeSymbol VisitType(TypeSymbol type)
         {
-            return TypeMap.SubstituteType(type)?.TypeSymbol;
+            return TypeMap.SubstituteType(type).TypeSymbol;
         }
 
         public override BoundNode VisitMethodInfo(BoundMethodInfo node)

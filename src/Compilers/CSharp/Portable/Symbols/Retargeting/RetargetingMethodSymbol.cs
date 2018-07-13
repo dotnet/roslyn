@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                if ((object)_lazyReturnType == null)
+                if (_lazyReturnType == null)
                 {
                     _lazyReturnType = this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode, this.ContainingType);
                 }

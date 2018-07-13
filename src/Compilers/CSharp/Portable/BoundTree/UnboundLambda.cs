@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Indicates the type of return statement with no expression. Used in InferReturnType.
         /// </summary>
-        internal static readonly TypeSymbolWithAnnotations NoReturnExpression = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
+        internal static readonly TypeSymbol NoReturnExpression = new UnsupportedMetadataTypeSymbol();
 
         /// <summary>
         /// Behavior of this function should be kept aligned with <see cref="UnboundLambdaState.ReturnInferenceCacheKey"/>.
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     refKind = rk;
                 }
-                if ((object)type == NoReturnExpression)
+                if ((object)type.TypeSymbol == NoReturnExpression)
                 {
                     hasReturnWithoutArgument = true;
                 }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations bestResultType;
             if (resultTypes.IsDefaultOrEmpty)
             {
-                bestResultType = null;
+                bestResultType = default;
             }
             else if (resultTypes.Length == 1)
             {
@@ -196,11 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TypeSymbolWithAnnotations.Create(resultType);
             }
 
-            if ((object)bestResultType == null || bestResultType.SpecialType == SpecialType.System_Void)
+            if (bestResultType == null || bestResultType.SpecialType == SpecialType.System_Void)
             {
                 // If the best type was 'void', ERR_CantReturnVoid is reported while binding the "return void"
                 // statement(s).
-                return null;
+                return default;
             }
 
             // Some non-void best type T was found; use delegate InvokeMethod
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expression = node.ExpressionOpt;
                 var type = (expression is null) ?
-                    NoReturnExpression :
+                    TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesFalseContext.Instance, NoReturnExpression) :
                     TypeSymbolWithAnnotations.Create(expression.Type?.SetUnknownNullabilityForReferenceTypes());
                 _builder.Add((node.RefKind, type));
                 return null;
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var lambda in _returnInferenceCache.Values)
             {
                 var type = lambda.InferredReturnType.Type;
-                if ((object)type != null)
+                if (type != null)
                 {
                     any = true;
                     yield return type.TypeSymbol;
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!any)
             {
                 var type = BindForErrorRecovery().InferredReturnType.Type;
-                if ((object)type != null)
+                if (type != null)
                 {
                     yield return type.TypeSymbol;
                 }
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)invokeMethod == null)
             {
                 refKind = CodeAnalysis.RefKind.None;
-                return null;
+                return default;
             }
             refKind = invokeMethod.RefKind;
             return invokeMethod.ReturnType;
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 lambdaSymbol = returnInferenceLambda.Symbol;
                 var lambdaReturnType = lambdaSymbol.ReturnType;
-                if ((object)LambdaSymbol.InferenceFailureReturnType != lambdaReturnType &&
+                if ((object)LambdaSymbol.InferenceFailureReturnType != lambdaReturnType.TypeSymbol &&
                     lambdaReturnType.Equals(returnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && lambdaSymbol.RefKind == refKind)
                 {
                     lambdaBodyBinder = returnInferenceLambda.Binder;
@@ -478,10 +478,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambdaParameters = lambdaSymbol.Parameters;
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
 
-            if ((object)returnType != null)
+            if (returnType != null)
             {
                 returnType.ReportAnnotatedUnconstrainedTypeParameterIfAny(lambdaSymbol.DiagnosticLocation, diagnostics);
-                if (returnType.ContainsNullableReferenceTypes() == true)
+                if (returnType.ContainsNullableReferenceTypes())
                 {
                     binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
                 }
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsAsync && !ErrorFacts.PreventsSuccessfulDelegateConversion(diagnostics))
             {
-                if ((object)returnType != null && // Can be null if "delegateType" is not actually a delegate type.
+                if (returnType != null && // Can be null if "delegateType" is not actually a delegate type.
                     returnType.SpecialType != SpecialType.System_Void &&
                     !returnType.TypeSymbol.IsNonGenericTaskType(binder.Compilation) &&
                     !returnType.TypeSymbol.IsGenericTaskType(binder.Compilation))
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterTypes,
                 parameterRefKinds,
                 refKind: CodeAnalysis.RefKind.None,
-                returnType: null,
+                returnType: default,
                 diagnostics: diagnostics);
             Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
@@ -582,7 +582,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
             // TODO: Should InferredReturnType.UseSiteDiagnostics be merged into BoundLambda.Diagnostics?
-            var returnType = inferredReturnType.Type ?? LambdaSymbol.InferenceFailureReturnType;
+            var returnType = inferredReturnType.Type;
+            if (returnType == null)
+            {
+                returnType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesFalseContext.Instance, LambdaSymbol.InferenceFailureReturnType);
+            }
             lambdaSymbol.SetInferredReturnType(inferredReturnType.RefKind, returnType);
 
             return result;
@@ -788,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Builder.Append(parameter.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
             }
 
-            if ((object)lambda.ReturnType != null)
+            if (lambda.ReturnType != null)
             {
                 builder.Builder.Append(lambda.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
             }

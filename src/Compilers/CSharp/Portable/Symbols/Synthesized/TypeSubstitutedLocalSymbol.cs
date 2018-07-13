@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeSubstitutedLocalSymbol(LocalSymbol originalVariable, TypeSymbolWithAnnotations type, Symbol containingSymbol)
         {
             Debug.Assert(originalVariable != null);
-            Debug.Assert((object)type != null);
+            Debug.Assert(type != null);
             Debug.Assert(containingSymbol != null);
 
             _originalVariable = originalVariable;

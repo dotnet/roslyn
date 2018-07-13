@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
-        private TypeSymbolWithAnnotations _lazyType;
+        private TypeSymbolWithAnnotationsBuilder _lazyType;
         private SyntaxReference _typeSyntax;
 
         internal GlobalExpressionVariable(
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if ((object)_lazyType != null)
+            if (!_lazyType.IsNull)
             {
-                return _lazyType;
+                return _lazyType.ToType();
             }
 
             var typeSyntax = TypeSyntax;
@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isVar;
             TypeSymbolWithAnnotations type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
-            Debug.Assert((object)type != null || isVar);
+            Debug.Assert(type != null || isVar);
 
             if (isVar && !fieldsBeingBound.ContainsReference(this))
             {
                 InferFieldType(fieldsBeingBound, binder);
-                Debug.Assert((object)_lazyType != null);
+                Debug.Assert(!_lazyType.IsNull);
             }
             else
             {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Free();
-            return _lazyType;
+            return _lazyType.ToType();
         }
 
         /// <summary>
@@ -107,23 +107,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private TypeSymbolWithAnnotations SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbolWithAnnotations type)
         {
-            var originalType = _lazyType;
+            var originalType = _lazyType.DefaultType;
 
             // In the event that we race to set the type of a field, we should
             // always deduce the same type, unless the cached type is an error.
 
             Debug.Assert((object)originalType == null ||
                 originalType.IsErrorType() ||
-                originalType.TypeSymbol == type.TypeSymbol);
+                originalType == type.TypeSymbol);
 
-            if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
+            if (_lazyType.InterlockedInitialize(type))
             {
                 TypeChecks(type.TypeSymbol, diagnostics);
 
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
             }
-            return _lazyType;
+            return _lazyType.ToType();
         }
 
         /// <summary>

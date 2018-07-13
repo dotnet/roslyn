@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly bool _hasInitializer;
 
-        private TypeSymbolWithAnnotations _lazyType;
+        private TypeSymbolWithAnnotationsBuilder _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -351,12 +351,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)_lazyType != null)
+                if (_lazyType.IsNull)
                 {
-                    Debug.Assert(_lazyType.TypeSymbol.IsPointerType() ==
+                    Debug.Assert(_lazyType.DefaultType.IsPointerType() ==
                         IsPointerFieldSyntactically());
 
-                    return _lazyType.TypeSymbol.IsPointerType();
+                    return _lazyType.DefaultType.IsPointerType();
                 }
 
                 return IsPointerFieldSyntactically();
@@ -389,9 +389,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if ((object)_lazyType != null)
+            if (!_lazyType.IsNull)
             {
-                return _lazyType;
+                return _lazyType.ToType();
             }
 
             var declarator = VariableDeclaratorNode;
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     bool isVar;
                     type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
-                    Debug.Assert((object)type != null || isVar);
+                    Debug.Assert(type != null || isVar);
 
                     if (isVar)
                     {
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (fieldsBeingBound.ContainsReference(this))
                         {
                             diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
-                            type = null;
+                            type = default;
                         }
                         else if (fieldSyntax.Declaration.Variables.Count > 1)
                         {
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (this.IsConst && this.ContainingType.IsScriptClass)
                         {
                             // For const var in script, we won't try to bind the initializer (case below), as it can lead to an unbound recursion
-                            type = null;
+                            type = default;
                         }
                         else
                         {
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                         }
 
-                        if ((object)type == null)
+                        if (type == null)
                         {
                             type = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, binder.CreateErrorType("var"));
                         }
@@ -512,10 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
-            if ((object)Interlocked.CompareExchange(
-                ref _lazyType,
-                type.WithModifiers(this.RequiredCustomModifiers),
-                null) == null)
+            if (_lazyType.InterlockedInitialize(type.WithModifiers(this.RequiredCustomModifiers)))
             {
                 TypeChecks(type.TypeSymbol, diagnostics);
 
@@ -533,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Free();
             diagnosticsForFirstDeclarator.Free();
-            return _lazyType;
+            return _lazyType.ToType();
         }
 
         internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)

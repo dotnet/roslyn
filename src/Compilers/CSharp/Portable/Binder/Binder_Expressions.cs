@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindDeclarationVariables(TypeSymbolWithAnnotations declType, VariableDesignationSyntax node, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            declType = declType ?? TypeSymbolWithAnnotations.Create(CreateErrorType("var"));
+            declType = declType == null ? TypeSymbolWithAnnotations.Create(CreateErrorType("var")) : declType;
             switch (node.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementType = boundArgument.GetTypeAndNullability(includeNullability);
                 elementTypes.Add(elementType);
 
-                if ((object)elementType == null)
+                if (elementType == null)
                 {
                     hasNaturalType = false;
                 }
@@ -2056,7 +2056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindExplicitNullableCastFromNonNullable(ExpressionSyntax node, BoundExpression operand, TypeSymbolWithAnnotations targetType, DiagnosticBag diagnostics)
         {
-            Debug.Assert((object)targetType != null && targetType.IsNullableType());
+            Debug.Assert(targetType != null && targetType.IsNullableType());
             Debug.Assert(operand.Type != null && !operand.Type.IsNullableType());
 
             // Section 6.2.3 of the spec only applies when the non-null version of the types involved have a
@@ -2310,9 +2310,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isConst = false;
                         AliasSymbol alias;
                         var declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
-                        Debug.Assert(isVar == ((object)declType == null));
+                        Debug.Assert(isVar == (declType == null));
 
-                        return new BoundDiscardExpression(declarationExpression, declType?.TypeSymbol);
+                        return new BoundDiscardExpression(declarationExpression, declType.TypeSymbol);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
@@ -2563,7 +2563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
                 {
                     TypeSymbolWithAnnotations parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
-                    Debug.Assert((object)parameterType != null);
+                    Debug.Assert(parameterType != null);
                     arguments[arg] = ((BoundDiscardExpression)argument).SetInferredType(parameterType);
                 }
             }
@@ -2711,7 +2711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
+            if (bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
                 bestType = TypeSymbolWithAnnotations.Create(CreateErrorType());
@@ -2737,7 +2737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void)
+            if (bestType == null || bestType.SpecialType == SpecialType.System_Void)
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
                 bestType = TypeSymbolWithAnnotations.Create(CreateErrorType());

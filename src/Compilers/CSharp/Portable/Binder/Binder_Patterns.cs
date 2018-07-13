@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, operandType);
             }
 
-            if (declType == (object)null)
+            if (declType == null)
             {
                 Debug.Assert(hasErrors);
                 declType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, this.CreateErrorType("var"));

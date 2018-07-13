@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 {
                     var newArg = Retarget(arg, RetargetOptions.RetargetPrimitiveTypesByTypeCode); // generic instantiation is a signature
 
-                    if (!anythingRetargeted && ((object)newArg != arg))
+                    if (!anythingRetargeted && (newArg != arg))
                     {
                         anythingRetargeted = true;
                     }
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 TypeSymbolWithAnnotations oldElement = type.ElementType;
                 TypeSymbolWithAnnotations newElement = Retarget(oldElement, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
 
-                if ((object)oldElement == newElement)
+                if (oldElement == newElement)
                 {
                     return type;
                 }
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 TypeSymbolWithAnnotations oldPointed = type.PointedAtType;
                 TypeSymbolWithAnnotations newPointed = Retarget(oldPointed, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
 
-                if ((object)oldPointed == newPointed)
+                if (oldPointed == newPointed)
                 {
                     return type;
                 }

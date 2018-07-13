@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // This prevents constraint checking from failing for corresponding type parameters. 
             var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
             var typeParams = method.TypeParameters;
-            var typeArgsForConstraintsCheck = typeArgs.SelectAsArray(a => (object)a == null ? null : TypeSymbolWithAnnotations.Create(a));
+            var typeArgsForConstraintsCheck = typeArgs.SelectAsArray(a => TypeSymbolWithAnnotations.Create(a));
             for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
             {
-                if ((object)typeArgsForConstraintsCheck[i] == null)
+                if (typeArgsForConstraintsCheck[i] == null)
                 {
                     firstNullInTypeArgs = i;
                     var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (; i < typeArgsForConstraintsCheck.Length; i++)
                     {
                         var typeArg = typeArgsForConstraintsCheck[i];
-                        if ((object)typeArg == null)
+                        if (typeArg == null)
                         {
                             notInferredTypeParameters.Add(typeParams[i]);
                             builder.Add(TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType));

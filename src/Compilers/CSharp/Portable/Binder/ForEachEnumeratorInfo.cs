@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinderFlags location)
         {
             Debug.Assert((object)collectionType != null, "Field 'collectionType' cannot be null");
-            Debug.Assert((object)elementType != null, "Field 'elementType' cannot be null");
+            Debug.Assert(elementType != null, "Field 'elementType' cannot be null");
             Debug.Assert((object)getEnumeratorMethod != null, "Field 'getEnumeratorMethod' cannot be null");
             Debug.Assert((object)currentPropertyGetter != null, "Field 'currentPropertyGetter' cannot be null");
             Debug.Assert((object)moveNextMethod != null, "Field 'moveNextMethod' cannot be null");
