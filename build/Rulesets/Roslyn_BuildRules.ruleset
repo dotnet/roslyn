@@ -153,4 +153,9 @@
     <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
 collection.
   </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
+    <!-- https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md -->
+    <Rule Id="VSSDK001" Action="Warning" /> <!-- Derive from AsyncPackage -->
+    <Rule Id="VSSDK003" Action="Warning" /> <!-- Support async tool windows -->
+  </Rules>
 </RuleSet>
