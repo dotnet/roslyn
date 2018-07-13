@@ -20,7 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
 #Region "Block Provider Specific Methods"
-
         ''' <summary>
         ''' The <see cref="BlockSpan"/> of the complete structure.
         ''' <code>
@@ -37,8 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' End Select
         ''' </code>
         ''' </summary>
-        ''' <param name="block"></param>
-        ''' <returns></returns>
         Friend MustOverride Function FullStructuralBlockOutlining(block As TBlock) As BlockSpan?
 
         Friend Overridable Function FullStructuralBlockOutlining(block As TBlock, statement As THeaderStatement) As BlockSpan?
@@ -51,16 +48,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' Return the Block Header for the Block Structure
         ''' Eg Select Case value
         ''' </summary>
-        ''' <param name="block"></param>
-        ''' <returns></returns>
         Friend MustOverride Function GetBannerTextOfFullStructuralBlock(block As TBlock) As THeaderStatement
 
         ''' <summary>
         ''' Return the internal <see cref="BlockSpan"/>s of the strucure. 
         ''' </summary>
-        ''' <param name="block"></param>
-        ''' <param name="cancellationToken"></param>
-        ''' <returns></returns>
         Friend Function GetInternalStructuralOutlings(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
             Dim InternalSpans = ArrayBuilder(Of BlockSpan).GetInstance
             InternalSpans.AddIfNotNull(GetPreambleOutlining(block, cancellationToken))
@@ -73,8 +65,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' Returns the internal structural bLocks of the Block Structure.
         ''' Eg Case .... 
         ''' </summary>
-        ''' <param name="block"></param>
-        ''' <returns></returns>
         Friend MustOverride Function GetInternalStructuralBlocks(block As TBlock) As SyntaxList(Of TInnerBlock)
         ''' <summary>
         ''' Some block structure allow statements aftet the header and before the First Inner Block.
@@ -94,9 +84,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         '''   ' Comment 2
         ''' </code>
         ''' </summary>
-        ''' <param name="block"></param>
-        ''' <param name="cancellationToken"></param>
-        ''' <returns></returns>
         Friend Overridable Function GetPreambleOutlining(block As TBlock, cancellationToken As Threading.CancellationToken) As BlockSpan?
             Return Nothing
         End Function
@@ -119,8 +106,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' Console.WriteLine("Hello World!")
         ''' </code>
         ''' </summary>
-        ''' <param name="block"></param>
-        ''' <returns></returns>
         Friend Overridable Function GetFirstStatementOfPreamble(block As TBlock) As SyntaxNode
             Return Nothing
         End Function
@@ -133,15 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' <summary>
         ''' Return the Banner Text  internal structural bLock.
         ''' </summary>
-        ''' <param name="InnerBlock"></param>
-        ''' <returns></returns>
         Friend MustOverride Function GetBannerTextOfInternalStructuralBlock(InnerBlock As TInnerBlock) As String
 
         ''' <summary>
         ''' Return the Epilogue of the block structure.
         ''' </summary>
-        ''' <param name="block"></param>
-        ''' <returns></returns>
         Friend Overridable Function GetEpilogueBlock(block As TBlock) As TPreEndBlock
             Return Nothing
         End Function
@@ -154,14 +135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' Return the End Statement of the full structral block.
         ''' Eg End Select
         ''' </summary>
-        ''' <param name="block"></param>
-        ''' <returns></returns>
+
         Friend MustOverride Function GetEnd_XXX_Statement(block As TBlock) As TEndOfBlockStatement
-
-
-
-
-
 #End Region
 
         Protected Overrides Sub CollectBlockSpans(node As TBlock, spans As ArrayBuilder(Of BlockSpan), options As OptionSet, cancellationToken As CancellationToken)
