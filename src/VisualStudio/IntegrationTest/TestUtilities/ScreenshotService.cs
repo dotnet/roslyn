@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
+using System.Windows.Media.Imaging;
+using PixelFormats = System.Windows.Media.PixelFormats;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -25,17 +27,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             //    to the same file
             lock (s_gate)
             {
-                using (var bitmap = TryCaptureFullScreen())
+                var bitmap = TryCaptureFullScreen();
+                if (bitmap == null)
                 {
-                    if (bitmap == null)
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    var directory = Path.GetDirectoryName(fullPath);
-                    Directory.CreateDirectory(directory);
+                var directory = Path.GetDirectoryName(fullPath);
+                Directory.CreateDirectory(directory);
 
-                    bitmap.Save(fullPath, ImageFormat.Png);
+                using (var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
+                {
+                    var encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                    encoder.Save(fileStream);
                 }
             }
         }
@@ -47,7 +52,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// A <see cref="Bitmap"/> containing the screen capture of the desktop, or null if a screen
         /// capture can't be created.
         /// </returns>
-        private static Bitmap TryCaptureFullScreen()
+        private static BitmapSource TryCaptureFullScreen()
         {
             int width = Screen.PrimaryScreen.Bounds.Width;
             int height = Screen.PrimaryScreen.Bounds.Height;
@@ -59,8 +64,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 return null;
             }
 
-            var bitmap = new Bitmap(width, height);
-
+            using (var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb))
             using (var graphics = Graphics.FromImage(bitmap))
             {
                 graphics.CopyFromScreen(
@@ -70,9 +74,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     destinationY: 0,
                     blockRegionSize: bitmap.Size,
                     copyPixelOperation: CopyPixelOperation.SourceCopy);
-            }
 
-            return bitmap;
+                var bitmapData = bitmap.LockBits(
+                    new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                    ImageLockMode.ReadOnly,
+                    PixelFormat.Format32bppArgb);
+                try
+                {
+                    return BitmapSource.Create(
+                        bitmapData.Width,
+                        bitmapData.Height,
+                        bitmap.HorizontalResolution,
+                        bitmap.VerticalResolution,
+                        PixelFormats.Bgra32,
+                        null,
+                        bitmapData.Scan0,
+                        bitmapData.Stride * bitmapData.Height,
+                        bitmapData.Stride);
+                }
+                finally
+                {
+                    bitmap.UnlockBits(bitmapData);
+                }
+            }
         }
     }
 }
