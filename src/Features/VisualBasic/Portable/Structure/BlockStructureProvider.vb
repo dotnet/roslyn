@@ -127,14 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Friend Function GetFirstStructuralBlockAfterPreamble(block As TBlock) As SyntaxNode
             Dim InnerBlocks = GetInternalStructuralBlocks(block)
-            If InnerBlocks.Count > 0 Then
-                Return InnerBlocks(0)
-            End If
-            Dim NextSection As SyntaxNode = GetEpilogueBlock(block)
-            If NextSection Is Nothing Then
-                NextSection = GetEnd_XXX_Statement(block)
-            End If
-            Return NextSection
+            Return If(InnerBlocks.Count > 0, InnerBlocks(0), If(DirectCast(GetEpilogueBlock(block), SyntaxNode), GetEnd_XXX_Statement(block)))
         End Function
 
         ''' <summary>
