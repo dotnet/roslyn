@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameter &apos;within&apos; must be an &apos;INamedTypeSymbol&apos; or an &apos;IAssemblySymbol&apos;..
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; must be an &apos;INamedTypeSymbol&apos; or an &apos;IAssemblySymbol&apos;..
         /// </summary>
         internal static string IsSymbolAccessibleBadWithin {
             get {

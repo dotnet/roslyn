@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis
         /// Checks if <paramref name="symbol"/> is accessible from within <paramref name="within"/>. An optional qualifier of type
         /// <paramref name="throughType"/> is used to resolve protected access for instance members. All symbols are
         /// required to be from this compilation or some assembly referenced (<see cref="References"/>) by this
-        /// compilation. <paramref name="within"/> is required to be an <see cref="ITypeSymbol"/> or <see cref="IAssemblySymbol"/>.
+        /// compilation. <paramref name="within"/> is required to be an <see cref="INamedTypeSymbol"/> or <see cref="IAssemblySymbol"/>.
         /// </summary>
         /// <remarks>
         /// <para>Submissions can reference symbols from previous submissions and their referenced assemblies, even
@@ -1145,9 +1145,8 @@ namespace Microsoft.CodeAnalysis
         /// <para>It is advised to avoid the use of this API within the compilers, as the compilers have additional
         /// requirements for access checking that are not satisfied by this implementation, including the
         /// avoidance of infinite recursion that could result from the use of the ISymbol APIs here, the detection
-        /// of use-site diagnostics, and additional
-        /// returned details (from the compiler's internal APIs) that are helpful for more precisely diagnosing
-        /// reasons for accessibility failure.</para>
+        /// of use-site diagnostics, and additional returned details (from the compiler's internal APIs) that are
+        /// helpful for more precisely diagnosing reasons for accessibility failure.</para>
         /// </remarks>
         public bool IsSymbolAccessibleWithin(
             ISymbol symbol,
@@ -1166,7 +1165,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!(within is INamedTypeSymbol || within is IAssemblySymbol))
             {
-                throw new ArgumentException(CodeAnalysisResources.IsSymbolAccessibleBadWithin, nameof(within));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleBadWithin, nameof(within)), nameof(within));
             }
 
             checkInCompilationReferences(symbol, nameof(symbol));
@@ -1213,15 +1212,14 @@ namespace Microsoft.CodeAnalysis
 
             bool assemblyIsInCompilationReferences(IAssemblySymbol a, Compilation compilation)
             {
-                if (a == compilation.Assembly)
+                if (a.Equals(compilation.Assembly))
                 {
                     return true;
                 }
 
                 foreach (var reference in compilation.References)
                 {
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (a == assembly)
+                    if (a.Equals(compilation.GetAssemblyOrModuleSymbol(reference)))
                     {
                         return true;
                     }

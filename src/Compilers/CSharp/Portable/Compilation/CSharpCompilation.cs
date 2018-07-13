@@ -1849,11 +1849,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-            #region Binding
+        #region Binding
 
-            /// <summary>
-            /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
-            /// </summary>
+        /// <summary>
+        /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
+        /// </summary>
         public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
         {
             if (syntaxTree == null)

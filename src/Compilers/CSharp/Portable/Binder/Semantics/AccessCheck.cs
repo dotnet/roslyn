@@ -59,20 +59,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Checks if 'symbol' is accessible from within 'within', which must be a NamedTypeSymbol
         /// or an AssemblySymbol. 
-        /// 
+        /// </summary>
+        /// <remarks>
         /// Note that NamedTypeSymbol, if available, is the type that is associated with the binder 
         /// that found the 'symbol', not the inner-most type that contains the access to the
         /// 'symbol'.
-        /// 
+        /// <para>
         /// If 'symbol' is accessed off of an expression then 'throughTypeOpt' is the type of that
         /// expression. This is needed to properly do protected access checks. Sets
         /// "failedThroughTypeCheck" to true if this protected check failed.
-        /// 
-        /// We expect this function to be called a lot.  As such, we do not do any memory
-        /// allocations in the function itself (including not making any iterators).  This does mean
-        /// that certain helper functions that we'd like to call are inlined in this method to
+        /// </para>
+        /// <para>
+        /// This function is expected to be called a lot.  As such, it avoids memory
+        /// allocations in the function itself (including not making any iterators).  This means
+        /// that certain helper functions that could otherwise be called are inlined in this method to
         /// prevent the overhead of returning collections or enumerators.
-        /// </summary>
+        /// </para>
+        /// </remarks>
         private static bool IsSymbolAccessibleCore(
             Symbol symbol,
             Symbol within,  // must be assembly or named type symbol
@@ -516,7 +519,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="fromAssembly">The assembly wanting access.</param>
         /// <param name="toAssembly">The assembly possibly providing symbols to be accessed.</param>
-        /// <returns></returns>
         internal static bool HasInternalAccessTo(this AssemblySymbol fromAssembly, AssemblySymbol toAssembly)
         {
             if (Equals(fromAssembly, toAssembly))
