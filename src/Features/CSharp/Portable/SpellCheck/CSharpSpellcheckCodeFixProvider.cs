@@ -9,18 +9,19 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SpellCheck;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
+namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SpellCheck), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
     internal partial class CSharpSpellCheckCodeFixProvider : AbstractSpellCheckCodeFixProvider<SimpleNameSyntax>
     {
         private const string CS0426 = nameof(CS0426); // The type name '0' does not exist in the type '1'
+        private const string CS1520 = nameof(CS1520); // Method must have a return type
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = 
             AddImportDiagnosticIds.FixableDiagnosticIds.Concat(
             GenerateMethodDiagnosticIds.FixableDiagnosticIds).Concat(
-                ImmutableArray.Create(CS0426));
+                ImmutableArray.Create(CS0426, CS1520));
 
         protected override bool ShouldSpellCheck(SimpleNameSyntax name)
             => !name.IsVar;
@@ -32,19 +33,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
             return !(arg is TypeArgumentListSyntax);
         }
 
+        protected override bool IsGeneric(SyntaxToken token)
+            => token.GetNextToken().Kind() == SyntaxKind.LessThanToken;
+
         protected override bool IsGeneric(SimpleNameSyntax nameNode)
-        {
-            return nameNode is GenericNameSyntax;
-        }
+            => nameNode is GenericNameSyntax;
 
         protected override bool IsGeneric(CompletionItem completionItem)
-        {
-            return completionItem.DisplayText.Contains("<>");
-        }
+            => completionItem.DisplayText.Contains("<>");
 
-        protected override SyntaxToken CreateIdentifier(SimpleNameSyntax nameNode, string newName)
-        {
-            return SyntaxFactory.Identifier(newName).WithTriviaFrom(nameNode.Identifier);
-        }
+        protected override SyntaxToken CreateIdentifier(SyntaxToken nameToken, string newName)
+            => SyntaxFactory.Identifier(newName).WithTriviaFrom(nameToken);
     }
 }

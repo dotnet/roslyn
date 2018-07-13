@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj" />
     <ProjectReference Include="..\..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
     <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
+    <ProjectReference Include="..\..\..\Interactive\Host\InteractiveHost32.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
@@ -46,7 +47,6 @@
     <ProjectReference Include="..\..\..\Scripting\CSharp\CSharpScripting.csproj" />
     <ProjectReference Include="..\..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\Interactive\Features\InteractiveFeatures.csproj" />
-    <ProjectReference Include="..\..\..\Interactive\Host\InteractiveHost.csproj" />
     <ProjectReference Include="..\..\..\Scripting\Core\Scripting.csproj" />
     <ProjectReference Include="..\Impl\ServicesVisualStudioImpl.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj" />

@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.SpellCheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
+Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.SpellCheck), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)>
@@ -49,6 +49,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             Return TypeOf arg IsNot TypeArgumentListSyntax
         End Function
 
+        Protected Overrides Function IsGeneric(nameToken As SyntaxToken) As Boolean
+            Return nameToken.GetNextToken().Kind() = SyntaxKind.OpenParenToken AndAlso
+                nameToken.GetNextToken().GetNextToken().Kind() = SyntaxKind.OfKeyword
+        End Function
+
         Protected Overrides Function IsGeneric(nameNode As SimpleNameSyntax) As Boolean
             Return nameNode.Kind() = SyntaxKind.GenericName
         End Function
@@ -57,13 +62,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             Return completionItem.DisplayText.Contains("(Of")
         End Function
 
-        Protected Overrides Function CreateIdentifier(nameNode As SimpleNameSyntax, newName As String) As SyntaxToken
+        Protected Overrides Function CreateIdentifier(nameToken As SyntaxToken, newName As String) As SyntaxToken
             Dim index = newName.IndexOf("(Of")
             newName = If(index < 0, newName, newName.Substring(0, index))
-            If nameNode.Identifier.IsBracketed() AndAlso Not newName.StartsWith("[") Then
+            If nameToken.IsBracketed() AndAlso Not newName.StartsWith("[") Then
                 newName = "[" + newName + "]"
             End If
-            Return SyntaxFactory.Identifier(newName).WithTriviaFrom(nameNode.Identifier)
+            Return SyntaxFactory.Identifier(newName).WithTriviaFrom(nameToken)
         End Function
     End Class
 End Namespace
