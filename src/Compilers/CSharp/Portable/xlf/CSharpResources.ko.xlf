@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">할당, 호출, 증가, 감소 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
+        <target state="translated">할당, 호출, 증가, 감소, 대기 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">{0}'에서 friend 액세스 권한을 부여했지만, 출력 어셈블리의 공용 키가 부여한 어셈블리의 특성에서 지정된 키와 일치하지 않습니다.</target>
+        <target state="translated">'{0}'에서 friend 액세스 권한을 부여했지만, 출력 어셈블리('{1}')의 공개 키가 부여한 어셈블리의 InternalsVisibleTo 특성에서 지정된 키와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7365,143 +7365,143 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               Visual C# 컴파일러 옵션
 
                         - 출력 파일 -
- /out:&lt;file&gt;                   출력 파일 이름을 지정합니다(기본값: 주 클래스가
+-out:&lt;file&gt;                   출력 파일 이름을 지정합니다(기본값: 주 클래스가
                                있는 파일 또는 첫째 파일의 기본 이름).
- /target:exe                   콘솔 실행 파일을 빌드합니다(기본값). (약식:
+-target:exe                   콘솔 실행 파일을 빌드합니다(기본값). (약식:
                                /t:exe)
- /target:winexe                Windows 실행 파일을 빌드합니다. (약식:
+-target:winexe                Windows 실행 파일을 빌드합니다. (약식:
                                /t:winexe)
- /target:library               라이브러리를 빌드합니다. (약식: /t:library)
- /target:module                다른 어셈블리에 추가될 수 있는 모듈을
+-target:library               라이브러리를 빌드합니다. (약식: /t:library)
+-target:module                다른 어셈블리에 추가될 수 있는 모듈을
                                빌드합니다. (약식: /t:module)
- /target:appcontainerexe       Appcontainer 실행 파일을 빌드합니다. (약식:
+-target:appcontainerexe       Appcontainer 실행 파일을 빌드합니다. (약식:
                                /t:appcontainerexe)
- /target:winmdobj              WinMDExp에서 사용되는 Windows 런타임 중간
+-target:winmdobj              WinMDExp에서 사용되는 Windows 런타임 중간
                                파일을 빌드합니다. (약식: /t:winmdobj)
- /doc:&lt;file&gt;                   생성할 XML 문서 파일
- /refout:&lt;file&gt;                생성할 참조 어셈블리 출력
- /platform:&lt;string&gt;            이 코드를 실행할 수 있는 플랫폼을 x86,
+-doc:&lt;file&gt;                   생성할 XML 문서 파일
+-refout:&lt;file&gt;                생성할 참조 어셈블리 출력
+-platform:&lt;string&gt;            이 코드를 실행할 수 있는 플랫폼을 x86,
                                Itanium, x64, arm, arm64, anycpu32bitpreferred 또는
                                anycpu로 제한합니다. 기본값은 anycpu입니다.
 
                         - 입력 파일 -
- /recurse:&lt;wildcard&gt;           와일드카드 지정에 따라 현재 디렉터리와
+-recurse:&lt;wildcard&gt;           와일드카드 지정에 따라 현재 디렉터리와
                                하위 디렉터리에 있는 모든 파일을
                                포함합니다.
- /reference:&lt;alias&gt;=&lt;file&gt;     지정한 어셈블리 파일에서 해당 별칭을 사용하여
+-reference:&lt;alias&gt;=&lt;file&gt;     지정한 어셈블리 파일에서 해당 별칭을 사용하여
                                메타데이터를 참조합니다. (약식: /r)
- /reference:&lt;file list&gt;        지정한 어셈블리 파일에서 메타데이터를
+-reference:&lt;file list&gt;        지정한 어셈블리 파일에서 메타데이터를
                                참조합니다. (약식: /r)
- /addmodule:&lt;file list&gt;        지정한 모듈을 이 어셈블리에 연결합니다.
- /link:&lt;file list&gt;             지정된 interop 어셈블리 파일의 메타데이터를
+-addmodule:&lt;file list&gt;        지정한 모듈을 이 어셈블리에 연결합니다.
+-link:&lt;file list&gt;             지정된 interop 어셈블리 파일의 메타데이터를
                                포함합니다. (약식: /l)
- /analyzer:&lt;file list&gt;         이 어셈블리에서 분석기를 실행합니다.
+-analyzer:&lt;file list&gt;         이 어셈블리에서 분석기를 실행합니다.
                                (약식: /a)
- /additionalfile:&lt;file list&gt;   코드 생성에 직접 영향을 주지 않지만 오류 또는
+-additionalfile:&lt;file list&gt;   코드 생성에 직접 영향을 주지 않지만 오류 또는
                                경고 생성을 위해 분석기에서 사용될 수 있는
                                추가 파일입니다.
- /embed                        모든 소스 파일을 PDB에 포함합니다.
- /embed:&lt;file list&gt;            특정 파일을 PDB에 포함합니다.
+-embed                        모든 소스 파일을 PDB에 포함합니다.
+-embed:&lt;file list&gt;            특정 파일을 PDB에 포함합니다.
 
                         - 리소스 -
- /win32res:&lt;file&gt;              Win32 리소스 파일(.res)을 지정합니다.
- /win32icon:&lt;file&gt;             이 아이콘을 사용하여 출력합니다.
- /win32manifest:&lt;file&gt;         Win32 매니페스트 파일(.xml)을 지정합니다.
- /nowin32manifest              기본 Win32 매니페스트는 포함하지 않습니다.
- /resource:&lt;resinfo&gt;           지정된 리소스를 포함합니다. (약식: /res)
- /linkresource:&lt;resinfo&gt;       지정한 리소스를 이 어셈블리에 연결합니다.
+-win32res:&lt;file&gt;              Win32 리소스 파일(.res)을 지정합니다.
+-win32icon:&lt;file&gt;             이 아이콘을 사용하여 출력합니다.
+-win32manifest:&lt;file&gt;         Win32 매니페스트 파일(.xml)을 지정합니다.
+-nowin32manifest              기본 Win32 매니페스트는 포함하지 않습니다.
+-resource:&lt;resinfo&gt;           지정된 리소스를 포함합니다. (약식: /res)
+-linkresource:&lt;resinfo&gt;       지정한 리소스를 이 어셈블리에 연결합니다.
                                (약식: /linkres) 여기서 resinfo 형식은
                                &lt;file&gt;[,&lt;string name&gt;[,public|private]]입니다.
 
                         - 코드 생성 -
- /debug[+|-]                   디버깅 정보를 내보냅니다.
- /debug:{full|pdbonly|portable|embedded}
+-debug[+|-]                   디버깅 정보를 내보냅니다.
+-debug:{full|pdbonly|portable|embedded}
                                디버깅 형식을 지정합니다. ('full'이 기본값이고,
                                'portable'은 크로스 플랫폼 형식이고,
                                'embedded'는 대상 .dll 또는 .exe에 포함되는
                                플랫폼 간 형식입니다.)
- /optimize[+|-]                최적화를 사용합니다. (약식: /o)
- /deterministic                결정적 어셈블리를 생성합니다
+-optimize[+|-]                최적화를 사용합니다. (약식: /o)
+-deterministic                결정적 어셈블리를 생성합니다
                                (모듈 버전 GUID 및 타임스탬프 포함).
- /refonly                      주 출력 대신 참조 어셈블리를 생성합니다.
- /instrument:TestCoverage      검사 정보를 수집하기 위해 계측한
+-refonly                      주 출력 대신 참조 어셈블리를 생성합니다.
+-instrument:TestCoverage      검사 정보를 수집하기 위해 계측한
                                어셈블리를 생성합니다.
- /sourcelink:&lt;file&gt;            PDB에 포함할 소스 링크 정보입니다.
+-sourcelink:&lt;file&gt;            PDB에 포함할 소스 링크 정보입니다.
 
                         - 오류 및 경고 -
- /warnaserror[+|-]             모든 경고를 오류로 보고합니다.
- /warnaserror[+|-]:&lt;warn list&gt; 특정 경고를 오류로 보고합니다.
- /warn:&lt;n&gt;                     경고 수준(0-4)을 설정합니다. (약식: /w)
- /nowarn:&lt;warn list&gt;           특정 경고 메시지를 사용하지 않습니다.
- /ruleset:&lt;file&gt;               특정 진단을 사용하지 않도록 하는 규칙 집합
+-warnaserror[+|-]             모든 경고를 오류로 보고합니다.
+-warnaserror[+|-]:&lt;warn list&gt; 특정 경고를 오류로 보고합니다.
+-warn:&lt;n&gt;                     경고 수준(0-4)을 설정합니다. (약식: /w)
+-nowarn:&lt;warn list&gt;           특정 경고 메시지를 사용하지 않습니다.
+-ruleset:&lt;file&gt;               특정 진단을 사용하지 않도록 하는 규칙 집합
                                파일을 지정합니다.
- /errorlog:&lt;file&gt;              모든 컴파일러 및 분석기 진단을 기록할 파일을
+-errorlog:&lt;file&gt;              모든 컴파일러 및 분석기 진단을 기록할 파일을
                                지정합니다.
- /reportanalyzer               추가 분석기 정보(예: 실행 시간)를
+-reportanalyzer               추가 분석기 정보(예: 실행 시간)를
                                보고합니다.
 
                         - 언어 -
- /checked[+|-]                 오버플로 검사를 생성합니다.
- /unsafe[+|-]                  'unsafe' 코드를 사용할 수 있습니다.
- /define:&lt;symbol list&gt;         조건부 컴파일 기호를 정의합니다. (약식:
+-checked[+|-]                 오버플로 검사를 생성합니다.
+-unsafe[+|-]                  'unsafe' 코드를 사용할 수 있습니다.
+-define:&lt;symbol list&gt;         조건부 컴파일 기호를 정의합니다. (약식:
                                /d)
- /langversion:?                언어 버전에 허용되는 값을 표시합니다.
- /langversion:&lt;string&gt;         언어 버전을
+-langversion:?                언어 버전에 허용되는 값을 표시합니다.
+-langversion:&lt;string&gt;         언어 버전을
                                `default`(최신 주 버전),
                                `latest`(최신 버전, 부 버전 포함),
                                `6` 또는 `7.1` 같은 특정 버전 등으로 지정합니다.
 
                         - 보안 -
- /delaysign[+|-]               강력한 이름 키의 공개 부분만 사용하여
+-delaysign[+|-]               강력한 이름 키의 공개 부분만 사용하여
                                어셈블리 서명을 연기합니다.
- /publicsign[+|-]              강력한 이름 키의 공개 부분만 사용하여 어셈블리를
+-publicsign[+|-]              강력한 이름 키의 공개 부분만 사용하여 어셈블리를
                                공개 서명합니다.
- /keyfile:&lt;file&gt;               강력한 이름의 키 파일을 지정합니다.
- /keycontainer:&lt;string&gt;        강력한 이름의 키 컨테이너를 지정합니다.
- /highentropyva[+|-]           높은 엔트로피 ASLR을 사용합니다.
+-keyfile:&lt;file&gt;               강력한 이름의 키 파일을 지정합니다.
+-keycontainer:&lt;string&gt;        강력한 이름의 키 컨테이너를 지정합니다.
+-highentropyva[+|-]           높은 엔트로피 ASLR을 사용합니다.
 
                         - 기타 -
  @&lt;file&gt;                       추가 옵션을 위해 지시 파일을 읽습니다.
- /help                         사용법 메시지를 표시합니다. (약식: /?)
- /nologo                       컴파일러 저작권 메시지를 표시하지 않습니다.
- /noconfig                     CSC.RSP 파일을 자동으로 포함하지 않습니다.
- /parallel[+|-]                동시 빌드입니다.
- /version                      컴파일러 버전 번호를 표시하고 종료합니다.
+-help                         사용법 메시지를 표시합니다. (약식: /?)
+-nologo                       컴파일러 저작권 메시지를 표시하지 않습니다.
+-noconfig                     CSC.RSP 파일을 자동으로 포함하지 않습니다.
+-parallel[+|-]                동시 빌드입니다.
+-version                      컴파일러 버전 번호를 표시하고 종료합니다.
 
                         - 고급 -
- /baseaddress:&lt;address&gt;        빌드할 라이브러리의 기준 주소입니다.
- /checksumalgorithm:&lt;alg&gt;      PDB에 저장된 소스 파일 체크섬을
+-baseaddress:&lt;address&gt;        빌드할 라이브러리의 기준 주소입니다.
+-checksumalgorithm:&lt;alg&gt;      PDB에 저장된 소스 파일 체크섬을
                                계산하기 위한 알고리즘을 지정합니다. 지원되는 값은
                                SHA1(기본값) 또는 SHA256입니다.
- /codepage:&lt;n&gt;                 소스 파일을 열 때 사용할 코드 페이지를
+-codepage:&lt;n&gt;                 소스 파일을 열 때 사용할 코드 페이지를
                                지정합니다.
- /utf8output                   컴파일러 메시지를 UTF-8 인코딩으로 출력합니다.
- /main:&lt;type&gt;                  진입점을 포함하는 형식을 지정합니다.
+-utf8output                   컴파일러 메시지를 UTF-8 인코딩으로 출력합니다.
+-main:&lt;type&gt;                  진입점을 포함하는 형식을 지정합니다.
                                다른 모든 가능한 진입점은 무시합니다. (약식:
                                /m)
- /fullpaths                    컴파일러가 정규화된 경로를 생성합니다.
- /filealign:&lt;n&gt;                출력 파일 섹션에 사용되는 맞춤을
+-fullpaths                    컴파일러가 정규화된 경로를 생성합니다.
+-filealign:&lt;n&gt;                출력 파일 섹션에 사용되는 맞춤을
                                지정합니다.
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                컴파일러에서 소스 경로 이름 출력에 대한
                                매핑을 지정합니다.
- /pdb:&lt;file&gt;                   디버그 정보 파일 이름을 지정합니다(기본값:
+-pdb:&lt;file&gt;                   디버그 정보 파일 이름을 지정합니다(기본값:
                                확장명이 .pdb인 출력 파일 이름).
- /errorendlocation             각 오류의 끝 위치에 해당하는 줄과
+-errorendlocation             각 오류의 끝 위치에 해당하는 줄과
                                열을 출력합니다.
- /preferreduilang              기본 출력 언어 이름을 지정합니다.
- /nostdlib[+|-]                표준 라이브러리(mscorlib.dll)를 참조하지 않습니다.
- /subsystemversion:&lt;string&gt;    이 어셈블리의 하위 시스템 버전을 지정합니다.
- /lib:&lt;file list&gt;              참조를 검색할 추가 디렉터리를
+-preferreduilang              기본 출력 언어 이름을 지정합니다.
+-nostdlib[+|-]                표준 라이브러리(mscorlib.dll)를 참조하지 않습니다.
+-subsystemversion:&lt;string&gt;    이 어셈블리의 하위 시스템 버전을 지정합니다.
+-lib:&lt;file list&gt;              참조를 검색할 추가 디렉터리를
                                지정합니다.
- /errorreport:&lt;string&gt;         내부 컴파일러 오류를 처리하는 방법을 지정합니다.
+-errorreport:&lt;string&gt;         내부 컴파일러 오류를 처리하는 방법을 지정합니다.
                                prompt, send, queue 또는 none 중에서 선택할 수 있으며 기본값은
                                queue입니다.
- /appconfig:&lt;file&gt;             어셈블리 바인딩 설정을 포함하는
+-appconfig:&lt;file&gt;             어셈블리 바인딩 설정을 포함하는
                                응용 프로그램 구성 파일을 지정합니다.
- /moduleassemblyname:&lt;string&gt;  이 모듈이 속할 어셈블리의
+-moduleassemblyname:&lt;string&gt;  이 모듈이 속할 어셈블리의
                                이름입니다.
- /modulename:&lt;string&gt;          소스 모듈의 이름을 지정합니다.
+-modulename:&lt;string&gt;          소스 모듈의 이름을 지정합니다.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -8042,12 +8042,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">반복기에 by-reference 지역을 사용할 수 없습니다.</target>
+        <target state="translated">반복기에 by-reference 로컬을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">비동기 메서드에 by-reference 지역을 사용할 수 없습니다.</target>
+        <target state="translated">비동기 메서드에 by-reference 로컬을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
