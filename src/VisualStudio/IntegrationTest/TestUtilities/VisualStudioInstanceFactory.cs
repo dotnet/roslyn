@@ -30,6 +30,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         private VisualStudioInstance _currentlyRunningInstance;
 
+        /// <summary>
+        /// Identifies the first time a Visual Studio instance is launched during an integration test run.
+        /// </summary>
+        private static bool _firstLaunch = true;
+
         static VisualStudioInstanceFactory()
         {
             var majorVsProductVersion = VsProductVersion.Split('.')[0];
@@ -287,11 +292,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
 
-            // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
-            //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
-            Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
-            Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
-            Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
+            if (_firstLaunch)
+            {
+                // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
+                //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
+                Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
+                Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
+                Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
+
+                _firstLaunch = false;
+            }
 
             // Make sure we kill any leftover processes spawned by the host
             IntegrationHelper.KillProcess("DbgCLR");
