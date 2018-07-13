@@ -44,9 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            await InitializeFromBackgroundAsync(cancellationToken).ConfigureAwait(false);
+            await InitializeFromBackgroundAsync(cancellationToken).ConfigureAwait(true);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -76,6 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private async Task InitializeFromBackgroundAsync(CancellationToken cancellationToken)
         {
+            await TaskScheduler.Default;
+
             cancellationToken.ThrowIfCancellationRequested();
 
             FatalError.Handler = FailFast.OnFatalException;
@@ -89,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
             property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
 
-            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
             Assumes.Present(_componentModel);
         }
 

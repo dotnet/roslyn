@@ -64,9 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
+            AssertIsForeground();
+
             cancellationToken.ThrowIfCancellationRequested();
 
-            _textManager = (IVsTextManager4)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
+            _textManager = (IVsTextManager4)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
             Assumes.Present(_textManager);
 
             foreach (var languageGuid in _languageMap.Values)

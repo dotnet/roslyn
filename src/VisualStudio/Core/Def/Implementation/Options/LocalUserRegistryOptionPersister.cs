@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -54,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        System.Threading.Tasks.Task IOptionPersister.InitializeAsync(CancellationToken cancellationToken)
-            => System.Threading.Tasks.Task.CompletedTask;
+        Task IOptionPersister.InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         bool IOptionPersister.TryFetch(OptionKey optionKey, out object value)
         {

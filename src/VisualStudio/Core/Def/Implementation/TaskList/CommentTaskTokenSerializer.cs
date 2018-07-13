@@ -6,15 +6,17 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     [Export(typeof(IOptionPersister))]
-    internal class CommentTaskTokenSerializer : IOptionPersister
+    internal class CommentTaskTokenSerializer : ForegroundThreadAffinitizedObject, IOptionPersister
     {
         private readonly Shell.IAsyncServiceProvider _serviceProvider;
         private readonly IOptionService _optionService;
@@ -26,18 +28,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CommentTaskTokenSerializer(
             VisualStudioWorkspace workspace, [Import(typeof(SAsyncServiceProvider))] Shell.IAsyncServiceProvider serviceProvider)
+            : base(assertIsForeground: true)
         {
             _optionService = workspace.Services.GetService<IOptionService>();
             _serviceProvider = serviceProvider;
         }
 
-        public async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken)
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
+            AssertIsForeground();
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // The SVsTaskList may not be available or doesn't actually implement ITaskList
             // in the "devenv /build" scenario
-            _taskList = (ITaskList)await _serviceProvider.GetServiceAsync(typeof(SVsTaskList)).ConfigureAwait(false);
+            _taskList = (ITaskList)await _serviceProvider.GetServiceAsync(typeof(SVsTaskList)).ConfigureAwait(true);
             Assumes.Present(_taskList);
 
             // GetTaskTokenList is safe in the face of nulls

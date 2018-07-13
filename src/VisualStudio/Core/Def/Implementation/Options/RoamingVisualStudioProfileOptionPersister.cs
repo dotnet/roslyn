@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -59,11 +60,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _serviceProvider = serviceProvider;
         }
 
-        public async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken)
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
+            AssertIsForeground();
+
             cancellationToken.ThrowIfCancellationRequested();
 
-            _settingManager = (ISettingsManager)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(false);
+            _settingManager = (ISettingsManager)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(true);
             Assumes.Present(_settingManager);
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
