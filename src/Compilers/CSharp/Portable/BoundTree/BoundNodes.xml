@@ -1292,8 +1292,9 @@
     <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
     <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
-  
+
   <Node Name="UnboundObjectCreationExpression" Base="BoundExpression">
+    <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
   </Node>
 

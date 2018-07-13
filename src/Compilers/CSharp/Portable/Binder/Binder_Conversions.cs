@@ -136,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression CreateImplicitNewConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             var node = (ObjectCreationExpressionSyntax)source.Syntax;
-            var unboundCreation = (UnboundObjectCreationExpression)source;
 
             var arguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(node.ArgumentList, diagnostics, arguments, allowArglist: true);
@@ -145,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BindInitializerExpression(syntax: node.Initializer, type: destination, typeSyntax: syntax, diagnostics)
                 : null;
 
-            BoundExpression boundCreation = null;
+            BoundExpression operand = source;
 
             switch (destination.TypeKind)
             {
@@ -164,17 +163,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, destination);
                     break;
 
+                case TypeKind.Struct when destination.IsTupleType:
+                    Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, destination);
+                    break;
+
                 case TypeKind.Struct:
-                    if (destination.IsTupleType)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, destination);
-                        break;
-                    }
-
-                    goto case TypeKind.Class;
-
                 case TypeKind.Class:
-                    boundCreation = BindClassCreationExpression(
+                    operand = BindClassCreationExpression(
                         node,
                         typeName: destination.Name,
                         typeNode: node,
@@ -183,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics,
                         boundInitializerOpt,
                         forTargetTypedNew: true);
+                    operand.WasCompilerGenerated = true;
                     break;
 
                 case TypeKind.TypeParameter:
@@ -193,11 +189,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    boundCreation = BindTypeParameterCreationExpression(
+                    operand = BindTypeParameterCreationExpression(
                        node,
                        typeParameter,
                        boundInitializerOpt,
                        diagnostics);
+                    operand.WasCompilerGenerated = true;
+                    break;
+
+                default:
                     break;
             }
 
@@ -205,14 +205,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundConversion(
                 syntax,
-                operand: boundCreation ?? unboundCreation,
+                operand,
                 conversion,
                 @checked: false,
                 explicitCastInCode: isCast,
-                constantValueOpt: null,
+                constantValueOpt: null, // A "target-typed new" would never produce a constant.
                 type: destination,
-                hasErrors: boundCreation is null)
-            { WasCompilerGenerated = source.WasCompilerGenerated };
+                hasErrors: operand.HasErrors)
+            { WasCompilerGenerated = true }; // The "implicit new" conversion can never be explicit in source.
         }
 
         protected BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)

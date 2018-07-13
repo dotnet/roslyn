@@ -356,9 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case ConversionKind.ImplicitNew:
-                    {
-                        return rewrittenOperand;
-                    }
+                    return rewrittenOperand;
 
                 default:
                     break;

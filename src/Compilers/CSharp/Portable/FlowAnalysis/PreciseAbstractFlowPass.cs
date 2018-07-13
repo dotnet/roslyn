@@ -2328,9 +2328,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitLambda(node.BindForErrorRecovery());
         }
 
-
         public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
         {
+            // Reachable in error cases
             return null;
         }
 

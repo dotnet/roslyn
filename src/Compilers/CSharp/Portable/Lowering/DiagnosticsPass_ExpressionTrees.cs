@@ -310,11 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-            if (_inExpressionLambda && node.Syntax.IsKind(SyntaxKind.ObjectCreationExpression) && ((ObjectCreationExpressionSyntax)node.Syntax).Type is null)
-            {
-                Error(ErrorCode.ERR_TargetTypedNewInExpressionTree, node);
-            }
-
             VisitCall(node.Constructor, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);
             return base.VisitObjectCreationExpression(node);
         }
@@ -539,6 +534,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_inExpressionLambda)
                     {
                         Error(ErrorCode.ERR_ExpressionTreeContainsTupleConversion, node);
+                    }
+                    break;
+
+                case ConversionKind.ImplicitNew:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_TargetTypedNewInExpressionTree, node);
                     }
                     break;
 
