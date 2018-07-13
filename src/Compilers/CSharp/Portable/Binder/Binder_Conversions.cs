@@ -140,40 +140,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(node.ArgumentList, diagnostics, arguments, allowArglist: true);
 
+            var strippedType = destination.StrippedType();
             BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer != null
-                ? BindInitializerExpression(syntax: node.Initializer, type: destination, typeSyntax: syntax, diagnostics)
+                ? BindInitializerExpression(syntax: node.Initializer, type: strippedType, typeSyntax: syntax, diagnostics)
                 : null;
 
             BoundExpression operand = source;
 
-            switch (destination.TypeKind)
+            switch (strippedType.TypeKind)
             {
                 case TypeKind.Array:
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
                 case TypeKind.Interface:
-                    Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, destination);
+                    Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, strippedType);
                     break;
 
                 case TypeKind.Pointer:
-                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, destination);
+                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, strippedType);
                     break;
 
                 case TypeKind.Dynamic:
-                    Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, destination);
+                    Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, strippedType);
                     break;
 
-                case TypeKind.Struct when destination.IsTupleType:
-                    Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, destination);
+                case TypeKind.Struct when strippedType.IsTupleType:
+                    Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, strippedType);
                     break;
 
                 case TypeKind.Struct:
                 case TypeKind.Class:
                     operand = BindClassCreationExpression(
                         node,
-                        typeName: destination.Name,
+                        typeName: strippedType.Name,
                         typeNode: node,
-                        type: (NamedTypeSymbol)destination.StrippedType(),
+                        type: (NamedTypeSymbol)strippedType,
                         arguments,
                         diagnostics,
                         boundInitializerOpt,
@@ -182,10 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case TypeKind.TypeParameter:
-                    var typeParameter = (TypeParameterSymbol)destination;
+                    var typeParameter = (TypeParameterSymbol)strippedType;
                     if (!typeParameter.IsInstantiable())
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, destination);
+                        Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, strippedType);
                         break;
                     }
 
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 operand,
                 conversion: destination.IsNullableType()
-                    ? Conversion.MakeNullableConversion(ConversionKind.ImplicitNullable, conversion)
+                    ? new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(conversion))
                     : conversion,
                 @checked: false,
                 explicitCastInCode: isCast,

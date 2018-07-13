@@ -882,7 +882,7 @@ class Program
         }
 
         [Fact]
-        public void TestNullableType()
+        public void TestNullableType1()
         {
             var comp = CreateCompilation(@"
 using System;
@@ -901,6 +901,28 @@ struct S
 ", options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "43");
+        }
+
+        [Fact]
+        public void TestNullableType2()
+        {
+            var comp = CreateCompilation(@"
+using System;
+struct S
+{
+    public static T? M<T>() where T : struct
+    {
+        return new();
+    }
+
+    public static void Main()
+    {
+        Console.Write(M<S>());
+    }
+}
+", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "S");
         }
     }
 }
