@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">Yalnızca atama, çağrı, artırma, azaltma ve yeni nesne ifadeleri deyim olarak kullanılabilir</target>
+        <target state="translated">Yalnızca assignment, call, increment, decrement, await ve new object ifadeleri deyim olarak kullanılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">{0}' öğesine friend erişimi izni verildi, ancak çıkış derlemesinin ortak anahtarı, izin veren derlemedeki öznitelik tarafından belirtilenle eşleşmiyor.</target>
+        <target state="translated">'{0}' tarafından arkadaş erişimi izni verildi, ancak çıkış bütünleştirilmiş kodunun ('{1}') ortak anahtarı, izin veren bütünleştirilmiş koddaki InternalsVisibleTo özniteliği tarafından belirtilenle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7365,143 +7365,143 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
                               Visual C# Derleyici Seçenekleri
 
                         - ÇIKIŞ DOSYALARI -
- /out:&lt;file&gt;                   Çıkış dosyası adı belirtin (varsayılan: ana sınıfı
+-out:&lt;file&gt;                   Çıkış dosyası adı belirtin (varsayılan: ana sınıfı
                                içeren dosyanın veya ilk dosyanın temel adı)
- /target:exe                   Çalıştırılabilir konsol dosyası oluştur (varsayılan) (Kısa
+-target:exe                   Çalıştırılabilir konsol dosyası oluştur (varsayılan) (Kısa
                                biçim: /t:exe)
- /target:winexe                Windows yürütülebilir dosyası oluştur (Kısa biçim:
+-target:winexe                Windows yürütülebilir dosyası oluştur (Kısa biçim:
                                /t:winexe)
- /target:library               Kitaplık oluştur (Kısa biçim: /t:library)
- /target:module                Başka bir derlemeye eklenebilir bir modül
+-target:library               Kitaplık oluştur (Kısa biçim: /t:library)
+-target:module                Başka bir derlemeye eklenebilir bir modül
                                oluştur (Kısa biçim: /t:module)
- /target:appcontainerexe       Bir Appcontainer yürütülebilir dosyası oluştur (Kısa biçim:
+-target:appcontainerexe       Bir Appcontainer yürütülebilir dosyası oluştur (Kısa biçim:
                                /t:appcontainerexe)
- /target:winmdobj              WinMDExp tarafından kullanılan bir
+-target:winmdobj              WinMDExp tarafından kullanılan bir
                                Windows Çalışma Zamanı ara dosyası oluştur (Kısa biçim: /t:winmdobj)
- /doc:&lt;file&gt;                   Oluşturulacak XML Belgeleri dosyası
- /refout:&lt;file&gt;                Oluşturulacak başvuru derlemesi çıkışı
- /platform:&lt;string&gt;            Bu kodun üstünde çalışacağı platformları sınırlar: x86,
+-doc:&lt;file&gt;                   Oluşturulacak XML Belgeleri dosyası
+-refout:&lt;file&gt;                Oluşturulacak başvuru derlemesi çıkışı
+-platform:&lt;string&gt;            Bu kodun üstünde çalışacağı platformları sınırlar: x86,
                                Itanium, x64, arm, arm64, anycpu32bitpreferred, or
                                anycpu. Varsayılan anycpu.
 
                         - GİRİŞ DOSYALARI -
- /recurse:&lt;wildcard&gt;           Geçerli dizindeki ve
+-recurse:&lt;wildcard&gt;           Geçerli dizindeki ve
                                 alt dizinlerdeki tüm dosyaları joker karakteri
                                belirtimlerine göre ekle
- /reference:&lt;alias&gt;=&lt;file&gt;     Verilen diğer adı kullanarak belirtilen
+-reference:&lt;alias&gt;=&lt;file&gt;     Verilen diğer adı kullanarak belirtilen
                                derlemedeki meta verilere başvur (Kısa biçim: /r)
- /reference:&lt;file list&gt;        Belirtilen derleme dosyasındaki meta verilere
+-reference:&lt;file list&gt;        Belirtilen derleme dosyasındaki meta verilere
                                başvur (Kısa biçim: /r)
- /addmodule:&lt;file list&gt;        Belirtilen modülleri bu derlemeye bağla
- /link:&lt;file list&gt;             Belirtilen birlikte çalışma derleme dosyalarından
+-addmodule:&lt;file list&gt;        Belirtilen modülleri bu derlemeye bağla
+-link:&lt;file list&gt;             Belirtilen birlikte çalışma derleme dosyalarından
                                meta veri ekleyin (Kısa biçim: /l)
- /analyzer:&lt;file list&gt;         Çözümleyicileri bu derlemeden çalıştır
+-analyzer:&lt;file list&gt;         Çözümleyicileri bu derlemeden çalıştır
                                (Kısa biçim: /a)
- /additionalfile:&lt;file list&gt;   Kod oluşumunu doğrudan etkilemeyen ama çözümleyiciler
+-additionalfile:&lt;file list&gt;   Kod oluşumunu doğrudan etkilemeyen ama çözümleyiciler
                                tarafından hata veya uyarı oluşturmada
                                kullanılabilen ek dosyalar.
- /embed                        Tüm kaynak dosyalarını PDB'ye ekle.
- /embed:&lt;file list&gt;            Belirli dosyaları PDB'ye ekle
+-embed                        Tüm kaynak dosyalarını PDB'ye ekle.
+-embed:&lt;file list&gt;            Belirli dosyaları PDB'ye ekle
 
                         - KAYNAKLAR -
- /win32res:&lt;file&gt;              Bir Win32 kaynak dosyası (.res) belirt
- /win32icon:&lt;file&gt;             Çıkış için bu simgeyi kullan
- /win32manifest:&lt;file&gt;         Bir Win32 bildirim dosyası (.xml) belirt
- /nowin32manifest              Varsayılan Win32 bildirimini dahil etme
- /resource:&lt;resinfo&gt;           Belirtilen kaynağı ekle (Kısa biçim: /res)
- /linkresource:&lt;resinfo&gt;       Belirtilen kaynağı bu bütünleştirilmiş koda bağla
+-win32res:&lt;file&gt;              Bir Win32 kaynak dosyası (.res) belirt
+-win32icon:&lt;file&gt;             Çıkış için bu simgeyi kullan
+-win32manifest:&lt;file&gt;         Bir Win32 bildirim dosyası (.xml) belirt
+-nowin32manifest              Varsayılan Win32 bildirimini dahil etme
+-resource:&lt;resinfo&gt;           Belirtilen kaynağı ekle (Kısa biçim: /res)
+-linkresource:&lt;resinfo&gt;       Belirtilen kaynağı bu bütünleştirilmiş koda bağla
                                (Kısa biçim: /linkres) Kaynak bilgisi biçimi:
                                 &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                         - KOD OLUŞTURMA -
- /debug[+|-]                   Hata ayıklama bilgilerini yayımla
- /debug:{full|pdbonly|portable|embedded}
+-debug[+|-]                   Hata ayıklama bilgilerini yayımla
+-debug:{full|pdbonly|portable|embedded}
                                Hata ayıklama türünü belirt (varsayılan: 'full',
                                'portable' platformlar arası bir biçim,
                                'embedded' hedef .dll veya .exe dosyasına
                                eklenmiş platformlar arası bir biçim
- /optimize[+|-]                İyileştirmeleri etkinleştir (Kısa biçim: /o)
- /deterministic                Belirlenimci bir bütünleştirilmiş kod oluştur
+-optimize[+|-]                İyileştirmeleri etkinleştir (Kısa biçim: /o)
+-deterministic                Belirlenimci bir bütünleştirilmiş kod oluştur
                                (modül sürümü GUID'i ve zaman damgası dahil)
- /refonly                      Ana çıkışın yerine başvuru derlemesi oluştur
- /instrument:TestCoverage      Kapsam bilgilerini toplamak üzere
+-refonly                      Ana çıkışın yerine başvuru derlemesi oluştur
+-instrument:TestCoverage      Kapsam bilgilerini toplamak üzere
                                işaretlenen bir bütünleştirilmiş kod üret
- /sourcelink:&lt;file&gt;            PDB'ye eklenecek kaynak bağlantı bilgisi.
+-sourcelink:&lt;file&gt;            PDB'ye eklenecek kaynak bağlantı bilgisi.
 
                         - HATALAR VE UYARILAR -
- /warnaserror[+|-]             Tüm uyarıları hata olarak bildir
- /warnaserror[+|-]:&lt;warn list&gt; Belirli uyarıları hata olarak bildir
- /warn:&lt;n&gt;                     Uyarı düzeyi ayarla (0-4) (Kısa biçim: /w)
- /nowarn:&lt;warn list&gt;           Belirli uyarı iletilerini devre dışı bırak
- /ruleset:&lt;file&gt;               Belirli tanılamaları devre dışı bırakan bir
+-warnaserror[+|-]             Tüm uyarıları hata olarak bildir
+-warnaserror[+|-]:&lt;warn list&gt; Belirli uyarıları hata olarak bildir
+-warn:&lt;n&gt;                     Uyarı düzeyi ayarla (0-4) (Kısa biçim: /w)
+-nowarn:&lt;warn list&gt;           Belirli uyarı iletilerini devre dışı bırak
+-ruleset:&lt;file&gt;               Belirli tanılamaları devre dışı bırakan bir
                                 kural kümesi dosyası belirt.
- /errorlog:&lt;file&gt;              Bütün derleyici ve çözümleyici tanılamalarını günlüğe kaydetmek için
+-errorlog:&lt;file&gt;              Bütün derleyici ve çözümleyici tanılamalarını günlüğe kaydetmek için
                                bir dosya belirt.
- /reportanalyzer               Yürütme zamanı gibi ek yürütme
+-reportanalyzer               Yürütme zamanı gibi ek yürütme
                                bilgilerini bildir.
 
                         - DİL -
- /checked[+|-]                 Taşma denetimleri oluştur
- /unsafe[+|-]                  'Unsafe' koda izin ver
- /define:&lt;symbol list&gt;         Koşullu derleme sembolleri tanımla (Kısa
+-checked[+|-]                 Taşma denetimleri oluştur
+-unsafe[+|-]                  'Unsafe' koda izin ver
+-define:&lt;symbol list&gt;         Koşullu derleme sembolleri tanımla (Kısa
                                biçim: /d)
- /langversion:?                Dil sürümü için izin verilen değerleri görüntüle
- /langversion:&lt;string&gt;         Dil sürümünü belirt. Örneğin:
+-langversion:?                Dil sürümü için izin verilen değerleri görüntüle
+-langversion:&lt;string&gt;         Dil sürümünü belirt. Örneğin:
                                `default` (en son birincil sürüm), or
                                `latest` (daha küçük sürümleri de içeren en son sürüm),
                                veya `6` ya da `7.1` gibi belirli sürümler
 
                         - GÜVENLİK -
- /delaysign[+|-]               Derlemeyi kesin ad anahtarının yalnızca ortak
+-delaysign[+|-]               Derlemeyi kesin ad anahtarının yalnızca ortak
                                kısmını kullanarak gecikmeli imzala
- /publicsign[+|-]              Bütünleştirilmiş kodu, güçlü adlı anahtarın yalnızca genel
+-publicsign[+|-]              Bütünleştirilmiş kodu, güçlü adlı anahtarın yalnızca genel
                                kısmını kullanarak genel olarak imzala
- /keyfile:&lt;file&gt;               Güçlü ad anahtarı dosyası belirt
- /keycontainer:&lt;string&gt;        Güçlü ad anahtarı kapsayıcısı belirt
- /highentropyva[+|-]           Yüksek entropili ASLR'yi etkinleştir
+-keyfile:&lt;file&gt;               Güçlü ad anahtarı dosyası belirt
+-keycontainer:&lt;string&gt;        Güçlü ad anahtarı kapsayıcısı belirt
+-highentropyva[+|-]           Yüksek entropili ASLR'yi etkinleştir
 
                         - DİĞER -
  @&lt;file&gt;                       Daha fazla seçenek için yanıt dosyasını okuyun
- /help                         Bu kullanım iletisini görüntüle (Kısa biçim: /?)
- /nologo                       Derleyici telif hakkı iletisini gösterme
- /noconfig                     CSC.RSP dosyasını otomatik olarak dahil etme
- /parallel[+|-]                Eşzamanlı derleme.
- /version                      Derleyici sürüm numarasını görüntüle ve çık.
+-help                         Bu kullanım iletisini görüntüle (Kısa biçim: /?)
+-nologo                       Derleyici telif hakkı iletisini gösterme
+-noconfig                     CSC.RSP dosyasını otomatik olarak dahil etme
+-parallel[+|-]                Eşzamanlı derleme.
+-version                      Derleyici sürüm numarasını görüntüle ve çık.
 
                         - GELİŞMİŞ -
- /baseaddress:&lt;address&gt;        Derlenecek kitaplığın temel adresi
- /checksumalgorithm:&lt;alg&gt;      PDB'de depolanan kaynak dosya sağlama toplamını 
+-baseaddress:&lt;address&gt;        Derlenecek kitaplığın temel adresi
+-checksumalgorithm:&lt;alg&gt;      PDB'de depolanan kaynak dosya sağlama toplamını 
                                hesaplama algoritmasını belirtin. Desteklenen değerler:
                                SHA1 (varsayılan) or SHA256.
- /codepage:&lt;n&gt;                 Kaynak dosyalarını açarken kullanılacak kod sayfasını
+-codepage:&lt;n&gt;                 Kaynak dosyalarını açarken kullanılacak kod sayfasını
                                belirtin
- /utf8output                   Derleyici iletilerini UTF-8 ana kodlamasında
- /görüntüle:&lt;type&gt;                  Giriş noktasını içeren türü belirtin
+-utf8output                   Derleyici iletilerini UTF-8 ana kodlamasında
+-görüntüle:&lt;type&gt;                  Giriş noktasını içeren türü belirtin
                                (diğer tüm olası girdi noktalarını yoksayar) (Kısa
                                biçim: /m)
- /fullpaths                    Derleyici, tamamen nitelikli yollar oluşturur
- /filealign:&lt;n&gt;                Çıkış dosyası bölümleri için kullanılan hizalamayı
+-fullpaths                    Derleyici, tamamen nitelikli yollar oluşturur
+-filealign:&lt;n&gt;                Çıkış dosyası bölümleri için kullanılan hizalamayı
                                belirtin
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                Derleyici tarafından gösterilen kaynak yolu adları için bir eşleme
                                belirtin.
- /pdb:&lt;file&gt;                   Hata ayıklama bilgileri dosyasının adını belirtin (varsayılan:
+-pdb:&lt;file&gt;                   Hata ayıklama bilgileri dosyasının adını belirtin (varsayılan:
                                .pdb uzantılı çıkış dosyası adı)
- /errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
+-errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
                                göster
- /preferreduilang              Tercih edilen çıkış dilini belirtin.
- /nostdlib[+|-]                Standard kitaplığa (mscorlib.dll) başvurma
- /subsystemversion:&lt;string&gt;    Bu bütünleştirilmiş kodun alt sistem sürümünü belirtin
- /lib:&lt;file list&gt;              İçinde başvuruların aranacağı ek dizinleri
+-preferreduilang              Tercih edilen çıkış dilini belirtin.
+-nostdlib[+|-]                Standard kitaplığa (mscorlib.dll) başvurma
+-subsystemversion:&lt;string&gt;    Bu bütünleştirilmiş kodun alt sistem sürümünü belirtin
+-lib:&lt;file list&gt;              İçinde başvuruların aranacağı ek dizinleri
                                belirtin
- /errorreport:&lt;string&gt;         İç derleyici hatalarının nasıl işleneceğini belirtin:
+-errorreport:&lt;string&gt;         İç derleyici hatalarının nasıl işleneceğini belirtin:
                                prompt, send, queue veya none. Varsayılan:
                                queue.
- /appconfig:&lt;file&gt;             Bütünleştirilmiş kod bağlama ayarlarını içeren bir uygulama
+-appconfig:&lt;file&gt;             Bütünleştirilmiş kod bağlama ayarlarını içeren bir uygulama
                                yapılandırma dosyası belirtin
- /moduleassemblyname:&lt;string&gt;  Bu modülün parçası olacağı bütünleştirilmiş kodun
+-moduleassemblyname:&lt;string&gt;  Bu modülün parçası olacağı bütünleştirilmiş kodun
                                adı
- /modulename:&lt;string&gt;          Kaynak modülün adını belirtin
+-modulename:&lt;string&gt;          Kaynak modülün adını belirtin
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -8042,12 +8042,12 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">Yineleyiciler başvuru yerel değerlerine sahip olamaz</target>
+        <target state="translated">Yineleyiciler başvuruya göre yerel değerlere sahip olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">Zaman uyumsuz metotlar, başvuruya göre yerel değerlere sahip olamaz</target>
+        <target state="translated">Zaman uyumsuz metotlar başvuruya göre yerel değerlere sahip olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="new">Add parameter to '{0}' (and overrides/implementations)</target>
+        <target state="translated">Aggiungi il parametro a '{0}' (e override/implementazioni)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -24,12 +24,12 @@
       </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
-        <target state="new">Add to '{0}'</target>
+        <target state="translated">Aggiungi a '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
-        <target state="new">Fix typo '{0}'</target>
+        <target state="translated">Correggere l'errore di ortografia '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="new">Related method signatures found in metadata will not be updated.</target>
+        <target state="translated">Le firme del metodo correlate trovate nei metadati non verranno aggiornate.</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
