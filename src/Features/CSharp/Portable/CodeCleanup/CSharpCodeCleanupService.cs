@@ -188,10 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
                 // Mark this option as being completed.
                 progressTracker.ItemCompleted();
-
-                var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
-                progressTracker.ItemCompleted();
-                return result;
             }
 
             return document;
@@ -205,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
                     document = await ApplyCodeFixesForSpecificDiagnosticId(
-                    document, diagnosticId, cancellationToken).ConfigureAwait(false);
+                        document, diagnosticId, cancellationToken).ConfigureAwait(false);
                 }
             }
 
