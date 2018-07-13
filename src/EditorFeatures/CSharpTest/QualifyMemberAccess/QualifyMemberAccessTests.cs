@@ -888,9 +888,9 @@ CodeStyleOptions.QualifyEventAccess);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyMemberAccessNotPresentOnNotificationOptionSilent()
+        public async Task QualifyMemberAccessOnNotificationOptionSilent()
         {
-            await TestMissingAsyncWithOptionAndNotificationOption(
+            await TestAsyncWithOptionAndNotificationOption(
 @"class Class
 {
     int Property { get; set; };
@@ -898,6 +898,15 @@ CodeStyleOptions.QualifyEventAccess);
     void M()
     {
         [|Property|] = 1;
+    }
+}",
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        this.Property = 1;
     }
 }",
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Silent);
