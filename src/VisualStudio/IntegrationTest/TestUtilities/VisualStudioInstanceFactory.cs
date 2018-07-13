@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             try
             {
                 bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
-                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
+                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(true);
 
                 return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
             }
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 }
 
                 // We wait until the DTE instance is up before we're good
-                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(false);
+                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
             }
             else
             {
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Debug.Assert(_currentlyRunningInstance != null);
 
                 hostProcess = _currentlyRunningInstance.HostProcess;
-                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(false);
+                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
                 supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
                 installationPath = _currentlyRunningInstance.InstallationPath;
 
