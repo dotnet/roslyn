@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             PickMembersDialog = new PickMembersDialog_InProc2(this);
             PreviewChangesDialog = new PreviewChangesDialog_InProc2(this);
             Shell = new Shell_InProc2(this);
+            StartPage = new StartPage_InProc2(this);
 
             ChangeSignatureDialog = new ChangeSignatureDialog_InProc2(this);
         }
@@ -132,6 +133,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         }
 
         public SolutionExplorer_InProc2 SolutionExplorer
+        {
+            get;
+        }
+
+        public StartPage_InProc2 StartPage
         {
             get;
         }

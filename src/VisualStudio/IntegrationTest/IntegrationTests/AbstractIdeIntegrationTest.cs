@@ -158,6 +158,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await VisualStudio.InteractiveWindow.CloseWindowAsync();
             await VisualStudio.ImmediateWindow.CloseWindowAsync();
             await VisualStudio.ObjectBrowserWindow.CloseWindowAsync();
+            await VisualStudio.StartPage.CloseWindowAsync();
+
+            // Prevent the start page from showing after each solution closes
+            await VisualStudio.StartPage.SetEnabledAsync(false);
         }
 
         protected virtual async Task CleanUpOpenSolutionAsync()
