@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
 
             BoundExpression operand = source;
-
+            bool hasErrors;
             switch (strippedType.TypeKind)
             {
                 case TypeKind.Array:
@@ -154,18 +154,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Delegate:
                 case TypeKind.Interface:
                     Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, strippedType);
+                    hasErrors = true;
                     break;
 
                 case TypeKind.Pointer:
                     Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, strippedType);
+                    hasErrors = true;
                     break;
 
                 case TypeKind.Dynamic:
                     Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, strippedType);
+                    hasErrors = true;
                     break;
 
                 case TypeKind.Struct when strippedType.IsTupleType:
                     Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, strippedType);
+                    hasErrors = true;
                     break;
 
                 case TypeKind.Struct:
@@ -180,14 +184,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundInitializerOpt,
                         forTargetTypedNew: true);
                     operand.WasCompilerGenerated = true;
+                    hasErrors = operand.HasErrors;
                     break;
 
                 case TypeKind.TypeParameter:
                     var typeParameter = (TypeParameterSymbol)strippedType;
                     if (!typeParameter.IsInstantiable())
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, strippedType);
-                        break;
+                        goto case TypeKind.Array;
                     }
 
                     operand = BindTypeParameterCreationExpression(
@@ -196,9 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundInitializerOpt,
                         diagnostics);
                     operand.WasCompilerGenerated = true;
+                    hasErrors = operand.HasErrors;
                     break;
 
                 default:
+                    hasErrors = true;
                     break;
             }
 
@@ -214,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: isCast,
                 constantValueOpt: null, // A "target-typed new" would never produce a constant.
                 type: destination,
-                hasErrors: operand.HasErrors)
+                hasErrors: hasErrors)
             { WasCompilerGenerated = true }; // The "implicit new" conversion can never be explicit in source.
         }
 

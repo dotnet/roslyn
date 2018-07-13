@@ -4668,6 +4668,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argToParams,
                         this.LocalScopeDepth,
                         diagnostics);
+
+                    if (forTargetTypedNew && memberResolutionResult.Member.IsDefaultValueTypeConstructor())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, node, type);
+                        hasError = true;
+                    }
                 }
 
                 result = new BoundObjectCreationExpression(
@@ -4689,11 +4695,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (type.IsAbstract)
                 {
                     result = BadExpression(node, LookupResultKind.NotCreatable, result);
-                }
-
-                if (forTargetTypedNew && memberResolutionResult.Member.IsDefaultValueTypeConstructor())
-                {
-                    Error(diagnostics, ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, node, type);
                 }
 
                 return result;

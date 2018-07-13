@@ -303,16 +303,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(25, 9),
                 // (26,17): error CS9366: The type 'T' may not be used as the target-type of 'new'.
                 //         T v14 = new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("T").WithLocation(26, 17),
-                // (13,16): warning CS0219: The variable 'v1' is assigned but its value is never used
-                //         Struct v1 = new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(13, 16),
-                // (19,13): warning CS0219: The variable 'v7' is assigned but its value is never used
-                //         int v7 = new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v7").WithArguments("v7").WithLocation(19, 13),
-                // (21,14): warning CS0219: The variable 'v9' is assigned but its value is never used
-                //         int? v9 = new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v9").WithArguments("v9").WithLocation(21, 14)
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("T").WithLocation(26, 17)
                 );
         }
 
@@ -395,16 +386,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(24, 20),
                 // (25,19): error CS9366: The type 'T' may not be used as the target-type of 'new'.
                 //         var v14 = (T)new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(T)new()").WithArguments("T").WithLocation(25, 19),
-                // (12,13): warning CS0219: The variable 'v1' is assigned but its value is never used
-                //         var v1 = (Struct)new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(12, 13),
-                // (18,13): warning CS0219: The variable 'v7' is assigned but its value is never used
-                //         var v7 = (int)new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v7").WithArguments("v7").WithLocation(18, 13),
-                // (20,13): warning CS0219: The variable 'v9' is assigned but its value is never used
-                //         var v9 = (int?)new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v9").WithArguments("v9").WithLocation(20, 13)
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(T)new()").WithArguments("T").WithLocation(25, 19)
                 );
         }
 
