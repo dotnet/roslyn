@@ -142,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <!-- Even though the VS process includes these, we need to also include them in the VSIX for the interactive host processes -->
