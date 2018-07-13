@@ -22,6 +22,7 @@ using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
+using Hashtable = System.Collections.Hashtable;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -238,24 +239,24 @@ namespace Microsoft.CodeAnalysis.Interactive
                     SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
                 }
 
-                IpcServerChannel serverChannel = null;
-                IpcClientChannel clientChannel = null;
+                IpcChannel channel = null;
                 try
                 {
                     using (var semaphore = Semaphore.OpenExisting(semaphoreName))
                     {
                         // DEBUG: semaphore.WaitOne();
 
-                        var serverProvider = new BinaryServerFormatterSinkProvider();
-                        serverProvider.TypeFilterLevel = TypeFilterLevel.Full;
+                        var portName = GenerateUniqueChannelLocalName();
+                        channel = new IpcChannel(
+                            new Hashtable
+                            {
+                                { "name", portName },
+                                { "portName", serverPort },
+                            },
+                            new BinaryClientFormatterSinkProvider(),
+                            new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full });
 
-                        var clientProvider = new BinaryClientFormatterSinkProvider();
-
-                        clientChannel = new IpcClientChannel(GenerateUniqueChannelLocalName(), clientProvider);
-                        ChannelServices.RegisterChannel(clientChannel, ensureSecurity: false);
-
-                        serverChannel = new IpcServerChannel(GenerateUniqueChannelLocalName(), serverPort, serverProvider);
-                        ChannelServices.RegisterChannel(serverChannel, ensureSecurity: false);
+                        ChannelServices.RegisterChannel(channel, ensureSecurity: true);
 
                         RemotingConfiguration.RegisterWellKnownServiceType(
                             typeof(Service),
@@ -285,14 +286,14 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    if (serverChannel != null)
+                    if (channel != null)
                     {
-                        ChannelServices.UnregisterChannel(serverChannel);
-                    }
+                        if (ChannelServices.RegisteredChannels.Contains(channel))
+                        {
+                            ChannelServices.UnregisterChannel(channel);
+                        }
 
-                    if (clientChannel != null)
-                    {
-                        ChannelServices.UnregisterChannel(clientChannel);
+                        channel.StopListening(null);
                     }
                 }
 

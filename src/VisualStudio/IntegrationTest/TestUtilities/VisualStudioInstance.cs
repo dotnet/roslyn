@@ -5,12 +5,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
+using System.Runtime.Serialization.Formatters;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Hashtable = System.Collections.Hashtable;
 
 using Process = System.Diagnostics.Process;
 
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     public class VisualStudioInstance
     {
         private readonly IntegrationService _integrationService;
-        private readonly IpcClientChannel _integrationServiceChannel;
+        private readonly IpcChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
@@ -84,7 +86,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             StartRemoteIntegrationService(dte);
 
-            _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {HostProcess.Id}", sinkProvider: null);
+            string portName = $"IPC channel client for {HostProcess.Id}; {Guid.NewGuid():b}";
+            _integrationServiceChannel = new IpcChannel(
+                new Hashtable
+                {
+                    { "name", portName },
+                    { "portName", portName },
+                },
+                new BinaryClientFormatterSinkProvider(),
+                new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full });
+
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
@@ -212,10 +223,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
             finally
             {
-                if (_integrationServiceChannel != null
-                    && ChannelServices.RegisteredChannels.Contains(_integrationServiceChannel))
+                if (_integrationServiceChannel != null)
                 {
-                    ChannelServices.UnregisterChannel(_integrationServiceChannel);
+                    if (ChannelServices.RegisteredChannels.Contains(_integrationServiceChannel))
+                    {
+                        ChannelServices.UnregisterChannel(_integrationServiceChannel);
+                    }
+
+                    _integrationServiceChannel.StopListening(null);
                 }
             }
         }

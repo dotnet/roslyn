@@ -19,13 +19,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             typeof(CSharpCompilation)
         };
 
+        private static readonly FieldInfo s_ipcChannelServerChannel = typeof(IpcChannel).GetField("_serverChannel", BindingFlags.NonPublic | BindingFlags.Instance);
         private static readonly FieldInfo s_ipcServerChannelListenerThread = typeof(IpcServerChannel).GetField("_listenerThread", BindingFlags.NonPublic | BindingFlags.Instance);
 
         internal static void DisposeInteractiveHostProcess(InteractiveHost process)
         {
-            IpcServerChannel serverChannel = process._ServerChannel;
+            var channel = process._ServerChannel;
             process.Dispose();
 
+            var serverChannel = (IpcServerChannel)s_ipcChannelServerChannel.GetValue(channel);
             var listenerThread = (Thread)s_ipcServerChannelListenerThread.GetValue(serverChannel);
             listenerThread.Join();
         }

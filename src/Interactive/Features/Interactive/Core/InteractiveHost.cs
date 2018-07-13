@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -13,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
+using Hashtable = System.Collections.Hashtable;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private int _remoteServiceInstanceId;
 
         // Remoting channel to communicate with the remote service.
-        private IpcServerChannel _serverChannel;
+        private IpcChannel _channel;
 
         private TextWriter _output;
         private TextWriter _errorOutput;
@@ -59,9 +61,17 @@ namespace Microsoft.CodeAnalysis.Interactive
             _outputGuard = new object();
             _errorOutputGuard = new object();
 
-            var serverProvider = new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full };
-            _serverChannel = new IpcServerChannel(GenerateUniqueChannelLocalName(), "ReplChannel-" + Guid.NewGuid(), serverProvider);
-            ChannelServices.RegisterChannel(_serverChannel, ensureSecurity: false);
+            var name = GenerateUniqueChannelLocalName();
+            var portName = "ReplChannel-" + Guid.NewGuid();
+            _channel = new IpcChannel(
+                new Hashtable
+                {
+                    { "name", name },
+                    { "portName", portName },
+                },
+                new BinaryClientFormatterSinkProvider(),
+                new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full });
+            ChannelServices.RegisterChannel(_channel, ensureSecurity: true);
         }
 
         #region Test hooks
@@ -87,9 +97,9 @@ namespace Microsoft.CodeAnalysis.Interactive
         // The ProcessExited event is not hooked yet.
         internal event Action<Process> InteractiveHostProcessCreated;
 
-        internal IpcServerChannel _ServerChannel
+        internal IpcChannel _ServerChannel
         {
-            get { return _serverChannel; }
+            get { return _channel; }
         }
 
         #endregion
@@ -260,10 +270,15 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private void DisposeChannel()
         {
-            if (_serverChannel != null)
+            if (_channel != null)
             {
-                ChannelServices.UnregisterChannel(_serverChannel);
-                _serverChannel = null;
+                if (ChannelServices.RegisteredChannels.Contains(_channel))
+                {
+                    ChannelServices.UnregisterChannel(_channel);
+                }
+
+                _channel.StopListening(null);
+                _channel = null;
             }
         }
 
