@@ -201,7 +201,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private void CloseHostProcess()
         {
             _inProc.Quit();
-            IntegrationHelper.KillProcess(HostProcess);
+            if (!HostProcess.WaitForExit(milliseconds: 10000))
+            {
+                IntegrationHelper.KillProcess(HostProcess);
+            }
         }
 
         private void CloseRemotingService()
