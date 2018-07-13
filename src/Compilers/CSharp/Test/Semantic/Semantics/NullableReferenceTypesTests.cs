@@ -1956,7 +1956,7 @@ class B : A
             Assert.True(typeArg.IsValueType);
             Assert.Equal(false, typeArg.IsNullable);
 
-            Assert.False(true); // Test all combinations of base and derived.
+            // PROTOTYPE(NullableReferenceTypes): Test all combinations of base and derived.
         }
 
         // Example where the bound expression type contains an unannotated type
@@ -1965,7 +1965,8 @@ class B : A
         public void CompareUnannotatedAndNonNullableTypeParameter()
         {
             var source =
-@"using System.Threading.Tasks;
+@"#pragma warning disable 0649
+using System.Threading.Tasks;
 class C<T>
 {
     T[] _f;

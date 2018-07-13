@@ -855,19 +855,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            protected override bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
-            {
-                var otherLazy = other as LazyUnannotatedTypeParameter;
-                if ((object)otherLazy != null)
-                {
-                    return
-                        //IsNullable == otherInProgress.IsNullable &&
-                        _isNullableIfReferenceType == otherLazy._isNullableIfReferenceType &&
-                        _typeParameter == otherLazy._typeParameter;
-                }
-                return base.TypeSymbolEquals(other, comparison);
-            }
-
             public override TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers)
             {
                 Debug.Assert(customModifiers.IsEmpty);
