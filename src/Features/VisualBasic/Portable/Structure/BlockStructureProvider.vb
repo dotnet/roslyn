@@ -214,49 +214,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Friend Function GetBlockSpan(block As SyntaxNode, Header As SyntaxNode, NextSection As SyntaxNode, BannerText As String, IgnoreHeader As Boolean) As BlockSpan?
             Dim Statements As SyntaxList(Of StatementSyntax) = If(block.IsStatementContainerNode(), block.GetStatements(), Nothing)
             If Statements.Count = 0 Then
-                If IgnoreHeader Then
-                    Dim StartingAt = If(FirstTriviaAfterFirstEndOfLine(Header.GetTrailingTrivia),
-                                        NextSection.GetLeadingTrivia.FirstOrNullable)
-                    Return BlockHasNoStatements(block, StartingAt.Value, NextSection, BannerText)
-                Else
-                    Return BlockHasNoStatements(block, Header, NextSection, BannerText)
-                End If
+                Return BlockHasNoStatements(block, If(IgnoreHeader,
+                                                      DirectCast(If(FirstTriviaAfterFirstEndOfLine(Header.GetTrailingTrivia),
+                                                                    NextSection.GetLeadingTrivia.FirstOrNullable), Object), Header), NextSection, BannerText)
             Else
-                If IgnoreHeader Then
-                    Dim StartingAt As SyntaxTrivia? = If(FirstTriviaAfterFirstEndOfLine(Header.GetTrailingTrivia),
-                                                     Statements(0).GetLeadingTrivia.FirstOrNullable)
-                    Return BlockHasStatements(block, StartingAt, NextSection, Statements, BannerText, IgnoreHeader)
-                Else
-                    Return BlockHasStatements(block, Header, NextSection, Statements, BannerText, IgnoreHeader)
-                End If
+                Return BlockHasStatements(block, If(IgnoreHeader,
+                                                    DirectCast(If(FirstTriviaAfterFirstEndOfLine(Header.GetTrailingTrivia),
+                                                                  Statements(0).GetLeadingTrivia.FirstOrNullable), Object),
+                                                    Header), NextSection, Statements, BannerText)
             End If
         End Function
 
         Friend Function BlockHasNoStatements(block As SyntaxNode, StartingAt As Object, NextSection As SyntaxNode, BannerText As String) As BlockSpan?
-            If StartingAt IsNot Nothing Then
-                Dim FinishingAt = LastEndOfLineOrNullable(NextSection.GetLeadingTrivia)
-                If FinishingAt IsNot Nothing Then
-                    If TypeOf StartingAt Is SyntaxTrivia? Then
-                        Return MakeIfHasLineDeltaGreaterThanX(1, DirectCast(StartingAt, SyntaxTrivia?).Value, FinishingAt.Value, BannerText)
-                    ElseIf TypeOf StartingAt Is SyntaxNode Then
-                        Return MakeIfHasLineDeltaGreaterThanX(1, DirectCast(StartingAt, SyntaxNode), FinishingAt.Value, BannerText)
-                    End If
-                End If
-            End If
-            Return Nothing
+            Return BlockHas(NoStatements:=True, block, StartingAt, NextSection, Nothing, BannerText)
         End Function
 
-        Friend Function BlockHasStatements(block As SyntaxNode, StartingAt As Object, NextSection As SyntaxNode, Statements As SyntaxList(Of StatementSyntax), BannerText As String, IgnoreHeader As Boolean) As BlockSpan?
-            If StartingAt IsNot Nothing Then
-                Dim FinishingTrivia = If(LastEndOfLineOrNullable(NextSection.GetLeadingTrivia),
-                                         LastEndOfLineOrNullable(Statements.Last.GetTrailingTrivia))
-                If FinishingTrivia IsNot Nothing Then
-                    If TypeOf StartingAt Is SyntaxTrivia? Then
-                        Return MakeIfHasLineDeltaGreaterThanX(0, DirectCast(StartingAt, SyntaxTrivia?).Value, FinishingTrivia.Value, BannerText)
-                    ElseIf TypeOf StartingAt Is SyntaxNode Then
-                        Return MakeIfHasLineDeltaGreaterThanX(0, DirectCast(StartingAt, SyntaxNode), FinishingTrivia.Value, BannerText)
-                    End If
+        Friend Function BlockHasStatements(block As SyntaxNode, StartingAt As Object, NextSection As SyntaxNode, Statements As SyntaxList(Of StatementSyntax), BannerText As String) As BlockSpan?
+            Return BlockHas(NoStatements:=False, block, StartingAt, NextSection, Statements, BannerText)
+        End Function
 
+        Friend Function BlockHas(NoStatements As Boolean, block As SyntaxNode, StartingAt As Object, NextSection As SyntaxNode, Statements As SyntaxList(Of StatementSyntax), BannerText As String) As BlockSpan?
+            If StartingAt IsNot Nothing Then
+                Dim MinLineDelta = 0
+                Dim FinishingAt As SyntaxTrivia?
+                If NoStatements Then
+                    FinishingAt = LastEndOfLineOrNullable(NextSection.GetLeadingTrivia)
+                    MinLineDelta = 1
+                Else
+                    FinishingAt = If(LastEndOfLineOrNullable(NextSection.GetLeadingTrivia),
+                                        LastEndOfLineOrNullable(Statements.Last.GetTrailingTrivia))
+                    MinLineDelta = 0
+                End If
+                If FinishingAt IsNot Nothing Then
+                    If TypeOf StartingAt Is SyntaxTrivia? Then
+                        Return MakeIfHasLineDeltaGreaterThanX(MinLineDelta, DirectCast(StartingAt, SyntaxTrivia?).Value, FinishingAt.Value, BannerText)
+                    ElseIf TypeOf StartingAt Is SyntaxNode Then
+                        Return MakeIfHasLineDeltaGreaterThanX(MinLineDelta, DirectCast(StartingAt, SyntaxNode), FinishingAt.Value, BannerText)
+                    End If
                 End If
             End If
             Return Nothing
