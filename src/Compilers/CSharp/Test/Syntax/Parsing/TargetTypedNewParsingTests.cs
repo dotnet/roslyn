@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -366,6 +367,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEmptyArgList_LangVersion()
+        {
+            UsingExpression("new()", options: TestOptions.Regular7_3,
+                // (1,1): error CS8370: Feature 'target-typed new' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // new()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new").WithArguments("target-typed new", "8.0").WithLocation(1, 1));
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestEmptyObjectInitializer()
         {
             UsingExpression("new(){}");
@@ -387,9 +408,86 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEmptyObjectInitializer_LangVersion()
+        {
+            UsingExpression("new(){}", options: TestOptions.Regular7_3,
+                // (1,1): error CS8370: Feature 'target-typed new' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // new(){}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new").WithArguments("target-typed new", "8.0").WithLocation(1, 1));
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestObjectInitializer()
         {
             UsingExpression("new(1,2){x=y}");
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestObjectInitializer_LangVersion()
+        {
+            UsingExpression("new(1,2){x=y}", options: TestOptions.Regular7_3,
+                // (1,1): error CS8370: Feature 'target-typed new' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // new(1,2){x=y}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new").WithArguments("target-typed new", "8.0").WithLocation(1, 1));
+
             N(SyntaxKind.ObjectCreationExpression);
             {
                 N(SyntaxKind.NewKeyword);
