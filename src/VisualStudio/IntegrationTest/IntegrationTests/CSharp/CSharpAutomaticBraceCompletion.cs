@@ -1,23 +1,49 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Fixtures;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpAutomaticBraceCompletion : AbstractIdeEditorTest
+    public class CSharpAutomaticBraceCompletion : AbstractIdeIntegrationTest, IClassFixture<CSharpClassLibraryProjectFixture>
     {
-        protected override string LanguageName => LanguageNames.CSharp;
+        private readonly CSharpClassLibraryProjectFixture _csharpClassLibraryProject;
 
-        public CSharpAutomaticBraceCompletion()
-            : base(nameof(CSharpAutomaticBraceCompletion))
+        public CSharpAutomaticBraceCompletion(CSharpClassLibraryProjectFixture csharpClassLibraryProjectFixture)
         {
+            _csharpClassLibraryProject = csharpClassLibraryProjectFixture;
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
+            await _csharpClassLibraryProject.CreateOrOpenAsync(nameof(CSharpAutomaticBraceCompletion));
+        }
+
+        protected override async Task CleanUpOpenSolutionAsync()
+        {
+            // Close but do not delete the solution.
+            await TestServices.SolutionExplorer.CloseSolutionAsync();
+        }
+
+        protected override async Task CleanUpPendingOperationsAsync()
+        {
+            // Only wait for Workspace during cleanup. The class fixture will wait for all operations before moving to
+            // the next test class.
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
+        }
+
+        private async Task SetUpEditorAsync(string markupCode)
+        {
+            await _csharpClassLibraryProject.SetUpEditorAsync(markupCode);
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]

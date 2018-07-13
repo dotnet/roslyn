@@ -106,6 +106,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             => GetDTE().Quit();
 #endif
 
+        public new async Task<TInterface> GetGlobalServiceAsync<TService, TInterface>()
+            where TService : class
+            where TInterface : class
+        {
+            return await base.GetGlobalServiceAsync<TService, TInterface>();
+        }
+
         public new async Task<bool> IsCommandAvailableAsync(string commandName)
         {
             return await base.IsCommandAvailableAsync(commandName);

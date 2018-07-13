@@ -150,8 +150,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             await VisualStudio.Workspace.CleanUpWaitingServiceAsync();
             await VisualStudio.Workspace.CleanUpWorkspaceAsync();
-            await VisualStudio.SolutionExplorer.CleanUpOpenSolutionAsync();
-            await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync();
+            await CleanUpOpenSolutionAsync();
+            await CleanUpPendingOperationsAsync();
 
             // Close any windows leftover from previous (failed) tests
             await CloseDialogsAsync();
@@ -159,6 +159,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await VisualStudio.ImmediateWindow.CloseWindowAsync();
             await VisualStudio.ObjectBrowserWindow.CloseWindowAsync();
         }
+
+        protected virtual async Task CleanUpOpenSolutionAsync()
+            => await VisualStudio.SolutionExplorer.CleanUpOpenSolutionAsync();
+
+        protected virtual async Task CleanUpPendingOperationsAsync()
+            => await VisualStudio.Workspace.WaitForAllAsyncOperationsAsync();
 
         protected virtual async Task CloseDialogsAsync()
         {

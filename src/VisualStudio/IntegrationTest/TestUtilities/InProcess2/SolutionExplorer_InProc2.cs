@@ -25,8 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
     public partial class SolutionExplorer_InProc2 : InProcComponent2
     {
-        private Solution2 _solution;
-        private string _fileName;
+        private readonly Solution2 _solution;
 
         private readonly IDictionary<string, string> _csharpProjectTemplates;
         private readonly IDictionary<string, string> _visualBasicProjectTemplates;
@@ -34,7 +33,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         public SolutionExplorer_InProc2(TestServices testServices)
             : base(testServices)
         {
-            var localeID = JoinableTaskFactory.Run(GetDTEAsync).LocaleID;
+            var dte = JoinableTaskFactory.Run(GetDTEAsync);
+            _solution = (Solution2)dte.Solution;
+            var localeID = dte.LocaleID;
             _csharpProjectTemplates = InitializeCSharpProjectTemplates(localeID);
             _visualBasicProjectTemplates = InitializeVisualBasicProjectTemplates(localeID);
 
@@ -99,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 var solutionFullName = _solution.FullName;
 
                 return string.IsNullOrEmpty(solutionFullName)
-                    ? _fileName
+                    ? throw new InvalidOperationException()
                     : solutionFullName;
             }
         }
@@ -107,8 +108,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         public async Task CloseSolutionAsync(bool saveFirst = false)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
-            var dte = await GetDTEAsync();
-            dte.Solution.Close(saveFirst);
+            if (!await IsSolutionOpenAsync())
+            {
+                return;
+            }
+
+            if (saveFirst)
+            {
+                await SaveSolutionAsync();
+            }
+
+            await CloseSolutionAsync();
         }
 
         /// <summary>
@@ -118,20 +128,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            var solutionPath = IntegrationHelper.CreateTemporaryPath();
+            IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
+            await CreateSolutionAsync(solutionPath, solutionName);
+        }
+
+        /// <summary>
+        /// Creates and loads a new solution in the host process.
+        /// </summary>
+        public async Task CreateSolutionAsync(string solutionPath, string solutionName)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             await CloseSolutionAsync();
 
-            var solutionPath = IntegrationHelper.CreateTemporaryPath();
             var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
-            IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
             Directory.CreateDirectory(solutionPath);
 
             var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
             ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
             ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
-
-            var dte = await GetDTEAsync();
-            _solution = (Solution2)dte.Solution;
-            _fileName = Path.Combine(solutionPath, solutionFileName);
         }
 
         public string[] GetAssemblyReferences(string projectName)
@@ -298,21 +314,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
         }
 
-#if false
-        public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
+        public async Task OpenSolutionAsync(string path, bool saveExistingSolutionIfExists = false)
         {
-            var dte = GetDTE();
+            await CloseSolutionAsync(saveExistingSolutionIfExists);
 
-            if (dte.Solution.IsOpen)
-            {
-                CloseSolution(saveExistingSolutionIfExists);
-            }
-            dte.Solution.Open(path);
-
-            _solution = (EnvDTE80.Solution2)dte.Solution;
-            _fileName = path;
+            var solution = await TestServices.VisualStudio.GetGlobalServiceAsync<SVsSolution, IVsSolution>();
+            ErrorHandler.ThrowOnFailure(solution.OpenSolutionFile((uint)__VSSLNOPENOPTIONS.SLNOPENOPT_Silent, path));
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
         }
-#endif
 
         private static string ConvertLanguageName(string languageName)
         {
@@ -425,13 +434,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
         }
 
-        private async Task CloseSolutionAsync()
+        public async Task<bool> IsSolutionOpenAsync()
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
             ErrorHandler.ThrowOnFailure(solution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out var isOpen));
-            if (!(bool)isOpen)
+            return (bool)isOpen;
+        }
+
+        public async Task SaveSolutionAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            if (!await IsSolutionOpenAsync())
+            {
+                throw new InvalidOperationException("Cannot save solution when no solution is open.");
+            }
+
+            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
+
+            // Make sure the directory exists so the Save dialog doesn't appear
+            ErrorHandler.ThrowOnFailure(solution.GetSolutionInfo(out var solutionDirectory, out _, out _));
+            Directory.CreateDirectory(solutionDirectory);
+
+            ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
+        }
+
+        private async Task CloseSolutionAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
+            if (!await IsSolutionOpenAsync())
             {
                 return;
             }
