@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 If IgnoreHeader Then
                     Dim StartingAt = If(FirstTriviaAfterFirstEndOfLine(Header.GetTrailingTrivia),
                                         NextSection.GetLeadingTrivia.FirstOrNullable)
-                    Return If(StartingAt IsNot Nothing, BlockHasNoStatements(block, StartingAt.Value, NextSection, BannerText), Nothing)
+                    Return BlockHasNoStatements(block, StartingAt.Value, NextSection, BannerText)
                 Else
                     Return BlockHasNoStatements(block, Header, NextSection, BannerText)
                 End If
