@@ -94,22 +94,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     var docOptions = document.GetOptionsAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
 
                     using (Logger.LogBlock(FunctionId.FormatDocument, CodeCleanupLogMessage.Create(docOptions), c.CancellationToken))
+                    using (var transaction = new CaretPreservingEditTransaction(
+                        EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        using (var transaction = new CaretPreservingEditTransaction(
-                            EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+                        if (codeCleanupService == null)
                         {
-                            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-                            if (codeCleanupService == null)
-                            {
-                                Format(args.TextView, document, selectionOpt: null, c.CancellationToken);
-                            }
-                            else
-                            {
-                                CodeCleanupOrFormat(args, document, c.ProgressTracker, c.CancellationToken);
-                            }
-
-                            transaction.Complete();
+                            Format(args.TextView, document, selectionOpt: null, c.CancellationToken);
                         }
+                        else
+                        {
+                            CodeCleanupOrFormat(args, document, c.ProgressTracker, c.CancellationToken);
+                        }
+
+                        transaction.Complete();
                     }
                 });
 

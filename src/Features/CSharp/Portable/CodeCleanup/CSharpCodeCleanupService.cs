@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 progressTracker.ItemCompleted();
                 return result;
             }
-
         }
 
         private async Task<Document> RemoveSortUsingsAsync(
