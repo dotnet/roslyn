@@ -355,6 +355,7 @@ Block[B5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [WorkItem(27086, "https://github.com/dotnet/roslyn/issues/27086")]
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DiscardFlow_06()
@@ -386,7 +387,7 @@ Block[B1] - Block
           Expression: 
             IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
           Pattern: 
-            IDeclarationPatternOperation (Declared Symbol: null) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var _')
+            IDeclarationPatternOperation (Declared Symbol: System.Object _) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var _')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -482,6 +483,54 @@ Block[B0] - Entry
 
 Block[B5] - Exit
     Predecessors: [B4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [WorkItem(27086, "https://github.com/dotnet/roslyn/issues/27086")]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DiscardFlow_08()
+        {
+            string source = @"
+class C
+{
+    static void M(object o)
+    /*<bind>*/
+    {
+        if (o is var)
+        {
+            return;
+        }
+    }/*</bind>*/
+}";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                // file.cs(7,18): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         if (o is var)
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 18) };
+
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B2]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'o is var')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NoConversion)
+          Operand: 
+            IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'o is var')
+              Operand: 
+                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+              IsType: var
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1*2]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);

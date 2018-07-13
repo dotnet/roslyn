@@ -3755,7 +3755,7 @@ oneMoreTime:
             {
                 // Monitor.Enter($lock, ref $lockTaken);
                 lockTaken = new LocalReferenceExpression(baseLockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
-                                                         baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
+                                                         baseLockStatement.LockTakenSymbol.Type, constantValue: default, isImplicit: true);
                 AddStatement(new InvocationExpression(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
                                                                 new ArgumentOperation(lockedValue,
@@ -3795,7 +3795,7 @@ oneMoreTime:
             {
                 // if ($lockTaken)
                 IOperation condition = new LocalReferenceExpression(baseLockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
-                                                                    baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
+                                                                    baseLockStatement.LockTakenSymbol.Type, constantValue: default, isImplicit: true);
                 condition = Operation.SetParentOperation(condition, null);
                 LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(endOfFinally));
                 _currentBasicBlock = null;
