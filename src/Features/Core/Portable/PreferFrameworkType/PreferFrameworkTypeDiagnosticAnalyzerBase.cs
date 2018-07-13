@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
+namespace Microsoft.CodeAnalysis.PreferFrameworkType
 {
     internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<TSyntaxKind, TExpressionSyntax, TPredefinedTypeSyntax> :
         AbstractCodeStyleDiagnosticAnalyzer
@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         where TExpressionSyntax : SyntaxNode
         where TPredefinedTypeSyntax : TExpressionSyntax
     {
-        private static readonly ImmutableDictionary<string, string> DeclarationsEquivalenceKey = ImmutableDictionary<string, string>.Empty.Add(
-            PreferFrameworkTypeCodeFixProvider.EquivalenceKey, PreferFrameworkTypeCodeFixProvider.DeclarationsEquivalenceKey);
-        private static readonly ImmutableDictionary<string, string> MemberAccessEquivalenceKey = ImmutableDictionary<string, string>.Empty.Add(
-            PreferFrameworkTypeCodeFixProvider.EquivalenceKey, PreferFrameworkTypeCodeFixProvider.MemberAccessEquivalenceKey);
-
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
-            : base(IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
+            : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -87,14 +82,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             {
                 return;
             }
+
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
             if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language,
-                    out var severity, out var properties))
+                    out var diagnosticSeverity))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor, predefinedTypeNode.GetLocation(), 
-                    severity, additionalLocations: null, properties));
+                    diagnosticSeverity, additionalLocations: null,
+                    PreferFrameworkTypeConstants.Properties));
             }
         }
 
@@ -102,8 +99,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         /// Detects the context of this occurrence of predefined type and determines if we should report it.
         /// </summary>
         private bool ShouldReportDiagnostic(
-            TPredefinedTypeSyntax predefinedTypeNode, OptionSet optionSet, string language,
-            out ReportDiagnostic severity, out ImmutableDictionary<string, string> properties)
+            TPredefinedTypeSyntax predefinedTypeNode, OptionSet optionSet,
+            string language, out ReportDiagnostic severity)
         {
             // we have a predefined type syntax that is either in a member access context or a declaration context. 
             // check the appropriate option and determine if we should report a diagnostic.
@@ -113,7 +110,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             var optionValue = optionSet.GetOption(option, language);
 
             severity = optionValue.Notification.Severity;
-            properties = isMemberAccessOrCref ? MemberAccessEquivalenceKey : DeclarationsEquivalenceKey;
             return OptionSettingPrefersFrameworkType(optionValue, severity);
         }
 
@@ -132,6 +128,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         /// </summary>
         /// <remarks>if predefined type is not preferred, it implies the preference is framework type.</remarks>
         private static bool OptionSettingPrefersFrameworkType(CodeStyleOption<bool> optionValue, ReportDiagnostic severity)
-            => !optionValue.Value && severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden;
+            => !optionValue.Value && severity != ReportDiagnostic.Suppress;
     }
 }

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var namingStyleRules = namingPreferences.Rules;
 
             if (!namingStyleRules.TryGetApplicableRule(symbol, out var applicableRule) ||
-                applicableRule.EnforcementLevel.WithDefaultSeverity(DiagnosticSeverity.Hidden) >= ReportDiagnostic.Hidden)
+                applicableRule.EnforcementLevel == ReportDiagnostic.Suppress)
             {
                 return null;
             }

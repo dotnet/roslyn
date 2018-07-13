@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -83,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // The project system does not tell us the CodePage specified in the proj file, so
                 // we use null to auto-detect.
-                _doNotAccessDirectlyLoader = new FileTextLoader(documentKey.Moniker, defaultEncoding: null);
+                _doNotAccessDirectlyLoader = new FileChangeTrackingTextLoader(_fileChangeTracker, new FileTextLoader(documentKey.Moniker, defaultEncoding: null));
 
                 // If we aren't already open in the editor, then we should create a file change notification
                 if (openTextBuffer == null)
@@ -136,7 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 get
                 {
-                    _fileChangeTracker.EnsureSubscription();
                     return _doNotAccessDirectlyLoader;
                 }
             }
@@ -239,6 +240,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 return Project.Hierarchy.TryGetItemId(_itemMoniker);
+            }
+
+            /// <summary>
+            /// A wrapper for a <see cref="TextLoader"/> that ensures we are watching file contents prior to reading the file.
+            /// </summary>
+            private sealed class FileChangeTrackingTextLoader : TextLoader
+            {
+                private readonly FileChangeTracker _fileChangeTracker;
+                private readonly TextLoader _innerTextLoader;
+
+                public FileChangeTrackingTextLoader(FileChangeTracker fileChangeTracker, TextLoader innerTextLoader)
+                {
+                    _fileChangeTracker = fileChangeTracker;
+                    _innerTextLoader = innerTextLoader;
+                }
+
+                public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                {
+                    _fileChangeTracker.EnsureSubscription();
+                    return _innerTextLoader.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
+                }
+
+                internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                {
+                    _fileChangeTracker.EnsureSubscription();
+                    return _innerTextLoader.LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken);
+                }
             }
         }
     }
