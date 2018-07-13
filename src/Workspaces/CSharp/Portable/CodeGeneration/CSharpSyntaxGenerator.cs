@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
 
+        internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
+            => SyntaxFactory.SeparatedList<TElement>(list);
+
         public static readonly SyntaxGenerator Instance = new CSharpSyntaxGenerator();
 
         #region Declarations
@@ -3967,9 +3970,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right)
-        {
-            return SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
-        }
+            => SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
+
+        internal override SyntaxNode GlobalAliasedName(SyntaxNode name)
+            => SyntaxFactory.AliasQualifiedName(
+                SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                (SimpleNameSyntax)name);
 
         public override SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
             => namespaceOrTypeSymbol.GenerateNameSyntax();
