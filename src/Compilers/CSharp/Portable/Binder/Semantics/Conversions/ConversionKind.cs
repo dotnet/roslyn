@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitNumeric,
         ImplicitEnumeration,
         ImplicitThrow,
+        ImplicitNew,
         ImplicitTupleLiteral,
         ImplicitTuple,
         ExplicitTupleLiteral,
@@ -50,7 +51,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         // It is used by lowering of "fixed" statements to represent conversion of an object reference (O) to an unmanaged pointer (*)
         // The conversion is unsafe and makes sense only if (O) is pinned.
         PinnedObjectToPointer,
-
-        ImplicitNew,
     }
 }

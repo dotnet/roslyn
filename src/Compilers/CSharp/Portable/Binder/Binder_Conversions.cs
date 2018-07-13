@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
-            if (conversion.Kind == ConversionKind.ImplicitNew && source.Kind == BoundKind.UnboundObjectCreationExpression)
+            if (conversion.IsNew && source.Kind == BoundKind.UnboundObjectCreationExpression)
             {
                 return CreateImplicitNewConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
@@ -190,10 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     operand = BindTypeParameterCreationExpression(
-                       node,
-                       typeParameter,
-                       boundInitializerOpt,
-                       diagnostics);
+                        node,
+                        typeParameter,
+                        boundInitializerOpt,
+                        diagnostics);
                     operand.WasCompilerGenerated = true;
                     break;
 

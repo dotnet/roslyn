@@ -515,6 +515,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool IsNew
+        {
+            get
+            {
+                return Kind == ConversionKind.ImplicitNew;
+            }
+        }
+
         // TODO: update the language reference section number below.
         /// <summary>
         /// Returns true if the conversion is an interpolated string conversion.
