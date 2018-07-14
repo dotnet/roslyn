@@ -104,6 +104,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsConditionalOr(SyntaxNode node);
 
         bool IsTupleExpression(SyntaxNode node);
+        void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
+            out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
+
         bool IsTupleType(SyntaxNode node);
 
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
