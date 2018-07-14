@@ -22,41 +22,35 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 
         private Editor_InProc2 Editor => TestServices.Editor;
 
-        internal async Task<ChangeSignatureDialog> VerifyOpenAsync()
+        internal async Task<ChangeSignatureDialog> VerifyOpenAsync(CancellationToken cancellationToken)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            while (true)
             {
-                while (true)
+                cancellationToken.ThrowIfCancellationRequested();
+                var window = await TryGetDialogAsync();
+                if (window is null)
                 {
-                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                    var window = await TryGetDialogAsync();
-                    if (window is null)
-                    {
-                        await Task.Yield();
-                        continue;
-                    }
-
-                    await WaitForApplicationIdleAsync(cancellationTokenSource.Token);
-                    return window;
+                    await Task.Yield();
+                    continue;
                 }
+
+                await WaitForApplicationIdleAsync(cancellationToken);
+                return window;
             }
         }
 
-        internal async Task VerifyClosedAsync()
+        internal async Task VerifyClosedAsync(CancellationToken cancellationToken)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            while (true)
             {
-                while (true)
+                cancellationToken.ThrowIfCancellationRequested();
+                var window = await TryGetDialogAsync();
+                if (window is null)
                 {
-                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                    var window = await TryGetDialogAsync();
-                    if (window is null)
-                    {
-                        return;
-                    }
-
-                    await Task.Yield();
+                    return;
                 }
+
+                await Task.Yield();
             }
         }
 

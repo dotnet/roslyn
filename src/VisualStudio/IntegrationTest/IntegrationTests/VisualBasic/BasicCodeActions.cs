@@ -38,8 +38,8 @@ Class Program
 End Class
 ");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Generate method 'Goo.Bar'", applyFix: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate method 'Goo.Bar'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
             VisualStudio.SolutionExplorer.Verify.FileContents(ProjectName, "Goo.vb", @"
 Class Goo
     Friend Sub Bar()

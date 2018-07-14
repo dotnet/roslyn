@@ -39,11 +39,11 @@ namespace myNamespace
             await SetUpEditorAsync(TestSource);
             var encapsulateField = VisualStudio.EncapsulateField;
             var dialog = VisualStudio.PreviewChangesDialog;
-            await encapsulateField.InvokeAsync();
+            await encapsulateField.InvokeAsync(cancellationToken: HangMitigatingCancellationToken);
             await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
             await dialog.ClickCancelAsync(encapsulateField.DialogName);
             await dialog.VerifyClosedAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
-            await encapsulateField.InvokeAsync();
+            await encapsulateField.InvokeAsync(cancellationToken: HangMitigatingCancellationToken);
             await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
             await dialog.ClickApplyAndWaitForFeatureAsync(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
             await VisualStudio.Editor.Verify.TextContainsAsync("public static int? Param { get => param; set => param = value; }");
@@ -53,8 +53,8 @@ namespace myNamespace
         public async Task EncapsulateThroughLightbulbIncludingReferencesAsync()
         {
             await SetUpEditorAsync(TestSource);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'param' (and use property)", applyFix: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'param' (and use property)", applyFix: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync(@"
 namespace myNamespace
 {
@@ -76,8 +76,8 @@ namespace myNamespace
         public async Task EncapsulateThroughLightbulbDefinitionsOnlyAsync()
         {
             await SetUpEditorAsync(TestSource);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'param' (but still use field)", applyFix: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'param' (but still use field)", applyFix: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync(@"
 namespace myNamespace
 {

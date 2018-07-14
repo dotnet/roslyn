@@ -201,10 +201,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("ArrayList");
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
-            await VisualStudio.InteractiveWindow.InvokeCodeActionListAsync();
+            await VisualStudio.InteractiveWindow.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await VisualStudio.InteractiveWindow.Verify.CodeActionsAsync(
                 new string[] { "using System.Collections;", "System.Collections.ArrayList" },
-                "using System.Collections;");
+                "using System.Collections;",
+                cancellationToken: HangMitigatingCancellationToken);
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"using System.Collections;
 
@@ -219,8 +220,9 @@ typeof(ArrayList)");
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("ArrayList");
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
             await VisualStudio.InteractiveWindow.Verify.CodeActionsAsync(
-    new string[] { "using System.Collections;", "System.Collections.ArrayList" },
-    "System.Collections.ArrayList");
+                new string[] { "using System.Collections;", "System.Collections.ArrayList" },
+                "System.Collections.ArrayList",
+                cancellationToken: HangMitigatingCancellationToken);
             VisualStudio.InteractiveWindow.Verify.LastReplInput("typeof(System.Collections.ArrayList)");
         }
     }

@@ -29,8 +29,8 @@ class C
     public void Method$$(int a, string b) { }
 }");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Change signature...", applyFix: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Change signature...", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -43,9 +43,9 @@ class C
 }");
 
             await ChangeSignatureDialog.InvokeAsync();
-            await ChangeSignatureDialog.VerifyOpenAsync();
+            await ChangeSignatureDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await ChangeSignatureDialog.ClickCancelAsync();
-            await ChangeSignatureDialog.VerifyClosedAsync();
+            await ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
             var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"
 class C
@@ -64,11 +64,11 @@ class C
 }");
 
             await ChangeSignatureDialog.InvokeAsync();
-            await ChangeSignatureDialog.VerifyOpenAsync();
+            await ChangeSignatureDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await ChangeSignatureDialog.SelectParameterAsync("int a");
             await ChangeSignatureDialog.ClickDownAsync();
             await ChangeSignatureDialog.ClickOkAsync();
-            await ChangeSignatureDialog.VerifyClosedAsync();
+            await ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
             var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"
 class C
@@ -97,12 +97,12 @@ class C
 }");
 
             await ChangeSignatureDialog.InvokeAsync();
-            await ChangeSignatureDialog.VerifyOpenAsync();
+            await ChangeSignatureDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await ChangeSignatureDialog.SelectParameterAsync("string b");
             await ChangeSignatureDialog.ClickUpAsync();
             await ChangeSignatureDialog.ClickRemoveAsync();
             await ChangeSignatureDialog.ClickOkAsync();
-            await ChangeSignatureDialog.VerifyClosedAsync();
+            await ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
             var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"
 class C
@@ -151,11 +151,11 @@ End Class");
             await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs");
 
             await ChangeSignatureDialog.InvokeAsync();
-            await ChangeSignatureDialog.VerifyOpenAsync();
+            await ChangeSignatureDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await ChangeSignatureDialog.SelectParameterAsync("String y");
             await ChangeSignatureDialog.ClickUpAsync();
             await ChangeSignatureDialog.ClickOkAsync();
-            await ChangeSignatureDialog.VerifyClosedAsync();
+            await ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
             var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actualText);
 

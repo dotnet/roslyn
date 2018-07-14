@@ -48,8 +48,8 @@ public class Program
 }
 ");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Generate method 'Foo.Bar'", applyFix: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate method 'Foo.Bar'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
             VisualStudio.SolutionExplorer.Verify.FileContents(ProjectName, "Foo.cs", @"
 using System;
 
@@ -80,10 +80,10 @@ class Program
     }
 }
 ");
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("using System;", applyFix: true, willBlockUntilComplete: true);
-            await VisualStudio.Editor.InvokeCodeActionListWithoutWaitingAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Simplify name 'System.ArgumentException'", applyFix: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("using System;", applyFix: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
+            await VisualStudio.Editor.InvokeCodeActionListWithoutWaitingAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Simplify name 'System.ArgumentException'", applyFix: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
 
             await VisualStudio.Editor.Verify.TextContainsAsync(
                 @"
@@ -128,11 +128,11 @@ class C
             MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
 
             await SetUpEditorAsync(markup);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.PlaceCaretAsync("temp2", 0, 0, extendSelection: false, selectBlock: false);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync("First?.");
             await VisualStudio.Editor.Verify.TextContainsAsync("Second?.");
         }
@@ -210,11 +210,12 @@ csharp_style_expression_bodied_properties = true:warning
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.CodeActionAsync(
                 "Use expression body for properties",
                 applyFix: true,
-                fixAllScope: FixAllScope.Project);
+                fixAllScope: FixAllScope.Project,
+                cancellationToken: HangMitigatingCancellationToken);
 
             Assert.Equal(expectedText, await VisualStudio.Editor.GetTextAsync());
 
@@ -233,11 +234,12 @@ csharp_style_expression_bodied_properties = true:warning
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.CodeActionAsync(
                 "Use block body for properties",
                 applyFix: true,
-                fixAllScope: FixAllScope.Project);
+                fixAllScope: FixAllScope.Project,
+                cancellationToken: HangMitigatingCancellationToken);
 
             expectedText = @"
 class C
@@ -289,8 +291,8 @@ class Program
         Foo$$();
     }
 }");
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            var classifiedTokens = await GetLightbulbPreviewClassificationAsync("Generate method 'Program.Foo'");
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var classifiedTokens = await GetLightbulbPreviewClassificationAsync("Generate method 'Program.Foo'", HangMitigatingCancellationToken);
             Assert.True(classifiedTokens.Any(c => c.Span.GetText() == "void" && c.ClassificationType.Classification == "keyword"));
         }
 
@@ -310,7 +312,7 @@ public class P2 { }");
 
             await VisualStudio.Editor.SendKeysAsync(VirtualKey.Backspace, VirtualKey.Backspace, "Stream");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var expectedItems = new[]
             {
                 "using System.IO;",
@@ -324,7 +326,7 @@ public class P2 { }");
                 "in Source"
             };
 
-            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync("using System.IO;");
         }
 
@@ -350,7 +352,7 @@ namespace NS
             await VisualStudio.Editor.SendKeysAsync(VirtualKey.Backspace, VirtualKey.Backspace,
                 "Foober");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var expectedItems = new[]
             {
                 "Rename 'P2' to 'Foober'",
@@ -364,7 +366,7 @@ namespace NS
                 "in Source",
             };
 
-            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -384,7 +386,7 @@ class Program
 }");
             await VisualStudio.Editor.SelectTextInCurrentDocumentAsync("2");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
 
             var generateImplicitTitle = "Generate implicit conversion operator in 'C'";
             var expectedItems = new[]
@@ -399,7 +401,7 @@ class Program
                 "in Source",
             };
 
-            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: generateImplicitTitle, ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: generateImplicitTitle, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync("implicit");
         }
 
@@ -416,14 +418,14 @@ public class Program
         GCHandle$$ handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
     }
 }");
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var expectedItems = new[]
             {
                 "using System.Runtime.InteropServices;",
                 "System.Runtime.InteropServices.GCHandle"
             };
 
-            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync("using System.Runtime.InteropServices");
         }
 
@@ -440,14 +442,14 @@ public class Program
         GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.$$Pinned);
     }
 }");
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var expectedItems = new[]
             {
                 "using System.Runtime.InteropServices;",
                 "System.Runtime.InteropServices.GCHandle"
             };
 
-            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync("using System.Runtime.InteropServices");
 
         }

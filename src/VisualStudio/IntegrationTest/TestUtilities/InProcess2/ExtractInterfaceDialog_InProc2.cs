@@ -23,46 +23,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         /// <summary>
         /// Verifies that the Extract Interface dialog is currently open.
         /// </summary>
-        internal async Task<ExtractInterfaceDialog> VerifyOpenAsync()
+        internal async Task<ExtractInterfaceDialog> VerifyOpenAsync(CancellationToken cancellationToken)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            while (true)
             {
-                while (true)
+                cancellationToken.ThrowIfCancellationRequested();
+                var window = await TryGetDialogAsync();
+                if (window is null)
                 {
-                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                    var window = await TryGetDialogAsync();
-                    if (window is null)
-                    {
-                        // Task.Yield is insufficient; something in the light bulb must be relying on a UI thread
-                        // message at lower priority than the Background priority used in testing.
-                        await WaitForApplicationIdleAsync(cancellationTokenSource.Token);
-                        continue;
-                    }
-
-                    await WaitForApplicationIdleAsync(cancellationTokenSource.Token);
-                    return window;
+                    // Task.Yield is insufficient; something in the light bulb must be relying on a UI thread
+                    // message at lower priority than the Background priority used in testing.
+                    await WaitForApplicationIdleAsync(cancellationToken);
+                    continue;
                 }
+
+                await WaitForApplicationIdleAsync(cancellationToken);
+                return window;
             }
         }
 
         /// <summary>
         /// Verifies that the Extract Interface dialog is currently closed.
         /// </summary>
-        internal async Task VerifyClosedAsync()
+        internal async Task VerifyClosedAsync(CancellationToken cancellationToken)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            while (true)
             {
-                while (true)
+                cancellationToken.ThrowIfCancellationRequested();
+                var window = await TryGetDialogAsync();
+                if (window is null)
                 {
-                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                    var window = await TryGetDialogAsync();
-                    if (window is null)
-                    {
-                        return;
-                    }
-
-                    await Task.Yield();
+                    return;
                 }
+
+                await Task.Yield();
             }
         }
 

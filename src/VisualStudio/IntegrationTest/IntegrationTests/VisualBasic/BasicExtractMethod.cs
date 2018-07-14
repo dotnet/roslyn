@@ -95,7 +95,7 @@ End Module";
             await VisualStudio.Editor.SetTextAsync(TestSource);
             await VisualStudio.Editor.PlaceCaretAsync("a = 5", charsOffset: -1);
             await VisualStudio.Editor.PlaceCaretAsync("a * b", charsOffset: 1, extendSelection: true);
-            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Method", applyFix: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Method", applyFix: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
 
             var expectedMarkup = @"
 Imports System
@@ -136,7 +136,7 @@ End Module";
             try
             {
                 await VisualStudio.Workspace.SetFeatureOptionAsync(ExtractMethodOptions.AllowMovingDeclaration, LanguageNames.VisualBasic, true);
-                await VisualStudio.Editor.Verify.CodeActionAsync("Extract Method + Local", applyFix: true, willBlockUntilComplete: true);
+                await VisualStudio.Editor.Verify.CodeActionAsync("Extract Method + Local", applyFix: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
 
                 var expectedMarkup = @"
 Imports System

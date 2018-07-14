@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
@@ -9,7 +10,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class LightBulbHelper
     {
-        public static Task<bool> WaitForLightBulbSessionAsync(ILightBulbBroker broker, IWpfTextView view)
+        public static Task<bool> WaitForLightBulbSessionAsync(ILightBulbBroker broker, IWpfTextView view, CancellationToken cancellationToken)
         {
             var startTime = DateTimeOffset.Now;
 
@@ -20,7 +21,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     return true;
                 }
 
-                if (DateTimeOffset.Now > startTime + Helper.HangMitigatingTimeout)
+                if (cancellationToken.IsCancellationRequested)
                 {
                     throw new InvalidOperationException("Expected a light bulb session to appear.");
                 }

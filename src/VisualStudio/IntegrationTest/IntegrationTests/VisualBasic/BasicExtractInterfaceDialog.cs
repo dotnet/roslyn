@@ -29,14 +29,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     End Sub
 End Class");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                willBlockUntilComplete: false);
+                willBlockUntilComplete: false,
+                cancellationToken: HangMitigatingCancellationToken);
 
-            await ExtractInterfaceDialog.VerifyOpenAsync();
+            await ExtractInterfaceDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await ExtractInterfaceDialog.ClickOkAsync();
-            await ExtractInterfaceDialog.VerifyClosedAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
             await codeAction;
 
@@ -63,12 +64,13 @@ End Interface");
     End Sub
 End Class");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                willBlockUntilComplete: false);
+                willBlockUntilComplete: false,
+                cancellationToken: HangMitigatingCancellationToken);
 
-            await ExtractInterfaceDialog.VerifyOpenAsync();
+            await ExtractInterfaceDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
 
             var fileName = await ExtractInterfaceDialog.GetTargetFileNameAsync();
 

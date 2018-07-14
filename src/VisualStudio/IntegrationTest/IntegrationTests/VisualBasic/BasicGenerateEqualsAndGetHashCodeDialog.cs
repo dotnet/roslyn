@@ -31,8 +31,8 @@ Class C
 $$
 End Class");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate Equals(object)...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate Equals(object)...", applyFix: true, willBlockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await VisualStudio.PickMembersDialog.ClickCancelAsync();
 
@@ -64,8 +64,8 @@ Class C
 $$
 End Class");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate Equals(object)...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate Equals(object)...", applyFix: true, willBlockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await VisualStudio.PickMembersDialog.ClickOkAsync();
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb);

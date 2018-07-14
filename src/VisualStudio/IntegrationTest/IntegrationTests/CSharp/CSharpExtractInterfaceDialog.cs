@@ -29,14 +29,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     public void M() { }
 }
 ");
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                willBlockUntilComplete: false);
+                willBlockUntilComplete: false,
+                cancellationToken: HangMitigatingCancellationToken);
 
-            await ExtractInterfaceDialog.VerifyOpenAsync();
+            await ExtractInterfaceDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await ExtractInterfaceDialog.ClickCancelAsync();
-            await ExtractInterfaceDialog.VerifyClosedAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
             await codeAction;
 
@@ -55,18 +56,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     public void M() { }
 }
 ");
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                willBlockUntilComplete: false);
+                willBlockUntilComplete: false,
+                cancellationToken: HangMitigatingCancellationToken);
 
-            await ExtractInterfaceDialog.VerifyOpenAsync();
+            await ExtractInterfaceDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
 
             var targetFileName = await ExtractInterfaceDialog.GetTargetFileNameAsync();
             Assert.Equal(expected: "IC.cs", actual: targetFileName);
 
             await ExtractInterfaceDialog.ClickCancelAsync();
-            await ExtractInterfaceDialog.VerifyClosedAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
             await codeAction;
         }
@@ -81,12 +83,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                willBlockUntilComplete: false);
+                willBlockUntilComplete: false,
+                cancellationToken: HangMitigatingCancellationToken);
 
-            await ExtractInterfaceDialog.VerifyOpenAsync();
+            await ExtractInterfaceDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
 
             var selectedItems = await ExtractInterfaceDialog.GetSelectedItemsAsync();
             Assert.Equal(
@@ -106,7 +109,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 actual: selectedItems);
 
             await ExtractInterfaceDialog.ClickCancelAsync();
-            await ExtractInterfaceDialog.VerifyClosedAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
             await codeAction;
         }
@@ -121,16 +124,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
-                willBlockUntilComplete: false);
+                willBlockUntilComplete: false,
+                cancellationToken: HangMitigatingCancellationToken);
 
-            await ExtractInterfaceDialog.VerifyOpenAsync();
+            await ExtractInterfaceDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await ExtractInterfaceDialog.ClickDeselectAllAsync();
             await ExtractInterfaceDialog.ToggleItemAsync("M2()");
             await ExtractInterfaceDialog.ClickOkAsync();
-            await ExtractInterfaceDialog.VerifyClosedAsync();
+            await ExtractInterfaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
             await codeAction;
 

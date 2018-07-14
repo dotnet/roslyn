@@ -98,13 +98,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
         }
 
-        public async Task WaitForLightBulbSessionAsync()
+        public async Task WaitForLightBulbSessionAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var view = await GetActiveTextViewAsync();
             var broker = (await GetComponentModelAsync()).GetService<ILightBulbBroker>();
-            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view);
+            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view, cancellationToken);
         }
 
         /// <remarks>
@@ -481,13 +481,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet);
         }
 
-        public async Task InvokeCodeActionListAsync()
+        public async Task InvokeCodeActionListAsync(CancellationToken cancellationToken)
         {
             await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler);
             await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService);
 
             await ShowLightBulbAsync();
-            await WaitForLightBulbSessionAsync();
+            await WaitForLightBulbSessionAsync(cancellationToken);
             await Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb);
         }
 
@@ -495,10 +495,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         /// Invokes the light bulb without waiting for diagnostics
         /// Compare to <see cref="InvokeCodeActionListAsync"/>
         /// </summary>
-        public async Task InvokeCodeActionListWithoutWaitingAsync()
+        public async Task InvokeCodeActionListWithoutWaitingAsync(CancellationToken cancellationToken)
         {
             await ShowLightBulbAsync();
-            await WaitForLightBulbSessionAsync();
+            await WaitForLightBulbSessionAsync(cancellationToken);
         }
 
         public async Task InvokeQuickInfoAsync()

@@ -146,17 +146,17 @@ End Module
         {
             await VisualStudio.SolutionExplorer.OpenFileAsync(ConsoleProjectName, "Module1.vb");
             await VisualStudio.Editor.PlaceCaretAsync("y.goo", charsOffset: 1);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.PlaceCaretAsync("x.goo", charsOffset: 1);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.PlaceCaretAsync("z.DialogResult", charsOffset: 1);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.PlaceCaretAsync("a.bar", charsOffset: 1);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
@@ -164,16 +164,16 @@ End Module
         {
             await VisualStudio.SolutionExplorer.OpenFileAsync(ConsoleProjectName, "Module1.vb");
             await VisualStudio.Editor.PlaceCaretAsync("y.goo", charsOffset: 1);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
             VisualStudio.SolutionExplorer.Verify.AssemblyReferencePresent(
                 projectName: ConsoleProjectName,
                 assemblyName: "System.Windows.Forms",
                 assemblyVersion: "4.0.0.0",
                 assemblyPublicKeyToken: "b77a5c561934e089");
             await VisualStudio.Editor.PlaceCaretAsync("a.bar", charsOffset: 1);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
             VisualStudio.SolutionExplorer.Verify.ProjectReferencePresent(
                 projectName: ConsoleProjectName,
                 referencedProjectName: ClassLibrary3Name);

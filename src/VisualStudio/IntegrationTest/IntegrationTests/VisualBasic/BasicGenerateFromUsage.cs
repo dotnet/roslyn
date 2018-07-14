@@ -27,7 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         Dim x As String = $$xyz
     End Sub
 End Module");
-            await VisualStudio.Editor.Verify.CodeActionAsync("Generate local 'xyz'", applyFix: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate local 'xyz'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync(
 @"Module Program
     Sub Main(args As String())
@@ -46,7 +46,7 @@ End Module");
         Dim x As New $$ClassInNewFile()
     End Sub
 End Module");
-            await VisualStudio.Editor.Verify.CodeActionAsync("Generate class 'ClassInNewFile' in new file", applyFix: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate class 'ClassInNewFile' in new file", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "ClassInNewFile.vb");
             await VisualStudio.Editor.Verify.TextContainsAsync(
 @"Friend Class ClassInNewFile

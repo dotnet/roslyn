@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -28,11 +29,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 bool verifyNotShowing = false,
                 bool ensureExpectedItemsAreOrdered = false,
                 FixAllScope? fixAllScope = null,
-                bool willBlockUntilComplete = true)
+                bool willBlockUntilComplete = true,
+                CancellationToken cancellationToken = default)
             {
                 var expectedItems = new[] { expectedItem };
                 await CodeActionsAsync(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
-                    ensureExpectedItemsAreOrdered, fixAllScope, willBlockUntilComplete);
+                    ensureExpectedItemsAreOrdered, fixAllScope, willBlockUntilComplete, cancellationToken);
             }
 
             public async Task CodeActionsAsync(
@@ -41,10 +43,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 bool verifyNotShowing = false,
                 bool ensureExpectedItemsAreOrdered = false,
                 FixAllScope? fixAllScope = null,
-                bool willBlockUntilComplete = true)
+                bool willBlockUntilComplete = true,
+                CancellationToken cancellationToken = default)
             {
                 await _textViewWindow.ShowLightBulbAsync();
-                await _textViewWindow.WaitForLightBulbSessionAsync();
+                await _textViewWindow.WaitForLightBulbSessionAsync(cancellationToken);
 
                 if (verifyNotShowing)
                 {

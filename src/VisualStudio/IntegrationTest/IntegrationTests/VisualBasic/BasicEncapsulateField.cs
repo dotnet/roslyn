@@ -35,11 +35,11 @@ End Module";
 
             var encapsulateField = VisualStudio.EncapsulateField;
             var dialog = VisualStudio.PreviewChangesDialog;
-            await encapsulateField.InvokeAsync();
+            await encapsulateField.InvokeAsync(cancellationToken: HangMitigatingCancellationToken);
             await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
             await dialog.ClickCancelAsync(encapsulateField.DialogName);
             await dialog.VerifyClosedAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
-            await encapsulateField.InvokeAsync();
+            await encapsulateField.InvokeAsync(cancellationToken: HangMitigatingCancellationToken);
             await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
             await dialog.ClickApplyAndWaitForFeatureAsync(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
             await VisualStudio.Editor.Verify.TextContainsAsync(@"    Private _name As Integer? = 0
@@ -58,8 +58,8 @@ End Module";
         public async Task EncapsulateThroughLightbulbIncludingReferencesAsync()
         {
             await SetUpEditorAsync(TestSource);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'name' (and use property)", applyFix: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'name' (and use property)", applyFix: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync(@"
 Module Module1
     Private _name As Integer? = 0
@@ -83,8 +83,8 @@ End Module");
         public async Task EncapsulateThroughLightbulbDefinitionsOnlyAsync()
         {
             await SetUpEditorAsync(TestSource);
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'name' (but still use field)", applyFix: true, willBlockUntilComplete: true);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'name' (but still use field)", applyFix: true, willBlockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync(@"
 Module Module1
     Private _name As Integer? = 0

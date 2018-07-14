@@ -324,7 +324,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 && caret.Bottom <= view.ViewportBottom;
         }
 
-        public async Task<ClassificationSpan[]> GetLightbulbPreviewClassificationsAsync(string menuText)
+        public async Task<ClassificationSpan[]> GetLightbulbPreviewClassificationsAsync(string menuText, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -335,16 +335,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 menuText,
                 broker,
                 view,
-                classifierAggregatorService);
+                classifierAggregatorService,
+                cancellationToken);
         }
 
         private async Task<ClassificationSpan[]> GetLightbulbPreviewClassificationsAsync(
             string menuText,
             ILightBulbBroker broker,
             IWpfTextView view,
-            IViewClassifierAggregatorService viewClassifierAggregator)
+            IViewClassifierAggregatorService viewClassifierAggregator,
+            CancellationToken cancellationToken)
         {
-            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view).ConfigureAwait(true);
+            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view, cancellationToken).ConfigureAwait(true);
 
             var bufferType = view.TextBuffer.ContentType.DisplayName;
             if (!broker.IsLightBulbSessionActive(view))

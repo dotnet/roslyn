@@ -36,7 +36,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
             var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
-                willBlockUntilComplete: false);
+                willBlockUntilComplete: false,
+                cancellationToken: HangMitigatingCancellationToken);
 
             await GenerateTypeDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await GenerateTypeDialog.ClickCancelAsync();
@@ -62,7 +63,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
             var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
-                willBlockUntilComplete: false);
+                willBlockUntilComplete: false,
+                cancellationToken: HangMitigatingCancellationToken);
 
             await GenerateTypeDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await GenerateTypeDialog.SetAccessibilityAsync("public");

@@ -29,7 +29,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         string s = $$xyz;
     }
 }");
-            await VisualStudio.Editor.Verify.CodeActionAsync("Generate local 'xyz'", applyFix: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate local 'xyz'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.Editor.Verify.TextContainsAsync(
 @"class Program
 {

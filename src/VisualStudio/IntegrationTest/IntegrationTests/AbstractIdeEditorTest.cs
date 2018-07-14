@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -81,9 +82,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        protected async Task<ClassificationSpan[]> GetLightbulbPreviewClassificationAsync(string menuText)
+        protected async Task<ClassificationSpan[]> GetLightbulbPreviewClassificationAsync(string menuText, CancellationToken cancellationToken)
         {
-            return await Editor.GetLightbulbPreviewClassificationsAsync(menuText);
+            return await Editor.GetLightbulbPreviewClassificationsAsync(menuText, cancellationToken);
         }
     }
 }

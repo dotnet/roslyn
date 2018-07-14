@@ -34,8 +34,8 @@ Class C
 $$
 End Class");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await VisualStudio.PickMembersDialog.ClickCancelAsync();
 
@@ -66,8 +66,8 @@ Class C
 $$
 End Class");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
             await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
             await VisualStudio.PickMembersDialog.ClickOkAsync();
 
@@ -102,8 +102,8 @@ Class C
 $$
 End Class");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
             var dialog = await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
 
             var peer = new ListViewAutomationPeer(dialog.GetTestAccessor().Members);
@@ -147,8 +147,8 @@ Class C
 $$
 End Class");
 
-            await VisualStudio.Editor.InvokeCodeActionListAsync();
-            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false);
+            await VisualStudio.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var codeAction = VisualStudio.Editor.Verify.CodeActionAsync("Generate constructor...", applyFix: true, willBlockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
             var dialog = await VisualStudio.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
 
             var peer = new ListViewAutomationPeer(dialog.GetTestAccessor().Members);
