@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
@@ -18,11 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     [Export(typeof(IOptionPersister))]
     internal class CommentTaskTokenSerializer : ForegroundThreadAffinitizedObject, IOptionPersister
     {
-        private readonly Shell.IAsyncServiceProvider _serviceProvider;
+        private readonly ServiceInitializer<ITaskList, SVsTaskList> _serviceInitializer;
         private readonly IOptionService _optionService;
 
-        private ITaskList _taskList;
-        private string _lastCommentTokenCache = null;
+        private string _lastCommentTokenCache;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -31,31 +31,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             : base(assertIsForeground: true)
         {
             _optionService = workspace.Services.GetService<IOptionService>();
-            _serviceProvider = serviceProvider;
+            _serviceInitializer = new ServiceInitializer<ITaskList, SVsTaskList>(serviceProvider, service =>
+            {
+                // The SVsTaskList may not be available or doesn't actually implement ITaskList in the "devenv /build" scenario
+                if (service != null)
+                {
+                    service.PropertyChanged += OnPropertyChanged;
+                }
+
+                // GetTaskTokenList is safe in the face of nulls
+                _lastCommentTokenCache = GetTaskTokenList(service);
+
+                return Task.CompletedTask;
+            });
         }
 
-        public async Task InitializeAsync(CancellationToken cancellationToken)
+        public Task PrefetchAsync(CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // The SVsTaskList may not be available or doesn't actually implement ITaskList
-            // in the "devenv /build" scenario
-            _taskList = (ITaskList)await _serviceProvider.GetServiceAsync(typeof(SVsTaskList)).ConfigureAwait(true);
-            Assumes.Present(_taskList);
-
-            // GetTaskTokenList is safe in the face of nulls
-            _lastCommentTokenCache = GetTaskTokenList(_taskList);
-
-            if (_taskList != null)
-            {
-                _taskList.PropertyChanged += OnPropertyChanged;
-            }
+            return _serviceInitializer.GetServiceAsync(cancellationToken);
         }
 
         public bool TryFetch(OptionKey optionKey, out object value)
         {
+            _serviceInitializer.Ensure(CancellationToken.None);
+
             value = string.Empty;
             if (optionKey != TodoCommentOptions.TokenList)
             {
@@ -74,12 +73,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            AssertIsForeground();
+
             if (e.PropertyName != nameof(ITaskList.CommentTokens))
             {
                 return;
             }
 
-            var commentString = GetTaskTokenList(_taskList);
+            var commentString = GetTaskTokenList(_serviceInitializer.GetService(CancellationToken.None));
 
             var optionSet = _optionService.GetOptions();
             var optionValue = optionSet.GetOption(TodoCommentOptions.TokenList);

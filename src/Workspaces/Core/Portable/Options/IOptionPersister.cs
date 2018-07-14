@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal interface IOptionPersister
     {
-        Task InitializeAsync(CancellationToken cancellationToken);
-
+        Task PrefetchAsync(CancellationToken cancelaltionToken);
         bool TryFetch(OptionKey optionKey, out object value);
         bool TryPersist(OptionKey optionKey, object value);
     }

@@ -33,7 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public LocalUserRegistryOptionPersister([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
             : base(assertIsForeground: true) // The VSRegistry.RegistryRoot call requires being on the UI thread or else it will marshal and risk deadlock
         {
+            // this require being initialized from UI thread. trying to see whether there is Async version of this that doesn't require IServiceProvider
             this._registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
+        }
+
+        public Task PrefetchAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
 
         private static bool TryGetKeyPathAndName(IOption option, out string path, out string key)
@@ -54,8 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return true;
             }
         }
-
-        Task IOptionPersister.InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         bool IOptionPersister.TryFetch(OptionKey optionKey, out object value)
         {

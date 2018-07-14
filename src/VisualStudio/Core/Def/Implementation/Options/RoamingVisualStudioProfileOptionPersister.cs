@@ -4,19 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
@@ -27,19 +27,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// Serializes settings marked with <see cref="RoamingProfileStorageLocation"/> to and from the user's roaming profile.
     /// </summary>
     [Export(typeof(IOptionPersister))]
-    internal sealed class RoamingVisualStudioProfileOptionPersister : ForegroundThreadAffinitizedObject, IOptionPersister
+    internal sealed class RoamingVisualStudioProfileOptionPersister : IOptionPersister
     {
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
         private class SVsSettingsPersistenceManager { };
 
+        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+
         private readonly Shell.IAsyncServiceProvider _serviceProvider;
         private readonly IGlobalOptionService _globalOptionService;
 
-        private ISettingsManager _settingManager;
+        private ISettingsManager _settingManagerDoNotAccessDirectly;
 
         /// <summary>
-        /// The list of options that have been been fetched from <see cref="_settingManager"/>, by key. We track this so
+        /// The list of options that have been been fetched from <see cref="_settingManagerDoNotAccessDirectly"/>, by key. We track this so
         /// if a later change happens, we know to refresh that value. This is synchronized with monitor locks on
         /// <see cref="_optionsToMonitorForChangesGate" />.
         /// </summary>
@@ -51,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoamingVisualStudioProfileOptionPersister(
             IGlobalOptionService globalOptionService, [Import(typeof(SAsyncServiceProvider))] Shell.IAsyncServiceProvider serviceProvider)
-            : base(assertIsForeground: true) // The GetService call requires being on the UI thread or else it will marshal and risk deadlock
         {
             Contract.ThrowIfNull(globalOptionService);
             Contract.ThrowIfNull(serviceProvider);
@@ -60,26 +61,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _serviceProvider = serviceProvider;
         }
 
-        public async Task InitializeAsync(CancellationToken cancellationToken)
+        private ISettingsManager GetService(CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            _settingManager = (ISettingsManager)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(true);
-            Assumes.Present(_settingManager);
-
-            // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
-            // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
-            // as the scenario seems exceedingly unlikely), but we shouldn't crash the IDE.
-            if (_settingManager != null)
+            if (_settingManagerDoNotAccessDirectly == null)
             {
-                var settingsSubset = _settingManager.GetSubset("*");
-                settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
+                // this doesn't switch to main thread.
+                ThreadHelper.JoinableTaskFactory.Run(() => GetServiceAsync(cancellationToken));
+            }
+
+            return _settingManagerDoNotAccessDirectly;
+        }
+
+        private async Task<ISettingsManager> GetServiceAsync(CancellationToken cancellationToken)
+        {
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_settingManagerDoNotAccessDirectly == null)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var settingManagerDoNotAccessDirectly = (ISettingsManager)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(false);
+
+                    // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
+                    // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
+                    // as the scenario seems exceedingly unlikely), but we shouldn't crash the IDE.
+                    if (settingManagerDoNotAccessDirectly != null)
+                    {
+                        var settingsSubset = settingManagerDoNotAccessDirectly.GetSubset("*");
+                        settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
+                    }
+
+                    _settingManagerDoNotAccessDirectly = settingManagerDoNotAccessDirectly;
+                }
+
+                return _settingManagerDoNotAccessDirectly;
             }
         }
 
-        private System.Threading.Tasks.Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
+        private Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
             lock (_optionsToMonitorForChangesGate)
             {
@@ -95,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
             }
 
-            return System.Threading.Tasks.Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
         private object GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)
@@ -114,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
                 RecordObservedValueToWatchForChanges(optionKey, storageKey);
 
-                if (_settingManager.TryGetValue(storageKey, out object value) == GetValueResult.Success)
+                if (GetService(CancellationToken.None).TryGetValue(storageKey, out object value) == GetValueResult.Success)
                 {
                     return value;
                 }
@@ -123,14 +142,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return optionKey.Option.DefaultValue;
         }
 
+        public Task PrefetchAsync(CancellationToken cancellationToken)
+        {
+            return GetServiceAsync(cancellationToken);
+        }
+
         public bool TryFetch(OptionKey optionKey, out object value)
         {
-            if (_settingManager == null)
-            {
-                Debug.Fail("Manager field is unexpectedly null.");
-                value = null;
-                return false;
-            }
+            var service = GetService(CancellationToken.None);
 
             // Do we roam this at all?
             var roamingSerializations = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>();
@@ -248,11 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public bool TryPersist(OptionKey optionKey, object value)
         {
-            if (_settingManager == null)
-            {
-                Debug.Fail("Manager field is unexpectedly null.");
-                return false;
-            }
+            var service = GetService(CancellationToken.None);
 
             // Do we roam this at all?
             var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().FirstOrDefault();
@@ -283,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
             }
 
-            _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
+            service.SetValueAsync(storageKey, value, isMachineLocal: false);
             return true;
         }
     }

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     [Export(typeof(IOptionPersister))]
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
-        private readonly Shell.IAsyncServiceProvider _serviceProvider;
+        private readonly ServiceInitializer<IVsTextManager4, SVsTextManager> _serviceInitializer;
         private readonly IGlobalOptionService _optionService;
 
         /// <summary>
@@ -39,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// but the ngen image will exist for the basic map between two reference types, since those are reused.</remarks>
         private readonly IBidirectionalMap<string, Tuple<Guid>> _languageMap;
 
-        private IVsTextManager4 _textManager;
         private ComEventSink _textManagerEvents2Sink;
 
         /// <remarks>
@@ -52,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             : base(assertIsForeground: true)
         {
             _optionService = optionService;
-            _serviceProvider = serviceProvider;
 
             // TODO: make this configurable
             _languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty.Add(LanguageNames.CSharp, Tuple.Create(Guids.CSharpLanguageServiceId))
@@ -60,30 +59,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                                                                .Add("TypeScript", Tuple.Create(new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77")))
                                                                .Add("F#", Tuple.Create(new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B")))
                                                                .Add("Xaml", Tuple.Create(new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41")));
-        }
 
-        public async Task InitializeAsync(CancellationToken cancellationToken)
-        {
-            AssertIsForeground();
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            _textManager = (IVsTextManager4)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
-            Assumes.Present(_textManager);
-
-            foreach (var languageGuid in _languageMap.Values)
+            _serviceInitializer = new ServiceInitializer<IVsTextManager4, SVsTextManager>(serviceProvider, service =>
             {
-                var languagePreferences = new LANGPREFERENCES3[1];
-                languagePreferences[0].guidLang = languageGuid.Item1;
+                Assumes.Present(service);
 
-                // The function can potentially fail if that language service isn't installed
-                if (ErrorHandler.Succeeded(_textManager.GetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null)))
+                _textManagerEvents2Sink = ComEventSink.Advise<IVsTextManagerEvents4>(service, this);
+
+                foreach (var languageGuid in _languageMap.Values)
                 {
-                    RefreshLanguageSettings(languagePreferences);
-                }
-            }
+                    var languagePreferences = new LANGPREFERENCES3[1];
+                    languagePreferences[0].guidLang = languageGuid.Item1;
 
-            _textManagerEvents2Sink = ComEventSink.Advise<IVsTextManagerEvents4>(_textManager, this);
+                    // The function can potentially fail if that language service isn't installed
+                    if (ErrorHandler.Succeeded(service.GetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null)))
+                    {
+                        RefreshLanguageSettings(languagePreferences);
+                    }
+                }
+
+                return Task.CompletedTask;
+            });
         }
 
         private readonly IOption[] _supportedOptions = new IOption[]
@@ -234,6 +230,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
+        public Task PrefetchAsync(CancellationToken cancellationToken)
+        {
+            return _serviceInitializer.GetServiceAsync(cancellationToken);
+        }
+
         public bool TryFetch(OptionKey optionKey, out object value)
         {
             // This particular serializer is a bit strange, since we have to initially read things out on the UI thread.
@@ -261,7 +262,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             var languagePreferences = new LANGPREFERENCES3[1];
             languagePreferences[0].guidLang = languageServiceGuid.Item1;
-            Marshal.ThrowExceptionForHR(_textManager.GetUserPreferences4(null, languagePreferences, null));
+
+            // shouldn't all these in SetUserPreferencesMayAsync?
+            var service = _serviceInitializer.GetService(CancellationToken.None);
+
+            // calling this here is safe when it is called from BG?
+            Marshal.ThrowExceptionForHR(service.GetUserPreferences4(null, languagePreferences, null));
 
             SetValueForOption(optionKey.Option, ref languagePreferences[0], value);
             SetUserPreferencesMaybeAsync(languagePreferences);
@@ -274,7 +280,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (IsForeground())
             {
-                Marshal.ThrowExceptionForHR(_textManager.SetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null));
+                var service = _serviceInitializer.GetService(CancellationToken.None);
+                Marshal.ThrowExceptionForHR(service.SetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null));
             }
             else
             {

@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             foreach (var optionPersister in _componentModel.GetExtensions<IOptionPersister>())
             {
-                await optionPersister.InitializeAsync(cancellationToken).ConfigureAwait(true);
+                await optionPersister.PrefetchAsync(cancellationToken).ConfigureAwait(true);
             }
 
             RoslynTelemetrySetup.Initialize(this);
