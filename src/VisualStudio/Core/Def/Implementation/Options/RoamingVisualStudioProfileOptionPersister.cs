@@ -8,15 +8,14 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
@@ -35,13 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-        private readonly Shell.IAsyncServiceProvider _serviceProvider;
+        private readonly ServiceInitializer<ISettingsManager, SVsSettingsPersistenceManager> _serviceInitializer;
         private readonly IGlobalOptionService _globalOptionService;
 
-        private ISettingsManager _settingManagerDoNotAccessDirectly;
-
         /// <summary>
-        /// The list of options that have been been fetched from <see cref="_settingManagerDoNotAccessDirectly"/>, by key. We track this so
+        /// The list of options that have been been fetched from <see cref="ISettingsManager"/>, by key. We track this so
         /// if a later change happens, we know to refresh that value. This is synchronized with monitor locks on
         /// <see cref="_optionsToMonitorForChangesGate" />.
         /// </summary>
@@ -58,44 +55,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Contract.ThrowIfNull(serviceProvider);
 
             _globalOptionService = globalOptionService;
-            _serviceProvider = serviceProvider;
-        }
-
-        private ISettingsManager GetService(CancellationToken cancellationToken)
-        {
-            if (_settingManagerDoNotAccessDirectly == null)
+            _serviceInitializer = new ServiceInitializer<ISettingsManager, SVsSettingsPersistenceManager>(serviceProvider, service =>
             {
-                // this doesn't switch to main thread.
-                ThreadHelper.JoinableTaskFactory.Run(() => GetServiceAsync(cancellationToken));
-            }
-
-            return _settingManagerDoNotAccessDirectly;
-        }
-
-        private async Task<ISettingsManager> GetServiceAsync(CancellationToken cancellationToken)
-        {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                if (_settingManagerDoNotAccessDirectly == null)
+                // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
+                // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
+                // as the scenario seems exceedingly unlikely), but we shouldn't crash the IDE.
+                if (service != null)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var settingManagerDoNotAccessDirectly = (ISettingsManager)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(false);
-
-                    // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
-                    // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
-                    // as the scenario seems exceedingly unlikely), but we shouldn't crash the IDE.
-                    if (settingManagerDoNotAccessDirectly != null)
-                    {
-                        var settingsSubset = settingManagerDoNotAccessDirectly.GetSubset("*");
-                        settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
-                    }
-
-                    _settingManagerDoNotAccessDirectly = settingManagerDoNotAccessDirectly;
+                    var settingsSubset = service.GetSubset("*");
+                    settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
                 }
 
-                return _settingManagerDoNotAccessDirectly;
-            }
+                return Task.CompletedTask;
+            }, uiThreadRequired: false);
         }
 
         private Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
@@ -133,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
                 RecordObservedValueToWatchForChanges(optionKey, storageKey);
 
-                if (GetService(CancellationToken.None).TryGetValue(storageKey, out object value) == GetValueResult.Success)
+                if (_serviceInitializer.GetService(CancellationToken.None).TryGetValue(storageKey, out object value) == GetValueResult.Success)
                 {
                     return value;
                 }
@@ -150,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public bool TryFetch(OptionKey optionKey, out object value)
         {
-            var service = GetService(CancellationToken.None);
+            var service = _serviceInitializer.GetService(CancellationToken.None);
 
             // Do we roam this at all?
             var roamingSerializations = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>();
@@ -268,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public bool TryPersist(OptionKey optionKey, object value)
         {
-            var service = GetService(CancellationToken.None);
+            var service = _serviceInitializer.GetService(CancellationToken.None);
 
             // Do we roam this at all?
             var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().FirstOrDefault();

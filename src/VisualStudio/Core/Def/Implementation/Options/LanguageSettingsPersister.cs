@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
 
                 return Task.CompletedTask;
-            });
+            }, uiThreadRequired: true);
         }
 
         private readonly IOption[] _supportedOptions = new IOption[]
