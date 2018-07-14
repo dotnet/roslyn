@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -33,7 +34,7 @@ insert_final_newline = false
 # Organize usings
 dotnet_sort_system_directives_first = true
 
-# this. preferences
+# Me. preferences
 dotnet_style_qualification_for_field = false:none
 dotnet_style_qualification_for_property = false:none
 dotnet_style_qualification_for_method = false:none
@@ -60,8 +61,8 @@ dotnet_style_explicit_tuple_names = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_prefer_inferred_tuple_names = true:suggestion
-dotnet_prefer_inferred_anonymous_type_member_names = true:suggestion
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_auto_properties = true:none
 dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
@@ -69,10 +70,14 @@ dotnet_style_prefer_conditional_expression_over_return = true:none
 ###############################
 # VB Coding Conventions       #
 ###############################
+# Modifier preferences
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:none
 "
-                Dim actualText = VisualBasic.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsString(workspace.Options)
-                Assert.Equal(expectedText, actualText)
+                Dim actualText = New StringBuilder()
+                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_CoreSettings(workspace.Options, LanguageNames.VisualBasic, actualText)
+                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_DotNetSettings(workspace.Options, LanguageNames.VisualBasic, actualText)
+                VisualBasic.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsVB(workspace.Options, actualText)
+                Assert.Equal(expectedText, actualText.ToString())
             End Using
         End Sub
 
@@ -99,7 +104,7 @@ insert_final_newline = false
 # Organize usings
 dotnet_sort_system_directives_first = true
 
-# this. preferences
+# Me. preferences
 dotnet_style_qualification_for_field = false:none
 dotnet_style_qualification_for_property = false:none
 dotnet_style_qualification_for_method = false:none
@@ -126,8 +131,8 @@ dotnet_style_explicit_tuple_names = false:error
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_prefer_inferred_tuple_names = true:suggestion
-dotnet_prefer_inferred_anonymous_type_member_names = true:suggestion
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_auto_properties = true:none
 dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
@@ -135,10 +140,15 @@ dotnet_style_prefer_conditional_expression_over_return = true:none
 ###############################
 # VB Coding Conventions       #
 ###############################
+# Modifier preferences
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:none
 "
-                Dim actualText = VisualBasic.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsString(changedOptions)
-                Assert.Equal(expectedText, actualText)
+                Dim actualText = New StringBuilder()
+                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_CoreSettings(changedOptions, LanguageNames.VisualBasic, actualText)
+                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_DotNetSettings(changedOptions, LanguageNames.VisualBasic, actualText)
+                VisualBasic.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsVB(changedOptions, actualText)
+                Dim Test = actualText.ToString()
+                Assert.Equal(expectedText, actualText.ToString())
             End Using
         End Sub
     End Class

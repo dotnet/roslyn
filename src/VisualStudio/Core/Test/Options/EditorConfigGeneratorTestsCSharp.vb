@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -60,8 +61,8 @@ dotnet_style_explicit_tuple_names = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_prefer_inferred_tuple_names = true:suggestion
-dotnet_prefer_inferred_anonymous_type_member_names = true:suggestion
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_auto_properties = true:none
 dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
@@ -103,7 +104,6 @@ csharp_style_inlined_variable_declaration = true:suggestion
 ###############################
 # C# Formatting Rules         #
 ###############################
-
 # New line preferences
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
@@ -115,27 +115,31 @@ csharp_new_line_between_query_expression_clauses = true
 
 # Indentation preferences
 csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
 csharp_indent_labels = one_less_than_current
 
 # Space preferences
-csharp_space_after_cast = false
+csharp_space_after_cast = true
 csharp_space_after_keywords_in_control_flow_statements = true
-csharp_space_between_method_call_parameter_list_parentheses = false
-csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = true
+csharp_space_between_method_declaration_parameter_list_parentheses = true
 csharp_space_between_parentheses = false
 csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_after_colon_in_inheritance_clause = true
 csharp_space_around_binary_operators = before_and_after
-csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
-csharp_space_between_method_call_name_and_opening_parenthesis = false
-csharp_space_between_method_call_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = true
+csharp_space_between_method_call_name_and_opening_parenthesis = true
+csharp_space_between_method_call_empty_parameter_list_parentheses = true
 
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 "
-                Dim actualText = CSharp.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsString(workspace.Options)
-                Assert.Equal(expectedText, actualText)
+                Dim actualText = New StringBuilder()
+                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_CoreSettings(workspace.Options, LanguageNames.CSharp, actualText)
+                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_DotNetSettings(workspace.Options, LanguageNames.CSharp, actualText)
+                CSharp.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsCSharp(workspace.Options, actualText)
+                Assert.Equal(expectedText, actualText.ToString())
             End Using
         End Sub
 
@@ -190,8 +194,8 @@ dotnet_style_explicit_tuple_names = false:error
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_prefer_inferred_tuple_names = true:suggestion
-dotnet_prefer_inferred_anonymous_type_member_names = true:suggestion
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_auto_properties = true:none
 dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
@@ -233,7 +237,6 @@ csharp_style_inlined_variable_declaration = true:suggestion
 ###############################
 # C# Formatting Rules         #
 ###############################
-
 # New line preferences
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
@@ -245,27 +248,31 @@ csharp_new_line_between_query_expression_clauses = true
 
 # Indentation preferences
 csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
 csharp_indent_labels = one_less_than_current
 
 # Space preferences
-csharp_space_after_cast = false
+csharp_space_after_cast = true
 csharp_space_after_keywords_in_control_flow_statements = true
-csharp_space_between_method_call_parameter_list_parentheses = false
-csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = true
+csharp_space_between_method_declaration_parameter_list_parentheses = true
 csharp_space_between_parentheses = false
 csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_after_colon_in_inheritance_clause = true
 csharp_space_around_binary_operators = before_and_after
-csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
-csharp_space_between_method_call_name_and_opening_parenthesis = false
-csharp_space_between_method_call_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = true
+csharp_space_between_method_call_name_and_opening_parenthesis = true
+csharp_space_between_method_call_empty_parameter_list_parentheses = true
 
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 "
-                Dim actualText = CSharp.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsString(changedOptions)
-                Assert.Equal(expectedText, actualText)
+                Dim actualText = New StringBuilder()
+                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_CoreSettings(changedOptions, LanguageNames.CSharp, actualText)
+                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_DotNetSettings(changedOptions, LanguageNames.CSharp, actualText)
+                CSharp.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsCSharp(changedOptions, actualText)
+                Assert.Equal(expectedText, actualText.ToString())
             End Using
         End Sub
     End Class
