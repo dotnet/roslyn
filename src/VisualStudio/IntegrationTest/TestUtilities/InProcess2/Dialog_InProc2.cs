@@ -29,6 +29,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
         {
             // FindDialog will wait until the dialog is closed, so the return value is unused.
             await FindDialogByNameAsync(dialogName, isOpen: false, cancellationToken);
+
+            // Wait for application idle to ensure the dialog is fully closed
+            await WaitForApplicationIdleAsync(CancellationToken.None);
         }
 
         public async Task ClickOKAsync(string dialogName)
