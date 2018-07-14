@@ -144,7 +144,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public Task PrefetchAsync(CancellationToken cancellationToken)
         {
-            return GetServiceAsync(cancellationToken);
+            // this doesn't require UI thread, doesn't need to prefetch anything.
+            return Task.CompletedTask;
         }
 
         public bool TryFetch(OptionKey optionKey, out object value)
