@@ -2,13 +2,12 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">x86</Platform>
-    <PlatformTarget>x86</PlatformTarget>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.IntegrationTest.Setup</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifierX86)</RuntimeIdentifier>
     <Nonshipping>true</Nonshipping>
     <RoslynProjectType>Vsix</RoslynProjectType>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -21,8 +20,8 @@
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
@@ -75,8 +74,8 @@
       <Name>VisualStudioSetup</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\TestUtilities\VisualStudioIntegrationTestUtilities.csproj">
-      <Name>VisualStudioIntegrationTestUtilities</Name>
+    <ProjectReference Include="..\IntegrationService\IntegrationService.csproj">
+      <Name>IntegrationService</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
