@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class TargetTypedNewTests : CSharpTestBase
     {
         [Fact]
-        public void TestExpressionTree()
+        public void TestExpressionTree1()
         {
             var comp = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
@@ -25,6 +25,25 @@ class C {
                 // (7,39): error CS9368: An expression tree lambda may not contain a target-typed new
                 //         Expression<Func<C>> a = () => new();
                 Diagnostic(ErrorCode.ERR_TargetTypedNewInExpressionTree, "new()").WithLocation(7, 39));
+        }
+
+        [Fact]
+        public void TestExpressionTree2()
+        {
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(@"
+using System;
+using System.Linq.Expressions;
+struct S {
+    public S(int i) {}
+    public static void Main()
+    {
+        Expression<Func<S?>> a = () => new(43);
+    }
+}
+", options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (8,40): error CS9368: An expression tree lambda may not contain a target-typed new
+                //         Expression<Func<S?>> a = () => new(43);
+                Diagnostic(ErrorCode.ERR_TargetTypedNewInExpressionTree, "new(43)").WithLocation(8, 40));
         }
 
         [Fact]
