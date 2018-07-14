@@ -32,8 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
         private class SVsSettingsPersistenceManager { };
 
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-
         private readonly ServiceInitializer<ISettingsManager, SVsSettingsPersistenceManager> _serviceInitializer;
         private readonly IGlobalOptionService _globalOptionService;
 
