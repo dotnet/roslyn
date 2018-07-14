@@ -103,6 +103,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Add &lt;Obsolete&gt;.
+        '''</summary>
+        Friend ReadOnly Property Add_Obsolete() As String
+            Get
+                Return ResourceManager.GetString("Add_Obsolete", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Add Overloads.
         '''</summary>
         Friend ReadOnly Property Add_Overloads() As String
