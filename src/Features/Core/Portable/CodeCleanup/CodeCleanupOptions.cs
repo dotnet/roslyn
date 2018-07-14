@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
     [ExportOptionProvider, Shared]
     internal class CodeCleanupOptionsProvider : IOptionProvider
     {
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+        public static ImmutableArray<IOption> SingletonOptions { get; } = ImmutableArray.Create<IOption>(
             CodeCleanupOptions.CodeCleanupInfoBarShown,
             CodeCleanupOptions.AddAccessibilityModifiers,
             CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements,
@@ -92,11 +92,15 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             CodeCleanupOptions.ApplyObjectCollectionInitializationPreferences,
             CodeCleanupOptions.ApplyThisQualificationPreferences,
             CodeCleanupOptions.MakePrivateFieldReadonlyWhenPossible,
+            CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain,
+            CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting,
             CodeCleanupOptions.RemoveUnnecessaryCasts,
             CodeCleanupOptions.RemoveUnusedImports,
             CodeCleanupOptions.RemoveUnusedVariables,
             CodeCleanupOptions.SortAccessibilityModifiers,
             CodeCleanupOptions.SortImports
         );
+
+        public ImmutableArray<IOption> Options { get; } = SingletonOptions;
     }
 }

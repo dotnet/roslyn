@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -29,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         private void ShowGoldBarForCodeCleanupConfigurationIfNeeded(Document document)
         {
             AssertIsForeground();
+            Logger.Log(FunctionId.CodeCleanupInfobar_BarDisplayed, KeyValueLogMessage.NoProperty);
 
             var workspace = document.Project.Solution.Workspace;
 
@@ -53,12 +56,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
+                                  Logger.Log(FunctionId.CodeCleanupInfobar_ConfigureNow, KeyValueLogMessage.NoProperty);
                                   optionPageService.ShowFormattingOptionPage();
                               }),
                 new InfoBarUI(EditorFeaturesResources.Do_not_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
+                                  Logger.Log(FunctionId.CodeCleanupInfobar_NeverShowCodeCleanupInfoBarAgain, KeyValueLogMessage.NoProperty);
                                   workspace.Options = workspace.Options.WithChangedOption(
                                       CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language, value: true);
                               }));
@@ -78,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
 
             context.OperationContext.TakeOwnership();
+
             _waitIndicator.Wait(
                 EditorFeaturesResources.Formatting_document,
                 EditorFeaturesResources.Formatting_document,
@@ -85,19 +91,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 showProgress: true,
                 c =>
                 {
-                    var cancellationToken = context.OperationContext.UserCancellationToken;
+                    var docOptions = document.GetOptionsAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
 
+                    using (Logger.LogBlock(FunctionId.FormatDocument, CodeCleanupLogMessage.Create(docOptions), c.CancellationToken))
                     using (var transaction = new CaretPreservingEditTransaction(
                         EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
                         var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
                         if (codeCleanupService == null)
                         {
-                            Format(args.TextView, document, selectionOpt: null, cancellationToken);
+                            Format(args.TextView, document, selectionOpt: null, c.CancellationToken);
                         }
                         else
                         {
-                            CodeCleanupOrFormat(args, document, c.ProgressTracker, cancellationToken);
+                            CodeCleanupOrFormat(args, document, c.ProgressTracker, c.CancellationToken);
                         }
 
                         transaction.Complete();
@@ -141,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private async Task<ImmutableArray<TextChange>> GetCodeCleanupAndFormatChangesAsync(
-            Document document, ICodeCleanupService codeCleanupService, 
+            Document document, ICodeCleanupService codeCleanupService,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var newDoc = await codeCleanupService.CleanupAsync(
