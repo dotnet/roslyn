@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -13,13 +14,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
     {
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-        private readonly IAsyncServiceProvider _serviceProvider;
-        private readonly Func<TInterface, Task> _initializer;
+        private readonly Shell.IAsyncServiceProvider _serviceProvider;
         private readonly bool _uiThreadRequired;
 
+        private Func<TInterface, Task> _initializer;
         private TInterface _service;
 
-        public ServiceInitializer(IAsyncServiceProvider serviceProvider, Func<TInterface, Task> initializer, bool uiThreadRequired)
+        public ServiceInitializer(Shell.IAsyncServiceProvider serviceProvider, Func<TInterface, Task> initializer, bool uiThreadRequired)
         {
             _serviceProvider = serviceProvider;
             _initializer = initializer;
@@ -36,57 +37,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return _service;
         }
 
-        public Task<TInterface> GetServiceAsync(CancellationToken cancellationToken)
+        public async Task<TInterface> GetServiceAsync(CancellationToken cancellationToken)
         {
+            // if we are called from UI thraed and UI thread is required, keep context through whole method.
+            // if we are called from non UI thread, but UI thread is required, lock is acquired on non UI thread, but others run on UI thread
+            // if we are called from UI thread, but UI thread is not required, we don't need to keep the context
+            // if we are called from non UI thread, but UI thread is not required, we don't need to keep the context
+            var continueOnCapturedContext = ThreadHelper.JoinableTaskContext.IsOnMainThread && _uiThreadRequired;
+
+            Func<TInterface, Task> initializer = null;
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext))
+            {
+                if (_service != null)
+                {
+                    return _service;
+                }
+
+                initializer = _initializer;
+                _initializer = null;
+            }
+
             if (_uiThreadRequired)
             {
-                return GetServiceFromForegroundThreadAsync(cancellationToken);
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             }
 
-            return GetServiceFromBackgroundThreadAsync(cancellationToken);
-        }
+            var service = (TInterface)await _serviceProvider.GetServiceAsync(typeof(TService)).ConfigureAwait(_uiThreadRequired);
 
-        private async Task<TInterface> GetServiceFromForegroundThreadAsync(CancellationToken cancellationToken)
-        {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(true))
+            if (initializer != null)
             {
-                if (_service == null)
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    await SetAndInitializeAsync(continueOnCapturedContext: true, cancellationToken).ConfigureAwait(true);
-                }
-
-                return _service;
+                // initializer is not cancellable. otherwise, we can get into unknown state
+                await initializer(service).ConfigureAwait(_uiThreadRequired);
             }
-        }
 
-        private async Task<TInterface> GetServiceFromBackgroundThreadAsync(CancellationToken cancellationToken)
-        {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            if (!continueOnCapturedContext)
             {
-                if (_service == null)
-                {
-                    await SetAndInitializeAsync(continueOnCapturedContext: false, cancellationToken).ConfigureAwait(false);
-                }
-
-                return _service;
+                // make sure that we run on BG
+                await TaskScheduler.Default;
             }
+
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext))
+            {
+                _service = service;
+            }
+
+            return _service;
         }
 
-        private async Task SetAndInitializeAsync(bool continueOnCapturedContext, CancellationToken cancellationToken)
-        {
-            var service = (TInterface)await _serviceProvider.GetServiceAsync(typeof(TService)).ConfigureAwait(continueOnCapturedContext);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // initialization can't be cancelled, otherwise, we can get into unknown state
-            await _initializer(service).ConfigureAwait(continueOnCapturedContext);
-
-            _service = service;
-        }
-
-        public void Ensure(CancellationToken cancellationToken)
+        public void EnsureInitializationToRun(CancellationToken cancellationToken)
         {
             // ensure service to be initialized
             GetService(cancellationToken);

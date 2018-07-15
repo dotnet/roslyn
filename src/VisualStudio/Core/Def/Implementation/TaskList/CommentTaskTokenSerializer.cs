@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public bool TryFetch(OptionKey optionKey, out object value)
         {
-            _serviceInitializer.Ensure(CancellationToken.None);
+            _serviceInitializer.EnsureInitializationToRun(CancellationToken.None);
 
             value = string.Empty;
             if (optionKey != TodoCommentOptions.TokenList)
