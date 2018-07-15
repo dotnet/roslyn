@@ -25,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             await VisualStudio.SolutionExplorer.OpenFileWithDesignerAsync(ProjectName, "Form1.cs");
             await VisualStudio.Editor.AddWinFormButtonAsync("SomeButton");
-            await VisualStudio.SolutionExplorer.SaveFile(ProjectName, "Form1.cs");
+            await VisualStudio.SolutionExplorer.SaveFileAsync(ProjectName, "Form1.cs");
             await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Form1.Designer.cs");
             var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"this.SomeButton.Name = ""SomeButton""", actualText);

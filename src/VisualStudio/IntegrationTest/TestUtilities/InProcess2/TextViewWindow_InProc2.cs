@@ -258,7 +258,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
         }
 
-        public async Task VerifyTagsAsyn(string tagTypeName, int expectedCount)
+        public async Task VerifyTagsAsync(string tagTypeName, int expectedCount)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 

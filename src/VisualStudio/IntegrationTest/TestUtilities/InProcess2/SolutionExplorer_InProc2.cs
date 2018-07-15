@@ -987,7 +987,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             return document;
         }
 
-        public async Task SaveFile(string projectName, string relativeFilePath)
+        public async Task SaveFileAsync(string projectName, string relativeFilePath)
         {
             SaveFileWithExtraValidation(await GetOpenDocumentAsync(projectName, relativeFilePath));
         }

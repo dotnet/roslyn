@@ -107,7 +107,7 @@ End Class");
             await VisualStudio.SolutionExplorer.OpenFileAsync(ProjectName, "Form1.vb");
             var actualText = await VisualStudio.Editor.GetTextAsync();
             Assert.Contains(@"Private Sub ExecuteWhenButtonClicked(sender As Object, e As EventArgs) Handles SomeButton.Click", actualText);
-            await VisualStudio.SolutionExplorer.SaveFile(ProjectName, "Form1.vb");
+            await VisualStudio.SolutionExplorer.SaveFileAsync(ProjectName, "Form1.vb");
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.WinForms)]

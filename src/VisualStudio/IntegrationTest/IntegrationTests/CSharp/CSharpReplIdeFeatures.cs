@@ -68,8 +68,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("someint = 22", charsOffset: -6);
 
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
         }
 
         [IdeFact]
@@ -78,13 +78,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.InsertCode("int someint; someint = 22; someint = 23;");
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("someint = 22", charsOffset: -6);
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
 
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("22");
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 0);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 0);
         }
 
         [IdeFact]
@@ -95,8 +95,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             await VisualStudio.InteractiveWindow.SubmitTextAsync("something.ToString();");
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("someth", charsOffset: 1, occurrence: 2);
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
 
         [IdeFact]
@@ -107,8 +107,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.InsertCode("something.ToString();");
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("someth", charsOffset: 1, occurrence: 2);
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
 
         [IdeFact]
@@ -119,8 +119,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             await VisualStudio.InteractiveWindow.SubmitTextAsync("Goo b;");
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("Goo b", charsOffset: -1);
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
 
         [IdeFact]
@@ -131,8 +131,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.InsertCode("Goo b;");
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("Goo b", charsOffset: -1);
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
 
         [IdeFact]
@@ -143,8 +143,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.InsertCode("Goo b;Something();");
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("Something();", charsOffset: -1);
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
         [IdeFact]
@@ -156,8 +156,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace);
             await VisualStudio.InteractiveWindow.PlaceCaretAsync("abc", occurrence: 3);
             await VisualStudio.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            await VisualStudio.InteractiveWindow.VerifyTagsAsyn(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            await VisualStudio.InteractiveWindow.VerifyTagsAsync(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
         [IdeFact]
