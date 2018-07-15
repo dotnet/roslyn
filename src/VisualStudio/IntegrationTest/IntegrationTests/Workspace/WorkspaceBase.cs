@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             await VisualStudio.SolutionExplorer.CloseSolutionAsync();
             await VisualStudio.SolutionExplorer.CreateSolutionAsync(nameof(WorkspacesDesktop));
             await VisualStudio.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ClassLibrary, languageName: LanguageNames.VisualBasic);
-            await VisualStudio.SolutionExplorer.RestoreNuGetPackagesAsync("TestProj");
+            await VisualStudio.SolutionExplorer.RestoreNuGetPackagesAsync("TestProj", HangMitigatingCancellationToken);
             await VisualStudio.Editor.SetTextAsync(@"Imports System
 Class Program
     Private e As Exception
@@ -68,7 +68,7 @@ End Class");
             var projectName = ProjectName;
             await VisualStudio.SolutionExplorer.AddProjectAsync(csProj2, projectTemplate: DefaultProjectTemplate, languageName: LanguageName);
             await VisualStudio.SolutionExplorer.AddProjectReferenceAsync(projectName: csProj2, projectToReferenceName: projectName);
-            await VisualStudio.SolutionExplorer.RestoreNuGetPackagesAsync(csProj2);
+            await VisualStudio.SolutionExplorer.RestoreNuGetPackagesAsync(csProj2, HangMitigatingCancellationToken);
             await VisualStudio.SolutionExplorer.AddFileAsync(project, "Program.cs", open: true, contents: "public class Class1 { }");
             await VisualStudio.SolutionExplorer.AddFileAsync(csProj2, "Program.cs", open: true, contents: "public class Class2 { Class1 c; }");
             await VisualStudio.SolutionExplorer.OpenFileAsync(csProj2, "Program.cs");

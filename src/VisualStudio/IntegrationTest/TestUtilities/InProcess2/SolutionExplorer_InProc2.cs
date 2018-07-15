@@ -17,8 +17,10 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using NuGet.SolutionRestoreManager;
 using NuGet.VisualStudio;
 using VSLangProj;
+using Xunit;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
@@ -1023,12 +1025,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             => ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages);
 #endif
 
-        public async Task RestoreNuGetPackagesAsync(string projectName)
+        public async Task RestoreNuGetPackagesAsync(string projectName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var packageRestorer = (await GetComponentModelAsync()).GetExtensions<IVsPackageRestorer>().First();
-            packageRestorer.RestorePackages(GetProject(projectName));
+            var solutionRestoreService = await GetComponentModelServiceAsync<IVsSolutionRestoreService>();
+            await solutionRestoreService.CurrentRestoreOperation;
+
+            var projectFullPath = GetProject(projectName).FullName;
+            var solutionRestoreStatusProvider = await GetComponentModelServiceAsync<IVsSolutionRestoreStatusProvider>();
+            if (await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken))
+            {
+                return;
+            }
+
+            var solutionRestoreService2 = (IVsSolutionRestoreService2)solutionRestoreService;
+            Assert.True(await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken));
+
+            while (true)
+            {
+                if (await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken))
+                {
+                    return;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
+            }
         }
 
         public async Task SaveAllAsync()

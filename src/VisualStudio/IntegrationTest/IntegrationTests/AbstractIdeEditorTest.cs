@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 await SolutionExplorer.CreateSolutionAsync(_solutionName);
                 await SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, LanguageName);
-                await SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName);
+                await SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, HangMitigatingCancellationToken);
 
                 // Winforms and XAML do not open text files on creation
                 // so these editor tasks will not work if that is the project template being used.
