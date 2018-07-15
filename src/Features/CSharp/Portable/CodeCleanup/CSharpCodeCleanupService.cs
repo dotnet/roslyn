@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -133,10 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             }
 
             progressTracker.Description = FeaturesResources.Formatting_document;
-            var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
-            progressTracker.ItemCompleted();
-
-            return result;
+            using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
+            {
+                var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
+                progressTracker.ItemCompleted();
+                return result;
+            }
         }
 
         private async Task<Document> RemoveSortUsingsAsync(
@@ -147,13 +150,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
                 if (removeUsingsService != null)
                 {
-                    document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                    using (Logger.LogBlock(FunctionId.CodeCleanup_RemoveUnusedImports, cancellationToken))
+                    {
+                        document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
 
             if (docOptions.GetOption(CodeCleanupOptions.SortImports))
             {
-                document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                using (Logger.LogBlock(FunctionId.CodeCleanup_SortImports, cancellationToken))
+                {
+                    document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return document;
@@ -188,8 +197,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         {
             foreach (var diagnosticId in diagnosticIds)
             {
-                document = await ApplyCodeFixesForSpecificDiagnosticId(
-                    document, diagnosticId, cancellationToken).ConfigureAwait(false);
+                using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
+                {
+                    document = await ApplyCodeFixesForSpecificDiagnosticId(
+                        document, diagnosticId, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return document;
