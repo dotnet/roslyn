@@ -4,7 +4,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -39,11 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         public async Task<TInterface> GetServiceAsync(CancellationToken cancellationToken)
         {
-            // if we are called from UI thraed and UI thread is required, keep context through whole method.
-            // if we are called from non UI thread, but UI thread is required, lock is acquired on non UI thread, but others run on UI thread
-            // if we are called from UI thread, but UI thread is not required, we don't need to keep the context
-            // if we are called from non UI thread, but UI thread is not required, we don't need to keep the context
-            var continueOnCapturedContext = ThreadHelper.JoinableTaskContext.IsOnMainThread && _uiThreadRequired;
+            var continueOnCapturedContext = _uiThreadRequired;
 
             Func<TInterface, Task> initializer = null;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext))
@@ -62,20 +57,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             }
 
-            var service = (TInterface)await _serviceProvider.GetServiceAsync(typeof(TService)).ConfigureAwait(_uiThreadRequired);
+            var service = (TInterface)await _serviceProvider.GetServiceAsync(typeof(TService)).ConfigureAwait(continueOnCapturedContext);
 
             if (initializer != null)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // initializer is not cancellable. otherwise, we can get into unknown state
-                await initializer(service).ConfigureAwait(_uiThreadRequired);
-            }
-
-            if (!continueOnCapturedContext)
-            {
-                // make sure that we run on BG
-                await TaskScheduler.Default;
+                await initializer(service).ConfigureAwait(continueOnCapturedContext);
             }
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext))
