@@ -774,10 +774,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
             {
                 var otherLazy = other as LazyNullableTypeParameter;
+
                 if ((object)otherLazy != null)
                 {
                     return _underlying.TypeSymbolEquals(otherLazy._underlying, comparison);
                 }
+
                 return base.TypeSymbolEquals(other, comparison);
             }
         }
@@ -798,25 +800,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _isNullableIfReferenceType = isNullableIfReferenceType;
             }
 
-            private static int _depth;
-
             public override TypeSymbol TypeSymbol => _typeParameter;
-            public override bool? IsNullable
-            {
-                get
-                {
-                    Debug.Assert(_depth < 5);
-                    _depth++;
-                    try
-                    {
-                        return _isNullableIfReferenceType == false || !_typeParameter.IsReferenceType ? (bool?)false : null;
-                    }
-                    finally
-                    {
-                        _depth--;
-                    }
-                }
-            }
+            public override bool? IsNullable =>  _isNullableIfReferenceType == false || !_typeParameter.IsReferenceType ? (bool?)false : null;
 
             public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
