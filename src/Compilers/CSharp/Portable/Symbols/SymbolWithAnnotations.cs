@@ -124,9 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (isNullableIfReferenceType == null && typeSymbol.TypeKind == TypeKind.TypeParameter)
+            if (isNullableIfReferenceType != true && typeSymbol.TypeKind == TypeKind.TypeParameter)
             {
-                return new NonLazyType(typeSymbol, isNullable: null, customModifiers);
+                Debug.Assert(customModifiers.IsEmpty);
+                return new LazyUnannotatedTypeParameter((TypeParameterSymbol)typeSymbol, isNullableIfReferenceType);
             }
 
             if (isNullableIfReferenceType == false || !typeSymbol.IsReferenceType || typeSymbol.IsNullableType())
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new LazyNullableTypeParameter(compilation, this);
+            return new LazyNullableTypeParameter(compilation.Assembly, this);
         }
 
         /// <summary>
@@ -395,9 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract TypeSymbol AsTypeSymbolOnly();
 
         /// <summary>
-        /// Is this an equal type symbol without annotations/custom modifiers?
+        /// Is this the given type parameter?
         /// </summary>
-        public abstract bool Is(TypeSymbol other);
+        public abstract bool Is(TypeParameterSymbol other);
 
         public TypeSymbolWithAnnotations Update(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
         {
@@ -572,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // PROTOTYPE(NullableReferenceTypes): Use WithCustomModifiers.Is() => false
             // and set IsNullable=null always for GetTypeParametersAsTypeArguments.
-            public override bool Is(TypeSymbol other) => _typeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && _customModifiers.IsEmpty;
+            public override bool Is(TypeParameterSymbol other) => _typeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && _customModifiers.IsEmpty;
 
             protected sealed override TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
             {
@@ -608,17 +609,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed class LazyNullableTypeParameter : TypeSymbolWithAnnotations
         {
-            private readonly CSharpCompilation _compilation;
+            private readonly AssemblySymbol _assembly;
             private readonly TypeSymbolWithAnnotations _underlying;
             private TypeSymbol _resolved;
 
-            public LazyNullableTypeParameter(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
+            public LazyNullableTypeParameter(AssemblySymbol assembly, TypeSymbolWithAnnotations underlying)
             {
-                Debug.Assert(compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
-                Debug.Assert(underlying.IsNullable != true);
+                Debug.Assert(underlying is LazyUnannotatedTypeParameter || underlying.IsNullable != true);
                 Debug.Assert(underlying.TypeKind == TypeKind.TypeParameter);
                 Debug.Assert(underlying.CustomModifiers.IsEmpty);
-                _compilation = compilation;
+                _assembly = assembly;
                 _underlying = underlying;
             }
 
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             Interlocked.CompareExchange(ref _resolved,
-                                _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(_underlying)),
+                                _assembly.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(_underlying)),
                                 null);
                         }
                     }
@@ -671,7 +671,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return TypeSymbol;
             }
 
-            public override bool Is(TypeSymbol other)
+            // PROTOTYPE(NullableReferenceTypes): This implementation looks
+            // incorrect since a type parameter cannot be Nullable<T>.
+            public override bool Is(TypeParameterSymbol other)
             {
                 if (!other.IsNullableType())
                 {
@@ -746,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
                         newUnderlying.CustomModifiers.IsEmpty)
                     {
-                        return new LazyNullableTypeParameter(_compilation, newUnderlying);
+                        return new LazyNullableTypeParameter(_assembly, newUnderlying);
                     }
 
                     return base.SubstituteType(typeMap, withTupleUnification);
@@ -779,6 +781,98 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return base.TypeSymbolEquals(other, comparison);
+            }
+        }
+
+        /// <summary>
+        /// Non-nullable or null-oblivious type parameter. IsNullable is calculated
+        /// lazily to avoid cycles when binding declarations.
+        /// </summary>
+        private sealed class LazyUnannotatedTypeParameter : TypeSymbolWithAnnotations
+        {
+            private readonly TypeParameterSymbol _typeParameter;
+            private readonly bool? _isNullableIfReferenceType;
+
+            internal LazyUnannotatedTypeParameter(TypeParameterSymbol typeParameter, bool? isNullableIfReferenceType)
+            {
+                Debug.Assert(isNullableIfReferenceType != true); // Nullable type parameters should be represented with LazyNullableTypeParameter.
+                _typeParameter = typeParameter;
+                _isNullableIfReferenceType = isNullableIfReferenceType;
+            }
+
+            public override TypeSymbol TypeSymbol => _typeParameter;
+            public override bool? IsNullable =>  _isNullableIfReferenceType == false || !_typeParameter.IsReferenceType ? (bool?)false : null;
+
+            public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+            public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
+            {
+                return _isNullableIfReferenceType == false ?
+                    this :
+                    new LazyUnannotatedTypeParameter(_typeParameter, isNullableIfReferenceType: false);
+            }
+
+            public override TypeSymbolWithAnnotations AsNullableReferenceType()
+            {
+                return new LazyNullableTypeParameter(_typeParameter.ContainingAssembly, this);
+            }
+
+            public override TypeSymbolWithAnnotations AsObliviousReferenceType()
+            {
+                return _isNullableIfReferenceType == null ?
+                    this :
+                    new LazyUnannotatedTypeParameter(_typeParameter, isNullableIfReferenceType: null);
+            }
+
+            public override TypeSymbol AsTypeSymbolOnly()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override bool Is(TypeParameterSymbol other)
+            {
+                return _typeParameter.Equals(other);
+            }
+
+            protected override TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap, bool withTupleUnification)
+            {
+                var newUnderlying = typeMap.SubstituteType(_typeParameter, withTupleUnification);
+                if ((object)newUnderlying != this)
+                {
+                    if ((newUnderlying.TypeSymbol.Equals(_typeParameter, TypeCompareKind.AllAspects) ||
+                            newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
+                        newUnderlying.CustomModifiers.IsEmpty)
+                    {
+                        return newUnderlying;
+                    }
+
+                    return base.SubstituteType(typeMap, withTupleUnification);
+                }
+                else
+                {
+                    return this; // substitution had no effect on the type or modifiers
+                }
+            }
+
+            public override TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers)
+            {
+                Debug.Assert(customModifiers.IsEmpty);
+                return this;
+            }
+
+            protected override TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal override bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress)
+            {
+                return _typeParameter.GetIsReferenceType(inProgress);
+            }
+
+            internal override bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress)
+            {
+                return _typeParameter.GetIsValueType(inProgress);
             }
         }
     }
