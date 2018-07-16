@@ -369,6 +369,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGetProjectPackUtil", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\Host\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationService", "src\VisualStudio\IntegrationTest\IntegrationService\IntegrationService.csproj", "{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
@@ -986,6 +988,10 @@ Global
 		{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1161,6 +1167,7 @@ Global
 		{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{B2B261E8-56EC-45DC-8AB8-A491A065EFD4} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{2F11618A-9251-4609-B3D5-CE4D2B3D3E49} = {5CA5F70E-0FDB-467B-B22C-3CD5994F0087}
+		{764D2C19-0187-4837-A2A3-96DDC6EF4CE2} = {CC126D03-7EAC-493F-B187-DCDEE1EF6A70}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
