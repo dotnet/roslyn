@@ -4,8 +4,6 @@ Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
