@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
@@ -65,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
 
                 return Task.CompletedTask;
-            }, uiThreadRequired: false);
+            }, uiThreadRequired: false, ThreadHelper.JoinableTaskFactory);
         }
 
         private Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)

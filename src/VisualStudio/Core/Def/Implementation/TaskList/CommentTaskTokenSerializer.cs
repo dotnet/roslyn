@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _lastCommentTokenCache = GetTaskTokenList(service);
 
                 return Task.CompletedTask;
-            }, uiThreadRequired: true);
+            }, uiThreadRequired: true, ThreadHelper.JoinableTaskFactory);
         }
 
         public Task PrefetchAsync(CancellationToken cancellationToken)

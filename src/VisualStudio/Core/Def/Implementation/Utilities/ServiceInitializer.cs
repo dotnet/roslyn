@@ -4,75 +4,42 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
     internal class ServiceInitializer<TInterface, TService> where TInterface : class
     {
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private readonly AsyncLazy<TInterface> _asyncLazy;
 
-        private readonly Shell.IAsyncServiceProvider _serviceProvider;
-        private readonly bool _uiThreadRequired;
-
-        private Func<TInterface, Task> _initializer;
-        private TInterface _service;
-
-        public ServiceInitializer(Shell.IAsyncServiceProvider serviceProvider, Func<TInterface, Task> initializer, bool uiThreadRequired)
+        public ServiceInitializer(Shell.IAsyncServiceProvider serviceProvider, Func<TInterface, Task> initializer, bool uiThreadRequired, JoinableTaskFactory joinableTaskFactory)
         {
-            _serviceProvider = serviceProvider;
-            _initializer = initializer;
-            _uiThreadRequired = uiThreadRequired;
+            _asyncLazy = new Threading.AsyncLazy<TInterface>(async () =>
+            {
+                // why async lazy doesn't give in cancellation token?
+                if (uiThreadRequired)
+                {
+                    await joinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+                }
+
+#pragma warning disable CA2007 // under JTF, don't use explict ConfigureAwait
+                var service = (TInterface)await serviceProvider.GetServiceAsync(typeof(TService));
+                await initializer(service);
+#pragma warning restore CA2007 
+
+                return service;
+            }, joinableTaskFactory);
         }
 
         public TInterface GetService(CancellationToken cancellationToken)
         {
-            if (_service == null)
-            {
-                ThreadHelper.JoinableTaskFactory.Run(() => GetServiceAsync(cancellationToken));
-            }
-
-            return _service;
+            return ThreadHelper.JoinableTaskFactory.Run(() => _asyncLazy.GetValueAsync(cancellationToken));
         }
 
-        public async Task<TInterface> GetServiceAsync(CancellationToken cancellationToken)
+        public Task<TInterface> GetServiceAsync(CancellationToken cancellationToken)
         {
-            var continueOnCapturedContext = _uiThreadRequired;
-
-            Func<TInterface, Task> initializer = null;
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext))
-            {
-                if (_service != null)
-                {
-                    return _service;
-                }
-
-                initializer = _initializer;
-                _initializer = null;
-            }
-
-            if (_uiThreadRequired)
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            }
-
-            var service = (TInterface)await _serviceProvider.GetServiceAsync(typeof(TService)).ConfigureAwait(continueOnCapturedContext);
-
-            if (initializer != null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // initializer is not cancellable. otherwise, we can get into unknown state
-                await initializer(service).ConfigureAwait(continueOnCapturedContext);
-            }
-
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext))
-            {
-                _service = service;
-            }
-
-            return _service;
+            return _asyncLazy.GetValueAsync(cancellationToken);
         }
 
         public void EnsureInitializationToRun(CancellationToken cancellationToken)
