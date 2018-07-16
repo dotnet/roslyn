@@ -139,20 +139,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(TypeSymbol previous)
         {
+            return SubstituteType(previous, withTupleUnification: true);
+        }
+
+        internal TypeSymbolWithAnnotations SubstituteType(TypeSymbol previous, bool withTupleUnification)
+        {
             var result = SubstituteType(previous);
 
-            // Make it a tuple if it became compatible with one.
-            // PROTOTYPE(NullableReferenceTypes): Avoid resolving result.TypeSymbol eagerly.
-            var type = result.TypeSymbol;
-            if ((object)type != null && !previous.IsTupleCompatible())
+            if (withTupleUnification)
             {
-                var possiblyTuple = TupleTypeSymbol.TransformToTupleIfCompatible(type);
-                if ((object)type != possiblyTuple)
+                // Make it a tuple if it became compatible with one.
+                // PROTOTYPE(NullableReferenceTypes): Avoid resolving result.TypeSymbol eagerly.
+                var type = result.TypeSymbol;
+                if ((object)type != null && !previous.IsTupleCompatible())
                 {
-                    // PROTOTYPE(NullableReferenceTypes): This ignores the particular TypeSymbolWithAnnotations
-                    // derived type from result (for instance, NullableReferenceTypeWithoutCustomModifiers)
-                    // so nullable-ness may be lost.
-                    result = TypeSymbolWithAnnotations.Create(possiblyTuple, result.CustomModifiers);
+                    var possiblyTuple = TupleTypeSymbol.TransformToTupleIfCompatible(type);
+                    if ((object)type != possiblyTuple)
+                    {
+                        // PROTOTYPE(NullableReferenceTypes): This ignores the particular TypeSymbolWithAnnotations
+                        // derived type from result (for instance, NullableReferenceTypeWithoutCustomModifiers)
+                        // so nullable-ness may be lost.
+                        result = TypeSymbolWithAnnotations.Create(possiblyTuple, result.CustomModifiers);
+                    }
                 }
             }
 

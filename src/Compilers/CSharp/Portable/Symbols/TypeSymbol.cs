@@ -1541,7 +1541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Obsolete("Use TypeSymbolWithAnnotations.Is method.", true)]
         internal bool Equals(TypeSymbolWithAnnotations other)
         {
-            return other.Is(this);
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }
