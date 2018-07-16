@@ -146,7 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private static void GenerateEditorconfig_CoreSettings(OptionSet optionSet, string language, StringBuilder editorconfig)
         {
-            // Core EditorConfig Options
             editorconfig.AppendLine("# Core EditorConfig Options");
             editorconfig.AppendLine("# Comment the line below if you want to inherit parent .editorconfig settings.");
             editorconfig.AppendLine("root = true");
