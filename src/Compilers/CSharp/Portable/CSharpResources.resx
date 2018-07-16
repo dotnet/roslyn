@@ -5342,4 +5342,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
     <value>An out variable cannot be declared as a ref local</value>
   </data>
+  <data name="ERR_UsingVarInSwitchCase" xml:space="preserve">
+    <value>A using variable cannot be used directly within a switch section (consider using braces). </value>
+  </data>
 </root>

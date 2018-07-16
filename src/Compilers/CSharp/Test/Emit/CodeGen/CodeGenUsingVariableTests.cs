@@ -185,12 +185,164 @@ class C1 : IDisposable
 }
 class C2
 {
-    public static void Main()
+    public static void Main()                                                                                                           
     {
         using C1 o1 = new C1(), o2 = new C1();
     }
 }";
-            CompileAndVerify(source).VerifyIL("C2.Main", @"");
+            CompileAndVerify(source).VerifyIL("C2.Main", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (C1 V_0, //o1
+                C1 V_1) //o2
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.1
+  .try
+  {
+    IL_0006:  newobj     ""C1..ctor()""
+    IL_000b:  stloc.0
+    .try
+    {
+      IL_000c:  leave.s    IL_0022
+    }
+    finally
+    {
+      IL_000e:  ldloc.0
+      IL_000f:  brfalse.s  IL_0017
+      IL_0011:  ldloc.0
+      IL_0012:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0017:  endfinally
+    }
+  }
+  finally
+  {
+    IL_0018:  ldloc.1
+    IL_0019:  brfalse.s  IL_0021
+    IL_001b:  ldloc.1
+    IL_001c:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0021:  endfinally
+  }
+  IL_0022:  ret
+}");
+        }
+
+        [Fact]
+        public void MultipleUsingVarPrecedingCodeEmitTest()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    public void M() { } 
+    public void Dispose() { }
+}
+class C2
+{
+    public static void Main()                                                                                                           
+    {
+        C1 o0 = new C1();
+        o0.M();
+        using C1 o1 = new C1(), o2 = new C1();
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C2.Main", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (C1 V_0, //o1
+                C1 V_1) //o2
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  callvirt   ""void C1.M()""
+  IL_000a:  newobj     ""C1..ctor()""
+  IL_000f:  stloc.1
+  .try
+  {
+    IL_0010:  newobj     ""C1..ctor()""
+    IL_0015:  stloc.0
+    .try
+    {
+      IL_0016:  leave.s    IL_002c
+    }
+    finally
+    {
+      IL_0018:  ldloc.0
+      IL_0019:  brfalse.s  IL_0021
+      IL_001b:  ldloc.0
+      IL_001c:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0021:  endfinally
+    }
+  }
+  finally
+  {
+    IL_0022:  ldloc.1
+    IL_0023:  brfalse.s  IL_002b
+    IL_0025:  ldloc.1
+    IL_0026:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002b:  endfinally
+  }
+  IL_002c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void MultipleUsingVarFollowingCodeEmitTest()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    public void M() { } 
+    public void Dispose() { }
+}
+class C2
+{
+    public static void Main()                                                                                                           
+    {
+        using C1 o1 = new C1(), o2 = new C1();
+        C1 o0 = new C1();
+        o0.M();
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C2.Main", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (C1 V_0, //o1
+                C1 V_1) //o2
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.1
+  .try
+  {
+    IL_0006:  newobj     ""C1..ctor()""
+    IL_000b:  stloc.0
+    .try
+    {
+      IL_000c:  newobj     ""C1..ctor()""
+      IL_0011:  callvirt   ""void C1.M()""
+      IL_0016:  leave.s    IL_002c
+    }
+    finally
+    {
+      IL_0018:  ldloc.0
+      IL_0019:  brfalse.s  IL_0021
+      IL_001b:  ldloc.0
+      IL_001c:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0021:  endfinally
+    }
+  }
+  finally
+  {
+    IL_0022:  ldloc.1
+    IL_0023:  brfalse.s  IL_002b
+    IL_0025:  ldloc.1
+    IL_0026:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002b:  endfinally
+  }
+  IL_002c:  ret
+}
+");
         }
     }
 }

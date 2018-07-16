@@ -983,6 +983,35 @@ class C
                 );
         }
 
+        [Fact]
+        public void UsingVarInSwitchCase()
+        {
+            var source = @"
+using System;
+class C1 : IDisposable
+    {
+        public void Dispose() { }
+    }
+    class C2
+    {
+        public static void Main()
+        {
+            int x = 5;
+            switch (x)
+            {
+                case 5:
+                    using C1 o1 = new C1();
+                    break;
+            }
+        }
+    }";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (15,21): error CS8389: A using variable cannot be used directly within a switch section (consider using braces). 
+                //                     using C1 o1 = new C1();
+                Diagnostic(ErrorCode.ERR_UsingVarInSwitchCase, "using C1 o1 = new C1();").WithLocation(15, 21)
+            );
+        }
+
         #region help method
 
         private UsingStatementSyntax GetUsingStatements(CSharpCompilation compilation, int index = 1)
