@@ -76,19 +76,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         }
 
                         // first try to query the providers that can trigger on the specified character
-                        var providerAndItemsOpt = await ComputeItemsAsync(
+                        var (provider, items) = await ComputeItemsAsync(
                             providers, caretPosition, triggerInfo,
                             document, cancellationToken).ConfigureAwait(false);
 
-                        if (providerAndItemsOpt == null)
-                        {
-                            // Another retrigger was enqueued while we were inflight.  Just 
-                            // stop all work and return the last computed model.  We'll compute
-                            // the correct model when we process the other retrigger task.
-                            return currentModel;
-                        }
-
-                        var (provider, items) = providerAndItemsOpt.Value;
                         if (provider == null)
                         {
                             // No provider produced items. So we can't produce a model
@@ -185,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private static bool CompareParts(TaggedText p1, TaggedText p2)
                 => p1.ToString() == p2.ToString();
 
-            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
+            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)> ComputeItemsAsync(
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,

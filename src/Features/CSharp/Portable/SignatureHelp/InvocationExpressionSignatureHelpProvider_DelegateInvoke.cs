@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateInvokePostambleParts(),
                 parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
 
+            // Since we're returning a single item, we can selected it as the "best one".
             selectedItem = 0;
+
             return SpecializedCollections.SingletonList(item);
         }
 

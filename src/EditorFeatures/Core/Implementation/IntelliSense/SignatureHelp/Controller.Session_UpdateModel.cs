@@ -70,8 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     if (filteredItems.Contains(currentItem) &&
                         IsApplicable(currentItem, argumentCount, name, isCaseSensitive))
                     {
+                        // If the current item was user-selected, we keep it as such.
                         return;
                     }
+
+                    // If the current item is no longer applicable, we'll be choosing a new one,
+                    // which was definitely not previously user-selected.
                     userSelected = false;
 
                     // Try to find the first applicable item.  If there is none, then that means the
