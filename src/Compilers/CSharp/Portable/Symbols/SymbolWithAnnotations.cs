@@ -801,8 +801,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _isNullableIfReferenceType = isNullableIfReferenceType;
             }
 
+            private static int _depth;
+
             public override TypeSymbol TypeSymbol => _typeParameter;
-            public override bool? IsNullable => _isNullableIfReferenceType == false || !_typeParameter.IsReferenceType ? (bool?)false : null;
+            public override bool? IsNullable
+            {
+                get
+                {
+                    Debug.Assert(_depth < 5);
+                    _depth++;
+                    try
+                    {
+                        return _isNullableIfReferenceType == false || !_typeParameter.IsReferenceType ? (bool?)false : null;
+                    }
+                    finally
+                    {
+                        _depth--;
+                    }
+                }
+            }
 
             public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
 

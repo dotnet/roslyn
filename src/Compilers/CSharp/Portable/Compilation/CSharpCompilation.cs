@@ -3242,34 +3242,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal TypeSymbolWithAnnotations GetFieldTypeWithAdjustedNullableAnnotations(FieldSymbol field, ConsList<FieldSymbol> fieldsBeingBound)
-        {
-            FieldSymbol definition = field.OriginalDefinition;
-
-            if (!ShouldSuppressNullableAnnotations(definition))
-            {
-                return field.GetFieldType(fieldsBeingBound);
-            }
-
-            // Nullable annotations on definition should be ignored
-            TypeSymbolWithAnnotations definitionType = definition.GetFieldType(fieldsBeingBound);
-            TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForReferenceTypes();
-
-            if ((object)definition == field)
-            {
-                return adjustedDefinitionType;
-            }
-
-            if ((object)definitionType == adjustedDefinitionType)
-            {
-                // Adjustment has no effect
-                return field.GetFieldType(fieldsBeingBound);
-            }
-
-            // The original symbol was substituted, need to re-apply substitution to the adjusted type.   
-            return adjustedDefinitionType.SubstituteType(field.ContainingType.TypeSubstitution);
-        }
-
         private abstract class AbstractSymbolSearcher
         {
             private readonly PooledDictionary<Declaration, NamespaceOrTypeSymbol> _cache;

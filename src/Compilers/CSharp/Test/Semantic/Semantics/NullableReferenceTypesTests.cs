@@ -1977,6 +1977,21 @@ class C<T>
         }
 
         [Fact]
+        public void CircularConstraints()
+        {
+            var source =
+@"class A<T> where T : B<T>.I
+{
+    internal interface I { }
+}
+class B<T> : A<T> where T : A<T>.I
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void AssignObliviousIntoLocals()
         {
             var obliviousLib = @"
