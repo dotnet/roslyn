@@ -1406,38 +1406,20 @@ public class C
         [Fact]
         public void ThrowExpressionRHS()
         {
-            CompileAndVerify(@"
+            CreateCompilation(@"
 using System;
 public class C
 {
     public static void Main()
     {
-        try
-        {
-            object o = null;
-            o ??= throw new Exception();
-        }
-        catch (Exception)
-        {
-            Console.WriteLine(""Succeeded"");
-        }
-    }
-}
-", expectedOutput: "Succeeded");
-
-            CreateCompilation(@"
-public class C
-{
-    static object Property { get; }
-    public static void Main()
-    {
-        Property ??= throw null;
+        object o = null;
+        o ??= throw new Exception();
     }
 }
 ").VerifyDiagnostics(
-                // (7,9): error CS0200: Property or indexer 'C.Property' cannot be assigned to -- it is read only
-                //         Property ??= throw null;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property").WithArguments("C.Property").WithLocation(7, 9)
+                // (8,15): error CS8115: A throw expression is not allowed in this context.
+                //         o ??= throw new Exception();
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(8, 15)
             );
         }
 
