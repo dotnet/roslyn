@@ -1218,17 +1218,17 @@ End Module").Path
             parsedArgs = DefaultParse({"/langVERSION:default", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
-            Assert.Equal(LanguageVersion.VisualBasic16, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), parsedArgs.ParseOptions.LanguageVersion)
 
             parsedArgs = DefaultParse({"/langVERSION:latest", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
-            Assert.Equal(LanguageVersion.VisualBasic16, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), parsedArgs.ParseOptions.LanguageVersion)
 
             ' default: "current version"
             parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic16, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), parsedArgs.ParseOptions.LanguageVersion)
 
             ' overriding
             parsedArgs = DefaultParse({"/langVERSION:10", "/langVERSION:9.0", "a.vb"}, _baseDirectory)

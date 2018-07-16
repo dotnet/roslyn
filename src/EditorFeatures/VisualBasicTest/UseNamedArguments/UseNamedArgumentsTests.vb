@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNamedArguments
             Return New VisualBasicUseNamedArgumentsCodeRefactoringProvider()
         End Function
 
-        Shared vb15Parameters As TestParameters =
+        Private Shared ReadOnly s_vb15Parameters As TestParameters =
             New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -27,7 +27,7 @@ End Class",
     Sub M(arg1 As Integer, arg2 As Integer)
         M(arg1:=1, arg2:=2)
     End Sub
-End Class", parameters:=vb15Parameters)
+End Class", parameters:=s_vb15Parameters)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -95,7 +95,7 @@ End Class",
     Sub M(arg1 as Integer, arg2 as Integer)
         Me?.M(arg1:=1, arg2:=2)
     End Sub
-End Class", parameters:=vb15Parameters)
+End Class", parameters:=s_vb15Parameters)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -125,7 +125,7 @@ End Class",
     Sub New(arg1 As Integer, arg2 As Integer)
         Dim c = New C(arg1:=1, arg2:=2)
     End Sub
-End Class", parameters:=vb15Parameters)
+End Class", parameters:=s_vb15Parameters)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -293,7 +293,7 @@ End Class",
     Sub M(arg1 As Integer, arg2 As Integer)
         M(arg1:=arg1, arg2:=arg2)
     End Sub
-End Class", parameters:=vb15Parameters)
+End Class", parameters:=s_vb15Parameters)
         End Function
 
         <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
@@ -354,7 +354,7 @@ End Class",
     Sub M([If] As Integer, [For] As Integer)
         M([If]:=[If], [For]:=[For])
     End Sub
-End Class", parameters:=vb15Parameters)
+End Class", parameters:=s_vb15Parameters)
         End Function
     End Class
 End Namespace
