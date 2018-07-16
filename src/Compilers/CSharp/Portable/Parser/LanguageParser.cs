@@ -6630,7 +6630,7 @@ tryAgain:
                     }
                     goto default;
                 case SyntaxKind.UsingKeyword:
-                    return this.ParseUsingStatement();
+                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken ? this.ParseUsingStatement() : this.ParseLocalDeclarationStatement();
                 case SyntaxKind.WhileKeyword:
                     return this.ParseWhileStatement();
                 case SyntaxKind.OpenBraceToken:
@@ -8203,6 +8203,7 @@ tryAgain:
         /// </summary>
         private StatementSyntax ParseLocalDeclarationStatement()
         {
+            var usingKeyword = this.CurrentToken.Kind == SyntaxKind.UsingKeyword ? this.EatToken() : null;
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
 
@@ -8211,6 +8212,7 @@ tryAgain:
             {
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
+
                 this.ParseLocalDeclaration(variables,
                     allowLocalFunctions: true,
                     mods: mods.ToList(),
@@ -8240,9 +8242,10 @@ tryAgain:
                         mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                     }
                 }
-
+                // PROTOTYPE
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.LocalDeclarationStatement(
+                    usingKeyword,
                     mods.ToList(),
                     _syntaxFactory.VariableDeclaration(type, variables),
                     semicolon);

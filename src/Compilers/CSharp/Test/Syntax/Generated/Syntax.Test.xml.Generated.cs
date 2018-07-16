@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), GenerateVariableDeclaration(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), GenerateVariableDeclaration(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDeclarationSyntax GenerateVariableDeclaration()
@@ -2026,6 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateLocalDeclarationStatement();
             
+            Assert.Null(node.UsingKeyword);
             Assert.NotNull(node.Modifiers);
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
@@ -9390,7 +9391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement()
         {
-            return SyntaxFactory.LocalDeclarationStatement(new SyntaxTokenList(), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.LocalDeclarationStatement(default(SyntaxToken), new SyntaxTokenList(), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
         
         private static VariableDeclarationSyntax GenerateVariableDeclaration()
@@ -10990,10 +10991,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateLocalDeclarationStatement();
             
+            Assert.Equal(SyntaxKind.None, node.UsingKeyword.Kind());
             Assert.NotNull(node.Modifiers);
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
-            var newNode = node.WithModifiers(node.Modifiers).WithDeclaration(node.Declaration).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithUsingKeyword(node.UsingKeyword).WithModifiers(node.Modifiers).WithDeclaration(node.Declaration).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
         

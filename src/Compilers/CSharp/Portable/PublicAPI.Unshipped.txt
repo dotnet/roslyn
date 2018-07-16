@@ -56,6 +56,9 @@ Microsoft.CodeAnalysis.CSharp.Syntax.DirectiveTriviaSyntax.WithHashToken(Microso
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithArrowToken(Microsoft.CodeAnalysis.SyntaxToken arrowToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken usingKeyword, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax.UsingKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax.WithUsingKeyword(Microsoft.CodeAnalysis.SyntaxToken usingKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax.WithColonToken(Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax.WithKeyword(Microsoft.CodeAnalysis.SyntaxToken keyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax
@@ -80,3 +83,4 @@ Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEndQuoteToken(Micros
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEqualsToken(Microsoft.CodeAnalysis.SyntaxToken equalsToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithName(Microsoft.CodeAnalysis.CSharp.Syntax.XmlNameSyntax name) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithStartQuoteToken(Microsoft.CodeAnalysis.SyntaxToken startQuoteToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LocalDeclarationStatement(Microsoft.CodeAnalysis.SyntaxToken usingKeyword, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax
