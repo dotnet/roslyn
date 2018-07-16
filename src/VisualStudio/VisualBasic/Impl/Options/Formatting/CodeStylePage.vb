@@ -23,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
             GridOptionPreviewControl.Generate_Editorconfig(optionSet, language, editorconfig, AddressOf GetCurrentEditorConfigOptionsVB)
         End Sub
 
-        Friend Shared Sub GetCurrentEditorConfigOptionsVB(ByVal optionSet As OptionSet, ByVal editorconfig As StringBuilder)
+        Private Shared Sub GetCurrentEditorConfigOptionsVB(ByVal optionSet As OptionSet, ByVal editorconfig As StringBuilder)
             editorconfig.AppendLine()
             editorconfig.AppendLine("# VB Coding Conventions")
 

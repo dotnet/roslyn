@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             GridOptionPreviewControl.Generate_Editorconfig(optionSet, language, editorconfig, GetCurrentEditorConfigOptionsCSharp);
         }
 
-            internal static void GetCurrentEditorConfigOptionsCSharp(OptionSet optionSet, StringBuilder editorconfig)
+        private static void GetCurrentEditorConfigOptionsCSharp(OptionSet optionSet, StringBuilder editorconfig)
         {
             editorconfig.AppendLine();
             editorconfig.AppendLine("# C# Coding Conventions");
