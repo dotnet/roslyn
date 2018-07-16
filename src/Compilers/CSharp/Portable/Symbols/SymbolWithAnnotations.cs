@@ -351,7 +351,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (newTypeWithModifiers.TypeSymbol.IsNullableType())
                 {
                     Debug.Assert(newIsNullable == true);
-
                     if (newCustomModifiers.IsEmpty)
                     {
                         return newTypeWithModifiers;
@@ -378,10 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return newTypeWithModifiers;
                 }
 
-                newCustomModifiers = newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers);
-
-                Debug.Assert(newIsNullable != false);
-                return new NonLazyType(newTypeWithModifiers.TypeSymbol, newIsNullable, newCustomModifiers);
+                return new NonLazyType(newTypeWithModifiers.TypeSymbol, newIsNullable, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
             }
 
             return this; // substitution had no effect on the type or modifiers
@@ -776,10 +772,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
             {
                 var otherLazy = other as LazyNullableTypeParameter;
+
                 if ((object)otherLazy != null)
                 {
                     return _underlying.TypeSymbolEquals(otherLazy._underlying, comparison);
                 }
+
                 return base.TypeSymbolEquals(other, comparison);
             }
         }
