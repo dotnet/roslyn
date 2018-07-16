@@ -17,8 +17,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Public Sub TestEditorConfigGeneratorDefault()
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim expectedText = "# Core EditorConfig Options
-# Uncomment the line below if you don’t want to inherit parent .editorconfig settings or if this is your solution directory.
-# root = true
+# Comment the line below if you want to inherit parent .editorconfig settings.
+root = true
 
 # C# files
 [*.cs]
@@ -128,13 +128,10 @@ csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 "
                 Dim actualText = New StringBuilder()
-                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_CoreSettings(workspace.Options, LanguageNames.CSharp, actualText)
-                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_DotNetSettings(workspace.Options, LanguageNames.CSharp, actualText)
-                CSharp.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsCSharp(workspace.Options, actualText)
+                CSharp.Options.Formatting.CodeStylePage.Generate_Editorconfig(workspace.Options, LanguageNames.CSharp, actualText)
                 Assert.Equal(expectedText, actualText.ToString())
             End Using
         End Sub
-
 
         <WpfFact>
         Public Sub TestEditorConfigGeneratorToggleOptions()
@@ -142,8 +139,8 @@ csharp_preserve_single_line_blocks = true
                 Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey(CodeStyleOptions.PreferExplicitTupleNames, LanguageNames.CSharp),
                                                                          New CodeStyleOption(Of Boolean)(False, NotificationOption.[Error]))
                 Dim expectedText = "# Core EditorConfig Options
-# Uncomment the line below if you don’t want to inherit parent .editorconfig settings or if this is your solution directory.
-# root = true
+# Comment the line below if you want to inherit parent .editorconfig settings.
+root = true
 
 # C# files
 [*.cs]
@@ -253,9 +250,7 @@ csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 "
                 Dim actualText = New StringBuilder()
-                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_CoreSettings(changedOptions, LanguageNames.CSharp, actualText)
-                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_DotNetSettings(changedOptions, LanguageNames.CSharp, actualText)
-                CSharp.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsCSharp(changedOptions, actualText)
+                CSharp.Options.Formatting.CodeStylePage.Generate_Editorconfig(changedOptions, LanguageNames.CSharp, actualText)
                 Assert.Equal(expectedText, actualText.ToString())
             End Using
         End Sub

@@ -19,6 +19,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
             Return New GridOptionPreviewControl(serviceProvider, Function(o, s) New StyleViewModel(o, s), AddressOf GetCurrentEditorConfigOptionsVB, LanguageNames.VisualBasic)
         End Function
 
+        Friend Shared Sub Generate_Editorconfig(ByVal optionSet As OptionSet, ByVal language As String, ByVal editorconfig As StringBuilder)
+            GridOptionPreviewControl.Generate_Editorconfig(optionSet, language, editorconfig, AddressOf GetCurrentEditorConfigOptionsVB)
+        End Sub
+
         Friend Shared Sub GetCurrentEditorConfigOptionsVB(ByVal optionSet As OptionSet, ByVal editorconfig As StringBuilder)
             editorconfig.AppendLine()
             editorconfig.AppendLine("# VB Coding Conventions")
@@ -29,11 +33,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
         End Sub
 
         Private Shared Sub VBCodeStyleOptions_GenerateEditorconfig(ByVal optionSet As OptionSet, ByVal [option] As [Option](Of CodeStyleOption(Of String)), ByVal editorconfig As StringBuilder)
-            editorconfig.Append((CType([option].StorageLocations.OfType(Of IEditorConfigStorageLocation).SingleOrDefault(), EditorConfigStorageLocation(Of CodeStyleOption(Of String)))).KeyName)
-            editorconfig.Append(" = ")
+            Dim element = CType([option].StorageLocations.OfType(Of IEditorConfigStorageLocation)().SingleOrDefault(), EditorConfigStorageLocation(Of CodeStyleOption(Of String)))
+            If element IsNot Nothing Then
+                editorconfig.Append(element.KeyName & " = ")
 
-            Dim curSetting = optionSet.GetOption([option])
-            editorconfig.AppendLine(curSetting.Value + ":" + curSetting.Notification.ToString().ToLower())
+                Dim curSetting = optionSet.GetOption([option])
+                editorconfig.AppendLine(curSetting.Value + ":" + curSetting.Notification.ToString().ToLower())
+            End If
         End Sub
     End Class
 End Namespace

@@ -17,8 +17,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Public Sub TestEditorConfigGeneratorDefault()
             Using workspace = TestWorkspace.CreateVisualBasic("")
                 Dim expectedText = "# Core EditorConfig Options
-# Uncomment the line below if you don’t want to inherit parent .editorconfig settings or if this is your solution directory.
-# root = true
+# Comment the line below if you want to inherit parent .editorconfig settings.
+root = true
 
 # Basic files
 [*.vb]
@@ -68,9 +68,7 @@ dotnet_style_prefer_conditional_expression_over_return = true:none
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:none
 "
                 Dim actualText = New StringBuilder()
-                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_CoreSettings(workspace.Options, LanguageNames.VisualBasic, actualText)
-                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_DotNetSettings(workspace.Options, LanguageNames.VisualBasic, actualText)
-                VisualBasic.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsVB(workspace.Options, actualText)
+                VisualBasic.Options.Formatting.CodeStylePage.Generate_Editorconfig(workspace.Options, LanguageNames.VisualBasic, actualText)
                 Assert.Equal(expectedText, actualText.ToString())
             End Using
         End Sub
@@ -81,8 +79,8 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
                 Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey(CodeStyleOptions.PreferExplicitTupleNames, LanguageNames.VisualBasic),
                                                                          New CodeStyleOption(Of Boolean)(False, NotificationOption.[Error]))
                 Dim expectedText = "# Core EditorConfig Options
-# Uncomment the line below if you don’t want to inherit parent .editorconfig settings or if this is your solution directory.
-# root = true
+# Comment the line below if you want to inherit parent .editorconfig settings.
+root = true
 
 # Basic files
 [*.vb]
@@ -132,10 +130,7 @@ dotnet_style_prefer_conditional_expression_over_return = true:none
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:none
 "
                 Dim actualText = New StringBuilder()
-                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_CoreSettings(changedOptions, LanguageNames.VisualBasic, actualText)
-                Implementation.Options.GridOptionPreviewControl.GenerateEditorconfig_DotNetSettings(changedOptions, LanguageNames.VisualBasic, actualText)
-                VisualBasic.Options.Formatting.CodeStylePage.GetCurrentEditorConfigOptionsVB(changedOptions, actualText)
-                Dim Test = actualText.ToString()
+                VisualBasic.Options.Formatting.CodeStylePage.Generate_Editorconfig(changedOptions, LanguageNames.VisualBasic, actualText)
                 Assert.Equal(expectedText, actualText.ToString())
             End Using
         End Sub
