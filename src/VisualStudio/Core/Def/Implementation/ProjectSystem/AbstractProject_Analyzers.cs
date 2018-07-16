@@ -61,8 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (File.Exists(analyzerAssemblyFullPath))
             {
-                GetAnalyzerFileWatcherService().AddPath(analyzerAssemblyFullPath);
-                GetAnalyzerFileWatcherService().ErrorIfAnalyzerAlreadyLoaded(Id, analyzerAssemblyFullPath);
+                GetAnalyzerFileWatcherService().TrackFilePathAndReportErrorIfChanged(analyzerAssemblyFullPath, projectId: Id);
             }
             else
             {
