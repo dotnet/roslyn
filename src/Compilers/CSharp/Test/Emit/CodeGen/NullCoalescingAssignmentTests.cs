@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [Fact]
         public void LocalLvalue()
         {
-            var verifier = CompileAndVerify(@"
+            var source = @"
 using System;
 public class C
 {
@@ -51,7 +52,9 @@ public class C
         return ""Test"";
     }
 }
-", expectedOutput: @"
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"
 In GetInt
 0
 In GetString
@@ -82,41 +85,57 @@ As Statement
 }
 ");
 
+            // When the optimizer is on, the local is entirely elided as the result of the assignment isn't used again
             verifier.VerifyIL("C.TestObject()", expectedIL: @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (string V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldnull
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_000c
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_000a
+  IL_0004:  pop
   IL_0005:  call       ""string C.GetString()""
-  IL_000a:  br.s       IL_000d
-  IL_000c:  ldloc.0
-  IL_000d:  call       ""void System.Console.WriteLine(string)""
-  IL_0012:  ret
+  IL_000a:  call       ""void System.Console.WriteLine(string)""
+  IL_000f:  ret
 }
 ");
 
-            // PROTOTYPE(null-operator-enhancements): investigate extra store into slot 1
             verifier.VerifyIL("C.TestAsStatement()", expectedIL: @"
 {
-  // Code size       20 (0x14)
+  // Code size       18 (0x12)
   .maxstack  1
-  .locals init (object V_0, //o
-                object V_1)
+  .locals init (object V_0) //o
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  stloc.1
-  IL_0004:  ldloc.1
-  IL_0005:  brtrue.s   IL_000d
-  IL_0007:  ldstr      ""As Statement""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  call       ""void System.Console.WriteLine(object)""
-  IL_0013:  ret
+  IL_0003:  brtrue.s   IL_000b
+  IL_0005:  ldstr      ""As Statement""
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""void System.Console.WriteLine(object)""
+  IL_0011:  ret
+}
+");
+
+            // With the optimizer off, the local is not elided
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.TestObject()", expectedIL: @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (string V_0) //s1
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  dup
+  IL_0005:  brtrue.s   IL_000f
+  IL_0007:  pop
+  IL_0008:  call       ""string C.GetString()""
+  IL_000d:  dup
+  IL_000e:  stloc.0
+  IL_000f:  call       ""void System.Console.WriteLine(string)""
+  IL_0014:  nop
+  IL_0015:  ret
 }
 ");
         }
@@ -203,10 +222,10 @@ In GetInt
 1
 ").VerifyIL("C.Main()", @"
 {
-  // Code size      116 (0x74)
+  // Code size      118 (0x76)
   .maxstack  4
   .locals init (int?& V_0,
-                int?& V_1,
+                int? V_1,
                 int? V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     ""int?""
@@ -215,43 +234,43 @@ In GetInt
   IL_000c:  ldelema    ""int?""
   IL_0011:  stloc.0
   IL_0012:  ldloc.0
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""bool int?.HasValue.get""
-  IL_001a:  brtrue.s   IL_002d
-  IL_001c:  ldloc.0
-  IL_001d:  ldc.i4.1
-  IL_001e:  newobj     ""int?..ctor(int)""
-  IL_0023:  dup
-  IL_0024:  stloc.2
-  IL_0025:  stobj      ""int?""
-  IL_002a:  ldloc.2
-  IL_002b:  br.s       IL_0033
-  IL_002d:  ldloc.1
-  IL_002e:  ldobj      ""int?""
-  IL_0033:  box        ""int?""
-  IL_0038:  call       ""void System.Console.WriteLine(object)""
-  IL_003d:  call       ""int C.GetInt()""
-  IL_0042:  ldelema    ""int?""
-  IL_0047:  stloc.1
-  IL_0048:  ldloc.1
-  IL_0049:  stloc.0
-  IL_004a:  ldloc.0
-  IL_004b:  call       ""bool int?.HasValue.get""
-  IL_0050:  brtrue.s   IL_0063
-  IL_0052:  ldloc.1
-  IL_0053:  ldc.i4.2
-  IL_0054:  newobj     ""int?..ctor(int)""
-  IL_0059:  dup
-  IL_005a:  stloc.2
-  IL_005b:  stobj      ""int?""
-  IL_0060:  ldloc.2
-  IL_0061:  br.s       IL_0069
-  IL_0063:  ldloc.0
-  IL_0064:  ldobj      ""int?""
-  IL_0069:  box        ""int?""
-  IL_006e:  call       ""void System.Console.WriteLine(object)""
-  IL_0073:  ret
+  IL_0013:  ldobj      ""int?""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  call       ""bool int?.HasValue.get""
+  IL_0020:  brtrue.s   IL_0033
+  IL_0022:  ldloc.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  newobj     ""int?..ctor(int)""
+  IL_0029:  dup
+  IL_002a:  stloc.2
+  IL_002b:  stobj      ""int?""
+  IL_0030:  ldloc.2
+  IL_0031:  br.s       IL_0034
+  IL_0033:  ldloc.1
+  IL_0034:  box        ""int?""
+  IL_0039:  call       ""void System.Console.WriteLine(object)""
+  IL_003e:  call       ""int C.GetInt()""
+  IL_0043:  ldelema    ""int?""
+  IL_0048:  stloc.0
+  IL_0049:  ldloc.0
+  IL_004a:  ldobj      ""int?""
+  IL_004f:  stloc.1
+  IL_0050:  ldloca.s   V_1
+  IL_0052:  call       ""bool int?.HasValue.get""
+  IL_0057:  brtrue.s   IL_006a
+  IL_0059:  ldloc.0
+  IL_005a:  ldc.i4.2
+  IL_005b:  newobj     ""int?..ctor(int)""
+  IL_0060:  dup
+  IL_0061:  stloc.2
+  IL_0062:  stobj      ""int?""
+  IL_0067:  ldloc.2
+  IL_0068:  br.s       IL_006b
+  IL_006a:  ldloc.1
+  IL_006b:  box        ""int?""
+  IL_0070:  call       ""void System.Console.WriteLine(object)""
+  IL_0075:  ret
 }
 ");
         }
@@ -363,24 +382,21 @@ class C
     }
 }").VerifyIL("C.Main()", @"
 {
-  // Code size       46 (0x2e)
+  // Code size       44 (0x2c)
   .maxstack  2
-  .locals init (System.EventHandler V_0)
   IL_0000:  ldsfld     ""System.EventHandler C.E""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  brtrue.s   IL_002d
-  IL_0009:  ldsfld     ""System.EventHandler C.<>c.<>9__3_0""
-  IL_000e:  dup
-  IL_000f:  brtrue.s   IL_0028
-  IL_0011:  pop
-  IL_0012:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0017:  ldftn      ""void C.<>c.<Main>b__3_0(object, System.EventArgs)""
-  IL_001d:  newobj     ""System.EventHandler..ctor(object, System.IntPtr)""
-  IL_0022:  dup
-  IL_0023:  stsfld     ""System.EventHandler C.<>c.<>9__3_0""
-  IL_0028:  stsfld     ""System.EventHandler C.E""
-  IL_002d:  ret
+  IL_0005:  brtrue.s   IL_002b
+  IL_0007:  ldsfld     ""System.EventHandler C.<>c.<>9__3_0""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0026
+  IL_000f:  pop
+  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0015:  ldftn      ""void C.<>c.<Main>b__3_0(object, System.EventArgs)""
+  IL_001b:  newobj     ""System.EventHandler..ctor(object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""System.EventHandler C.<>c.<>9__3_0""
+  IL_0026:  stsfld     ""System.EventHandler C.E""
+  IL_002b:  ret
 }
 ");
         }
@@ -445,43 +461,38 @@ In TestMethod
 In TestMethod
 ").VerifyIL("C.Main()", @"
 {
-  // Code size       76 (0x4c)
+  // Code size       70 (0x46)
   .maxstack  2
-  .locals init (System.Action V_0, //a
-                System.Action V_1)
+  .locals init (System.Action V_0) //a
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  stloc.1
-  IL_0004:  ldloc.1
-  IL_0005:  brtrue.s   IL_0017
+  IL_0003:  dup
+  IL_0004:  brtrue.s   IL_0015
+  IL_0006:  pop
   IL_0007:  ldnull
   IL_0008:  ldftn      ""void C.TestMethod()""
   IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0013:  dup
   IL_0014:  stloc.0
-  IL_0015:  br.s       IL_0018
-  IL_0017:  ldloc.1
-  IL_0018:  callvirt   ""void System.Action.Invoke()""
-  IL_001d:  ldloc.0
-  IL_001e:  stloc.1
-  IL_001f:  ldloc.1
-  IL_0020:  brtrue.s   IL_0045
-  IL_0022:  ldsfld     ""System.Action C.<>c.<>9__0_0""
-  IL_0027:  dup
-  IL_0028:  brtrue.s   IL_0041
-  IL_002a:  pop
-  IL_002b:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0030:  ldftn      ""void C.<>c.<Main>b__0_0()""
-  IL_0036:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_003b:  dup
-  IL_003c:  stsfld     ""System.Action C.<>c.<>9__0_0""
-  IL_0041:  dup
-  IL_0042:  stloc.0
-  IL_0043:  br.s       IL_0046
-  IL_0045:  ldloc.1
-  IL_0046:  callvirt   ""void System.Action.Invoke()""
-  IL_004b:  ret
+  IL_0015:  callvirt   ""void System.Action.Invoke()""
+  IL_001a:  ldloc.0
+  IL_001b:  dup
+  IL_001c:  brtrue.s   IL_0040
+  IL_001e:  pop
+  IL_001f:  ldsfld     ""System.Action C.<>c.<>9__0_0""
+  IL_0024:  dup
+  IL_0025:  brtrue.s   IL_003e
+  IL_0027:  pop
+  IL_0028:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_002d:  ldftn      ""void C.<>c.<Main>b__0_0()""
+  IL_0033:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0038:  dup
+  IL_0039:  stsfld     ""System.Action C.<>c.<>9__0_0""
+  IL_003e:  dup
+  IL_003f:  stloc.0
+  IL_0040:  callvirt   ""void System.Action.Invoke()""
+  IL_0045:  ret
 }
 ");
         }
@@ -544,55 +555,55 @@ In Get P1
 In GetF1
 2").VerifyIL("C.Main()", @"
 {
-  // Code size      117 (0x75)
+  // Code size      119 (0x77)
   .maxstack  4
   .locals init (int?& V_0,
-                int?& V_1,
+                int? V_1,
                 int? V_2)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  callvirt   ""ref int? C.P1.get""
   IL_000b:  stloc.0
   IL_000c:  ldloc.0
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.1
-  IL_000f:  call       ""bool int?.HasValue.get""
-  IL_0014:  brtrue.s   IL_0027
-  IL_0016:  ldloc.0
-  IL_0017:  ldc.i4.1
-  IL_0018:  newobj     ""int?..ctor(int)""
-  IL_001d:  dup
-  IL_001e:  stloc.2
-  IL_001f:  stobj      ""int?""
-  IL_0024:  ldloc.2
-  IL_0025:  br.s       IL_002d
-  IL_0027:  ldloc.1
-  IL_0028:  ldobj      ""int?""
-  IL_002d:  box        ""int?""
-  IL_0032:  call       ""void System.Console.WriteLine(object)""
-  IL_0037:  dup
-  IL_0038:  ldflda     ""int? C.f1""
-  IL_003d:  initobj    ""int?""
-  IL_0043:  callvirt   ""ref int? C.GetF1()""
-  IL_0048:  stloc.1
-  IL_0049:  ldloc.1
-  IL_004a:  stloc.0
-  IL_004b:  ldloc.0
-  IL_004c:  call       ""bool int?.HasValue.get""
-  IL_0051:  brtrue.s   IL_0064
-  IL_0053:  ldloc.1
-  IL_0054:  ldc.i4.2
-  IL_0055:  newobj     ""int?..ctor(int)""
-  IL_005a:  dup
-  IL_005b:  stloc.2
-  IL_005c:  stobj      ""int?""
-  IL_0061:  ldloc.2
-  IL_0062:  br.s       IL_006a
-  IL_0064:  ldloc.0
-  IL_0065:  ldobj      ""int?""
-  IL_006a:  box        ""int?""
-  IL_006f:  call       ""void System.Console.WriteLine(object)""
-  IL_0074:  ret
+  IL_000d:  ldobj      ""int?""
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  call       ""bool int?.HasValue.get""
+  IL_001a:  brtrue.s   IL_002d
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  newobj     ""int?..ctor(int)""
+  IL_0023:  dup
+  IL_0024:  stloc.2
+  IL_0025:  stobj      ""int?""
+  IL_002a:  ldloc.2
+  IL_002b:  br.s       IL_002e
+  IL_002d:  ldloc.1
+  IL_002e:  box        ""int?""
+  IL_0033:  call       ""void System.Console.WriteLine(object)""
+  IL_0038:  dup
+  IL_0039:  ldflda     ""int? C.f1""
+  IL_003e:  initobj    ""int?""
+  IL_0044:  callvirt   ""ref int? C.GetF1()""
+  IL_0049:  stloc.0
+  IL_004a:  ldloc.0
+  IL_004b:  ldobj      ""int?""
+  IL_0050:  stloc.1
+  IL_0051:  ldloca.s   V_1
+  IL_0053:  call       ""bool int?.HasValue.get""
+  IL_0058:  brtrue.s   IL_006b
+  IL_005a:  ldloc.0
+  IL_005b:  ldc.i4.2
+  IL_005c:  newobj     ""int?..ctor(int)""
+  IL_0061:  dup
+  IL_0062:  stloc.2
+  IL_0063:  stobj      ""int?""
+  IL_0068:  ldloc.2
+  IL_0069:  br.s       IL_006c
+  IL_006b:  ldloc.1
+  IL_006c:  box        ""int?""
+  IL_0071:  call       ""void System.Console.WriteLine(object)""
+  IL_0076:  ret
 }
 ");
         }
@@ -669,21 +680,19 @@ public class C
     static void Test(C test) {}
 }").VerifyIL("C.Main()", expectedIL: @"
 {
-  // Code size       29 (0x1d)
+  // Code size       26 (0x1a)
   .maxstack  2
-  .locals init (C V_0)
   IL_0000:  call       ""C C.P1.get""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  brtrue.s   IL_0016
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0014
+  IL_0008:  pop
   IL_0009:  newobj     ""C..ctor()""
   IL_000e:  dup
   IL_000f:  call       ""void C.P1.set""
-  IL_0014:  br.s       IL_0017
-  IL_0016:  ldloc.0
-  IL_0017:  call       ""void C.Test(C)""
-  IL_001c:  ret
-}");
+  IL_0014:  call       ""void C.Test(C)""
+  IL_0019:  ret
+}
+");
         }
 
         [Fact]
@@ -703,34 +712,34 @@ public class C
 }", expectedOutput: @"1
 1").VerifyIL("C.Main()", expectedIL: @"
 {
-  // Code size       65 (0x41)
+  // Code size       66 (0x42)
   .maxstack  3
   .locals init (int?& V_0, //i1
-                int?& V_1,
+                int? V_1,
                 int? V_2)
   IL_0000:  ldsflda    ""int? C.f1""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
-  IL_0009:  call       ""bool int?.HasValue.get""
-  IL_000e:  brtrue.s   IL_0021
-  IL_0010:  ldloc.0
-  IL_0011:  ldc.i4.1
-  IL_0012:  newobj     ""int?..ctor(int)""
-  IL_0017:  dup
-  IL_0018:  stloc.2
-  IL_0019:  stobj      ""int?""
-  IL_001e:  ldloc.2
-  IL_001f:  br.s       IL_0027
-  IL_0021:  ldloc.1
-  IL_0022:  ldobj      ""int?""
-  IL_0027:  box        ""int?""
-  IL_002c:  call       ""void System.Console.WriteLine(object)""
-  IL_0031:  ldsfld     ""int? C.f1""
-  IL_0036:  box        ""int?""
-  IL_003b:  call       ""void System.Console.WriteLine(object)""
-  IL_0040:  ret
+  IL_0007:  ldobj      ""int?""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  call       ""bool int?.HasValue.get""
+  IL_0014:  brtrue.s   IL_0027
+  IL_0016:  ldloc.0
+  IL_0017:  ldc.i4.1
+  IL_0018:  newobj     ""int?..ctor(int)""
+  IL_001d:  dup
+  IL_001e:  stloc.2
+  IL_001f:  stobj      ""int?""
+  IL_0024:  ldloc.2
+  IL_0025:  br.s       IL_0028
+  IL_0027:  ldloc.1
+  IL_0028:  box        ""int?""
+  IL_002d:  call       ""void System.Console.WriteLine(object)""
+  IL_0032:  ldsfld     ""int? C.f1""
+  IL_0037:  box        ""int?""
+  IL_003c:  call       ""void System.Console.WriteLine(object)""
+  IL_0041:  ret
 }
 ");
         }
@@ -845,34 +854,29 @@ class D : C {}
 class E {}
 ").VerifyIL("C.Main()", @"
 {
-  // Code size       58 (0x3a)
+  // Code size       54 (0x36)
   .maxstack  1
-  .locals init (C V_0,
-                int? V_1)
+  .locals init (int? V_0)
   IL_0000:  ldnull
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_000b
-  IL_0005:  newobj     ""D..ctor()""
-  IL_000a:  pop
-  IL_000b:  ldnull
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  brtrue.s   IL_001b
-  IL_0010:  newobj     ""E..ctor()""
-  IL_0015:  call       ""C C.op_Implicit(E)""
-  IL_001a:  pop
-  IL_001b:  ldloca.s   V_1
-  IL_001d:  initobj    ""int?""
-  IL_0023:  ldloc.1
-  IL_0024:  stloc.1
-  IL_0025:  ldloca.s   V_1
-  IL_0027:  call       ""bool int?.HasValue.get""
-  IL_002c:  brtrue.s   IL_0039
-  IL_002e:  newobj     ""C..ctor()""
-  IL_0033:  call       ""int C.op_Implicit(C)""
-  IL_0038:  pop
-  IL_0039:  ret
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  newobj     ""D..ctor()""
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  brtrue.s   IL_0017
+  IL_000c:  newobj     ""E..ctor()""
+  IL_0011:  call       ""C C.op_Implicit(E)""
+  IL_0016:  pop
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  initobj    ""int?""
+  IL_001f:  ldloc.0
+  IL_0020:  stloc.0
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""bool int?.HasValue.get""
+  IL_0028:  brtrue.s   IL_0035
+  IL_002a:  newobj     ""C..ctor()""
+  IL_002f:  call       ""int C.op_Implicit(C)""
+  IL_0034:  pop
+  IL_0035:  ret
 }
 ");
         }
@@ -1037,10 +1041,9 @@ In Indexer Setter
 
             verifier.VerifyIL("C.VerifyField()", expectedIL: @"
 {
-  // Code size      247 (0xf7)
+  // Code size      244 (0xf4)
   .maxstack  10
-  .locals init (object V_0,
-                object V_1)
+  .locals init (object V_0)
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>> C.<>o__1.<>p__2""
   IL_0005:  brtrue.s   IL_002b
   IL_0007:  ldc.i4.0
@@ -1078,9 +1081,9 @@ In Indexer Setter
   IL_0080:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<>o__1.<>p__0""
   IL_0085:  ldloc.0
   IL_0086:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_008b:  stloc.1
-  IL_008c:  ldloc.1
-  IL_008d:  brtrue.s   IL_00f0
+  IL_008b:  dup
+  IL_008c:  brtrue.s   IL_00ee
+  IL_008e:  pop
   IL_008f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic, dynamic>> C.<>o__1.<>p__1""
   IL_0094:  brtrue.s   IL_00d3
   IL_0096:  ldc.i4     0x81
@@ -1111,19 +1114,16 @@ In Indexer Setter
   IL_00e3:  ldc.i4.0
   IL_00e4:  box        ""int""
   IL_00e9:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, dynamic)""
-  IL_00ee:  br.s       IL_00f1
-  IL_00f0:  ldloc.1
-  IL_00f1:  callvirt   ""int? System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_00f6:  ret
+  IL_00ee:  callvirt   ""int? System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_00f3:  ret
 }
 ");
 
             verifier.VerifyIL("C.VerifyProperty()", expectedIL: @"
 {
-  // Code size      247 (0xf7)
+  // Code size      244 (0xf4)
   .maxstack  10
-  .locals init (object V_0,
-                object V_1)
+  .locals init (object V_0)
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>> C.<>o__2.<>p__2""
   IL_0005:  brtrue.s   IL_002b
   IL_0007:  ldc.i4.0
@@ -1161,9 +1161,9 @@ In Indexer Setter
   IL_0080:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<>o__2.<>p__0""
   IL_0085:  ldloc.0
   IL_0086:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_008b:  stloc.1
-  IL_008c:  ldloc.1
-  IL_008d:  brtrue.s   IL_00f0
+  IL_008b:  dup
+  IL_008c:  brtrue.s   IL_00ee
+  IL_008e:  pop
   IL_008f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic, dynamic>> C.<>o__2.<>p__1""
   IL_0094:  brtrue.s   IL_00d3
   IL_0096:  ldc.i4     0x81
@@ -1194,19 +1194,16 @@ In Indexer Setter
   IL_00e3:  ldc.i4.1
   IL_00e4:  box        ""int""
   IL_00e9:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, dynamic)""
-  IL_00ee:  br.s       IL_00f1
-  IL_00f0:  ldloc.1
-  IL_00f1:  callvirt   ""int? System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_00f6:  ret
+  IL_00ee:  callvirt   ""int? System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_00f3:  ret
 }
 ");
 
             verifier.VerifyIL("C.VerifyIndexer()", expectedIL: @"
 {
-  // Code size      259 (0x103)
+  // Code size      256 (0x100)
   .maxstack  9
-  .locals init (object V_0,
-                object V_1)
+  .locals init (object V_0)
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>> C.<>o__3.<>p__2""
   IL_0005:  brtrue.s   IL_002b
   IL_0007:  ldc.i4.0
@@ -1250,9 +1247,9 @@ In Indexer Setter
   IL_008a:  ldloc.0
   IL_008b:  ldc.i4.0
   IL_008c:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, int)""
-  IL_0091:  stloc.1
-  IL_0092:  ldloc.1
-  IL_0093:  brtrue.s   IL_00fc
+  IL_0091:  dup
+  IL_0092:  brtrue.s   IL_00fa
+  IL_0094:  pop
   IL_0095:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic, dynamic>> C.<>o__3.<>p__1""
   IL_009a:  brtrue.s   IL_00de
   IL_009c:  ldc.i4     0x81
@@ -1289,10 +1286,8 @@ In Indexer Setter
   IL_00ef:  ldc.i4.2
   IL_00f0:  box        ""int""
   IL_00f5:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic)""
-  IL_00fa:  br.s       IL_00fd
-  IL_00fc:  ldloc.1
-  IL_00fd:  callvirt   ""int? System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_0102:  ret
+  IL_00fa:  callvirt   ""int? System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int?>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_00ff:  ret
 }
 ");
         }
