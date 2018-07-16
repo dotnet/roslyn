@@ -141,10 +141,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal static void GenerateEditorconfig_CoreSettings(OptionSet optionSet, string language, StringBuilder editorconfig)
         {
             // Core EditorConfig Options
-            editorconfig.AppendLine("###############################");
-            editorconfig.AppendLine("# Core EditorConfig Options   #");
-            editorconfig.AppendLine("###############################");
-            editorconfig.AppendLine("# You can uncomment the next line if this is your top-most .editorconfig file.");
+            editorconfig.AppendLine("# Core EditorConfig Options");
+            editorconfig.AppendLine("# Uncomment the line below if you don’t want to inherit parent .editorconfig settings or if this is your solution directory.");
             editorconfig.AppendLine("# root = true");
 
             editorconfig.AppendLine();
@@ -199,10 +197,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal static void GenerateEditorconfig_DotNetSettings(OptionSet optionSet, string language, StringBuilder editorconfig)
         {
             editorconfig.AppendLine();
-            editorconfig.AppendLine("###############################");
-            editorconfig.AppendLine("# .NET Coding Conventions     #");
-            editorconfig.AppendLine("###############################");
-
+            editorconfig.AppendLine("# .NET Coding Conventions");
+  
             editorconfig.AppendLine("# Organize usings");
             // dotnet_sort_system_directives_first
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, GenerationOptions.PlaceSystemNamespaceFirst, language, editorconfig);
@@ -215,6 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 editorconfig.AppendLine("# Me. preferences");
             }
+
             // dotnet_style_qualification_for_field
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.QualifyFieldAccess, language, editorconfig);
             // dotnet_style_qualification_for_property

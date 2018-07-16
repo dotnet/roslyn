@@ -16,10 +16,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         <WpfFact>
         Public Sub TestEditorConfigGeneratorDefault()
             Using workspace = TestWorkspace.CreateVisualBasic("")
-                Dim expectedText = "###############################
-# Core EditorConfig Options   #
-###############################
-# You can uncomment the next line if this is your top-most .editorconfig file.
+                Dim expectedText = "# Core EditorConfig Options
+# Uncomment the line below if you don’t want to inherit parent .editorconfig settings or if this is your solution directory.
 # root = true
 
 # Basic files
@@ -28,9 +26,7 @@ indent_style = space
 indent_size = 4
 insert_final_newline = false
 
-###############################
-# .NET Coding Conventions     #
-###############################
+# .NET Coding Conventions
 # Organize usings
 dotnet_sort_system_directives_first = true
 
@@ -67,9 +63,7 @@ dotnet_style_prefer_auto_properties = true:none
 dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
 
-###############################
-# VB Coding Conventions       #
-###############################
+# VB Coding Conventions
 # Modifier preferences
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:none
 "
@@ -86,10 +80,8 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
             Using workspace = TestWorkspace.CreateVisualBasic("")
                 Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey(CodeStyleOptions.PreferExplicitTupleNames, LanguageNames.VisualBasic),
                                                                          New CodeStyleOption(Of Boolean)(False, NotificationOption.[Error]))
-                Dim expectedText = "###############################
-# Core EditorConfig Options   #
-###############################
-# You can uncomment the next line if this is your top-most .editorconfig file.
+                Dim expectedText = "# Core EditorConfig Options
+# Uncomment the line below if you don’t want to inherit parent .editorconfig settings or if this is your solution directory.
 # root = true
 
 # Basic files
@@ -98,9 +90,7 @@ indent_style = space
 indent_size = 4
 insert_final_newline = false
 
-###############################
-# .NET Coding Conventions     #
-###############################
+# .NET Coding Conventions
 # Organize usings
 dotnet_sort_system_directives_first = true
 
@@ -137,9 +127,7 @@ dotnet_style_prefer_auto_properties = true:none
 dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
 
-###############################
-# VB Coding Conventions       #
-###############################
+# VB Coding Conventions
 # Modifier preferences
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:none
 "

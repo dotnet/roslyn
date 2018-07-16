@@ -26,9 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
         internal static void GetCurrentEditorConfigOptionsCSharp(OptionSet optionSet, StringBuilder editorconfig)
         {
             editorconfig.AppendLine();
-            editorconfig.AppendLine("###############################");
-            editorconfig.AppendLine("# C# Coding Conventions       #");
-            editorconfig.AppendLine("###############################");
+            editorconfig.AppendLine("# C# Coding Conventions");
 
             editorconfig.AppendLine("# var preferences");
             // csharp_style_var_for_built_in_types
@@ -86,9 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.PreferInlinedVariableDeclaration, editorconfig);
 
             editorconfig.AppendLine();
-            editorconfig.AppendLine("###############################");
-            editorconfig.AppendLine("# C# Formatting Rules         #");
-            editorconfig.AppendLine("###############################");
+            editorconfig.AppendLine("# C# Formatting Rules");
             editorconfig.AppendLine("# New line preferences");
             // csharp_new_line_before_open_brace
             CSharpNewLineBeforeOpenBrace_GenerateEditorconfig(optionSet, editorconfig);

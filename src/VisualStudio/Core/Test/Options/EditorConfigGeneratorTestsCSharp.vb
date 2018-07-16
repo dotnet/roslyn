@@ -16,10 +16,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         <WpfFact>
         Public Sub TestEditorConfigGeneratorDefault()
             Using workspace = TestWorkspace.CreateCSharp("")
-                Dim expectedText = "###############################
-# Core EditorConfig Options   #
-###############################
-# You can uncomment the next line if this is your top-most .editorconfig file.
+                Dim expectedText = "# Core EditorConfig Options
+# Uncomment the line below if you don’t want to inherit parent .editorconfig settings or if this is your solution directory.
 # root = true
 
 # C# files
@@ -28,9 +26,7 @@ indent_style = space
 indent_size = 4
 insert_final_newline = false
 
-###############################
-# .NET Coding Conventions     #
-###############################
+# .NET Coding Conventions
 # Organize usings
 dotnet_sort_system_directives_first = true
 
@@ -67,9 +63,7 @@ dotnet_style_prefer_auto_properties = true:none
 dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
 
-###############################
-# C# Coding Conventions       #
-###############################
+# C# Coding Conventions
 # var preferences
 csharp_style_var_for_built_in_types = false:none
 csharp_style_var_when_type_is_apparent = false:none
@@ -101,9 +95,7 @@ csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion
 
-###############################
-# C# Formatting Rules         #
-###############################
+# C# Formatting Rules
 # New line preferences
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
@@ -149,10 +141,8 @@ csharp_preserve_single_line_blocks = true
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey(CodeStyleOptions.PreferExplicitTupleNames, LanguageNames.CSharp),
                                                                          New CodeStyleOption(Of Boolean)(False, NotificationOption.[Error]))
-                Dim expectedText = "###############################
-# Core EditorConfig Options   #
-###############################
-# You can uncomment the next line if this is your top-most .editorconfig file.
+                Dim expectedText = "# Core EditorConfig Options
+# Uncomment the line below if you don’t want to inherit parent .editorconfig settings or if this is your solution directory.
 # root = true
 
 # C# files
@@ -161,9 +151,7 @@ indent_style = space
 indent_size = 4
 insert_final_newline = false
 
-###############################
-# .NET Coding Conventions     #
-###############################
+# .NET Coding Conventions
 # Organize usings
 dotnet_sort_system_directives_first = true
 
@@ -200,9 +188,7 @@ dotnet_style_prefer_auto_properties = true:none
 dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
 
-###############################
-# C# Coding Conventions       #
-###############################
+# C# Coding Conventions
 # var preferences
 csharp_style_var_for_built_in_types = false:none
 csharp_style_var_when_type_is_apparent = false:none
@@ -234,9 +220,7 @@ csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion
 
-###############################
-# C# Formatting Rules         #
-###############################
+# C# Formatting Rules
 # New line preferences
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true

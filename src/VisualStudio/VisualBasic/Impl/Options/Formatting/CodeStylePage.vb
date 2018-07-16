@@ -21,9 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
 
         Friend Shared Sub GetCurrentEditorConfigOptionsVB(ByVal optionSet As OptionSet, ByVal editorconfig As StringBuilder)
             editorconfig.AppendLine()
-            editorconfig.AppendLine("###############################")
-            editorconfig.AppendLine("# VB Coding Conventions       #")
-            editorconfig.AppendLine("###############################")
+            editorconfig.AppendLine("# VB Coding Conventions")
 
             editorconfig.AppendLine("# Modifier preferences")
             ' visual_basic_preferred_modifier_order
