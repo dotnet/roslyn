@@ -551,23 +551,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Here = 1
             Dim atNewLine As Boolean
+            Dim FoundCommentAfterUnderscore As Boolean = False
             ' Line continuation is valid at the end of the line, or at the end of the file, or followed by a trailing comment.
             ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment)
-            ' PROTOTYPE(continuation-comments): update once LangVersion 16 is created
-            ' TODO the following line Feature.NonTrailingNamedArguments needs to change to be the correct feature name
             If CanGet(Here + 1) AndAlso IsWhitespace(Peek(Here)) AndAlso IsSingleQuote(Peek(Here + 1)) Then
-                If CheckFeatureAvailability(Feature.PROTOTYPECommnetsAfterLineContinuation) Then
+                If CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
                     tList.Add(MakeLineContinuationTrivia(GetText(1)))
                     tList.Add(MakeWhiteSpaceTrivia(GetText(Here)))
                     ScanCommentIfAny(tList)
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
-                Else
-                    ' We should report the existence of new feature here so users can use latest compiler options
-                    Return False
+                    FoundCommentAfterUnderscore = True
                 End If
-            Else
-                    While CanGet(Here)
+            End If
+            If Not FoundCommentAfterUnderscore Then
+                While CanGet(Here)
                     ch = Peek(Here)
                     If IsWhitespace(ch) Then
                         Here += 1

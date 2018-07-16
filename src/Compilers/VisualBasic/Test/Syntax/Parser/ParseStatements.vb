@@ -20,7 +20,7 @@ Public Class ParseStatements
 
                     if true then f() else if true then g()
 
-                    If True 
+                    If True
                     End If
 
                     If True Then
@@ -54,7 +54,7 @@ Public Class ParseStatements
                     Sub Goo()
 
                      Do
-                     Loop  
+                     Loop
 
                     do while true
                     loop
@@ -62,7 +62,7 @@ Public Class ParseStatements
                     do until true
                     loop
 
-                    do 
+                    do
                     loop until true
 
                     end sub
@@ -137,8 +137,8 @@ Public Class ParseStatements
                 Module Module1
                     Sub Goo()
                         try
-                        catch 
-                        finally    
+                        catch
+                        finally
                         end try
                     end sub
                End Module
@@ -189,7 +189,7 @@ Public Class ParseStatements
                             continue do
                         end while
 
-                        for i = 0 to 10 
+                        for i = 0 to 10
                            continue for
                         next
                     end sub
@@ -203,15 +203,15 @@ Public Class ParseStatements
                 Module Module1
                     Sub s1()
                         do
-                            exit do 
+                            exit do
                         loop
 
                         while true
-                            exit while 
+                            exit while
                         end while
 
-                        for i = 0 to 10 
-                           exit for 
+                        for i = 0 to 10
+                           exit for
                         next
 
                         select 0
@@ -348,9 +348,9 @@ Public Class ParseStatements
         Dim tree = ParseAndVerify(<![CDATA[
 Module M
   Sub Main()
-    If True Then Goo: Else 
+    If True Then Goo: Else
   End Sub
- 
+
   Sub Goo()
   End Sub
 End Module
@@ -441,7 +441,7 @@ End Module
 
     <Fact>
     Public Sub ParseSingleLineIfWithNestedMultiLineIf1()
-        ' This is a single line if that contains an invalid multi line if.  
+        ' This is a single line if that contains an invalid multi line if.
         Dim tree = ParseAndVerify(<![CDATA[
 Imports System
 Module M
@@ -458,7 +458,7 @@ End Module
 
     <Fact>
     Public Sub ParseSingleLineIfWithNestedMultiLineIf2()
-        ' This is a single line if that contains an invalid multi line if/then/else. 
+        ' This is a single line if that contains an invalid multi line if/then/else.
         Dim tree = ParseAndVerify(<![CDATA[
 Imports System
 Module M
@@ -475,12 +475,12 @@ End Module
 
     <Fact>
     Public Sub ParseSingleLineIfWithNestedMultiLineIf3()
-        ' This is a single line if that contains an invalid multi line if. 
+        ' This is a single line if that contains an invalid multi line if.
         Dim tree = ParseAndVerify(<![CDATA[
 Imports System
 Module M
     Sub Main()
-        If true Then If True  
+        If true Then If True
             Console.WriteLine(1)
         end if
   End Sub
@@ -495,7 +495,7 @@ End Module
     <WorkItem(539207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539207")>
     <Fact>
     Public Sub ParseSingleLineIfWithNestedDoLoop1()
-        ' This is a single line if that contains an invalid do .. loop 
+        ' This is a single line if that contains an invalid do .. loop
         Dim tree = ParseAndVerify(<![CDATA[
 Imports System
 Module M
@@ -511,7 +511,7 @@ End Module
 
     <Fact>
     Public Sub ParseSingleLineIfWithNestedDoLoop2()
-        ' This is a single line if that contains an invalid do .. loop 
+        ' This is a single line if that contains an invalid do .. loop
         Dim tree = ParseAndVerify(<![CDATA[
 Imports System
 Module M
@@ -652,7 +652,7 @@ End Module
 Module Program
   Sub Main()
     Dim a = Sub() If True Then End _
-     : Dim b = Sub() If True Then End Else End Else 
+     : Dim b = Sub() If True Then End Else End Else
   End Sub
 End Module
 ]]>)
@@ -665,7 +665,7 @@ End Module
         Dim tree = ParseAndVerify(<![CDATA[
 Module Program
   Sub Main()
-    Dim a = Sub() If True Then 
+    Dim a = Sub() If True Then
   End Sub
 End Module
 ]]>, Diagnostic(ERRID.ERR_ExpectedEndIf, "If True Then"))
@@ -678,8 +678,8 @@ End Module
         Dim tree = ParseAndVerify(<![CDATA[
 Module Program
   Sub Main()
-    Dim a = Sub() 
-        If True Then 
+    Dim a = Sub()
+        If True Then
   End Sub
 End Module
 ]]>,
@@ -697,7 +697,7 @@ End Module
                 Public vobja() As Object
                 Public Sub Goo()
                     Erase vobja
-                End Sub                
+                End Sub
             End Class
         ]]>)
     End Sub
@@ -709,7 +709,7 @@ End Module
             Class Class1
                 Public Sub Goo()
                     Error 5
-                End Sub                
+                End Sub
             End Class
         ]]>)
     End Sub
@@ -721,7 +721,7 @@ End Module
             Class Class1
                 Public Sub Goo()
             10:     Dim x = 42
-                End Sub                
+                End Sub
             End Class
         ]]>)
     End Sub
@@ -734,7 +734,7 @@ End Module
               Sub Main()
                 Goo : Goo : Goo()
               End Sub
- 
+
               Sub Goo()
               End Sub
             End Module
@@ -762,7 +762,7 @@ End Module
               End Sub
 
 ::
-#region "goo" 
+#region "goo"
               Sub Goo()
               End Sub
 ::
@@ -772,12 +772,12 @@ End Module
 
 
               ''' <summary>
-              ''' </summary>  
+              ''' </summary>
               :Sub Goo2()
               :End Sub
 
               ''' <summary>
-              ''' </summary>  
+              ''' </summary>
               Sub Goo2_()
               End Sub
 
@@ -788,7 +788,7 @@ End Module
 #if false
 #end if
               Sub Goo4()
-                :              
+                :
               :End Sub
 
               :' nice little innocent comment
@@ -823,7 +823,7 @@ End Module
                 Public Sub Goo(ByRef r As aType)
                     Mid$(r.S(2, 2), 1, 1) = "-"
                     Mid(r.S(2, 2), 1, 1) = "-"
-                End Sub                
+                End Sub
             End Class
         ]]>)
     End Sub
@@ -835,11 +835,11 @@ End Module
             Class Mid
                 Public Sub Goo(ByRef r As aType)
                     Mid.Goo(nothing) ' Roslyn will now recognize this correctly as a member access
-                    
+
                     Dim mid(42) as Integer
                     mid(23) = 33 ' false recognition as mid statement assignment -> error for missing ,
                     [mid](23) = 33
-                End Sub                
+                End Sub
 
                 Public Sub Mid(p as Integer)
                 End Sub
@@ -855,7 +855,7 @@ End Module
         ParseAndVerify(<![CDATA[
             Class Mid
                 Public Sub Goo(ByRef r As aType)
-                End Sub                
+                End Sub
 
                 Public Sub Mid(p as Integer)
                     Mid(23) ' false recognition as mid statement assignment -> error for missing expression
@@ -874,7 +874,7 @@ End Module
         ParseAndVerify(<![CDATA[
             Class Mid
                 Public Sub Mid(p as Integer)
-                    Mid(23, 24,) 
+                    Mid(23, 24,)
                     [Mid](23)
                 End Sub
             End Class
@@ -889,7 +889,7 @@ End Module
         ParseAndVerify(<![CDATA[
             Class Mid
                 Public Sub Mid(p as Integer)
-                    Mid(23, 24, 
+                    Mid(23, 24,
                 End Sub
             End Class
         ]]>, Diagnostic(ERRID.ERR_ExpectedExpression, ""),
@@ -1095,13 +1095,13 @@ End Module
     Public Sub ParseSelectCaseClauses()
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub Main() 
-                    Dim bytevar                                        
-                    Select Case bytevar                                                                                                                                                                
-                        Case Is < 0, Is > 255                                           
-                    End Select                                           
+                Sub Main()
+                    Dim bytevar
+                    Select Case bytevar
+                        Case Is < 0, Is > 255
+                    End Select
                 End Sub
-            End Module    
+            End Module
         ]]>)
     End Sub
 
@@ -1293,11 +1293,11 @@ End Module
         ParseAndVerify(<![CDATA[
 Module Program
     Sub Main(args As String())
- 
+
         Dim l = Function(m) Function(m3)
                                 Dim num = 10
                                 Select Case num
- 
+
                                     Case Is = 10
                                         Console.WriteLine("10")
                                 End Select
@@ -1314,7 +1314,7 @@ End Module
 Interface I
     Property A As Action
 End Interface
- 
+
 Class C
     Implements I
     Property A As Action = Sub() Implements I.A
@@ -1401,7 +1401,7 @@ End Class
                             y As Integer) Console.WriteLine(x & y), k = Sub(y, _
                                                                                 x) m(y, x), _
                                                                                 l = Sub(x) _
-                                                                                Console.WriteLine(x)     
+                                                                                Console.WriteLine(x)
                 End Sub
             End Module
         ]]>)
@@ -1415,7 +1415,7 @@ End Class
                 Sub Main()
                     Dim x = GetType(Action(Of
                             )
-                            )     
+                            )
                 End Sub
             End Module
         ]]>)
@@ -1428,7 +1428,7 @@ End Class
             Module Module1
                 Sub Main()
                     Dim x = 4 >> _
-                            1     
+                            1
                 End Sub
             End Module
         ]]>)
@@ -1440,7 +1440,7 @@ End Class
         ParseAndVerify(<![CDATA[
             Class Class1
                 Sub Test()
-                    Dim e = New With {.f = New Action(Of Integer)(Sub() If True Then Stop)}               
+                    Dim e = New With {.f = New Action(Of Integer)(Sub() If True Then Stop)}
                     Dim g = 3
                 End Sub
             End Class
@@ -1681,10 +1681,10 @@ End Module
         Dim tree = ParseAndVerify(<![CDATA[
 Module M
     Sub M()
-        M() : 
-        If True Then Else M1() : 
-        If True Then Else : M2() 
-        If True Then Else : 
+        M() :
+        If True Then Else M1() :
+        If True Then Else : M2()
+        If True Then Else :
 10:
 20::
 30: M3()
@@ -1843,7 +1843,7 @@ End Module
     Public Sub ParseLambdaCallsEndInArrayInitializer()
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub Main()      
+                Sub Main()
                     Dim f = {Sub() End}
                 End Sub
             End Module
@@ -1880,7 +1880,7 @@ End Module
         ParseAndVerify(<![CDATA[
         Class C
             Sub s
-                If o1 Then If o2 Then X = 1 Else X = 2 
+                If o1 Then If o2 Then X = 1 Else X = 2
             End Sub
         End Class
 ]]>)
@@ -2045,7 +2045,7 @@ Namespace AGPower17
             e2
             e3
         End Enum
-        
+
 
         Enum UlongEnumAlt As ULong
             e1
@@ -2064,7 +2064,7 @@ End Namespace
     <Fact>
     Public Sub ParseReturnFollowedByComma()
         ParseAndVerify(<![CDATA[
-Module Module1    
+Module Module1
     Dim x = Sub() Return, r = 42
 End Module
 ]]>)
@@ -2090,7 +2090,7 @@ End Module
     <WorkItem(538440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538440")>
     <Fact>
     Public Sub ParseSingleIfElseTerminatedByColon()
-        Dim t = ParseAndVerify(<![CDATA[ 
+        Dim t = ParseAndVerify(<![CDATA[
 Imports System
 Module M
 Sub Main()
@@ -2235,7 +2235,7 @@ End Module
     <Fact>
     Public Sub SingleLineIfNotTerminateByEmptyStatement()
 
-        ' Verify that "::" in the else of a single line if does not terminate the single line if. 
+        ' Verify that "::" in the else of a single line if does not terminate the single line if.
         ' The else contains a call, empty statement and the second single line if.
         Dim code = <String>
     Module Module1
@@ -2306,7 +2306,7 @@ End Module
             Imports System
              Class Program
                  Shared Sub Main(args As String())
-                     Dim x = From y As Char i, In String.Empty    
+                     Dim x = From y As Char i, In String.Empty
                  End Sub
              End Class
                      ]]>, Diagnostic(ERRID.ERR_ExpectedIn, ""),
@@ -2411,7 +2411,7 @@ End Module
     Public Sub BC30035ERR_Syntax_ParseErrorPrecededByComment()
         ParseAndVerify(<![CDATA[Module M1
 Sub Goo
-'this is a 
+'this is a
 'long
 'comment
 (1).ToString
@@ -2479,7 +2479,7 @@ End Module]]>,
         ParseAndVerify(<![CDATA[
         Class C
             Sub s
-                If o1 Then If o2 
+                If o1 Then If o2
             End Sub
         End Class
 ]]>,
@@ -2493,10 +2493,10 @@ End Module]]>,
     Public Sub BC30084ERR_ExpectedNext_For()
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub Main() 
+                Sub Main()
                     For i = 1 To 10
                 End Sub
-            End Module 
+            End Module
         ]]>,
         <errors>
             <error id="30084"/>
@@ -2513,7 +2513,7 @@ End Module]]>,
                             For u = 0 To 2 Step 1
                                 For i = 0 To 2 Step 1
                                 Next
-                       Catch 
+                       Catch
                        Finally
                        End Try
                   End Sub
@@ -2781,10 +2781,10 @@ End Module]]>,
                 Module Module1
                     Sub Goo()
                         try
-                        catch 
-                        finally  
-                        catch 
-                        end try 
+                        catch
+                        finally
+                        catch
+                        end try
                     end sub
                End Module
             ]]>,
@@ -2799,10 +2799,10 @@ End Module]]>,
                 Module Module1
                     Sub Goo()
                         try
-                        catch 
-                        finally  
+                        catch
                         finally
-                        end try 
+                        finally
+                        end try
                     end sub
                End Module
             ]]>,
@@ -2817,8 +2817,8 @@ End Module]]>,
                 Module Module1
                     Sub Goo()
                         try
-                        catch 
-                        finally    
+                        catch
+                        finally
                     end sub
                End Module
             ]]>,
@@ -2919,15 +2919,15 @@ End Module]]>,
                 Module Module1
                     Sub Goo()
                         do
-                            continue 
+                            continue
                         loop
 
                         while true
-                            continue 
+                            continue
                         end while
 
-                        for i = 0 to 10 
-                           continue 
+                        for i = 0 to 10
+                           continue
                         next
 
                     end sub
@@ -3140,7 +3140,7 @@ End Module]]>,
                 Sub Main()
                     Dim x1 = If()
                     Dim x2 = If(True)
-                    Dim x3 = If(True, False, True, False)     
+                    Dim x3 = If(True, False, True, False)
                 End Sub
             End Module
         ]]>,
@@ -3256,7 +3256,7 @@ End Module]]>,
         ParseAndVerify(<![CDATA[
                       Class Class1
                          Dim l = From pers In {1, 2}
-                          Group 
+                          Group
                           Join pet In {3, 4} On pers Equals pet Into PetList = Group
                       End Class
         ]]>,
@@ -3305,12 +3305,12 @@ End Module
                 Module M1
                      Sub Goo()
                         If True Then
-                            'COMPILEERROR : BC36673, "Sub()" 
+                            'COMPILEERROR : BC36673, "Sub()"
                             Dim x = Sub()
                         End If
-                             'COMPILEERROR : BC30429, "End Sub" 
+                             'COMPILEERROR : BC30429, "End Sub"
                       End Sub
-                  'COMPILEERROR : BC30289, "End Module" 
+                  'COMPILEERROR : BC30289, "End Module"
                  End Module
             ]]>,
             <errors>
@@ -3410,9 +3410,9 @@ End Module
                 Property Goo() as Single
                     Let
                     End Let
-                    Get 
+                    Get
                     End Get
-                    Set 
+                    Set
                     End Set
                 End Property
             End Class
@@ -3519,7 +3519,7 @@ End Module
     <Fact()>
     Public Sub BC30287ERR_ExpectedDot_ParseVariant()
         ParseAndVerify(<![CDATA[
-               If VarType(a1.GetValue(x)) > Variant 'Dev10/11 report expected '.' but Roslyn allows this. Grammar says its OK. 
+               If VarType(a1.GetValue(x)) > Variant 'Dev10/11 report expected '.' but Roslyn allows this. Grammar says its OK.
 ]]>,
             Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "If VarType(a1.GetValue(x)) > Variant"),
             Diagnostic(ERRID.ERR_ObsoleteObjectNotVariant, "Variant"))
@@ -3650,7 +3650,7 @@ End Namespace
             Structure Scen16
                 Dim i = Function()
                 Custom Event ev
-            End Structure       
+            End Structure
         ]]>,
         <errors>
             <error id="36674"/>
@@ -3758,10 +3758,10 @@ End Namespace
     <WorkItem(539515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
     <Fact()>
     Public Sub ParseNestedSingleLineIfFollowedByEndIf()
-        ' Report error for mismatched END IF.  
+        ' Report error for mismatched END IF.
         ParseAndVerify(<![CDATA[Module M
         Sub Main()
-            If False Then  Else If True Then  Else 
+            If False Then  Else If True Then  Else
         End If
         End Sub
     End Module]]>,
@@ -3836,9 +3836,9 @@ End Namespace
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub goo()
-                    If False Then  Else do 
+                    If False Then  Else do
 
-                    If False Then  Else do 
+                    If False Then  Else do
                                         Loop
 
                     If False Then  Else Do : Loop
@@ -3856,9 +3856,9 @@ End Namespace
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub goo()
-                    If False Then do 
+                    If False Then do
 
-                    If False Then do 
+                    If False Then do
                                   Loop
 
                     If False Then Do : Loop
@@ -3877,7 +3877,7 @@ End Namespace
         ParseAndVerify(<![CDATA[
             Module Module1
                 sub goo()
-                    if true f() 
+                    if true f()
                     if true then else if true f() is an error
                 End Sub
          End Module]]>,
@@ -3963,73 +3963,73 @@ End Namespace
 
                     ' test this case in the if part of the single line if statement
 
-                    If True Then try : 
+                    If True Then try :
                     finally
                     end try
 
-                    If True Then select case true : 
+                    If True Then select case true :
                     end select
 
-                    If True Then using resource As New Object() : 
+                    If True Then using resource As New Object() :
                     end using
 
-                    If True Then while true : 
+                    If True Then while true :
                     end while
 
-                    If True Then do while true : 
+                    If True Then do while true :
                     loop
 
-                    If True Then with nothing : 
+                    If True Then with nothing :
                     end with
 
-                    If True Then for each x as object in nothing : 
+                    If True Then for each x as object in nothing :
                     next
 
-                    If True Then for x as object = 1 to 12: 
+                    If True Then for x as object = 1 to 12:
                     next
 
-                    If True Then if true : 
+                    If True Then if true :
                     end if
 
-                    If True Then synclock new Object() : 
+                    If True Then synclock new Object() :
                     end synclock
 
                     '
                     ' test this case in the else part of the single line if statement
 
-                    If True Then else try : 
+                    If True Then else try :
                     finally
                     end try
 
-                    If True Then else select case true : 
+                    If True Then else select case true :
                     end select
 
-                    If True Then else using resource As New Object() : 
+                    If True Then else using resource As New Object() :
                     end using
 
-                    If True Then else while true : 
+                    If True Then else while true :
                     end while
 
-                    If True Then else do while true : 
+                    If True Then else do while true :
                     loop
 
-                    If True Then else with nothing : 
+                    If True Then else with nothing :
                     end with
 
-                    If True Then else for each x as object in nothing : 
+                    If True Then else for each x as object in nothing :
                     next
 
-                    If True Then else for x as object = 1 to 12: 
+                    If True Then else for x as object = 1 to 12:
                     next
 
-                    If True Then else if true : 
+                    If True Then else if true :
                     end if
 
-                    If True Then else synclock new Object() : 
+                    If True Then else synclock new Object() :
                     end synclock
 
                     ' make sure multiline statements in a single line if still work when being written in one line.
-                    If True Then select case 1 : case else : end select 
+                    If True Then select case 1 : case else : end select
 
                     ' make sure not to break the single line lambdas
                     Dim s1 = Sub() If True Then Console.WriteLine(1) :
@@ -4089,8 +4089,8 @@ End Namespace
     <Fact()>
     Public Sub ElseIfStatementOutsideMethodBody()
         ParseAndVerify(<![CDATA[
-Class c6    
-    else if    
+Class c6
+    else if
 End Class
         ]]>,
         Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "else if    "),
@@ -4216,7 +4216,7 @@ Module Program
     Sub Main()
         Dim Item = 0
         For i = 1 To 10
-            Dim x = Sub() if true Then For j = 1 To 2 : Next j            
+            Dim x = Sub() if true Then For j = 1 To 2 : Next j
         Next i
     End Sub
 End Module
@@ -4447,7 +4447,7 @@ End Module
         tree = ParseAndVerify(<![CDATA[
 Module M
     Sub M()
-        If True Then Do :: 
+        If True Then Do ::
                      Loop
     End Sub
 End Module
@@ -4535,7 +4535,7 @@ End Module
         tree = ParseAndVerify(<![CDATA[
 Module M
     Sub M()
-        If True Then Else Do :: 
+        If True Then Else Do ::
                      Loop
     End Sub
 End Module
@@ -4579,7 +4579,7 @@ End Module
         </errors>)
         tree = ParseAndVerify(<![CDATA[
 Module M
-#Const x = 1 : : 
+#Const x = 1 : :
 End Module
         ]]>,
         <errors>
@@ -4696,7 +4696,7 @@ End Class
         Dim tree = ParseAndVerify(<![CDATA[
 Module Program
     Sub Main1()
-        If True Then Dim x = Function() Sub() Console.WriteLine : 
+        If True Then Dim x = Function() Sub() Console.WriteLine :
 Else Return
 
     End Sub
@@ -4837,7 +4837,7 @@ End Module
 Module M
     Sub M()
         Dim x As Object
-        x = x.@p: 
+        x = x.@p:
     End Sub
 End Module
 ]]>,
@@ -4848,7 +4848,7 @@ End Module
 Module M
     Sub M()
         Dim x As Object
-        x = x.@p : 
+        x = x.@p :
     End Sub
 End Module
 ]]>)
@@ -5038,7 +5038,7 @@ End Module
 Module M
     Sub M()
         Dim x As Object
-        x = x.@<p: 
+        x = x.@<p:
     End Sub
 End Module
 ]]>,
@@ -5051,7 +5051,7 @@ End Module
 Module M
     Sub M()
         Dim x As Object
-        x = x.@<p : 
+        x = x.@<p :
     End Sub
 End Module
 ]]>,
@@ -5234,7 +5234,7 @@ End Module
 Module M
     Sub M()
         Dim x As Object
-        x = x.<p : 
+        x = x.<p :
     End Sub
 End Module
 ]]>,
@@ -5414,7 +5414,7 @@ End Module
 Module M
     Sub M()
         Dim x As Object
-        x = x...<p : 
+        x = x...<p :
     End Sub
 End Module
 ]]>,
@@ -6142,11 +6142,11 @@ End Module
     Public Sub FullWidthKeywords001()
         Dim source = <![CDATA[
 Imports System.Security
- 
+
 <ＡＳＳＥＭＢＬＹ: CLSCompliant(True)>
 
 #Const x = ＣＤＢＬ(0)
- 
+
 Module M
     Dim x = ＣＤＢＬ(0)
 End Module
@@ -6171,64 +6171,64 @@ End Module
     <Fact()>
     Public Sub BlankLinesFollowingUnderscore()
         ParseAndVerify(<![CDATA[
-Imports System.Linq 
+Imports System.Linq
 Module M
     Dim x = From c In "" _
-        _    
-        _    
-        Take 1 
+        _
+        _
+        Take 1
 End Module
 ]]>)
         ParseAndVerify(<![CDATA[
-Imports System.Linq 
+Imports System.Linq
 Module M
     Dim x = From c In ""
-        _    
-        _    
-Take 1 
+        _
+        _
+Take 1
 End Module
 ]]>)
         ParseAndVerify(<![CDATA[
-Imports System.Linq 
+Imports System.Linq
 Module M
     Dim x = From c In "" _
-             
-        _    
-        Take 1 
+
+        _
+        Take 1
 End Module
 ]]>,
             <errors>
                 <error id="30188" message="Declaration expected."/>
             </errors>)
         ParseAndVerify(<![CDATA[
-Imports System.Linq 
+Imports System.Linq
 Module M
     Dim x = From c In "" _
-        _    
-             
-        Take 1 
+        _
+
+        Take 1
 End Module
 ]]>,
             <errors>
                 <error id="30188" message="Declaration expected."/>
             </errors>)
         ParseAndVerify(<![CDATA[
-Imports System.Linq 
+Imports System.Linq
 Module M
     Dim x = From c In "" _
         'Comment
-        Take 1 
+        Take 1
 End Module
 ]]>,
             <errors>
                 <error id="30188" message="Declaration expected."/>
             </errors>)
         ParseAndVerify(<![CDATA[
-Imports System.Linq 
+Imports System.Linq
 Module M
     Dim x = From c In "" _
         'Comment _
-        Take 1 
+        Take 1
 End Module
 ]]>,
             <errors>
@@ -6355,7 +6355,7 @@ Module M
             </errors>)
         ParseAndVerify(<![CDATA[
 Module M
-    Dim x = Sub() 
+    Dim x = Sub()
 End Module
 ]]>,
             <errors>
@@ -6480,12 +6480,12 @@ End Module
     <Fact()>
     Public Sub LineContinuationTrivia()
         Dim source = <![CDATA[
-Imports System.Linq 
+Imports System.Linq
 Module M
     Dim x = From c In "" _
-        _    
-        _	
-        Take 1   _ 
+        _
+        _
+        Take 1   _
 
 End Module
 ]]>.Value
@@ -6927,21 +6927,21 @@ End Module
 Module M
     Sub M()
         Dim x = From o In Sub() If True Then Return Select o
-    End Sub   
+    End Sub
 End Module
 ]]>)
         ParseAndVerify(<![CDATA[
 Module M
     Sub M()
         Dim x = From o In Sub() If True Then Else Return Select o
-    End Sub   
+    End Sub
 End Module
 ]]>)
         ParseAndVerify(<![CDATA[
 Module M
     Sub M()
         Dim x = From o In Sub() If True Then Else Select o
-    End Sub   
+    End Sub
 End Module
 ]]>,
             <errors>
@@ -6959,14 +6959,14 @@ End Module
 Module M
     Sub M()
         Dim x = From o In Sub() Return Select o
-    End Sub   
+    End Sub
 End Module
 ]]>)
         ParseAndVerify(<![CDATA[
 Module M
     Sub M()
         Dim x = From o In Sub() End Select o
-    End Sub   
+    End Sub
 End Module
 ]]>,
             <errors>
@@ -6976,7 +6976,7 @@ End Module
 Module M
     Sub M()
         Dim x = From o In Sub() If True Then End Select o
-    End Sub   
+    End Sub
 End Module
 ]]>,
             <errors>
@@ -6986,7 +6986,7 @@ End Module
 Module M
     Sub M()
         Dim x = From o In Sub() If True Then Else End Select o
-    End Sub   
+    End Sub
 End Module
 ]]>,
             <errors>
@@ -8416,7 +8416,7 @@ End Class
         <![CDATA[
 Module M
     Sub Main()
-_ 
+_
     End Sub
 End Module
 ]]>,
@@ -8433,7 +8433,7 @@ Module M
     Sub Main() _
  _
     _
-_ 
+_
     End Sub
 End Module
 ]]>,
@@ -8442,7 +8442,8 @@ End Module
     End Sub
     <Fact()>
     <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
-    Public Sub ParseLineContWithComment()
+    Public Sub ParseLineContWithCommentV16()
+        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16
         ParseAndVerify(
         <![CDATA[
     Module M
@@ -8451,9 +8452,28 @@ End Module
                     = 1
             End Sub
      End Module
-    ]]>
+    ]]>, New VisualBasicParseOptions(LanguageVersion.Latest)
         )
     End Sub
+
+    ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV15_5()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
+            Diagnostic(ERRID.ERR_LineContWithCommentOrNoPrecSpace, "_").WithLocation(4, 34),
+            Diagnostic(ERRID.ERR_Syntax, "=").WithLocation(5, 21)
+        )
+    End Sub
+
     <Fact()>
     <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithoutComment()
@@ -8628,12 +8648,12 @@ Module Module1
         End If
 
         If val Is Nothing Then
-            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(19) 
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(19)
         Else
         End If
 
         If val Is Nothing Then
-            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(20) 
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(20)
         Else
         End If
     End Sub
@@ -8794,7 +8814,7 @@ Module Module1
         Dim r As Object
 
         If val Is Nothing Then
-            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(7)  
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(7)
         Else
         End If
     End Sub
@@ -8803,7 +8823,7 @@ Module Module1
         Dim r As Object
 
         If val Is Nothing Then
-            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(8) 
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(8)
         Else
         End If
     End Sub

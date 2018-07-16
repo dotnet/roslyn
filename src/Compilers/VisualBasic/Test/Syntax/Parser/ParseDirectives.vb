@@ -2354,10 +2354,11 @@ End Module]]>,
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
 
-
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation2()
-        Dim tree = ParseAndVerify(code:=<![CDATA[#Enable Warning _ 'Comment]]>, options:=New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
+        ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
+        Dim tree = ParseAndVerify(code:=<![CDATA[#Enable Warning _ 'Comment]]>,
+                                  options:=New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
             <errors>
                 <error id="30203" message="Identifier expected." start="16" end="17"/>
             </errors>)
@@ -2377,7 +2378,8 @@ End Module]]>,
     End Sub
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation2V16()
-        Dim tree = ParseAndVerify((<![CDATA[#Enable Warning _ 'Comment]]>), New VisualBasicParseOptions(LanguageVersion.VisualBasic15_5))
+        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16
+        Dim tree = ParseAndVerify((<![CDATA[#Enable Warning _ 'Comment]]>), New VisualBasicParseOptions(LanguageVersion.Latest))
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
@@ -2413,7 +2415,9 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation4()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc41007 _ 'Comment]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
+        ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc41007 _ 'Comment]]>,
+                                  New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
             <errors>
                 <error id="30196" message="Comma expected." start="24" end="24"/>
                 <error id="30999" message="Line continuation character '_' must be preceded by at least one white space and must be the last character on the line." start="24" end="25"/>
@@ -2440,7 +2444,9 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation4V16()
-        Dim tree = ParseAndVerify((<![CDATA[#Enable Warning bc41007 _ 'Comment]]>), New VisualBasicParseOptions(LanguageVersion.VisualBasic15_5))
+        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16
+        Dim tree = ParseAndVerify((<![CDATA[#Enable Warning bc41007 _ 'Comment]]>),
+                                  New VisualBasicParseOptions(LanguageVersion.Latest))
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()

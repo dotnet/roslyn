@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         LeadingDigitSeparator
         NonTrailingNamedArguments
         PrivateProtected
-        PROTOTYPECommnetsAfterLineContinuation
+        CommentsAfterLineContinuation
     End Enum
 
     Friend Module FeatureExtensions
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.LeadingDigitSeparator,
                     Feature.NonTrailingNamedArguments,
                     Feature.PrivateProtected,
-                    Feature.PROTOTYPECommnetsAfterLineContinuation
+                    Feature.CommentsAfterLineContinuation ' PROTOTYPE(continuation-comments): Move the feature under VB16 once that LanguageVersion is available
                     Return LanguageVersion.VisualBasic15_5
 
                 Case Else
