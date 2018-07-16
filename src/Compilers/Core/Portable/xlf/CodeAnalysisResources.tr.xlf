@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
-        <source>Parameter 'within' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter 'within' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
