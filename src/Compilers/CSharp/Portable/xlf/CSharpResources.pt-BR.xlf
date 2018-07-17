@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">Somente expressões de atribuição, chamada, incremento, diminuição e novo objeto podem ser usadas como uma instrução</target>
+        <target state="translated">Somente as expressões de atribuição, chamada, incremento, diminuição, espera e novo objeto podem ser utilizadas como uma instrução</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">O acesso Friend foi concedido por "{0}", mas a chave pública do assembly de saída não corresponde àquela especificada pelo atributo no assembly de concessão.</target>
+        <target state="translated">O acesso Friend foi concedido por '{0}', mas a chave pública do assembly de saída ('{1}') não corresponde àquela especificada pelo atributo InternalsVisibleTo no assembly de concessão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7365,143 +7365,143 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
                               Opções do Compilador do Visual C#
 
                         – ARQUIVOS DE SAÍDA –
- /out:&lt;file&gt;                   Especificar o nome do arquivo de saída (padrão: nome de base do
+-out:&lt;file&gt;                   Especificar o nome do arquivo de saída (padrão: nome de base do
                                arquivo com a classe principal ou o primeiro arquivo)
- /target:exe                   Compilar um executável de console (padrão) (Forma
+-target:exe                   Compilar um executável de console (padrão) (Forma
                                abreviada: /t:exe)
- /target:winexe                Compilar um executável do Windows (Forma abreviada:
+-target:winexe                Compilar um executável do Windows (Forma abreviada:
                                /t:winexe)
- /target:library               Compilar uma biblioteca (Forma abreviada: /t:library)
- /target:module                Compilar um módulo que pode ser adicionado a outro
+-target:library               Compilar uma biblioteca (Forma abreviada: /t:library)
+-target:module                Compilar um módulo que pode ser adicionado a outro
                                assembly (Forma abreviada: /t:module)
- /target:appcontainerexe       Compilar um executável de Contêiner de Aplicativo (Forma abreviada: 
+-target:appcontainerexe       Compilar um executável de Contêiner de Aplicativo (Forma abreviada: 
                                /t:appcontainerexe)
- /target:winmdobj              Compilar um arquivo intermediário do Windows Runtime que
+-target:winmdobj              Compilar um arquivo intermediário do Windows Runtime que
                                é consumido pelo WinMDExp (Forma abreviada: /t:winmdobj)
- /doc:&lt;file&gt;                   Arquivo de Documentação XML a ser gerado
- /refout:&lt;file&gt;                Saída do assembly de referência a ser gerado
- /platform:&lt;string&gt;            Limitar em quais plataformas o código pode ser executado: x86,
+-doc:&lt;file&gt;                   Arquivo de Documentação XML a ser gerado
+-refout:&lt;file&gt;                Saída do assembly de referência a ser gerado
+-platform:&lt;string&gt;            Limitar em quais plataformas o código pode ser executado: x86,
                                Itanium, x64, arm, arm64, anycpu32bitpreferred ou
                                anycpu. O padrão é anycpu.
 
                         – ARQUIVOS DE ENTRADA –
- /recurse:&lt;wildcard&gt;           Incluir todos os arquivos no diretório e
+-recurse:&lt;wildcard&gt;           Incluir todos os arquivos no diretório e
                                subdiretórios atuais de acordo com as especificações de
                                curinga
- /reference:&lt;alias&gt;=&lt;file&gt;     Metadados de referência do arquivo de assembly
+-reference:&lt;alias&gt;=&lt;file&gt;     Metadados de referência do arquivo de assembly
                                especificado usando o alias informado (Forma abreviada: /r)
- /reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly
+-reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly
                                especificados (Forma abreviada: /r)
- /addmodule:&lt;file list&gt;        Vincular os módulos especificados ao assembly
- /link:&lt;file list&gt;             Inserir metadados dos arquivos de assembly
+-addmodule:&lt;file list&gt;        Vincular os módulos especificados ao assembly
+-link:&lt;file list&gt;             Inserir metadados dos arquivos de assembly
                                de interoperalidade especificados (Forma abreviada: /l)
- /analyzer:&lt;file list&gt;         Executar os analisadores deste assembly
+-analyzer:&lt;file list&gt;         Executar os analisadores deste assembly
                                (Forma abreviada: /a)
- /additionalfile:&lt;file list&gt;   Arquivos adicionais que não afetam diretamente a geração de código,
+-additionalfile:&lt;file list&gt;   Arquivos adicionais que não afetam diretamente a geração de código,
                                mas que podem ser usados por analisadores para produzir
                                erros ou avisos.
- /embed                        Inserir todos os arquivos de origem no PDB.
- /embed:&lt;file list&gt;            Inserir arquivos específicos no PDB
+-embed                        Inserir todos os arquivos de origem no PDB.
+-embed:&lt;file list&gt;            Inserir arquivos específicos no PDB
 
                         – RECURSOS –
- /win32res:&lt;file&gt;              Especificar um arquivo de recurso Win32 (.res)
- /win32icon:&lt;file&gt;             Usar esse ícone para a saída
- /win32manifest:&lt;file&gt;         Especificar um arquivo de manifesto Win32 (.xml)
- /nowin32manifest              Não incluir o manifesto Win32 padrão
- /resource:&lt;resinfo&gt;           Inserir o recurso especificado (Forma abreviada: /res)
- /linkresource:&lt;resinfo&gt;       Vincule o recurso especificado a esse assembly
+-win32res:&lt;file&gt;              Especificar um arquivo de recurso Win32 (.res)
+-win32icon:&lt;file&gt;             Usar esse ícone para a saída
+-win32manifest:&lt;file&gt;         Especificar um arquivo de manifesto Win32 (.xml)
+-nowin32manifest              Não incluir o manifesto Win32 padrão
+-resource:&lt;resinfo&gt;           Inserir o recurso especificado (Forma abreviada: /res)
+-linkresource:&lt;resinfo&gt;       Vincule o recurso especificado a esse assembly
                                (Forma abreviada: /linkres) Em que o formato resinfo 
                                é &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                         – GERAÇÃO DE CÓDIGO –
- /debug[+|-]                   Emitir informações de depuração
- /debug:{full|pdbonly|portable|embedded}
+-debug[+|-]                   Emitir informações de depuração
+-debug:{full|pdbonly|portable|embedded}
                                Especificar o tipo de depuração ('full' é o padrão, 
                                'portable' é um formato multiplataforma e
                                'embedded' é um formato multiplataforma inserido no
                                .dll ou no .exe de destino)
- /optimize[+|-]                Habilitar otimizações (Forma abreviada: /o)
- /deterministic                Produzir um assembly determinístico
+-optimize[+|-]                Habilitar otimizações (Forma abreviada: /o)
+-deterministic                Produzir um assembly determinístico
                                (incluindo carimbo de data/hora e GUID da versão do módulo)
- /refonly                      Produzir um assembly de referência no lugar do instrumento de saída
- /principal:TestCoverage      Produzir um assembly instrumentado para coletar
+-refonly                      Produzir um assembly de referência no lugar do instrumento de saída
+-principal:TestCoverage      Produzir um assembly instrumentado para coletar
                                informações de cobertura
- /sourcelink:&lt;file&gt;            Informações do link de origem a ser inserido no PDB.
+-sourcelink:&lt;file&gt;            Informações do link de origem a ser inserido no PDB.
 
                         – ERROS E AVISOS –
- /warnaserror[+|-]             Relatar todos os avisos como erros
- /warnaserror[+|-]:&lt;warn list&gt; Relatar avisos específicos como erros
- /warn:&lt;n&gt;                     Definir o nível de aviso (0 – 4) (Forma abreviada: /w)
- /nowarn:&lt;warn list&gt;           Desabilitar mensagens de aviso específicas
- /ruleset:&lt;file&gt;               Especificar um arquivo de conjunto de regras que desabilita um diagnóstico
+-warnaserror[+|-]             Relatar todos os avisos como erros
+-warnaserror[+|-]:&lt;warn list&gt; Relatar avisos específicos como erros
+-warn:&lt;n&gt;                     Definir o nível de aviso (0 – 4) (Forma abreviada: /w)
+-nowarn:&lt;warn list&gt;           Desabilitar mensagens de aviso específicas
+-ruleset:&lt;file&gt;               Especificar um arquivo de conjunto de regras que desabilita um diagnóstico
                                específico.
- /errorlog:&lt;file&gt;              Especificar um arquivo para registrar todos os diagnósticos do compilador e do
+-errorlog:&lt;file&gt;              Especificar um arquivo para registrar todos os diagnósticos do compilador e do
                                analisador.
- /reportanalyzer               Relatar informações adicionais do analisador, como o
+-reportanalyzer               Relatar informações adicionais do analisador, como o
                                tempo de execução.
 
                         – LINGUAGEM –
- /checked[+|-]                 Gerar verificações de estouro
- /unsafe[+|-]                  Permitir código 'não seguro'
- /define:&lt;symbol list&gt;         Definir símbolos de compilação condicional (Forma
+-checked[+|-]                 Gerar verificações de estouro
+-unsafe[+|-]                  Permitir código 'não seguro'
+-define:&lt;symbol list&gt;         Definir símbolos de compilação condicional (Forma
                                  abreviada: /d)
- /langversion?         Exibir os valores permitidos para a versão da linguagem
- /langversion:&lt;string&gt;         Especificar a versão da linguagem como
+-langversion?         Exibir os valores permitidos para a versão da linguagem
+-langversion:&lt;string&gt;         Especificar a versão da linguagem como
                                `padrão` (versão principal mais recente) ou
                                `mais recente` (versão mais recente, incluindo versões secundárias),
                                ou versões específicas como `6` ou `7.1`
 
                         – SEGURANÇA –
- /delaysign[+|-]               Fazer a assinatura atrasada do assembly usando apenas a parte
+-delaysign[+|-]               Fazer a assinatura atrasada do assembly usando apenas a parte
                                pública da chave de nome forte
- /publicsign[+|-]              Fazer a assinatura pública do assembly usando somente a parte
+-publicsign[+|-]              Fazer a assinatura pública do assembly usando somente a parte
                                pública da chave de nome forte
- /keyfile:&lt;file&gt;               Especificar um arquivo de chave de nome forte
- /keycontainer:&lt;string&gt;        Especificar um contêiner de chaves de nomes fortes
- /highentropyva[+|-]           Habilitar ASLR de alta entropia
+-keyfile:&lt;file&gt;               Especificar um arquivo de chave de nome forte
+-keycontainer:&lt;string&gt;        Especificar um contêiner de chaves de nomes fortes
+-highentropyva[+|-]           Habilitar ASLR de alta entropia
 
                         – DIVERSOS –
  @&lt;file&gt;                       Leia o arquivo de resposta para obter mais opções
- /help                         Exibir essa mensagem de uso (Forma abreviada: /?)
- /nologo                       Suprimir a mensagem de direitos autorais do compilador
- /noconfig                     Não incluir o arquivo CSC.RSP automaticamente
- /parallel[+|-]                Build simultâneo.
- /version                      Exibir o número da versão do compilador e sair.
+-help                         Exibir essa mensagem de uso (Forma abreviada: /?)
+-nologo                       Suprimir a mensagem de direitos autorais do compilador
+-noconfig                     Não incluir o arquivo CSC.RSP automaticamente
+-parallel[+|-]                Build simultâneo.
+-version                      Exibir o número da versão do compilador e sair.
 
                         – AVANÇADO –
- /baseaddress:&lt;address&gt;        Endereço básico da biblioteca a ser compilada
- /checksumalgorithm:&lt;alg&gt;      Especificar o algoritmo para calcular a soma de verificação do
+-baseaddress:&lt;address&gt;        Endereço básico da biblioteca a ser compilada
+-checksumalgorithm:&lt;alg&gt;      Especificar o algoritmo para calcular a soma de verificação do
                                arquivo de origem armazenada no PDB. Os valores com suporte são:
                                SHA1 (padrão) ou SHA256.
- /codepage:&lt;n&gt;                 Especificar a página de código a ser usada ao abrir os arquivos de
+-codepage:&lt;n&gt;                 Especificar a página de código a ser usada ao abrir os arquivos de
                                origem
- /utf8output                   Mensagens de saída do compilador em codificação UTF-8
- /main:&lt;type&gt;                  Especificar o tipo que contém o ponto de entrada 
+-utf8output                   Mensagens de saída do compilador em codificação UTF-8
+-main:&lt;type&gt;                  Especificar o tipo que contém o ponto de entrada 
                                (ignorar todos os outros pontos de entrada possíveis) (Forma 
                                abreviada: /m)
- /fullpaths                    O compilador gera caminhos totalmente qualificados
- /filealign:&lt;n&gt;                Especificar o alinhamento usado para as seções do arquivo de
+-fullpaths                    O compilador gera caminhos totalmente qualificados
+-filealign:&lt;n&gt;                Especificar o alinhamento usado para as seções do arquivo de
                                saída
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                Especificar um mapeamento para os nomes dos caminhos de origem produzidos pelo
                                compilador.
- /pdb:&lt;file&gt;                   Especificar o nome do arquivo de informações de depuração (padrão:
+-pdb:&lt;file&gt;                   Especificar o nome do arquivo de informações de depuração (padrão:
                                nome do arquivo de saída com a extensão .pdb)
- /errorendlocation             Linha e coluna de saída da localização final de
+-errorendlocation             Linha e coluna de saída da localização final de
                                cada erro
- /preferreduilang              Especificar o nome da linguagem de saída preferencial.
- /nostdlib[+|-]                Não referenciar a biblioteca padrão (mscorlib.dll)
- /subsystemversion:&lt;string&gt;    Especificar a versão do subsistema deste assembly
- /lib:&lt;file list&gt;              Especificar diretórios adicionais a serem pesquisados em relação a 
+-preferreduilang              Especificar o nome da linguagem de saída preferencial.
+-nostdlib[+|-]                Não referenciar a biblioteca padrão (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Especificar a versão do subsistema deste assembly
+-lib:&lt;file list&gt;              Especificar diretórios adicionais a serem pesquisados em relação a 
                                referências
- /errorreport:&lt;string&gt;         Especificar como lidar com os erros internos do compilador: 
+-errorreport:&lt;string&gt;         Especificar como lidar com os erros internos do compilador: 
                                solicitar, enviar, colocar na fila ou nada. O padrão é 
                                colocar na fila.
- /appconfig:&lt;file&gt;             Especificar um arquivo de configuração de aplicativo
+-appconfig:&lt;file&gt;             Especificar um arquivo de configuração de aplicativo
                                contendo configurações de associações do assembly
- /moduleassemblyname:&lt;string&gt;  Nome do assembly do qual o módulo fará 
+-moduleassemblyname:&lt;string&gt;  Nome do assembly do qual o módulo fará 
                                parte de 
- /modulename:&lt;string&gt;          Especificar o nome do módulo de origem
+-modulename:&lt;string&gt;          Especificar o nome do módulo de origem
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -8042,12 +8042,12 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">Os iteradores não podem ter locais por referência</target>
+        <target state="translated">Os iteradores não podem ter locais por referência</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">Os métodos assíncronos não podem ter locais por referência</target>
+        <target state="translated">Os métodos assíncronos não podem ter locais por referência</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

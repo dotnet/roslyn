@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
         <source>Apply '{0}' keymapping scheme</source>
-        <target state="new">Apply '{0}' keymapping scheme</target>
+        <target state="translated">Aplicar esquema de mapeamento de teclas '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
-        <target state="new">Reset Visual Studio default keymapping</target>
+        <target state="translated">Redefinir mapeamento de teclas padrão do Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
-        <target state="new">We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</target>
+        <target state="translated">Notamos que você suspendeu '{0}'. Redefina os mapeamentos de teclas para continuar a navegar e refatorar.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
