@@ -25,13 +25,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
             editorconfig.AppendLine()
             editorconfig.AppendLine("# VB Coding Conventions")
 
-            editorconfig.AppendLine("# Modifier preferences")
+            editorconfig.AppendLine("# Modifier preferences:")
             ' visual_basic_preferred_modifier_order
             VBCodeStyleOptions_GenerateEditorconfig(optionSet, VisualBasicCodeStyleOptions.PreferredModifierOrder, editorconfig)
         End Sub
 
         Private Shared Sub VBCodeStyleOptions_GenerateEditorconfig(ByVal optionSet As OptionSet, ByVal [option] As [Option](Of CodeStyleOption(Of String)), ByVal editorconfig As StringBuilder)
-            Dim element = CType([option].StorageLocations.OfType(Of IEditorConfigStorageLocation)().SingleOrDefault(), EditorConfigStorageLocation(Of CodeStyleOption(Of String)))
+            Dim element = [option].StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of String)))().FirstOrDefault()
             If element IsNot Nothing Then
                 editorconfig.Append(element.KeyName & " = ")
 

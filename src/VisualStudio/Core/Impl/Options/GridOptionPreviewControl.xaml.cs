@@ -172,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private static void CoreCodeStyleOptions_GenerateEditorconfig(OptionSet optionSet, PerLanguageOption<bool> option, string language, StringBuilder editorconfig)
         {
-            var element = (EditorConfigStorageLocation<bool>)option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
+            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<bool>>().FirstOrDefault();
             if (element != null)
             {
                 editorconfig.Append(element.KeyName + " = ");
@@ -187,9 +187,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
             }
         }
+
         private static void CoreCodeStyleOptions_GenerateEditorconfig(OptionSet optionSet, PerLanguageOption<int> option, string language, StringBuilder editorconfig)
         {
-            var element = (EditorConfigStorageLocation<int>)option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
+            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<int>>().FirstOrDefault();
             if (element != null)
             {
                 editorconfig.Append(element.KeyName + " = ");
@@ -199,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private static void CoreCodeStyleOptions_GenerateEditorconfig(OptionSet optionSet, Option<bool> option, StringBuilder editorconfig)
         {
-            var element = (EditorConfigStorageLocation<bool>)option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
+            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<bool>>().FirstOrDefault();
             if (element != null)
             {
                 editorconfig.Append(element.KeyName + " = ");
@@ -212,17 +213,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             editorconfig.AppendLine();
             editorconfig.AppendLine("# .NET Coding Conventions");
   
-            editorconfig.AppendLine("# Organize usings");
+            editorconfig.AppendLine("# Organize usings:");
             // dotnet_sort_system_directives_first
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, GenerationOptions.PlaceSystemNamespaceFirst, language, editorconfig);
 
             editorconfig.AppendLine();
             if (language == LanguageNames.CSharp)
             {
-                editorconfig.AppendLine("# this. preferences");
-            } else if (language == LanguageNames.VisualBasic)
+                editorconfig.AppendLine("# this. preferences:");
+            }
+            else if (language == LanguageNames.VisualBasic)
             {
-                editorconfig.AppendLine("# Me. preferences");
+                editorconfig.AppendLine("# Me. preferences:");
             }
 
             // dotnet_style_qualification_for_field
@@ -235,14 +237,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.QualifyEventAccess, language, editorconfig);
 
             editorconfig.AppendLine();
-            editorconfig.AppendLine("# Language keywords vs BCL types preferences");
+            editorconfig.AppendLine("# Language keywords vs BCL types preferences:");
             // dotnet_style_predefined_type_for_locals_parameters_members
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language, editorconfig);
             // dotnet_style_predefined_type_for_member_access
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language, editorconfig);
 
             editorconfig.AppendLine();
-            editorconfig.AppendLine("# Parentheses preferences");
+            editorconfig.AppendLine("# " + ServicesVSResources.Parentheses_preferences_colon);
             // dotnet_style_parentheses_in_arithmetic_binary_operators
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.ArithmeticBinaryParentheses, language, editorconfig);
             // dotnet_style_parentheses_in_relational_binary_operators
@@ -253,14 +255,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.OtherParentheses, language, editorconfig);
 
             editorconfig.AppendLine();
-            editorconfig.AppendLine("# Modifier preferences");
+            editorconfig.AppendLine("# Modifier preferences:");
             // dotnet_style_require_accessibility_modifiers
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.RequireAccessibilityModifiers, language, editorconfig);
             // dotnet_style_readonly_field
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.PreferReadonly, language, editorconfig);
 
             editorconfig.AppendLine();
-            editorconfig.AppendLine("# Expression-level preferences");
+            editorconfig.AppendLine("# Expression-level preferences:");
             // dotnet_style_object_initializer
             DotNetCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.PreferObjectInitializer, language, editorconfig);
             // dotnet_style_collection_initializer
@@ -286,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
         private static void DotNetCodeStyleOptions_GenerateEditorconfig(OptionSet optionSet, PerLanguageOption<bool> option, string language, StringBuilder editorconfig)
         {
-            var element = (EditorConfigStorageLocation<bool>)option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
+            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<bool>>().FirstOrDefault();
             if (element != null)
             {
                 editorconfig.Append(element.KeyName + " = ");
@@ -296,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private static void DotNetCodeStyleOptions_GenerateEditorconfig(OptionSet optionSet, PerLanguageOption<CodeStyleOption<bool>> option, string language, StringBuilder editorconfig)
         {
-            var element = (EditorConfigStorageLocation<CodeStyleOption<bool>>)option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
+            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
             if (element != null)
             {
                 editorconfig.Append(element.KeyName + " = ");
@@ -312,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             string language,
             StringBuilder editorconfig)
         {
-            var element = (EditorConfigStorageLocation<CodeStyleOption<ParenthesesPreference>>)option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
+            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<ParenthesesPreference>>>().FirstOrDefault();
             if (element != null)
             {
                 editorconfig.Append(element.KeyName + " = ");
@@ -322,9 +324,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 {
                     editorconfig.AppendLine("always_for_clarity:" + curSetting.Notification.ToString().ToLower());
                 }
-                else
+                else if (curSetting.Value == ParenthesesPreference.NeverIfUnnecessary)
                 {
                     editorconfig.AppendLine("never_if_unnecessary:" + curSetting.Notification.ToString().ToLower());
+                }
+                else
+                {
+                    throw new NotSupportedException();
                 }
             }
         }
@@ -335,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             string language,
             StringBuilder editorconfig)
         {
-            var element = (EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>)option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
+            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>>().FirstOrDefault();
             if (element != null)
             {
                 editorconfig.Append(element.KeyName + " = ");
@@ -349,9 +355,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 {
                     editorconfig.AppendLine("omit_if_default:" + curSetting.Notification.ToString().ToLower());
                 }
+                else if (curSetting.Value == AccessibilityModifiersRequired.Always || curSetting.Value == AccessibilityModifiersRequired.Never)
+                {
+                    editorconfig.AppendLine(curSetting.Value.ToString().ToLower() + ":" + curSetting.Notification.ToString().ToLower());
+                }
                 else
                 {
-                    editorconfig.AppendLine(curSetting.Value + ":" + curSetting.Notification.ToString().ToLower());
+                    throw new NotSupportedException();
                 }
             }
         }

@@ -35,12 +35,12 @@
             <converters:MarginConverter x:Key="MarginConverter" />
         </Grid.Resources>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" MinHeight="74.857" />
-            <RowDefinition Height="115*" />
-            <RowDefinition Height="4.571" />
-            <RowDefinition Height="84*" />
+            <RowDefinition Height="Auto" MinHeight="75" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock TextWrapping="Wrap" Margin="0,0,0.286,4.857">
+        <TextBlock TextWrapping="Wrap">
             <Run Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeader}"/>
             <Run Text=" "/>
             <Hyperlink RequestNavigate="LearnMoreHyperlink_RequestNavigate" NavigateUri="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreUri}">
@@ -50,7 +50,6 @@
         <DataGrid
             x:Uid="CodeStyleContent"
             x:Name="CodeStyleMembers"
-            Margin="0,0.143,0.286,1.286"
             ItemsSource="{Binding CodeStyleItems, Mode=OneWay}"
             AutoGenerateColumns="False"
             CanUserReorderColumns="False"
@@ -176,9 +175,9 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <GridSplitter Grid.Row="3" HorizontalAlignment="Stretch" Margin="0,28.143,0.286,6.857"/>
-        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1" Margin="0,0.143,0.286,-0.143">
-            <ContentControl Name="EditorControl" Content="{Binding TextViewHost, Mode=OneWay}" Focusable="False" Margin="-0.143,-1.143,-0.429,-0.571"></ContentControl>
+        <GridSplitter Grid.Row="3" HorizontalAlignment="Stretch" Margin="0,28,0,7"/>
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1">
+            <ContentControl Name="EditorControl" Content="{Binding TextViewHost, Mode=OneWay}" Focusable="False"></ContentControl>
         </Border>
         <Button Content="Generate .editorconfig file from settings" HorizontalAlignment="Left" Margin="20,40,0,0" VerticalAlignment="Top" Width="235" Height="25" Click="Generate_Save_Editorconfig" />
     </Grid>

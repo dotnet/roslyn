@@ -27,30 +27,30 @@ indent_size = 4
 insert_final_newline = false
 
 # .NET Coding Conventions
-# Organize usings
+# Organize usings:
 dotnet_sort_system_directives_first = true
 
-# Me. preferences
+# Me. preferences:
 dotnet_style_qualification_for_field = false:none
 dotnet_style_qualification_for_property = false:none
 dotnet_style_qualification_for_method = false:none
 dotnet_style_qualification_for_event = false:none
 
-# Language keywords vs BCL types preferences
+# Language keywords vs BCL types preferences:
 dotnet_style_predefined_type_for_locals_parameters_members = true:none
 dotnet_style_predefined_type_for_member_access = true:none
 
-# Parentheses preferences
+# Parentheses preferences:
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:none
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:none
 dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:none
 
-# Modifier preferences
+# Modifier preferences:
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
 dotnet_style_readonly_field = true:suggestion
 
-# Expression-level preferences
+# Expression-level preferences:
 dotnet_style_object_initializer = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
@@ -64,7 +64,7 @@ dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
 
 # VB Coding Conventions
-# Modifier preferences
+# Modifier preferences:
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:none
 "
                 Dim actualText = New StringBuilder()
@@ -89,30 +89,30 @@ indent_size = 4
 insert_final_newline = false
 
 # .NET Coding Conventions
-# Organize usings
+# Organize usings:
 dotnet_sort_system_directives_first = true
 
-# Me. preferences
+# Me. preferences:
 dotnet_style_qualification_for_field = false:none
 dotnet_style_qualification_for_property = false:none
 dotnet_style_qualification_for_method = false:none
 dotnet_style_qualification_for_event = false:none
 
-# Language keywords vs BCL types preferences
+# Language keywords vs BCL types preferences:
 dotnet_style_predefined_type_for_locals_parameters_members = true:none
 dotnet_style_predefined_type_for_member_access = true:none
 
-# Parentheses preferences
+# Parentheses preferences:
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:none
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:none
 dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:none
 
-# Modifier preferences
+# Modifier preferences:
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
 dotnet_style_readonly_field = true:suggestion
 
-# Expression-level preferences
+# Expression-level preferences:
 dotnet_style_object_initializer = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = false:error
@@ -126,7 +126,7 @@ dotnet_style_prefer_conditional_expression_over_assignment = true:none
 dotnet_style_prefer_conditional_expression_over_return = true:none
 
 # VB Coding Conventions
-# Modifier preferences
+# Modifier preferences:
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:none
 "
                 Dim actualText = New StringBuilder()
