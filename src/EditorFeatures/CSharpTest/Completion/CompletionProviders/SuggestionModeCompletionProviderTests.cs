@@ -850,25 +850,25 @@ class Program
             var markup = @"
 using System;
 
-public sealed class Foo
+public sealed class Goo
 {
     public void Bar()
     {
     }
 }
 
-public static class FooExtensions
+public static class GooExtensions
 {
-    public static void Bar(this Foo foo, Action<int> action)
+    public static void Bar(this Goo goo, Action<int> action)
     {
     }
 }
 
 public static class Repro
 {
-    public static void ReproMethod(Foo foo)
+    public static void ReproMethod(Goo goo)
     {
-        foo.Bar(a$$
+        goo.Bar(a$$
     }
 }
 ";
@@ -882,25 +882,25 @@ public static class Repro
             var markup = @"
 using System;
 
-public sealed class Foo
+public sealed class Goo
 {
     public void Bar()
     {
     }
 }
 
-public static class FooExtensions
+public static class GooExtensions
 {
-    public static void Bar(this Foo foo, Action<int> action)
+    public static void Bar(this Goo goo, Action<int> action)
     {
     }
 }
 
 public static class Repro
 {
-    public static void ReproMethod(Foo foo)
+    public static void ReproMethod(Goo goo)
     {
-        foo.Bar(a$$)
+        goo.Bar(a$$)
     }
 }
 ";
@@ -914,25 +914,25 @@ public static class Repro
             var markup = @"
 using System;
 
-public sealed class Foo
+public sealed class Goo
 {
     public void Bar()
     {
     }
 }
 
-public static class FooExtensions
+public static class GooExtensions
 {
-    public static void Bar(this Foo foo, Action<int> action)
+    public static void Bar(this Goo goo, Action<int> action)
     {
     }
 }
 
 public static class Repro
 {
-    public static void ReproMethod(Foo foo)
+    public static void ReproMethod(Goo goo)
     {
-        foo.Bar(($$
+        goo.Bar(($$
     }
 }
 ";
@@ -946,25 +946,25 @@ public static class Repro
             var markup = @"
 using System;
 
-public sealed class Foo
+public sealed class Goo
 {
     public void Bar()
     {
     }
 }
 
-public static class FooExtensions
+public static class GooExtensions
 {
-    public static void Bar(this Foo foo, Action<int> action)
+    public static void Bar(this Goo goo, Action<int> action)
     {
     }
 }
 
 public static class Repro
 {
-    public static void ReproMethod(Foo foo)
+    public static void ReproMethod(Goo goo)
     {
-        foo.Bar(($$)
+        goo.Bar(($$)
     }
 }
 ";
@@ -978,25 +978,25 @@ public static class Repro
             var markup = @"
 using System;
 
-public sealed class Foo
+public sealed class Goo
 {
     public void Bar()
     {
     }
 }
 
-public static class FooExtensions
+public static class GooExtensions
 {
-    public static void Bar(this Foo foo, Action<int> action)
+    public static void Bar(this Goo goo, Action<int> action)
     {
     }
 }
 
 public static class Repro
 {
-    public static void ReproMethod(Foo foo)
+    public static void ReproMethod(Goo goo)
     {
-        foo.Bar(($$))
+        goo.Bar(($$))
     }
 }
 ";
@@ -1010,25 +1010,25 @@ public static class Repro
             var markup = @"
 using System;
 
-public sealed class Foo
+public sealed class Goo
 {
     public void Bar()
     {
     }
 }
 
-public static class FooExtensions
+public static class GooExtensions
 {
-    public static void Bar(this Foo foo, Action<int> action)
+    public static void Bar(this Goo goo, Action<int> action)
     {
     }
 }
 
 public static class Repro
 {
-    public static void ReproMethod(Foo foo)
+    public static void ReproMethod(Goo goo)
     {
-        foo.Bar((a, $$
+        goo.Bar((a, $$
     }
 }
 ";
@@ -1042,25 +1042,25 @@ public static class Repro
             var markup = @"
 using System;
 
-public sealed class Foo
+public sealed class Goo
 {
     public void Bar()
     {
     }
 }
 
-public static class FooExtensions
+public static class GooExtensions
 {
-    public static void Bar(this Foo foo, Action<int> action)
+    public static void Bar(this Goo goo, Action<int> action)
     {
     }
 }
 
 public static class Repro
 {
-    public static void ReproMethod(Foo foo)
+    public static void ReproMethod(Goo goo)
     {
-        foo.Bar(async (a$$
+        goo.Bar(async (a$$
     }
 }
 ";
