@@ -1301,7 +1301,7 @@ End Module          </text>.NormalizedValue, state.GetDocumentText(), StringComp
         End Function
 
         <WorkItem(622957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622957")>
-                                                                                      <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBangFiltersInDocComment() As Task
             Using state = TestState.CreateVisualBasicTestState(
                   <Document><![CDATA[
