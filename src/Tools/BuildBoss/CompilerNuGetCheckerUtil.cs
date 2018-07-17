@@ -65,7 +65,7 @@ namespace BuildBoss
                 @"Exes\Vbc\net46",
                 @"Exes\Csi\net46",
                 @"Exes\VBCSCompiler\net46",
-                @"Dlls\MSBuildTask\net46");
+                @"Dlls\Microsoft.Build.Tasks.CodeAnalysis\net46");
             if (!allGood)
             {
                 return false;
