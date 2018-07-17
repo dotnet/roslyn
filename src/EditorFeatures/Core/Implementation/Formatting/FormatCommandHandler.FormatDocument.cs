@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -23,12 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
     internal partial class FormatCommandHandler : ForegroundThreadAffinitizedObject
     {
+        private const string s_experimentName = "CleanupOn";
+
         public VSCommanding.CommandState GetCommandState(FormatDocumentCommandArgs args)
         {
             return GetCommandState(args.SubjectBuffer);
         }
 
-        private void ShowGoldBarForCodeCleanupConfigurationIfNeeded(Document document)
+        private void ShowGoldBarForCodeCleanupConfigurationIfNeeded(Document document, DocumentOptionSet docOptions)
         {
             AssertIsForeground();
             Logger.Log(FunctionId.CodeCleanupInfobar_BarDisplayed, KeyValueLogMessage.NoProperty);
@@ -50,9 +51,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var optionPageService = document.GetLanguageService<IOptionPageService>();
             var infoBarService = document.Project.Solution.Workspace.Services.GetRequiredService<IInfoBarService>();
 
+            // wording for the Code Cleanup infobar will be different depending on if the feature is enabled
+            var infoBarMessage = docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting)
+                    ? EditorFeaturesResources.Format_document_performed_additional_cleanup
+                    : EditorFeaturesResources.Code_cleanup_is_not_configured;
+
+            var configButtonText = docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting)
+                ? EditorFeaturesResources.Change_configuration
+                : EditorFeaturesResources.Configure_it_now;
+
             infoBarService.ShowInfoBarInGlobalView(
-                EditorFeaturesResources.Code_cleanup_is_not_configured,
-                new InfoBarUI(EditorFeaturesResources.Configure_it_now,
+                infoBarMessage,
+                new InfoBarUI(configButtonText,
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
@@ -92,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 c =>
                 {
                     var docOptions = document.GetOptionsAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
-
                     using (Logger.LogBlock(FunctionId.FormatDocument, CodeCleanupLogMessage.Create(docOptions), c.CancellationToken))
                     using (var transaction = new CaretPreservingEditTransaction(
                         EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
@@ -104,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         }
                         else
                         {
-                            CodeCleanupOrFormat(args, document, c.ProgressTracker, c.CancellationToken);
+                            CodeCleanupOrFormat(args, document, codeCleanupService, c.ProgressTracker, c.CancellationToken);
                         }
 
                         transaction.Complete();
@@ -115,12 +124,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private void CodeCleanupOrFormat(
-            FormatDocumentCommandArgs args, Document document,
+            FormatDocumentCommandArgs args, Document document, ICodeCleanupService codeCleanupService,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-
             var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var workspace = document.Project.Solution.Workspace;
+
+            // AB Test
+            // If the feature is OFF and the feature options have not yet been set to their assigned flight, do so now
+            if (!docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting)
+                && !docOptions.GetOption(CodeCleanupABTestOptions.ParticipatedInExperiment))
+            {
+                var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+
+                if (experimentationService != null)
+                {
+                    if (experimentationService.IsExperimentEnabled(s_experimentName))
+                    {
+                        workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language), true);
+                    }
+
+                    workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupABTestOptions.ParticipatedInExperiment), true);
+                }
+            }
+
+            // Need to show different gold bar if in experiment
+            ShowGoldBarForCodeCleanupConfigurationIfNeeded(document, docOptions);
+
             if (docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting))
             {
                 // Start with a single progress item, which is the one to actually apply
@@ -140,11 +170,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 }
 
                 progressTracker.ItemCompleted();
-                return;
             }
-
-            ShowGoldBarForCodeCleanupConfigurationIfNeeded(document);
-            Format(args.TextView, document, selectionOpt: null, cancellationToken);
+            else
+            {
+                Format(args.TextView, document, selectionOpt: null, cancellationToken);
+            }
         }
 
         private async Task<ImmutableArray<TextChange>> GetCodeCleanupAndFormatChangesAsync(
