@@ -187,6 +187,51 @@ class Program
 
         <WorkItem(545488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545488")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestUseBestOverload() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document><![CDATA[
+class Program
+{
+    static void Main(string[] args)
+    {
+        F$$
+    }
+    static void F(int i) { }
+    static void F(string s) { }
+}
+]]></Document>)
+
+                ' We don't have a definite symbol, so default to first
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
+                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal({"void Program.F(int i)", "void Program.F(string s)"},
+                             state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Select(Function(i) i.ToString()))
+
+                ' We now have a definite symbol (the string overload)
+                state.SendTypeChars("""""")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
+                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+
+                ' We stick with the last selection after deleting
+                state.SendBackspace()
+                state.SendBackspace()
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
+                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+
+                ' We now have a definite symbol (the int overload)
+                state.SendTypeChars("1")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
+                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+            End Using
+        End Function
+
+        <WorkItem(545488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545488")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestForgetSelectedItemWhenNoneAreViable() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
