@@ -1702,7 +1702,6 @@
     <Field Name="StringStartToken" Type="SyntaxToken">
       <Kind Name="InterpolatedStringStartToken"/>
       <Kind Name="InterpolatedVerbatimStringStartToken"/>
-      <Kind Name="VerbatimInterpolatedStringStartToken"/>
       <PropertyComment>
         <summary>The first part of an interpolated string, $" or $@"</summary>
       </PropertyComment>

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.InterpolatedStringExpression);
             {
-                N(SyntaxKind.VerbatimInterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
                 N(SyntaxKind.InterpolatedStringText);
                 {
                     N(SyntaxKind.InterpolatedStringTextToken);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"@$""hello""", TestOptions.Regular8);
             N(SyntaxKind.InterpolatedStringExpression);
             {
-                N(SyntaxKind.VerbatimInterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
                 N(SyntaxKind.InterpolatedStringText);
                 {
                     N(SyntaxKind.InterpolatedStringTextToken);

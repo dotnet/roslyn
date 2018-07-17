@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create("CS8401");
 
+        private const string InterpolatedVerbatimText = "$@\"";
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
@@ -53,7 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
             var verbatimInterpolatedLocation = diagnostic.Location;
             var verbatimInterpolated = (InterpolatedStringExpressionSyntax)verbatimInterpolatedLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-            var newStartToken = SyntaxFactory.Token(SyntaxKind.InterpolatedVerbatimStringStartToken).WithTriviaFrom(verbatimInterpolated.StringStartToken);
+            var oldStartToken = verbatimInterpolated.StringStartToken;
+            var newStartToken = SyntaxFactory.Token(oldStartToken.LeadingTrivia, SyntaxKind.InterpolatedVerbatimStringStartToken,
+                InterpolatedVerbatimText, InterpolatedVerbatimText, oldStartToken.TrailingTrivia);
+
             var interpolatedVerbatim = verbatimInterpolated.WithStringStartToken(newStartToken);
 
             editor.ReplaceNode(verbatimInterpolated, interpolatedVerbatim);

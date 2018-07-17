@@ -6496,7 +6496,6 @@ namespace Microsoft.CodeAnalysis.CSharp
       {
         case SyntaxKind.InterpolatedStringStartToken:
         case SyntaxKind.InterpolatedVerbatimStringStartToken:
-        case SyntaxKind.VerbatimInterpolatedStringStartToken:
           break;
         default:
           throw new ArgumentException("stringStartToken");

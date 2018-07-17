@@ -544,7 +544,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringEndToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
-                case SyntaxKind.VerbatimInterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                     return true;
             }

@@ -77,13 +77,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openQuoteIndex = isVerbatim ? 2 : 1;
             Debug.Assert(originalText[openQuoteIndex] == '"');
 
-            var openQuoteKind = isVerbatimInterpolated
-                ? SyntaxKind.VerbatimInterpolatedStringStartToken // @$
-                : isVerbatim
-                    ? SyntaxKind.InterpolatedVerbatimStringStartToken // $@
+            var openQuoteKind = isVerbatim
+                    ? SyntaxKind.InterpolatedVerbatimStringStartToken // $@ or @$
                     : SyntaxKind.InterpolatedStringStartToken; // $
 
-            var openQuote = SyntaxFactory.Token(originalToken.GetLeadingTrivia(), openQuoteKind, null);
+            var openQuoteText = isVerbatimInterpolated
+                ? "@$\""
+                : isVerbatim
+                    ?  "$@\""
+                    : "$\"";
+            var openQuote = SyntaxFactory.Token(originalToken.GetLeadingTrivia(), openQuoteKind, openQuoteText, openQuoteText, trailing: null);
 
             if (isVerbatimInterpolated)
             {

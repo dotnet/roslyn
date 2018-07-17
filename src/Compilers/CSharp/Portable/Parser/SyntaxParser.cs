@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
 
-            // There's a special error code for some features, so handle those separately.
+            // There are special error codes for some features, so handle those separately.
             switch (feature)
             {
                 case MessageID.IDS_FeatureModuleAttrLoc:

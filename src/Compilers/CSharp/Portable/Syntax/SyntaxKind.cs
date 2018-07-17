@@ -213,8 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         InterpolatedStringStartToken = 8482,            // $"
         InterpolatedStringEndToken = 8483,              // "
-        InterpolatedVerbatimStringStartToken = 8484,    // $@"
-        VerbatimInterpolatedStringStartToken = 8486,    // @$"
+        InterpolatedVerbatimStringStartToken = 8484,    // $@" or @$"
 
         // Other
         UnderscoreToken = 8491,
