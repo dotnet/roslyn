@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.TargetTypedNew)]
     public class TargetTypedNewTests : CSharpTestBase
     {
-        private static readonly string trivial2uple =
+        private static readonly string s_trivial2uple =
             @"
 namespace System
 {
@@ -24,11 +24,6 @@ namespace System
         {
             this.Item1 = item1;
             this.Item2 = item2;
-        }
-
-        public override string ToString()
-        {
-            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
         }
     }
 }
@@ -227,7 +222,7 @@ class X {
         M((new(), new()));
     }
 }
-" + trivial2uple + tupleattributes_cs, options: TestOptions.ReleaseExe).VerifyDiagnostics();
+" + s_trivial2uple + tupleattributes_cs, options: TestOptions.ReleaseExe).VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "XX");
         }
@@ -284,7 +279,7 @@ unsafe class C
         ValueTuple<int, int> v16 = new(2, 3);
     }
 }
-" + trivial2uple, options: TestOptions.UnsafeReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
+", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (12,13): error CS0815: Cannot assign new() to an implicitly-typed variable
                 //         var v0 = new();
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v0 = new()").WithArguments("new()").WithLocation(12, 13),
@@ -374,7 +369,7 @@ unsafe class C
         var v16 = (ValueTuple<int, int>)new(2, 3);
     }
 }
-" + trivial2uple + tupleattributes_cs, options: TestOptions.UnsafeReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
+", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (12,26): error CS9367: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v1 = (Struct)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("Struct").WithLocation(12, 26),
@@ -402,7 +397,7 @@ unsafe class C
                 // (19,18): error CS1919: Unsafe type 'int*' cannot be used in object creation
                 //         var v8 = (int*)new();
                 Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "(int*)new()").WithArguments("int*").WithLocation(19, 18),
-                // (20,24): error CS9367: The default constructor of the value type 'int?' may not be used with target-typed 'new'. Consider using 'default' instead.
+                // (20,24): error CS9367: The default constructor of the value type 'int' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v9 = (int?)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("int").WithLocation(20, 24),
                 // (21,19): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
@@ -411,6 +406,12 @@ unsafe class C
                 // (22,19): error CS0143: The type 'dynamic' has no constructors defined
                 //         var v11 = (dynamic)new();
                 Diagnostic(ErrorCode.ERR_NoConstructors, "(dynamic)new()").WithArguments("dynamic").WithLocation(22, 19),
+                // (23,19): error CS9366: The type 'int[]' may not be used as the target-type of 'new'.
+                //         var v12 = (int[])new();
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(int[])new()").WithArguments("int[]").WithLocation(23, 19),
+                // (24,20): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                //         var v13 = (Error)new();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(24, 20),
                 // (25,19): error CS9366: The type 'T' may not be used as the target-type of 'new'.
                 //         var v14 = (T)new();
                 Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(T)new()").WithArguments("T").WithLocation(25, 19),
@@ -722,6 +723,32 @@ class X {
 ", options: TestOptions.ReleaseExe).VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "XXXX");
+        }
+
+        [Fact]
+        public void TestBestType_Lambda_ErrorCase()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+class X {
+    public static void M<T>(Func<bool, T> f) {
+        Console.Write(f(true));
+        Console.Write(f(false));
+    }
+    public static void Main() {
+        M(b => { if (b) return new(); else return new(); });
+        M(b => { if (b) return new(); else return new(); });
+    }
+}
+", options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (10,9): error CS0411: The type arguments for method 'X.M<T>(Func<bool, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(b => { if (b) return new(); else return new(); });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("X.M<T>(System.Func<bool, T>)").WithLocation(10, 9),
+                // (11,9): error CS0411: The type arguments for method 'X.M<T>(Func<bool, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(b => { if (b) return new(); else return new(); });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("X.M<T>(System.Func<bool, T>)").WithLocation(11, 9)
+                );
         }
 
         [Fact]

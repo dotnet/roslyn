@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return Kind == ConversionKind.ImplicitNew || this.UnderlyingConversions.AsSingleton().Kind == ConversionKind.ImplicitNew;
+                return Kind == ConversionKind.ImplicitNew;
             }
         }
 

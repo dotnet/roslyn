@@ -191,7 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeParameter = (TypeParameterSymbol)strippedType;
                     if (!typeParameter.IsInstantiable())
                     {
-                        goto case TypeKind.Array;
+                        Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, strippedType);
+                        hasErrors = true;
+                        break;
                     }
 
                     operand = BindTypeParameterCreationExpression(
@@ -210,18 +212,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             arguments.Free();
 
-            return new BoundConversion(
+            var result = new BoundConversion(
                 syntax,
                 operand,
-                conversion: destination.IsNullableType()
-                    ? new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(conversion))
-                    : conversion,
+                conversion: conversion,
                 @checked: false,
                 explicitCastInCode: isCast,
                 constantValueOpt: null, // A "target-typed new" would never produce a constant.
-                type: destination,
+                type: strippedType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true }; // The "implicit new" conversion can never be explicit in source.
+
+            if (destination.IsNullableType())
+            {
+                result = new BoundConversion(
+                    syntax,
+                    result,
+                    conversion: new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying),
+                    @checked: false,
+                    explicitCastInCode: isCast,
+                    constantValueOpt: null,
+                    type: destination)
+                { WasCompilerGenerated = true };
+            }
+
+            return result;
         }
 
         protected BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)

@@ -537,13 +537,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.ImplicitNew:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_TargetTypedNewInExpressionTree, node);
+                    }
+                    break;
+
                 default:
                     break;
-            }
-
-            if (_inExpressionLambda && node.Conversion.IsNew)
-            {
-                Error(ErrorCode.ERR_TargetTypedNewInExpressionTree, node);
             }
 
             var result = base.VisitConversion(node);

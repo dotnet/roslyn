@@ -539,10 +539,5 @@ namespace Microsoft.CodeAnalysis
 
             return dictionary;
         }
-
-        internal static TSource AsSingleton<TSource>(this ImmutableArray<TSource> source)
-        {
-            return source.NullToEmpty().Length == 1 ? source[0] : default;
-        }
     }
 }

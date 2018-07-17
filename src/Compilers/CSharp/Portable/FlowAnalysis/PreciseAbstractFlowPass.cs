@@ -2330,7 +2330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
         {
-            // Reachable in error cases
+            // The presence of this node suggests an error was detected in an earlier phase.
             return null;
         }
 
