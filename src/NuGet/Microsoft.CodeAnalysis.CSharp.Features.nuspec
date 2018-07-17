@@ -30,12 +30,12 @@
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
-    <file src="Dlls\CSharpFeatures\Microsoft.CodeAnalysis.CSharp.Features.dll" target="lib\netstandard1.3" />
-    <file src="Dlls\CSharpFeatures\Microsoft.CodeAnalysis.CSharp.Features.xml" target="lib\netstandard1.3" />
-    <file src="Dlls\CSharpFeatures\Microsoft.CodeAnalysis.CSharp.Features.pdb*" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp.Features\Microsoft.CodeAnalysis.CSharp.Features.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp.Features\Microsoft.CodeAnalysis.CSharp.Features.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp.Features\Microsoft.CodeAnalysis.CSharp.Features.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
 
     <!-- Satellite assemblies -->
-    <file src="Dlls\CSharpFeatures\**\Microsoft.CodeAnalysis.CSharp.Features.resources.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp.Features\**\Microsoft.CodeAnalysis.CSharp.Features.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>
