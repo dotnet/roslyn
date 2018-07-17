@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey,
                 (v, b) => new Controller(
-                    textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry, 
+                    textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry,
                     presenter, asyncListener, autoBraceCompletionChars, isDebugger, isImmediateWindow));
         }
 
@@ -120,9 +120,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (model == null && !shouldBlock)
             {
                 // We didn't get a model back, and we're a language that doesn't want to block
-                // when this happens.  Essentially, the user typed something like a commit 
+                // when this happens.  Essentially, the user typed something like a commit
                 // character before we got any results back.  In this case, because we're not
-                // willing to block, we just stop everything that we're doing and return to 
+                // willing to block, we just stop everything that we're doing and return to
                 // the non-active state.
                 DismissSessionIfActive();
             }
@@ -140,8 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var selectedItem = modelOpt.SelectedItemOpt;
-                var viewSpan = selectedItem == null ? (ViewTextSpan?)null : modelOpt.GetViewBufferSpan(selectedItem.Span);
-                var triggerSpan = viewSpan == null 
+                var viewSpan = selectedItem == null || selectedItem.Span.IsEmpty
+                    ? (ViewTextSpan?)null
+                    : modelOpt.GetViewBufferSpan(selectedItem.Span);
+
+                var triggerSpan = viewSpan == null
                     ? null
                     : modelOpt.GetCurrentSpanInSnapshot(viewSpan.Value, this.TextView.TextSnapshot)
                               .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
