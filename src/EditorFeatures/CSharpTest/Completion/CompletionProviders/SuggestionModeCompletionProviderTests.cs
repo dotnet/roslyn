@@ -1067,6 +1067,38 @@ public static class Repro
             await VerifyBuilderAsync(markup);
         }
 
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithNonDelegateExtensionAndInstanceMethod1()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, int val)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(a$$
+    }
+}
+";
+            await VerifyNotBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);
