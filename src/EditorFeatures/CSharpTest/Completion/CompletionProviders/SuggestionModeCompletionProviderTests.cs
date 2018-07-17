@@ -843,6 +843,230 @@ class Program
             await VerifyBuilderAsync(markup);
         }
 
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod1()
+        {
+            var markup = @"
+using System;
+
+public sealed class Foo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class FooExtensions
+{
+    public static void Bar(this Foo foo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Foo foo)
+    {
+        foo.Bar(a$$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod2()
+        {
+            var markup = @"
+using System;
+
+public sealed class Foo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class FooExtensions
+{
+    public static void Bar(this Foo foo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Foo foo)
+    {
+        foo.Bar(a$$)
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod3()
+        {
+            var markup = @"
+using System;
+
+public sealed class Foo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class FooExtensions
+{
+    public static void Bar(this Foo foo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Foo foo)
+    {
+        foo.Bar(($$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod4()
+        {
+            var markup = @"
+using System;
+
+public sealed class Foo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class FooExtensions
+{
+    public static void Bar(this Foo foo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Foo foo)
+    {
+        foo.Bar(($$)
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod5()
+        {
+            var markup = @"
+using System;
+
+public sealed class Foo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class FooExtensions
+{
+    public static void Bar(this Foo foo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Foo foo)
+    {
+        foo.Bar(($$))
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod6()
+        {
+            var markup = @"
+using System;
+
+public sealed class Foo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class FooExtensions
+{
+    public static void Bar(this Foo foo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Foo foo)
+    {
+        foo.Bar((a, $$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod7()
+        {
+            var markup = @"
+using System;
+
+public sealed class Foo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class FooExtensions
+{
+    public static void Bar(this Foo foo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Foo foo)
+    {
+        foo.Bar(async (a$$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);

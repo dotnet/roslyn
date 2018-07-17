@@ -2617,6 +2617,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     }
                 }
 
+                if (token.Text == SyntaxFacts.GetText(SyntaxKind.AsyncKeyword))
+                {
+                    // async $$
+                    //
+                    // 'async' will look like a normal identifier.  But we don't want to follow it
+                    // with 'is' or 'as'.
+                    return false;
+                }
+
                 // Now, make sure the name was actually in a location valid for
                 // an expression.  If so, then we know we can follow it.
                 if (syntaxTree.IsExpressionContext(nameExpr.SpanStart, syntaxTree.FindTokenOnLeftOfPosition(nameExpr.SpanStart, cancellationToken), attributes: false, cancellationToken: cancellationToken))
