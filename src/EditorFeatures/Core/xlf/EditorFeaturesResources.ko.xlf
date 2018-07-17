@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
-        <target state="new">Applying changes</target>
+        <target state="translated">변경 내용 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
@@ -259,7 +259,7 @@
       </trans-unit>
       <trans-unit id="Applying_Encapsulate_Field_refactoring">
         <source>Applying "Encapsulate Field" refactoring...</source>
-        <target state="translated">"필드 캡슐화" 리팩토링 적용 중...</target>
+        <target state="translated">"필드 캡슐화" 리팩터링 적용 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
@@ -579,7 +579,7 @@
       </trans-unit>
       <trans-unit id="Applying_Extract_Method_refactoring">
         <source>Applying "Extract Method" refactoring...</source>
-        <target state="translated">"메서드 추출" 리팩토링 적용 중...</target>
+        <target state="translated">"메서드 추출" 리팩터링 적용 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Document">
