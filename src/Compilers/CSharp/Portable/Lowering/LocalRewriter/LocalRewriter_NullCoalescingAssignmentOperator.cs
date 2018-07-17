@@ -15,20 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Rewrite LHS with temporaries to prevent double-evaluation of side effects, as we'll need to use it multiple times.
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType());
-            var lhsRead = TransformNullCoalescingLHSRead(transformedLHS, stores, temps);
+            var lhsRead = MakeRValue(transformedLHS);
             BoundExpression loweredRight = VisitExpression(node.RightOperand);
 
-            // Now that LHS is transformed with temporaries, we rewrite this node into a conditional expression:
-            // (lhsRead != null) ? lhsRead : (transformedLHS = rhs)
-
-            // lhsRead != null
-            BoundExpression nullCheck = MakeNullCheck(syntax, lhsRead, BinaryOperatorKind.NotEqual);
+            // Now that LHS is transformed with temporaries, we rewrite this node into a coalesce expression:
+            // lhsRead ?? (transformedLHS = loweredRight)
 
             // transformedLHS = rhs
             BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, node.LeftOperand.Type, used: true, node.IsChecked, isCompoundAssignment: true);
 
-            // (lhsRead != null) ? lhsRead : (transformedLHS = rhs)
-            BoundExpression conditionalExpression = RewriteConditionalOperator(syntax, nullCheck, lhsRead, assignment, constantValueOpt: null, rewrittenType: node.LeftOperand.Type, isRef: false);
+            // lhsRead ?? (transformedLHS = loweredRight)
+            BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, Conversion.Identity, node.LeftOperand.Type);
 
             BoundExpression result = (temps.Count == 0 && stores.Count == 0) ?
                     conditionalExpression :
@@ -43,21 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             stores.Free();
 
             return result;
-        }
-
-        private BoundExpression TransformNullCoalescingLHSRead(BoundExpression loweredLHS, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
-        {
-            // We want to make sure that we avoid re-evaluating property getters and the like if the value we find is non-null. If the
-            // LHS can change between reads, then we store it to a temporary variable
-            loweredLHS = MakeRValue(loweredLHS);
-            if (CanChangeValueBetweenReads(loweredLHS))
-            {
-                var variableTemp = _factory.StoreToTemp(loweredLHS, out BoundAssignmentOperator store, refKind: loweredLHS.GetRefKind());
-                stores.Add(store);
-                temps.Add(variableTemp.LocalSymbol);
-                loweredLHS = variableTemp;
-            }
-            return loweredLHS;
         }
     }
 }
