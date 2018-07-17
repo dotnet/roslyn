@@ -3,12 +3,37 @@
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.TargetTypedNew)]
     public class TargetTypedNewTests : CSharpTestBase
     {
+        private static readonly string trivial2uple =
+            @"
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+    }
+}
+            ";
+
         [Fact]
         public void TestExpressionTree1()
         {
@@ -193,19 +218,6 @@ class X
         {
             var comp = CreateCompilation(@"
 using System;
-namespace System {
-    public struct ValueTuple<T1,T2> {
-        public T1 Item1;
-        public T2 Item2;
-        public ValueTuple(T1 a, T2 b)
-            => (Item1, Item2) = (a, b);
-    }
-    namespace Runtime.CompilerServices {
-        public sealed class TupleElementNamesAttribute : Attribute {
-            public TupleElementNamesAttribute(string[] names) {}
-        }
-    }
-}
 
 class X {
     static void M((X a, X b) t) => Console.Write($""{t.a}{t.b}"");
@@ -215,7 +227,7 @@ class X {
         M((new(), new()));
     }
 }
-", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+" + trivial2uple + tupleattributes_cs, options: TestOptions.ReleaseExe).VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "XX");
         }
@@ -268,13 +280,11 @@ unsafe class C
         int[] v12 = new();
         Error v13 = new();
         T v14 = new();
+        ValueTuple<int, int> v15 = new();
+        ValueTuple<int, int> v16 = new(2, 3);
     }
 }
-namespace System
-{
-    public struct ValueTuple<T1,T2> {}
-}
-", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+" + trivial2uple, options: TestOptions.UnsafeReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
                 // (12,13): error CS0815: Cannot assign new() to an implicitly-typed variable
                 //         var v0 = new();
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v0 = new()").WithArguments("new()").WithLocation(12, 13),
@@ -322,7 +332,13 @@ namespace System
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(25, 9),
                 // (26,17): error CS9366: The type 'T' may not be used as the target-type of 'new'.
                 //         T v14 = new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("T").WithLocation(26, 17)
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("T").WithLocation(26, 17),
+                // (27,36): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         ValueTuple<int, int> v15 = new();
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new()").WithArguments("(int, int)").WithLocation(27, 36),
+                // (28,36): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         ValueTuple<int, int> v16 = new(2, 3);
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new(2, 3)").WithArguments("(int, int)").WithLocation(28, 36)
                 );
         }
 
@@ -354,13 +370,11 @@ unsafe class C
         var v12 = (int[])new();
         var v13 = (Error)new();
         var v14 = (T)new();
+        var v15 = (ValueTuple<int, int>)new();
+        var v16 = (ValueTuple<int, int>)new(2, 3);
     }
 }
-namespace System
-{
-    public struct ValueTuple<T1,T2> {}
-}
-", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+" + trivial2uple + tupleattributes_cs, options: TestOptions.UnsafeReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
                 // (12,26): error CS9367: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         var v1 = (Struct)new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("Struct").WithLocation(12, 26),
@@ -397,15 +411,15 @@ namespace System
                 // (22,19): error CS0143: The type 'dynamic' has no constructors defined
                 //         var v11 = (dynamic)new();
                 Diagnostic(ErrorCode.ERR_NoConstructors, "(dynamic)new()").WithArguments("dynamic").WithLocation(22, 19),
-                // (23,19): error CS9366: The type 'int[]' may not be used as the target-type of 'new'.
-                //         var v12 = (int[])new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(int[])new()").WithArguments("int[]").WithLocation(23, 19),
-                // (24,20): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
-                //         var v13 = (Error)new();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(24, 20),
                 // (25,19): error CS9366: The type 'T' may not be used as the target-type of 'new'.
                 //         var v14 = (T)new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(T)new()").WithArguments("T").WithLocation(25, 19)
+                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(T)new()").WithArguments("T").WithLocation(25, 19),
+                // (26,19): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         var v15 = (ValueTuple<int, int>)new();
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(ValueTuple<int, int>)new()").WithArguments("(int, int)").WithLocation(26, 19),
+                // (27,19): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         var v16 = (ValueTuple<int, int>)new(2, 3);
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(ValueTuple<int, int>)new(2, 3)").WithArguments("(int, int)").WithLocation(27, 19)
                 );
         }
 
