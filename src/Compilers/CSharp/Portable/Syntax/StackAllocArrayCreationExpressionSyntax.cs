@@ -8,7 +8,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type)
         => Update(StackAllocKeyword, type, default(InitializerExpressionSyntax));
+    }
 
+    public partial class LocalDeclarationStatementSyntax
+    {
+        public LocalDeclarationStatementSyntax Update(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+            => Update(default(SyntaxToken), modifiers, declaration, semicolonToken);
     }
 
     public partial class LocalDeclarationStatementSyntax

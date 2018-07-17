@@ -2533,21 +2533,15 @@ class A
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,8): error CS1003: Syntax error, '(' expected
+                // (6,8): error CS1031: Type expected
                 // 		using
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "}"),
-                // (6,8): error CS1525: Invalid expression term '}'
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(6, 8),
+                // (6,8): error CS1001: Identifier expected
                 // 		using
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 8),
-                // (6,8): error CS1026: ) expected
-                // 		using
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
-                // (7,5): error CS1525: Invalid expression term '}'
-                // 		using
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 8),
                 // (6,8): error CS1002: ; expected
                 // 		using
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ""));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 8));
         }
 
         // If statement directly following a using ()
