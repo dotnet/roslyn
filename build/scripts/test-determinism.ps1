@@ -1,7 +1,15 @@
+#### 
+#
+#   $bootstrapDir: directory containing the bootstrap compiler
+#   $release: whether to build a debug or release build
+#   $altRootDrive: the drive we build on (via subst) for verifying pathmap implementation
+#
+####
 [CmdletBinding(PositionalBinding=$false)]
 param ( [string]$bootstrapDir = "",
         [switch]$release = $false,
         [string]$altRootDrive = "q:")
+
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
