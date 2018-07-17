@@ -212,7 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (decl.UsingKeyword != default(SyntaxToken))
                             {
                                 kind = LocalDeclarationKind.UsingVariable;
-                            } else
+                            }
+                            else
                             {
                                 kind = LocalDeclarationKind.RegularVariable;
                             }

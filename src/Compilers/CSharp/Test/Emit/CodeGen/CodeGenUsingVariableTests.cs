@@ -1,7 +1,6 @@
 ﻿using Roslyn.Test.Utilities;
 using Xunit;
 
-
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenUsingVariableTests : EmitMetadataTestBase

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
         public static BoundNode Rewrite(BoundStatement statement)
         {
             var localUsingVarRewriter = new LocalUsingVarRewriter();
-            return (BoundNode)localUsingVarRewriter.Visit(statement);
+            return localUsingVarRewriter.Visit(statement);
         }
 
         public override BoundNode VisitBlock(BoundBlock node)
@@ -21,36 +21,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 
             foreach (BoundStatement statement in statements)
             {
-                if (statement is BoundLocalDeclaration boundAssignment)
+                if (statement is BoundLocalDeclaration localDeclaration)
                 {
-                    if (boundAssignment.LocalSymbol.IsUsing)
+                    if (localDeclaration.LocalSymbol.IsUsing)
                     {
-                        ImmutableArray<LocalSymbol> locals = ImmutableArray.Create<LocalSymbol>(boundAssignment.LocalSymbol);
+                        ImmutableArray<LocalSymbol> locals = ImmutableArray.Create<LocalSymbol>(localDeclaration.LocalSymbol);
 
                         List<BoundStatement> precedingStatements = new List<BoundStatement>();
                         for (int j = 0; j < current; j++)
                         {
                             precedingStatements.Add(statements[j]);
                         }
-                        List<BoundStatement> followingStatements = new List<BoundStatement>();
-                        for (int i = current + 1; i < statements.Length; i++)
-                            followingStatements.Add(statements[i]);
+                        var followingStatements = ImmutableArray.Create(
+                            statements, current + 1,
+                            statements.Length - current - 1);
 
-                        List<BoundLocalDeclaration> localDeclarations = new List<BoundLocalDeclaration>();
-                        localDeclarations.Add(boundAssignment);
+                        var localDeclarations = ImmutableArray.Create(localDeclaration);
 
                         BoundBlock innerBlock = new BoundBlock(
-                            syntax: boundAssignment.Syntax,
+                            syntax: localDeclaration.Syntax,
                             locals: ImmutableArray.Create<LocalSymbol>(),
-                            statements: followingStatements.ToImmutableArray<BoundStatement>()
+                            statements: followingStatements
                             );
 
                         BoundUsingStatement boundUsing = new BoundUsingStatement(
-                            syntax: boundAssignment.Syntax,
+                            syntax: localDeclaration.Syntax,
                             locals: ImmutableArray.Create<LocalSymbol>(),
                             declarationsOpt: new BoundMultipleLocalDeclarations(
-                                boundAssignment.Syntax,
-                                localDeclarations.ToImmutableArray<BoundLocalDeclaration>()),
+                                localDeclaration.Syntax,
+                                localDeclarations),
                             expressionOpt: null,
                             iDisposableConversion: Conversion.Identity,
                             disposeMethodOpt: null,
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                         precedingStatements.Add(boundUsing);
 
                         BoundBlock outermostBlock = new BoundBlock(
-                            syntax: boundAssignment.Syntax,
+                            syntax: localDeclaration.Syntax,
                             locals: node.Locals,
                             statements: precedingStatements.ToImmutableArray<BoundStatement>());
 
@@ -81,16 +80,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                             List<BoundStatement> followingStatements = new List<BoundStatement>();
                             for (int i = current + 1; i < statements.Length; i++)
                                 followingStatements.Add(statements[i]);
-                            return LowerBoundMuptipleLocalDeclarationUsingVar(boundMultiple, node.Locals, precedingStatements, followingStatements.ToImmutableArray());
+                            return LowerBoundMultipleLocalDeclarationUsingVar(boundMultiple, node.Locals, precedingStatements, followingStatements.ToImmutableArray());
                         }
                     }
                 }
                 current++;
             }
-            return null;
+            return node;
         }
 
-        private BoundBlock LowerBoundMuptipleLocalDeclarationUsingVar(BoundMultipleLocalDeclarations boundMultiple,
+        private BoundBlock LowerBoundMultipleLocalDeclarationUsingVar(BoundMultipleLocalDeclarations boundMultiple,
                                                                       ImmutableArray<LocalSymbol> locals,
                                                                       List<BoundStatement> precedingStatements,
                                                                       ImmutableArray<BoundStatement> followingStatements)

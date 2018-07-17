@@ -568,7 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
                     }
-                } else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple)
+                }
+                else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple)
                 {
                     if (boundMultiple.LocalDeclarations.Any())
                     {
