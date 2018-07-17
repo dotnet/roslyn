@@ -31,9 +31,9 @@
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
-    <file src="Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.dll" target="lib\net46" />
-    <file src="Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.xml" target="lib\net46" />
-    <file src="Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.pdb*" target="lib\net46" />
+    <file src="Dlls\Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.dll" target="lib\net46" />
+    <file src="Dlls\Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.xml" target="lib\net46" />
+    <file src="Dlls\Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>
