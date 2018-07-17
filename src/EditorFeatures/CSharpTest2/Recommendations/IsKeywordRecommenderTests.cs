@@ -172,8 +172,21 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAsync()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"Goo(async $$"));
+            await VerifyAbsenceAsync(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(async $$
+    }
+
+    void Bar(Func<int, string> f)
+    {
+    }
+}");
         }
     }
 }

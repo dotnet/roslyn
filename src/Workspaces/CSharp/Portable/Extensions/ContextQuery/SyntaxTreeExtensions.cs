@@ -2546,7 +2546,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsIsOrAsContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsIsOrAsContext(
+            this SyntaxTree syntaxTree, SemanticModel semanticModel,
+            int position, SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken)
         {
             // cases:
             //    expr |
@@ -2622,8 +2625,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     // async $$
                     //
                     // 'async' will look like a normal identifier.  But we don't want to follow it
-                    // with 'is' or 'as'.
-                    return false;
+                    // with 'is' or 'as' if it's actually the start of a lambda.
+                    var delegateType = CSharpTypeInferenceService.Instance.InferDelegateType(
+                        semanticModel, token.SpanStart, cancellationToken);
+                    if (delegateType != null)
+                    {
+                        return false;
+                    }
                 }
 
                 // Now, make sure the name was actually in a location valid for
