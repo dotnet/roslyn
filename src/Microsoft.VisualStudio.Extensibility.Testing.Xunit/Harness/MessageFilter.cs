@@ -9,7 +9,7 @@ namespace Xunit.Harness
     using PENDINGMSG = Microsoft.VisualStudio.OLE.Interop.PENDINGMSG;
     using SERVERCALL = Microsoft.VisualStudio.OLE.Interop.SERVERCALL;
 
-    public class MessageFilter : IMessageFilter, IDisposable
+    internal class MessageFilter : IMessageFilter, IDisposable
     {
         protected const uint CancelCall = ~0U;
 

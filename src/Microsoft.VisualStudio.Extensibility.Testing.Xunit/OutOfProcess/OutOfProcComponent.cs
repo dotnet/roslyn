@@ -6,7 +6,7 @@ namespace Xunit.OutOfProcess
     using Xunit.Harness;
     using Xunit.InProcess;
 
-    public abstract class OutOfProcComponent
+    internal abstract class OutOfProcComponent
     {
         protected OutOfProcComponent(VisualStudioInstance visualStudioInstance)
         {

@@ -10,7 +10,7 @@ namespace Xunit.Harness
     /// be disposed by the test to ensure the test's actions are cleaned up during the test run so the instance is
     /// usable for the next test.
     /// </summary>
-    public sealed class VisualStudioInstanceContext : IDisposable
+    internal sealed class VisualStudioInstanceContext : IDisposable
     {
         private readonly VisualStudioInstanceFactory _instanceFactory;
 

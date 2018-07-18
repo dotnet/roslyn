@@ -16,7 +16,7 @@ namespace Xunit.Harness
     using Xunit.OutOfProcess;
     using DTE = EnvDTE.DTE;
 
-    public class VisualStudioInstance
+    internal class VisualStudioInstance
     {
         private readonly IntegrationService _integrationService;
         private readonly IpcChannel _integrationServiceChannel;

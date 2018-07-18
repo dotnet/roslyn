@@ -11,7 +11,7 @@ namespace Xunit.OutOfProcess
     using Xunit.InProcess;
     using Xunit.Sdk;
 
-    public class TestInvoker_OutOfProc : OutOfProcComponent
+    internal class TestInvoker_OutOfProc : OutOfProcComponent
     {
         internal TestInvoker_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)

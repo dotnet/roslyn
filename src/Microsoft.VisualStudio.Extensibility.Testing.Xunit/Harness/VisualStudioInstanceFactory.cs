@@ -17,7 +17,7 @@ namespace Xunit.Harness
     using File = System.IO.File;
     using Path = System.IO.Path;
 
-    public sealed class VisualStudioInstanceFactory : MarshalByRefObject, IDisposable
+    internal sealed class VisualStudioInstanceFactory : MarshalByRefObject, IDisposable
     {
         public static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
 
