@@ -36,12 +36,12 @@
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
-    <file src="Dlls\Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" target="lib\net46" />
-    <file src="Dlls\Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.xml" target="lib\net46" />
-    <file src="Dlls\Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.pdb*" target="lib\net46" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" target="lib\net46" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.xml" target="lib\net46" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
 
     <!-- Satellite assemblies -->
-    <file src="Dlls\Workspaces.MSBuild\**\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll" target="lib\net46" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.MSBuild\**\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll" target="lib\net46" />
   </files>
 </package>
