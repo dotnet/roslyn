@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Templates.Editorconfig.Wizard {
+namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Templates.Editorconfig.Wizard {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Templates.Editorconfig.Wizard.WizardResource", typeof(WizardResource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.Templates.Editorconfig.Wizard.WizardResource", typeof(WizardResource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
