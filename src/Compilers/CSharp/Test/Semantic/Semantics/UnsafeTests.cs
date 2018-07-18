@@ -4682,6 +4682,69 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_VoidError, "p"));
         }
 
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Static()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    static int* x;
+
+    static void Main()
+    {
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Instance()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    int* x;
+
+    void Calculate()
+    {
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Local()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    static void Main()
+    {
+        int* x;
+
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
         #endregion PointerElementAccess diagnostics
 
         #region PointerElementAccess SemanticModel tests
