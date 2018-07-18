@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -6,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 {
-    class LocalUsingVarRewriter : BoundTreeRewriterWithStackGuard
+    internal class LocalUsingVarRewriter : BoundTreeRewriterWithStackGuard
     {
         public static BoundNode Rewrite(BoundStatement statement)
         {
@@ -139,6 +141,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                             locals: locals,
                             statements: precedingStatements.ToImmutableArray());
             return outermostBlock;
+        }
+
+        internal static bool ContainsUsingVariable(BoundStatement boundStatement)
+        {
+            if (boundStatement is BoundLocalDeclaration boundLocal)
+            {
+                return boundLocal.LocalSymbol.IsUsing;
+            }
+            else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple)
+            {
+                if (!boundMultiple.LocalDeclarations.IsEmpty)
+                {
+                    return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
+                }
+            }
+            return false;
         }
     }
 }

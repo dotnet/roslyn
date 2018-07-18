@@ -2661,6 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
+
             var us = (LocalDeclarationStatementSyntax)statement;
             Assert.NotNull(us.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
@@ -2752,7 +2753,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-
         public void TestUsingVarSpecialCase2Tree()
         {
             UsingStatement(@"using f ? x = a;");

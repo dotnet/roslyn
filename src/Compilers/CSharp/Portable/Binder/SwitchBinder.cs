@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -562,22 +563,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var statement in node.Statements)
             {
                 var boundStatement = sectionBinder.BindStatement(statement, diagnostics);
-                if (boundStatement is BoundLocalDeclaration boundLocal)
+                if (LocalUsingVarRewriter.ContainsUsingVariable(boundStatement))
                 {
-                    if (boundLocal.LocalSymbol.IsUsing)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
-                    }
-                }
-                else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple)
-                {
-                    if (boundMultiple.LocalDeclarations.Any())
-                    {
-                        if (boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
-                        }
-                    }
+                    diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
                 }
                 boundStatementsBuilder.Add(boundStatement);
             }
