@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27906.1
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj", "{C4C38EAE-B6B1-4EE5-9F01-03B4D9249BBD}"
+EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.VisualStudio.VsixInstaller.Shared", "src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.shproj", "{B3BED6CB-ABFE-4BB8-8AF7-901FF0C6F027}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.Interop", "src\Microsoft.VisualStudio.VsixInstaller.Interop\Microsoft.VisualStudio.VsixInstaller.Interop.csproj", "{7D8374CB-5DBE-49AE-A251-82132EAEE3AA}"
@@ -26,6 +28,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C4C38EAE-B6B1-4EE5-9F01-03B4D9249BBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4C38EAE-B6B1-4EE5-9F01-03B4D9249BBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4C38EAE-B6B1-4EE5-9F01-03B4D9249BBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4C38EAE-B6B1-4EE5-9F01-03B4D9249BBD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7D8374CB-5DBE-49AE-A251-82132EAEE3AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7D8374CB-5DBE-49AE-A251-82132EAEE3AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D8374CB-5DBE-49AE-A251-82132EAEE3AA}.Release|Any CPU.ActiveCfg = Release|Any CPU

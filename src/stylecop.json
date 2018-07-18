@@ -10,6 +10,10 @@
         "licenseName": "MIT License",
         "licenseFile": "LICENSE"
       }
+    },
+    "layoutRules": {
+      "allowConsecutiveUsings": true,
+      "newlineAtEndOfFile": "require"
     }
   }
 }

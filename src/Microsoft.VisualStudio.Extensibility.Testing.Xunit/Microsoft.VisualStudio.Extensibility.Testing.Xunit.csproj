@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <RootNamespace>Xunit</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EnvDTE" Version="8.0.1" PrivateAssets="all" />
+    <PackageReference Include="EnvDTE80" Version="8.0.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="7.10.6071" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="7.10.6072" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="8.0.50728" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.1.36" />
+    <PackageReference Include="xunit.assert" Version="2.3.1" />
+    <PackageReference Include="xunit.extensibility.core" Version="2.3.1" />
+    <PackageReference Include="xunit.extensibility.execution" Version="2.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService\Microsoft.VisualStudio.IntegrationTestService.csproj" />
+
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.11\Microsoft.VisualStudio.VsixInstaller.11.csproj" ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.12\Microsoft.VisualStudio.VsixInstaller.12.csproj" ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.14\Microsoft.VisualStudio.VsixInstaller.14.csproj" ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.15\Microsoft.VisualStudio.VsixInstaller.15.csproj" ReferenceOutputAssembly="False" />
+  </ItemGroup>
+
+</Project>
