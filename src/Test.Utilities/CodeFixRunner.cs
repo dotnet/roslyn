@@ -242,7 +242,7 @@ namespace Test.Utilities
                     .WithSpecificDiagnosticOptions(
                         analyzer
                             .SupportedDiagnostics
-                            .Select(x => KeyValuePair.Create(x.Id, ReportDiagnostic.Default))
+                            .Select(x => KeyValuePairUtil.Create(x.Id, ReportDiagnostic.Default))
                             .ToImmutableDictionaryOrEmpty()));
         }
 

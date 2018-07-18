@@ -434,7 +434,7 @@ namespace Test.Utilities
             // Enable Flow-Analysis feature on the project
             parseOptions = project.ParseOptions.WithFeatures(
                 project.ParseOptions.Features.Concat(
-                    SpecializedCollections.SingletonEnumerable(KeyValuePair.Create("Flow-Analysis", "true"))));
+                    SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create("Flow-Analysis", "true"))));
             project = project.WithParseOptions(parseOptions);
 
             if ((referenceFlags & ReferenceFlags.RemoveCodeAnalysis) != ReferenceFlags.RemoveCodeAnalysis)
@@ -551,7 +551,7 @@ namespace Test.Utilities
                     .WithSpecificDiagnosticOptions(
                         analyzer
                             .SupportedDiagnostics
-                            .Select(x => KeyValuePair.Create(x.Id, ReportDiagnostic.Default))
+                            .Select(x => KeyValuePairUtil.Create(x.Id, ReportDiagnostic.Default))
                             .ToImmutableDictionaryOrEmpty()));
         }
     }
