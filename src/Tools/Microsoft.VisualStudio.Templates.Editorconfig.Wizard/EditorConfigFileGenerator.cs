@@ -2,11 +2,12 @@
 
 using System;
 using System.IO;
+using System.Windows;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Templates.Editorconfig.Wizard;
 using Templates.Editorconfig.Wizard;
-using System.Windows;
 
 namespace Templates.EditorConfig.FileGenerator
 {
