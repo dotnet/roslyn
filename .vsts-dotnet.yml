@@ -2,27 +2,36 @@ phases:
 - phase: Windows_Unit_Tests
   queue:
     timeoutInMinutes: 90
-    parallel: 2
+    parallel: 4
     matrix:
-      debug:
+      debug_32:
         _configuration: Debug
-      release: 
+        _testKind: Test32
+      debug_64:
+        _configuration: Debug
+        _testKind: Test64
+      release_32:
         _configuration: Release
+        _testKind: Test32
+      release_64:
+        _configuration: Release
+        _testKind: Test64
+
   steps:
-    - script: build/scripts/cibuild.cmd -$(_configuration) -testDesktop -test32
+    - script: build/scripts/cibuild.cmd -$(_configuration) -testDesktop -$(_testKind)
 
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
         testResultsFiles: '**/xUnitResults/*.xml'
         mergeTestResults: true
-        testRunTitle: '$(_configuration) Unit Tests'
+        testRunTitle: 'Unit Tests $(_configuration) $(_testKind)'
       condition: succeededOrFailed()
 
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
-        ArtifactName: 'Build Diagnostic Files $(_configuration)'
+        ArtifactName: 'Build Diagnostic Files $(_configuration) $(_testKind)' 
         publishLocation: Container
       continueOnError: true
       condition: failed()
