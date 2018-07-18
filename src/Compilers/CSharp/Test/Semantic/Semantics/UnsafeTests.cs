@@ -7047,7 +7047,7 @@ class Program
 
         #region sizeof semantic model tests
 
-        private static readonly Dictionary<SpecialType, int> s_fpecialTypeSizeOfMap = new Dictionary<SpecialType, int>
+        private static readonly Dictionary<SpecialType, int> s_specialTypeSizeOfMap = new Dictionary<SpecialType, int>
         {
             { SpecialType.System_SByte, 1 },
             { SpecialType.System_Byte, 1 },
@@ -7124,7 +7124,7 @@ class Program
                 Assert.Equal(0, sizeOfSummary.MethodGroup.Length);
                 Assert.Null(sizeOfSummary.Alias);
                 Assert.True(sizeOfSummary.IsCompileTimeConstant);
-                Assert.Equal(s_fpecialTypeSizeOfMap[type.SpecialType], sizeOfSummary.ConstantValue);
+                Assert.Equal(s_specialTypeSizeOfMap[type.SpecialType], sizeOfSummary.ConstantValue);
             }
         }
 
@@ -7187,7 +7187,7 @@ enum E2 : long
                 Assert.Equal(0, sizeOfSummary.MethodGroup.Length);
                 Assert.Null(sizeOfSummary.Alias);
                 Assert.True(sizeOfSummary.IsCompileTimeConstant);
-                Assert.Equal(s_fpecialTypeSizeOfMap[type.GetEnumUnderlyingType().SpecialType], sizeOfSummary.ConstantValue);
+                Assert.Equal(s_specialTypeSizeOfMap[type.GetEnumUnderlyingType().SpecialType], sizeOfSummary.ConstantValue);
             }
         }
 
