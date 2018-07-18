@@ -1078,17 +1078,17 @@ unsafe struct S
 }
 unsafe class C
 {
-    static S s_s;
+    static S s_f;
     public void M()
     {
-        s_s.Buf[0] = 1;
+        s_f.Buf[0] = 1;
     }
 }", options: TestOptions.UnsafeReleaseDll);
             verifier.VerifyIL("C.M", @"
 {
   // Code size       18 (0x12)
   .maxstack  2
-  IL_0000:  ldsflda    ""S C.s_s""
+  IL_0000:  ldsflda    ""S C.s_f""
   IL_0005:  ldflda     ""int* S.Buf""
   IL_000a:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
   IL_000f:  ldc.i4.1
