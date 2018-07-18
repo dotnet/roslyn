@@ -3467,7 +3467,7 @@ done
         End Sub
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_01()
             Dim source =
 <compilation>
@@ -3617,7 +3617,7 @@ done
         End Sub
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Checked_01()
             Dim source =
 <compilation>
@@ -3776,7 +3776,7 @@ done
 
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Implicit_01()
             Dim source =
 <compilation>
@@ -3925,7 +3925,7 @@ done
         End Sub
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_CheckedImplicit_01()
             Dim source =
 <compilation>
@@ -4083,7 +4083,7 @@ done
         End Sub
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Single_01()
             Dim source =
 <compilation>
@@ -4229,7 +4229,7 @@ done
         End Sub
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Single_Checked_01()
             Dim source =
 <compilation>
@@ -4388,7 +4388,7 @@ done
 
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Single_Implicit_01()
             Dim source =
 <compilation>
@@ -4538,7 +4538,7 @@ done
         End Sub
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Single_CheckedImplicit_01()
             Dim source =
 <compilation>

@@ -302,7 +302,7 @@ No for 1.2";
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void PatternInFieldInitializer()
         {
             var source =
@@ -782,7 +782,7 @@ True");
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Query_01()
         {
             var source =
