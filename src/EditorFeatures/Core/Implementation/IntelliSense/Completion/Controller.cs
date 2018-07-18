@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var selectedItem = modelOpt.SelectedItemOpt;
-                var viewSpan = selectedItem == null || selectedItem.Span.IsEmpty
+                var viewSpan = selectedItem == null || selectedItem.Document == null
                     ? (ViewTextSpan?)null
                     : modelOpt.GetViewBufferSpan(selectedItem.Span);
 
