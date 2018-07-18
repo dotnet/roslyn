@@ -1053,6 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             where TNode : GreenNode
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
+            LanguageVersion requiredVersion = feature.RequiredVersion();
 
             // There are special error codes for some features, so handle those separately.
             switch (feature)
@@ -1063,11 +1064,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
 
                 case MessageID.IDS_FeatureVerbatimInterpolatedStrings:
-                    return availableVersion >= LanguageVersion.CSharp8
+                    return availableVersion >= requiredVersion
                         ? node
                         : this.AddError(node, ErrorCode.ERR_VerbatimInterpolatedStringsNotAvailable,
-                            new CSharpRequiredLanguageVersion(LanguageVersion.CSharp8));
-           }
+                            new CSharpRequiredLanguageVersion(requiredVersion));
+            }
 
             if (IsFeatureEnabled(feature))
             {
@@ -1075,7 +1076,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var featureName = feature.Localize();
-            var requiredVersion = feature.RequiredVersion();
 
             if (forceWarning)
             {
