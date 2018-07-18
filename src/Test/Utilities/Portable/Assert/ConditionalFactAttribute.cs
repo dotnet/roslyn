@@ -32,7 +32,11 @@ namespace Roslyn.Test.Utilities
         /// skipped vs. conditionally skipped which is the entire point of this attribute.
         /// </summary>
         [Obsolete("ConditionalFact should use Reason or AlwaysSkip")]
-        public new string Skip => throw new InvalidOperationException();
+        public new string Skip
+        {
+            get { return base.Skip; }
+            set { base.Skip = value; }
+        }
 
         /// <summary>
         /// Used to unconditionally Skip a test. For the rare occasion when a conditional test needs to be 
