@@ -714,6 +714,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Update a new solution instance with a fork of the specified project.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly fork current solution snapshot
+        /// </summary>
+        internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            Contract.Requires(this.ContainsProject(projectId));
+
+            return ForkProject(GetProjectState(projectId));
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>

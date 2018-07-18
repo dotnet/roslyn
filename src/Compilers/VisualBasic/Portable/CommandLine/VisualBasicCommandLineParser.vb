@@ -827,7 +827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ElseIf value = "?" Then
                                 displayLangVersions = True
                             Else
-                                If Not value.TryParse(languageVersion) Then
+                                If Not TryParse(value, languageVersion) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End If
                             End If

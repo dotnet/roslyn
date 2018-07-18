@@ -25,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions ExperimentalParseOptions =
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.Latest).WithFeatures(s_experimentalFeatures);
 
+        // Enable pattern-switch translation even for switches that use no new syntax. This is used
+        // to help ensure compatibility of the semantics of the new switch binder with the old switch
+        // binder, so that we may eliminate the old one in the future.
+        public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
+
+        public static readonly CSharpParseOptions RegularWithFlowAnalysisFeature = Regular.WithFlowAnalysisFeature();
+
         public static readonly CSharpParseOptions RegularWithoutRecursivePatterns = Regular7_3;
         public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular8;
 
@@ -80,6 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
         {
             return options;
+        }
+
+        public static CSharpParseOptions WithFlowAnalysisFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
         }
     }
 }

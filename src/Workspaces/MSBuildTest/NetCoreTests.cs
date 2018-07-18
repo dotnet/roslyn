@@ -130,10 +130,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        //[ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        //[Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        //[Trait(Traits.Feature, Traits.Features.NetCore)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26115")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "https://github.com/dotnet/roslyn/issues/28104")]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM()
         {
             CreateFiles(GetNetCoreMultiTFMFiles());
@@ -175,10 +174,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        //[ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        //[Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        //[Trait(Traits.Feature, Traits.Features.NetCore)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26115")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "https://github.com/dotnet/roslyn/issues/28104")]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM_ProjectReference()
         {
             CreateFiles(GetNetCoreMultiTFMFiles_ProjectReference());
@@ -191,10 +189,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             await AssertNetCoreMultiTFMProject(projectFilePath);
         }
 
-        //[ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        //[Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        //[Trait(Traits.Feature, Traits.Features.NetCore)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26115")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip ="https://github.com/dotnet/roslyn/issues/28104")]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM_ProjectReferenceWithReversedTFMs()
         {
             CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceWithReversedTFMs());

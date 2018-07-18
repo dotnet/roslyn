@@ -9,33 +9,26 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    internal partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
+    internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
         private partial class GenerateEqualsAndGetHashCodeAction : CodeAction
         {
-            private static readonly SyntaxAnnotation s_specializedFormattingAnnotation = new SyntaxAnnotation();
-
             private readonly bool _generateEquals;
             private readonly bool _generateGetHashCode;
             private readonly bool _implementIEquatable;
             private readonly bool _generateOperators;
-            private readonly AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _selectedMembers;
             private readonly TextSpan _textSpan;
 
             public GenerateEqualsAndGetHashCodeAction(
-                AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -45,7 +38,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 bool implementIEquatable,
                 bool generateOperators)
             {
-                _service = service;
                 _document = document;
                 _containingType = containingType;
                 _selectedMembers = selectedMembers;
@@ -67,7 +59,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
                 if (_implementIEquatable)
                 {
-                    methods.Add(await CreateIEquatableEqualsMethodAsync((CancellationToken)cancellationToken).ConfigureAwait((bool)false));
+                    methods.Add(await CreateIEquatableEqualsMethodAsync(cancellationToken).ConfigureAwait((bool)false));
                 }
 
                 if (_generateGetHashCode)
@@ -97,7 +89,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var newDocument = await UpdateDocumentAndAddImportsAsync(
                     oldType, newType, cancellationToken).ConfigureAwait(false);
 
-                var formattedDocument = await FormatDocumentAsync(
+                var service = _document.GetLanguageService<IGenerateEqualsAndGetHashCodeService>();
+                var formattedDocument = await service.FormatDocumentAsync(
                     newDocument, cancellationToken).ConfigureAwait(false);
 
                 return formattedDocument;
@@ -118,17 +111,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     new CodeGenerationOptions(placeSystemNamespaceFirst: placeSystemNamespaceFirst),
                     cancellationToken).ConfigureAwait(false);
                 return newDocument;
-            }
-
-            private async Task<Document> FormatDocumentAsync(Document newDocument, CancellationToken cancellationToken)
-            {
-                var rules = new List<IFormattingRule> { new FormatLargeBinaryExpressionRule(_document.GetLanguageService<ISyntaxFactsService>()) };
-                rules.AddRange(Formatter.GetDefaultFormattingRules(_document));
-
-                var formattedDocument = await Formatter.FormatAsync(
-                    newDocument, s_specializedFormattingAnnotation,
-                    options: null, rules: rules, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return formattedDocument;
             }
 
             private async Task<(SyntaxNode oldType, SyntaxNode newType)> AddMethodsAsync(
@@ -210,86 +192,18 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     ImmutableArray.Create(generator.ReturnStatement(expression)));
             }
 
-            private async Task<IMethodSymbol> CreateGetHashCodeMethodAsync(CancellationToken cancellationToken)
+            private Task<IMethodSymbol> CreateGetHashCodeMethodAsync(CancellationToken cancellationToken)
             {
-                var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var factory = _document.GetLanguageService<SyntaxGenerator>();
-                return CreateGetHashCodeMethod(factory, compilation, cancellationToken);
+                var service = _document.GetLanguageService<IGenerateEqualsAndGetHashCodeService>();
+                return service.GenerateGetHashCodeMethodAsync(_document, _containingType, _selectedMembers, cancellationToken);
             }
 
-            private IMethodSymbol CreateGetHashCodeMethod(
-                SyntaxGenerator factory,
-                Compilation compilation,
-                CancellationToken cancellationToken)
+            private Task<IMethodSymbol> CreateEqualsMethodAsync(CancellationToken cancellationToken)
             {
-                var statements = CreateGetHashCodeStatements(factory, compilation, cancellationToken);
-
-                return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: default,
-                    accessibility: Accessibility.Public,
-                    modifiers: new DeclarationModifiers(isOverride: true),
-                    returnType: compilation.GetSpecialType(SpecialType.System_Int32),
-                    refKind: RefKind.None,
-                    explicitInterfaceImplementations: default,
-                    name: GetHashCodeName,
-                    typeParameters: default,
-                    parameters: default,
-                    statements: statements);
-            }
-
-            private ImmutableArray<SyntaxNode> CreateGetHashCodeStatements(
-                SyntaxGenerator factory, Compilation compilation, CancellationToken cancellationToken)
-            {
-                // If we have access to System.HashCode, then just use that.
-                var hashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
-
-                var components = factory.GetGetHashCodeComponents(
-                    compilation, _containingType, _selectedMembers,
-                    justMemberReference: true, cancellationToken);
-
-                if (components.Length > 0 && hashCodeType != null)
-                {
-                    return CreateGetHashCodeStatementsUsingSystemHashCode(
-                        factory, compilation, hashCodeType, components, cancellationToken);
-                }
-
-                // Otherwise, try to just spit out a reasonable hash code for these members.
-                var statements = factory.CreateGetHashCodeMethodStatements(
-                    compilation, _containingType, _selectedMembers, useInt64: false, cancellationToken);
-
-                // Unfortunately, our 'reasonable' hash code may overflow in checked contexts.
-                // C# can handle this by adding 'checked{}' around the code, VB has to jump
-                // through more hoops.
-                if (!compilation.Options.CheckOverflow)
-                {
-                    return statements;
-                }
-
-                if (compilation.Language == LanguageNames.CSharp)
-                {
-                    return _service.WrapWithUnchecked(statements);
-                }
-
-                // If tuples are available, use (a, b, c).GetHashCode to simply generate the tuple.
-                var valueTupleType = compilation.GetTypeByMetadataName(typeof(ValueTuple).FullName);
-                if (components.Length >= 2 && valueTupleType != null)
-                {
-                    return ImmutableArray.Create(factory.ReturnStatement(
-                        factory.InvocationExpression(
-                            factory.MemberAccessExpression(
-                                factory.TupleExpression(components),
-                                GetHashCodeName))));
-                }
-
-                // Otherwise, use 64bit math to compute the hash.  Importantly, if we always clamp
-                // the hash to be 32 bits or less, then the following cannot ever overflow in 64
-                // bits: hashCode = hashCode * -1521134295 + j.GetHashCode()
-                //
-                // So we'll generate lines like: hashCode = (hashCode * -1521134295 + j.GetHashCode()) & 0x7FFFFFFF
-                //
-                // This does mean all hashcodes will be positive.  But it will avoid the overflow problem.
-                return factory.CreateGetHashCodeMethodStatements(
-                    compilation, _containingType, _selectedMembers, useInt64: true, cancellationToken);
+                var service = _document.GetLanguageService<IGenerateEqualsAndGetHashCodeService>();
+                return _implementIEquatable
+                    ? service.GenerateEqualsMethodThroughIEquatableEqualsAsync(_document, _containingType, cancellationToken)
+                    : service.GenerateEqualsMethodAsync(_document, _containingType, _selectedMembers, cancellationToken);
             }
 
             private ImmutableArray<SyntaxNode> CreateGetHashCodeStatementsUsingSystemHashCode(
@@ -335,10 +249,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 else
                 {
                     var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var tree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
                     return _document.GetLanguageService<SyntaxGenerator>().CreateEqualsMethod(
-                        compilation, tree.Options, _containingType, _selectedMembers,
+                        compilation, _containingType, _selectedMembers,
                         s_specializedFormattingAnnotation, cancellationToken);
                 }
             }

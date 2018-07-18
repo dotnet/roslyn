@@ -236,6 +236,28 @@ commitPullList.each { isPr ->
   }
 }
 
+// Loc status check
+commitPullList.each { isPr ->
+  // Add the check for PR builds, and dev15.8.x/dev15.8.x-vs-deps builds.
+  if (isPr
+      || branchName == "dev15.8.x"
+      || branchName == "dev15.8.x-vs-deps") {
+    def jobName = Utilities.getFullJobName(projectName, "windows_loc_status", isPr)
+    def myJob = job(jobName) {
+      description('Check for untranslated resources')
+      steps {
+        batchFile(""".\\build\\scripts\\check-loc-status.cmd""")
+      }
+    }
+
+    // Run it automatically on CI builds but only when requested on PR builds.
+    def triggerPhraseOnly = isPr
+    def triggerPhraseExtra = "loc"
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+  }
+}
+
 JobReport.Report.generateJobReport(out)
 
 // Make the call to generate the help job

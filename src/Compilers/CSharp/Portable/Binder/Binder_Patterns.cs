@@ -431,14 +431,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SyntaxToken identifier = singleVariableDesignation.Identifier;
                     SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
-            if (localSymbol != (object)null)
-            {
-                if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
-                {
-                    CheckFeatureAvailability(node, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
-                }
+                    if (localSymbol != (object)null)
+                    {
+                        if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
+                        {
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
+                        }
 
                         localSymbol.SetType(declType);
+                        // https://github.com/dotnet/roslyn/issues/28633: need to preserve/compute the val escape. The following line
+                        // from master does not work because we don't have a source expression at this point.
+                        //         localSymbol.SetValEscape(GetValEscape(sourceExpression, LocalScopeDepth));
 
                         // Check for variable declaration errors.
                         hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);

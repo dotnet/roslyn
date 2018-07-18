@@ -9,8 +9,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodBodySemanticModel : MemberSemanticModel
     {
-        private MethodBodySemanticModel(CSharpCompilation compilation, Symbol owner, Binder rootBinder, CSharpSyntaxNode syntax, SyntaxTreeSemanticModel parentSemanticModelOpt = null, int speculatedPosition = 0)
-            : base(compilation, syntax, owner, rootBinder, parentSemanticModelOpt, speculatedPosition)
+        private MethodBodySemanticModel(
+            Symbol owner,
+            Binder rootBinder,
+            CSharpSyntaxNode syntax,
+            SyntaxTreeSemanticModel containingSemanticModelOpt = null,
+            SyntaxTreeSemanticModel parentSemanticModelOpt = null,
+            int speculatedPosition = 0)
+            : base(syntax, owner, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition)
         {
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
@@ -21,10 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for the method.
         /// </summary>
-        internal static MethodBodySemanticModel Create(CSharpCompilation compilation, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder, 
+        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder, 
                                                        CSharpSyntaxNode syntax, BoundNode boundNode = null)
         {
-            var result =  new MethodBodySemanticModel(compilation, owner, executableCodeBinder, syntax);
+            Debug.Assert(containingSemanticModel != null);
+            var result =  new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
 
             if (boundNode != null)
             {
@@ -70,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new MethodBodySemanticModel(parentSemanticModel.Compilation, owner, rootBinder, syntax, parentSemanticModel, position);
+            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
         }
 
         /// <summary>
@@ -83,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new MethodBodySemanticModel(parentSemanticModel.Compilation, owner, rootBinder, syntax, parentSemanticModel, position);
+            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
         }
 
         /// <summary>
@@ -96,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new MethodBodySemanticModel(parentSemanticModel.Compilation, owner, rootBinder, syntax, parentSemanticModel, position);
+            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
         }
 
         internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)

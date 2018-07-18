@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.RenameTrackingPreview,
             FeatureOnOffOptions.RenameTracking,
             FeatureOnOffOptions.RefactoringVerification,
-            FeatureOnOffOptions.StreamingGoToImplementation);
+            FeatureOnOffOptions.StreamingGoToImplementation,
+            FeatureOnOffOptions.NavigateToDecompiledSources,
+            FeatureOnOffOptions.AcceptedDecompilerDisclaimer);
     }
 }

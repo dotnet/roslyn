@@ -6670,7 +6670,7 @@ A");
         }
 
         [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DynamicAmbiguousOrConversion()
         {
             string source = @"
@@ -7268,7 +7268,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45Extended, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -7425,7 +7425,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40Extended, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);

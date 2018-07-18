@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 c => FixAsync(context.Document, diagnostic, c),
                 priority), diagnostic);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 }
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

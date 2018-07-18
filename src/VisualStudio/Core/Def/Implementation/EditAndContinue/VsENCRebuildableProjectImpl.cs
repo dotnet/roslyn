@@ -470,7 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     // If pActiveStatements is null the EnC Manager failed to retrieve the module corresponding 
                     // to the project in the debuggee. We won't include such projects in the edit session.
-                    s_breakStateEnteredProjects.Add(KeyValuePair.Create(_vsProject.Id, state));
+                    s_breakStateEnteredProjects.Add(KeyValuePairUtil.Create(_vsProject.Id, state));
                     s_breakStateProjectCount++;
 
                     // EnC service is global, but the debugger calls this for each project.

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     var key = reader.ReadString();
                     var value = (ReportDiagnostic)reader.ReadInt32();
 
-                    specificDiagnosticOptionsList.Add(KeyValuePair.Create(key, value));
+                    specificDiagnosticOptionsList.Add(KeyValuePairUtil.Create(key, value));
                 }
             }
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     var key = reader.ReadString();
                     var value = reader.ReadString();
 
-                    featuresList.Add(KeyValuePair.Create(key, value));
+                    featuresList.Add(KeyValuePairUtil.Create(key, value));
                 }
             }
 
