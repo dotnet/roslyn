@@ -219,7 +219,7 @@ function Make-BootstrapBuild() {
             'src/Compilers/CSharp/csc/csc.csproj',
             'src/Compilers/VisualBasic/vbc/vbc.csproj',
             'src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj',
-            'src/Compilers/Core/MSBuildTask/MSBuildTask.csproj'
+            'src/Compilers/Core/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.csproj'
         )
 
         foreach ($projectFilePath in $projectFiles) {
@@ -293,8 +293,8 @@ function Build-ExtraSignArtifacts() {
         Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Publishing VBCSCompiler"
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-        Write-Host "Publishing MSBuildTask"
-        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Publishing Microsoft.Build.Tasks.CodeAnalysis"
+        Run-MSBuild "..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Building PortableFacades Swix"
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.swixproj"
         Write-Host "Building CompilersCodeAnalysis Swix"
@@ -337,7 +337,7 @@ function Build-InsertionItems() {
     Push-Location $setupDir
     try {
         Create-PerfTests
-        Exec-Console (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $repoDir $(Get-PackagesDir)"
+        Exec-Console (Join-Path $configDir "Exes\Roslyn.BuildDevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $repoDir $(Get-PackagesDir)"
 
         # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
         # matter, just that it's provided some value.
@@ -369,14 +369,16 @@ function Build-InsertionItems() {
 function Build-Installer () {
     #  Copying Artifacts
     $installerDir = Join-Path $configDir "Installer"
+    if (Test-Path $installerDir) {
+        Remove-Item -Path $installerDir -Recurse -Force
+    }
     Create-Directory $installerDir
 
     $intermidateDirectory = Join-Path $env:TEMP "InstallerTemp"
-    if(Test-Path $intermidateDirectory)
-    {
+    if (Test-Path $intermidateDirectory) {
         Remove-Item -Path $intermidateDirectory -Recurse -Force
     }
-    New-Item -ItemType Directory -Force -Path $intermidateDirectory
+    Create-Directory $intermidateDirectory
 
     ## Copying VsixExpInstaller.exe
     $vsixExpInstallerDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
@@ -405,7 +407,7 @@ function Build-Installer () {
     if (-not (Test-Path $vsixDirDestination)) {
         New-Item -ItemType Directory -Force -Path $vsixDirDestination
     }
-    $RoslynDeploymentVsix = Join-Path $vsixDir "Roslyn\RoslynDeployment.vsix"
+    $RoslynDeploymentVsix = Join-Path $vsixDir "RoslynDeployment\RoslynDeployment.vsix"
     Copy-Item $RoslynDeploymentVsix -Destination $vsixDirDestination
 
     #  Zip Folder
@@ -571,14 +573,14 @@ function Test-XUnit() {
             $dlls = Get-ChildItem -re -in "*.UnitTests.dll" $unitDir
         }
         else {
-            $dlls = Get-ChildItem -re -in "*.UnitTests.dll" -ex "*Roslyn.Interactive*" $unitDir
+            $dlls = Get-ChildItem -re -in "*.UnitTests.dll" -ex "*InteractiveHost*" $unitDir
         }
     }
     elseif ($testVsi) {
         # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
         # integration tests in CI.
         if ($cibuild) {
-            $dlls += @(Get-Item (Join-Path $unitDir "Workspaces.MSBuild.Test\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
+            $dlls += @(Get-Item (Join-Path $unitDir "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
         }
 
         $dlls += @(Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir)
@@ -636,12 +638,12 @@ function Deploy-VsixViaTool() {
     Write-Host "Using VS Instance $vsId at `"$vsDir`""
     $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
     $all = @(
-        "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
-        "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
-        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
+        "Vsix\Roslyn.Compilers.Extension\Roslyn.Compilers.Extension.vsix",
+        "Vsix\Roslyn.VisualStudio.Setup\Roslyn.VisualStudio.Setup.vsix",
+        "Vsix\Roslyn.VisualStudio.InteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
-        "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
-        "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
+        "Vsix\Roslyn.VisualStudio.DiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
+        "Vsix\Microsoft.VisualStudio.IntegrationTest.Setup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
     Write-Host "Uninstalling old Roslyn VSIX"
 
@@ -725,6 +727,7 @@ function Redirect-Temp() {
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\NuGet.Config") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }

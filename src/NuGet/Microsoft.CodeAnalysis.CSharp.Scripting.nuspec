@@ -29,12 +29,12 @@
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
-    <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="lib\netstandard1.3" />
-    <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.xml" target="lib\netstandard1.3" />
-    <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.pdb*" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp.Scripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp.Scripting\Microsoft.CodeAnalysis.CSharp.Scripting.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp.Scripting\Microsoft.CodeAnalysis.CSharp.Scripting.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
 
     <!-- Satellite assemblies -->
-    <file src="Dlls\CSharpScripting\**\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp.Scripting\**\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>
