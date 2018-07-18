@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -156,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             {
                 editorconfig.Append(element.KeyName + " = ");
 
-                editorconfig.AppendLine(optionSet.GetOption(option).ToString().ToLower());
+                editorconfig.AppendLine(optionSet.GetOption(option).ToString().ToLowerInvariant());
             }
         }
 
@@ -168,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                 editorconfig.Append(element.KeyName + " = ");
 
                 var curSetting = optionSet.GetOption(option, LanguageNames.CSharp);
-                editorconfig.AppendLine(curSetting.Value.ToString().ToLower() + ":" + curSetting.Notification.ToString().ToLower());
+                editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + curSetting.Notification.ToString().ToLowerInvariant());
             }
         }
 
@@ -180,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                 editorconfig.Append(element.KeyName + " = ");
 
                 var curSetting = optionSet.GetOption(option);
-                editorconfig.AppendLine(curSetting.Value.ToString().ToLower() + ":" + curSetting.Notification.ToString().ToLower());
+                editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + curSetting.Notification.ToString().ToLowerInvariant());
             }
         }
 
@@ -192,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                 editorconfig.Append(element.KeyName + " = ");
 
                 var curSetting = optionSet.GetOption(option);
-                editorconfig.AppendLine(curSetting.Value.ToString().ToLower() + ":" + curSetting.Notification.ToString().ToLower());
+                editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + curSetting.Notification.ToString().ToLowerInvariant());
             }
         }
 
@@ -206,15 +207,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                 var curSetting = optionSet.GetOption(option);
                 if (curSetting.Value == ExpressionBodyPreference.Never)
                 {
-                    editorconfig.AppendLine("false" + ":" + curSetting.Notification.ToString().ToLower());
+                    editorconfig.AppendLine("false" + ":" + curSetting.Notification.ToString().ToLowerInvariant());
                 }
                 else if (curSetting.Value == ExpressionBodyPreference.WhenPossible)
                 {
-                    editorconfig.AppendLine("true" + ":" + curSetting.Notification.ToString().ToLower());
+                    editorconfig.AppendLine("true" + ":" + curSetting.Notification.ToString().ToLowerInvariant());
                 }
                 else if (curSetting.Value == ExpressionBodyPreference.WhenOnSingleLine)
                 {
-                    editorconfig.AppendLine("when_on_single_line" + ":" + curSetting.Notification.ToString().ToLower());
+                    editorconfig.AppendLine("when_on_single_line" + ":" + curSetting.Notification.ToString().ToLowerInvariant());
                 }
                 else
                 {

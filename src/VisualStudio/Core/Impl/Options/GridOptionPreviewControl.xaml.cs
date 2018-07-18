@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (element != null)
             {
                 editorconfig.Append(element.KeyName + " = ");
-                editorconfig.AppendLine(optionSet.GetOption(option).ToString().ToLower());
+                editorconfig.AppendLine(optionSet.GetOption(option).ToString().ToLowerInvariant());
             }
         }
 
@@ -292,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (element != null)
             {
                 editorconfig.Append(element.KeyName + " = ");
-                editorconfig.AppendLine(optionSet.GetOption(option, language).ToString().ToLower());
+                editorconfig.AppendLine(optionSet.GetOption(option, language).ToString().ToLowerInvariant());
             }
         }
 
@@ -304,7 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 editorconfig.Append(element.KeyName + " = ");
 
                 var curSetting = optionSet.GetOption(option, language);
-                editorconfig.AppendLine(curSetting.Value.ToString().ToLower() + ":" + curSetting.Notification.ToString().ToLower());
+                editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + curSetting.Notification.ToString().ToLowerInvariant());
             }
         }
 
@@ -322,11 +322,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var curSetting = optionSet.GetOption(option, language);
                 if (curSetting.Value == ParenthesesPreference.AlwaysForClarity)
                 {
-                    editorconfig.AppendLine("always_for_clarity:" + curSetting.Notification.ToString().ToLower());
+                    editorconfig.AppendLine("always_for_clarity:" + curSetting.Notification.ToString().ToLowerInvariant());
                 }
                 else if (curSetting.Value == ParenthesesPreference.NeverIfUnnecessary)
                 {
-                    editorconfig.AppendLine("never_if_unnecessary:" + curSetting.Notification.ToString().ToLower());
+                    editorconfig.AppendLine("never_if_unnecessary:" + curSetting.Notification.ToString().ToLowerInvariant());
                 }
                 else
                 {
@@ -349,15 +349,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var curSetting = optionSet.GetOption(option, language);
                 if (curSetting.Value == AccessibilityModifiersRequired.ForNonInterfaceMembers)
                 {
-                    editorconfig.AppendLine("for_non_interface_members:" + curSetting.Notification.ToString().ToLower());
+                    editorconfig.AppendLine("for_non_interface_members:" + curSetting.Notification.ToString().ToLowerInvariant());
                 }
                 else if (curSetting.Value == AccessibilityModifiersRequired.OmitIfDefault)
                 {
-                    editorconfig.AppendLine("omit_if_default:" + curSetting.Notification.ToString().ToLower());
+                    editorconfig.AppendLine("omit_if_default:" + curSetting.Notification.ToString().ToLowerInvariant());
                 }
                 else if (curSetting.Value == AccessibilityModifiersRequired.Always || curSetting.Value == AccessibilityModifiersRequired.Never)
                 {
-                    editorconfig.AppendLine(curSetting.Value.ToString().ToLower() + ":" + curSetting.Notification.ToString().ToLower());
+                    editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + curSetting.Notification.ToString().ToLowerInvariant());
                 }
                 else
                 {

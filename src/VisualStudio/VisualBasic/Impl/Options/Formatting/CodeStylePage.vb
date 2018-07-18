@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
                 editorconfig.Append(element.KeyName & " = ")
 
                 Dim curSetting = optionSet.GetOption([option])
-                editorconfig.AppendLine(curSetting.Value + ":" + curSetting.Notification.ToString().ToLower())
+                editorconfig.AppendLine(curSetting.Value + ":" + curSetting.Notification.ToString().ToLowerInvariant())
             End If
         End Sub
     End Class
