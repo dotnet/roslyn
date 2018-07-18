@@ -3,7 +3,48 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27906.1
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.VisualStudio.VsixInstaller.Shared", "src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.shproj", "{B3BED6CB-ABFE-4BB8-8AF7-901FF0C6F027}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.Interop", "src\Microsoft.VisualStudio.VsixInstaller.Interop\Microsoft.VisualStudio.VsixInstaller.Interop.csproj", "{7D8374CB-5DBE-49AE-A251-82132EAEE3AA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.11", "src\Microsoft.VisualStudio.VsixInstaller.11\Microsoft.VisualStudio.VsixInstaller.11.csproj", "{784CB5C8-6258-499D-8EFB-7A601A6F7E46}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.12", "src\Microsoft.VisualStudio.VsixInstaller.12\Microsoft.VisualStudio.VsixInstaller.12.csproj", "{75EDEB61-DB9D-4F12-B922-ECEF8081CEF1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.14", "src\Microsoft.VisualStudio.VsixInstaller.14\Microsoft.VisualStudio.VsixInstaller.14.csproj", "{DA8322BC-E135-41BB-838A-D87551092E1A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.15", "src\Microsoft.VisualStudio.VsixInstaller.15\Microsoft.VisualStudio.VsixInstaller.15.csproj", "{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{b3bed6cb-abfe-4bb8-8af7-901ff0c6f027}*SharedItemsImports = 13
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7D8374CB-5DBE-49AE-A251-82132EAEE3AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D8374CB-5DBE-49AE-A251-82132EAEE3AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D8374CB-5DBE-49AE-A251-82132EAEE3AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D8374CB-5DBE-49AE-A251-82132EAEE3AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{784CB5C8-6258-499D-8EFB-7A601A6F7E46}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{784CB5C8-6258-499D-8EFB-7A601A6F7E46}.Debug|Any CPU.Build.0 = Debug|x86
+		{784CB5C8-6258-499D-8EFB-7A601A6F7E46}.Release|Any CPU.ActiveCfg = Release|x86
+		{784CB5C8-6258-499D-8EFB-7A601A6F7E46}.Release|Any CPU.Build.0 = Release|x86
+		{75EDEB61-DB9D-4F12-B922-ECEF8081CEF1}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{75EDEB61-DB9D-4F12-B922-ECEF8081CEF1}.Debug|Any CPU.Build.0 = Debug|x86
+		{75EDEB61-DB9D-4F12-B922-ECEF8081CEF1}.Release|Any CPU.ActiveCfg = Release|x86
+		{75EDEB61-DB9D-4F12-B922-ECEF8081CEF1}.Release|Any CPU.Build.0 = Release|x86
+		{DA8322BC-E135-41BB-838A-D87551092E1A}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{DA8322BC-E135-41BB-838A-D87551092E1A}.Debug|Any CPU.Build.0 = Debug|x86
+		{DA8322BC-E135-41BB-838A-D87551092E1A}.Release|Any CPU.ActiveCfg = Release|x86
+		{DA8322BC-E135-41BB-838A-D87551092E1A}.Release|Any CPU.Build.0 = Release|x86
+		{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299}.Debug|Any CPU.Build.0 = Debug|x86
+		{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299}.Release|Any CPU.ActiveCfg = Release|x86
+		{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299}.Release|Any CPU.Build.0 = Release|x86
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
