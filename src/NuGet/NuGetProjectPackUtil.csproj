@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <!-- 
 
@@ -16,21 +17,15 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecFile></NuspecFile>
   </PropertyGroup>
-  
-  <Target Name="_InitializeNuspecProperties" 
-          BeforeTargets="GenerateNuspec"
-          DependsOnTargets="InitializeSourceControlInformation">
-
+  <Target Name="_InitializeNuspecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="InitializeSourceControlInformation">
     <PropertyGroup>
       <_Version></_Version>
       <_Version Condition="'$(NuGetPackageKind)' == 'release'">$(NuGetReleaseVersion)</_Version>
       <_Version Condition="'$(NuGetPackageKind)' == 'prerelease'">$(NuGetPreReleaseVersion)</_Version>
       <_Version Condition="'$(NuGetPackageKind)' == 'perbuildprerelease'">$(NuGetPerBuildPreReleaseVersion)</_Version>
       <_Version Condition="'$(NuGetPackageKind)' == 'bootstrap'">42.42.42.42-bootstrap</_Version>
-
       <_CommitPathMessage>This an unofficial build from a developer's machine.</_CommitPathMessage>
       <_CommitPathMessage Condition="'$(ContinuousIntegrationBuild)' == 'true'">This package was built from the source at https://github.com/dotnet/roslyn/commit/$(SourceRevisionId).</_CommitPathMessage>
-
       <NuspecProperties>$(NuspecProperties);version=$(_Version)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);authors=Microsoft</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);licenseUrlRedist=http://go.microsoft.com/fwlink/?LinkId=529443</NuspecProperties>
@@ -46,7 +41,6 @@
       <NuspecProperties Condition="'$(RepositoryType)' != ''">$(NuspecProperties);repositoryType=$(RepositoryType)</NuspecProperties>
       <NuspecProperties Condition="'$(RepositoryUrl)' != ''">$(NuspecProperties);repositoryUrl=$(RepositoryUrl)</NuspecProperties>
       <NuspecProperties Condition="'$(SourceRevisionId)' != ''">$(NuspecProperties);repositoryCommit=$(SourceRevisionId)</NuspecProperties>
-
       <!-- The set of NuGet packages whose versions we need in the NuSpec file -->
       <NuspecProperties>$(NuspecProperties);HumanizerCoreVersion=$(HumanizerCoreVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);ICSharpCodeDecompilerVersion=$(ICSharpCodeDecompilerVersion)</NuspecProperties>
@@ -113,5 +107,4 @@
       <NuspecProperties>$(NuspecProperties);SystemXmlXPathXDocumentVersion=$(SystemXmlXPathXDocumentVersion)</NuspecProperties>
     </PropertyGroup>
   </Target>
-  
 </Project>
