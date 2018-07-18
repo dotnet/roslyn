@@ -3122,8 +3122,9 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(x86)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
         public void DisposeMSBuildWorkspaceAndServicesCollected()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
