@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.NavigateTo;
 
 namespace Microsoft.CodeAnalysis.CSharp.NavigateTo
 {
-    [ExportLanguageService(typeof(INavigateToSearchService), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate), LanguageNames.CSharp), Shared]
     internal class CSharpNavigateToSearchService : AbstractNavigateToSearchService
     {
     }
