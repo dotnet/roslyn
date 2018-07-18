@@ -4,6 +4,8 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <RootNamespace>Xunit</RootNamespace>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
