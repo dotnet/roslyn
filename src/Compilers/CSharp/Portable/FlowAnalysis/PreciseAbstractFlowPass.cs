@@ -950,9 +950,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
+            Debug.Assert(!IsConditionalState);
             VisitRvalue(node.Expression);
             VisitPattern(node.Expression, node.Pattern);
-            return null;
+            return node;
         }
 
         public virtual void VisitPattern(BoundExpression expression, BoundPattern pattern)
