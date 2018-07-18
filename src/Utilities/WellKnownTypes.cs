@@ -396,6 +396,71 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Data.IDataAdapter");
         }
 
+        public static INamedTypeSymbol MvcController(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.Controller");
+        }
+
+        public static INamedTypeSymbol MvcControllerBase(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.ControllerBase");
+        }
+
+        public static INamedTypeSymbol ActionResult(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.ActionResult");
+        }
+
+        public static INamedTypeSymbol ValidateAntiforgeryTokenAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.ValidateAntiForgeryTokenAttribute");
+        }
+
+        public static INamedTypeSymbol HttpGetAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpGetAttribute");
+        }
+
+        public static INamedTypeSymbol HttpPostAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpPostAttribute");
+        }
+
+        public static INamedTypeSymbol HttpPutAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpPutAttribute");
+        }
+
+        public static INamedTypeSymbol HttpDeleteAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpDeleteAttribute");
+        }
+
+        public static INamedTypeSymbol HttpPatchAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpPatchAttribute");
+        }
+
+        public static INamedTypeSymbol AcceptVerbsAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.AcceptVerbsAttribute");
+        }
+
+        public static INamedTypeSymbol NonActionAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.NonActionAttribute");
+        }
+
+        public static INamedTypeSymbol ChildActionOnlyAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.ChildActionOnlyAttribute");
+        }
+
+        public static INamedTypeSymbol HttpVerbs(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpVerbs");
+        }
+
         #region Test Framework Types
         public static INamedTypeSymbol TestCleanupAttribute(Compilation compilation)
         {
@@ -511,6 +576,7 @@ namespace Analyzer.Utilities
         {
             return compilation.GetTypeByMetadataName("System.Xml.XmlWriter");
         }
+
         #endregion
     }
 }
