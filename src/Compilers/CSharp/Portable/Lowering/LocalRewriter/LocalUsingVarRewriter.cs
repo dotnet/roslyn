@@ -18,25 +18,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            int current = 0;
             ImmutableArray<BoundStatement> statements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
 
-            foreach (BoundStatement statement in statements)
+            for (int i = 0; i < statements.Length; i++)
             {
-                if (statement is BoundLocalDeclaration localDeclaration)
+                if (statements[i] is BoundLocalDeclaration localDeclaration)
                 {
                     if (localDeclaration.LocalSymbol.IsUsing)
                     {
                         ImmutableArray<LocalSymbol> locals = ImmutableArray.Create<LocalSymbol>(localDeclaration.LocalSymbol);
 
                         List<BoundStatement> precedingStatements = new List<BoundStatement>();
-                        for (int j = 0; j < current; j++)
+                        for (int j = 0; j < i; j++)
                         {
                             precedingStatements.Add(statements[j]);
                         }
                         var followingStatements = ImmutableArray.Create(
-                            statements, current + 1,
-                            statements.Length - current - 1);
+                            statements, i + 1,
+                            statements.Length - i - 1);
 
                         var localDeclarations = ImmutableArray.Create(localDeclaration);
 
@@ -68,25 +67,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 
                     }
                 }
-                else if (statement is BoundMultipleLocalDeclarations boundMultiple)
+                else if (statements[i] is BoundMultipleLocalDeclarations boundMultiple)
                 {
                     if (boundMultiple.LocalDeclarations.Any())
                     {
                         if (boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing)
                         {
                             List<BoundStatement> precedingStatements = new List<BoundStatement>();
-                            for (int j = 0; j < current; j++)
+                            for (int j = 0; j < i; j++)
                             {
                                 precedingStatements.Add(statements[j]);
                             }
                             List<BoundStatement> followingStatements = new List<BoundStatement>();
-                            for (int i = current + 1; i < statements.Length; i++)
-                                followingStatements.Add(statements[i]);
+                            for (int k = i + 1; i < statements.Length; k++)
+                                followingStatements.Add(statements[k]);
                             return LowerBoundMultipleLocalDeclarationUsingVar(boundMultiple, node.Locals, precedingStatements, followingStatements.ToImmutableArray());
                         }
                     }
                 }
-                current++;
             }
             return node;
         }
