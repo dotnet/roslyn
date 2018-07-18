@@ -9,12 +9,12 @@ namespace Xunit.Threading
     using System.Threading.Tasks;
 
     // Based on CoreCLR's implementation of the TaskScheduler they return from TaskScheduler.FromCurrentSynchronizationContext
-    internal class SynchronizationContextTaskScheduler : TaskScheduler
+    public class SynchronizationContextTaskScheduler : TaskScheduler
     {
         private readonly SendOrPostCallback _postCallback;
         private readonly SynchronizationContext _synchronizationContext;
 
-        internal SynchronizationContextTaskScheduler(SynchronizationContext synchronizationContext)
+        public SynchronizationContextTaskScheduler(SynchronizationContext synchronizationContext)
         {
             _postCallback = new SendOrPostCallback(PostCallback);
             _synchronizationContext = synchronizationContext ?? throw new ArgumentNullException(nameof(synchronizationContext));
