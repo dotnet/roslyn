@@ -15,8 +15,8 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj" />
-    <ProjectReference Include="..\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -48,7 +48,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CompilerServer.UnitTests" />
   </ItemGroup>
   <ItemGroup>

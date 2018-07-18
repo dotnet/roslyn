@@ -18,7 +18,7 @@
     <LibGit2SharpVersion>0.22.0</LibGit2SharpVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
-    <MicroBuildPluginsSwixBuildVersion>1.0.295</MicroBuildPluginsSwixBuildVersion>
+    <MicroBuildPluginsSwixBuildVersion>1.0.422</MicroBuildPluginsSwixBuildVersion>
     <MicrosoftAzureKeyVaultVersion>2.0.6</MicrosoftAzureKeyVaultVersion>
     <MicrosoftBuildVersion>15.1.0-preview-000458-02</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.1.0-preview-000458-02</MicrosoftBuildFrameworkVersion>
@@ -106,6 +106,7 @@
     <MicrosoftVisualStudioProjectSystemManagedVersion>2.3.6152103</MicrosoftVisualStudioProjectSystemManagedVersion>
     <MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion>10.0.0.0-alpha</MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion>
     <MicrosoftVisualStudioRemoteControlVersion>14.0.249-master2E2DC10C</MicrosoftVisualStudioRemoteControlVersion>
+    <MicrosoftVisualStudioSDKAnalyzersVersion>15.7.7</MicrosoftVisualStudioSDKAnalyzersVersion>
     <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.15.103</MicrosoftVisualStudioSetupConfigurationInteropVersion>
     <MicrosoftVisualStudioSettings140Version>14.3.25407</MicrosoftVisualStudioSettings140Version>
     <MicrosoftVisualStudioShell140Version>14.3.25407</MicrosoftVisualStudioShell140Version>
