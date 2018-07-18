@@ -1,5 +1,5 @@
 phases:
-- phase: Windows_Unit_Tests
+- phase: Windows_Desktop_Unit_Tests
   queue:
     timeoutInMinutes: 90
     parallel: 4
@@ -25,13 +25,42 @@ phases:
         testRunner: XUnit
         testResultsFiles: '**/xUnitResults/*.xml'
         mergeTestResults: true
-        testRunTitle: 'Unit Tests $(_configuration) $(_testKind)'
+        testRunTitle: 'Windows Desktop $(_configuration) $(_testKind)'
       condition: succeededOrFailed()
 
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
-        ArtifactName: 'Build Diagnostic Files $(_configuration) $(_testKind)' 
+        ArtifactName: 'Windows Desktop $(_configuration) $(_testKind)' 
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
+- phase: Windows_CoreClr_Unit_Tests
+  queue:
+    timeoutInMinutes: 90
+    parallel: 2
+    matrix:
+      debug:
+        _configuration: Debug
+      release:
+        _configuration: Release
+
+  steps:
+    - script: build/scripts/cibuild.cmd -$(_configuration) -testCoreClr -buildCoreClr
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows CoreClr $(_configuration)'
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        ArtifactName: 'Windows CoreClr $(_configuration)'
         publishLocation: Container
       continueOnError: true
       condition: failed()
