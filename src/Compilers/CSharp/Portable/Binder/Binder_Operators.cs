@@ -2135,8 +2135,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAddressOfOperator(node, operand, pointerType, hasErrors);
         }
 
-        // Basically a port of ExpressionBinder::isFixedExpression, which basically implements spec section 18.3.
-        // NOTE: internal to allow using in tests.
+        /// <summary>
+        /// Checks to see whether an expression is a "moveable" variable according to the spec. Moveable
+        /// variables have underlying memory which may be moved by the runtime. The spec defines anything
+        /// not fixed as moveable and specifies the expressions which are fixed.
+        /// </summary>
+
         internal bool IsMoveableVariable(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
         {
             accessedLocalOrParameterOpt = null;
