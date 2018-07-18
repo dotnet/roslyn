@@ -7,6 +7,7 @@ namespace Xunit.Harness
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace Xunit.Harness
     public sealed class VisualStudioInstanceFactory : MarshalByRefObject, IDisposable
     {
         public static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
+
+        private static readonly Dictionary<Version, Assembly> _installerAssemblies = new Dictionary<Version, Assembly>();
 
         /// <summary>
         /// The instance that has already been launched by this factory and can be reused.
@@ -49,6 +52,17 @@ namespace Xunit.Harness
             if (resolvedAssembly != null)
             {
                 Debug.WriteLine("The assembly was already loaded!");
+            }
+
+            // Support resolving embedded assemblies
+            using (var assemblyStream = typeof(VisualStudioInstanceFactory).Assembly.GetManifestResourceStream(new AssemblyName(eventArgs.Name).Name + ".dll"))
+            using (var memoryStream = new MemoryStream())
+            {
+                if (assemblyStream != null)
+                {
+                    assemblyStream.CopyTo(memoryStream);
+                    return Assembly.Load(memoryStream.ToArray());
+                }
             }
 
             return resolvedAssembly;
@@ -293,22 +307,29 @@ namespace Xunit.Harness
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
 
-            var installerAssemblyDirectory = Path.GetDirectoryName(typeof(VisualStudioInstanceFactory).Assembly.CodeBase);
-            if (installerAssemblyDirectory.StartsWith("file:"))
-            {
-                installerAssemblyDirectory = new Uri(installerAssemblyDirectory).LocalPath;
-            }
-
-            var installerAssemblyFile = $"Microsoft.VisualStudio.VsixInstaller.{version.Major}.dll";
-            var installerAssembly = Assembly.LoadFrom(Path.Combine(installerAssemblyDirectory, installerAssemblyFile));
+            var installerAssembly = LoadInstallerAssembly(version);
             var installerType = installerAssembly.GetType("Microsoft.VisualStudio.VsixInstaller.Installer");
             var installMethod = installerType.GetMethod("Install");
 
             var install = (Action<IEnumerable<string>, string, string>)Delegate.CreateDelegate(typeof(Action<IEnumerable<string>, string, string>), installMethod);
 
-            var extensions = new[] { "Microsoft.VisualStudio.IntegrationTestService.vsix" };
+            var temporaryFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Assert.False(Directory.Exists(temporaryFolder));
+            Directory.CreateDirectory(temporaryFolder);
+
+            var integrationTestServiceExtension = ExtractIntegrationTestServiceExtension(temporaryFolder);
+            var extensions = new[] { integrationTestServiceExtension };
             var rootSuffix = Settings.Default.VsRootSuffix;
-            install(extensions, installationPath, rootSuffix);
+
+            try
+            {
+                install(extensions, installationPath, rootSuffix);
+            }
+            finally
+            {
+                File.Delete(integrationTestServiceExtension);
+                Directory.Delete(temporaryFolder);
+            }
 
             // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
             //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
@@ -329,6 +350,41 @@ namespace Xunit.Harness
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;
+        }
+
+        private static Assembly LoadInstallerAssembly(Version version)
+        {
+            version = new Version(version.Major, 0, 0, 0);
+
+            lock (_installerAssemblies)
+            {
+                if (!_installerAssemblies.TryGetValue(version, out var assembly))
+                {
+                    var installerAssemblyFile = $"Microsoft.VisualStudio.VsixInstaller.{version.Major}.dll";
+                    using (var assemblyStream = typeof(VisualStudioInstanceFactory).Assembly.GetManifestResourceStream(installerAssemblyFile))
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        assemblyStream.CopyTo(memoryStream);
+                        assembly = Assembly.Load(memoryStream.ToArray());
+                        _installerAssemblies[version] = assembly;
+                    }
+                }
+
+                return assembly;
+            }
+        }
+
+        private static string ExtractIntegrationTestServiceExtension(string temporaryFolder)
+        {
+            var extensionFileName = "Microsoft.VisualStudio.IntegrationTestService.vsix";
+            var path = Path.Combine(temporaryFolder, extensionFileName);
+            using (var resourceStream = typeof(VisualStudioInstanceFactory).Assembly.GetManifestResourceStream(extensionFileName))
+            using (var writerStream = File.Open(path, FileMode.CreateNew, FileAccess.Write))
+            {
+                resourceStream.CopyTo(writerStream);
+            }
+
+            return path;
         }
 
         public void Dispose()

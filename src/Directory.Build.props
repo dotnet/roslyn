@@ -9,6 +9,14 @@
     <Features>strict</Features>
   </PropertyGroup>
 
+  <!-- We always want a good debugging experience in integration tests -->
+  <PropertyGroup>
+    <Optimize>false</Optimize>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <EmbedAllSources>true</EmbedAllSources>
+  </PropertyGroup>
+
   <!-- StyleCop Analyzers configuration -->
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
