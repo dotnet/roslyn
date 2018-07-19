@@ -75,14 +75,14 @@ Flow analysis is used to infer the nullability of variables within executable co
 
 ### Warnings
 _Describe set of warnings. Differentiate W warnings._
-If the analysis determines that a null check always (or never) passes, a hidden warning is produced. For example: `"string" is null`.
+If the analysis determines that a null check always (or never) passes, a hidden diagnostic is produced. For example: `"string" is null`.
 
 ### Null tests
 A number of null checks affect the flow state when tested for:
 - comparisons to `null`: `x == null` and `x != null`
 - `is` operator: `x is null`, `x is K` (where `K` is a constant), `x is string`, `x is string s`
 
-Invocation to methods annotated with the following attributes will also affect flow analysis:
+Invocation of methods annotated with the following attributes will also affect flow analysis:
 - `[NotNullWhenTrue]` (e.g. `TryGetValue`) and `[NotNullWhenFalse]` (e.g. `string.IsNullOrEmpty`)
 - `[EnsuresNotNull]` (e.g. `ThrowIfNull`)
 - `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
