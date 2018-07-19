@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         internal const string ServerNameDesktop = "VBCSCompiler.exe";
         internal const string ServerNameCoreClr = "VBCSCompiler.dll";
+        internal const string ServerNameCoreClrEmbedded = "VBCSCompiler";
 
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         internal const int TimeOutMsExistingProcess = 1000;
@@ -346,14 +347,24 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string processArguments;
             if (isRunningOnCoreClr)
             {
-                // The server should be in the same directory as the client
-                var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
-                expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
-                processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
-
-                if (!File.Exists(expectedCompilerPath))
+                // UNITY
+                var embeddedPath = Path.Combine(clientDir, ServerNameCoreClrEmbedded + (PlatformInformation.IsWindows ? ".exe" : ""));
+                if (File.Exists(embeddedPath))
                 {
-                    return false;
+                    expectedPath = embeddedPath;
+                    processArguments = $@"""-pipename:{pipeName}""";
+                }
+                else
+                {
+                    // The server should be in the same directory as the client
+                    var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
+                    expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
+                    processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
+
+                    if (!File.Exists(expectedCompilerPath))
+                    {
+                        return false;
+                    }
                 }
             }
             else
