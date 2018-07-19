@@ -522,6 +522,35 @@ RoOt = TruE");
         }
 
         [Fact]
+        public void DashChoice()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab{-}cd{-,}ef");
+            Assert.Equal("^.*/ab(?:-)cd(?:-|)ef$", regex);
+
+            Assert.Matches(regex, "/ab-cd-ef");
+            Assert.Matches(regex, "/ab-cdef");
+
+            Assert.DoesNotMatch(regex, "/abcdef");
+            Assert.DoesNotMatch(regex, "/ab--cd-ef");
+            Assert.DoesNotMatch(regex, "/ab--cd--ef");
+        }
+
+        [Fact]
+        public void MiddleMatch()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab{cs,vb,fs}cd");
+            Assert.Equal("^.*/ab(?:cs|vb|fs)cd$", regex);
+
+            Assert.Matches(regex, "/abcscd");
+            Assert.Matches(regex, "/abvbcd");
+            Assert.Matches(regex, "/abfscd");
+
+            Assert.DoesNotMatch(regex, "/abcs");
+            Assert.DoesNotMatch(regex, "/abcd");
+            Assert.DoesNotMatch(regex, "/vbcd");
+        }
+
+        [Fact]
         public void EditorConfigToDiagnostics()
         {
             var configs = ArrayBuilder<EditorConfig>.GetInstance();

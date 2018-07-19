@@ -222,8 +222,8 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var num1 = lexer.TryLexNumber();
-            if (num1 is null || lexer.IsDone)
+            var numStart = lexer.TryLexNumber();
+            if (numStart is null)
             {
                 // Not a number
                 lexer.Position = saved;
@@ -231,23 +231,23 @@ namespace Microsoft.CodeAnalysis
             }
 
             // The next two characters must be ".."
-            if (lexer.EatCurrentCharacter() != '.' || lexer.IsDone ||
-                lexer.EatCurrentCharacter() != '.' || lexer.IsDone)
+            if (!lexer.TryEatCurrentCharacter(out char c) || c != '.' ||
+                !lexer.TryEatCurrentCharacter(out c) || c != '.')
             {
                 lexer.Position = saved;
                 return null;
             }
 
             // Now another number
-            var num2 = lexer.TryLexNumber();
-            if (num2 is null || lexer.IsDone || lexer.Lex() != TokenKind.CloseCurly)
+            var numEnd = lexer.TryLexNumber();
+            if (numEnd is null || lexer.IsDone || lexer.Lex() != TokenKind.CloseCurly)
             {
                 // Not a number or no '}'
                 lexer.Position = saved;
                 return null;
             }
 
-            return (num1, num2);
+            return (numStart, numEnd);
         }
 
         private struct SectionNameLexer
@@ -353,6 +353,24 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public char EatCurrentCharacter() => _sectionName[Position++];
 
+            /// <summary>
+            /// Returns false if there are no more characters in the lex stream.
+            /// Otherwise, produces the next character in the stream and returns true.
+            /// </summary>
+            public bool TryEatCurrentCharacter(out char nextChar)
+            {
+                if (IsDone)
+                {
+                    nextChar = default;
+                    return false;
+                }
+                else
+                {
+                    nextChar = EatCurrentCharacter();
+                    return true;
+                }
+            }
+
             public char this[int position] => _sectionName[position];
 
             /// <summary>
@@ -382,7 +400,11 @@ namespace Microsoft.CodeAnalysis
                     }
                     start = false;
                 }
-                return sb.Length > 0 ? sb.ToString() : null;
+
+                var str = sb.ToString();
+                return str.Length == 0 || str == "-"
+                    ? null
+                    : str;
             }
         }
 
