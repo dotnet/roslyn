@@ -60,8 +60,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="RoslynETAHost" />
-    <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleTo Include="RoslynETAHost" />
+    <InternalsVisibleTo Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
