@@ -34,6 +34,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
   </ItemGroup>
 </Project>

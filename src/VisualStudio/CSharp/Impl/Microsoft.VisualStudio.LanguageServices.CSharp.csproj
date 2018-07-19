@@ -84,10 +84,10 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
-    <InternalsVisibleToTest Include="RoslynETAHost" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+    <InternalsVisibleTo Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Options\AdvancedOptionPageControl.xaml">
