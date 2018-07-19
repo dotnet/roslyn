@@ -35,7 +35,6 @@ namespace Xunit.Harness
             try
             {
                 ExecutionMessageSink.OnMessage(new TestAssemblyStarting(testCases, TestAssembly, DateTime.Now, GetTestFrameworkEnvironment(), GetTestFrameworkDisplayName()));
-                ExecutionMessageSink.OnMessage(new TestCollectionStarting(testCases, testCollection));
 
                 foreach (var testCasesByTargetVersion in testCases.GroupBy(GetVisualStudioVersionForTestCase))
                 {
@@ -85,7 +84,6 @@ namespace Xunit.Harness
                 var testsRun = testAssemblyFinishedMessages.Sum(message => message.TestsRun);
                 var testsFailed = testAssemblyFinishedMessages.Sum(message => message.TestsFailed);
                 var testsSkipped = testAssemblyFinishedMessages.Sum(message => message.TestsSkipped);
-                ExecutionMessageSink.OnMessage(new TestCollectionFinished(testCases, testCollection, totalExecutionTime, testsRun, testsFailed, testsSkipped));
                 ExecutionMessageSink.OnMessage(new TestAssemblyFinished(testCases, TestAssembly, totalExecutionTime, testsRun, testsFailed, testsSkipped));
             }
 
@@ -171,7 +169,7 @@ namespace Xunit.Harness
         {
             // These tests just run in the current process, but we still need to hook the assembly and collection events
             // to work correctly in mixed-testing scenarios.
-            var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, completedTestCaseIds, cancellationTokenSource.Token);
+            var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase), completedTestCaseIds, cancellationTokenSource.Token);
             using (var runner = new XunitTestAssemblyRunner(TestAssembly, testCases, DiagnosticMessageSink, executionMessageSinkFilter, ExecutionOptions))
             {
                 var runSummary = await runner.RunAsync();
@@ -190,8 +188,9 @@ namespace Xunit.Harness
                 {
                     using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioVersion), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
                     {
-                        var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, completedTestCaseIds, cancellationTokenSource.Token);
-                        using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, ExecutionOptions))
+                        var knownTestCasesByUniqueId = testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase);
+                        var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, completedTestCaseIds, cancellationTokenSource.Token);
+                        using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, knownTestCasesByUniqueId, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, ExecutionOptions))
                         {
                             var result = runner.RunTestCollection(new IpcMessageBus(messageBus), testCollection, testCases.ToArray());
                             var runSummary = new RunSummary
@@ -243,13 +242,15 @@ namespace Xunit.Harness
         private class IpcMessageSink : MarshalByRefObject, IMessageSink
         {
             private readonly IMessageSink _messageSink;
+            private readonly IReadOnlyDictionary<string, ITestCase> _knownTestCasesByUniqueId;
             private readonly CancellationToken _cancellationToken;
 
             private readonly HashSet<string> _completedTestCaseIds;
 
-            public IpcMessageSink(IMessageSink messageSink, HashSet<string> completedTestCaseIds, CancellationToken cancellationToken)
+            public IpcMessageSink(IMessageSink messageSink, IReadOnlyDictionary<string, ITestCase> knownTestCasesByUniqueId, HashSet<string> completedTestCaseIds, CancellationToken cancellationToken)
             {
                 _messageSink = messageSink;
+                _knownTestCasesByUniqueId = knownTestCasesByUniqueId;
                 _completedTestCaseIds = completedTestCaseIds;
                 _cancellationToken = cancellationToken;
             }
@@ -264,7 +265,27 @@ namespace Xunit.Harness
             {
                 if (message is ITestAssemblyFinished testAssemblyFinished)
                 {
-                    TestAssemblyFinished = new TestAssemblyFinished(testAssemblyFinished.TestCases.ToArray(), testAssemblyFinished.TestAssembly, testAssemblyFinished.ExecutionTime, testAssemblyFinished.TestsRun, testAssemblyFinished.TestsFailed, testAssemblyFinished.TestsSkipped);
+                    // The test cases in the ITestAssemblyFinished message are remote proxies, but the objects won't be
+                    // used until after the remote process terminates. Recreate the objects in the current process (or
+                    // map them to an equivalent object already in the current process) to avoid using objects that are
+                    // no longer available.
+                    var testCases = testAssemblyFinished.TestCases.Select(testCase =>
+                    {
+                        if (_knownTestCasesByUniqueId.TryGetValue(testCase.UniqueID, out var knownTestCase))
+                        {
+                            return knownTestCase;
+                        }
+                        else if (testCase is IdeTestCase ideTestCase)
+                        {
+                            return new IdeTestCase(this, ideTestCase.DefaultMethodDisplay, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.TestMethodArguments);
+                        }
+                        else
+                        {
+                            return new XunitTestCase(this, TestMethodDisplay.ClassAndMethod, testCase.TestMethod, testCase.TestMethodArguments);
+                        }
+                    });
+
+                    TestAssemblyFinished = new TestAssemblyFinished(testCases.ToArray(), testAssemblyFinished.TestAssembly, testAssemblyFinished.ExecutionTime, testAssemblyFinished.TestsRun, testAssemblyFinished.TestsFailed, testAssemblyFinished.TestsSkipped);
                     return !_cancellationToken.IsCancellationRequested;
                 }
                 else if (message is ITestCaseFinished testCaseFinished)
@@ -272,9 +293,7 @@ namespace Xunit.Harness
                     _completedTestCaseIds.Add(testCaseFinished.TestCase.UniqueID);
                     return !_cancellationToken.IsCancellationRequested;
                 }
-                else if (message is ITestAssemblyStarting
-                    || message is ITestCollectionStarting
-                    || message is ITestCollectionFinished)
+                else if (message is ITestAssemblyStarting)
                 {
                     return !_cancellationToken.IsCancellationRequested;
                 }
