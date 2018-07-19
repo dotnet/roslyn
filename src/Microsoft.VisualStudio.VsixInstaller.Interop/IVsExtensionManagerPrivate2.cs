@@ -15,18 +15,18 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         [MethodImpl(MethodImplOptions.InternalCall)]
         void GetAssetProperties(
             [In] [MarshalAs(UnmanagedType.LPWStr)] string szAssetTypeName,
-            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out Array prgsaNames,
-            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out Array prgsaVersions,
-            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out Array prgsaAuthors,
-            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out Array prgsaExtensionIDs);
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out string[] prgsaNames,
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out string[] prgsaVersions,
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out string[] prgsaAuthors,
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out string[] prgsaExtensionIDs);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         void GetExtensionProperties(
-            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out Array prgsaNames,
-            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out Array prgsaVersions,
-            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out Array prgsaAuthors,
-            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out Array prgsaContentLocations,
-            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out Array prgsaExtensionIDs);
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out string[] prgsaNames,
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out string[] prgsaVersions,
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out string[] prgsaAuthors,
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out string[] prgsaContentLocations,
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_BSTR)] out string[] prgsaExtensionIDs);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         ulong GetLastWriteTime([In] [MarshalAs(UnmanagedType.LPWStr)] string szContentTypeName);
