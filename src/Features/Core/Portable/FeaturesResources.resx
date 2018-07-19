@@ -1397,4 +1397,7 @@ This version used in: {2}</value>
   <data name="updating_usages_in_dependent_projects" xml:space="preserve">
     <value>updating usages in dependent projects</value>
   </data>
+  <data name="Formatting_document" xml:space="preserve">
+    <value>Formatting document</value>
+  </data>
 </root>

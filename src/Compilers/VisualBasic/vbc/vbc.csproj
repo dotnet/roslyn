@@ -47,8 +47,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CompilerServer.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CompilerServer.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
