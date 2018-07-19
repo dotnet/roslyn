@@ -71,12 +71,12 @@ namespace Xunit.Harness
         /// <summary>
         /// Returns a <see cref="VisualStudioInstanceContext"/>, starting a new instance of Visual Studio if necessary.
         /// </summary>
-        public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(Version version, ImmutableHashSet<string> requiredPackageIds)
+        public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(Version version, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds)
         {
             ThrowExceptionIfAlreadyHasActiveContext();
 
             bool shouldStartNewInstance = ShouldStartNewInstance(version, requiredPackageIds);
-            await UpdateCurrentlyRunningInstanceAsync(version, requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
+            await UpdateCurrentlyRunningInstanceAsync(version, extensionFiles, requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
 
             return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
         }
@@ -118,7 +118,7 @@ namespace Xunit.Harness
         /// <summary>
         /// Starts up a new <see cref="VisualStudioInstance"/>, shutting down any instances that are already running.
         /// </summary>
-        private async Task UpdateCurrentlyRunningInstanceAsync(Version version, ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
+        private async Task UpdateCurrentlyRunningInstanceAsync(Version version, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
         {
             Process hostProcess;
             DTE dte;
@@ -136,7 +136,7 @@ namespace Xunit.Harness
                 installationPath = instance.Item1;
                 actualVersion = instance.Item2;
 
-                hostProcess = StartNewVisualStudioProcess(installationPath, version);
+                hostProcess = StartNewVisualStudioProcess(installationPath, version, extensionFiles);
 
                 // We wait until the DTE instance is up before we're good
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
@@ -303,7 +303,7 @@ namespace Xunit.Harness
                                 "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
-        private static Process StartNewVisualStudioProcess(string installationPath, Version version)
+        private static Process StartNewVisualStudioProcess(string installationPath, Version version, ImmutableList<string> extensionFiles)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
 
@@ -318,7 +318,7 @@ namespace Xunit.Harness
             Directory.CreateDirectory(temporaryFolder);
 
             var integrationTestServiceExtension = ExtractIntegrationTestServiceExtension(temporaryFolder);
-            var extensions = new[] { integrationTestServiceExtension };
+            var extensions = extensionFiles.Add(integrationTestServiceExtension);
             var rootSuffix = Settings.Default.VsRootSuffix;
 
             try
