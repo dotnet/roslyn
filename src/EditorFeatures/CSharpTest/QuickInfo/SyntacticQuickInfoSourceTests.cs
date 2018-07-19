@@ -290,15 +290,15 @@ if (true)
             Assert.NotNull(info);
             Assert.NotEqual(0, info.RelatedSpans.Length);
 
-            var trackingSpan = new Mock<ITrackingSpan>();
+            var trackingSpan = new Mock<ITrackingSpan>(MockBehavior.Strict);
             var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, snapshot, document, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;
 
-            var textElements = containerElement.Elements.Where(e => e is ClassifiedTextElement);
-            Assert.True(textElements.Any());
+            var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();
+            Assert.NotEmpty(textElements);
 
-            var textElement = textElements.First() as ClassifiedTextElement;
-            var actualText = string.Concat(textElement.Runs.Select(r => r.Text).ToArray());
+            var textElement = textElements.First();
+            var actualText = string.Concat(textElement.Runs.Select(r => r.Text));
             Assert.Equal(expectedContent, actualText);
         }
 
