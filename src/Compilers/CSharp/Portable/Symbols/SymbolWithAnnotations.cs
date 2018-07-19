@@ -127,17 +127,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (!isAnnotated && typeSymbol is TypeParameterSymbol)
+            if ((isAnnotated || !(typeSymbol is TypeParameterSymbol)) &&
+                (!isAnnotated || !typeSymbol.IsReferenceType || typeSymbol.IsNullableType()))
             {
-                return new NonLazyType(typeSymbol, nonNullTypes: nonNullTypes, isAnnotated: isAnnotated, customModifiers);
+                isAnnotated = typeSymbol.IsNullableType();
+            }
+            else
+            {
+                Debug.Assert(!typeSymbol.IsNullableType());
             }
 
-            if (!isAnnotated || !typeSymbol.IsReferenceType || typeSymbol.IsNullableType())
-            {
-                return new NonLazyType(typeSymbol, nonNullTypes: nonNullTypes, isAnnotated: typeSymbol.IsNullableType(), customModifiers);
-            }
-
-            Debug.Assert(!typeSymbol.IsNullableType());
             return new NonLazyType(typeSymbol, nonNullTypes: nonNullTypes, isAnnotated: isAnnotated, customModifiers);
         }
 
@@ -178,18 +177,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual TypeSymbol NullableUnderlyingTypeOrSelf => TypeSymbol.StrippedType();
 
         /// <summary>
-        /// Is this a nullable reference or value type.
-        /// If it is a nullable value type, <see cref="TypeSymbol"/>
+        /// Returns:
+        /// true if this is a nullable reference or value type;
+        /// false if this is an unannotated reference type and [NonNullTypes(true),
+        /// or a value type regardless of [NonNullTypes]; and
+        /// null if an unannotated reference type and [NonNullTypes(false)].
+        /// If this is a nullable value type, <see cref="TypeSymbol"/>
         /// returns symbol for constructed System.Nullable`1 type.
-        /// If it is a nullable reference type, <see cref="TypeSymbol"/>
+        /// If this is a nullable reference type, <see cref="TypeSymbol"/>
         /// simply returns a symbol for the reference type.
         /// </summary>
         public abstract bool? IsNullable { get; }
+
+        /// <summary>
+        /// Returns:
+        /// true if annotated;
+        /// false if unannotated and [NonNullTypes(true)]; and
+        /// null if unannotated and [NonNullTypes(false)].
+        /// </summary>
         public abstract bool IsAnnotated { get; }
 
-        // AnnotationKind considers IsAnnotated and NonNullTypes only. Compare with
-        // IsNullable that also considers IsValueType. (Specifically, IsNullable==false
-        // for an unannotated value type, regardless of [NonNullTypes].)
         protected enum AnnotationKind
         {
             Unannotated = 0, // Unannotated, [NonNullTypes(false)]
@@ -197,6 +204,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Annotated = 2 // Annotated
         }
 
+        /// <summary>
+        /// Annotation considers IsAnnotated and NonNullTypes only. Compare with
+        /// IsNullable that also considers IsValueType. (Specifically, IsNullable==false
+        /// for an unannotated value type, regardless of [NonNullTypes].)
+        /// </summary>
         protected abstract AnnotationKind Annotation { get; }
 
         /// <summary>
@@ -278,7 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Make sure custom modifiers are the same.
-            if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 && !this.CustomModifiers.SequenceEqual(other.CustomModifiers))
+            if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 &&
+                !this.CustomModifiers.SequenceEqual(other.CustomModifiers))
             {
                 return false;
             }
@@ -289,7 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var otherAnnotation = other.Annotation;
                 if (otherAnnotation != thisAnnotation)
                 {
-                    if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 || !(thisAnnotation == AnnotationKind.Unannotated || otherAnnotation == AnnotationKind.Unannotated))
+                    if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 ||
+                        !(thisAnnotation == AnnotationKind.Unannotated || otherAnnotation == AnnotationKind.Unannotated))
                     {
                         return false;
                     }
@@ -364,32 +378,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newTypeWithModifiers = typeMap.SubstituteType(this.TypeSymbol, withTupleUnification);
             bool newIsAnnotated = this.IsAnnotated || newTypeWithModifiers.IsAnnotated;
 
-            if (!TypeSymbolEquals(newTypeWithModifiers, TypeCompareKind.CompareNullableModifiersForReferenceTypes) ||
-                !newTypeWithModifiers.CustomModifiers.IsEmpty ||
-                newIsAnnotated != this.IsAnnotated ||
-                newCustomModifiers != this.CustomModifiers)
+            // PROTOTYPE(NullableReferenceTypes): Can we use Equals instead?
+            if (TypeSymbolEquals(newTypeWithModifiers, TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
+                newTypeWithModifiers.CustomModifiers.IsEmpty &&
+                newIsAnnotated == this.IsAnnotated &&
+                newCustomModifiers == this.CustomModifiers)
             {
-                var newIsNullableType = newTypeWithModifiers.TypeSymbol.IsNullableType();
-                if (newIsNullableType || !newIsAnnotated)
-                {
-                    if (newCustomModifiers.IsEmpty)
-                    {
-                        return newTypeWithModifiers;
-                    }
-                    newIsAnnotated = newTypeWithModifiers.IsAnnotated;
-                }
-                else
-                {
-                    if (newCustomModifiers.IsEmpty && newTypeWithModifiers.IsAnnotated == newIsAnnotated)
-                    {
-                        return newTypeWithModifiers;
-                    }
-                }
-                return new NonLazyType(newTypeWithModifiers.TypeSymbol, nonNullTypes: ((NonLazyType)newTypeWithModifiers).NonNullTypes, isAnnotated: newIsAnnotated, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
+                // PROTOTYPE(NullableReferenceTypes): We're dropping newTypeWithModifiers.NonNullTypes!
+                return this; // substitution had no effect on the type or modifiers
             }
 
-            // PROTOTYPE(NullableReferenceTypes): We're dropping newTypeWithModifiers.NonNullTypes!
-            return this; // substitution had no effect on the type or modifiers
+            bool newIsNullableType = newTypeWithModifiers.TypeSymbol.IsNullableType();
+            if (newIsNullableType || !newIsAnnotated)
+            {
+                if (newCustomModifiers.IsEmpty)
+                {
+                    return newTypeWithModifiers;
+                }
+                newIsAnnotated = newTypeWithModifiers.IsAnnotated;
+            }
+            else if (newCustomModifiers.IsEmpty && newTypeWithModifiers.IsAnnotated == newIsAnnotated)
+            {
+                return newTypeWithModifiers;
+            }
+            return new NonLazyType(
+                newTypeWithModifiers.TypeSymbol,
+                nonNullTypes: ((NonLazyType)newTypeWithModifiers).NonNullTypes,
+                isAnnotated: newIsAnnotated,
+                newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
         }
 
         public virtual void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
@@ -548,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)typeSymbol != null);
                 Debug.Assert(!customModifiers.IsDefault);
-                Debug.Assert(!typeSymbol.IsNullableType() || isAnnotated == true);
+                Debug.Assert(!typeSymbol.IsNullableType() || isAnnotated);
                 _typeSymbol = typeSymbol;
                 _nonNullTypes = nonNullTypes;
                 _isAnnotated = isAnnotated;

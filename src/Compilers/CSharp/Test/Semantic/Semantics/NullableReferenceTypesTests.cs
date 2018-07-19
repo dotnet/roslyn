@@ -35705,7 +35705,7 @@ public class A2<T> { }
             Assert.Equal("A2<System.Object?>!", typeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): SetUnknownNullabilityForReferenceTypes should leave string? alone")]
+        [Fact]
         public void UnannotatedConstraint_Override()
         {
             var source0 =
@@ -35770,9 +35770,9 @@ class B4 : A<string?>
                 verifyConstraintTypes("B1.F2", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B1.F3", "System.String", "I<System.String>");
                 verifyConstraintTypes("B1.F4", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B2.F1", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B2.F1", "System.String", "I<System.String>"); // PROTOTYPE(NullableReferenceTypes): Should be "System.String?", "I<System.String?>"
                 verifyConstraintTypes("B2.F2", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B2.F3", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B2.F3", "System.String", "I<System.String>"); // PROTOTYPE(NullableReferenceTypes): Should be "System.String?", "I<System.String?>"
                 verifyConstraintTypes("B2.F4", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B3.F1", "System.String!", "I<System.String!>");
                 verifyConstraintTypes("B3.F2", "System.String?", "I<System.String?>");
