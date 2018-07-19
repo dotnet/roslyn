@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">Solo las expresiones de asignación, llamada, incremento, decremento y objeto nuevo se pueden usar como instrucción</target>
+        <target state="translated">Solo las expresiones de asignación, llamada, incremento, decremento, espera y objeto nuevo se pueden usar como instrucción</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">{0}' ha concedido acceso de confianza, pero la clave pública del ensamblado de salida no coincide con la especificada por el atributo en el ensamblado de concesión.</target>
+        <target state="translated">“{0}” ha concedido acceso de confianza, pero la clave pública del ensamblado de salida ({1}) no coincide con la especificada por el atributo InternalsVisibleTo en el ensamblado de concesión.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7365,143 +7365,146 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
                               Opciones del compilador de Visual C#
 
                         - ARCHIVOS DE SALIDA -
- /out:&lt;archivo&gt;                   Especificar el nombre del archivo de salida (predeterminado: nombre base del archivo
-                               con clase principal o primer archivo)
- /target:exe                   Compilar un archivo ejecutable de consola (predeterminado) (forma
-                               corta: /t:exe)
- /target:winexe                Compilar un archivo ejecutable de Windows (forma corta:
-                               /t:winexe)
- /target:library               Compilar una biblioteca (forma corta: /t:library)
- /target:module                Compilar un módulo que se puede agregar a otro
-                               ensamblado (forma corta: /t:module)
- /target:appcontainerexe       Compilar un archivo ejecutable Appcontainer (forma corta:
-                               /t:appcontainerexe)
- /target:winmdobj              Compilar un archivo intermedio de Windows Runtime que
-                               WinMDExp consume (forma corta: /t:winmdobj)
- /doc:&lt;archivo&gt;                   Archivo de documentación XML para generar
- /refout:&lt;archivo&gt;                Salida del ensamblado de referencia para generar
- /platform:&lt;cadena&gt;            Limitar en qué plataformas se puede ejecutar este código: x86,
-                               Itanium, x64, arm, arm64, anycpu32bitpreferred o
-                               anycpu. El valor predeterminado es anycpu.
+-out:&lt;archivo&gt;                   Especificar el nombre del archivo de salida (predeterminado: nombre base del archivo
+                              con clase principal o primer archivo)
+-target:exe                   Compilar un archivo ejecutable de consola (predeterminado) (forma
+                              corta: /t:exe)
+-target:winexe                Compilar un archivo ejecutable de Windows (forma corta:
+                              /t:winexe)
+-target:library               Compilar una biblioteca (forma corta: /t:library)
+-target:module                Compilar un módulo que se puede agregar a otro
+                              ensamblado (forma corta: /t:module)
+-target:appcontainerexe       Compilar un archivo ejecutable Appcontainer (forma corta:
+                              /t:appcontainerexe)
+-target:winmdobj              Compilar un archivo intermedio de Windows Runtime que
+                              WinMDExp consume (forma corta: /t:winmdobj)
+-doc:&lt;archivo&gt;                   Archivo de documentación XML para generar
+-refout:&lt;archivo&gt;                Salida del ensamblado de referencia para generar
+-platform:&lt;cadena&gt;            Limitar en qué plataformas se puede ejecutar este código: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred o
+                              anycpu. El valor predeterminado es anycpu.
 
                         - ARCHIVOS DE ENTRADA -
- /recurse:&lt;carácter comodín&gt;           Incluir todos los archivos en el directorio y los
-                               subdirectorios actuales según las especificaciones del 
-                               carácter comodín
- /reference:&lt;alias&gt;=&lt;archivo&gt;     Metadatos de referencia del archivo de ensamblado
-                               especificado mediante el alias dado (forma corta: /r)
- /reference:&lt;lista de archivos &gt;        Metadatos de referencia de los archivos de ensamblado
-                               especificados (forma corta: /r)
- /addmodule:&lt;lista de archivos &gt;        Vincular los módulos especificados en este ensamblado
- /link:&lt;lista de archivos &gt;             Insertar metadatos de los archivos de ensamblado de
-                               interoperabilidad especificados (forma corta: /l)
- /analyzer:&lt;lista de archivos&gt;         Ejecutar los analizadores de este ensamblado
+-recurse:&lt;carácter comodín&gt;           Incluir todos los archivos en el directorio y los
+                              subdirectorios actuales según las especificaciones del 
+                              carácter comodín
+-reference:&lt;alias&gt;=&lt;archivo&gt;     Metadatos de referencia del archivo de ensamblado
+                              especificado mediante el alias dado (forma corta: /r)
+-reference:&lt;lista de archivos &gt;        Metadatos de referencia de los archivos de ensamblado
+                              especificados (forma corta: /r)
+-addmodule:&lt;lista de archivos &gt;        Vincular los módulos especificados en este ensamblado
+-link:&lt;lista de archivos &gt;             Insertar metadatos de los archivos de ensamblado de
+                              interoperabilidad especificados (forma corta: /l)
+-analyzer:&lt;lista de archivos&gt;         Ejecutar los analizadores de este ensamblado
                                (forma corta: /a)
- /additionalfile:&lt;lista de archivos&gt;   Archivos adicionales que no afectan directamente a la
-                               generación de código, pero que pueden usar los analizadores para producir
-                               errores o advertencias.
- /embed                        Insertar todos los archivos de origen en el PDB.
- /embed:&lt;lista de archivos &gt;            Insertar archivos específicos en el PDB
+-additionalfile:&lt;lista de archivos&gt;   Archivos adicionales que no afectan directamente a la
+                              generación de código, pero que pueden usar los analizadores para producir
+                              errores o advertencias.
+-embed                        Insertar todos los archivos de origen en el PDB.
+-embed:&lt;lista de archivos &gt;            Insertar archivos específicos en el PDB
 
                         - RECURSOS -
- /win32res:&lt;archivo&gt;              Especificar un archivo de recursos Win32 (.res)
- /win32icon:&lt;archivo&gt;             Usar este icono para la salida
- /win32manifest:&lt;archivo&gt;         Especificar un archivo de manifiesto Win32 (.xml)
- /nowin32manifest              No incluir el manifiesto Win32 predeterminado
- /resource:&lt;info recurso&gt;           Insertar el recurso especificado (forma corta: /res)
- /linkresource:&lt;info recurso&gt;       Vincular el recurso especificado a este ensamblado
-                               (forma corta: /linkres), donde el formato de la información del recurso 
-                               es &lt;archivo&gt;[,&lt;nombre de cadena &gt;[,public|private]]
+-win32res:&lt;archivo&gt;              Especificar un archivo de recursos Win32 (.res)
+-win32icon:&lt;archivo&gt;             Usar este icono para la salida
+-win32manifest:&lt;archivo&gt;         Especificar un archivo de manifiesto Win32 (.xml)
+-nowin32manifest              No incluir el manifiesto Win32 predeterminado
+-resource:&lt;info recurso&gt;           Insertar el recurso especificado (forma corta: /res)
+-linkresource:&lt;info recurso&gt;       Vincular el recurso especificado a este ensamblado
+                              (forma corta: /linkres), donde el formato de la información del recurso 
+                              es &lt;archivo&gt;[,&lt;nombre de cadena &gt;[,public|private]]
 
                         - GENERACIÓN DE CÓDIGO -
- /debug[+|-]                   Emitir información de depuración
- /debug:{full|pdbonly|portable|embedded}
-                               Especificar tipo de depuración (“full” es el valor predeterminado,
-                               “portable” es un formato multiplataforma,
-                               “embedded” es un formato multiplataforma insertado en
-                               el archivo.dll o .exe de destino)
- /optimize[+|-]                Habilitar optimizaciones (forma corta: /o)
- /deterministic                Producir un ensamblado determinista
-                               (que incluya el GUID y la marca de tiempo de la versión del módulo)
- /refonly                      Producir un ensamblado de referencia en lugar de la salida principal
- /instrument:TestCoverage      Producir un ensamblado instrumentado para recopilar
-                               información de cobertura 
- /sourcelink:&lt;archivo&gt;            Información del vínculo de origen para insertar en el PDB.
+-debug[+|-]                   Emitir información de depuración
+-debug:{full|pdbonly|portable|embedded}
+                              Especificar tipo de depuración (“full” es el valor predeterminado,
+                              “portable” es un formato multiplataforma,
+                              “embedded” es un formato multiplataforma insertado en
+                              el archivo.dll o .exe de destino)
+-optimize[+|-]                Habilitar optimizaciones (forma corta: /o)
+-deterministic                Producir un ensamblado determinista
+                              (que incluya el GUID y la marca de tiempo de la versión del módulo)
+-refonly                      Producir un ensamblado de referencia en lugar de la salida principal
+-instrument:TestCoverage      Producir un ensamblado instrumentado para recopilar
+                              información de cobertura 
+-sourcelink:&lt;archivo&gt;            Información del vínculo de origen para insertar en el PDB.
 
                         - ERRORES Y ADVERTENCIAS -
- /warnaserror[+|-]             Notificar todas las advertencias como errores
- /warnaserror[+|-]:&lt;lista de advertencias &gt; Notificar advertencias específicas como errores
- /warn:&lt;n&gt;                     Establecer nivel de advertencia (de 0 a 4) (forma corta: /w)
- /nowarn:&lt;lista de advertencias &gt;           Deshabilitar mensajes de advertencia específicos
- /ruleset:&lt;archivo&gt;               Especificar un archivo de conjunto de reglas que deshabilite
-                               diagnósticos específicos.
- /errorlog:&lt;archivo&gt;              Especificar un archivo para registrar todos los diagnósticos del compilador y del
-                               analizador.
- /reportanalyzer               Notificar información adicional del analizador, como el
-                               tiempo de ejecución.
+-warnaserror[+|-]             Notificar todas las advertencias como errores
+-warnaserror[+|-]:&lt;lista de advertencias &gt; Notificar advertencias específicas como errores
+-warn:&lt;n&gt;                     Establecer nivel de advertencia (de 0 a 4) (forma corta: /w)
+-nowarn:&lt;lista de advertencias &gt;           Deshabilitar mensajes de advertencia específicos
+-ruleset:&lt;archivo&gt;               Especificar un archivo de conjunto de reglas que deshabilite
+                              diagnósticos específicos.
+-errorlog:&lt;archivo&gt;              Especificar un archivo para registrar todos los diagnósticos del compilador y del
+                              analizador.
+
+-reportanalyzer               Notificar información adicional del analizador, como el
+                              tiempo de ejecución.
 
                         - LENGUAJE -
- /checked[+|-]                 Generar comprobaciones de desbordamiento
- /unsafe[+|-]                  Permitir código “no seguro”
- /define:&lt;lista de símbolos &gt;         Definir símbolos de compilación condicional (forma
-                               corta: /d)
- /langversion:?                Mostrar los valores permitidos para la versión del lenguaje
- /langversion:&lt;cadena&gt;         Especificar la versión del lenguaje como
-                               “predeterminada” (versión principal más reciente) o
-                               “última” (última versión, incluidas las versiones secundarias)
-                               o versiones específicas como la “6” o “7.1”
+-checked[+|-]                 Generar comprobaciones de desbordamiento
+-unsafe[+|-]                  Permitir código “no seguro”
+-define:&lt;lista de símbolos &gt;         Definir símbolos de compilación condicional (forma
+                              corta: /d)
+-langversion:?                Mostrar los valores permitidos para la versión del lenguaje
+-langversion:&lt;cadena&gt;         Especificar la versión del lenguaje como
+                              “predeterminada” (versión principal más reciente) o
+                              “última” (última versión, incluidas las versiones secundarias)
+                              o versiones específicas como la “6” o “7.1”
 
                         - SEGURIDAD -
- /delaysign[+|-]               Retrasar firma del ensamblado usando solo la parte pública
-                               de la clave de nombre seguro
- /publicsign[+|-]              Publicar firma del ensamblado usando solo la parte pública
-                               de la clave de nombre seguro
- /keyfile:&lt;archivo&gt;               Especificar un archivo de clave de nombre seguro
- /keycontainer:&lt;cadena&gt;        Especificar un contenedor de claves de nombres seguros
- /highentropyva[+|-]           Habilitar ASLR de alta entropía
+-delaysign[+|-]               Retrasar firma del ensamblado usando solo la parte pública
+                              de la clave de nombre seguro
+-publicsign[+|-]              Publicar firma del ensamblado usando solo la parte pública
+                              de la clave de nombre seguro
+-keyfile:&lt;archivo&gt;               Especificar un archivo de clave de nombre seguro
+-keycontainer:&lt;cadena&gt;        Especificar un contenedor de claves de nombres seguros
+-highentropyva[+|-]           Habilitar ASLR de alta entropía
 
                         - VARIOS -
  @&lt;archivo&gt;                       Leer archivo de respuesta para ver más opciones
- /help                         Mostrar este mensaje de uso (forma corta: /?)
- /nologo                       Suprimir mensaje de copyright del compilador
- /noconfig                     No incluir automáticamente el archivo CSC.RSP
- /parallel[+|-]                Compilación simultánea.
- /version                      Mostrar el número de versión del compilador y salir.
+-help                         Mostrar este mensaje de uso (forma corta: /?)
+-nologo                       Suprimir mensaje de copyright del compilador
+-noconfig                     No incluir automáticamente el archivo CSC.RSP
+-parallel[+|-]                Compilación simultánea.
+-version                      Mostrar el número de versión del compilador y salir.
 
                         - AVANZADO -
- /baseaddress:&lt;dirección&gt;        Dirección base de la biblioteca que se compilará
- /checksumalgorithm:&lt;algoritmo&gt;      Especificar el algoritmo para calcular la suma de comprobación
-                               del archivo de origen que se almacena en PDB. Los valores admitidos son:
-                               SHA1 (predeterminado) o SHA256.
- /codepage:&lt;n&gt;                 Especificar la página de código que se usará al abrir los archivos de
-                               código fuente
- /utf8output                   Mensajes de compilador de salida en codificación UTF-8
- /main:&lt;tipo&gt;                  Especificar el tipo que contiene el punto de entrada
-                               (ignorar todos los demás puntos de entrada posibles) (forma
-                               corta: /m)
- /fullpaths                    El compilador genera rutas de acceso completas
- /filealign:&lt;n&gt;                Especificar la alineación usada para las secciones del
+-baseaddress:&lt;dirección&gt;        Dirección base de la biblioteca que se compilará
+-checksumalgorithm:&lt;algoritmo&gt;      Especificar el algoritmo para calcular la suma de comprobación
+                              del archivo de origen que se almacena en PDB. Los valores admitidos son:
+                              SHA1 (predeterminado) o SHA256.
+-codepage:&lt;n&gt;                 Especificar la página de código que se usará al abrir los archivos de
+                              código fuente
+
+-utf8output                   Mensajes de compilador de salida en codificación UTF-8
+-main:&lt;tipo&gt;                  Especificar el tipo que contiene el punto de entrada
+                              (ignorar todos los demás puntos de entrada posibles) (forma
+                              corta: /m)
+
+-fullpaths                    El compilador genera rutas de acceso completas
+-filealign:&lt;n&gt;                Especificar la alineación usada para las secciones del
                                archivo de salida
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Especificar una asignación para los nombres de rutas de acceso de origen
-                               emitidos por el compilador.
- /pdb:&lt;archivo&gt;                   Especificar nombre de archivo de información de depuración (valor predeterminado:
-                               nombre del archivo de salida con la extensión .pdb)
- /errorendlocation             Línea y columna de salida de la ubicación final de
-                               cada error
- /preferreduilang              Especificar el nombre del lenguaje de salida preferido.
- /nostdlib[+|-]                No hacer referencia a la biblioteca estándar (mscorlib.dll)
- /subsystemversion:&lt;cadena&gt;    Especificar versión del subsistema de este ensamblado
- /lib:&lt;lista de archivos&gt;              Especificar directorios adicionales en los que buscar
-                               referencias
- /errorreport:&lt;cadena&gt;         Especificar cómo tratar los errores internos del compilador:
-                               avisar, enviar, poner en cola o ninguno. El valor predeterminado es
-                               poner en cola.
- /appconfig:&lt;archivo&gt;             Especificar un archivo de configuración de aplicación
-                               que contenga opciones de enlace de ensamblado
- /moduleassemblyname:&lt;cadena&gt;  Nombre del ensamblado del que este módulo
-                               formará parte 
- /modulename:&lt;cadena&gt;          Especificar el nombre del módulo de origen
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              Especificar una asignación para los nombres de rutas de acceso de origen
+                              emitidos por el compilador.
+-pdb:&lt;archivo&gt;                   Especificar nombre de archivo de información de depuración (valor predeterminado:
+                              nombre del archivo de salida con la extensión .pdb)
+-errorendlocation             Línea y columna de salida de la ubicación final de
+                              cada error
+-preferreduilang              Especificar el nombre del lenguaje de salida preferido.
+-nostdlib[+|-]                No hacer referencia a la biblioteca estándar (mscorlib.dll)
+-subsystemversion:&lt;cadena&gt;    Especificar versión del subsistema de este ensamblado
+-lib:&lt;lista de archivos&gt;              Especificar directorios adicionales en los que buscar
+                              referencias
+-errorreport:&lt;cadena&gt;         Especificar cómo tratar los errores internos del compilador:
+                              avisar, enviar, poner en cola o ninguno. El valor predeterminado es
+                              poner en cola.
+-appconfig:&lt;archivo&gt;             Especificar un archivo de configuración de aplicación
+                              que contenga opciones de enlace de ensamblado
+-moduleassemblyname:&lt;cadena&gt;  Nombre del ensamblado del que este módulo
+                              formará parte 
+-modulename:&lt;cadena&gt;          Especificar el nombre del módulo de origen
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -8042,12 +8045,12 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">Los iteradores no pueden tener variables locales por referencia.</target>
+        <target state="translated">Los iteradores no pueden tener variables locales por referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">Los métodos asincrónicos no pueden tener variables locales por referencia.</target>
+        <target state="translated">Los métodos asincrónicos no pueden tener variables locales por referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
