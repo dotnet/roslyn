@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveUnusedVariable = nameof(RemoveUnusedVariable);
         public const string RenameTracking = nameof(RenameTracking);
         public const string SimplifyNames = nameof(SimplifyNames);
+        public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
         public const string SpellCheck = nameof(SpellCheck);
         public const string Suppression = nameof(Suppression);
         public const string AddOverloads = nameof(AddOverloads);

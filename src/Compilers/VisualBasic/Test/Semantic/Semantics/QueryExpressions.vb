@@ -9790,7 +9790,7 @@ GroupBy System.Func`2[System.Int32,System.Object]
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub GroupJoin1()
             Dim compilationDef =
 <compilation name="QueryExpressions">

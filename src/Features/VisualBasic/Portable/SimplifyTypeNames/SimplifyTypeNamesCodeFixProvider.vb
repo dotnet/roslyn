@@ -27,9 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
                 Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
                     Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
-                Case IDEDiagnosticIds.RemoveQualificationDiagnosticId
-                    Return VBFeaturesResources.Remove_Me_qualification
-
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(simplifyDiagnosticId)
             End Select
