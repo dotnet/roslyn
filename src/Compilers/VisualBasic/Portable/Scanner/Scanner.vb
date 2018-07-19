@@ -564,17 +564,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                 End While
                 If CanGet(Here) AndAlso IsSingleQuote(Peek(Here)) Then
-                If CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
-                    tList.Add(MakeLineContinuationTrivia(GetText(1)))
+                    If CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
+                        tList.Add(MakeLineContinuationTrivia(GetText(1)))
                         If Here > 1 Then
                             tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
                         End If
-                    ScanCommentIfAny(tList)
-                    ch = Peek()
-                    atNewLine = IsNewLine(ch)
-                    FoundCommentAfterUnderscore = True
+                        ScanCommentIfAny(tList)
+                        ch = Peek()
+                        atNewLine = IsNewLine(ch)
+                        FoundCommentAfterUnderscore = True
+                    End If
                 End If
-            End If
             End If
             If Not FoundCommentAfterUnderscore Then
                 While CanGet(Here)
