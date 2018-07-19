@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
 
-            if (kind == LocalDeclarationKind.FixedVariable)
+            if (kind == LocalDeclarationKind.FixedVariable || kind == LocalDeclarationKind.UsingVariable)
             {
                 // CONSIDER: The error message is "you must provide an initializer in a fixed 
                 // CONSIDER: or using declaration". The error message could be targetted to 

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
             List<BoundUsingStatement> reversedUsingStatements = new List<BoundUsingStatement>();
             for (int i = 0; i < reversedLocals.Count; i++)
             {
-                BoundBlock innerBlock; 
+                BoundBlock innerBlock;
                 // The first element in the reversed lists' using statement must contain all following statements.
                 if (i == 0)
                 {
@@ -139,22 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                             locals: locals,
                             statements: precedingStatements.ToImmutableArray());
             return outermostBlock;
-        }
-
-        internal static bool ContainsUsingVariable(BoundStatement boundStatement)
-        {
-            if (boundStatement is BoundLocalDeclaration boundLocal)
-            {
-                return boundLocal.LocalSymbol.IsUsing;
-            }
-            else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple)
-            {
-                if (!boundMultiple.LocalDeclarations.IsEmpty)
-                {
-                    return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
-                }
-            }
-            return false;
         }
     }
 }

@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var statement in node.Statements)
             {
                 var boundStatement = sectionBinder.BindStatement(statement, diagnostics);
-                if (LocalUsingVarRewriter.ContainsUsingVariable(boundStatement))
+                if (ContainsUsingVariable(boundStatement))
                 {
                     diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
                 }
@@ -568,6 +568,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+        }
+
+        private bool ContainsUsingVariable(BoundStatement boundStatement)
+        {
+            if (boundStatement is BoundLocalDeclaration boundLocal)
+            {
+                return boundLocal.LocalSymbol.IsUsing;
+            }
+            else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
+            {
+                return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
+            }
+            return false;
         }
 
         private Dictionary<SyntaxNode, LabelSymbol> _labelsByNode;
