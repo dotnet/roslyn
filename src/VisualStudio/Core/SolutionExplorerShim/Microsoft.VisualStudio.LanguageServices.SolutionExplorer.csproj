@@ -50,9 +50,9 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
-    <InternalsVisibleToTest Include="RoslynETAHost" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+    <InternalsVisibleTo Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="SolutionExplorerShim.resx">

@@ -10,17 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     internal class FormattingOptionPage : AbstractOptionPage
     {
         private FormattingOptionPageControl _optionPageControl;
+
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
             _optionPageControl = new FormattingOptionPageControl(serviceProvider);
             return _optionPageControl;
-        }
-
-        public override void SaveSettingsToStorage()
-        {
-            _optionPageControl.SetCodeCleanupAsConfigured();
-
-            base.SaveSettingsToStorage();
         }
     }
 }

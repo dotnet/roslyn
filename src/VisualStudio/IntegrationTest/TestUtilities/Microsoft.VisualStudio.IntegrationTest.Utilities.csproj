@@ -80,6 +80,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
   </ItemGroup>
 </Project>
