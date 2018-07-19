@@ -3,11 +3,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal interface ICodeCleanupService : ILanguageService
     {
-        Task<Document> CleanupAsync(Document document, CancellationToken cancellationToken);
+        Task<Document> CleanupAsync(Document document, IProgressTracker progressTracker, CancellationToken cancellationToken);
     }
 }

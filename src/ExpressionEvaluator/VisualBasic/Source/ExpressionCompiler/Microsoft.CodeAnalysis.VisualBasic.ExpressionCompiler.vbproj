@@ -22,8 +22,8 @@
     </VsdConfigXml>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
-    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.ProductionBreakpoints.CodeAnalysis" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProductionBreakpoints.CodeAnalysis" Key="$(VisualStudioDebuggerKey)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.vb">
