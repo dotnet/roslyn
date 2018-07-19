@@ -48,10 +48,10 @@ configured the required test framework attribute. Simply add the following to yo
 
 ```xml
 <ItemGroup>
-  <AssemblyVersionAttribute Include="Xunit.TestFrameworkAttribute">
+  <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
     <_Parameter1>Xunit.Harness.IdeTestFramework</_Parameter1>
     <_Parameter2>Microsoft.VisualStudio.Extensibility.Testing.Xunit</_Parameter2>
-  </AssemblyVersionAttribute>
+  </AssemblyAttribute>
 </ItemGroup>
 ```
 
