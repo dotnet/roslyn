@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <PropertyGroup>
+    <Copyright>Copyright (c) Microsoft. All rights reserved.</Copyright>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Features>strict</Features>
+  </PropertyGroup>
+
+  <!-- We always want a good debugging experience in integration tests -->
+  <PropertyGroup>
+    <Optimize>false</Optimize>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <EmbedAllSources>true</EmbedAllSources>
+  </PropertyGroup>
+
+  <!-- StyleCop Analyzers configuration -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)ExtensionTesting.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="all" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
+    <None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

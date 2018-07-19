@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <Platforms>x86</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.ExtensionEngine" HintPath="$(MSBuildProgramFiles32)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="$(MSBuildProgramFiles32)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="$(MSBuildProgramFiles32)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="15.0.26606" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.Interop\Microsoft.VisualStudio.VsixInstaller.Interop.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems" Label="Shared" />
+
+</Project>

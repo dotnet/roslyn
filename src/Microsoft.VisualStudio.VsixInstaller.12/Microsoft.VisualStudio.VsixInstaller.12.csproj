@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net452</TargetFramework>
+    <Platforms>x86</Platforms>
+
+    <VSInstallRoot>$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\12.0@InstallDir)</VSInstallRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="$(VSInstallRoot)PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="$(VSInstallRoot)PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="VSSDK.Settings.12" Version="12.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.Interop\Microsoft.VisualStudio.VsixInstaller.Interop.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems" Label="Shared" />
+
+</Project>
