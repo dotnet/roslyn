@@ -41,10 +41,10 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
-    <InternalsVisibleToTest Include="Roslyn.Services.UnitTests.Utilities" />
-    <InternalsVisibleToCompletionTests Include="Microsoft.VisualStudio.Completion.Tests" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
+    <InternalsVisibleTo Include="Roslyn.Services.UnitTests.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(CompletionTestsKey)" />
   </ItemGroup>
 </Project>
