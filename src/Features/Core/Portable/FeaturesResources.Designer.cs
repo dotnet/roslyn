@@ -942,6 +942,7 @@ namespace Microsoft.CodeAnalysis {
             }
         }
 
+        /// <summary>
         ///   Looks up a localized string similar to Convert to struct.
         /// </summary>
         internal static string Convert_to_struct {
