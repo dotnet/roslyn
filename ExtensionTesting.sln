@@ -23,8 +23,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Exte
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EF963386-CD2E-4E1F-938A-ADACA3CF0E17}"
 	ProjectSection(SolutionItems) = preProject
+		CONTRIBUTING.md = CONTRIBUTING.md
 		src\Directory.Build.props = src\Directory.Build.props
 		src\Directory.Build.targets = src\Directory.Build.targets
+		LICENSE = LICENSE
+		README.md = README.md
+		THIRD-PARTY-NOTICES.TXT = THIRD-PARTY-NOTICES.TXT
 	EndProjectSection
 EndProject
 Global
