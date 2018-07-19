@@ -426,7 +426,7 @@ End Module
     Public Sub FunctionKeywordInDisabledText()
         ParseAndVerify(<![CDATA[
 #If False Then
-#Const = Function
+#Const = Function  
 #End If
         ]]>)
     End Sub
@@ -505,11 +505,11 @@ Region
 #if true
 Module M
 #If False
-_
+_ 
 #End If
 
 #If False
- _
+ _ 
 #End If
 
 End Module
@@ -603,7 +603,7 @@ _ _
         ParseAndVerify(<![CDATA[
 #If False
 #Const x = 1 ' _
-#End If
+#End If 
 
         ]]>)
     End Sub
@@ -613,7 +613,7 @@ _ _
         ParseAndVerify(<![CDATA[
 #If False
 blah _
-#End If
+#End If 
 
         ]]>)
     End Sub
@@ -1118,7 +1118,7 @@ Sub DynLateSetLHS010()
                 garbage
             #ElseIf True Then
 
-            #else
+            #else 
                 garbage
             #End If
         ]]>)
@@ -1414,7 +1414,7 @@ Module Program
 #If Win32 Then
     Dim MaxLimit As Integer = 67000
 #ElseIf Mac Then
-    Dim MaxLimit as Integer = 5000
+    Dim MaxLimit as Integer = 5000                                     
 #Else
     Dim MaxLimit As Integer = 33000
 #End If
@@ -1544,7 +1544,7 @@ Namespace CHDIR48
 #Const X1 = If(True, 1UL, 2L)
 #Const X2 = If(True, 1, Nothing)
 #Const X3 = If(True, 1, CObj(Nothing))
-#Const X4 = 2.1D
+#Const X4 = 2.1D  
 #Const X5 = If(True, Nothing, Nothing)
 #Const X6 = If(True, Nothing, 1)
                 </file>
@@ -1585,12 +1585,12 @@ BC30059: Constant expression is required.
 
             If True Then
 #If Blah Then
-                    end if
+                    end if    
 #End If
 
                 If True
         #If blah Then
-                    end if
+                    end if    
 #End If
 
         End Sub
@@ -1672,7 +1672,7 @@ Module Module1
     Sub Main
 ＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ ［ＷＡＲＮＩＮＧ］ _
 
-＃ _
+＃ _ 
  ｅｎａｂｌｅ     ｗａｒｎｉｎｇ _
 ｅｎａｂｌｅ
     End Sub
@@ -2360,7 +2360,7 @@ End Module]]>,
         Dim tree = ParseAndVerify(code:=<![CDATA[#Enable Warning _ 'Comment]]>,
                                   options:=New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
             <errors>
-                <error id="30203" message="Identifier expected." start="16" end="17"/>
+               <error id="30203" message="Identifier expected." start="16" end="17"/>
             </errors>)
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
@@ -2376,10 +2376,11 @@ End Module]]>,
         Assert.True(enableNode.ErrorCodes.Single.IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.Kind)
     End Sub
+
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation2V16()
         ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16
-        Dim tree = ParseAndVerify((<![CDATA[#Enable Warning _ 'Comment]]>), New VisualBasicParseOptions(LanguageVersion.Latest))
+        Dim tree = ParseAndVerify((<![CDATA[#Enable Warning _  'Comment]]>), New VisualBasicParseOptions(LanguageVersion.Latest))
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
@@ -2441,7 +2442,6 @@ End Module]]>,
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).Kind)
     End Sub
 
-
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation4V16()
         ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16
@@ -2462,7 +2462,6 @@ End Module]]>,
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).Kind)
     End Sub
-
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation5()
@@ -2515,7 +2514,7 @@ bc42025]]>,
         Dim tree = ParseAndVerify(<![CDATA[
 Module Module1
     Sub Main
-#enable warning BC42025, someid,
+#enable warning BC42025, someid, 
 SomeOtherId
     End Sub
 End Module]]>,
@@ -2968,7 +2967,7 @@ End Module
         Dim compXml =
 <compilation>
     <file name="a.vb">
-＃ _
+＃ _ 
  ｅｎａｂｌｅ     ｗａｒｎｉｎｇ
 Module Program
     Sub Main()
@@ -3191,7 +3190,7 @@ End Module
         Dim compXml =
 <compilation>
     <file name="a.vb">
-＃ _
+＃ _ 
  ｅｎａｂｌｅ     ｗａｒｎｉｎｇ bc42024
 Module Program
     Sub Main()
@@ -3509,7 +3508,7 @@ Module Program
         Dim a 'BC42024: Unused local variable: 'a'.
         Dim b
         Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
-#Enable WarNING ,BC42104,BC42024,
+#Enable WarNING ,BC42104,BC42024, 
         Dim d 'BC42024: Unused local variable: 'd'.
         Dim e
         Dim f = e 'BC42014: BC42104: Variable 'e' is used before it has been assigned a value.
