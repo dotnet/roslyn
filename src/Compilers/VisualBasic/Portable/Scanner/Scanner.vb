@@ -554,15 +554,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim FoundCommentAfterUnderscore As Boolean = False
             ' Line continuation is valid at the end of the line, or at the end of the file, or followed by a trailing comment.
             ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment)
-            If CanGet(Here + 1) AndAlso IsWhitespace(Peek(Here)) AndAlso IsSingleQuote(Peek(Here + 1)) Then
+            If CanGet(Here) AndAlso (IsWhitespace(Peek(Here)) OrElse IsSingleQuote(Peek(Here))) Then
+                While CanGet(Here)
+                    ch = Peek(Here)
+                    If IsWhitespace(ch) Then
+                        Here += 1
+                    Else
+                        Exit While
+                    End If
+                End While
+                If CanGet(Here) AndAlso IsSingleQuote(Peek(Here)) Then
                 If CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
                     tList.Add(MakeLineContinuationTrivia(GetText(1)))
-                    tList.Add(MakeWhiteSpaceTrivia(GetText(Here)))
+                        If Here > 1 Then
+                            tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+                        End If
                     ScanCommentIfAny(tList)
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
                     FoundCommentAfterUnderscore = True
                 End If
+            End If
             End If
             If Not FoundCommentAfterUnderscore Then
                 While CanGet(Here)
@@ -580,9 +592,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 tList.Add(MakeLineContinuationTrivia(GetText(1)))
-            End If
             If Here > 1 Then
                 tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+                End If
             End If
 
             If atNewLine Then
