@@ -83,8 +83,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx">

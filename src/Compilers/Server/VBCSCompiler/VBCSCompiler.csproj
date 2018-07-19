@@ -52,9 +52,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
-    <InternalsVisibleToTest Include="VBCSCompiler.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
+    <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
 </Project>

@@ -574,7 +574,7 @@ End Module
         End Sub
 
         ' Initialize multi- dimensional array
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub InitializemultiDimensionalArray()
             CompileAndVerify(
 <compilation>
@@ -735,7 +735,7 @@ End Module
         End Sub
 
         ' Array creation expression can be part of an anonymous object creation expression
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ArrayCreateAsAnonymous()
             CompileAndVerify(
 <compilation>
@@ -1227,7 +1227,7 @@ End Module
         End Sub
 
         ' Assigning a smaller array to a bigger array or vice versa should work
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub AssignArrayToArray()
             CompileAndVerify(
 <compilation>
@@ -1413,7 +1413,7 @@ End Class
         End Sub
 
         ' Declare multi-dimensional and Jagged array
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MixedArray()
             CompileAndVerify(
 <compilation>
