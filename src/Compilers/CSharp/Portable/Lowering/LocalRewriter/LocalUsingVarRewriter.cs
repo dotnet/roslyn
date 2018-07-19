@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                 {
                     if (localDeclaration.LocalSymbol.IsUsing)
                     {
-                        List<BoundStatement> precedingStatements = new List<BoundStatement>();
+                        ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(i);
                         for (int j = 0; j < i; j++)
                         {
                             precedingStatements.Add(statements[j]);
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 
                         BoundBlock innerBlock = new BoundBlock(
                             syntax: localDeclaration.Syntax,
-                            locals: ImmutableArray.Create<LocalSymbol>(),
+                            locals: ImmutableArray<LocalSymbol>.Empty,
                             statements: followingStatements
                             );
 
                         BoundUsingStatement boundUsing = new BoundUsingStatement(
                             syntax: localDeclaration.Syntax,
-                            locals: ImmutableArray.Create<LocalSymbol>(),
+                            locals: ImmutableArray<LocalSymbol>.Empty,
                             declarationsOpt: new BoundMultipleLocalDeclarations(
                                 localDeclaration.Syntax,
                                 localDeclarations),
