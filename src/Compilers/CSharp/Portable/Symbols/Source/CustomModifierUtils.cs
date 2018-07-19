@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // We also preserve tuple names, if present and different
                 ImmutableArray<string> names = CSharpCompilation.TupleNamesEncoder.Encode(destinationType);
-                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(destinationUsesNonNullTypes, typeWithDynamic, names);
+                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithDynamic, names);
             }
             else
             {

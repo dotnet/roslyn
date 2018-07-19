@@ -60,15 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal struct TupleTypeDecoder
     {
-        private readonly bool _nonNullTypes;
         private readonly ImmutableArray<string> _elementNames;
         // Keep track of how many names we've "used" during decoding. Starts at
         // the back of the array and moves forward.
         private int _namesIndex;
 
-        private TupleTypeDecoder(bool nonNullTypes, ImmutableArray<string> elementNames)
+        private TupleTypeDecoder(ImmutableArray<string> elementNames)
         {
-            _nonNullTypes = nonNullTypes;
             _elementNames = elementNames;
             _namesIndex = elementNames.IsDefault ? 0 : elementNames.Length;
         }
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return new UnsupportedMetadataTypeSymbol();
             }
 
-            return DecodeTupleTypesInternal(containingModule.UtilizesNullableReferenceTypes, metadataType, elementNames, hasTupleElementNamesAttribute);
+            return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute);
         }
 
         public static TypeSymbolWithAnnotations DecodeTupleTypesIfApplicable(
@@ -113,25 +111,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             bool nonNullTypes = containingModule.UtilizesNullableReferenceTypes;
             TypeSymbol type = metadataType.TypeSymbol;
-            TypeSymbol decoded = DecodeTupleTypesInternal(nonNullTypes, type, elementNames, hasTupleElementNamesAttribute);
+            TypeSymbol decoded = DecodeTupleTypesInternal(type, elementNames, hasTupleElementNamesAttribute);
             return (object)decoded == (object)type ?
                 metadataType :
                 TypeSymbolWithAnnotations.Create(decoded, nonNullTypes: nonNullTypes, isAnnotated: metadataType.IsAnnotated, metadataType.CustomModifiers);
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
-            bool nonNullTypes,
             TypeSymbol metadataType,
             ImmutableArray<string> elementNames)
         {
-            return DecodeTupleTypesInternal(nonNullTypes, metadataType, elementNames, hasTupleElementNamesAttribute: !elementNames.IsDefaultOrEmpty);
+            return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute: !elementNames.IsDefaultOrEmpty);
         }
 
-        private static TypeSymbol DecodeTupleTypesInternal(bool nonNullTypes, TypeSymbol metadataType, ImmutableArray<string> elementNames, bool hasTupleElementNamesAttribute)
+        private static TypeSymbol DecodeTupleTypesInternal(TypeSymbol metadataType, ImmutableArray<string> elementNames, bool hasTupleElementNamesAttribute)
         {
             Debug.Assert((object)metadataType != null);
 
-            var decoder = new TupleTypeDecoder(nonNullTypes, elementNames);
+            var decoder = new TupleTypeDecoder(elementNames);
             try
             {
                 var decoded = decoder.DecodeType(metadataType);
@@ -294,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol decoded = DecodeType(type);
             return ReferenceEquals(decoded, type) ?
                 typeWithAnnotations :
-                TypeSymbolWithAnnotations.Create(decoded, nonNullTypes: _nonNullTypes, isAnnotated: typeWithAnnotations.IsAnnotated, typeWithAnnotations.CustomModifiers);
+                TypeSymbolWithAnnotations.Create(decoded, nonNullTypes: typeWithAnnotations.NonNullTypes, isAnnotated: typeWithAnnotations.IsAnnotated, typeWithAnnotations.CustomModifiers);
         }
 
         private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)

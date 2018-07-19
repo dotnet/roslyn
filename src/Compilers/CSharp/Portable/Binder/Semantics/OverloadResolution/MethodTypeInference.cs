@@ -2634,7 +2634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = TupleTypeDecoder.DecodeTupleTypesIfApplicable(nonNullTypes: false, first, mergedNames); // PROTOTYPE(NullableReferenceTypes): Set nonNullTypes.
+            var result = TupleTypeDecoder.DecodeTupleTypesIfApplicable(first, mergedNames);
             return TypeSymbolWithAnnotations.Create(result); // PROTOTYPE(NullableReferenceTypes): Handle nullability.
         }
 

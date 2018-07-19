@@ -1125,6 +1125,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            // PROTOTYPE(NullableReferenceTypes): Attributes should be merged across all partial
+            // declarations, although that is not the case currently. Uncomment the Debug.Assert
+            // when NonNullTypes no longer uses SyntaxBasedNonNullTypes.
+            //Debug.Assert(part1.NonNullTypes == part2.NonNullTypes);
             var nonNullTypes = part1.NonNullTypes;
             var typeParameters2 = part2.TypeParameters;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);

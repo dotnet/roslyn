@@ -197,6 +197,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool IsAnnotated { get; }
 
+        /// <summary>
+        /// [NonNullTypes] context used for determining
+        /// whether unannotated types are not nullable.
+        /// </summary>
+        public abstract bool NonNullTypes { get; }
+
         protected enum AnnotationKind
         {
             Unannotated = 0, // Unannotated, [NonNullTypes(false)]
@@ -403,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return new NonLazyType(
                 newTypeWithModifiers.TypeSymbol,
-                nonNullTypes: ((NonLazyType)newTypeWithModifiers).NonNullTypes,
+                nonNullTypes: newTypeWithModifiers.NonNullTypes,
                 isAnnotated: newIsAnnotated,
                 newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
         }
@@ -613,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal bool NonNullTypes => _nonNullTypes;
+            public override bool NonNullTypes => _nonNullTypes;
 
             internal override bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress)
             {
@@ -678,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class LazyNullableTypeParameter : TypeSymbolWithAnnotations
         {
             private readonly CSharpCompilation _compilation;
-            private readonly NonLazyType _underlying;
+            private readonly TypeSymbolWithAnnotations _underlying;
             private TypeSymbol _resolved;
 
             public LazyNullableTypeParameter(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
@@ -688,12 +694,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(underlying.TypeKind == TypeKind.TypeParameter);
                 Debug.Assert(underlying.CustomModifiers.IsEmpty);
                 _compilation = compilation;
-                _underlying = (NonLazyType)underlying;
+                _underlying = underlying;
             }
 
             public override bool? IsNullable => true;
             public override bool IsAnnotated => true;
             protected override AnnotationKind Annotation => AnnotationKind.Annotated;
+            public override bool NonNullTypes => _underlying.NonNullTypes;
             public override bool IsVoid => false;
             public override bool IsSZArray() => false;
             public override bool IsStatic => false;
@@ -711,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             Interlocked.CompareExchange(ref _resolved,
-                                _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create<TypeSymbolWithAnnotations>(_underlying)),
+                                _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(_underlying)),
                                 null);
                         }
                     }
