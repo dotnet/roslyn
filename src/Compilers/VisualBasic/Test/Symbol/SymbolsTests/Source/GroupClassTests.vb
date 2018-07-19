@@ -3457,7 +3457,7 @@ End Class
             CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/27979")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub Is_IsNot()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -3544,7 +3544,7 @@ True
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/27979")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub BackingFieldToHaveEditorBrowsableNeverAttribute()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -3595,7 +3595,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="1 Never").VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/27979")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub Using001()
             Dim compilationDef =
 <compilation name="SimpleTest1">
