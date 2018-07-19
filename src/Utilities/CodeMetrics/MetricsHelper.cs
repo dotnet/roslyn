@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         switch (operationBlock.Kind)
                         {
                             case OperationKind.Block:
+                            // https://github.com/dotnet/roslyn-analyzers/issues/1742
                             //case OperationKind.MethodBodyOperation:
                             //case OperationKind.ConstructorBodyOperation:
                                 cyclomaticComplexity += 1;

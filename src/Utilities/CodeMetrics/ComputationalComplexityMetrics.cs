@@ -182,6 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     case OperationKind.CompoundAssignment:
                         countBinaryOperator(operation, ((ICompoundAssignmentOperation)operation).OperatorKind);
                         continue;
+                    // https://github.com/dotnet/roslyn-analyzers/issues/1742
                     //case OperationKind.TupleBinaryOperator:
                     //    countBinaryOperator(operation, ((ITupleBinaryOperation)operation).OperatorKind);
                     //    continue;
