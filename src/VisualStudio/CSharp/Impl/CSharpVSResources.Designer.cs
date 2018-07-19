@@ -61,24 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add accessibility modifiers.
-        /// </summary>
-        internal static string Add_accessibility_modifiers {
-            get {
-                return ResourceManager.GetString("Add_accessibility_modifiers", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add/remove braces for single-line control statements.
-        /// </summary>
-        internal static string Add_remove_braces_for_single_line_control_statements {
-            get {
-                return ResourceManager.GetString("Add_remove_braces_for_single_line_control_statements", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to _Always add new line on enter.
         /// </summary>
         internal static string Always_add_new_line_on_enter {
@@ -102,60 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Apply_all_csharp_formatting_rules_indentation_wrapping_spacing {
             get {
                 return ResourceManager.GetString("Apply_all_csharp_formatting_rules_indentation_wrapping_spacing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply expression/block body preferences.
-        /// </summary>
-        internal static string Apply_expression_block_body_preferences {
-            get {
-                return ResourceManager.GetString("Apply_expression_block_body_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply implicit/explicit type preferences.
-        /// </summary>
-        internal static string Apply_implicit_explicit_type_preferences {
-            get {
-                return ResourceManager.GetString("Apply_implicit_explicit_type_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply inline &apos;out&apos; variables preferences.
-        /// </summary>
-        internal static string Apply_inline_out_variable_preferences {
-            get {
-                return ResourceManager.GetString("Apply_inline_out_variable_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply language/framework type preferences.
-        /// </summary>
-        internal static string Apply_language_framework_type_preferences {
-            get {
-                return ResourceManager.GetString("Apply_language_framework_type_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply object/collection initialization preferences.
-        /// </summary>
-        internal static string Apply_object_collection_initialization_preferences {
-            get {
-                return ResourceManager.GetString("Apply_object_collection_initialization_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply &apos;this.&apos; qualification preferences.
-        /// </summary>
-        internal static string Apply_this_qualification_preferences {
-            get {
-                return ResourceManager.GetString("Apply_this_qualification_preferences", resourceCulture);
             }
         }
         
@@ -736,15 +664,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make private fields readonly when possible.
-        /// </summary>
-        internal static string Make_private_field_readonly_when_possible {
-            get {
-                return ResourceManager.GetString("Make_private_field_readonly_when_possible", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to _Move local declaration to the extracted method if it is not used elsewhere.
         /// </summary>
         internal static string Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere {
@@ -831,6 +750,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Optimize_for_solution_size {
             get {
                 return ResourceManager.GetString("Optimize_for_solution_size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perform additional code cleanup during formatting.
+        /// </summary>
+        internal static string Perform_additional_code_cleanup_during_formatting {
+            get {
+                return ResourceManager.GetString("Perform_additional_code_cleanup_during_formatting", resourceCulture);
             }
         }
         
@@ -1177,29 +1105,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove unnecessary casts.
-        /// </summary>
-        internal static string Remove_unnecessary_casts {
-            get {
-                return ResourceManager.GetString("Remove_unnecessary_casts", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove unnecessary usings.
         /// </summary>
         internal static string Remove_unnecessary_usings {
             get {
                 return ResourceManager.GetString("Remove_unnecessary_usings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove unused variables.
-        /// </summary>
-        internal static string Remove_unused_variables {
-            get {
-                return ResourceManager.GetString("Remove_unused_variables", resourceCulture);
             }
         }
         
@@ -1353,15 +1263,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Snippets_behavior {
             get {
                 return ResourceManager.GetString("Snippets_behavior", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Sort accessibility modifiers.
-        /// </summary>
-        internal static string Sort_accessibility_modifiers {
-            get {
-                return ResourceManager.GetString("Sort_accessibility_modifiers", resourceCulture);
             }
         }
         
