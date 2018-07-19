@@ -77,8 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                                 precedingStatements.Add(statements[j]);
                             }
                             List<BoundStatement> followingStatements = new List<BoundStatement>();
-                            for (int k = i + 1; i < statements.Length; k++)
+                            for (int k = i + 1; k < statements.Length; k++)
+                            {
                                 followingStatements.Add(statements[k]);
+                            }
                             return LowerBoundMultipleLocalDeclarationUsingVar(boundMultiple, node.Locals, precedingStatements, followingStatements.ToImmutableArray());
                         }
                     }
