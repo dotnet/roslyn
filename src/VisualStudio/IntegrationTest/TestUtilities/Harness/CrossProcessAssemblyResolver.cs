@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             {
                 switch (assemblyName.Name)
                 {
-                    case "Roslyn.VisualStudio.IntegrationTests":
+                    case "Microsoft.VisualStudio.LanguageServices.IntegrationTests":
                         break;
 
                     default:
