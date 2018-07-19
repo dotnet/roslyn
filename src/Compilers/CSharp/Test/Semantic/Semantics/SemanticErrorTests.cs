@@ -6552,7 +6552,7 @@ class Test
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45).VerifyDiagnostics(
                 // (9,9): error CS0176: Member 'Delegate.CreateDelegate(Type, object, string)' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         D.CreateDelegate(null, null, null); // CS0176
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "D.CreateDelegate").WithArguments("System.Delegate.CreateDelegate(System.Type, object, string)").WithLocation(9, 9)
@@ -6859,7 +6859,7 @@ public class C
     M(__arglist);
   }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
             comp.VerifyDiagnostics(
                 // (11,7): error CS0190: The __arglist construct is valid only within a variable argument method
                 //     M(__arglist);
@@ -6926,7 +6926,7 @@ public class C
   {
   }
 }";
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
                 // (10,34): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //       RuntimeArgumentHandle h2 = h; // Bad use of h
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle"),
@@ -11145,7 +11145,7 @@ public class Test
     public System.RuntimeArgumentHandle[][] y;
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0611: Array elements cannot be of type 'System.TypedReference'
                 //     public System.TypedReference[] x;
@@ -11170,7 +11170,7 @@ class C
         var z = new[] { new RuntimeArgumentHandle() };
     }
 }";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0611: Array elements cannot be of type 'System.ArgIterator'
                 //         var x = new[] { new ArgIterator() };
@@ -20858,7 +20858,7 @@ class C
         }
 
         [WorkItem(543615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543615"), WorkItem(546550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546550")]
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
+        [Fact]
         public void CS0811ERR_DebugFullNameTooLong()
         {
             var text = @"
@@ -20882,7 +20882,7 @@ namespace TestNamespace
 }
 ";
 
-            var compilation = CreateCompilation(text, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45, options: TestOptions.DebugExe);
 
             var exebits = new System.IO.MemoryStream();
             var pdbbits = new System.IO.MemoryStream();
@@ -21269,7 +21269,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("Test.Main()"));
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/18610")]
         public void CS1592WRN_XMLParseIncludeError()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");

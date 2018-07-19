@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindObjectCreationExpression((ObjectCreationExpressionSyntax)node, diagnostics);
                 case SyntaxKind.IdentifierName:
                 case SyntaxKind.GenericName:
-                    return BindIdentifier((SimpleNameSyntax)node, invoked, diagnostics);
+                    return BindIdentifier((SimpleNameSyntax)node, invoked, indexed, diagnostics);
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
                     return BindMemberAccess((MemberAccessExpressionSyntax)node, invoked, indexed, diagnostics: diagnostics);
@@ -1150,6 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindIdentifier(
             SimpleNameSyntax node,
             bool invoked,
+            bool indexed,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
@@ -1247,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbol = ConstructNamedTypeUnlessTypeArgumentOmitted(node, (NamedTypeSymbol)symbol, typeArgumentList, typeArguments, diagnostics);
                     }
 
-                    expression = BindNonMethod(node, symbol, diagnostics, lookupResult.Kind, isError);
+                    expression = BindNonMethod(node, symbol, diagnostics, lookupResult.Kind, indexed, isError);
 
                     if (!isNamedType && (hasTypeArguments || node.Kind() == SyntaxKind.GenericName))
                     {
@@ -1434,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private BoundExpression BindNonMethod(SimpleNameSyntax node, Symbol symbol, DiagnosticBag diagnostics, LookupResultKind resultKind, bool isError)
+        private BoundExpression BindNonMethod(SimpleNameSyntax node, Symbol symbol, DiagnosticBag diagnostics, LookupResultKind resultKind, bool indexed, bool isError)
         {
             // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
             if (symbol.Kind != SymbolKind.Event)
@@ -1576,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Field:
                     {
                         BoundExpression receiver = SynthesizeReceiver(node, symbol, diagnostics);
-                        return BindFieldAccess(node, receiver, (FieldSymbol)symbol, diagnostics, resultKind, indexed: false, hasErrors: isError);
+                        return BindFieldAccess(node, receiver, (FieldSymbol)symbol, diagnostics, resultKind, indexed, hasErrors: isError);
                     }
 
                 case SymbolKind.Namespace:
@@ -3508,7 +3509,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             receiver,
                             resultMember.Parameters,
                             arguments,
-                            refKinds,
                             argsToParamsOpt,
                             this.LocalScopeDepth,
                             diagnostics);
@@ -4659,7 +4659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         null,
                         method.Parameters,
                         arguments,
-                        refKinds,
                         argToParams,
                         this.LocalScopeDepth,
                         diagnostics);
@@ -5203,7 +5202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = (IdentifierNameSyntax)left;
                 var valueDiagnostics = DiagnosticBag.GetInstance();
-                var boundValue = BindIdentifier(node, invoked: false, diagnostics: valueDiagnostics);
+                var boundValue = BindIdentifier(node, invoked: false, indexed: false, diagnostics: valueDiagnostics);
 
                 Symbol leftSymbol;
                 if (boundValue.Kind == BoundKind.Conversion)
@@ -6154,6 +6153,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasError && fieldSymbol.IsFixed && !IsInsideNameof)
             {
+                // SPEC: In a member access of the form E.I, if E is of a struct type and a member lookup of I in
+                // that struct type identifies a fixed size member, then E.I is evaluated an classified as follows:
+                // * If the expression E.I does not occur in an unsafe context, a compile-time error occurs.
+                // * If E is classified as a value, a compile-time error occurs.
+                // * Otherwise, if E is a moveable variable and the expression E.I is not a fixed_pointer_initializer,
+                //   a compile-time error occurs.
+                // * Otherwise, E references a fixed variable and the result of the expression is a pointer to the
+                //   first element of the fixed size buffer member I in E. The result is of type S*, where S is
+                //   the element type of I, and is classified as a value.
+
                 TypeSymbol receiverType = receiver.Type;
 
                 // Reflect errors that have been reported elsewhere...
@@ -6162,11 +6171,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasError)
                 {
                     var isFixedStatementExpression = SyntaxFacts.IsFixedStatementExpression(node);
-                    Symbol accessedLocalOrParameterOpt;
-                    if (IsNonMoveableVariable(receiver, out accessedLocalOrParameterOpt) == isFixedStatementExpression)
+
+                    if (IsMoveableVariable(receiver, out Symbol accessedLocalOrParameterOpt) != isFixedStatementExpression)
                     {
                         if (indexed)
                         {
+                            // SPEC C# 7.3: If the fixed size buffer access is the receiver of an element_access_expression,
+                            // E may be either fixed or moveable
                             CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexingMovableFixedBuffers, diagnostics);
                         }
                         else
@@ -7013,7 +7024,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiver,
                         property.Parameters,
                         arguments,
-                        argumentRefKinds,
                         argsToParams,
                         this.LocalScopeDepth,
                         diagnostics);

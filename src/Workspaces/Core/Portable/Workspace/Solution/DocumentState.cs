@@ -402,42 +402,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(newText));
             }
 
-            // check to see if this docstate has already been branched before with the same text.
-            // this helps reduce duplicate parsing when typing.
-            if (mode == PreservationMode.PreserveIdentity)
-            {
-                var br = _firstBranch;
-                if (br != null && br.Text == newText)
-                {
-                    return br.State;
-                }
-            }
-
             var newVersion = this.GetNewerVersion();
             var newTextAndVersion = TextAndVersion.Create(newText, newVersion, this.FilePath);
 
-            var newState = this.UpdateText(newTextAndVersion, mode);
-
-            if (mode == PreservationMode.PreserveIdentity && _firstBranch == null)
-            {
-                Interlocked.CompareExchange(ref _firstBranch, new DocumentBranch(newText, newState), null);
-            }
-
-            return newState;
-        }
-
-        private DocumentBranch _firstBranch;
-
-        private class DocumentBranch
-        {
-            internal readonly SourceText Text;
-            internal readonly DocumentState State;
-
-            internal DocumentBranch(SourceText text, DocumentState state)
-            {
-                this.Text = text;
-                this.State = state;
-            }
+            return this.UpdateText(newTextAndVersion, mode);
         }
 
         public new DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)

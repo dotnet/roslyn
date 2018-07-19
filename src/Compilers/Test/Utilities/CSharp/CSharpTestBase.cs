@@ -1002,7 +1002,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return (null, null);
             }
 
-            return (model.GetOperation(syntaxNode), syntaxNode);
+            var operation = model.GetOperation(syntaxNode);
+            if (operation != null)
+            {
+                Assert.Same(model, operation.SemanticModel);
+            }
+            return (operation, syntaxNode);
         }
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)

@@ -43,12 +43,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _labelIdMap = new Dictionary<ILabelSymbol, uint>();
         }
 
-        public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
-        {
-            var actual = GetOperationTree(compilation, operation, initialIndent);
-            Assert.Equal(expectedOperationTree, actual);
-        }
-
         public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
             var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
@@ -102,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
 
             // Syntax
+            Assert.NotNull(operation.Syntax);
             LogString($" (Syntax: {GetSnippetFromSyntax(operation.Syntax)})");
 
             LogNewLine();
@@ -1096,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Indent();
             LogConversion(operation.Conversion);
 
-            if (((Operation)operation).SemanticModel == null)
+            if (((Operation)operation).OwningSemanticModel == null)
             {
                 LogNewLine();
                 Indent();
@@ -1275,6 +1270,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IAnonymousObjectCreationOperation));
             LogCommonPropertiesAndNewLine(operation);
 
+            foreach (var initializer in operation.Initializers)
+            {
+                var simpleAssignment = (ISimpleAssignmentOperation)initializer;
+                var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                Assert.Empty(propertyReference.Arguments);
+                Assert.Equal(OperationKind.InstanceReference, propertyReference.Instance.Kind);
+                Assert.Equal(InstanceReferenceKind.ImplicitReceiver, ((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind);
+            }
+
             VisitArray(operation.Initializers, "Initializers", logElementCount: true);
         }
 
@@ -1434,6 +1438,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" ({operation.ElementValues.Length} elements)");
             LogCommonPropertiesAndNewLine(operation);
 
+            Assert.Null(operation.Type);
             VisitArray(operation.ElementValues, "Element Values", logElementCount: true);
         }
 

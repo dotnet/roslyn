@@ -11369,7 +11369,7 @@ public class X
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Scope_Query_01()
         {
             var source =
@@ -12667,7 +12667,7 @@ public class X
             VerifyModelForOutVarWithoutDataFlow(model, y4Decl, y4Ref);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Query_01()
         {
             var source =
@@ -19347,7 +19347,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_01()
         {
             var text = @"
@@ -19386,7 +19386,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_02()
         {
             var text = @"
@@ -19425,7 +19425,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_03()
         {
             var text = @"
@@ -19497,8 +19497,9 @@ public class Cls
     }
 }";
             var compilation = CreateCompilation(text,
-                                                            options: TestOptions.ReleaseExe,
-                                                            parseOptions: TestOptions.Regular);
+                                                targetFramework: TargetFramework.Mscorlib45,
+                                                options: TestOptions.ReleaseExe,
+                                                parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (12,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
@@ -33939,8 +33940,8 @@ public class C
                 info.GetEnumeratorMethod.ToTestDisplayString());
         }
 
-        [Fact]
         [WorkItem(19382, "https://github.com/dotnet/roslyn/issues/19382")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void DiscardAndArgList()
         {
             var text = @"
