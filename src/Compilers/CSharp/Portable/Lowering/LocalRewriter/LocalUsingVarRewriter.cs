@@ -2,9 +2,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 {
@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                 {
                     if (localDeclaration.LocalSymbol.IsUsing)
                     {
-                        ImmutableArray<LocalSymbol> locals = ImmutableArray.Create<LocalSymbol>(localDeclaration.LocalSymbol);
-
                         List<BoundStatement> precedingStatements = new List<BoundStatement>();
                         for (int j = 0; j < i; j++)
                         {
@@ -69,11 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                 }
                 else if (statements[i] is BoundMultipleLocalDeclarations boundMultiple)
                 {
-                    if (boundMultiple.LocalDeclarations.Any())
+                    if (!boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
                     {
                         if (boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing)
                         {
-                            List<BoundStatement> precedingStatements = new List<BoundStatement>();
+                            ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(i);
                             for (int j = 0; j < i; j++)
                             {
                                 precedingStatements.Add(statements[j]);
@@ -91,10 +89,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 
         private BoundBlock LowerBoundMultipleLocalDeclarationUsingVar(BoundMultipleLocalDeclarations boundMultiple,
                                                                       ImmutableArray<LocalSymbol> locals,
-                                                                      List<BoundStatement> precedingStatements,
+                                                                      ArrayBuilder<BoundStatement> precedingStatements,
                                                                       ImmutableArray<BoundStatement> followingStatements)
         {
-            List<BoundLocalDeclaration> reversedLocals = Enumerable.Reverse(boundMultiple.LocalDeclarations).ToList();
+            int itemCount = boundMultiple.LocalDeclarations.Length;
+            ArrayBuilder<BoundLocalDeclaration> reversedLocals = ArrayBuilder<BoundLocalDeclaration>.GetInstance(itemCount);
+            reversedLocals.AddRange(boundMultiple.LocalDeclarations, itemCount);
+            reversedLocals.ReverseContents();
+
             List<BoundUsingStatement> reversedUsingStatements = new List<BoundUsingStatement>();
             for (int i = 0; i < reversedLocals.Count; i++)
             {
@@ -104,24 +106,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                 {
                     innerBlock = new BoundBlock(
                             syntax: boundMultiple.Syntax,
-                            locals: ImmutableArray.Create<LocalSymbol>(),
+                            locals: ImmutableArray<LocalSymbol>.Empty,
                             statements: followingStatements
                             );
                 }
                 // All other elements will only contain the previous element as a following statement.
                 else
                 {
-                    BoundStatement previousUsing = reversedUsingStatements.Last();
+                    BoundStatement previousUsing = reversedUsingStatements[reversedUsingStatements.Count - 1];
                     innerBlock = new BoundBlock(
                             syntax: boundMultiple.Syntax,
-                            locals: ImmutableArray.Create<LocalSymbol>(),
+                            locals: ImmutableArray<LocalSymbol>.Empty,
                             statements: ImmutableArray.Create(previousUsing)
                             );
                 }
 
                 BoundUsingStatement boundUsing = new BoundUsingStatement(
                         syntax: boundMultiple.Syntax,
-                        locals: ImmutableArray.Create<LocalSymbol>(),
+                        locals: ImmutableArray<LocalSymbol>.Empty,
                         declarationsOpt: new BoundMultipleLocalDeclarations(
                             boundMultiple.Syntax,
                             ImmutableArray.Create(boundMultiple.LocalDeclarations[i])),
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
                 reversedUsingStatements.Add(boundUsing);
             }
 
-            precedingStatements.Add((BoundStatement)reversedUsingStatements.Last());
+            precedingStatements.Add((BoundStatement)reversedUsingStatements[reversedUsingStatements.Count - 1]);
             BoundBlock outermostBlock = new BoundBlock(
                             syntax: boundMultiple.Syntax,
                             locals: locals,
