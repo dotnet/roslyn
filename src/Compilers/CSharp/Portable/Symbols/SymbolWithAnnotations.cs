@@ -187,6 +187,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool? IsNullable { get; }
         public abstract bool IsAnnotated { get; }
 
+        // AnnotationKind considers IsAnnotated and NonNullTypes only. Compare with
+        // IsNullable that also considers IsValueType. (Specifically, IsNullable==false
+        // for an unannotated value type, regardless of [NonNullTypes].)
+        protected enum AnnotationKind
+        {
+            Unannotated = 0, // Unannotated, [NonNullTypes(false)]
+            UnannotatedNonNull = 1, // Unannotated, [NonNullTypes(true)]
+            Annotated = 2 // Annotated
+        }
+
+        protected abstract AnnotationKind Annotation { get; }
+
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
         /// </summary>
@@ -271,11 +283,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((comparison & TypeCompareKind.CompareNullableModifiersForReferenceTypes) != 0 && other.IsNullable != this.IsNullable)
+            if ((comparison & TypeCompareKind.CompareNullableModifiersForReferenceTypes) != 0)
             {
-                if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 || (this.IsNullable.HasValue && other.IsNullable.HasValue))
+                var thisAnnotation = Annotation;
+                var otherAnnotation = other.Annotation;
+                if (otherAnnotation != thisAnnotation)
                 {
-                    return false;
+                    if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 || !(thisAnnotation == AnnotationKind.Unannotated || otherAnnotation == AnnotationKind.Unannotated))
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -540,6 +557,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbol TypeSymbol => _typeSymbol;
 
+            // PROTOTYPE(NullableReferenceTypes): IsNullable depends on IsValueType which
+            // can lead to cycles when IsNullable is queried early. Replace this property with
+            // the Annotation property that depends on IsAnnotated and NonNullTypes only.
             public override bool? IsNullable
             {
                 get
@@ -562,6 +582,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool IsAnnotated => _isAnnotated;
             public override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
+
+            protected override AnnotationKind Annotation
+            {
+                get
+                {
+                    if (_isAnnotated)
+                    {
+                        return AnnotationKind.Annotated;
+                    }
+                    return _nonNullTypes ?
+                        AnnotationKind.UnannotatedNonNull :
+                        AnnotationKind.Unannotated;
+                }
+            }
 
             internal bool NonNullTypes => _nonNullTypes;
 
@@ -643,6 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool? IsNullable => true;
             public override bool IsAnnotated => true;
+            protected override AnnotationKind Annotation => AnnotationKind.Annotated;
             public override bool IsVoid => false;
             public override bool IsSZArray() => false;
             public override bool IsStatic => false;

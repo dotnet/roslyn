@@ -1975,6 +1975,11 @@ class C<T>
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,7): warning CS8618: Non-nullable field '_f' is uninitialized.
+                // class C<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(3, 7));
         }
 
         [Fact]
@@ -1989,6 +1994,8 @@ class B<T> : A<T> where T : A<T>.I
 {
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -35246,6 +35253,31 @@ class C<T> where T : class
                 // (11,42): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
                 //     static void F8<U>() where U : I<T?>, I<T?> { }
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T?>").WithArguments("I<T>", "U").WithLocation(11, 42));
+        }
+
+        [Fact]
+        public void PartialClassConstraints()
+        {
+            var source =
+@"class A<T, U>
+    where T : A<T, U>
+    where U : B<T, U>
+{
+}
+partial class B<T, U>
+    where T : A<T, U>
+    where U : B<T, U>
+{
+}
+partial class B<T, U>
+    where T : A<T, U>
+    where U : B<T, U>
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
