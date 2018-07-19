@@ -21,6 +21,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Inte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj", "{346081A2-A088-4486-94B3-B586BD6FD888}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EF963386-CD2E-4E1F-938A-ADACA3CF0E17}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+		src\Directory.Build.targets = src\Directory.Build.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{b3bed6cb-abfe-4bb8-8af7-901ff0c6f027}*SharedItemsImports = 13
