@@ -17,6 +17,11 @@
     <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)ExtensionTesting.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
   <!-- StyleCop Analyzers configuration -->
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
