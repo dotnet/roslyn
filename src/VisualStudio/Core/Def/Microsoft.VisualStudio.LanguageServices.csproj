@@ -112,6 +112,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
     <!-- </TODO> -->
+<<<<<<< merges/master-to-features/razorFar
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
@@ -132,6 +133,29 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
+=======
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+    <InternalsVisibleToTest Include="RoslynETAHost" />
+    <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.CodeSense.Roslyn" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToTypeScript Include="ManagedSourceCodeAnalysis" />
+    <InternalsVisibleToTypeScript Include="CodeAnalysis" />
+    <InternalsVisibleToTypeScript Include="StanCore" />
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" />
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" />
+    <InternalsVisibleToFSharp Include="FSharp.Editor" />
+    <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
+    <InternalsVisibleToRazor Include="Microsoft.VisualStudio.LanguageServices.Razor"/>
+>>>>>>> features/razorFar
   </ItemGroup>
   <ItemGroup>
     <None Include="ManagedEditAndContinueService.vsdconfigxml" />

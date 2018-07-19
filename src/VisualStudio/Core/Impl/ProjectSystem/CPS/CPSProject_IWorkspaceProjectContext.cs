@@ -3,9 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Experiment;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -194,11 +195,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         #endregion
 
         #region Files
-        public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+        public void AddSourceFile(string filePath, bool isInCurrentContext, IEnumerable<string> folderNames, SourceCodeKind sourceCodeKind)
         {
             ExecuteForegroundAction(() =>
             {
-                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, folderNames.ToImmutableArrayOrEmpty());
+                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory: null);
+            });
+        }
+
+
+        public void AddSourceFile(
+            string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null,
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, IDocumentServiceFactory documentServiceFactory = null)
+        {
+            ExecuteForegroundAction(() =>
+            {
+                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory);
+            });
+        }
+
+        public void AddSourceFile(
+            string filePath, SourceTextContainer sourceTextContainer, bool isInCurrentContext = true, IEnumerable<string> folderNames = null,
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, IDocumentServiceFactory documentServiceFactory = null)
+        {
+            ExecuteForegroundAction(() =>
+            {
+                AddFile(filePath, sourceTextContainer, sourceCodeKind, _ => isInCurrentContext, folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory);
             });
         }
 

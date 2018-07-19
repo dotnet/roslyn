@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 folderNames = GetFolderNamesFromHierarchy(itemid);
             }
 
-            AddFile(filename, sourceCodeKind, getIsCurrentContext, folderNames);
+            AddFile(filename, sourceCodeKind, getIsCurrentContext, folderNames, documentServiceFactory: null);
         }
 
         protected void SetOutputPathAndRelatedData(string objOutputPath)
