@@ -8441,6 +8441,103 @@ End Module
 )
     End Sub
 
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithNoSpaceBeforeCommentV16()
+        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16 _
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.Latest)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWith1SpaceBeforeCommentV16()
+        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16 _
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.Latest)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithMultipleSpacesBeforeCommentV16()
+        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16 _
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _   ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.Latest)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV16()
+        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.Latest)
+        )
+    End Sub
+
+    ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV15_5()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
+            Diagnostic(ERRID.ERR_LineContWithCommentOrNoPrecSpace, "_").WithLocation(4, 34),
+            Diagnostic(ERRID.ERR_Syntax, "=").WithLocation(5, 21)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithoutComment()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _
+                    = 1
+            End Sub
+     End Module
+    ]]>
+        )
+    End Sub
+
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_01()
