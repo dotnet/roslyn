@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBEmbeddedSourceTests : CSharpTestBase
     {
-        [ConditionalFact(typeof(WindowsDesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28045")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
         public void StandalonePdb()
         {
             string source1 = @"

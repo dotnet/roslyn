@@ -1342,6 +1342,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Formatting document.
+        /// </summary>
+        internal static string Formatting_document {
+            get {
+                return ResourceManager.GetString("Formatting_document", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to from {0}.
         /// </summary>
         internal static string from_0 {
