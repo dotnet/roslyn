@@ -9,10 +9,10 @@
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net46</TargetFramework>
+    <IsShipping>false</IsShipping>
 
     <!-- Disable CA1825 (Avoid unnecessary zero-length array allocations. Use Array.Empty<X>() instead) as Array.Empty not available in one of the targets for this shared project -->
     <NoWarn>$(NoWarn);CA1825</NoWarn>
-    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.CSharp" />
