@@ -23,21 +23,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             new ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>>();
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
-            Project project, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
+            Project project, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
                 project, searchDocument: null, pattern: searchPattern, kinds, cancellationToken: cancellationToken);
         }
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
-            Document document, string searchPattern, ISet<string> kinds, CancellationToken cancellationToken)
+            Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
                 document.Project, document, searchPattern, kinds, cancellationToken);
         }
 
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindSearchResultsAsync(
-            Project project, Document searchDocument, string pattern, ISet<string> kinds, CancellationToken cancellationToken)
+            Project project, Document searchDocument, string pattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);

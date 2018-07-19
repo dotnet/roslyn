@@ -234,6 +234,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Applying changes.
+        /// </summary>
+        internal static string Applying_changes {
+            get {
+                return ResourceManager.GetString("Applying_changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying &quot;Encapsulate Field&quot; refactoring....
         /// </summary>
         internal static string Applying_Encapsulate_Field_refactoring {
@@ -477,20 +486,20 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code Completion.
-        /// </summary>
-        internal static string Code_Completion {
-            get {
-                return ResourceManager.GetString("Code_Completion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Code cleanup is not configured.
         /// </summary>
         internal static string Code_cleanup_is_not_configured {
             get {
                 return ResourceManager.GetString("Code_cleanup_is_not_configured", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code Completion.
+        /// </summary>
+        internal static string Code_Completion {
+            get {
+                return ResourceManager.GetString("Code_Completion", resourceCulture);
             }
         }
         
@@ -1999,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We can fix the error by not making struct &quot;out/ref&quot; parameter(s). 
+        ///   Looks up a localized string similar to We can fix the error by not making struct &quot;out/ref&quot; parameter(s).
         ///Do you want to proceed?.
         /// </summary>
         internal static string We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed {
