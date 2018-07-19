@@ -2768,7 +2768,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "https://github.com/dotnet/roslyn/issues/23685"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/23685"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         public async Task TestOpenProject_MetadataReferenceHasDocComments()
         {
@@ -2942,7 +2942,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "MSBuild parsing API throws InvalidProjectFileException")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "MSBuild parsing API throws InvalidProjectFileException")]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531283, "DevDiv")]
         public async Task TestOpenSolution_SolutionFileHasMissingEndProject()

@@ -222,7 +222,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
+    <InternalsVisibleTo Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
   </ItemGroup>
   <!-- These are None\content items above. Don't pass them to the compiler. -->
   <ItemGroup>
