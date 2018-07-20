@@ -213,34 +213,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool NonNullTypes { get; }
 
-        internal enum AnnotationKind
-        {
-            Unannotated = 0, // Unannotated, [NonNullTypes(false)]
-            UnannotatedNonNull = 1, // Unannotated, [NonNullTypes(true)]
-            Annotated = 2 // Annotated
-        }
-
         /// <summary>
-        /// Annotation considers IsAnnotated and NonNullTypes only. Compare with
+        /// Returns:
+        /// true if annotated;
+        /// false if unannotated and [NonNullTypes(true); and
+        /// null if unannotated and [NonNullTypes(false).
+        /// </summary>
+        /// <remarks>
+        /// This property considers IsAnnotated and NonNullTypes only. Compare with
         /// IsNullable that also considers IsValueType. (Specifically, IsNullable==false
         /// for an unannotated value type, regardless of [NonNullTypes].)
-        /// </summary>
-        internal AnnotationKind Annotation
+        /// </remarks>
+        internal bool? IsAnnotatedWithNonNullTypesContext
         {
-            // PROTOTYPE(NullableReferenceTypes): Remove property and enum
-            // and compare IsAnnotated and NonNullTypes directly in Equals.
             get
             {
                 if (IsAnnotated)
                 {
-                    return AnnotationKind.Annotated;
+                    return true;
                 }
-                return NonNullTypes ?
-                    AnnotationKind.UnannotatedNonNull :
-                    AnnotationKind.Unannotated;
+                return NonNullTypes ? false : (bool?)null;
             }
         }
-
 
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
@@ -329,12 +323,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((comparison & TypeCompareKind.CompareNullableModifiersForReferenceTypes) != 0)
             {
-                var thisAnnotation = Annotation;
-                var otherAnnotation = other.Annotation;
-                if (otherAnnotation != thisAnnotation)
+                var thisIsAnnotated = IsAnnotatedWithNonNullTypesContext;
+                var otherIsAnnotated = other.IsAnnotatedWithNonNullTypesContext;
+                if (otherIsAnnotated != thisIsAnnotated)
                 {
                     if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 ||
-                        !(thisAnnotation == AnnotationKind.Unannotated || otherAnnotation == AnnotationKind.Unannotated))
+                        (thisIsAnnotated != null && otherIsAnnotated != null))
                     {
                         return false;
                     }

@@ -40,15 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(interfaceMethod);
 
             // alpha-rename to get the implementation's type parameters
-            bool nonNullTypes = GetNonNullTypes(interfaceMethod);
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
-            typeMap.WithAlphaRename(interfaceMethod, this, nonNullTypes, out _typeParameters);
+            typeMap.WithAlphaRename(interfaceMethod, this, NonNullTypes, out _typeParameters);
 
-            _interfaceMethod = interfaceMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(nonNullTypes));
+            _interfaceMethod = interfaceMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(NonNullTypes));
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);
         }
-
-        private static bool GetNonNullTypes(MethodSymbol interfaceMethod) => interfaceMethod.OriginalDefinition.NonNullTypes;
 
         #region Delegate to interfaceMethod
 
@@ -91,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return GetTypeParametersAsTypeArguments(GetNonNullTypes(_interfaceMethod)); }
+            get { return GetTypeParametersAsTypeArguments(NonNullTypes); }
         }
 
         public override RefKind RefKind
@@ -262,5 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ImmutableArray<string>.Empty;
         }
+
+        internal override bool NonNullTypes => false;
     }
 }

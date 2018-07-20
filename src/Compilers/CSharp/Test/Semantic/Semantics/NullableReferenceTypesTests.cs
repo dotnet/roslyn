@@ -2762,32 +2762,32 @@ class C3
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-            verify("C1.F1", "System.String!", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C1.F2", "System.String?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C1.F3", "System.Int32", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C1.F4", "System.Int32?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C1.F5", "System.Int32?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C2.F1", "System.String", isAnnotated: false, isNullable: null, annotation: TypeSymbolWithAnnotations.AnnotationKind.Unannotated);
-            verify("C2.F2", "System.String?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C2.F3", "System.Int32", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.Unannotated);
-            verify("C2.F4", "System.Int32?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C2.F5", "System.Int32?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C3.F1", "System.String!", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C3.F2", "System.String?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C3.F3", "System.Int32", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C3.F4", "System.Int32?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C3.F5", "System.Int32?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
+            verify("C1.F1", "System.String!", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C1.F2", "System.String?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C1.F3", "System.Int32", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C1.F4", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C1.F5", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C2.F1", "System.String", isAnnotated: false, isNullable: null, isAnnotatedWithContext: null);
+            verify("C2.F2", "System.String?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C2.F3", "System.Int32", isAnnotated: false, isNullable: false, isAnnotatedWithContext: null);
+            verify("C2.F4", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C2.F5", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C3.F1", "System.String!", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C3.F2", "System.String?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C3.F3", "System.Int32", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C3.F4", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C3.F5", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
 
             // PROTOTYPE(NullableReferenceTypes): Test nested nullability.
 
-            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable, TypeSymbolWithAnnotations.AnnotationKind annotation)
+            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable, bool? isAnnotatedWithContext)
             {
                 var method = comp.GetMember<MethodSymbol>(methodName);
                 var type = method.ReturnType;
                 Assert.Equal(displayName, type.ToTestDisplayString(true));
                 Assert.Equal(isAnnotated, type.IsAnnotated);
                 Assert.Equal(isNullable, type.IsNullable);
-                Assert.Equal(annotation, type.Annotation);
+                Assert.Equal(isAnnotatedWithContext, type.IsAnnotatedWithNonNullTypesContext);
             }
         }
 
@@ -2831,39 +2831,39 @@ class C3
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-            verify("C1.F1", "T!", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C1.F2", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C1.F3", "T!", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C1.F4", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C1.F5", "T", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C1.F6", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C1.F7", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C2.F1", "T", isAnnotated: false, isNullable: null, annotation: TypeSymbolWithAnnotations.AnnotationKind.Unannotated);
-            verify("C2.F2", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C2.F3", "T", isAnnotated: false, isNullable: null, annotation: TypeSymbolWithAnnotations.AnnotationKind.Unannotated);
-            verify("C2.F4", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C2.F5", "T", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.Unannotated);
-            verify("C2.F6", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C2.F7", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C3.F1", "T!", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C3.F2", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C3.F3", "T!", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C3.F4", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C3.F5", "T", isAnnotated: false, isNullable: false, annotation: TypeSymbolWithAnnotations.AnnotationKind.UnannotatedNonNull);
-            verify("C3.F6", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
-            verify("C3.F7", "T?", isAnnotated: true, isNullable: true, annotation: TypeSymbolWithAnnotations.AnnotationKind.Annotated);
+            verify("C1.F1", "T!", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C1.F2", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C1.F3", "T!", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C1.F4", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C1.F5", "T", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C1.F6", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C1.F7", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C2.F1", "T", isAnnotated: false, isNullable: null, isAnnotatedWithContext: null);
+            verify("C2.F2", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C2.F3", "T", isAnnotated: false, isNullable: null, isAnnotatedWithContext: null);
+            verify("C2.F4", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C2.F5", "T", isAnnotated: false, isNullable: false, isAnnotatedWithContext: null);
+            verify("C2.F6", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C2.F7", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C3.F1", "T!", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C3.F2", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C3.F3", "T!", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C3.F4", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C3.F5", "T", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
+            verify("C3.F6", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C3.F7", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
 
             // PROTOTYPE(NullableReferenceTypes): Test nested nullability.
             // PROTOTYPE(NullableReferenceTypes): Test all combinations of overrides.
 
-            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable, TypeSymbolWithAnnotations.AnnotationKind annotation)
+            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable, bool? isAnnotatedWithContext)
             {
                 var method = comp.GetMember<MethodSymbol>(methodName);
                 var type = method.ReturnType;
                 Assert.Equal(displayName, type.ToTestDisplayString(true));
                 Assert.Equal(isAnnotated, type.IsAnnotated);
                 Assert.Equal(isNullable, type.IsNullable);
-                Assert.Equal(annotation, type.Annotation);
+                Assert.Equal(isAnnotatedWithContext, type.IsAnnotatedWithNonNullTypesContext);
             }
         }
 
