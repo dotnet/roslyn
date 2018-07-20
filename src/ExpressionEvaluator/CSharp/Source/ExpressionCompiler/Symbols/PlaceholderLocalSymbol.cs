@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 type = DecodeDynamicTypes(type, sourceAssembly, dynamicFlags);
             }
 
-            type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(nonNullTypes: false, type, tupleElementNames.AsImmutableOrNull());
+            type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNames.AsImmutableOrNull());
 
             var name = alias.FullName;
             var displayName = alias.Name;
