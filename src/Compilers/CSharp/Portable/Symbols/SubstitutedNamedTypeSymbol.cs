@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters;
 
             // We're creating a new unconstructed Method from another; alpha-rename type parameters.
-            var newMap = _inputMap.WithAlphaRename(OriginalDefinition, this, OriginalDefinition.NonNullTypes, out typeParameters);
+            var newMap = _inputMap.WithAlphaRename(OriginalDefinition, this, NonNullTypes, out typeParameters);
 
             var prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
             if (prevMap != null)
@@ -364,6 +364,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override bool NonNullTypes => OriginalDefinition.NonNullTypes;
+        internal sealed override bool NonNullTypes => false;
     }
 }

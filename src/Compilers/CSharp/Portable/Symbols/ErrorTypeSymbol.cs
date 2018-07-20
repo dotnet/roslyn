@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _hashCode;
         }
 
-        internal override bool NonNullTypes => _originalDefinition.NonNullTypes;
+        internal override bool NonNullTypes => false;
     }
 
     internal sealed class ConstructedErrorTypeSymbol : SubstitutedErrorTypeSymbol
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(originalDefinition)
         {
             _containingSymbol = containingSymbol;
-            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, originalDefinition.NonNullTypes, out _typeParameters);
+            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, nonNullTypes: NonNullTypes, out _typeParameters);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters

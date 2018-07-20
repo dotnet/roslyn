@@ -219,6 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments()
         {
+            // Resolving [NonNullTypes] only makes sense within the definition of the generic type
+            // or method. If this is a substituted symbol, we use the default NonNullTypes context.
             var definition = OriginalDefinition;
             bool nonNullTypes = (object)this == definition ? definition.NonNullTypes : false;
             return GetTypeParametersAsTypeArguments(nonNullTypes);
