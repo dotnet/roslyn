@@ -337,7 +337,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     "'break' or 'continue' kinds, but the current branch kind provided is '{branchOperation.Kind}'.");
             }
 
-            return FindCorrespondingOperation<ILoopOperation>(branchOperation);
+            return FindCorrespondingOperation<ILoopOperation>(branchOperation, 
+                op => op is ISwitchOperation && branchOperation.BranchKind == BranchKind.Break);
         }
 
         /// <summary>
@@ -354,16 +355,21 @@ namespace Microsoft.CodeAnalysis.Operations
                     "'break' kind, but the current branch kind provided is '{branchOperation.Kind}'.");
             }
 
-            return FindCorrespondingOperation<ISwitchOperation>(branchOperation);
+            return FindCorrespondingOperation<ISwitchOperation>(branchOperation, op => op is ILoopOperation);
         }
 
-        private static T FindCorrespondingOperation<T>(IOperation operation) where T : class, IOperation
+        private static T FindCorrespondingOperation<T>(IOperation operation, Func<IOperation, bool> shouldStopAscending) where T : IOperation
         {
             for (var current = operation; current.Parent != null; current = current.Parent)
             {
-                if (current is ILoopOperation || current is ISwitchOperation)
+                if (current is T corresponding)
                 {
-                    return current as T;
+                    return corresponding;
+                }
+
+                if (shouldStopAscending(current))
+                {
+                    return default;
                 }
             }
 

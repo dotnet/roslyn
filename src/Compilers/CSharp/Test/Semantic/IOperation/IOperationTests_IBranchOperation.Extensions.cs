@@ -222,7 +222,7 @@ class C
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
-        public void GetCorrespondingSwitch_LoopInSwitch()
+        public void GetCorrespondingLoop_LoopInSwitch()
         {
             AssertOuterIsCorrespondingLoopOfInner<ForStatementSyntax, BreakStatementSyntax>(@"
 class C
@@ -260,6 +260,29 @@ class C
                 /*<bind>*/break;/*</bind>*/
             }/*</bind>*/
         }
+    }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [Fact]
+        public void GetCorrespondingLoop_ContinueNestedInIntermediateSwitch()
+        {
+            AssertOuterIsCorrespondingLoopOfInner<ForStatementSyntax, ContinueStatementSyntax>(@"
+class C
+{
+    void F()
+    {
+        /*<bind>*/for (;;)
+        {
+            switch (1)
+            {
+                case 1:
+                    /*<bind>*/continue;/*</bind>*/
+                    break;
+            }
+        }/*</bind>*/
     }
 }");
         }
