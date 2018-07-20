@@ -4,13 +4,11 @@
   <PropertyGroup>
     <TargetFramework>net452</TargetFramework>
     <Platforms>x86</Platforms>
-
-    <VSInstallRoot>$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0@InstallDir)</VSInstallRoot>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="$(VSInstallRoot)PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
-    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="$(VSInstallRoot)PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="..\ref\14\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="..\ref\14\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
   </ItemGroup>
 
   <ItemGroup>

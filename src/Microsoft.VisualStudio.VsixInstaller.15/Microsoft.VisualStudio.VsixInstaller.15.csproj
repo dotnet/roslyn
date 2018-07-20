@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.ExtensionEngine" HintPath="$(MSBuildProgramFiles32)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll" Private="false" />
-    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="$(MSBuildProgramFiles32)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
-    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="$(MSBuildProgramFiles32)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionEngine" HintPath="..\ref\15\Microsoft.VisualStudio.ExtensionEngine.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="..\ref\15\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="..\ref\15\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
