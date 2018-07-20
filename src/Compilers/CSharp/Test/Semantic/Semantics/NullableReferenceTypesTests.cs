@@ -4715,10 +4715,7 @@ class B : A
             var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should report return type mismatch
             // for M1 and M2 (see https://github.com/dotnet/roslyn/issues/28684).
-            compilation.VerifyDiagnostics(
-                // (20,16): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
-                //         return new string?[] {};
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new string?[] {}").WithArguments("string?[]", "string[]").WithLocation(20, 16));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4858,13 +4855,13 @@ class B : IA
         }
 
         [Fact]
-        public void Implementing_11()
+        public void ImplementingNonNullWithNullable()
         {
             var source = @"
 interface IA
 {
-    string[] M1(); 
-    T[] M2<T>() where T : class; 
+    string[] M1();
+    T[] M2<T>() where T : class;
 }
 
 class B : IA
@@ -4873,23 +4870,73 @@ class B : IA
     string?[] IA.M1()
     {
         return new string?[] {};
-    } 
+    }
 
     [System.Runtime.CompilerServices.NonNullTypes(false)]
-    S?[] IA.M2<S>() 
+    S?[] IA.M2<S>()
     {
         return new S?[] {};
-    } 
+    }
+}
+";
+            // PROTOTYPE(NullableReferenceTypes): missing a warning on IA.M2
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            compilation.VerifyDiagnostics(
+                // (11,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
+                //     string?[] IA.M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(11, 18)
+                );
+        }
+
+        [Fact]
+        public void ImplementingNullableWithNonNull()
+        {
+            var source = @"
+interface IA
+{
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    string?[] M1();
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    T?[] M2<T>() where T : class;
+}
+
+class B : IA
+{
+    string[] IA.M1() => throw null;
+    S[] IA.M2<S>() => throw null;
 }
 ";
             var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Should report return type mismatch
-            // for M1 and M2 (see https://github.com/dotnet/roslyn/issues/28684).
             compilation.VerifyDiagnostics(
-                // (13,16): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
-                //         return new string?[] {};
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new string?[] {}").WithArguments("string?[]", "string[]").WithLocation(13, 16)
+                // (13,12): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T?[] IA.M2<T>()'.
+                //     S[] IA.M2<S>() => throw null;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M2").WithArguments("T?[] IA.M2<T>()").WithLocation(13, 12),
+                // (12,17): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string?[] IA.M1()'.
+                //     string[] IA.M1() => throw null;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string?[] IA.M1()").WithLocation(12, 17)
                 );
+        }
+
+        [Fact]
+        public void ImplementingObliviousWithNonNull()
+        {
+            var source = @"
+interface IA
+{
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    string[] M1();
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    T[] M2<T>() where T : class;
+}
+
+class B : IA
+{
+    string[] IA.M1() => throw null;
+    S[] IA.M2<S>() => throw null;
+}
+";
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -35700,13 +35747,12 @@ public class A2<T> { }
 }";
             var comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-            // PROTOTYPE(NullableReferenceTypes): Should be ~ rather than !.
             var typeParameters = comp.GetMember<NamedTypeSymbol>("B1").TypeParameters;
-            Assert.Equal("A1!", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            Assert.Equal("A1", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
             Assert.Equal("A1?", typeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
             typeParameters = comp.GetMember<NamedTypeSymbol>("B2").TypeParameters;
-            Assert.Equal("A2<System.Object!>!", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
-            Assert.Equal("A2<System.Object?>!", typeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            Assert.Equal("A2<System.Object>", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            Assert.Equal("A2<System.Object?>", typeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
         }
 
         [Fact]
@@ -35774,9 +35820,9 @@ class B4 : A<string?>
                 verifyConstraintTypes("B1.F2", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B1.F3", "System.String", "I<System.String>");
                 verifyConstraintTypes("B1.F4", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B2.F1", "System.String", "I<System.String>"); // PROTOTYPE(NullableReferenceTypes): Should be "System.String?", "I<System.String?>"
+                verifyConstraintTypes("B2.F1", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B2.F2", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B2.F3", "System.String", "I<System.String>"); // PROTOTYPE(NullableReferenceTypes): Should be "System.String?", "I<System.String?>"
+                verifyConstraintTypes("B2.F3", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B2.F4", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B3.F1", "System.String!", "I<System.String!>");
                 verifyConstraintTypes("B3.F2", "System.String?", "I<System.String?>");

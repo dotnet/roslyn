@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.TupleType:
                     {
-                        return TypeSymbolWithAnnotations.Create(BindTupleType((TupleTypeSyntax)syntax, diagnostics));
+                        return TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, BindTupleType((TupleTypeSyntax)syntax, diagnostics));
                     }
 
                 case SyntaxKind.RefType:

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // type parameters in UnconstrainedTypeParameter_Return_03.
 
             if ((!isAnnotated && typeSymbol is TypeParameterSymbol) ||
-                (isAnnotated && typeSymbol.IsReferenceType))
+                (isAnnotated && typeSymbol.IsReferenceType && !typeSymbol.IsNullableType()))
             {
                 // T (leave unannotated)
                 // string? (leave annotated)
@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // T? where T : class (leave annotated)
                 // string, int (leave unannotated)
                 // int?, T? where T : struct (add annotation)
+                // int? (error type)
                 isAnnotated = typeSymbol.IsNullableType();
             }
 
@@ -705,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool? IsNullable => true;
             public override bool IsAnnotated => true;
-            public override INonNullTypesContext NonNullTypesContext => throw ExceptionUtilities.Unreachable;
+            public override INonNullTypesContext NonNullTypesContext => _underlying.NonNullTypesContext;
             public override bool IsVoid => false;
             public override bool IsSZArray() => false;
             public override bool IsStatic => false;
