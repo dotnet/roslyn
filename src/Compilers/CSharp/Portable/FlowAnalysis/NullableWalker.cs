@@ -1461,9 +1461,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (operandComparedToNull.Type?.IsReferenceType == true)
                         {
-                            Normalize(ref this.State);
                             var slotBuilder = ArrayBuilder<int>.GetInstance();
                             getOperandSlots(operandComparedToNull, slotBuilder);
+                            Normalize(ref this.State);
                             if (slotBuilder.Count != 0)
                             {
                                 Split();
@@ -1473,16 +1473,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     state[slot] = true;
                                 }
                             }
+
+                            slotBuilder.Free();
                         }
                     }
                 }
             }
 
-            void getOperandSlots(BoundExpression operand, ArrayBuilder<int> slotListBuilder)
+            void getOperandSlots(BoundExpression operand, ArrayBuilder<int> slotBuilder)
             {
                 Debug.Assert(operand != null);
                 Debug.Assert(_lastConditionalAccessSlot == -1);
-                int slot;
 
                 do
                 {
@@ -1497,6 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // locals have slots. The AccessExpression of the BoundConditionalAccess is another BoundConditionalAccess, this time
                     // with a receiver of the GetB() BoundCall. Attempting to get a slot for this receiver will fail, and we'll
                     // return an array with just the slot for a.
+                    int slot;
                     switch (operand.Kind)
                     {
                         case BoundKind.Conversion:
@@ -1512,11 +1514,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // If we got a slot we must have processed the previous conditional receiver.
                                 Debug.Assert(_lastConditionalAccessSlot == -1);
 
-                                slotListBuilder.Add(slot);
+                                slotBuilder.Add(slot);
 
                                 // When MakeSlot is called on the nested AccessExpression, it will recurse through receivers
                                 // until it gets to the BoundConditionalReceiver associated with this node. In our override,
-                                // we substitute this slot when we encounter a BoundConditionalAccessReceiver, and reset the
+                                // we substitute this slot when we encounter a BoundConditionalReceiver, and reset the
                                 // _lastConditionalAccess field.
                                 _lastConditionalAccessSlot = slot;
                                 operand = conditional.AccessExpression;
@@ -1534,12 +1536,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // c.D has been invoked, c must be nonnull or we've thrown a NullRef), revisit whether
                             // we need more special handling here
 
+                            // If we're in this case, then all previous BoundCondtionalReceivers must have been handled.
+                            Debug.Assert(_lastConditionalAccessSlot == -1);
                             slot = MakeSlot(operand);
                             if (slot > 0)
                             {
-                                // If we got a slot we must have processed the previous conditional receiver.
-                                Debug.Assert(_lastConditionalAccessSlot == -1);
-                                slotListBuilder.Add(slot);
+                                slotBuilder.Add(slot);
                             }
                             break;
                     }
