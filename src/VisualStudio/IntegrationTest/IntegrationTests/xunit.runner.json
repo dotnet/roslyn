@@ -1,3 +1,6 @@
 {
-  "appDomain": "denied"
+  "appDomain": "denied",
+  "shadowCopy": false,
+  "parallelizeTestCollections": false,
+  "diagnosticMessages": false
 }
