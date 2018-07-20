@@ -103,6 +103,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
+            // if the containing symbol is a class, as for attributes, then we can't do anything
+            if (context.ContainingSymbol.Kind == SymbolKind.NamedType)
+            {
+                return;
+            }
+
             var simpleName = instanceOperation.Syntax as TSimpleNameSyntax;
             if (simpleName == null)
             {
