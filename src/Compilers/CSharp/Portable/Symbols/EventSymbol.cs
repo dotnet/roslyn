@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasSpecialName { get; }
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {

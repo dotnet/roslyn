@@ -20,9 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly System.Func<TypeSymbol, TypeSymbolWithAnnotations> AsTypeSymbolWithAnnotations = t => TypeSymbolWithAnnotations.Create(t);
         public static readonly System.Func<TypeSymbolWithAnnotations, TypeSymbol> AsTypeSymbol = t => t.TypeSymbol;
 
-        internal static ImmutableArray<TypeSymbolWithAnnotations> TypeParametersAsTypeSymbolsWithAnnotations(bool nonNullTypes, ImmutableArray<TypeParameterSymbol> typeParameters)
+        internal static ImmutableArray<TypeSymbolWithAnnotations> TypeParametersAsTypeSymbolsWithAnnotations(INonNullTypesContext nonNullTypesContext, ImmutableArray<TypeParameterSymbol> typeParameters)
         {
-            return typeParameters.SelectAsArray((tp, n) => TypeSymbolWithAnnotations.Create(tp, n, isAnnotated: false, customModifiers: ImmutableArray<CustomModifier>.Empty), nonNullTypes);
+            return typeParameters.SelectAsArray((tp, c) =>
+                TypeSymbolWithAnnotations.Create(tp, nonNullTypesContext: c, isAnnotated: false, customModifiers: ImmutableArray<CustomModifier>.Empty),
+                nonNullTypesContext);
         }
 
         internal static ImmutableArray<TypeSymbol> AsTypeSymbols(ImmutableArray<TypeSymbolWithAnnotations> typesOpt)
@@ -39,8 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Only when the caller passes allowAlpha=true do we tolerate substituted (alpha-renamed) type parameters as keys
-        internal TypeMap(bool nonNullTypes, ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeParameterSymbol> to, bool allowAlpha = false)
-            : this(from, TypeParametersAsTypeSymbolsWithAnnotations(nonNullTypes, to), allowAlpha)
+        internal TypeMap(INonNullTypesContext nonNullTypesContext, ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeParameterSymbol> to, bool allowAlpha = false)
+            : this(from, TypeParametersAsTypeSymbolsWithAnnotations(nonNullTypesContext, to), allowAlpha)
         {
             // mapping contents are read-only hereafter
         }
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private TypeMap WithAlphaRename(ImmutableArray<TypeParameterSymbol> oldTypeParameters, Symbol newOwner, bool nonNullTypes, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
+        private TypeMap WithAlphaRename(ImmutableArray<TypeParameterSymbol> oldTypeParameters, Symbol newOwner, INonNullTypesContext nonNullTypesContext, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             if (oldTypeParameters.Length == 0)
             {
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newTp = synthesized ?
                     new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal) :
                     new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
-                result.Mapping.Add(tp, TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes, newTp));
+                result.Mapping.Add(tp, TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext, newTp));
                 newTypeParametersBuilder.Add(newTp);
                 ordinal++;
             }
@@ -128,22 +130,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal TypeMap WithAlphaRename(NamedTypeSymbol oldOwner, NamedTypeSymbol newOwner, bool nonNullTypes, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
+        internal TypeMap WithAlphaRename(NamedTypeSymbol oldOwner, NamedTypeSymbol newOwner, INonNullTypesContext nonNullTypesContext, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
-            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, nonNullTypes, out newTypeParameters);
+            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, nonNullTypesContext, out newTypeParameters);
         }
 
-        internal TypeMap WithAlphaRename(MethodSymbol oldOwner, Symbol newOwner, bool nonNullTypes, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
+        internal TypeMap WithAlphaRename(MethodSymbol oldOwner, Symbol newOwner, INonNullTypesContext nonNullTypesContext, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
-            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, nonNullTypes, out newTypeParameters);
+            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, nonNullTypesContext, out newTypeParameters);
         }
 
         internal TypeMap WithConcatAlphaRename(
             MethodSymbol oldOwner,
             Symbol newOwner,
-            bool nonNullTypes,
+            INonNullTypesContext nonNullTypesContext,
             out ImmutableArray<TypeParameterSymbol> newTypeParameters,
             out ImmutableArray<TypeParameterSymbol> oldTypeParameters,
             MethodSymbol stopAt = null)
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 stopAt?.MethodKind == MethodKind.Constructor);
 
             oldTypeParameters = parameters.ToImmutableAndFree();
-            return WithAlphaRename(oldTypeParameters, newOwner, nonNullTypes, out newTypeParameters);
+            return WithAlphaRename(oldTypeParameters, newOwner, nonNullTypesContext, out newTypeParameters);
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeSymbolWithAnnotations> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeSymbolWithAnnotations> to)

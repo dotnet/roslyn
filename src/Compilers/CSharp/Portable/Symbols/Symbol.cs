@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// PROTOTYPE(NullableReferenceTypes): presumably whether the feature is turned on or off will affect NonNullTypes default value on source module.
         /// Not valid to call on non-definitions.
         /// </summary>
-        internal virtual bool NonNullTypes
+        public virtual bool NonNullTypes
         {
             get
             {

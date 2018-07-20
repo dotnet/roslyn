@@ -222,12 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Resolving [NonNullTypes] only makes sense within the definition of the generic type
             // or method. If this is a substituted symbol, we use the default NonNullTypes context.
             var definition = OriginalDefinition;
-            bool nonNullTypes = (object)this == definition ? definition.NonNullTypes : false;
-            return GetTypeParametersAsTypeArguments(nonNullTypes);
+            INonNullTypesContext nonNullTypesContext = (object)this == definition ? definition : NonNullTypesContextFalse.Instance;
+            return GetTypeParametersAsTypeArguments(nonNullTypesContext);
         }
 
-        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments(bool nonNullTypes) =>
-            TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(nonNullTypes, TypeParameters);
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments(INonNullTypesContext nonNullTypesContext) =>
+            TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(nonNullTypesContext, TypeParameters);
 
         /// <summary>
         /// Call <see cref="TryGetThisParameter"/> and throw if it returns false.
@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {

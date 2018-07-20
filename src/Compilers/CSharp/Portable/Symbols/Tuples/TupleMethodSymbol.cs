@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(underlyingMethod.ConstructedFrom == (object)underlyingMethod);
             _containingType = container;
 
-            TypeMap.Empty.WithAlphaRename(underlyingMethod, this, NonNullTypes, out _typeParameters);
-            _underlyingMethod = underlyingMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(NonNullTypes));
+            TypeMap.Empty.WithAlphaRename(underlyingMethod, this, nonNullTypesContext: this, out _typeParameters);
+            _underlyingMethod = underlyingMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(nonNullTypesContext: this));
         }
 
         public override bool IsTupleMethod
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetTypeParametersAsTypeArguments(NonNullTypes);
+                return GetTypeParametersAsTypeArguments(nonNullTypesContext: this);
             }
         }
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal override bool NonNullTypes => false;
+        public override bool NonNullTypes => false;
 
         public override int GetHashCode()
         {

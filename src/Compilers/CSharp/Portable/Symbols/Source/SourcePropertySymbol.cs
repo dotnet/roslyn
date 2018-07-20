@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (_lazyType.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
                         _lazyType = _lazyType.Update(
-                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, _lazyType.TypeSymbol, this.ContainingAssembly, this.NonNullTypes),
+                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, _lazyType.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: this),
                             overriddenPropertyType.CustomModifiers);
                     }
 
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (syntax.Kind() == SyntaxKind.IndexerDeclaration) ? ((IndexerDeclarationSyntax)syntax).ParameterList : null;
         }
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {

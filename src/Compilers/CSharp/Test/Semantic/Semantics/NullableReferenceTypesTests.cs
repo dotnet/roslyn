@@ -1845,7 +1845,7 @@ public class Oblivious { }
             VerifyNonNullTypes(compilation.GetMember("Oblivious"), false);
         }
 
-        [Fact(Skip = "Hit assertion in BindNamespaceOrTypeOrAliasSymbol, since only bool is special-cased")]
+        [Fact]
         public void NonNullTypes_OnModule_WithExtraConstructor()
         {
             var obliviousLib = @"
@@ -1863,7 +1863,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
+            var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular8);
             obliviousComp.VerifyDiagnostics();
             VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
 

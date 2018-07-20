@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SourceParameterSymbol WithCustomModifiersAndParamsCore(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
         {
-            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type.TypeSymbol, this.ContainingAssembly, destinationUsesNonNullTypes: false); // PROTOTYPE(NullableReferenceTypes): handle this
+            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: null); // PROTOTYPE(NullableReferenceTypes): handle this
 
             TypeSymbolWithAnnotations newTypeWithModifiers = this.Type.Update(newType, newCustomModifiers);
 
