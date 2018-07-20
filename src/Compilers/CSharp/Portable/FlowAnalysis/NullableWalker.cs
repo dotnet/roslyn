@@ -786,14 +786,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void VisitPattern(BoundExpression expression, TypeSymbolWithAnnotations expressionResultType, BoundPattern pattern)
         {
-            bool? nullKnowledge = null;
+            bool? isNull = null; // the pattern tells us the expression (1) is null, (2) isn't null, or (3) we don't know.
             switch (pattern.Kind)
             {
                 case BoundKind.ConstantPattern:
                     // If the constant is null, the pattern tells us the expression is null.
                     // If the constant is not null, the pattern tells us the expression is not null.
                     // If there is no constant, we don't know.
-                    nullKnowledge = ((BoundConstantPattern)pattern).ConstantValue?.IsNull;
+                    isNull = ((BoundConstantPattern)pattern).ConstantValue?.IsNull;
                     break;
                 case BoundKind.DeclarationPattern:
                     var declarationPattern = (BoundDeclarationPattern)pattern;
@@ -810,13 +810,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        nullKnowledge = false; // the pattern tells us the expression is not null 
+                        isNull = false; // the pattern tells us the expression is not null
                     }
                     break;
             }
 
             int slot = -1;
-            if (nullKnowledge != null)
+            if (isNull != null)
             {
                 // Create slot when the state is unconditional since EnsureCapacity should be
                 // called on all fields and that is simpler if state is limited to this.State.
@@ -833,15 +833,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(NullableReferenceTypes): We should only report such
             // diagnostics for locals that are set or checked explicitly within this method.
-            if (expressionResultType?.IsNullable == false && nullKnowledge == true)
+            if (expressionResultType?.IsNullable == false && isNull == true)
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
             }
 
-            if (slot > 0 && nullKnowledge != null)
+            if (slot > 0 && isNull != null)
             {
-                this.StateWhenTrue[slot] = !nullKnowledge;
-                this.StateWhenFalse[slot] = nullKnowledge;
+                this.StateWhenTrue[slot] = !isNull;
+                this.StateWhenFalse[slot] = isNull;
             }
         }
 
