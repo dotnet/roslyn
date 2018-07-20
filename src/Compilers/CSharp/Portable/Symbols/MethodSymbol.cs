@@ -217,6 +217,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments()
+        {
+            // Resolving [NonNullTypes] only makes sense within the definition of the generic type
+            // or method. If this is a substituted symbol, we use the default NonNullTypes context.
+            var definition = OriginalDefinition;
+            bool nonNullTypes = (object)this == definition ? definition.NonNullTypes : false;
+            return GetTypeParametersAsTypeArguments(nonNullTypes);
+        }
+
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments(bool nonNullTypes) =>
+            TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(nonNullTypes, TypeParameters);
+
         /// <summary>
         /// Call <see cref="TryGetThisParameter"/> and throw if it returns false.
         /// </summary>

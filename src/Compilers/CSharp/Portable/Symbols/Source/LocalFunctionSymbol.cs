@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int Arity => TypeParameters.Length;
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => GetTypeParametersAsTypeArguments();
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters 
             => _typeParameters.Cast<SourceMethodTypeParameterSymbol, TypeParameterSymbol>();

@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis
         IgnoreDynamic = 2,
         IgnoreTupleNames = 4,
         IgnoreDynamicAndTupleNames = IgnoreDynamic | IgnoreTupleNames,
+        // PROTOTYPE(NullableReferenceTypes): Consider renaming the Nullable options,
+        // perhaps CompareNullableAnnotations and IgnoreUnknownNullableAnnotations.
         CompareNullableModifiersForReferenceTypes = 8,
         UnknownNullableModifierMatchesAny = 16, // Has no impact without CompareNullableModifiersForReferenceTypes
         AllAspects = CompareNullableModifiersForReferenceTypes, // PROTOTYPE(NullableReferenceTypes): Remove if not used.

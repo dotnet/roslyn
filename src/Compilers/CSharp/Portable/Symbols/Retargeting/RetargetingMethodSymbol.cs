@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (IsGenericMethod)
                 {
-                    return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
+                    return GetTypeParametersAsTypeArguments();
                 }
                 else
                 {

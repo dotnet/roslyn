@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (overridingMethod.IsGenericMethod)
                             {
-                                overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                                overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeArguments);
                             }
 
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (overriddenMember.Kind == SymbolKind.Method && (overriddenMethod = (MethodSymbol)overriddenMember).IsGenericMethod)
                             {
-                                overriddenParameters = overriddenMethod.Construct(((MethodSymbol)overridingMember).TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters;
+                                overriddenParameters = overriddenMethod.Construct(((MethodSymbol)overridingMember).TypeArguments).Parameters;
                             }
                             else
                             {

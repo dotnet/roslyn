@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(ReferenceEquals(_constructedFrom, this));
 
             // We're creating a new unconstructed Method from another; alpha-rename type parameters.
-            var newMap = _inputMap.WithAlphaRename(this.OriginalDefinition, this, out typeParameters);
+            var newMap = _inputMap.WithAlphaRename(this.OriginalDefinition, this, this.NonNullTypes, out typeParameters);
 
             var prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
             if (prevMap != null)
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
+                return GetTypeParametersAsTypeArguments();
             }
         }
 
@@ -359,6 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal sealed override bool NonNullTypes => false;
 
         private int ComputeHashCode()
         {

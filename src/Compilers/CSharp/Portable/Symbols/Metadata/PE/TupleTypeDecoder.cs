@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol decoded = DecodeTupleTypesInternal(type, elementNames, hasTupleElementNamesAttribute);
             return (object)decoded == (object)type ?
                 metadataType :
-                TypeSymbolWithAnnotations.Create(decoded, isNullableIfReferenceType: metadataType.IsNullable, metadataType.CustomModifiers);
+                TypeSymbolWithAnnotations.Create(decoded, nonNullTypes: metadataType.NonNullTypes, isAnnotated: metadataType.IsAnnotated, metadataType.CustomModifiers);
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol decoded = DecodeType(type);
             return ReferenceEquals(decoded, type) ?
                 typeWithAnnotations :
-                TypeSymbolWithAnnotations.Create(decoded, typeWithAnnotations.IsNullable, typeWithAnnotations.CustomModifiers);
+                TypeSymbolWithAnnotations.Create(decoded, nonNullTypes: typeWithAnnotations.NonNullTypes, isAnnotated: typeWithAnnotations.IsAnnotated, typeWithAnnotations.CustomModifiers);
         }
 
         private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)

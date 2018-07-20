@@ -212,7 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             continue;
                         }
 
-                        var type = TypeSymbolWithAnnotations.Create(typeSymbol, isNullableIfReferenceType: null);
+                        // PROTOTYPE(NullableReferenceTypes): Test different [NonNullTypes] on method and containing type.
+                        var type = TypeSymbolWithAnnotations.CreateNonNull(_containingSymbol.NonNullTypes, typeSymbol);
                         if (moduleSymbol.UtilizesNullableReferenceTypes)
                         {
                             type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);

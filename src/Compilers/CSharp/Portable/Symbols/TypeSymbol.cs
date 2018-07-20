@@ -1139,7 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (implementingMember.Kind == SymbolKind.Method && (implementedMethod = (MethodSymbol)interfaceMember).IsGenericMethod)
                 {
-                    implementedMember = implementedMethod.Construct(((MethodSymbol)implementingMember).TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                    implementedMember = implementedMethod.Construct(((MethodSymbol)implementingMember).TypeArguments);
                 }
                 else
                 {
@@ -1282,8 +1282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeParameters2 = implicitImpl.TypeParameters;
                 var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
 
-                var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
-                var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
+                var typeMap1 = new TypeMap(interfaceMethod.NonNullTypes, typeParameters1, indexedTypeParameters, allowAlpha: true);
+                var typeMap2 = new TypeMap(implicitImpl.NonNullTypes, typeParameters2, indexedTypeParameters, allowAlpha: true);
 
                 // Report any mismatched method constraints.
                 for (int i = 0; i < arity; i++)
