@@ -827,6 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            Debug.Assert(!IsConditionalState);
             base.VisitPattern(expression, pattern);
             Debug.Assert(IsConditionalState);
 
@@ -3680,7 +3681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int slot = -1;
             var operand = node.Operand;
-            if (operand.Type?.IsReferenceType == true)
+            if (operand.Type?.IsValueType == false)
             {
                 slot = MakeSlot(operand);
                 if (slot > 0)

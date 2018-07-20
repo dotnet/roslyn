@@ -11791,6 +11791,136 @@ class C : Base
         }
 
         [Fact]
+        public void ConditionalBranching_Is_UnconstrainedGenericType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F<T>(T t, object? o)
+    {
+        if (o is T)
+        {
+            o.ToString();
+        }
+        else
+        {
+            o.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             o.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_StructConstrainedGenericType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F<T>(T t, object? o) where T : struct
+    {
+        if (o is T)
+        {
+            o.ToString();
+        }
+        else
+        {
+            o.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             o.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_ClassConstrainedGenericType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F<T>(T t, object? o) where T : class
+    {
+        if (o is T)
+        {
+            o.ToString();
+        }
+        else
+        {
+            o.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             o.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_UnconstrainedGenericOperand()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F<T>(T t, object? o)
+    {
+        if (t is string) t.ToString();
+        if (t is string s) { t.ToString(); s.ToString(); }
+        if (t != null) t.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): even unconstrained generic types can be known to be non-null
+            c.VerifyDiagnostics(
+                // (6,26): warning CS8602: Possible dereference of a null reference.
+                //         if (t is string) t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(6, 26),
+                // (7,30): warning CS8602: Possible dereference of a null reference.
+                //         if (t is string s) { t.ToString(); s.ToString(); }
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 30),
+                // (8,24): warning CS8602: Possible dereference of a null reference.
+                //         if (t != null) t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(8, 24)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_NullOperand()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F(object? o)
+    {
+        if (null is string) return;
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (null is string) return;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "null is string").WithArguments("string").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
         public void ConditionalBranching_IsConstantPattern_Null()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -11814,6 +11944,33 @@ class C
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             x.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsConstantPattern_NullInverted()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        if (!(x is null))
+        {
+            x.ToString();
+        }
+        else
+        {
+            x.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13)
                 );
         }
 
