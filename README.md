@@ -7,7 +7,16 @@ instance of Visual Studio.
 
 ## Requirements
 
-*TODO*
+* Extension development requires Visual Studio 2017. Version 15.7 or newer is recommended for the best Test Explorer
+  experience.
+* Extensions themselves must target one or more versions of Visual Studio from the following list:
+    * Visual Studio 2012
+    * Visual Studio 2013
+    * Visual Studio 2015
+    * Visual Studio 2017
+* Extensions must be deployed via one or more VSIX packages.
+* Test execution and debugging is only supported for versions of Visual Studio available on the same machine as the
+  development IDE.
 
 ## Install the test harness
 
