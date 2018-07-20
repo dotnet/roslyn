@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp
 {
 
-    internal partial class Symbol : INonNullTypesContext
+    internal partial class Symbol
     {
         /// <summary>
         /// Checks if 'symbol' is accessible from within named type 'within'.  If 'symbol' is accessed off

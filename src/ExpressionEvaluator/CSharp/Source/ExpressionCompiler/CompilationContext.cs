@@ -1682,10 +1682,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return true;
             }
 
-            bool nonNullTypes = false;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
-            var candidateTypeMap = new TypeMap(nonNullTypes, candidateTypeParameters, indexedTypeParameters, allowAlpha: true);
-            var desiredTypeMap = new TypeMap(nonNullTypes, desiredTypeParameters, indexedTypeParameters, allowAlpha: true);
+            var candidateTypeMap = new TypeMap(NonNullTypesContextFalse.Instance, candidateTypeParameters, indexedTypeParameters, allowAlpha: true);
+            var desiredTypeMap = new TypeMap(NonNullTypesContextFalse.Instance, desiredTypeParameters, indexedTypeParameters, allowAlpha: true);
 
             return MemberSignatureComparer.HaveSameConstraints(candidateTypeParameters, candidateTypeMap, desiredTypeParameters, desiredTypeMap);
         }
