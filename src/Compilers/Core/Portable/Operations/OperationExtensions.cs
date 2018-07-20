@@ -359,17 +359,15 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private static T FindCorrespondingOperation<T>(IOperation operation) where T : class, IOperation
         {
-            if (operation is ILoopOperation || operation is ISwitchOperation)
+            for (var current = operation; current.Parent != null; current = current.Parent)
             {
-                return operation as T;
+                if (current is ILoopOperation || current is ISwitchOperation)
+                {
+                    return current as T;
+                }
             }
 
-            if (operation.Parent == null)
-            {
-                return default;
-            }
-
-            return FindCorrespondingOperation<T>(operation.Parent);
+            return default;
         }
     }
 }
