@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
 {
-    internal class LocalUsingVarRewriter : BoundTreeRewriterWithStackGuard
+    internal class LocalUsingVarRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         public static BoundNode Rewrite(BoundStatement statement)
         {
