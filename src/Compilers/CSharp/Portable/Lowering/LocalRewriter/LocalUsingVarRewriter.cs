@@ -102,26 +102,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering.LocalRewriter
             List<BoundUsingStatement> reversedUsingStatements = new List<BoundUsingStatement>();
             for (int i = 0; i < reversedLocals.Count; i++)
             {
-                BoundBlock innerBlock;
                 // The first element in the reversed lists' using statement must contain all following statements.
-                if (i == 0)
-                {
-                    innerBlock = new BoundBlock(
-                            syntax: boundMultiple.Syntax,
-                            locals: ImmutableArray<LocalSymbol>.Empty,
-                            statements: followingStatements
-                            );
-                }
                 // All other elements will only contain the previous element as a following statement.
-                else
-                {
-                    BoundStatement previousUsing = reversedUsingStatements[reversedUsingStatements.Count - 1];
-                    innerBlock = new BoundBlock(
+                BoundStatement previousUsing = reversedUsingStatements[reversedUsingStatements.Count - 1];
+                var innerBlockStatements = i == 0 ? followingStatements : ImmutableArray.Create(previousUsing);
+
+                BoundBlock innerBlock = new BoundBlock(
                             syntax: boundMultiple.Syntax,
                             locals: ImmutableArray<LocalSymbol>.Empty,
-                            statements: ImmutableArray.Create(previousUsing)
+                            statements: innerBlockStatements
                             );
-                }
 
                 BoundUsingStatement boundUsing = new BoundUsingStatement(
                         syntax: boundMultiple.Syntax,
