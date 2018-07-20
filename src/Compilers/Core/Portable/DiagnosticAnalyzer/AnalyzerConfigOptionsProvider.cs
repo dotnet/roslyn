@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get options for a given <paramref name="tree"/>.
         /// </summary>
-        public abstract AnalyzerConfigPropertyMap GetOptions(SyntaxTree tree);
+        public abstract AnalyzerConfigOptions GetOptions(SyntaxTree tree);
 
         /// <summary>
-        /// Get options for a given <see cref="AdditionalTextFile"/>
+        /// Get options for a given <see cref="AdditionalText"/>
         /// </summary>
-        public abstract AnalyzerConfigPropertyMap GetOptions(AdditionalText textFile);
+        public abstract AnalyzerConfigOptions GetOptions(AdditionalText textFile);
     }
 }

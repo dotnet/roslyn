@@ -2,11 +2,9 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 

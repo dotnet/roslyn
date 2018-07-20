@@ -6,23 +6,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed partial class CompilerAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
     {
-        private readonly ImmutableDictionary<object, AnalyzerConfigPropertyMap> _treeDict;
+        private readonly ImmutableDictionary<object, AnalyzerConfigOptions> _treeDict;
 
         public static CompilerAnalyzerConfigOptionsProvider Empty { get; }
             = new CompilerAnalyzerConfigOptionsProvider(
-                ImmutableDictionary<object, AnalyzerConfigPropertyMap>.Empty);
+                ImmutableDictionary<object, AnalyzerConfigOptions>.Empty);
 
         public CompilerAnalyzerConfigOptionsProvider(
-            ImmutableDictionary<object, AnalyzerConfigPropertyMap> treeDict)
+            ImmutableDictionary<object, AnalyzerConfigOptions> treeDict)
         {
             _treeDict = treeDict;
         }
 
-        public override AnalyzerConfigPropertyMap GetOptions(SyntaxTree tree)
-            => _treeDict.TryGetValue(tree, out var options) ? options : CompilerAnalyzerConfigPropertyMap.Empty;
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
+            => _treeDict.TryGetValue(tree, out var options) ? options : CompilerAnalyzerConfigOptions.Empty;
 
-        public override AnalyzerConfigPropertyMap GetOptions(AdditionalText textFile)
-            => _treeDict.TryGetValue(textFile, out var options) ? options : CompilerAnalyzerConfigPropertyMap.Empty;
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
+            => _treeDict.TryGetValue(textFile, out var options) ? options : CompilerAnalyzerConfigOptions.Empty;
 
         /// <summary>Used for testing</summary>
         internal bool IsEmpty => _treeDict.IsEmpty;

@@ -936,14 +936,14 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AdditionalText> additionalFiles,
             ImmutableArray<ImmutableDictionary<string, string>> additionalFileOptions)
         {
-            var builder = ImmutableDictionary.CreateBuilder<object, AnalyzerConfigPropertyMap>();
+            var builder = ImmutableDictionary.CreateBuilder<object, AnalyzerConfigOptions>();
             int i = 0;
             foreach (var syntaxTree in syntaxTrees)
             {
                 var options = treeOptions[i];
                 if (!(options is null))
                 {
-                    builder.Add(syntaxTree, new CompilerAnalyzerConfigPropertyMap(options));
+                    builder.Add(syntaxTree, new CompilerAnalyzerConfigOptions(options));
                 }
                 i++;
             }
@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis
                 var options = additionalFileOptions[i];
                 if (!(options is null))
                 {
-                    builder.Add(additionalFiles[i], new CompilerAnalyzerConfigPropertyMap(options));
+                    builder.Add(additionalFiles[i], new CompilerAnalyzerConfigOptions(options));
                 }
             }
 

@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
             /// Used to compare keys in <see cref="Properties"/>. The editorconfig spec defines property
             /// keys as being compared case-insensitively according to Unicode lower-case rules.
             /// </summary>
-            public static IEqualityComparer<string> PropertiesKeyComparer { get; } = CaseInsensitiveComparison.Comparer;
+            public static StringComparer PropertiesKeyComparer { get; } = CaseInsensitiveComparison.Comparer;
 
             public Section(string name, ImmutableDictionary<string, string> properties)
             {
