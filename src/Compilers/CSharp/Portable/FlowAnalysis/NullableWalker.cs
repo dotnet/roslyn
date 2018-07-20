@@ -801,8 +801,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The result type and state of the expression carry into the variable declared by var pattern
                         Symbol variable = declarationPattern.Variable;
-                        _variableTypes[variable] = expressionResultType;
-                        TrackNullableStateForAssignment(expression, expressionResultType, GetOrCreateSlot(variable), expressionResultType);
+                        // No variable declared for discard (`i is var _`)
+                        if ((object)variable != null)
+                        {
+                            _variableTypes[variable] = expressionResultType;
+                            TrackNullableStateForAssignment(expression, expressionResultType, GetOrCreateSlot(variable), expressionResultType);
+                        }
                     }
                     else
                     {
@@ -3676,7 +3680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int slot = -1;
             var operand = node.Operand;
-            if (operand.Type.IsReferenceType)
+            if (operand.Type?.IsReferenceType == true)
             {
                 slot = MakeSlot(operand);
                 if (slot > 0)
