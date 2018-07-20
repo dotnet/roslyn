@@ -278,6 +278,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                         }
 
                         // the client can instantiate interactive host now:
+
+                        // DO NOT MERGE: intentional infinite hang to confirm dumping is working of 64-bit InteractiveHost
+                        if (Environment.Is64BitProcess)
+                        {
+                            Thread.Sleep(Timeout.Infinite);
+                        }
+
                         semaphore.Release();
                     }
 
