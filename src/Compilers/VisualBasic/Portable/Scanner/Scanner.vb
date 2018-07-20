@@ -551,6 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Here = 1
             Dim atNewLine As Boolean
+            ' Code above is identical to V15.5
             Dim FoundCommentAfterUnderscore As Boolean = False
             ' Line continuation is valid at the end of the line, or at the end of the file, or followed by a trailing comment.
             ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment)
@@ -565,6 +566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End While
                 If CanGet(Here) AndAlso IsSingleQuote(Peek(Here)) Then
                     If CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
+                        ' You only get here if running V16 and have a comment
                         tList.Add(MakeLineContinuationTrivia(GetText(1)))
                         If Here > 1 Then
                             tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
@@ -573,10 +575,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ch = Peek()
                         atNewLine = IsNewLine(ch)
                         FoundCommentAfterUnderscore = True
+                    Else
+                        ' If you get here you have a valid comment but are running LanguageVersion < V16
+                        ' There should be a special error for this informing user to use Version V16
                     End If
+                Else
+                    ' If you get her you have a Line Continuation without comment, so process as V15.5 below
                 End If
             End If
             If Not FoundCommentAfterUnderscore Then
+                ' Code below is identical to V15.5
+                Here = 1
                 While CanGet(Here)
                     ch = Peek(Here)
                     If IsWhitespace(ch) Then
@@ -592,8 +601,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 tList.Add(MakeLineContinuationTrivia(GetText(1)))
-            If Here > 1 Then
-                tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+                If Here > 1 Then
+                    tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
                 End If
             End If
 
