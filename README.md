@@ -66,7 +66,13 @@ configured the required test framework attribute. Simply add the following to yo
 
 ### Configure extensions for deployment
 
-*TODO: https://github.com/Microsoft/vs-extension-testing/issues/6*
+Add the following to **AssemblyInfo.cs** to deploy extensions required for testing.
+
+```csharp
+using Xunit.Harness;
+
+[assembly: RequireExtension("Extension.File.Name.vsix")]
+```
 
 ## Ensure test discovery is enabled
 

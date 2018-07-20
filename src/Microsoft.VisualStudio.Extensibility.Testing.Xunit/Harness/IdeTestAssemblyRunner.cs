@@ -186,7 +186,7 @@ namespace Xunit.Harness
                 // Install a COM message filter to handle retry operations when the first attempt fails
                 using (var messageFilter = new MessageFilter())
                 {
-                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioVersion), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
+                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioVersion), GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
                     {
                         var knownTestCasesByUniqueId = testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase);
                         var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, completedTestCaseIds, cancellationTokenSource.Token);
@@ -206,6 +206,25 @@ namespace Xunit.Harness
                     }
                 }
             };
+        }
+
+        private ImmutableList<string> GetExtensionFiles(IEnumerable<IXunitTestCase> testCases)
+        {
+            var extensionFiles = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
+            var visited = new HashSet<IAssemblyInfo>();
+            foreach (var testCase in testCases)
+            {
+                var assemblyInfo = testCase.Method.Type.Assembly;
+                if (!visited.Add(assemblyInfo))
+                {
+                    continue;
+                }
+
+                var requiredExtensions = assemblyInfo.GetCustomAttributes(typeof(RequireExtensionAttribute));
+                extensionFiles = extensionFiles.Union(requiredExtensions.Select(attributeInfo => attributeInfo.GetConstructorArguments().First().ToString()));
+            }
+
+            return extensionFiles.ToImmutableList();
         }
 
         private static Version GetVersion(VisualStudioVersion visualStudioVersion)
