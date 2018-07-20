@@ -23,35 +23,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 {
     internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLibraryManager, IDisposable
     {
-        internal VisualStudioWorkspace Workspace
-        {
-            get
-            {
-                if (_workspace == null)
-                {
-                    _workspace = _componentModel.Value.GetService<VisualStudioWorkspace>();
-                    _workspace.WorkspaceChanged += OnWorkspaceChanged;
-                }
-                return _workspace;
-            }
-        }
+        internal readonly VisualStudioWorkspace Workspace;
 
         internal ILibraryService LibraryService
         {
             get
             {
-                if (_libraryService == null)
-                {
-                    _libraryService = Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>();
-                }
-
-                return _libraryService;
+                return _libraryService.Value;
             }
         }
 
         private IServiceProvider _serviceProvider;
-        private VisualStudioWorkspace _workspace;
-        private ILibraryService _libraryService;
+        private Lazy<ILibraryService> _libraryService;
 
         private readonly string _languageName;
         private readonly __SymbolToolLanguage _preferredLanguage;
@@ -65,21 +48,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private object _classMemberGate = new object();
 
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
-        private readonly Lazy<IComponentModel> _componentModel;
 
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
             Guid libraryGuid,
             __SymbolToolLanguage preferredLanguage,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            IComponentModel componentModel,
+            VisualStudioWorkspace workspace)
             : base(libraryGuid, serviceProvider)
         {
             _languageName = languageName;
             _preferredLanguage = preferredLanguage;
             _serviceProvider = serviceProvider;
 
-            _componentModel = new Lazy<IComponentModel>(() => _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel);
-            _streamingPresenters = _componentModel.Value.DefaultExportProvider.GetExports<IStreamingFindUsagesPresenter>();
+            Workspace = workspace;
+            Workspace.WorkspaceChanged += OnWorkspaceChanged;
+
+            _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
+            _streamingPresenters = componentModel.DefaultExportProvider.GetExports<IStreamingFindUsagesPresenter>();
         }
 
         internal abstract AbstractDescriptionBuilder CreateDescriptionBuilder(
