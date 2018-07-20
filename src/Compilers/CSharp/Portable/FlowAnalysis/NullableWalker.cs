@@ -1461,20 +1461,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (operandComparedToNull.Type?.IsReferenceType == true)
                         {
-                            ImmutableArray<int> slots = getOperandSlots(operandComparedToNull);
-                            if (!slots.IsEmpty)
+                            Normalize(ref this.State);
+                            var slotBuilder = ArrayBuilder<int>.GetInstance();
+                            getOperandSlots(operandComparedToNull, slotBuilder);
+                            if (slotBuilder.Count != 0)
                             {
                                 Split();
-                                foreach (int slot in slots)
+                                ref LocalState state = ref (op == BinaryOperatorKind.Equal) ? ref this.StateWhenFalse : ref this.StateWhenTrue;
+                                foreach (int slot in slotBuilder)
                                 {
-                                    if (op == BinaryOperatorKind.Equal)
-                                    {
-                                        this.StateWhenFalse[slot] = true;
-                                    }
-                                    else
-                                    {
-                                        this.StateWhenTrue[slot] = true;
-                                    }
+                                    state[slot] = true;
                                 }
                             }
                         }
@@ -1482,29 +1478,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ImmutableArray<int> getOperandSlots(BoundExpression operand)
+            void getOperandSlots(BoundExpression operand, ArrayBuilder<int> slotListBuilder)
             {
                 Debug.Assert(operand != null);
                 Debug.Assert(_lastConditionalAccessSlot == -1);
-                ArrayBuilder<int> slotListBuilder = null;
                 int slot;
 
                 do
                 {
                     // Due to the nature of binding, if there are conditional access they will be at the top of the bound tree,
                     // potentially with a conversion on top of it. We go through any conditional accesses, adding slots for the
-                    // condtional receivers if they have them. If we ever get to a receiver that MakeSlot doesn't return a slot
+                    // conditional receivers if they have them. If we ever get to a receiver that MakeSlot doesn't return a slot
                     // for, nothing underneath is trackable and we bail at that point. Example:
                     //
                     //     a?.GetB()?.C // a is a field, GetB is a method, and C is a property
                     //
                     // The top of the tree is the a?.GetB() conditional call. We'll ask for a slot for a, and we'll get one because
-                    // locals have slots. The AccessExpression of the BoundCondtionalAccess is another BoundCondtionalAccess, this time
-                    // with a reciever of the GetB() BoundCall. Attempting to get a slot for this receiver will fail, and we'll
+                    // locals have slots. The AccessExpression of the BoundConditionalAccess is another BoundConditionalAccess, this time
+                    // with a receiver of the GetB() BoundCall. Attempting to get a slot for this receiver will fail, and we'll
                     // return an array with just the slot for a.
                     switch (operand.Kind)
                     {
                         case BoundKind.Conversion:
+                            // PROTOTYPE(NullableReferenceTypes): Detect when conversion has a nullable operand
                             operand = ((BoundConversion)operand).Operand;
                             continue;
                         case BoundKind.ConditionalAccess:
@@ -1516,29 +1512,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // If we got a slot we must have processed the previous conditional receiver.
                                 Debug.Assert(_lastConditionalAccessSlot == -1);
 
-                                if (slot >= this.State.Capacity) Normalize(ref this.State);
-                                if (slotListBuilder == null)
-                                {
-                                    slotListBuilder = ArrayBuilder<int>.GetInstance();
-                                }
                                 slotListBuilder.Add(slot);
 
                                 // When MakeSlot is called on the nested AccessExpression, it will recurse through receivers
-                                // until it gets to the BoundConditionalRecevier associated with this node. In our override
+                                // until it gets to the BoundConditionalReceiver associated with this node. In our override,
+                                // we substitute this slot when we encounter a BoundConditionalAccessReceiver, and reset the
+                                // _lastConditionalAccess field.
                                 _lastConditionalAccessSlot = slot;
-
                                 operand = conditional.AccessExpression;
                                 continue;
                             }
-                            else
-                            {
-                                // If we didn't get a slot, it's possible that the current _lastConditionalSlot was never processed,
-                                // so we reset before leaving the function.
-                                _lastConditionalAccessSlot = -1;
 
-                                // If the current element doesn't have a slot, nothing underneath will have a slot either.
-                                return slotListBuilder?.ToImmutableAndFree() ?? ImmutableArray<int>.Empty;
-                            }
+                            // If there's no slot for this receiver, there cannot be another slot for any of the remaining
+                            // access expressions.
+                            break;
                         default:
                             // Attempt to create a slot for the current thing. If there were any more conditional accesses,
                             // they would have been on top, so this is the last thing we need to specially handle.
@@ -1552,23 +1539,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // If we got a slot we must have processed the previous conditional receiver.
                                 Debug.Assert(_lastConditionalAccessSlot == -1);
-
-                                if (slot >= this.State.Capacity) Normalize(ref this.State);
-                                if (slotListBuilder == null)
-                                {
-                                    slotListBuilder = ArrayBuilder<int>.GetInstance();
-                                }
                                 slotListBuilder.Add(slot);
                             }
-                            else
-                            {
-                                // If we didn't get a slot, it's possible that the current _lastConditionalSlot was never processed,
-                                // so we reset before leaving the function.
-                                _lastConditionalAccessSlot = -1;
-                            }
-
-                            return slotListBuilder?.ToImmutableAndFree() ?? ImmutableArray<int>.Empty;
+                            break;
                     }
+
+                    // If we didn't get a slot, it's possible that the current _lastConditionalSlot was never processed,
+                    // so we reset before leaving the function.
+                    _lastConditionalAccessSlot = -1;
+                    return;
                 } while (true);
             }
         }
