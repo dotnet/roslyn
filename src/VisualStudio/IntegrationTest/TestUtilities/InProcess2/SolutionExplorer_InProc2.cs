@@ -18,9 +18,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using NuGet.SolutionRestoreManager;
-using NuGet.VisualStudio;
 using VSLangProj;
-using Xunit;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
@@ -1040,7 +1038,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             }
 
             var solutionRestoreService2 = (IVsSolutionRestoreService2)solutionRestoreService;
-            Assert.True(await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken));
+            await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken);
 
             while (true)
             {
