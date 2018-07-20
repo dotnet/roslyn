@@ -244,7 +244,7 @@ namespace RunTests
         {
             if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
             {
-                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogsDirectory);
+                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump64.exe"), options.LogsDirectory);
             }
 
             return null;
