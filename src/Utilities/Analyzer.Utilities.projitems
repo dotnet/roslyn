@@ -10,6 +10,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AbstractVersionCheckAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.AssemblyMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.EventMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.FieldMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.MethodMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.NamedTypeMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.NamespaceMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.PropertyMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\ComputationalComplexityMetrics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\MetricsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\SemanticModelProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonAccessibilityUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InstanceReferenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
