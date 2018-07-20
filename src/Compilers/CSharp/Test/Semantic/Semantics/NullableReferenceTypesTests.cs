@@ -12131,12 +12131,21 @@ class C
     {
         if (x is var c)
         {
-            x.ToString(); // warn
-            c /*T:object?*/ .ToString(); // warn
+            x.ToString(); // warn 1
+            c /*T:object?*/ .ToString(); // warn 2
         }
         else
         {
-            x.ToString(); // warn
+            x.ToString(); // warn 3
+        }
+
+        if (x is var _)
+        {
+            x.ToString(); // warn 4
+        }
+        else
+        {
+            x.ToString(); // warn 5
         }
     }
 }
@@ -12145,14 +12154,20 @@ class C
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
-                //             x.ToString(); // warn
+                //             x.ToString(); // warn 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
                 // (9,13): warning CS8602: Possible dereference of a null reference.
-                //             c /*T:object?*/ .ToString(); // warn
+                //             c /*T:object?*/ .ToString(); // warn 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 13),
                 // (13,13): warning CS8602: Possible dereference of a null reference.
-                //             x.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13)
+                //             x.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13),
+                // (18,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(18, 13),
+                // (22,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(22, 13)
                 );
         }
 

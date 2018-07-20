@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// `switch (x) ... case Point p:` // PROTOTYPE(NullableReferenceTypes): not yet handled
         ///
         /// If the expression is trackable, we'll return with different null-states for that expression in the two conditional states.
-        /// If the patterns is a `var` pattern, we'll also have re-inferred the `var` type with nullability and
+        /// If the pattern is a `var` pattern, we'll also have re-inferred the `var` type with nullability and
         /// updated the state for that declared local.
         /// </summary>
         private void VisitPattern(BoundExpression expression, TypeSymbolWithAnnotations expressionResultType, BoundPattern pattern)
