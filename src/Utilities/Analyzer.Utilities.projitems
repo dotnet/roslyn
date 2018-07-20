@@ -22,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\MetricsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\SemanticModelProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonAccessibilityUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InstanceReferenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HashUtilities.cs" />
