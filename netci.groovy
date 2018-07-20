@@ -269,7 +269,7 @@ commitPullList.each { isPr ->
     def myJob = job(jobName) {
         description('Validate that a PR contains no localization changes')
         steps {
-            batchFile(""".\\build\\scripts\\check-for-loc-changes.cmd -base %GIT_BRANCH% -head %GIT_COMMIT%""")
+            batchFile(""".\\build\\scripts\\check-for-loc-changes.cmd -base origin/${branchName} -head %GIT_COMMIT%""")
         }
     }
 
