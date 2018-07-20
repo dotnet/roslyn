@@ -109,12 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(), isNullableIfReferenceType: null);
             }
 
-            bool nonNullTypes = containingModule.UtilizesNullableReferenceTypes;
             TypeSymbol type = metadataType.TypeSymbol;
             TypeSymbol decoded = DecodeTupleTypesInternal(type, elementNames, hasTupleElementNamesAttribute);
             return (object)decoded == (object)type ?
                 metadataType :
-                TypeSymbolWithAnnotations.Create(decoded, nonNullTypes: nonNullTypes, isAnnotated: metadataType.IsAnnotated, metadataType.CustomModifiers);
+                TypeSymbolWithAnnotations.Create(decoded, nonNullTypes: metadataType.NonNullTypes, isAnnotated: metadataType.IsAnnotated, metadataType.CustomModifiers);
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(

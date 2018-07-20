@@ -127,14 +127,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if ((isAnnotated || !(typeSymbol is TypeParameterSymbol)) &&
-                (!isAnnotated || !typeSymbol.IsReferenceType || typeSymbol.IsNullableType()))
+            // PROTOTYPE(NullableReferenceTypes): See if the if/else can be simplified to:
+            //    if (typeSymbol.IsNullableType()) isAnnotated = true;
+            // Currently, that results in test failures for nullable values of unconstrained
+            // type parameters in UnconstrainedTypeParameter_Return_03.
+
+            if ((!isAnnotated && typeSymbol is TypeParameterSymbol) ||
+                (isAnnotated && typeSymbol.IsReferenceType))
             {
-                isAnnotated = typeSymbol.IsNullableType();
+                // T (leave unannotated)
+                // string? (leave annotated)
+                Debug.Assert(!typeSymbol.IsNullableType());
             }
             else
             {
-                Debug.Assert(!typeSymbol.IsNullableType());
+                // T? where T : class (leave annotated)
+                // string, int (leave unannotated)
+                // int?, T? where T : struct (add annotation)
+                isAnnotated = typeSymbol.IsNullableType();
             }
 
             return new NonLazyType(typeSymbol, nonNullTypes: nonNullTypes, isAnnotated: isAnnotated, customModifiers);
@@ -179,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns:
         /// true if this is a nullable reference or value type;
-        /// false if this is an unannotated reference type and [NonNullTypes(true),
+        /// false if this is an unannotated reference type and [NonNullTypes(true)],
         /// or a value type regardless of [NonNullTypes]; and
         /// null if an unannotated reference type and [NonNullTypes(false)].
         /// If this is a nullable value type, <see cref="TypeSymbol"/>
@@ -191,9 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns:
-        /// true if annotated;
-        /// false if unannotated and [NonNullTypes(true)]; and
-        /// null if unannotated and [NonNullTypes(false)].
+        /// false for string, int, T;
+        /// true for string?, T? where T : class; and
+        /// true for int?, T? where T : struct.
         /// </summary>
         public abstract bool IsAnnotated { get; }
 
@@ -203,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool NonNullTypes { get; }
 
-        protected enum AnnotationKind
+        internal enum AnnotationKind
         {
             Unannotated = 0, // Unannotated, [NonNullTypes(false)]
             UnannotatedNonNull = 1, // Unannotated, [NonNullTypes(true)]
@@ -215,7 +225,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// IsNullable that also considers IsValueType. (Specifically, IsNullable==false
         /// for an unannotated value type, regardless of [NonNullTypes].)
         /// </summary>
-        protected abstract AnnotationKind Annotation { get; }
+        internal AnnotationKind Annotation
+        {
+            // PROTOTYPE(NullableReferenceTypes): Remove property and enum
+            // and compare IsAnnotated and NonNullTypes directly in Equals.
+            get
+            {
+                if (IsAnnotated)
+                {
+                    return AnnotationKind.Annotated;
+                }
+                return NonNullTypes ?
+                    AnnotationKind.UnannotatedNonNull :
+                    AnnotationKind.Unannotated;
+            }
+        }
+
 
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
@@ -395,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             bool newIsNullableType = newTypeWithModifiers.TypeSymbol.IsNullableType();
-            if (newIsNullableType || !newIsAnnotated)
+            if (newIsNullableType)
             {
                 if (newCustomModifiers.IsEmpty)
                 {
@@ -550,6 +575,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): The following two methods are temporary,
+        // for use in the obsolete Create methods that have a single isNullable parameter
+        // rather than separate nonNullTypes and isAnnotated parameters.
+        // Remove these methods after the obsolete methods have been removed.
         private static bool IsNullableToNonNullTypes(bool? isNullable) => isNullable != null;
         private static bool IsNullableToIsAnnotated(bool? isNullable) => isNullable == true;
 
@@ -604,21 +633,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool IsAnnotated => _isAnnotated;
             public override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
-
-            protected override AnnotationKind Annotation
-            {
-                get
-                {
-                    if (_isAnnotated)
-                    {
-                        return AnnotationKind.Annotated;
-                    }
-                    return _nonNullTypes ?
-                        AnnotationKind.UnannotatedNonNull :
-                        AnnotationKind.Unannotated;
-                }
-            }
-
             public override bool NonNullTypes => _nonNullTypes;
 
             internal override bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress)
@@ -699,8 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool? IsNullable => true;
             public override bool IsAnnotated => true;
-            protected override AnnotationKind Annotation => AnnotationKind.Annotated;
-            public override bool NonNullTypes => _underlying.NonNullTypes;
+            public override bool NonNullTypes => true; // NonNullTypes is irrelevant when IsAnnotated
             public override bool IsVoid => false;
             public override bool IsSZArray() => false;
             public override bool IsStatic => false;
