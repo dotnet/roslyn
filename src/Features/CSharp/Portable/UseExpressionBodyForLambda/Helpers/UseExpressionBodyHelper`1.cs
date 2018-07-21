@@ -25,13 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     {
         public static readonly UseExpressionBodyHelper Instance = new UseExpressionBodyHelper();
 
-        public Option<CodeStyleOption<ExpressionBodyPreference>> Option { get; }
         public LocalizableString UseExpressionBodyTitle { get; }
         public LocalizableString UseBlockBodyTitle { get; }
 
         public UseExpressionBodyHelper()
         {
-            Option = CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions;
             UseExpressionBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
             UseBlockBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         }
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public bool CanOfferUseExpressionBody(
             OptionSet optionSet, LambdaExpressionSyntax declaration, bool forAnalyzer)
         {
-            var currentOptionValue = optionSet.GetOption(Option);
+            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions);
             var preference = currentOptionValue.Value;
             var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
             var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             LambdaExpressionSyntax declaration, bool forAnalyzer,
             CancellationToken cancellationToken)
         {
-            var currentOptionValue = optionSet.GetOption(Option);
+            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions);
             var preference = currentOptionValue.Value;
             var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
             var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;

@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             SemanticModel semanticModel, OptionSet optionSet, LambdaExpressionSyntax declaration, 
             UseExpressionBodyHelper helper, CancellationToken cancellationToken)
         {
-            var preferExpressionBodiedOption = optionSet.GetOption(helper.Option);
+            var preferExpressionBodiedOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions);
             var severity = preferExpressionBodiedOption.Notification.Severity;
 
             if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))
