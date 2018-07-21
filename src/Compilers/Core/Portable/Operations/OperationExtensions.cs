@@ -326,15 +326,22 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Gets a loop operation that corresponds to the given branch operation.
         /// </summary>
-        /// <param name="branchOperation">the branch operation for which a corresponding loop is looked up</param>
-        /// <returns>the corresponding loop operation or <c>null</c> in case not found (e.g. no loop syntax or the branch
-        /// belongs switch instead of loop operation)</returns>
+        /// <param name="branchOperation">The branch operation for which a corresponding loop is looked up</param>
+        /// <returns>The corresponding loop operation or <c>null</c> in case not found (e.g. no loop syntax or the branch
+        /// belongs to switch instead of loop operation)</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="branchOperation"/> is null</exception>
+        /// <exception cref="InvalidOperationException">Invalid branch kind. Applicable kinds: <see cref="BranchKind.Break"/> and <see cref="BranchKind.Continue"/>.</exception>
         public static ILoopOperation GetCorrespondingLoop(this IBranchOperation branchOperation)
         {
+            if (branchOperation == null)
+            {
+                throw new ArgumentNullException(nameof(branchOperation));
+            }
+
             if (branchOperation.BranchKind != BranchKind.Break && branchOperation.BranchKind != BranchKind.Continue)
             {
-                throw new InvalidOperationException("Invalid branch kind type. Finding a corresponding loop requires " +
-                    "'break' or 'continue' kinds, but the current branch kind provided is '{branchOperation.Kind}'.");
+                throw new InvalidOperationException(
+                    string.Format(CodeAnalysisResources.InvalidBranchKindForFindingCorrespondingLoop, branchOperation.BranchKind));
             }
 
             return FindCorrespondingOperation<ILoopOperation>(branchOperation, 
@@ -344,15 +351,22 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Gets a switch operation that corresponds to the given branch operation.
         /// </summary>
-        /// <param name="branchOperation">the branch operation for which a corresponding switch is looked up</param>
-        /// <returns>the corresponding switch operation or <c>null</c> in case not found (e.g. no switch syntax or the branch
-        /// belongs loop instead of switch operation)</returns>
+        /// <param name="branchOperation">The branch operation for which a corresponding switch is looked up</param>
+        /// <returns>The corresponding switch operation or <c>null</c> in case not found (e.g. no switch syntax or the branch
+        /// belongs to loop instead of switch operation)</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="branchOperation"/> is null</exception>
+        /// <exception cref="InvalidOperationException">Invalid branch kind. Applicable kinds: <see cref="BranchKind.Break"/>.</exception>
         public static ISwitchOperation GetCorrespondingSwitch(this IBranchOperation branchOperation)
         {
+            if (branchOperation == null)
+            {
+                throw new ArgumentNullException(nameof(branchOperation));
+            }
+
             if (branchOperation.BranchKind != BranchKind.Break)
             {
-                throw new InvalidOperationException("Invalid branch kind type. Finding a corresponding switch requires " +
-                    "'break' kind, but the current branch kind provided is '{branchOperation.Kind}'.");
+                throw new InvalidOperationException(
+                    string.Format(CodeAnalysisResources.InvalidBranchKindForFindingCorrespondingSwitch, branchOperation.BranchKind));
             }
 
             return FindCorrespondingOperation<ISwitchOperation>(branchOperation, op => op is ILoopOperation);

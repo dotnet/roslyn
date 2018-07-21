@@ -695,6 +695,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid branch kind. Finding a corresponding loop requires &apos;break&apos; or &apos;continue&apos; kinds, but the current branch kind provided is &apos;{0}&apos;..
+        /// </summary>
+        internal static string InvalidBranchKindForFindingCorrespondingLoop {
+            get {
+                return ResourceManager.GetString("InvalidBranchKindForFindingCorrespondingLoop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid branch kind. Finding a corresponding switch requires &apos;break&apos; kind, but the current branch kind provided is &apos;{0}&apos;..
+        /// </summary>
+        internal static string InvalidBranchKindForFindingCorrespondingSwitch {
+            get {
+                return ResourceManager.GetString("InvalidBranchKindForFindingCorrespondingSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid characters in assembly culture name.
         /// </summary>
         internal static string InvalidCharactersInAssemblyCultureName {
