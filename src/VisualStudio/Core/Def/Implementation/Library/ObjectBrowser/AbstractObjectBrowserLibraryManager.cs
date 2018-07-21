@@ -25,16 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
     {
         internal readonly VisualStudioWorkspace Workspace;
 
-        internal ILibraryService LibraryService
-        {
-            get
-            {
-                return _libraryService.Value;
-            }
-        }
+        internal ILibraryService LibraryService => _libraryService.Value;
 
-        private IServiceProvider _serviceProvider;
-        private Lazy<ILibraryService> _libraryService;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly Lazy<ILibraryService> _libraryService;
 
         private readonly string _languageName;
         private readonly __SymbolToolLanguage _preferredLanguage;
