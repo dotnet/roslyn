@@ -156,23 +156,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         private LambdaExpressionSyntax UpdateWorker(
             SemanticModel semanticModel, LambdaExpressionSyntax declaration, bool useExpressionBody)
         {
-            if (useExpressionBody)
-            {
-                TryConvertToExpressionBody(
+            return useExpressionBody 
+                ? WithExpressionBody(declaration)
+                : WithBlockBody(semanticModel, declaration);
+        }
+
+        private LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
+        {
+            if (!TryConvertToExpressionBody(
                     declaration, declaration.SyntaxTree.Options, ExpressionBodyPreference.WhenPossible,
-                    out var expressionBody, out var semicolonToken);
-
-                var trailingTrivia = semicolonToken.TrailingTrivia
-                                                   .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
-                                                   .Concat(declaration.GetTrailingTrivia());
-                expressionBody = expressionBody.WithAppendedTrailingTrivia(trailingTrivia);
-
-                return declaration.WithBody(expressionBody);
-            }
-            else
+                    out var expressionBody, out _))
             {
-                return WithGenerateBody(semanticModel, declaration);
+                return declaration;
             }
+
+            var updatedDecl = declaration.WithBody(expressionBody);
+
+            // If there will only be whitespace between the arrow and the body, then replace that
+            // with a single space so that the lambda doesn't have superfluous newlines in it.
+            if (declaration.ArrowToken.TrailingTrivia.All(t => t.IsWhitespaceOrEndOfLine()) &&
+                expressionBody.GetLeadingTrivia().All(t => t.IsWhitespaceOrEndOfLine()))
+            {
+                updatedDecl = updatedDecl.WithArrowToken(updatedDecl.ArrowToken.WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+            }
+
+            return updatedDecl;
         }
 
         protected bool CreateReturnStatementForExpression(
@@ -182,23 +190,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return !lambda.DelegateInvokeMethod.ReturnsVoid;
         }
 
-        protected virtual LambdaExpressionSyntax WithGenerateBody(
+        protected virtual LambdaExpressionSyntax WithBlockBody(
             SemanticModel semanticModel, LambdaExpressionSyntax declaration)
         {
             var expressionBody = GetExpressionBody(declaration);
 
-            if (expressionBody.TryConvertToStatement(
+            if (!expressionBody.TryConvertToStatement(
                     semicolonTokenOpt: default,
                     CreateReturnStatementForExpression(semanticModel, declaration),
                     out var statement))
             {
-                return declaration.WithBody(SyntaxFactory.Block(
-                    SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
-                    SyntaxFactory.SingletonList(statement),
-                    SyntaxFactory.Token(SyntaxKind.CloseBraceToken)));
+
+                return declaration;
             }
 
-            return declaration;
+            return declaration.WithBody(SyntaxFactory.Block(
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
+                SyntaxFactory.SingletonList(statement),
+                SyntaxFactory.Token(SyntaxKind.CloseBraceToken)));
         }
     }
 }
