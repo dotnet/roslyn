@@ -82,6 +82,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 
                 var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
 
+                var result = service.EncapsulateFieldAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
+                var finalSolution = result?.GetSolutionAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
                 // This is the last point where the operation can be canceled by the operation context
                 // managed by the command system. Make sure to not ignore a cancellation request which
                 // occurred prior to this line before proceeding with the Roslyn-managed dialogs.
@@ -97,16 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 // a different one for future operations in this command handler.
                 cancellationToken = CancellationToken.None;
 
-                var result = service.EncapsulateFieldAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
-
                 if (result == null)
                 {
                     var notificationService = workspace.Services.GetService<INotificationService>();
                     notificationService.SendNotification(EditorFeaturesResources.Please_select_the_definition_of_the_field_to_encapsulate, severity: NotificationSeverity.Error);
                     return false;
                 }
-
-                var finalSolution = result.GetSolutionAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var previewService = workspace.Services.GetService<IPreviewDialogService>();
                 if (previewService != null)
