@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, node, optionSet, helper,
-                        useExpressionBody: true, cancellationToken: c)));
+                        document, root, node, helper,
+                        useExpressionBody: true, c)));
                 succeeded = true;
             }
 
@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, node, optionSet, helper,
-                        useExpressionBody: false, cancellationToken: c)));
+                        document, root, node, helper,
+                        useExpressionBody: false, c)));
                 succeeded = true;
             }
 
@@ -90,17 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
         private async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, LambdaExpressionSyntax declaration,
-            OptionSet options, UseExpressionBodyHelper helper, bool useExpressionBody,
-            CancellationToken cancellationToken)
+            UseExpressionBodyHelper helper, bool useExpressionBody, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var parseOptions = root.SyntaxTree.Options;
-            var updatedDeclaration = helper.Update(
-                semanticModel, declaration, options, parseOptions, useExpressionBody);
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
 
             var parent = declaration.Parent;
-            var updatedParent = parent.ReplaceNode(declaration, updatedDeclaration)
-                                      .WithAdditionalAnnotations(Formatter.Annotation);
+            var updatedParent = parent.ReplaceNode(declaration, updatedDeclaration);
 
             var newRoot = root.ReplaceNode(parent, updatedParent);
             return document.WithSyntaxRoot(newRoot);

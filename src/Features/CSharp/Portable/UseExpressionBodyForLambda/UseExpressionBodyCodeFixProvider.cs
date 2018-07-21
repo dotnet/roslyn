@@ -52,28 +52,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(editor, semanticModel, diagnostic, options, cancellationToken);
+                AddEdits(editor, semanticModel, diagnostic, cancellationToken);
             }
         }
 
         private void AddEdits(
-            SyntaxEditor editor, SemanticModel semanticModel, Diagnostic diagnostic,
-            OptionSet options, CancellationToken cancellationToken)
+            SyntaxEditor editor, SemanticModel semanticModel, 
+            Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
             var declaration = (LambdaExpressionSyntax)declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
-            var parseOptions = declaration.SyntaxTree.Options;
 
-            var updatedDeclaration = helper.Update(semanticModel, declaration, options, parseOptions, useExpressionBody)
-                                           .WithAdditionalAnnotations(Formatter.Annotation);
-
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
             editor.ReplaceNode(declaration, updatedDeclaration);
         }
 

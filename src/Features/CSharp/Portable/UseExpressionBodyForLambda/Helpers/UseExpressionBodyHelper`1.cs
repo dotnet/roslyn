@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -146,8 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         }
 
         public LambdaExpressionSyntax Update(
-            SemanticModel semanticModel, LambdaExpressionSyntax declaration, OptionSet options, 
-            ParseOptions parseOptions, bool useExpressionBody)
+            SemanticModel semanticModel, LambdaExpressionSyntax declaration, bool useExpressionBody)
+        {
+            return this.UpdateWorker(semanticModel, declaration, useExpressionBody)
+                       .WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        private LambdaExpressionSyntax UpdateWorker(
+            SemanticModel semanticModel, LambdaExpressionSyntax declaration, bool useExpressionBody)
         {
             if (useExpressionBody)
             {
@@ -164,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
             else
             {
-                return WithGenerateBody(semanticModel, declaration, options, parseOptions);
+                return WithGenerateBody(semanticModel, declaration);
             }
         }
 
@@ -176,8 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         }
 
         protected virtual LambdaExpressionSyntax WithGenerateBody(
-            SemanticModel semanticModel, LambdaExpressionSyntax declaration,
-            OptionSet options, ParseOptions parseOptions)
+            SemanticModel semanticModel, LambdaExpressionSyntax declaration)
         {
             var expressionBody = GetExpressionBody(declaration);
 
@@ -186,7 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                     CreateReturnStatementForExpression(semanticModel, declaration),
                     out var statement))
             {
-                return declaration.WithBody(SyntaxFactory.Block(statement));
+                return declaration.WithBody(SyntaxFactory.Block(
+                    SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
+                    SyntaxFactory.SingletonList(statement),
+                    SyntaxFactory.Token(SyntaxKind.CloseBraceToken)));
             }
 
             return declaration;
