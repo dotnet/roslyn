@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public Location GetDiagnosticLocation(LambdaExpressionSyntax declaration)
             => this.GetBody(declaration).Statements[0].GetLocation();
 
-        public BlockSyntax GetBody(LambdaExpressionSyntax declaration)
+        private BlockSyntax GetBody(LambdaExpressionSyntax declaration)
             => declaration.Body as BlockSyntax;
 
         public ExpressionSyntax GetExpressionBody(LambdaExpressionSyntax declaration)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return false;
         }
 
-        protected virtual bool TryConvertToExpressionBody(
+        private bool TryConvertToExpressionBody(
             LambdaExpressionSyntax declaration,
             ParseOptions options, ExpressionBodyPreference conversionPreference, 
             out ExpressionSyntax expressionWhenOnSingleLine, 
@@ -183,14 +183,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return updatedDecl;
         }
 
-        protected bool CreateReturnStatementForExpression(
+        private bool CreateReturnStatementForExpression(
             SemanticModel semanticModel, LambdaExpressionSyntax declaration)
         {
             var lambda = (INamedTypeSymbol)semanticModel.GetTypeInfo(declaration).ConvertedType;
             return !lambda.DelegateInvokeMethod.ReturnsVoid;
         }
 
-        protected virtual LambdaExpressionSyntax WithBlockBody(
+        private LambdaExpressionSyntax WithBlockBody(
             SemanticModel semanticModel, LambdaExpressionSyntax declaration)
         {
             var expressionBody = GetExpressionBody(declaration);
