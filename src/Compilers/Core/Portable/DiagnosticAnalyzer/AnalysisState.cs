@@ -441,26 +441,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void OnSymbolDeclaredEventProcessed(SymbolDeclaredCompilationEvent symbolDeclaredEvent, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private async Task OnSymbolDeclaredEventProcessedAsync(
+            SymbolDeclaredCompilationEvent symbolDeclaredEvent,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            Func<ISymbol, DiagnosticAnalyzer, Task> onSymbolAndMembersProcessedAsync)
         {
             foreach (var analyzer in analyzers)
             {
                 var analyzerState = GetAnalyzerState(analyzer);
-                analyzerState.OnSymbolDeclaredEventProcessed(symbolDeclaredEvent);
+                if (analyzerState.OnSymbolDeclaredEventProcessed(symbolDeclaredEvent))
+                {
+                    await onSymbolAndMembersProcessedAsync(symbolDeclaredEvent.Symbol, analyzer).ConfigureAwait(false);
+                }
             }
         }
 
         /// <summary>
-        /// Invoke this method at completion of event processing for the given analysis scope.
+        /// Invoke this method at completion of event processing for the given analyzers.
         /// It updates the analysis state of this event for each analyzer and if the event has been fully processed for all analyzers, then removes it from our event cache.
         /// </summary>
-        public void OnCompilationEventProcessed(CompilationEvent compilationEvent, AnalysisScope analysisScope)
+        public async Task OnCompilationEventProcessedAsync(CompilationEvent compilationEvent, ImmutableArray<DiagnosticAnalyzer> analyzers, Func<ISymbol, DiagnosticAnalyzer, Task> onSymbolAndMembersProcessedAsync)
         {
             // Analyze if the symbol and all its declaring syntax references are analyzed.
             var symbolDeclaredEvent = compilationEvent as SymbolDeclaredCompilationEvent;
             if (symbolDeclaredEvent != null)
             {
-                OnSymbolDeclaredEventProcessed(symbolDeclaredEvent, analysisScope.Analyzers);
+                await OnSymbolDeclaredEventProcessedAsync(symbolDeclaredEvent, analyzers, onSymbolAndMembersProcessedAsync).ConfigureAwait(false);
             }
 
             // Check if event is fully analyzed for all analyzers.
@@ -713,11 +719,58 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Attempts to start executing a symbol's end actions for the given analyzer.
+        /// </summary>
+        /// <returns>
+        /// Returns false if the symbol end actions have already been executed for the analyzer OR are currently being executed by another task.
+        /// If true, then it returns a non-null <paramref name="state"/> representing partial analysis state for the given symbol end actions for the given analyzer.
+        /// </returns>
+        public bool TryStartSymbolEndAnalysis(ISymbol symbol, DiagnosticAnalyzer analyzer, out AnalyzerStateData state)
+        {
+            return GetAnalyzerState(analyzer).TryStartSymbolEndAnalysis(symbol, out state);
+        }
+
+        /// <summary>
         /// Marks the given symbol as fully analyzed for the given analyzer.
         /// </summary>
         public void MarkSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
         {
             GetAnalyzerState(analyzer).MarkSymbolComplete(symbol);
+        }
+
+        /// <summary>
+        /// True if the given symbol is fully analyzed for the given analyzer.
+        /// </summary>
+        public bool IsSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        {
+            return GetAnalyzerState(analyzer).IsSymbolComplete(symbol);
+        }
+
+        /// <summary>
+        /// Marks the given symbol end actions as fully executed for the given analyzers.
+        /// </summary>
+        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            foreach (var analyzer in analyzers)
+            {
+                MarkSymbolEndAnalysisComplete(symbol, analyzer);
+            }
+        }
+
+        /// <summary>
+        /// Marks the given symbol end actions as fully executed for the given analyzer.
+        /// </summary>
+        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        {
+            GetAnalyzerState(analyzer).MarkSymbolEndAnalysisComplete(symbol);
+        }
+
+        /// <summary>
+        /// True if the given symbol end analysis is complete for the given analyzer.
+        /// </summary>
+        public bool IsSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        {
+            return GetAnalyzerState(analyzer).IsSymbolEndAnalysisComplete(symbol);
         }
 
         /// <summary>
