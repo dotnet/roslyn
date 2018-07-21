@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -11,15 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool NonNullTypes { get; }
     }
 
-    internal sealed class NonNullTypesContextTrue : INonNullTypesContext
+    // PROTOTYPE(NullableReferenceTypes): this probably can be removed once fine-grained context is passed everywhere
+    internal sealed class NonNullTypesTrueContext : INonNullTypesContext
     {
-        public static INonNullTypesContext Instance = new NonNullTypesContextTrue();
+        public static readonly INonNullTypesContext Instance = new NonNullTypesTrueContext();
         public bool NonNullTypes => true;
     }
 
-    internal sealed class NonNullTypesContextFalse : INonNullTypesContext
+    // PROTOTYPE(NullableReferenceTypes): this probably can be removed once fine-grained context is passed everywhere
+    internal sealed class NonNullTypesFalseContext : INonNullTypesContext
     {
-        public static INonNullTypesContext Instance = new NonNullTypesContextFalse();
+        public static readonly INonNullTypesContext Instance = new NonNullTypesFalseContext();
         public bool NonNullTypes => false;
     }
 }
