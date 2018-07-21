@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Append '!' to non-nullable reference types.
+        /// Note this causes SymbolDisplay to pull on IsNullable and therefore NonNullTypes,
+        /// so don't use this option in binding, in order to avoid cycles.
         /// </summary>
         IncludeNonNullableTypeModifier = 1 << 6,
 
