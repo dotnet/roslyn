@@ -42,13 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 return;
             }
 
-            // Caret has to be in the signature portion of the lambda.  We don't want it showing up
-            // arbitrarily deep in the body.
-            if (position < lambdaNode.SpanStart || position > lambdaNode.ArrowToken.Span.End)
-            {
-                return;
-            }
-
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             if (CanOfferUseExpressionBody(optionSet, lambdaNode, forAnalyzer: false))
@@ -80,10 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var updatedDeclaration = Update(semanticModel, declaration, useExpressionBody);
 
-            var parent = declaration.Parent;
-            var updatedParent = parent.ReplaceNode(declaration, updatedDeclaration);
-
-            var newRoot = root.ReplaceNode(parent, updatedParent);
+            var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
             return document.WithSyntaxRoot(newRoot);
         }
 

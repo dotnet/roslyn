@@ -24,10 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId);
 
-        public UseExpressionBodyForLambdaCodeFixProvider()
-        {
-        }
-
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed ||
                diagnostic.Properties.ContainsKey(UseExpressionBodyForLambdaDiagnosticAnalyzer.FixesError);
@@ -66,8 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var declaration = (LambdaExpressionSyntax)declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
-            var updatedDeclaration = Update(semanticModel, declaration, useExpressionBody);
-            editor.ReplaceNode(declaration, updatedDeclaration);
+            editor.ReplaceNode(
+                declaration,
+                Update(semanticModel, declaration, useExpressionBody));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

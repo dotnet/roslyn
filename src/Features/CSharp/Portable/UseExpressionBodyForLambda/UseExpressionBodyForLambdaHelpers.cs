@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -178,6 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 return declaration;
             }
 
+            // If the user is converting to a block, it's likely they intend to add multiple
+            // statements to it.  So make a multi-line block so that things are formatted properly
+            // for them to do so.
             return declaration.WithBody(SyntaxFactory.Block(
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
                 SyntaxFactory.SingletonList(statement),

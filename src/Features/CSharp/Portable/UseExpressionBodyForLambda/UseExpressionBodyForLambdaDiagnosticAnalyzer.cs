@@ -46,15 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 return;
             }
 
-            var semanticModel = context.SemanticModel;
-
             var declaration = (LambdaExpressionSyntax)context.Node;
             var diagnostic = AnalyzeSyntax(
-                semanticModel, optionSet, declaration, cancellationToken);
+                context.SemanticModel, optionSet, declaration, cancellationToken);
             if (diagnostic != null)
             {
                 context.ReportDiagnostic(diagnostic);
-                return;
             }
         }
 
@@ -73,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(UseExpressionBody), "");
                 return DiagnosticHelper.Create(
                     CreateDescriptorWithId(DescriptorId, UseExpressionBodyTitle, UseExpressionBodyTitle),
-                    location, severity, additionalLocations: additionalLocations, properties: properties);
+                    location, severity, additionalLocations, properties);
             }
 
             var (canOffer, fixesError) = CanOfferUseBlockBody(
@@ -93,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
                     CreateDescriptorWithId(DescriptorId, UseBlockBodyTitle, UseBlockBodyTitle),
-                    location, severity, additionalLocations: additionalLocations, properties: properties);
+                    location, severity, additionalLocations, properties);
             }
 
             return null;
