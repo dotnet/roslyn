@@ -9,9 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -20,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class UseExpressionBodyForLambdaCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId);
 
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = 
             ImmutableArray.Create(UseExpressionBodyHelper.Instance);
 
         public UseExpressionBodyForLambdaCodeFixProvider()
         {
-            FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
         }
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
-            var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
+            var helper = UseExpressionBodyHelper.Instance;
             var declaration = (LambdaExpressionSyntax)declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
