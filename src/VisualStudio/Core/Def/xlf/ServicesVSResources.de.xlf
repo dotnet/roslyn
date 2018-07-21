@@ -42,6 +42,11 @@
         <target state="new">Reset Visual Studio default keymapping</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="new">Use expression body for lambda expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
         <target state="new">We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</target>

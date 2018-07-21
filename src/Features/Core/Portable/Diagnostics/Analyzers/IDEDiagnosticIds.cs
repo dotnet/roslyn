@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
 
+        public const string UseExpressionBodyForLambdaExpressionsDiagnosticId = "IDE0051";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

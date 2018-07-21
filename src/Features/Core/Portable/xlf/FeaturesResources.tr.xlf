@@ -62,6 +62,16 @@
         <target state="new">Related method signatures found in metadata will not be updated.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="new">Use block body for lambda expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="new">Use expression body for lambda expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">genel aşırı yükleme</target>

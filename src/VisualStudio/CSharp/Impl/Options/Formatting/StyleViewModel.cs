@@ -910,6 +910,35 @@ class List<T>
 //]
 ";
 
+        private const string s_preferExpressionBodyForLambdaExpressions = @"
+
+using System;
+
+class Customer
+{
+    void Method()
+    {
+//[
+        Func<int, string> f = a => a.ToString();
+//]
+    }
+}
+";
+
+        private const string s_preferBlockBodyForLambdaExpressions = @"
+using System;
+
+class Customer
+{
+    void Method()
+    {
+//[
+        Func<int, string> f = a => { return a.ToString(); };
+//]
+    }
+}
+";
+
         private static readonly string s_preferReadonly = $@"
 class Customer1
 {{
@@ -1233,6 +1262,13 @@ class C
                 ServicesVSResources.Use_expression_body_for_accessors,
                 enumValues,
                 new[] { s_preferBlockBodyForAccessors, s_preferExpressionBodyForAccessors, s_preferExpressionBodyForAccessors },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions,
+                ServicesVSResources.Use_expression_body_for_lambda_expressions,
+                enumValues,
+                new[] { s_preferBlockBodyForLambdaExpressions, s_preferExpressionBodyForLambdaExpressions, s_preferExpressionBodyForLambdaExpressions },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
     }
