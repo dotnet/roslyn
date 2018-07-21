@@ -13,13 +13,12 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 {
+    using static UseExpressionBodyForLambdaHelpers;
+
     [ExportCodeRefactoringProvider(LanguageNames.CSharp,
         Name = PredefinedCodeRefactoringProviderNames.UseExpressionBody), Shared]
     internal class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = 
-            ImmutableArray.Create(UseExpressionBodyHelper.Instance);
-
         public UseExpressionBodyForLambdaCodeRefactoringProvider()
         {
         }
@@ -42,45 +41,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var helper in _helpers)
-            {
-                var succeeded = await TryComputeRefactoringAsync(context, root, node, optionSet, helper);
-                if (succeeded)
-                {
-                    return;
-                }
-            }
+            await TryComputeRefactoringAsync(context, root, node, optionSet).ConfigureAwait(false);
         }
 
         private async Task<bool> TryComputeRefactoringAsync(
-            CodeRefactoringContext context,
-            SyntaxNode root, LambdaExpressionSyntax node, OptionSet optionSet,
-            UseExpressionBodyHelper helper)
+            CodeRefactoringContext context, SyntaxNode root,
+            LambdaExpressionSyntax node, OptionSet optionSet)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
             var succeeded = false;
-            if (helper.CanOfferUseExpressionBody(optionSet, node, forAnalyzer: false))
+            if (CanOfferUseExpressionBody(optionSet, node, forAnalyzer: false))
             {
                 context.RegisterRefactoring(new MyCodeAction(
-                    helper.UseExpressionBodyTitle.ToString(),
+                    UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, node, helper,
+                        document, root, node,
                         useExpressionBody: true, c)));
                 succeeded = true;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var (canOffer, _) = helper.CanOfferUseBlockBody(
+            var (canOffer, _) = CanOfferUseBlockBody(
                 semanticModel, optionSet, node, forAnalyzer: false, cancellationToken);
             if (canOffer)
             {
                 context.RegisterRefactoring(new MyCodeAction(
-                    helper.UseBlockBodyTitle.ToString(),
+                    UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, node, helper,
+                        document, root, node,
                         useExpressionBody: false, c)));
                 succeeded = true;
             }
@@ -90,10 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
         private async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, LambdaExpressionSyntax declaration,
-            UseExpressionBodyHelper helper, bool useExpressionBody, CancellationToken cancellationToken)
+            bool useExpressionBody, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
+            var updatedDeclaration = Update(semanticModel, declaration, useExpressionBody);
 
             var parent = declaration.Parent;
             var updatedParent = parent.ReplaceNode(declaration, updatedDeclaration);

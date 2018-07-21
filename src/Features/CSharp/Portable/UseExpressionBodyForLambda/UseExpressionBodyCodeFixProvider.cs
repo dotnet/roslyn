@@ -16,14 +16,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 {
+    using static UseExpressionBodyForLambdaHelpers;
+
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class UseExpressionBodyForLambdaCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId);
-
-        private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = 
-            ImmutableArray.Create(UseExpressionBodyHelper.Instance);
 
         public UseExpressionBodyForLambdaCodeFixProvider()
         {
@@ -64,11 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
-            var helper = UseExpressionBodyHelper.Instance;
             var declaration = (LambdaExpressionSyntax)declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
-            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
+            var updatedDeclaration = Update(semanticModel, declaration, useExpressionBody);
             editor.ReplaceNode(declaration, updatedDeclaration);
         }
 

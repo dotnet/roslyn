@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 {
+    using static UseExpressionBodyForLambdaHelpers;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
@@ -17,11 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
-        private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers =
-            ImmutableArray.Create(UseExpressionBodyHelper.Instance);
-
         public UseExpressionBodyForLambdaDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId, _helpers[0].UseExpressionBodyTitle)
+            : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId, 
+                   UseExpressionBodyTitle)
         {
         }
 
@@ -48,40 +48,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var semanticModel = context.SemanticModel;
 
             var declaration = (LambdaExpressionSyntax)context.Node;
-            var nodeKind = context.Node.Kind();
-            foreach (var helper in _helpers)
+            var diagnostic = AnalyzeSyntax(
+                semanticModel, optionSet, declaration, cancellationToken);
+            if (diagnostic != null)
             {
-                var diagnostic = AnalyzeSyntax(
-                    semanticModel, optionSet, declaration, helper, cancellationToken);
-                if (diagnostic != null)
-                {
-                    context.ReportDiagnostic(diagnostic);
-                    return;
-                }
+                context.ReportDiagnostic(diagnostic);
+                return;
             }
         }
 
         private Diagnostic AnalyzeSyntax(
-            SemanticModel semanticModel, OptionSet optionSet, LambdaExpressionSyntax declaration, 
-            UseExpressionBodyHelper helper, CancellationToken cancellationToken)
+            SemanticModel semanticModel, OptionSet optionSet,
+            LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
             var preferExpressionBodiedOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions);
             var severity = preferExpressionBodiedOption.Notification.Severity;
 
-            if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))
+            if (CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))
             {
                 var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
-                    : helper.GetDiagnosticLocation(declaration);
+                    : GetDiagnosticLocation(declaration);
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(UseExpressionBody), "");
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(DescriptorId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
+                    CreateDescriptorWithId(DescriptorId, UseExpressionBodyTitle, UseExpressionBodyTitle),
                     location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 
-            var (canOffer, fixesError) = helper.CanOfferUseBlockBody(
+            var (canOffer, fixesError) = CanOfferUseBlockBody(
                 semanticModel, optionSet, declaration, forAnalyzer: true, cancellationToken);
             if (canOffer)
             {
@@ -89,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 // if they don't want expression bodies for this member.  
                 var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
-                    : helper.GetExpressionBody(declaration).GetLocation();
+                    : GetExpressionBody(declaration).GetLocation();
 
                 var properties = ImmutableDictionary<string, string>.Empty;
                 if (fixesError)
@@ -99,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(DescriptorId, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
+                    CreateDescriptorWithId(DescriptorId, UseBlockBodyTitle, UseBlockBodyTitle),
                     location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 

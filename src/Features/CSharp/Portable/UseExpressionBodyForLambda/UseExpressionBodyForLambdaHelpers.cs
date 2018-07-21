@@ -21,29 +21,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     /// code refactoring provider.  Those can't share a common base class due to their own inheritance
     /// requirements with <see cref="DiagnosticAnalyzer"/> and <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    internal class UseExpressionBodyHelper
+    internal static class UseExpressionBodyForLambdaHelpers
     {
-        public static readonly UseExpressionBodyHelper Instance = new UseExpressionBodyHelper();
+        public static readonly LocalizableString UseExpressionBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        public static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
-        public LocalizableString UseExpressionBodyTitle { get; }
-        public LocalizableString UseBlockBodyTitle { get; }
+        public static Location GetDiagnosticLocation(LambdaExpressionSyntax declaration)
+            => GetBody(declaration).Statements[0].GetLocation();
 
-        public UseExpressionBodyHelper()
-        {
-            UseExpressionBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            UseBlockBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        }
-
-        public Location GetDiagnosticLocation(LambdaExpressionSyntax declaration)
-            => this.GetBody(declaration).Statements[0].GetLocation();
-
-        private BlockSyntax GetBody(LambdaExpressionSyntax declaration)
+        private static BlockSyntax GetBody(LambdaExpressionSyntax declaration)
             => declaration.Body as BlockSyntax;
 
-        public ExpressionSyntax GetExpressionBody(LambdaExpressionSyntax declaration)
+        public static ExpressionSyntax GetExpressionBody(LambdaExpressionSyntax declaration)
             => declaration.Body as ExpressionSyntax;
 
-        public bool CanOfferUseExpressionBody(
+        public static bool CanOfferUseExpressionBody(
             OptionSet optionSet, LambdaExpressionSyntax declaration, bool forAnalyzer)
         {
             var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions);
@@ -56,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
             if (userPrefersExpressionBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled))
             {
-                var expressionBody = this.GetExpressionBody(declaration);
+                var expressionBody = GetExpressionBody(declaration);
                 if (expressionBody == null)
                 {
                     // They don't have an expression body.  See if we could convert the block they 
@@ -72,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return false;
         }
 
-        private bool TryConvertToExpressionBody(
+        private static bool TryConvertToExpressionBody(
             LambdaExpressionSyntax declaration,
             ParseOptions options, ExpressionBodyPreference conversionPreference, 
             out ExpressionSyntax expressionWhenOnSingleLine, 
@@ -83,18 +75,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
-        private bool TryConvertToExpressionBodyWorker(
+        private static bool TryConvertToExpressionBodyWorker(
             LambdaExpressionSyntax declaration, ParseOptions options, ExpressionBodyPreference conversionPreference,
             out ExpressionSyntax expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
         {
-            var body = this.GetBody(declaration);
+            var body = GetBody(declaration);
 
             return body.TryConvertToExpressionBody(
                 declaration.Kind(), options, conversionPreference,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
-        public (bool canOffer, bool fixesError) CanOfferUseBlockBody(
+        public static (bool canOffer, bool fixesError) CanOfferUseBlockBody(
             SemanticModel semanticModel, OptionSet optionSet,
             LambdaExpressionSyntax declaration, bool forAnalyzer,
             CancellationToken cancellationToken)
@@ -104,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
             var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
 
-            var expressionBodyOpt = this.GetExpressionBody(declaration);
+            var expressionBodyOpt = GetExpressionBody(declaration);
             if (expressionBodyOpt == null)
             {
                 return (canOffer: false, fixesError: false);
@@ -140,14 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return (canOffer, fixesError: false);
         }
 
-        public LambdaExpressionSyntax Update(
+        public static LambdaExpressionSyntax Update(
             SemanticModel semanticModel, LambdaExpressionSyntax declaration, bool useExpressionBody)
         {
-            return this.UpdateWorker(semanticModel, declaration, useExpressionBody)
-                       .WithAdditionalAnnotations(Formatter.Annotation);
+            return UpdateWorker(semanticModel, declaration, useExpressionBody).WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private LambdaExpressionSyntax UpdateWorker(
+        private static LambdaExpressionSyntax UpdateWorker(
             SemanticModel semanticModel, LambdaExpressionSyntax declaration, bool useExpressionBody)
         {
             return useExpressionBody 
@@ -155,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 : WithBlockBody(semanticModel, declaration);
         }
 
-        private LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
+        private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
         {
             if (!TryConvertToExpressionBody(
                     declaration, declaration.SyntaxTree.Options, ExpressionBodyPreference.WhenPossible,
@@ -177,14 +168,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return updatedDecl;
         }
 
-        private bool CreateReturnStatementForExpression(
+        private static bool CreateReturnStatementForExpression(
             SemanticModel semanticModel, LambdaExpressionSyntax declaration)
         {
             var lambda = (INamedTypeSymbol)semanticModel.GetTypeInfo(declaration).ConvertedType;
             return !lambda.DelegateInvokeMethod.ReturnsVoid;
         }
 
-        private LambdaExpressionSyntax WithBlockBody(
+        private static LambdaExpressionSyntax WithBlockBody(
             SemanticModel semanticModel, LambdaExpressionSyntax declaration)
         {
             var expressionBody = GetExpressionBody(declaration);
