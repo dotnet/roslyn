@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public LocalizableString UseExpressionBodyTitle { get; }
         public LocalizableString UseBlockBodyTitle { get; }
         public string DiagnosticId { get; }
-        public ImmutableArray<SyntaxKind> SyntaxKinds { get; }
 
         public UseExpressionBodyHelper()
         {
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             Option = CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions;
             UseExpressionBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
             UseBlockBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            SyntaxKinds = ImmutableArray.Create(SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
         }
 
         public Location GetDiagnosticLocation(LambdaExpressionSyntax declaration)

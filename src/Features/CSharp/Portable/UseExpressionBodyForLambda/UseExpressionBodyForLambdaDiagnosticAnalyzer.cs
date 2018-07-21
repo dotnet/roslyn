@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     {
         public const string FixesError = nameof(FixesError);
 
-        private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         public override bool OpenFileOnly(Workspace workspace) => false;
@@ -27,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public UseExpressionBodyForLambdaDiagnosticAnalyzer()
             : base(_helpers[0].DiagnosticId, _helpers[0].UseExpressionBodyTitle)
         {
-            _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
             SupportedDiagnostics = _helpers.SelectAsArray(
                 h => CreateDescriptorWithId(h.DiagnosticId, h.UseExpressionBodyTitle, h.UseExpressionBodyTitle));
         }
@@ -36,7 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
+            => context.RegisterSyntaxNodeAction(
+                AnalyzeSyntax,
+                SyntaxKind.SimpleLambdaExpression,
+                SyntaxKind.ParenthesizedLambdaExpression);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -55,15 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var nodeKind = context.Node.Kind();
             foreach (var helper in _helpers)
             {
-                if (helper.SyntaxKinds.Contains(nodeKind))
+                var diagnostic = AnalyzeSyntax(
+                    semanticModel, optionSet, declaration, helper, cancellationToken);
+                if (diagnostic != null)
                 {
-                    var diagnostic = AnalyzeSyntax(
-                        semanticModel, optionSet, declaration, helper, cancellationToken);
-                    if (diagnostic != null)
-                    {
-                        context.ReportDiagnostic(diagnostic);
-                        return;
-                    }
+                    context.ReportDiagnostic(diagnostic);
+                    return;
                 }
             }
         }
