@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -83,12 +82,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 
                 var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
 
-                var result = service.EncapsulateFieldAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
+                // This is the last point where the operation can be canceled by the operation context
+                // managed by the command system. Make sure to not ignore a cancellation request which
+                // occurred prior to this line before proceeding with the Roslyn-managed dialogs.
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // We are about to show a modal UI dialog so we should take over the command execution
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
                 waitScope.Context.TakeOwnership();
+
+                // The cancellation token associated with the operation scope may or may not have been
+                // canceled when ownership of the context was taken. Treat the token as invalid and use
+                // a different one for future operations in this command handler.
+                cancellationToken = CancellationToken.None;
+
+                var result = service.EncapsulateFieldAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 if (result == null)
                 {
@@ -96,8 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                     notificationService.SendNotification(EditorFeaturesResources.Please_select_the_definition_of_the_field_to_encapsulate, severity: NotificationSeverity.Error);
                     return false;
                 }
-
-                waitScope.AllowCancellation = false;
 
                 var finalSolution = result.GetSolutionAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
