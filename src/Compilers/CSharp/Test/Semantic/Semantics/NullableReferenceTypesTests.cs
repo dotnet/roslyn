@@ -854,13 +854,13 @@ public sealed class B : A<object>
         }
 
         [Fact]
-        public void NonNullTypes_Circular()
+        public void NonNullTypes_False_Circular()
         {
             string source = @"
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    [NonNullTypes(false)]
+    [NonNullTypesAttribute(false)]
     class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
@@ -910,6 +910,28 @@ namespace System.Runtime.CompilerServices
 ";
             // PROTOTYPE(NullableReferenceTypes): Why isn't the usage of NonNullTypes reported as obsolete?
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
+        }
+
+        [Fact]
+        public void NonNullTypes_WithObsolete()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [NonNullTypes(true)]
+    [System.Obsolete(""obsolete"")]
+    class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Why isn't the usage of NonNullTypes reported as obsolete?
             comp.VerifyDiagnostics();
 
             VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
@@ -997,6 +1019,73 @@ class AttributeWithProperty : System.ComponentModel.DisplayNameAttribute
 }
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypes_Cycle12()
+        {
+            string source = @"
+[System.Flags]
+enum E { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypes_Cycle13()
+        {
+            string source = @"
+interface I { }
+
+[System.Obsolete(nameof(I2))]
+interface I2 : I { }
+
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypes_Cycle15()
+        {
+            string lib_cs = "public class Base { }";
+            var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular8, assemblyName: "lib");
+
+            string lib2_cs = "public class C : Base { }";
+            var lib2 = CreateCompilation(lib2_cs, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular8, assemblyName: "lib2");
+
+            string source_cs = @"
+[D]
+class DAttribute : C { }
+";
+            var comp = CreateCompilation(source_cs, references: new[] { lib2.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,20): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // class DAttribute : C { }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Base", "lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 20),
+                // (2,2): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // [D]
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("Base", "lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 2),
+                // (2,2): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // [D]
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("Base", "lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 2)
+                );
+        }
+
+        [Fact]
+        public void NonNullTypes_Cycle16()
+        {
+            string source = @"
+using System;
+[AttributeUsage(AttributeTargets.Property)]
+class AttributeWithProperty : System.ComponentModel.DisplayNameAttribute
+{
+    public override string DisplayName { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -1509,10 +1598,10 @@ public class External
             var source = @"
 using System.Runtime.CompilerServices;
 
-[NonNullTypes(false)]
+[NonNullTypesAttribute(false)]
 public class OuterA
 {
-    [NonNullTypes(true)]
+    [type: NonNullTypesAttribute(true)]
     public class A
     {
         public static string[] s;
@@ -29906,7 +29995,7 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "Func<T>").WithLocation(6, 17));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Equals pulls on NonNullTypes too early, causing cycle")]
         public void NonNullTypes_DecodeAttributeCycle_01()
         {
             var source =

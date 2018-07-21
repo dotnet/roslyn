@@ -748,6 +748,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
+            {
+                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().NonNullTypes = value;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -923,8 +928,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
-                return SyntaxBasedNonNullTypes(this.GetAttributeDeclarations()) ?? base.NonNullTypes;
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.NonNullTypes ?? base.NonNullTypes;
             }
         }
 
