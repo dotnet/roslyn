@@ -84,6 +84,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 
         private void ReportHarnessFailure(IEnumerable<IXunitTestCase> testCases, HashSet<string> completedTestCaseIds, Exception ex)
         {
+            var reportedHarnessFailure = false;
             var completedTestCases = testCases.Where(testCase => completedTestCaseIds.Contains(testCase.UniqueID));
             var remainingTestCases = testCases.Except(completedTestCases);
             foreach (var casesByTestClass in remainingTestCases.GroupBy(testCase => testCase.TestMethod.TestClass))
@@ -108,9 +109,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                         {
                             ExecutionMessageSink.OnMessage(new TestSkipped(test, testCase.SkipReason));
                         }
-                        else
+                        else if (!reportedHarnessFailure)
                         {
                             ExecutionMessageSink.OnMessage(new TestFailed(test, 0, null, new InvalidOperationException("Test did not run due to a harness failure.", ex)));
+                            reportedHarnessFailure = true;
+                        }
+                        else
+                        {
+                            ExecutionMessageSink.OnMessage(new TestSkipped(test, "Test did not run due to a harness failure."));
                         }
 
                         ExecutionMessageSink.OnMessage(new TestFinished(test, 0, null));
