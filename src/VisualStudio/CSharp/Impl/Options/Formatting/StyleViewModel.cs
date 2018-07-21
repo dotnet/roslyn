@@ -933,7 +933,10 @@ class Customer
     void Method()
     {
 //[
-        Func<int, string> f = a => { return a.ToString(); };
+        Func<int, string> f = a =>
+        {
+            return a.ToString();
+        };
 //]
     }
 }

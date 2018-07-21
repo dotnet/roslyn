@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var cancellationToken = context.CancellationToken;
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-            var lambdaNode = token.Parent.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+            var lambdaNode = root.FindToken(position).Parent.FirstAncestorOrSelf<LambdaExpressionSyntax>();
             if (lambdaNode == null)
             {
                 return;

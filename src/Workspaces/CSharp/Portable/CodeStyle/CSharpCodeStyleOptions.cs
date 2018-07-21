@@ -196,6 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferExpressionBodiedProperties;
             yield return PreferExpressionBodiedIndexers;
             yield return PreferExpressionBodiedAccessors;
+            yield return PreferExpressionBodiedLambdaExpressions;
         }
     }
 }
