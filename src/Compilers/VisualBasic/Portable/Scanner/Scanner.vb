@@ -565,20 +565,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                 End While
                 If CanGet(Here) AndAlso IsSingleQuote(Peek(Here)) Then
-                    If CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
-                        ' You only get here if running V16 and have a comment
-                        tList.Add(MakeLineContinuationTrivia(GetText(1)))
-                        If Here > 1 Then
-                            tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
-                        End If
-                        ScanCommentIfAny(tList)
-                        ch = Peek()
-                        atNewLine = IsNewLine(ch)
-                        FoundCommentAfterUnderscore = True
-                    Else
-                        ' If you get here you have a valid comment but are running LanguageVersion < V16
-                        ' There should be a special error for this informing user to use Version V16
+                    ' You only get here if running V16 and have a comment
+                    tList.Add(MakeLineContinuationTrivia(GetText(1)))
+                    If Here > 1 Then
+                        tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
                     End If
+                    Dim comment As SyntaxTrivia = ScanComment()
+                    If Not CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
+                        If comment IsNot Nothing Then
+                            ' PROTOTYPE Need correct error here
+                            comment = DirectCast(comment.SetDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_LineContWithCommentPreV161,
+                                                                                                New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))}), SyntaxTrivia)
+                        End If
+                    End If
+                    tList.Add(comment)
+                    ch = Peek()
+                    atNewLine = IsNewLine(ch)
+                    FoundCommentAfterUnderscore = True
                 Else
                     ' If you get her you have a Line Continuation without comment, so process as V15.5 below
                 End If

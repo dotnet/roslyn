@@ -8518,8 +8518,7 @@ End Module
             End Sub
      End Module
     ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
-            Diagnostic(ERRID.ERR_LineContWithCommentOrNoPrecSpace, "_").WithLocation(4, 34),
-            Diagnostic(ERRID.ERR_Syntax, "=").WithLocation(5, 21)
+            Diagnostic(ERRID.ERR_LineContWithCommentPreV161, "' Comment").WithLocation(4, 36).WithArguments("15.5")  ' PROTOTYPE "15.5" should be "16"
         )
     End Sub
 

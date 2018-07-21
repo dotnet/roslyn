@@ -2359,22 +2359,20 @@ End Module]]>,
         ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
         Dim tree = ParseAndVerify(code:=<![CDATA[#Enable Warning _ 'Comment]]>,
                                   options:=New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
-            <errors>
-               <error id="30203" message="Identifier expected." start="16" end="17"/>
-            </errors>)
+                                    <errors>
+                                        <error id="37306" message="Please use language version 15.5 or greater to use comments after line continuation character." start="24" end="25"/>
+                                    </errors>)
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.Single.Kind)
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).SingleOrDefault
+        Assert.Null(skippedTokens)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.Kind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.Kind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
-        Assert.True(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.Kind)
     End Sub
 
     <Fact()>
@@ -2417,29 +2415,26 @@ End Module]]>,
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation4()
         ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
+        ' PROTOTYPE 15.5 should be 16
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc41007 _ 'Comment]]>,
                                   New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
             <errors>
-                <error id="30196" message="Comma expected." start="24" end="24"/>
-                <error id="30999" message="Line continuation character '_' must be preceded by at least one white space and must be the last character on the line." start="24" end="25"/>
-                <error id="30203" message="Identifier expected." start="34" end="34"/>
+                <error id="37306" message="Please use language version 15.5 or greater to use comments after line continuation character." start="24" end="25"/>
             </errors>)
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.Single.Kind)
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).SingleOrDefault
+        Assert.Null(skippedTokens)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.Kind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.Kind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
-        Assert.Equal(2, enableNode.ErrorCodes.Count)
+        Assert.Equal(1, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).Kind)
-        Assert.True(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).Kind)
     End Sub
 
     <Fact()>
