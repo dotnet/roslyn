@@ -551,8 +551,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Here = 1
             Dim atNewLine As Boolean
-            ' Code above is identical to V15.5
-            Dim FoundCommentAfterUnderscore As Boolean = False
             ' Line continuation is valid at the end of the line, or at the end of the file, or followed by a trailing comment.
             ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment)
             If CanGet(Here) AndAlso (IsWhitespace(Peek(Here)) OrElse IsSingleQuote(Peek(Here))) Then
@@ -565,48 +563,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                 End While
                 If CanGet(Here) AndAlso IsSingleQuote(Peek(Here)) Then
-                    ' You only get here if running V16 and have a comment
                     tList.Add(MakeLineContinuationTrivia(GetText(1)))
                     If Here > 1 Then
                         tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
                     End If
                     Dim comment As SyntaxTrivia = ScanComment()
                     If Not CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
-                        If comment IsNot Nothing Then
-                            ' PROTOTYPE Need correct error here
-                            comment = DirectCast(comment.SetDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_LineContWithCommentPreV161,
+                        ' PROTOTYPE Need correct error here
+                        comment = DirectCast(comment.SetDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_LineContWithCommentPreV161,
                                                                                                 New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))}), SyntaxTrivia)
-                        End If
                     End If
                     tList.Add(comment)
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
-                    FoundCommentAfterUnderscore = True
                 Else
                     ' If you get her you have a Line Continuation without comment, so process as V15.5 below
-                End If
-            End If
-            If Not FoundCommentAfterUnderscore Then
-                ' Code below is identical to V15.5
-                Here = 1
-                While CanGet(Here)
-                    ch = Peek(Here)
-                    If IsWhitespace(ch) Then
-                        Here += 1
-                    Else
-                        Exit While
+                    If Not CanGet(Here) Then
+                        Return False
                     End If
-                End While
+                    atNewLine = IsNewLine(Peek(Here))
+                    If Not atNewLine Then
+                        Return False
+                    End If
+                    tList.Add(MakeLineContinuationTrivia(GetText(1)))
 
+                    If Here > 1 Then
+                        tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+                    End If
+                End If
+            Else
+                ' We don't have a space or '
+                If CanGet(Here) Then
+                    ch = Peek(Here)
+                End If
                 atNewLine = IsNewLine(ch)
                 If Not atNewLine AndAlso CanGet(Here) Then
                     Return False
                 End If
-
                 tList.Add(MakeLineContinuationTrivia(GetText(1)))
-                If Here > 1 Then
-                    tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
-                End If
             End If
 
             If atNewLine Then

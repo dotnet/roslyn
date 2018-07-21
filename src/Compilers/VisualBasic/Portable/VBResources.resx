@@ -1852,7 +1852,7 @@
     <value>Initializer expected.</value>
   </data>
   <data name="ERR_LineContWithCommentOrNoPrecSpace" xml:space="preserve">
-    <value>Line continuation character '_' must be preceded by at least one white space and followed by a comment or must be the last character on the line.</value>
+    <value>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</value>
   </data>
   <data name="ERR_LineContWithCommentPreV16" xml:space="preserve">
     <value>Please use language version {0} or greater to use comments after line continuation character.</value>

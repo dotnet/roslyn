@@ -504,13 +504,13 @@ Public Class ScannerTests
         Assert.Equal(" _", tk.ToFullString())
 
         tk = ScanOnce(" _ ", startStatement:=True)
-        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
+        Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(" _ ", tk.ToFullString())
 
         tk = ScanOnce(" _'", startStatement:=True)
-        Assert.Equal(SyntaxKind.BadToken, tk.Kind)
+        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _'", tk.ToFullString())
-        Assert.Equal(30999, tk.Errors.First().Code)
+        Assert.Equal(37306, tk.Errors.First().Code)
 
         tk = ScanOnce(" _ rem", startStatement:=True)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)

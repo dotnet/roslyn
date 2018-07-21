@@ -2896,7 +2896,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
-        <source>Line continuation character '_' must be preceded by at least one white space and followed by a comment or must be the last character on the line.</source>
+        <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
         <target state="needs-review-translation">Le caractère de continuation de ligne '_' doit être précédé d'au moins un espace blanc et doit être le dernier caractère de la ligne.</target>
         <note />
       </trans-unit>

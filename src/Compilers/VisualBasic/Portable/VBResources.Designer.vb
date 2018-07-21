@@ -6811,7 +6811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Line continuation character &apos;_&apos; must be preceded by at least one white space and followed by a comment or must be the last character on the line..
+        '''  Looks up a localized string similar to The line continuation character &apos;_&apos; must be preceded by at least one white space and it must be followed by a comment or the &apos;_&apos; must be the last character on the line..
         '''</summary>
         Friend ReadOnly Property ERR_LineContWithCommentOrNoPrecSpace() As String
             Get
