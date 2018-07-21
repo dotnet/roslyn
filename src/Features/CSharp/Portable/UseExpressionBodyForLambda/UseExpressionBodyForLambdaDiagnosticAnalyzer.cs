@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,18 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     {
         public const string FixesError = nameof(FixesError);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
         public override bool OpenFileOnly(Workspace workspace) => false;
 
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers =
             ImmutableArray.Create(UseExpressionBodyHelper.Instance);
 
         public UseExpressionBodyForLambdaDiagnosticAnalyzer()
-            : base(_helpers[0].DiagnosticId, _helpers[0].UseExpressionBodyTitle)
+            : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId, _helpers[0].UseExpressionBodyTitle)
         {
-            SupportedDiagnostics = _helpers.SelectAsArray(
-                h => CreateDescriptorWithId(h.DiagnosticId, h.UseExpressionBodyTitle, h.UseExpressionBodyTitle));
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -81,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(UseExpressionBody), "");
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
+                    CreateDescriptorWithId(DescriptorId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
                     location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 
@@ -103,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
+                    CreateDescriptorWithId(DescriptorId, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
                     location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 

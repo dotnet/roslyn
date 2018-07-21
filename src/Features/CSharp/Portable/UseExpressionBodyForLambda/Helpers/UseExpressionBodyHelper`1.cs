@@ -28,11 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public Option<CodeStyleOption<ExpressionBodyPreference>> Option { get; }
         public LocalizableString UseExpressionBodyTitle { get; }
         public LocalizableString UseBlockBodyTitle { get; }
-        public string DiagnosticId { get; }
 
         public UseExpressionBodyHelper()
         {
-            DiagnosticId = IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId;
             Option = CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions;
             UseExpressionBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
             UseBlockBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
