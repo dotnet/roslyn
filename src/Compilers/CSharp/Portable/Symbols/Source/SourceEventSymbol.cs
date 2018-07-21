@@ -555,6 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type, AssemblySymbol containingAssembly, Symbol nonNullTypesContext)
         {
             Debug.Assert((object)eventWithCustomModifiers != null);
+            Debug.Assert(nonNullTypesContext != null);
 
             TypeSymbol overriddenEventType = eventWithCustomModifiers.Type.TypeSymbol;
 

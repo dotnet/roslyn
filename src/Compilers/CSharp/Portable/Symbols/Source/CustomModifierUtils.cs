@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="sourceType">Type that already has custom modifiers.</param>
         /// <param name="destinationType">Same as <paramref name="sourceType"/>, but without custom modifiers.  May differ in object/dynamic.</param>
         /// <param name="containingAssembly">The assembly containing the signature referring to the destination type.</param>
-        /// <param name="nonNullTypesContext">If the destination is in a context with NonNullTypes set. If true, unannotated references types are treated as non-nullable, otherwise as null-oblivious.</param>
         /// <returns><paramref name="destinationType"/> with custom modifiers copied from <paramref name="sourceType"/>.</returns>
         internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, AssemblySymbol containingAssembly, INonNullTypesContext nonNullTypesContext)
         {
             Debug.Assert(sourceType.Equals(destinationType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(nonNullTypesContext != null);
 
             const RefKind refKind = RefKind.None;
 

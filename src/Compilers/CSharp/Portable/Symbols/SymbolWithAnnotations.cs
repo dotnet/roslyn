@@ -21,58 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public string Name => TypeSymbol.Name;
         public SymbolKind Kind => TypeSymbol.Kind;
 
-#pragma warning disable CS0809
-        [Obsolete("Unsupported", error: true)]
-        public sealed override bool Equals(object other)
-#pragma warning restore CS0809
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-#pragma warning disable CS0809
-        [Obsolete("Unsupported", error: true)]
-        public sealed override int GetHashCode()
-#pragma warning restore CS0809
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        [Obsolete("Unsupported", error: true)]
-        public static bool operator ==(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        [Obsolete("Unsupported", error: true)]
-        public static bool operator !=(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        [Obsolete("Unsupported", error: true)]
-        public static bool operator ==(Symbol x, TypeSymbolWithAnnotations y)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        [Obsolete("Unsupported", error: true)]
-        public static bool operator !=(Symbol x, TypeSymbolWithAnnotations y)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        [Obsolete("Unsupported", error: true)]
-        public static bool operator ==(TypeSymbolWithAnnotations x, Symbol y)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        [Obsolete("Unsupported", error: true)]
-        public static bool operator !=(TypeSymbolWithAnnotations x, Symbol y)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -576,6 +524,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return this;
+        }
+
+#pragma warning disable CS0809
+        [Obsolete("Unsupported", error: true)]
+        public sealed override bool Equals(object other)
+#pragma warning restore CS0809
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+#pragma warning disable CS0809
+        [Obsolete("Unsupported", error: true)]
+        public sealed override int GetHashCode()
+#pragma warning restore CS0809
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator ==(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator !=(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator ==(Symbol x, TypeSymbolWithAnnotations y)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator !=(Symbol x, TypeSymbolWithAnnotations y)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator ==(TypeSymbolWithAnnotations x, Symbol y)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator !=(TypeSymbolWithAnnotations x, Symbol y)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         private sealed class NonLazyType : TypeSymbolWithAnnotations

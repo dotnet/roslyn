@@ -1092,6 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation);
             }
 
+            // PROTOTYPE(NullableReferenceTypes): We should probably not be using NonNullTypes here (ie. in binding)
             if (((CSharpParseOptions)implementation.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                 implementation.NonNullTypes)
             {

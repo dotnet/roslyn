@@ -4079,7 +4079,7 @@ abstract class A
 class B1 : A
 {
     [System.Runtime.CompilerServices.NonNullTypes(false)]
-    public override event System.Action<string?> E1 {add {} remove{}}
+    public override event System.Action<string?> E1 {add {} remove{}} // 1
     [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override event System.Action<string> E2 {add {} remove{}}
 }
@@ -4089,7 +4089,7 @@ class B2 : A
     [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override event System.Action<string?> E1; // 2
     [System.Runtime.CompilerServices.NonNullTypes(false)]
-    public override event System.Action<string> E2; // 2
+    public override event System.Action<string> E2;
 
     void Dummy()
     {
@@ -4100,7 +4100,14 @@ class B2 : A
 ";
             var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (27,50): warning CS8608: Nullability of reference types in type doesn't match overridden member.
+                //     public override event System.Action<string?> E1; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(27, 50),
+                // (19,50): warning CS8608: Nullability of reference types in type doesn't match overridden member.
+                //     public override event System.Action<string?> E1 {add {} remove{}} // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(19, 50)
+                );
         }
 
         [Fact]
@@ -4715,7 +4722,11 @@ class B : A
             var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should report return type mismatch
             // for M1 and M2 (see https://github.com/dotnet/roslyn/issues/28684).
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override string?[] M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31)
+                );
         }
 
         [Fact]
@@ -5023,7 +5034,11 @@ class B : A
 ";
             var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (13,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override void M1(string?[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(13, 26)
+                );
             // PROTOTYPE(NullableReferenceTypes): should warn on B.M1 and B.M2
         }
 
