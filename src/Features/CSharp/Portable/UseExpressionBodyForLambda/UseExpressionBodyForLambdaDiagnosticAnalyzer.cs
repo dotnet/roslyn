@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 {
+    using Microsoft.CodeAnalysis.Text;
     using static UseExpressionBodyForLambdaHelpers;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -66,9 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             if (CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))
             {
-                var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
-                    ? declaration.GetLocation()
-                    : GetDiagnosticLocation(declaration);
+                var location = GetDiagnosticLocation(declaration);
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(UseExpressionBody), "");
@@ -83,9 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             {
                 // They have an expression body.  Create a diagnostic to convert it to a block
                 // if they don't want expression bodies for this member.  
-                var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
-                    ? declaration.GetLocation()
-                    : GetExpressionBody(declaration).GetLocation();
+                var location = GetDiagnosticLocation(declaration);
 
                 var properties = ImmutableDictionary<string, string>.Empty;
                 if (fixesError)
@@ -101,5 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             return null;
         }
+
+        private static Location GetDiagnosticLocation(LambdaExpressionSyntax declaration)
+            => Location.Create(declaration.SyntaxTree,
+                    TextSpan.FromBounds(declaration.SpanStart, declaration.ArrowToken.Span.End));
     }
 }

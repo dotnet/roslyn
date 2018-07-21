@@ -35,47 +35,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var cancellationToken = context.CancellationToken;
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!(root.FindToken(position).Parent is LambdaExpressionSyntax node))
+            var token = root.FindToken(position);
+            var lambdaNode = token.Parent.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+            if (lambdaNode == null)
+            {
+                return;
+            }
+
+            // Caret has to be in the signature portion of the lambda.  We don't want it showing up
+            // arbitrarily deep in the body.
+            if (position < lambdaNode.SpanStart || position > lambdaNode.ArrowToken.Span.End)
             {
                 return;
             }
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            await TryComputeRefactoringAsync(context, root, node, optionSet).ConfigureAwait(false);
-        }
 
-        private async Task<bool> TryComputeRefactoringAsync(
-            CodeRefactoringContext context, SyntaxNode root,
-            LambdaExpressionSyntax node, OptionSet optionSet)
-        {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
-            var succeeded = false;
-            if (CanOfferUseExpressionBody(optionSet, node, forAnalyzer: false))
+            if (CanOfferUseExpressionBody(optionSet, lambdaNode, forAnalyzer: false))
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, node,
+                        document, root, lambdaNode,
                         useExpressionBody: true, c)));
-                succeeded = true;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var (canOffer, _) = CanOfferUseBlockBody(
-                semanticModel, optionSet, node, forAnalyzer: false, cancellationToken);
+                semanticModel, optionSet, lambdaNode, forAnalyzer: false, cancellationToken);
             if (canOffer)
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, node,
+                        document, root, lambdaNode,
                         useExpressionBody: false, c)));
-                succeeded = true;
             }
-
-            return succeeded;
         }
 
         private async Task<Document> UpdateDocumentAsync(

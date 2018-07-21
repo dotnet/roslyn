@@ -26,12 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public static readonly LocalizableString UseExpressionBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         public static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
-        public static Location GetDiagnosticLocation(LambdaExpressionSyntax declaration)
-            => GetBody(declaration).Statements[0].GetLocation();
-
-        private static BlockSyntax GetBody(LambdaExpressionSyntax declaration)
-            => declaration.Body as BlockSyntax;
-
         public static ExpressionSyntax GetExpressionBody(LambdaExpressionSyntax declaration)
             => declaration.Body as ExpressionSyntax;
 
@@ -79,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             LambdaExpressionSyntax declaration, ParseOptions options, ExpressionBodyPreference conversionPreference,
             out ExpressionSyntax expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
         {
-            var body = GetBody(declaration);
+            var body = declaration.Body as BlockSyntax;
 
             return body.TryConvertToExpressionBody(
                 declaration.Kind(), options, conversionPreference,
@@ -168,21 +162,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return updatedDecl;
         }
 
-        private static bool CreateReturnStatementForExpression(
-            SemanticModel semanticModel, LambdaExpressionSyntax declaration)
-        {
-            var lambda = (INamedTypeSymbol)semanticModel.GetTypeInfo(declaration).ConvertedType;
-            return !lambda.DelegateInvokeMethod.ReturnsVoid;
-        }
-
         private static LambdaExpressionSyntax WithBlockBody(
             SemanticModel semanticModel, LambdaExpressionSyntax declaration)
         {
             var expressionBody = GetExpressionBody(declaration);
+            var lambdaType = (INamedTypeSymbol)semanticModel.GetTypeInfo(declaration).ConvertedType;
+            var createReturnStatementForExpression = !lambdaType.DelegateInvokeMethod.ReturnsVoid;
 
             if (!expressionBody.TryConvertToStatement(
                     semicolonTokenOpt: default,
-                    CreateReturnStatementForExpression(semanticModel, declaration),
+                    createReturnStatementForExpression,
                     out var statement))
             {
 
