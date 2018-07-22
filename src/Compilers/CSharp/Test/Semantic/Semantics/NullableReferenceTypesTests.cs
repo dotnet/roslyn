@@ -29926,9 +29926,10 @@ struct S : I
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes) Cycle with Equals when copying modifiers")]
+        [Fact]
         public void NonNullTypes_DecodeAttributeCycle_01_WithEvent()
         {
+            // PROTOTYPE(NullableReferenceTypes) Cycle with Equals when copying modifiers
             var source =
 @"using System;
 using System.Runtime.InteropServices;
@@ -29939,7 +29940,7 @@ interface I
 [StructLayout(LayoutKind.Auto)]
 struct S : I
 {
-    public event Func<int> I.E { add => throw null; remove => throw null; }
+    event Func<int> I.E { add => throw null; remove => throw null; }
 }";
             // PROTOTYPE(NullableReferenceTypes): cycles with Equals when copying modifiers
             var comp = CreateCompilation(
