@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var declaration = (LambdaExpressionSyntax)declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-            editor.ReplaceNode(declaration, Update(semanticModel, declaration));
+            editor.ReplaceNode(
+                declaration,
+                (current, _) => Update(semanticModel, declaration, (LambdaExpressionSyntax)current));
         }
     }
 }

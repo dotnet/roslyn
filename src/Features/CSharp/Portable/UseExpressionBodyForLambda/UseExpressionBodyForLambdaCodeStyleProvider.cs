@@ -108,16 +108,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return true;
         }
 
-        private static LambdaExpressionSyntax Update(SemanticModel semanticModel, LambdaExpressionSyntax declaration)
-            => UpdateWorker(semanticModel, declaration).WithAdditionalAnnotations(Formatter.Annotation);
+        private static LambdaExpressionSyntax Update(SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
+            => UpdateWorker(semanticModel, originalDeclaration, currentDeclaration).WithAdditionalAnnotations(Formatter.Annotation);
 
         private static LambdaExpressionSyntax UpdateWorker(
-            SemanticModel semanticModel, LambdaExpressionSyntax declaration)
+            SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
         {
-            var expressionBody = GetBodyAsExpression(declaration);
+            var expressionBody = GetBodyAsExpression(currentDeclaration);
             return expressionBody == null
-                ? WithExpressionBody(declaration)
-                : WithBlockBody(semanticModel, declaration);
+                ? WithExpressionBody(currentDeclaration)
+                : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
         }
 
         private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
@@ -154,10 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         }
 
         private static LambdaExpressionSyntax WithBlockBody(
-            SemanticModel semanticModel, LambdaExpressionSyntax declaration)
+            SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
         {
-            var expressionBody = GetBodyAsExpression(declaration);
-            var createReturnStatementForExpression = CreateReturnStatementForExpression(semanticModel, declaration);
+            var expressionBody = GetBodyAsExpression(currentDeclaration);
+            var createReturnStatementForExpression = CreateReturnStatementForExpression(
+                semanticModel, originalDeclaration);
 
             if (!expressionBody.TryConvertToStatement(
                     semicolonTokenOpt: default,
@@ -165,13 +166,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                     out var statement))
             {
 
-                return declaration;
+                return currentDeclaration;
             }
 
             // If the user is converting to a block, it's likely they intend to add multiple
             // statements to it.  So make a multi-line block so that things are formatted properly
             // for them to do so.
-            return declaration.WithBody(SyntaxFactory.Block(
+            return currentDeclaration.WithBody(SyntaxFactory.Block(
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
                 SyntaxFactory.SingletonList(statement),
                 SyntaxFactory.Token(SyntaxKind.CloseBraceToken)));

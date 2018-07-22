@@ -1017,5 +1017,65 @@ class C
     }
 }", options: UseBlockBody);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task FixAllNested1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a {|FixAllInDocument:=>|}
+        {
+            return b =>
+            {
+                return b.ToString();
+            };
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a => b => b.ToString();
+    }
+}", options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task FixAllNested2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a {|FixAllInDocument:=>|} b => b.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a =>
+        {
+            return b =>
+            {
+                return b.ToString();
+            };
+        };
+    }
+}", options: UseExpressionBody);
+        }
     }
 }

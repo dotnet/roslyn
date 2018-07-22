@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             Document document, SyntaxNode root, LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var updatedDeclaration = Update(semanticModel, declaration);
+            var updatedDeclaration = Update(semanticModel, declaration, declaration);
 
             var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
             return document.WithSyntaxRoot(newRoot);
