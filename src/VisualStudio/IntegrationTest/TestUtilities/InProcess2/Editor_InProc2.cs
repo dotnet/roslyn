@@ -346,7 +346,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
             IViewClassifierAggregatorService viewClassifierAggregator,
             CancellationToken cancellationToken)
         {
-            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view, cancellationToken).ConfigureAwait(true);
+            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view, cancellationToken);
 
             var bufferType = view.TextBuffer.ContentType.DisplayName;
             if (!broker.IsLightBulbSessionActive(view))
@@ -375,7 +375,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 }
 
                 IWpfTextView preview = null;
-                object pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
+                object pane = await set.GetPreviewAsync(CancellationToken.None);
                 if (pane is System.Windows.Controls.UserControl)
                 {
                     var container = ((System.Windows.Controls.UserControl)pane).FindName("PreviewDockPanel") as DockPanel;

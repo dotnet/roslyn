@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 // checking whether there is any suggested action is async up to editor layer and our waiter doesn't track up to that point.
                 // so here, we have no other way than sleep (with timeout) to see LB is available.
-                await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(true);
+                await Task.Delay(TimeSpan.FromSeconds(1));
 
                 return broker.IsLightBulbSessionActive(view);
             }, TimeSpan.Zero);

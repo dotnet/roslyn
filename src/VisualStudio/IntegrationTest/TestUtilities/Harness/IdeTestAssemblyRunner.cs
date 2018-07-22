@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             using (var messageFilter = new MessageFilter())
             {
                 Helper.Automation.TransactionTimeout = 20000;
-                using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(VisualStudioInstanceFactory.RequiredPackageIds).ConfigureAwait(true))
+                using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(VisualStudioInstanceFactory.RequiredPackageIds))
                 {
                     var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, completedTestCaseIds, cancellationToken);
                     using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, new HashSet<string>(), cancellationToken), executionMessageSinkFilter, ExecutionOptions))

@@ -60,13 +60,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             while (true)
             {
-                var retval = await action().ConfigureAwait(true);
+                var retval = await action();
                 if (!Equals(default(T), retval))
                 {
                     return retval;
                 }
 
-                await Task.Delay(delay).ConfigureAwait(true);
+                await Task.Delay(delay);
             }
         }
     }
