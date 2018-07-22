@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
-                                    type = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
+                                    type = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, initializerOpt.Type);
                                 }
 
                                 _lazyFieldTypeInferred = 1;
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if ((object)type == null)
                         {
-                            type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
+                            type = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, binder.CreateErrorType("var"));
                         }
                     }
                 }
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // update the lazyType only if it contains value last seen by the current thread:
             if ((object)Interlocked.CompareExchange(
                 ref _lazyType,
-                type.WithModifiers(this.RequiredCustomModifiers).SetUnknownNullabilityForReferenceTypesIfNecessary(ContainingModule),
+                type.WithModifiers(this.RequiredCustomModifiers),
                 null) == null)
             {
                 TypeChecks(type.TypeSymbol, diagnostics);

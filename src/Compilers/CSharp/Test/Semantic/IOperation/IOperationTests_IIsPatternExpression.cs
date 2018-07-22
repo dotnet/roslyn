@@ -594,7 +594,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): cycle with NonNullTypes"), WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInAttributeArgument()
         {
             string source = @"

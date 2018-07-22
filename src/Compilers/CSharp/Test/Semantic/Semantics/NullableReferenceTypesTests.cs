@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NullableReferenceTypesTests : CSharpTestBase
     {
-        private const string NullableAttributeDefinition = @"
+         const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(AttributeTargets.Event | // The type of the event is nullable, or has a nullable reference type as one of its constituents  
@@ -296,7 +296,7 @@ namespace System
             VerifyUsesOfNullability(systemNamespace, expected);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Needs to be adjusted for NonNullTypes(false) default context")]
         public void UnannotatedAssemblies_01()
         {
             var source0 =
@@ -743,7 +743,7 @@ public class D : C
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 18));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Needs to be adjusted for NonNullTypes(false) default context")]
         public void UnannotatedAssemblies_09()
         {
             var source0 =
@@ -916,28 +916,6 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        public void NonNullTypes_WithObsolete()
-        {
-            string source = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    [NonNullTypes(true)]
-    [System.Obsolete(""obsolete"")]
-    class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Why isn't the usage of NonNullTypes reported as obsolete?
-            comp.VerifyDiagnostics();
-
-            VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
-        }
-
-        [Fact]
         public void NonNullTypes_Cycle5()
         {
             string source = @"
@@ -1019,73 +997,6 @@ class AttributeWithProperty : System.ComponentModel.DisplayNameAttribute
 }
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonNullTypes_Cycle12()
-        {
-            string source = @"
-[System.Flags]
-enum E { }
-";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonNullTypes_Cycle13()
-        {
-            string source = @"
-interface I { }
-
-[System.Obsolete(nameof(I2))]
-interface I2 : I { }
-
-";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonNullTypes_Cycle15()
-        {
-            string lib_cs = "public class Base { }";
-            var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular8, assemblyName: "lib");
-
-            string lib2_cs = "public class C : Base { }";
-            var lib2 = CreateCompilation(lib2_cs, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular8, assemblyName: "lib2");
-
-            string source_cs = @"
-[D]
-class DAttribute : C { }
-";
-            var comp = CreateCompilation(source_cs, references: new[] { lib2.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (3,20): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                // class DAttribute : C { }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Base", "lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 20),
-                // (2,2): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                // [D]
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("Base", "lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 2),
-                // (2,2): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                // [D]
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("Base", "lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 2)
-                );
-        }
-
-        [Fact]
-        public void NonNullTypes_Cycle16()
-        {
-            string source = @"
-using System;
-[AttributeUsage(AttributeTargets.Property)]
-class AttributeWithProperty : System.ComponentModel.DisplayNameAttribute
-{
-    public override string DisplayName { get => throw null; }
-}
-";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -30033,28 +29944,6 @@ struct S : I
             // PROTOTYPE(NullableReferenceTypes): cycles with Equals when copying modifiers
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
-                parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonNullTypes_DecodeAttributeCycle_01_WithEvent()
-        {
-            var source =
-@"using System;
-using System.Runtime.InteropServices;
-interface I
-{
-    event Func<int> E;
-}
-[StructLayout(LayoutKind.Auto)]
-struct S : I
-{
-    public event Func<int> I.E { add => throw null; remove => throw null; }
-}";
-            // PROTOTYPE(NullableReferenceTypes): cycles with Equals when copying modifiers
-            var comp = CreateCompilation(
-                source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
