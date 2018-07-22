@@ -1405,7 +1405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    newArguments[i] = ((OutVariablePendingInference)argument).SetInferredType(candidateType, null);
+                                    // PROTOTYPE(NullableReferenceTypes): this TypeSymbolWithAnnotations has bad annotation and context
+                                    newArguments[i] = ((OutVariablePendingInference)argument).SetInferredType(TypeSymbolWithAnnotations.Create(candidateType), null);
                                 }
                             }
                             else if (argument.Kind == BoundKind.DiscardExpression)
@@ -1416,7 +1417,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    newArguments[i] = ((BoundDiscardExpression)argument).SetInferredType(candidateType);
+                                    // PROTOTYPE(NullableReferenceTypes): this TypeSymbolWithAnnotations has bad annotation and context
+                                    newArguments[i] = ((BoundDiscardExpression)argument).SetInferredType(TypeSymbolWithAnnotations.Create(candidateType));
                                 }
                             }
 

@@ -243,7 +243,7 @@ class C
         public void UnannotatedAssemblies_WithSomeExtraAnnotations()
         {
             // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-            var comp = CreateCompilation(new[] { "", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation("", parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var systemNamespace = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingNamespace;
 
@@ -8344,7 +8344,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -8368,7 +8368,7 @@ public class C
             var model = compilation.GetSemanticModel(tree);
             var outVar = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
             var symbol = (LocalSymbol)model.GetSymbolInfo(outVar).Symbol;
-            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat));
             Assert.Null(model.GetDeclaredSymbol(outVar));
         }
 
@@ -8382,7 +8382,7 @@ public class C
             var varDecl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(d => d.Declaration.Type.IsVar).Single();
             var variable = varDecl.Declaration.Variables.Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(variable);
-            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat));
             Assert.Null(model.GetSymbolInfo(variable).Symbol);
         }
 
@@ -8510,7 +8510,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -8534,7 +8534,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!");// PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -8559,7 +8559,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -8583,7 +8583,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string?[]!"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            VerifyOutVar(c, "string?[]"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -8607,7 +8607,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string?[]!"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            VerifyOutVar(c, "string?[]"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -8631,7 +8631,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string![]!"); // PROTOTYPE(NullableReferenceTypes): expecting string![]
+            VerifyOutVar(c, "string![]");
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -8652,7 +8652,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string![]!"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            VerifyOutVar(c, "string![]"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -8673,7 +8673,7 @@ public class C
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -8694,7 +8694,7 @@ public class C
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string"); // PROTOTYPE(NullableReferenceTypes): expecting string?
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -11230,7 +11230,7 @@ public class C
         public void EnsuresNotNull_TypeInference()
         {
             // PROTOTYPE(NullableReferenceTypes): This test raises the question of flowing information from annotations into the inferred type
-            CSharpCompilation c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(new[] { @"
 using System.Runtime.CompilerServices;
 public class C
 {
@@ -11241,7 +11241,7 @@ public class C
     }
     public static void ThrowIfNull<T>([EnsuresNotNull] T x1, out T x2) => throw null;
 }
-" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition, EnsuresNotNullAttributeDefinition }, parseOptions: TestOptions.Regular8);
 
             c.VerifyTypes();
             c.VerifyDiagnostics(

@@ -289,7 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else
             {
                 // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
-                return NullableTypeDecoder.TransformType(type, externalNullableAnnotations);
+                // We currently don't have a mechanism for external annotations to affect the NonNullType context, so
+                // any external annotation is taken to imply a `[NonNullTypes(true)]` context
+                return NullableTypeDecoder.TransformType(type, externalNullableAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
             }
         }
 

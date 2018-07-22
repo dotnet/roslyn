@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else
             {
                 // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
-                return NullableTypeDecoder.TransformType(metadataType, extraAnnotations);
+                return NullableTypeDecoder.TransformType(metadataType, extraAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
             }
         }
     }

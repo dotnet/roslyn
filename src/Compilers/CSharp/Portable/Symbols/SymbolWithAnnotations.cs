@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
             compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
-        internal static TypeSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol)
+        internal static TypeSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers = default)
         {
-            return Create(typeSymbol, nonNullTypesContext, isAnnotated: false, ImmutableArray<CustomModifier>.Empty);
+            return Create(typeSymbol, nonNullTypesContext, isAnnotated: false, customModifiers.NullToEmpty());
         }
 
-        internal static TypeSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
+        internal static TypeSymbolWithAnnotations Create(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers = default)
         {
-            return Create(typeSymbol, nonNullTypesContext, isAnnotated: false, customModifiers);
+            return Create(typeSymbol, nonNullTypesContext, isAnnotated: typeSymbol.IsNullableType(), customModifiers.NullToEmpty());
         }
 
         // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract TypeSymbolWithAnnotations AsNotNullableReferenceType();
 
         public abstract TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers);
-        protected abstract TypeSymbolWithAnnotations WithNonNullTypesContext(INonNullTypesContext nonNullTypesContext);
+        public abstract TypeSymbolWithAnnotations WithNonNullTypesContext(INonNullTypesContext nonNullTypesContext);
 
         public abstract TypeSymbol TypeSymbol { get; }
         public virtual TypeSymbol NullableUnderlyingTypeOrSelf => TypeSymbol.StrippedType();
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new NonLazyType(_typeSymbol, NonNullTypesContext, _isAnnotated, customModifiers);
             }
 
-            protected override TypeSymbolWithAnnotations WithNonNullTypesContext(INonNullTypesContext nonNullTypesContext)
+            public override TypeSymbolWithAnnotations WithNonNullTypesContext(INonNullTypesContext nonNullTypesContext)
             {
                 Debug.Assert(nonNullTypesContext != null);
                 return NonNullTypesContext == nonNullTypesContext ?
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new NonLazyType(typeSymbol, NonNullTypesContext, isAnnotated: IsAnnotated, customModifiers);
             }
 
-            protected override TypeSymbolWithAnnotations WithNonNullTypesContext(INonNullTypesContext nonNullTypesContext)
+            public override TypeSymbolWithAnnotations WithNonNullTypesContext(INonNullTypesContext nonNullTypesContext)
             {
                 return _underlying.NonNullTypesContext == nonNullTypesContext ?
                     this :
