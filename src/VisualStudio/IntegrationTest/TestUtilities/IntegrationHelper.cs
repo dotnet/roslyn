@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             using (var webClient = new WebClient())
             {
-                await webClient.DownloadFileTaskAsync(downloadUrl, fileName).ConfigureAwait(continueOnCapturedContext: false);
+                await webClient.DownloadFileTaskAsync(downloadUrl, fileName);
             }
         }
 

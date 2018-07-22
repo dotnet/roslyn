@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
         {
-            var element = await FindAutomationElementAsync(elementName, recursive).ConfigureAwait(false);
+            var element = await FindAutomationElementAsync(elementName, recursive);
 
             if (element != null)
             {
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // element can't be found, it'll continue to spin until the heat death of the universe.
             await IntegrationHelper.WaitForResultAsync(
                 () => (element = Helper.Automation.GetRootElement().FindFirst(scope, condition)) != null, expectedResult: true
-            ).ConfigureAwait(false);
+            );
 
             return element;
         }

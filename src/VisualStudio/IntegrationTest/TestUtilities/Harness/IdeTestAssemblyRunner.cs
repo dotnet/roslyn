@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
                 {
                     try
                     {
-                        return await task.ConfigureAwait(false);
+                        return await task;
                     }
                     finally
                     {
