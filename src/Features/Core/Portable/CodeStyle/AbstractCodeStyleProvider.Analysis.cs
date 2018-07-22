@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             public readonly TCodeStyleProvider _codeStyleProvider;
 
-            protected DiagnosticAnalyzer(bool configurable = true) 
+            protected DiagnosticAnalyzer(bool configurable = true)
                 : this(new TCodeStyleProvider(), configurable)
             {
             }
