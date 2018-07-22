@@ -111,16 +111,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         /// <summary>
         /// Subclasses should implement this to provide their feature as a refactoring.  This will
-        /// be called when the user has the code style enabled, but has set it to 'refactoring
-        /// only'.
+        /// be called when the user has the code style set to 'refactoring only' (or if the
+        /// diagnostic is suppressed).
         ///
-        /// The implementation of this should offer any and all refactorings it can that are
-        /// relevant at the provided <paramref name="span"/>.  Specifically, because these are just
-        /// refactorings, they should be offered when they would make the code match the desired
-        /// user preference, or even for allowing the user to quickly switch their code to *not*
-        /// follow their desired preference.
+        /// The implementation of this should offer all refactorings it can that are relevant at the
+        /// provided <paramref name="span"/>.  Specifically, because these are just refactorings,
+        /// they should be offered when they would make the code match the desired user preference,
+        /// or even for allowing the user to quickly switch their code to *not* follow their desired
+        /// preference.
         /// </summary>
-        protected abstract Task<ImmutableArray<CodeAction>> ComputeRefactoringsWhenAnalyzerInactiveAsync(
+        protected abstract Task<ImmutableArray<CodeAction>> ComputeAllRefactoringsWhenAnalyzerInactiveAsync(
             Document document, TextSpan span, CancellationToken cancellationToken);
 
         /// <summary>

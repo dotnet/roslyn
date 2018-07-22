@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
         }
 
-        protected override async Task<ImmutableArray<CodeAction>> ComputeRefactoringsWhenAnalyzerInactiveAsync(
+        protected override async Task<ImmutableArray<CodeAction>> ComputeAllRefactoringsWhenAnalyzerInactiveAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             // If the analyzer is inactive, then we want to offer refactorings in any viable

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             var computationTask = analyzerActive
                 ? ComputeOpposingRefactoringsWhenAnalyzerActiveAsync(document, span, option, cancellationToken)
-                : ComputeRefactoringsWhenAnalyzerInactiveAsync(document, span, cancellationToken);
+                : ComputeAllRefactoringsWhenAnalyzerInactiveAsync(document, span, cancellationToken);
 
             var codeActions = await computationTask.ConfigureAwait(false);
             context.RegisterRefactorings(codeActions);
