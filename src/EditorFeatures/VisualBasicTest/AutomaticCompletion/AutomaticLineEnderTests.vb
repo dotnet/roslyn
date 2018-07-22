@@ -120,13 +120,13 @@ End Class</code>)
         Public Sub TestDim_After_MalformedStatement()
             Test(<code>Class C
     Sub Method()
-        Dim _ ' test
+        Dim _  test
 
         $$
     End Sub
 End Class</code>, <code>Class C
     Sub Method()
-        Dim _ ' test
+        Dim _  test
 $$
     End Sub
 End Class</code>)
