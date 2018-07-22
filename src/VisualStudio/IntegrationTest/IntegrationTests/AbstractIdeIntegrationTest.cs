@@ -107,7 +107,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
             // Local function
             async Task WatchdogAsync()
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(3 * Helper.HangMitigatingTimeout.TotalMilliseconds), _watchdogCompletionTokenSource.Token).ConfigureAwait(false);
+                await TaskScheduler.Default;
+
+                await Task.Delay(TimeSpan.FromMilliseconds(3 * Helper.HangMitigatingTimeout.TotalMilliseconds), _watchdogCompletionTokenSource.Token);
 
                 var ex = new Exception($"Terminating test '{GetType().Name}.{testName}' run due to unrecoverable test timeout.");
                 InProcessIdeTestAssemblyRunner.SaveScreenshot(ex);
