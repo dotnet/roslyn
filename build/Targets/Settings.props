@@ -134,6 +134,9 @@
              Condition="'$(OS)' == 'Windows_NT'" />
 
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" />
+  </ItemGroup>
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
     <Import 

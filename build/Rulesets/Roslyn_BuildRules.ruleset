@@ -158,4 +158,13 @@ collection.
     <Rule Id="VSSDK001" Action="Warning" /> <!-- Derive from AsyncPackage -->
     <Rule Id="VSSDK003" Action="Warning" /> <!-- Support async tool windows -->
   </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
+    <Rule Id="VSTHRD001" Action="None" /> <!-- Avoid legacy thread switching APIs -->
+    <Rule Id="VSTHRD002" Action="None" /> <!-- Avoid problematic synchronous waits -->
+    <Rule Id="VSTHRD100" Action="None" /> <!-- Avoid async void methods -->
+    <Rule Id="VSTHRD101" Action="None" /> <!-- Avoid unsupported async delegates -->
+    <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
+    <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->
+    <Rule Id="VSTHRD200" Action="None" /> <!-- Use "Async" suffix for async methods -->
+  </Rules>
 </RuleSet>
