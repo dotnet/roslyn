@@ -19,31 +19,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool includeNullability = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
             bool includeNonNullability = format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
-            // Don't un-necessarily pull on IsNullable to avoid cycles in parts of binding that use ToDisplayString
-            bool? isNullable = (includeNullability || includeNonNullability) ? type.IsNullable : null;
-
-            if (typeSymbol.TypeKind == TypeKind.Array && isNullable.HasValue)
+            if (typeSymbol.TypeKind == TypeKind.Array)
             {
-                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: isNullable);
+                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: type);
             }
             else
             {
                 typeSymbol.Accept(visitor);
 
-                switch (isNullable)
+                if (includeNonNullability && !typeSymbol.IsNullableType() && type.IsAnnotated)
                 {
-                    case true:
-                        if (!typeSymbol.IsNullableType() && includeNullability)
-                        {
-                            AddPunctuation(SyntaxKind.QuestionToken);
-                        }
-                        break;
-                    case false:
-                        if (!typeSymbol.IsValueType && includeNonNullability)
-                        {
-                            AddPunctuation(SyntaxKind.ExclamationToken);
-                        }
-                        break;
+                    AddPunctuation(SyntaxKind.QuestionToken);
+                }
+                else if (includeNonNullability && !typeSymbol.IsValueType && type.IsNullable == false)
+                {
+                    AddPunctuation(SyntaxKind.ExclamationToken);
                 }
             }
         }
@@ -53,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArrayType(symbol, isNullable: null);
         }
 
-        private void VisitArrayType(IArrayTypeSymbol symbol, bool? isNullable)
+        private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations isNullable)
         {
             if (TryAddAlias(symbol, builder))
             {
@@ -108,24 +98,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddArrayRank(arrayType);
 
-                switch (isNullable)
+                if (includeNonNullability && !ReferenceEquals(isNullable, null) && !isNullable.IsNullableType() && isNullable.IsAnnotated)
                 {
-                    case true:
-                        if (includeNullability)
-                        {
-                            AddPunctuation(SyntaxKind.QuestionToken);
-                        }
-                        break;
-                    case false:
-                        if (includeNonNullability)
-                        {
-                            AddPunctuation(SyntaxKind.ExclamationToken);
-                        }
-                        break;
+                    AddPunctuation(SyntaxKind.QuestionToken);
+                }
+                else if (includeNonNullability && !ReferenceEquals(isNullable, null) && !isNullable.IsValueType && isNullable.IsNullable == false)
+                {
+                    AddPunctuation(SyntaxKind.ExclamationToken);
                 }
 
-                // Don't un-necessarily pull on IsNullable to avoid cycles in parts of binding that use ToDisplayString
-                isNullable = (includeNullability || includeNonNullability) ? (arrayType as ArrayTypeSymbol)?.ElementType.IsNullable : null;
+                isNullable = (arrayType as ArrayTypeSymbol)?.ElementType;
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
         }
