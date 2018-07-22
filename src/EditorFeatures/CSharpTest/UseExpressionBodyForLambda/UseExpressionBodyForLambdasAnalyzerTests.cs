@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             => (new UseExpressionBodyForLambdaDiagnosticAnalyzer(), new UseExpressionBodyForLambdaCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
         private IDictionary<OptionKey, object> UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task UseExpressionBodyInFieldInitializer()
