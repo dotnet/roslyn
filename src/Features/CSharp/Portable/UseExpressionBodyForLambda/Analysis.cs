@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         protected override DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected override (ImmutableArray<SyntaxKind>, Action<SyntaxNodeAnalysisContext, CodeStyleOption<ExpressionBodyPreference>>) GetSyntaxNodeAction()
-            => (ImmutableArray.Create(SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression),
-                AnalyzeSyntax);
+        protected override void DiagnosticAnalyzerInitialize(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, CodeStyleOption<ExpressionBodyPreference> option)
         {
