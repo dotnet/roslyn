@@ -278,11 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
-
-                    if (isExplicitInterfaceImplementation)
-                    {
-                        TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrImplementedProperty, true, diagnostics);
-                    }
                 }
             }
             else if (_refKind == RefKind.RefReadOnly)
@@ -746,6 +741,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(this.CSharpSyntaxNode);
                 Debug.Assert(explicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+
+                // Note: we delayed nullable-related checks that could pull on NonNullTypes
+                PropertySymbol overriddenOrImplementedProperty = null;
+                if (this.IsOverride)
+                {
+                    overriddenOrImplementedProperty = this.OverriddenProperty;
+                }
+                else if (!_explicitInterfaceImplementations.IsEmpty)
+                {
+                    overriddenOrImplementedProperty = _explicitInterfaceImplementations[0];
+                }
+
+                if (overriddenOrImplementedProperty != null)
+                {
+                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrImplementedProperty, true, diagnostics);
+                }
             }
 
             if (_refKind == RefKind.RefReadOnly)

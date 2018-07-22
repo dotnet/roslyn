@@ -29995,7 +29995,7 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "Func<T>").WithLocation(6, 17));
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Equals pulls on NonNullTypes too early, causing cycle")]
+        [Fact]
         public void NonNullTypes_DecodeAttributeCycle_01()
         {
             var source =
@@ -30033,6 +30033,28 @@ struct S : I
             // PROTOTYPE(NullableReferenceTypes): cycles with Equals when copying modifiers
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypes_DecodeAttributeCycle_01_WithEvent()
+        {
+            var source =
+@"using System;
+using System.Runtime.InteropServices;
+interface I
+{
+    event Func<int> E;
+}
+[StructLayout(LayoutKind.Auto)]
+struct S : I
+{
+    public event Func<int> I.E { add => throw null; remove => throw null; }
+}";
+            // PROTOTYPE(NullableReferenceTypes): cycles with Equals when copying modifiers
+            var comp = CreateCompilation(
+                source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
