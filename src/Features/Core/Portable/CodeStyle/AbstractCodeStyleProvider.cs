@@ -50,19 +50,25 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _message = message;
         }
 
+        /// <summary>
+        /// Helper to get the true ReportDiagnostic severity for a given option.  Importantly, this
+        /// handle ReportDiagnostic.Default and will map that back to the appropriate value in that
+        /// case.
+        /// </summary>
+        protected static ReportDiagnostic GetOptionSeverity(CodeStyleOption<TOptionKind> optionValue)
+        {
+            var severity = optionValue.Notification.Severity;
+            return severity == ReportDiagnostic.Default
+                ? severity.WithDefaultSeverity(DiagnosticSeverity.Hidden)
+                : severity;
+        }
+
         #region analysis
 
         protected abstract DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory();
         protected abstract bool DiagnosticsForOpenFileOnly(Workspace workspace);
 
-        // Subclasses only need to override the particular GetXXXAction methods that they care
-        // about. Normally this will just be a single one of these methods.
-
-        protected virtual Action<CodeBlockAnalysisContext, CodeStyleOption<TOptionKind>> GetCodeBlockAction() => null;
-        protected virtual Action<SemanticModelAnalysisContext, CodeStyleOption<TOptionKind>> GetSemanticModelAction() => null;
-        protected virtual Action<SyntaxTreeAnalysisContext, CodeStyleOption<TOptionKind>> GetSyntaxTreeAction() => null;
-        protected virtual (ImmutableArray<OperationKind>, Action<OperationAnalysisContext, CodeStyleOption<TOptionKind>>) GetOperationAction() => default;
-        protected virtual (ImmutableArray<TSyntaxKind>, Action<SyntaxNodeAnalysisContext, CodeStyleOption<TOptionKind>>) GetSyntaxNodeAction() => default;
+        protected abstract void DiagnosticAnalyzerInitialize(AnalysisContext context);
 
         protected DiagnosticDescriptor CreateDescriptorWithId(
             LocalizableString title, LocalizableString message)
