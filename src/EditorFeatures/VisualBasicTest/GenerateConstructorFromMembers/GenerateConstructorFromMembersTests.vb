@@ -47,6 +47,33 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelection() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program[|
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_SelectionIncludingClassName() As Task
+            Await TestMissingAsync(
+"Class Progra[|m
+    Private i As Integer
+    Private b As String|]
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSecondField() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program

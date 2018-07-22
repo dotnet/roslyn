@@ -137,6 +137,45 @@ class Z
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{[|
+    int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_SelectionIncludingClassOpeningBrace()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+class Z
+[|{
+    int a;
+    string b;|]
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSecondField()
         {
             await TestInRegularAndScriptAsync(
@@ -806,7 +845,7 @@ class Z
         this.b = b ?? throw new ArgumentNullException(nameof(b));
     }
 }",
-chosenSymbols: new string[] { "a", "b" }, 
+chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 
