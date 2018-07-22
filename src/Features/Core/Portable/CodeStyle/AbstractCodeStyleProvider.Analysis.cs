@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     syntaxKinds);
             }
 
-            static void AnalyzeIfEnabled<TContext>(
+            private static void AnalyzeIfEnabled<TContext>(
                 TCodeStyleProvider provider, TContext context, Action<TContext, CodeStyleOption<TOptionKind>> analyze,
                 AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             {
