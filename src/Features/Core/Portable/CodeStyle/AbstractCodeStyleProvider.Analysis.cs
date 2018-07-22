@@ -38,6 +38,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 => _codeStyleProvider.DiagnosticsForOpenFileOnly(workspace);
         }
 
+        /// <summary>
+        /// Critically, we want to consolidate the logic about checking if the analyzer should run
+        /// at all.  i.e. if the user has their option set to 'none' or 'refactoring only' then we
+        /// do not want the analyzer to run at all.
+        ///
+        /// To that end, we don't let the subclass have direct access to the real <see
+        /// cref="Diagnostics.AnalysisContext"/>. Instead, we pass this type to the subclass for it
+        /// register with.  We then check if the registration should proceed given the <see
+        /// cref="CodeStyleOption{T}"/>
+        /// and the current <see cref="SyntaxTree"/> being processed.  If not, we don't do the
+        /// actual registration.
+        /// </summary>
         protected struct AnalysisContext
         {
             private readonly TCodeStyleProvider _codeStyleProvider;
