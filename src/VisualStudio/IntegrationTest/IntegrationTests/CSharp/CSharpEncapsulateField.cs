@@ -39,13 +39,18 @@ namespace myNamespace
             await SetUpEditorAsync(TestSource);
             var encapsulateField = VisualStudio.EncapsulateField;
             var dialog = VisualStudio.PreviewChangesDialog;
-            await encapsulateField.InvokeAsync(cancellationToken: HangMitigatingCancellationToken);
+
+            var asyncCommand = encapsulateField.InvokeAsync(cancellationToken: HangMitigatingCancellationToken);
             await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
             await dialog.ClickCancelAsync(encapsulateField.DialogName);
             await dialog.VerifyClosedAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
-            await encapsulateField.InvokeAsync(cancellationToken: HangMitigatingCancellationToken);
+            await asyncCommand;
+
+            asyncCommand = encapsulateField.InvokeAsync(cancellationToken: HangMitigatingCancellationToken);
             await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
             await dialog.ClickApplyAndWaitForFeatureAsync(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
+            await asyncCommand;
+
             await VisualStudio.Editor.Verify.TextContainsAsync("public static int? Param { get => param; set => param = value; }");
         }
 

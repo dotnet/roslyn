@@ -2,7 +2,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
 {
@@ -22,7 +21,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess2
                 await TestServices.Editor.WaitForLightBulbSessionAsync(cancellationToken);
             }
 
-            await TestServices.Editor.SendKeysAsync(new KeyPress(VirtualKey.R, ShiftState.Ctrl), new KeyPress(VirtualKey.E, ShiftState.Ctrl));
+            await ExecuteCommandAsync(WellKnownCommandNames.Refactor_EncapsulateField);
         }
     }
 }
