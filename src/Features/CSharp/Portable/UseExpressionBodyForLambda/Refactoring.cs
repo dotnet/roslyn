@@ -75,7 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         protected override async Task<ImmutableArray<CodeAction>> ComputeRefactoringsWhenAnalyzerInactiveAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-             var toExpressionBodyRefactorings = await ComputeRefactoringsAsync(
+            // If the analyzer is inactive, then we want to offer refactorings in any viable
+            // direction.  So we want to offer to convert expression-bodies to block-bodies, and
+            // vice-versa if applicable.
+
+            var toExpressionBodyRefactorings = await ComputeRefactoringsAsync(
                 document, span, ExpressionBodyPreference.WhenPossible, cancellationToken).ConfigureAwait(false);
 
             var toBlockBodyRefactorings = await ComputeRefactoringsAsync(
