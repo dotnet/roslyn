@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal NamespaceOrTypeSymbol NamespaceOrTypeSymbol => Symbol as NamespaceOrTypeSymbol;
             internal bool IsDefault => _symbolOrTypeSymbolWithAnnotations is null;
 
-            internal static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateNonNull(bool nonNullTypes, Symbol symbol)
+            internal static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, Symbol symbol)
             {
                 if (symbol is null)
                 {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return new NamespaceOrTypeOrAliasSymbolWithAnnotations(symbol);
                 }
-                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes, type));
+                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext, type));
             }
 
             public static implicit operator NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type)

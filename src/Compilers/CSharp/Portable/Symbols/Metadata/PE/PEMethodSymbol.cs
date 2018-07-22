@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
                 (object)null);
 
-            typeMap = new TypeMap(nonNullTypes: false, this.SourceTypeParameters, _typeParameters);
+            typeMap = new TypeMap(nonNullTypesContext: NonNullTypesFalseContext.Instance, this.SourceTypeParameters, _typeParameters);
 
             VerifyTypeParameters(this, _typeParameters);
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
         {
             return _baseType;
         }
@@ -260,9 +260,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
+        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
-            return _baseType;
+            get { return _baseType; }
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)

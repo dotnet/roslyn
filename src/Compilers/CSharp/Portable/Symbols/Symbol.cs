@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, IFormattable
+    internal abstract partial class Symbol : ISymbol, IFormattable, INonNullTypesContext
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -834,10 +834,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Is module/type/method/field/property/event/parameter definition opted-in/out of treating un-annotated types as non-null.
         /// This is determined by the presence of the `[NonNullTypes]` attribute.
-        /// PROTOTYPE(NullableReferenceTypes): presumably whether the feature is turned on or off will affect NonNullTypes default value on source module.
         /// Not valid to call on non-definitions.
+        ///
+        /// To avoid cycles, this property should not be accessed directly, except in its overrides (fall back to parent).
+        /// It can be accessed indirectly via <see cref="TypeSymbolWithAnnotations.IsNullable"/> and
+        /// <see cref="TypeSymbolWithAnnotations.IsAnnotatedWithNonNullTypesContext"/>, which delay its evaluation using
+        /// <see cref="INonNullTypesContext"/>.
         /// </summary>
-        internal virtual bool NonNullTypes
+        public virtual bool NonNullTypes
         {
             get
             {

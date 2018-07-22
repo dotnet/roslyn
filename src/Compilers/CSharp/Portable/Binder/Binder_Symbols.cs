@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureImplicitLocal, diagnostics);
                 }
 
-                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateNonNull(NonNullTypes, symbol);
+                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, symbol);
             }
             else
             {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnmanagedGenericTypeConstraint, diagnostics);
                 }
 
-                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateNonNull(NonNullTypes, symbol);
+                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, symbol);
             }
             else
             {
@@ -365,24 +365,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PredefinedType:
                     {
                         var type = BindPredefinedTypeSymbol((PredefinedTypeSyntax)syntax, diagnostics);
-                        if (type.SpecialType == SpecialType.System_Boolean)
-                        {
-                            // Breaking a cycle when binding the `NonNullTypes` attribute constructor
-                            // PROTOTYPE(NullableReferenceTypes): test this with some extra/unrelated constructors on NonNullTypesAttribute
-                            return TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes: true, type);
-                        }
-                        else
-                        {
-                            return TypeSymbolWithAnnotations.CreateNonNull(NonNullTypes, type);
-                        }
+                        return TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, type);
                     }
 
                 case SyntaxKind.IdentifierName:
-                    return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateNonNull(NonNullTypes,
+                    return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext,
                         BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt: null));
 
                 case SyntaxKind.GenericName:
-                    return TypeSymbolWithAnnotations.CreateNonNull(NonNullTypes,
+                    return TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext,
                         BindGenericSimpleNamespaceOrTypeOrAliasSymbol((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt: null));
 
                 case SyntaxKind.AliasQualifiedName:
@@ -397,19 +388,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(left, LookupResultKind.NotATypeOrNamespace, diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, node.Alias.Location, node.Alias.Identifier.Text)));
                         }
 
-                        return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateNonNull(NonNullTypes, this.BindSimpleNamespaceOrTypeOrAliasSymbol(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left));
+                        return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, this.BindSimpleNamespaceOrTypeOrAliasSymbol(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left));
                     }
 
                 case SyntaxKind.QualifiedName:
                     {
                         var node = (QualifiedNameSyntax)syntax;
-                        return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateNonNull(NonNullTypes, BindQualifiedName(node.Left, node.Right, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics));
+                        return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, BindQualifiedName(node.Left, node.Right, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics));
                     }
 
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
                         var node = (MemberAccessExpressionSyntax)syntax;
-                        return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateNonNull(NonNullTypes, BindQualifiedName(node.Expression, node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics));
+                        return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, BindQualifiedName(node.Expression, node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics));
                     }
 
                 case SyntaxKind.ArrayType:
@@ -446,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                type = TypeSymbolWithAnnotations.CreateNonNull(NonNullTypes, array);
+                                type = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, array);
                             }
                         }
 
@@ -481,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.TupleType:
                     {
-                        return TypeSymbolWithAnnotations.Create(BindTupleType((TupleTypeSyntax)syntax, diagnostics));
+                        return TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, BindTupleType((TupleTypeSyntax)syntax, diagnostics));
                     }
 
                 case SyntaxKind.RefType:
@@ -816,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // PROTOTYPE(NullableReferenceTypes): test with different NonNullTypes contexts
                 AliasSymbol discarded;
-                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateNonNull(NonNullTypes, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out discarded, diagnostics, syntax, basesBeingResolved));
+                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out discarded, diagnostics, syntax, basesBeingResolved));
             }
 
             return symbol;
@@ -827,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsAlias)
             {
                 // PROTOTYPE(NullableReferenceTypes): test with different NonNullTypes contexts
-                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateNonNull(NonNullTypes, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out alias, diagnostics, syntax, basesBeingResolved));
+                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out alias, diagnostics, syntax, basesBeingResolved));
             }
 
             alias = null;

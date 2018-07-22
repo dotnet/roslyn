@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (SourceModuleSymbol)this.Modules[0]; }
         }
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {

@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute = false);
+        internal abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved);
 
         internal abstract ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved);
 
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
         {
             if (!IsGenericType)
             {
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeSymbolWithAnnotations oldTypeArgument = allTypeArguments[i];
                 TypeSymbolWithAnnotations newTypeArgument;
-                if (!oldTypeArgument.ApplyNullableTransforms(transforms, useNonNullTypes, ref position, out newTypeArgument))
+                if (!oldTypeArgument.ApplyNullableTransforms(transforms, nonNullTypesContext, ref position, out newTypeArgument))
                 {
                     allTypeArguments.Free();
                     result = this;
@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // PROTOTYPE(NullableReferenceTypes): Set IsNullable=null always, even in C#8,
             // and set TypeSymbolWithAnnotations.WithCustomModifiers.Is() => false.
-            return this.TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.Create(module, typeParameter), ContainingModule);
+            return this.TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: module, typeParameter), ContainingModule);
         }
 
         /// <summary>
@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {

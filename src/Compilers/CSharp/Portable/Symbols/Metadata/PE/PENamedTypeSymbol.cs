@@ -397,14 +397,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
+        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
-            if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
+            get
             {
-                Interlocked.CompareExchange(ref _lazyBaseType, MakeAcyclicBaseType(), ErrorTypeSymbol.UnknownResultType);
-            }
+                if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
+                {
+                    Interlocked.CompareExchange(ref _lazyBaseType, MakeAcyclicBaseType(), ErrorTypeSymbol.UnknownResultType);
+                }
 
-            return _lazyBaseType;
+                return _lazyBaseType;
+            }
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
@@ -422,9 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return InterfacesNoUseSiteDiagnostics();
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute = false)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
         {
-            // PROTOTYPE(NullableReferenceTypes): confirm that the ignoreNonNullTypesAttribute and ignoreNullability flags are indeed different. Add a comment to clarify.
             return GetDeclaredBaseType(ignoreNullability: false);
         }
 
@@ -2002,7 +2004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {
@@ -2457,8 +2459,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // containing symbol for the temporary type is the namespace directly.
                 var nestedType = Create(this.ContainingPEModule, (PENamespaceSymbol)this.ContainingNamespace, _handle, null);
                 var nestedTypeParameters = nestedType.TypeParameters;
-                var containingTypeMap = new TypeMap(container.NonNullTypes, containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
-                var nestedTypeMap = new TypeMap(nestedType.NonNullTypes, nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
+                var containingTypeMap = new TypeMap(nonNullTypesContext: container, containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
+                var nestedTypeMap = new TypeMap(nonNullTypesContext: nestedType, nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
 
                 for (int i = 0; i < n; i++)
                 {

@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {

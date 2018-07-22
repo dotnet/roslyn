@@ -153,13 +153,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
         /// </summary>
-        internal abstract NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute);
+        internal abstract NamedTypeSymbol BaseTypeNoUseSiteDiagnostics { get; }
 
-        internal NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => GetBaseTypeNoUseSiteDiagnostics(ignoreNonNullTypesAttribute: false);
-
-        internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool ignoreNonNullTypesAttribute = false)
+        internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var result = GetBaseTypeNoUseSiteDiagnostics(ignoreNonNullTypesAttribute);
+            var result = BaseTypeNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
@@ -259,10 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            // Ignoring NonNullTypes breaks cycles (such as when binding attributes)
-            bool ignoreNonNullTypesAttribute = (comparison & TypeCompareKind.CompareNullableModifiersForReferenceTypes) == 0;
-
-            var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics, ignoreNonNullTypesAttribute);
+            var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             while ((object)t != null)
             {
                 if (type.Equals(t, comparison))
@@ -270,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics, ignoreNonNullTypesAttribute);
+                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             }
 
             return false;
@@ -632,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);
 
-        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbol result);
+        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result);
 
         internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
 
@@ -1282,8 +1277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeParameters2 = implicitImpl.TypeParameters;
                 var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
 
-                var typeMap1 = new TypeMap(interfaceMethod.NonNullTypes, typeParameters1, indexedTypeParameters, allowAlpha: true);
-                var typeMap2 = new TypeMap(implicitImpl.NonNullTypes, typeParameters2, indexedTypeParameters, allowAlpha: true);
+                var typeMap1 = new TypeMap(nonNullTypesContext: interfaceMethod, typeParameters1, indexedTypeParameters, allowAlpha: true);
+                var typeMap2 = new TypeMap(nonNullTypesContext: implicitImpl, typeParameters2, indexedTypeParameters, allowAlpha: true);
 
                 // Report any mismatched method constraints.
                 for (int i = 0; i < arity; i++)
