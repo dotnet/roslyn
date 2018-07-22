@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -168,8 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             SemanticModel semanticModel, LambdaExpressionSyntax declaration)
         {
             var expressionBody = GetExpressionBody(declaration);
-            var lambdaType = (INamedTypeSymbol)semanticModel.GetTypeInfo(declaration).ConvertedType;
-            var createReturnStatementForExpression = !lambdaType.DelegateInvokeMethod.ReturnsVoid;
+            var createReturnStatementForExpression = CreateReturnStatementForExpression(semanticModel, declaration);
 
             if (!expressionBody.TryConvertToStatement(
                     semicolonTokenOpt: default,
@@ -187,6 +188,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
                 SyntaxFactory.SingletonList(statement),
                 SyntaxFactory.Token(SyntaxKind.CloseBraceToken)));
+        }
+
+        private static bool CreateReturnStatementForExpression(
+            SemanticModel semanticModel, LambdaExpressionSyntax declaration)
+        {
+            var lambdaType = (INamedTypeSymbol)semanticModel.GetTypeInfo(declaration).ConvertedType;
+            if (lambdaType.DelegateInvokeMethod.ReturnsVoid)
+            {
+                return false;
+            }
+
+            // 'async Task' is effectively a void-returning lambda.  we do not want to create 
+            // 'return statements' when converting.
+            if (declaration.AsyncKeyword != default)
+            {
+                var returnType = lambdaType.DelegateInvokeMethod.ReturnType;
+                if (returnType.IsErrorType())
+                {
+                    // "async Goo" where 'Goo' failed to bind.  If 'Goo' is 'Task' then it's
+                    // reasonable to assume this is just a missing 'using' and that this is a true
+                    // "async Task" lambda.  If the name isn't 'Task', then this looks like a
+                    // real return type, and we should use return statements.
+                    return returnType.Name != nameof(Task);
+                }
+
+                var taskType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Task).FullName);
+                if (returnType.Equals(taskType))
+                {
+                    // 'async Task'.  definitely do not create a 'return' statement;
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
