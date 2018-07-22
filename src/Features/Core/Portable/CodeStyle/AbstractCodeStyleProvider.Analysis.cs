@@ -61,6 +61,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 _context = context;
             }
 
+            public void RegisterCompilationStartAction(Action<Compilation, AnalysisContext> analyze)
+            {
+                var _this = this;
+                _context.RegisterCompilationStartAction(
+                    c => analyze(c.Compilation, _this));
+            }
+
             public void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext, CodeStyleOption<TOptionKind>> analyze)
             {
                 var provider = _codeStyleProvider;
