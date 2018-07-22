@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol returnTypeWithCustomModifiers = sourceMethodReturnType.TypeSymbol;
             if (returnTypeSymbol.Equals(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptions))
             {
-                returnType = returnType.Update(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, destinationMethod.ContainingAssembly, nonNullTypesContext: destinationMethod),
+                returnType = returnType.WithTypeAndModifiers(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, destinationMethod.ContainingAssembly, nonNullTypesContext: destinationMethod),
                                                sourceMethodReturnType.CustomModifiers);
             }
         }

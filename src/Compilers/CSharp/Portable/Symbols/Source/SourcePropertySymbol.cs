@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
                     if (_lazyType.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
-                        _lazyType = _lazyType.Update(
+                        _lazyType = _lazyType.WithTypeAndModifiers(
                             CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, _lazyType.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: this),
                             overriddenPropertyType.CustomModifiers);
                     }

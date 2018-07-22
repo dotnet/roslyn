@@ -416,17 +416,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool Is(TypeParameterSymbol other);
 
-        public TypeSymbolWithAnnotations Update(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
+        public TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
         {
-            if (CustomModifiers != customModifiers || !TypeSymbol.Equals(typeSymbol, TypeCompareKind.AllAspects))
-            {
-                return DoUpdate(typeSymbol, customModifiers);
-            }
+            // PROTOTYPE(NullableReferenceTypes): This method can cause cycles, since it pulls on NonNullTypes
+            // Once TypeSymbolWithAnnotations is a struct, we can probably skip this optimization altogether
+            //if (CustomModifiers != customModifiers || !TypeSymbol.Equals(typeSymbol, TypeCompareKind.AllAspects))
+            //{
+            //    return DoUpdate(typeSymbol, customModifiers);
+            //}
 
-            return this;
+            return new NonLazyType(typeSymbol, NonNullTypesContext, isAnnotated: IsAnnotated, customModifiers);
         }
-
-        protected abstract TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
         public bool ContainsNullableReferenceTypes()
         {
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)oldTypeSymbol != newTypeSymbol)
             {
-                result = result.DoUpdate(newTypeSymbol, result.CustomModifiers);
+                result = result.WithTypeAndModifiers(newTypeSymbol, result.CustomModifiers);
             }
 
             if (!result.IsValueType)
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)newTypeSymbol != typeSymbol)
             {
-                return DoUpdate(newTypeSymbol, CustomModifiers);
+                return WithTypeAndModifiers(newTypeSymbol, CustomModifiers);
             }
 
             return this;
@@ -676,11 +676,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // and set IsNullable=null always for GetTypeParametersAsTypeArguments.
             public override bool Is(TypeParameterSymbol other) => _typeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && _customModifiers.IsEmpty;
 
-            protected override TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
-            {
-                return new NonLazyType(typeSymbol, NonNullTypesContext, _isAnnotated, customModifiers);
-            }
-
             public override TypeSymbolWithAnnotations AsNullableReferenceType()
             {
                 return _isAnnotated ?
@@ -804,16 +799,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlying.NonNullTypesContext == nonNullTypesContext ?
                     this :
                     new LazyNullableTypeParameter(_compilation, _underlying.WithNonNullTypesContext(nonNullTypesContext));
-            }
-
-            protected override TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
-            {
-                if (typeSymbol.IsNullableType())
-                {
-                    return TypeSymbolWithAnnotations.Create(typeSymbol, customModifiers);
-                }
-
-                return new NonLazyType(typeSymbol, NonNullTypesContext, isAnnotated: IsAnnotated, customModifiers);
             }
 
             public override TypeSymbolWithAnnotations AsNullableReferenceType() => this;

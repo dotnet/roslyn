@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: this);
 
-            TypeSymbolWithAnnotations newTypeWithModifiers = this.Type.Update(newType, newCustomModifiers);
+            TypeSymbolWithAnnotations newTypeWithModifiers = this.Type.WithTypeAndModifiers(newType, newCustomModifiers);
 
             if (newRefCustomModifiers.IsEmpty)
             {
