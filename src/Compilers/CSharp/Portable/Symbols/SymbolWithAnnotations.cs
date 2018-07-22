@@ -497,13 +497,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        public TypeSymbolWithAnnotations SetUnknownNullabilityForReferenceTypesIfNecessary(ModuleSymbol module)
-        {
-            return module.UtilizesNullableReferenceTypes ?
-                this :
-                this.SetUnknownNullabilityForReferenceTypes();
-        }
-
         public TypeSymbolWithAnnotations WithTopLevelNonNullabilityForReferenceTypes()
         {
             var typeSymbol = TypeSymbol;
