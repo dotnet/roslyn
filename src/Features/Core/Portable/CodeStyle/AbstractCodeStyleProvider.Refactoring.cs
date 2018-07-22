@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var optionValue = optionSet.GetOption(_option);
 
-            var severity = optionValue.Notification.Severity;
+            var severity = GetOptionSeverity(optionValue);
             switch (severity)
             {
                 case ReportDiagnostic.Suppress:
