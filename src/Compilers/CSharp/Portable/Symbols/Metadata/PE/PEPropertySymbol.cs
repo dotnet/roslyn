@@ -166,10 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Dynamify object type if necessary
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
 
-            var propertyType = TypeSymbolWithAnnotations.Create(originalPropertyType, typeCustomModifiers);
+            // We start without annotations
+            var propertyType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, originalPropertyType, typeCustomModifiers);
+
             // Decode nullable before tuple types to avoid converting between
             // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-            propertyType = NullableTypeDecoder.TransformOrEraseNullability(propertyType, handle, moduleSymbol);
+            propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol);
             propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyType, handle, moduleSymbol);
 
             _propertyType = propertyType;

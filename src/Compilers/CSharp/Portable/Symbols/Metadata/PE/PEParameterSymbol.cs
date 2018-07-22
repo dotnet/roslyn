@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type = type.Update(typeSymbol, type.CustomModifiers);
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformOrEraseNullability(type, handle, moduleSymbol, extraAnnotations);
+                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, extraAnnotations);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
             }
 
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (externalNullableAnnotations.IsDefault)
             {
-                return type.SetUnknownNullabilityForReferenceTypesIfNecessary(module);
+                return type;
             }
             else
             {
@@ -315,7 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isReturn,
             out bool isBad)
         {
-            var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
+            // We start without annotations
+            var typeWithModifiers = TypeSymbolWithAnnotations.CreateUnannotated(containingSymbol, type, CSharpCustomModifier.Convert(customModifiers));
+
             PEParameterSymbol parameter = customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty
                 ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, extraAnnotations, handle, 0, out isBad)
                 : new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, extraAnnotations, handle, out isBad);

@@ -21,7 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public string Name => TypeSymbol.Name;
         public SymbolKind Kind => TypeSymbol.Kind;
 
+        // PROTOTYPE(NullableReferenceTypes): GetDebuggerDisplay pulls on NonNullTypes while debugging
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes /* | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
+            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier*/);
+
+        internal static readonly SymbolDisplayFormat TestDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
@@ -30,6 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol)
         {
             return Create(typeSymbol, nonNullTypesContext, isAnnotated: false, ImmutableArray<CustomModifier>.Empty);
+        }
+
+        internal static TypeSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
+        {
+            return Create(typeSymbol, nonNullTypesContext, isAnnotated: false, customModifiers);
         }
 
         // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
@@ -678,7 +690,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
             {
-                return IsNullable == false || _typeSymbol.IsNullableType() ?
+                // PROTOTYPE(NullableReferenceTypes): made an aggressive change here
+                return !_isAnnotated || _typeSymbol.IsNullableType() ?
                     this :
                     new NonLazyType(_typeSymbol, NonNullTypesContext, isAnnotated: false, _customModifiers);
             }
@@ -809,11 +822,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!_underlying.TypeSymbol.IsValueType)
                 {
-                    Debug.Assert(_underlying.IsNullable == false);
+                    //Debug.Assert(_underlying.IsNullable == false);
                     return _underlying;
                 }
 
-                Debug.Assert(!this.IsNullable == false);
+                //Debug.Assert(!this.IsNullable == false);
                 return this;
             }
 

@@ -41,20 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return metadataType;
         }
 
-        internal static TypeSymbolWithAnnotations TransformOrEraseNullability(
-            TypeSymbolWithAnnotations metadataType,
-            EntityHandle targetSymbolToken,
-            PEModuleSymbol containingModule)
-        {
-            if (containingModule.UtilizesNullableReferenceTypes)
-            {
-                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
-            }
-            return metadataType.SetUnknownNullabilityForReferenceTypes();
-        }
-
         // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-        internal static TypeSymbolWithAnnotations TransformOrEraseNullability(
+        internal static TypeSymbolWithAnnotations TransformType(
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule,
@@ -62,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (extraAnnotations.IsDefault)
             {
-                return NullableTypeDecoder.TransformOrEraseNullability(metadataType, targetSymbolToken, containingModule);
+                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
             }
             else
             {
