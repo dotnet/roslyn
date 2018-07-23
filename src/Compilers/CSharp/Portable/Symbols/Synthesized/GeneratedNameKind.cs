@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         DynamicCallSiteContainerType = 'o',
         DynamicCallSiteField = 'p',
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
-        AsyncIteratorPromiseIsActiveBackingField = 'w',
+        AsyncIteratorPromiseIsActiveBackingField = 'w', // last
 
         // Deprecated - emitted by Dev12, but not by Roslyn.
         // Don't reuse the values because the debugger might encounter them when consuming old binaries.

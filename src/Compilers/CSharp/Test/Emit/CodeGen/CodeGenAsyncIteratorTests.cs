@@ -71,11 +71,13 @@ class C
         Write(""5"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5", verify: Verification.Passes);
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var comp = CreateCompilationWithTasksExtensions(source + s_common, options: options);
+                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
 
-            verifier.VerifyIL("C.M", @"
+                verifier.VerifyIL("C.M", @"
 {
   // Code size       52 (0x34)
   .maxstack  2
@@ -102,7 +104,7 @@ class C
   IL_0033:  ret
 }", sequencePoints: "C.M", source: source + s_common);
 
-            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.TryGetNext(out bool)", @"
+                verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.TryGetNext(out bool)", @"
 {
   // Code size       65 (0x41)
   .maxstack  2
@@ -139,7 +141,7 @@ class C
   IL_003b:  ldfld      ""int C.<M>d__0.<>2__current""
   IL_0040:  ret
 }");
-            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.WaitForNextAsync()", @"
+                verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.WaitForNextAsync()", @"
 {
   // Code size       70 (0x46)
   .maxstack  2
@@ -173,7 +175,7 @@ class C
   IL_0040:  newobj     ""System.Threading.Tasks.ValueTask<bool>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<bool>, short)""
   IL_0045:  ret
 }");
-            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>.get_Value()", @"
+                verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>.get_Value()", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -181,14 +183,14 @@ class C
   IL_0001:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
   IL_0006:  ret
 }");
-            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()", @"
+                verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-            verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.GetResult(short)", @"
+                verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.GetResult(short)", @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -198,7 +200,7 @@ class C
   IL_0007:  call       ""bool System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.GetResult(short)""
   IL_000c:  ret
 }");
-            verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.GetStatus(short)", @"
+                verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.GetStatus(short)", @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -208,13 +210,13 @@ class C
   IL_0007:  call       ""System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.GetStatus(short)""
   IL_000c:  ret
 }");
-            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine)", @"
+                verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine)", @"
 {
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
 }");
-            verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.OnCompleted(System.Action<object>, object, short, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags)", @"
+                verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.OnCompleted(System.Action<object>, object, short, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags)", @"
 {
   // Code size       17 (0x11)
   .maxstack  5
@@ -227,7 +229,9 @@ class C
   IL_000b:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.OnCompleted(System.Action<object>, object, short, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags)""
   IL_0010:  ret
 }");
-            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+                if (options == TestOptions.DebugExe)
+                {
+                    verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      304 (0x130)
   .maxstack  3
@@ -373,6 +377,141 @@ class C
   }
   IL_012f:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
+                }
+                else
+                {
+                    verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+   // Code size      285 (0x11d)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<M>d__0 V_2,
+                System.Exception V_3)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_006f
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_00c7
+    // sequence point: Write(""1 "");
+    IL_0011:  ldstr      ""1 ""
+    IL_0016:  call       ""void System.Console.Write(string)""
+    // sequence point: await System.Threading.Tasks.Task.CompletedTask;
+    IL_001b:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
+    IL_0020:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_0025:  stloc.1
+    // sequence point: <hidden>
+    IL_0026:  ldloca.s   V_1
+    IL_0028:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_002d:  brtrue.s   IL_008b
+    IL_002f:  ldarg.0
+    IL_0030:  ldc.i4.0
+    IL_0031:  dup
+    IL_0032:  stloc.0
+    IL_0033:  stfld      ""int C.<M>d__0.<>1__state""
+    // async: yield
+    IL_0038:  ldarg.0
+    IL_0039:  ldloc.1
+    IL_003a:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_003f:  ldarg.0
+    IL_0040:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_0045:  brtrue.s   IL_0059
+    IL_0047:  ldarg.0
+    IL_0048:  ldc.i4.1
+    IL_0049:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_004e:  ldarg.0
+    IL_004f:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_0054:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+    IL_0059:  ldarg.0
+    IL_005a:  stloc.2
+    IL_005b:  ldarg.0
+    IL_005c:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
+    IL_0061:  ldloca.s   V_1
+    IL_0063:  ldloca.s   V_2
+    IL_0065:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
+    IL_006a:  leave      IL_011c
+    // async: resume
+    IL_006f:  ldarg.0
+    IL_0070:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0075:  stloc.1
+    IL_0076:  ldarg.0
+    IL_0077:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_007c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0082:  ldarg.0
+    IL_0083:  ldc.i4.m1
+    IL_0084:  dup
+    IL_0085:  stloc.0
+    IL_0086:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_008b:  ldloca.s   V_1
+    IL_008d:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    // sequence point: Write(""2 "");
+    IL_0092:  ldstr      ""2 ""
+    IL_0097:  call       ""void System.Console.Write(string)""
+    // sequence point: yield return 3;
+    IL_009c:  ldarg.0
+    IL_009d:  ldc.i4.3
+    IL_009e:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldfld      ""int C.<M>d__0.<>1__state""
+    IL_00a9:  pop
+    IL_00aa:  ldarg.0
+    IL_00ab:  ldc.i4.1
+    IL_00ac:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00b1:  ldarg.0
+    IL_00b2:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00b7:  brfalse.s  IL_00c5
+    IL_00b9:  ldarg.0
+    IL_00ba:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00bf:  ldc.i4.1
+    IL_00c0:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+    IL_00c5:  leave.s    IL_011c
+    // sequence point: Write("" 4 "");
+    IL_00c7:  ldstr      "" 4 ""
+    IL_00cc:  call       ""void System.Console.Write(string)""
+    IL_00d1:  ldarg.0
+    IL_00d2:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00d7:  brtrue.s   IL_00eb
+    IL_00d9:  ldarg.0
+    IL_00da:  ldc.i4.1
+    IL_00db:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00e0:  ldarg.0
+    IL_00e1:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00e6:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+    IL_00eb:  ldarg.0
+    IL_00ec:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00f1:  ldc.i4.0
+    IL_00f2:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+    IL_00f7:  leave.s    IL_011c
+  }
+  catch System.Exception
+  {
+    // sequence point: <hidden>
+    IL_00f9:  stloc.3
+    IL_00fa:  ldarg.0
+    IL_00fb:  ldc.i4.s   -2
+    IL_00fd:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_0102:  ldarg.0
+    IL_0103:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_0108:  brfalse.s  IL_0118
+    IL_010a:  ldarg.0
+    IL_010b:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_0110:  ldloc.3
+    IL_0111:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
+    IL_0116:  br.s       IL_011a
+    IL_0118:  rethrow
+    IL_011a:  leave.s    IL_011c
+  }
+  IL_011c:  ret
+}", sequencePoints: "C+<M>d__0.MoveNext", source: source);
+                }
+            }
         }
 
         [Fact]
@@ -424,7 +563,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done", verify: Verification.Passes);
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done");
         }
 
         [Fact]
@@ -453,7 +592,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done", verify: Verification.Passes);
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
         [Fact]
@@ -482,7 +621,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 Done", verify: Verification.Passes);
+            CompileAndVerify(comp, expectedOutput: "0 1 2 Done");
         }
 
         [Fact]
@@ -516,7 +655,7 @@ label2:
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done", verify: Verification.Passes);
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
         [Fact]
@@ -554,7 +693,7 @@ class C
 }}";
                 var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
                 comp.VerifyDiagnostics();
-                var verifier = CompileAndVerify(comp, expectedOutput: expectation, verify: Verification.Passes);
+                var verifier = CompileAndVerify(comp, expectedOutput: expectation);
             }
 
             (string code, string expectation) generateCode(Instruction[] spec)
@@ -627,7 +766,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done", verify: Verification.Passes);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
 
         [Fact]
@@ -788,7 +927,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.Passes);
+            CompileAndVerify(comp, expectedOutput: "Done");
         }
 
         [Fact]
@@ -834,7 +973,7 @@ class C
             var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             // PROTOTYPE(async-streams): need to implement the exception
-            //CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.Passes);
+            //CompileAndVerify(comp, expectedOutput: "Done");
         }
 
         [Fact]
@@ -879,7 +1018,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.Passes);
+            CompileAndVerify(comp, expectedOutput: "Done");
         }
 
         [Fact]
@@ -927,7 +1066,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.Passes);
+            CompileAndVerify(comp, expectedOutput: "Done");
         }
 
         // PROTOTYPE(async-streams): Consider moving this common test code to TestSources.cs

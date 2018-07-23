@@ -58,15 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
 
-            AsyncRewriter rewriter;
-            if (method.IsIterator)
-            {
-                rewriter = new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
-            }
-            else
-            {
-                rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
-            }
+            AsyncRewriter rewriter = method.IsIterator
+                ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+                : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
 
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
