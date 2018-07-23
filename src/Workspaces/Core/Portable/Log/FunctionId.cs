@@ -416,6 +416,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         RemoteHostService_SynchronizeTextAsync,
 
         SymbolFinder_Solution_Pattern_FindSourceDeclarationsAsync,
-        SymbolFinder_Project_Pattern_FindSourceDeclarationsAsync
+        SymbolFinder_Project_Pattern_FindSourceDeclarationsAsync,
+        Intellisense_Completion_Commit,
     }
 }

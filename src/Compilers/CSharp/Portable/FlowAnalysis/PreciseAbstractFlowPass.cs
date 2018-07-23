@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int startLocation = firstInRegion.Syntax.SpanStart;
                 int endLocation = lastInRegion.Syntax.Span.End;
                 int length = endLocation - startLocation;
-                Debug.Assert(length > 0, "last comes before first");
+                Debug.Assert(length >= 0, "last comes before first");
                 this.RegionSpan = new TextSpan(startLocation, length);
             }
 
@@ -1199,8 +1199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_DateTime:
                     return true;
                 default:
-                    var ont = t.OriginalDefinition as TypeSymbol;
-                    return ont?.SpecialType == SpecialType.System_Nullable_T;
+                    return t.IsNullableType();
             }
         }
 

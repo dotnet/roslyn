@@ -1053,6 +1053,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Refactoring Only.
+        /// </summary>
+        internal static string Refactoring_Only {
+            get {
+                return ResourceManager.GetString("Refactoring_Only", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removed:.
         /// </summary>
         internal static string Removed_colon {

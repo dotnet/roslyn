@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
             Assert.True(result, "Expected non-empty dictionary to return true");
             var isNamingStylePreferencesObject = combinedNamingStyles is NamingStylePreferences;
             Assert.True(isNamingStylePreferencesObject, $"Expected returned object to be of type '{nameof(NamingStylePreferences)}'");
-            Assert.Equal(DiagnosticSeverity.Error, ((NamingStylePreferences)combinedNamingStyles).Rules.NamingRules[0].EnforcementLevel);
+            Assert.Equal(ReportDiagnostic.Error, ((NamingStylePreferences)combinedNamingStyles).Rules.NamingRules[0].EnforcementLevel);
         }
 
         [Fact]

@@ -135,15 +135,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim convertedTestExpression As BoundExpression = node.ConvertedTestExpression
             If convertedTestExpression Is Nothing Then
-                If Not testExpressionType.IsNullableOfBoolean Then
-                    rewrittenWhenTrue = If(testExpressionType.IsNullableType,
-                                           New BoundConversion(rewrittenTestExpression.Syntax,
-                                                               rewrittenTestExpression,
-                                                               ConversionKind.WideningNullable,
-                                                               False,
-                                                               False,
-                                                               testExpressionType.GetNullableUnderlyingTypeOrSelf),
-                                           rewrittenTestExpression)
+                If Not testExpressionType.IsNullableOfBoolean AndAlso testExpressionType.IsNullableType Then
+                    rewrittenWhenTrue = New BoundConversion(rewrittenTestExpression.Syntax,
+                                                            rewrittenTestExpression,
+                                                            ConversionKind.WideningNullable,
+                                                            False,
+                                                            False,
+                                                            testExpressionType.GetNullableUnderlyingTypeOrSelf)
                 End If
             Else
                 Debug.Assert(node.TestExpressionPlaceholder Is Nothing OrElse node.TestExpressionPlaceholder.Type = testExpressionType.GetNullableUnderlyingTypeOrSelf)
@@ -233,6 +231,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' CONSIDER: We could do inlining when rewrittenRight.IsConstant
                     End If
                 End If
+            End If
+
+            ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is the default value of T
+            If rewrittenLeft.Type.IsNullableType() AndAlso 
+               rewrittenRight.IsDefaultValue() AndAlso
+               rewrittenRight.Type.IsSameTypeIgnoringAll(rewrittenLeft.Type.GetNullableUnderlyingType()) _
+            Then
+                Return NullableValueOrDefault(rewrittenLeft)
             End If
 
             '=== Rewrite binary conditional expression using ternary conditional expression

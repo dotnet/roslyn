@@ -12,6 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
         Protected Overrides ReadOnly Property SupportedSyntaxKinds As ImmutableArray(Of SyntaxKind) =
             ImmutableArray.Create(
                 SyntaxKind.ModifiedIdentifier,
-                SyntaxKind.CatchStatement)
+                SyntaxKind.CatchStatement,
+                SyntaxKind.Parameter,
+                SyntaxKind.TypeParameter)
     End Class
 End Namespace

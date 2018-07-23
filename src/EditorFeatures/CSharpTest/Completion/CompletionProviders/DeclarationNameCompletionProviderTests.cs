@@ -1546,8 +1546,8 @@ class Configuration
                     id: null,
                     symbolSpecName: suffix,
                     ImmutableArray.Create(kind),
-                    ImmutableArray<Accessibility>.Empty,
-                    ImmutableArray<ModifierKind>.Empty);
+                    accessibilityList: default,
+                    modifiers: default);
 
                 var namingStyle = new NamingStyle(
                     Guid.NewGuid(),
@@ -1566,7 +1566,7 @@ class Configuration
                 {
                     SymbolSpecificationID = specification.ID,
                     NamingStyleID = style.ID,
-                    EnforcementLevel = DiagnosticSeverity.Error
+                    EnforcementLevel = ReportDiagnostic.Error
                 };
             }
         }
