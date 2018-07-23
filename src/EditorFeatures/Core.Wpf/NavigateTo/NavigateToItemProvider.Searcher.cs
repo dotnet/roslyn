@@ -113,14 +113,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     var visibleDocsFromProject = visibleDocs.Where(d => d.Project == activeProject);
                     var priorityDocs = ImmutableArray.Create(activeDocOpt).AddRange(visibleDocsFromProject);
 
-                    // Search the current project first.  That way we can deliver
-                    // results that are closer in scope to the user quicker without
-                    // forcing them to do something like NavToInCurrentDoc
+                    // Search the active project first.  That way we can deliver results that are
+                    // closer in scope to the user quicker without forcing them to do something like
+                    // NavToInCurrentDoc
                     await Task.Run(() => SearchAsync(activeProject, priorityDocs), _cancellationToken).ConfigureAwait(false);
                 }
 
-                // Now, process all visible docs that were not processed in the project for the
-                // active doc.
+                // Now, process all visible docs that were not from the active project.
                 var tasks = new List<Task>();
                 foreach (var group in visibleDocs.GroupBy(d => d.Project))
                 {
