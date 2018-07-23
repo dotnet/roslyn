@@ -1530,7 +1530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 // We need to continue the walk regardless of whether the receiver is a value
                                 // type, but we only want to update the slots of reference types
-                                if (conditional.Receiver.Type?.IsReferenceType == true)
+                                if (shouldUpdateType(conditional.Receiver.Type))
                                 {
                                     slotBuilder.Add(slot);
                                 }
@@ -1556,7 +1556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // we need more special handling here
 
                             slot = MakeSlot(operand);
-                            if (slot > 0 && operand.Type?.IsReferenceType == true)
+                            if (slot > 0 && shouldUpdateType(operand.Type))
                             {
                                 // If we got a slot then all previous BoundCondtionalReceivers must have been handled.
                                 Debug.Assert(_lastConditionalAccessSlot == -1);
@@ -1572,6 +1572,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _lastConditionalAccessSlot = -1;
                     return;
                 } while (true);
+
+                bool shouldUpdateType(TypeSymbol operandType) =>
+                    operandType != null &&
+                    (operandType.IsReferenceType == true || operandType.IsUnconstrainedTypeParameter());
             }
         }
 

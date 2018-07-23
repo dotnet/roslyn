@@ -12396,9 +12396,9 @@ class C
 }", parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
-                // (10,13): warning CS8602: Possible dereference of a null reference.
+                // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             y.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(10, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 13)
                 );
         }
 
