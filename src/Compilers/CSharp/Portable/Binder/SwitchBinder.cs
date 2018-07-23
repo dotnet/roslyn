@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
         }
 
-        private bool ContainsUsingVariable(BoundStatement boundStatement)
+        internal static bool ContainsUsingVariable(BoundStatement boundStatement)
         {
             if (boundStatement is BoundLocalDeclaration boundLocal)
             {
