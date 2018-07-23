@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                                                     .Select(d => _solution.GetDocument(d))
                                                     .Where(d => d != activeDocOpt)
                                                     .WhereNotNull()
+                                                    .Distinct()
                                                     .ToImmutableArray();
 
                 // First, if there's an active document, search that project first, prioritizing
