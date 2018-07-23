@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
             compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
+        // PROTOTYPE(NullableReferenceTypes): consider removing this method and using Create below (which handles nullable value types).
         internal static TypeSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers = default)
         {
             return Create(typeSymbol, nonNullTypesContext, isAnnotated: false, customModifiers.NullToEmpty());
@@ -41,7 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static TypeSymbolWithAnnotations Create(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers = default)
         {
-            return Create(typeSymbol, nonNullTypesContext, isAnnotated: typeSymbol.IsNullableType(), customModifiers.NullToEmpty());
+            bool isNullableType = typeSymbol.IsNullableType();
+
+            // PROTOTYPE(NullableReferenceTypes): this defaulting logic should be removed. There are many paths that currently don't have an explicit context at the moment.
+            nonNullTypesContext = nonNullTypesContext ?? NonNullTypesFalseContext.Instance;
+            return Create(typeSymbol, nonNullTypesContext, isAnnotated: isNullableType, customModifiers.NullToEmpty());
         }
 
         // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in

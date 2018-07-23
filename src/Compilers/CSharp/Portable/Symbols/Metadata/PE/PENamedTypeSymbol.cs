@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
-                        typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol).TypeSymbol;
+                        typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, typeSymbol), interfaceImpl, moduleSymbol).TypeSymbol;
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol ?? new UnsupportedMetadataTypeSymbol(); // interface list contains a bad type
                         symbols.Add(namedTypeSymbol);

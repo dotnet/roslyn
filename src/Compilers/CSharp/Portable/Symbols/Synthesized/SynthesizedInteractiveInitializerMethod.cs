@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingType.IsScriptClass);
 
             _containingType = containingType;
-            CalculateReturnType(containingType.DeclaringCompilation, diagnostics, out _resultType, out _returnType);
+            CalculateReturnType(containingType, diagnostics, out _resultType, out _returnType);
         }
 
         public override string Name
@@ -231,11 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static void CalculateReturnType(
-            CSharpCompilation compilation,
+            SourceMemberContainerTypeSymbol containingType,
             DiagnosticBag diagnostics,
             out TypeSymbol resultType,
             out TypeSymbol returnType)
         {
+            CSharpCompilation compilation = containingType.DeclaringCompilation;
             var submissionReturnTypeOpt = compilation.ScriptCompilationInfo?.ReturnTypeOpt;
             var taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
             var useSiteDiagnostic = taskT.GetUseSiteDiagnostic();
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             resultType = (object)submissionReturnTypeOpt == null
                 ? compilation.GetSpecialType(SpecialType.System_Object)
                 : compilation.GetTypeByReflectionType(submissionReturnTypeOpt, diagnostics);
-            returnType = taskT.Construct(resultType);
+            returnType = taskT.Construct(nonNullTypesContext: containingType, resultType);
         }
     }
 }
