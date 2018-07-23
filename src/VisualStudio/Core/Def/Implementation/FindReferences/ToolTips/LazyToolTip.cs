@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// </summary>
         private class LazyToolTip
         {
-            private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
+            private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject(Microsoft.CodeAnalysis.Editor.Shared.Utilities.ThreadingContext.Invalid);
             private readonly Func<DisposableToolTip> _createToolTip;
             private readonly FrameworkElement _element;
 

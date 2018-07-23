@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
         private const string AppCodeFolderName = "App_Code";
 
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly ITextBufferCloneService _textBufferCloneService;
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// This is Lazy because it might be created on a background thread when nothing is initialized yet.
         /// </summary>
         private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject
-            = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject());
+            = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject(ThreadingContext.Invalid));
 
         private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
@@ -65,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             : base(
                 MefV1HostServices.Create(exportProvider))
         {
+            _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
@@ -82,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (DeferredState == null)
             {
                 _foregroundObject.Value.AssertIsForeground();
-                DeferredState = new DeferredInitializationState(this, serviceProvider);
+                DeferredState = new DeferredInitializationState(_threadingContext, this, serviceProvider);
             }
 
             return DeferredState.ProjectTracker;

@@ -47,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         [ImportingConstructor]
         public StreamingFindUsagesPresenter(
+            IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
             Shell.SVsServiceProvider serviceProvider,
             ITextBufferFactoryService textBufferFactoryService,
@@ -56,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService)
+            : base(threadingContext)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Test.Utilities;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         public ForegroundNotificationServiceTests()
         {
             TestWorkspace.ResetThreadAffinity();
-            _service = new ForegroundNotificationService();
+            _service = new ForegroundNotificationService(ThreadingContext.Invalid);
         }
 
         [ConditionalWpfFact(typeof(x86))]

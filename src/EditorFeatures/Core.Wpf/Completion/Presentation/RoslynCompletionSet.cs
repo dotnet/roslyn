@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     internal class RoslynCompletionSet : CompletionSet2
     {
         private readonly ITextView _textView;
-        private readonly ForegroundThreadAffinitizedObject _foregroundThread = new ForegroundThreadAffinitizedObject();
+        private readonly ForegroundThreadAffinitizedObject _foregroundThread;
 
         private readonly bool _highlightMatchingPortions;
         private readonly bool _showFilters;
@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             ITextBuffer subjectBuffer)
         {
             CompletionPresenterSession = completionPresenterSession;
+            _foregroundThread = new ForegroundThreadAffinitizedObject(CompletionPresenterSession.ThreadingContext);
             _textView = textView;
             SubjectBuffer = subjectBuffer;
 

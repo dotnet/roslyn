@@ -21,7 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     {
         private readonly Workspace _workspace;
 
-        public GraphNavigatorExtension(Workspace workspace)
+        public GraphNavigatorExtension(IThreadingContext threadingContext, Workspace workspace)
+            : base(threadingContext)
         {
             _workspace = workspace;
         }

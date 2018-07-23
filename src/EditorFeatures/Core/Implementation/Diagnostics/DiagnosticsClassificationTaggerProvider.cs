@@ -33,12 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         [ImportingConstructor]
         public DiagnosticsClassificationTaggerProvider(
+            IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             ClassificationTypeMap typeMap,
             IForegroundNotificationService notificationService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));

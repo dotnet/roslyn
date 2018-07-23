@@ -43,9 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private readonly IAsynchronousOperationListener _waiter;
 
         public AbstractSnippetInfoService(
+            IThreadingContext threadingContext,
             Shell.SVsServiceProvider serviceProvider,
             Guid languageGuidForSnippets,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             AssertIsForeground();
 

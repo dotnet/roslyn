@@ -26,12 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public IServiceProvider ServiceProvider { get; }
             public IVsUIShellOpenDocument ShellOpenDocumentService { get; }
 
-            public DeferredInitializationState(VisualStudioWorkspaceImpl workspace, IServiceProvider serviceProvider)
-                : base(assertIsForeground: true)
+            public DeferredInitializationState(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace, IServiceProvider serviceProvider)
+                : base(threadingContext, assertIsForeground: true)
             {
                 ServiceProvider = serviceProvider;
                 ShellOpenDocumentService = (IVsUIShellOpenDocument)serviceProvider.GetService(typeof(SVsUIShellOpenDocument));
-                ProjectTracker = new VisualStudioProjectTracker(serviceProvider, workspace);
+                ProjectTracker = new VisualStudioProjectTracker(threadingContext, serviceProvider, workspace);
 
                 // Ensure the document tracking service is initialized on the UI thread
                 var documentTrackingService = (VisualStudioDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();

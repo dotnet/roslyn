@@ -38,8 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         [ImportingConstructor]
         public AnalyzerVsixSuggestedActionCallback(
+            IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
             SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;

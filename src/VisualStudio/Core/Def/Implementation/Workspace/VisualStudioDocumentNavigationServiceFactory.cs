@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -17,10 +18,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         [ImportingConstructor]
         private VisualStudioDocumentNavigationServiceFactory(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
         {
-            _singleton = new VisualStudioDocumentNavigationService(serviceProvider, editorAdaptersFactoryService);
+            _singleton = new VisualStudioDocumentNavigationService(threadingContext, serviceProvider, editorAdaptersFactoryService);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

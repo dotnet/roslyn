@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
         [ImportingConstructor]
         public PreviewFactoryService(
+            IThreadingContext threadingContext,
             ITextBufferFactoryService textBufferFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
             IWpfDifferenceViewerFactoryService differenceViewerService)
+            : base(threadingContext)
         {
             Contract.ThrowIfTrue(this.ForegroundKind == ForegroundThreadDataKind.Unknown);
 
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 changeSummary = new SolutionChangeSummary(oldSolution, newSolution, solutionChanges);
             }
 
-            return new SolutionPreviewResult(previewItems, changeSummary);
+            return new SolutionPreviewResult(ThreadingContext, previewItems, changeSummary);
         }
 
         private bool ProjectReferencesChanged(ProjectChanges projectChanges)
@@ -621,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             AssertIsForeground();
 
             // We use ConfigureAwait(true) to stay on the UI thread.
-            await diffViewer.SizeToFitAsync().ConfigureAwait(true);
+            await diffViewer.SizeToFitAsync(ThreadingContext).ConfigureAwait(true);
 
             leftWorkspace?.EnableDiagnostic();
             rightWorkspace?.EnableDiagnostic();

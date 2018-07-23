@@ -24,9 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
-        public VisualStudioInfoBarService(SVsServiceProvider serviceProvider,
+        public VisualStudioInfoBarService(
+            IThreadingContext threadingContext,
+            SVsServiceProvider serviceProvider,
             IForegroundNotificationService foregroundNotificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _foregroundNotificationService = foregroundNotificationService;

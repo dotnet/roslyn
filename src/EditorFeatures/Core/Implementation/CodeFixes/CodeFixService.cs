@@ -49,11 +49,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         [ImportingConstructor]
         public CodeFixService(
+            IThreadingContext threadingContext,
             IDiagnosticAnalyzerService service,
             [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
             [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
             [ImportMany]IEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>> suppressionProviders)
-            : base(assertIsForeground: false)
+            : base(threadingContext, assertIsForeground: false)
         {
             _errorLoggers = loggers;
             _diagnosticService = service;

@@ -118,8 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject));
         }
 
-        public VisualStudioProjectTracker(IServiceProvider serviceProvider, Workspace workspace)
-            : base(assertIsForeground: true)
+        public VisualStudioProjectTracker(IThreadingContext threadingContext, IServiceProvider serviceProvider, Workspace workspace)
+            : base(threadingContext, assertIsForeground: true)
         {
             _projectMap = new Dictionary<ProjectId, AbstractProject>();
             _projectPathToIdMap = new Dictionary<string, ProjectId>(StringComparer.OrdinalIgnoreCase);

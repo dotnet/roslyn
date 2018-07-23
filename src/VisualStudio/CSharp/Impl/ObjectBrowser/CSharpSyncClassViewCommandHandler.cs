@@ -2,6 +2,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
@@ -14,8 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
     internal class CSharpSyncClassViewCommandHandler : AbstractSyncClassViewCommandHandler
     {
         [ImportingConstructor]
-        private CSharpSyncClassViewCommandHandler(SVsServiceProvider serviceProvider)
-            : base(serviceProvider)
+        private CSharpSyncClassViewCommandHandler(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext, serviceProvider)
         {
         }
     }

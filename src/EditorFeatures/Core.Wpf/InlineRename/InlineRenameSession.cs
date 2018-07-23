@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IInlineRenameInfo _renameInfo;
 
         public InlineRenameSession(
+            IThreadingContext threadingContext,
             InlineRenameService renameService,
             Workspace workspace,
             SnapshotSpan triggerSpan,
@@ -99,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            IAsynchronousOperationListener asyncListener) : base(assertIsForeground: true)
+            IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, assertIsForeground: true)
         {
             // This should always be touching a symbol since we verified that upon invocation
             _renameInfo = renameInfo;

@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
         private int _lastProcessedTimeInMS;
 
         [ImportingConstructor]
-        public ForegroundNotificationService()
+        public ForegroundNotificationService(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
             _workQueue = new PriorityQueue();
             _lastProcessedTimeInMS = Environment.TickCount;

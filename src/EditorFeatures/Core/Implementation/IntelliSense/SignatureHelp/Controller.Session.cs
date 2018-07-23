@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private int _retriggerId;
 
             public Session(Controller controller, ISignatureHelpPresenterSession presenterSession)
-                : base(controller, new ModelComputation<Model>(controller, TaskScheduler.Default), presenterSession)
+                : base(controller, new ModelComputation<Model>(controller.ThreadingContext, controller, TaskScheduler.Default), presenterSession)
             {
                 this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
             }

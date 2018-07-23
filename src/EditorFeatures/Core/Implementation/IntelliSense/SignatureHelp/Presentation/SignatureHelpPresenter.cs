@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private readonly ISignatureHelpBroker _sigHelpBroker;
 
         [ImportingConstructor]
-        public SignatureHelpPresenter(ISignatureHelpBroker sigHelpBroker)
+        public SignatureHelpPresenter(IThreadingContext threadingContext, ISignatureHelpBroker sigHelpBroker)
+            : base(threadingContext)
         {
             _sigHelpBroker = sigHelpBroker;
         }
@@ -28,13 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         ISignatureHelpPresenterSession IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ISignatureHelpSession sessionOpt)
         {
             AssertIsForeground();
-            return new SignatureHelpPresenterSession(_sigHelpBroker, textView, subjectBuffer);
+            return new SignatureHelpPresenterSession(ThreadingContext, _sigHelpBroker, textView, subjectBuffer);
         }
 
         ISignatureHelpSource ISignatureHelpSourceProvider.TryCreateSignatureHelpSource(ITextBuffer textBuffer)
         {
             AssertIsForeground();
-            return new SignatureHelpSource();
+            return new SignatureHelpSource(ThreadingContext);
         }
     }
 }

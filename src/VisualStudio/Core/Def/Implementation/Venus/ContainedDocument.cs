@@ -79,6 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public DocumentKey Key { get; }
 
         public ContainedDocument(
+            IThreadingContext threadingContext,
             AbstractContainedLanguage containedLanguage,
             SourceCodeKind sourceCodeKind,
             Workspace workspace,
@@ -86,6 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             uint itemId,
             IComponentModel componentModel,
             IFormattingRule vbHelperFormattingRule)
+            : base(threadingContext)
         {
             Contract.ThrowIfNull(containedLanguage);
 

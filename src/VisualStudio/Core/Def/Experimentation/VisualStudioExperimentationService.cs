@@ -17,8 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         private readonly MethodInfo _isCachedFlightEnabledInfo;
 
         [ImportingConstructor]
-        public VisualStudioExperimentationService(SVsServiceProvider serviceProvider)
-            : base(assertIsForeground: true)
+        public VisualStudioExperimentationService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext, assertIsForeground: true)
         {
             try
             {

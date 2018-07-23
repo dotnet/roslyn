@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed class LinkedFileUtilities : ForegroundThreadAffinitizedObject
     {
         private LinkedFileUtilities()
+            : base(Microsoft.CodeAnalysis.Editor.Shared.Utilities.ThreadingContext.Invalid)
         {
         }
 

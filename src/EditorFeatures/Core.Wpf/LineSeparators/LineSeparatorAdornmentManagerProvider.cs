@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -32,9 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
         [ImportingConstructor]
         public LineSeparatorAdornmentManagerProvider(
+            IThreadingContext threadingContext,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(tagAggregatorFactoryService, listenerProvider)
+            : base(threadingContext, tagAggregatorFactoryService, listenerProvider)
         {
         }
 

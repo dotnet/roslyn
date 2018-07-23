@@ -7,6 +7,8 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests
+Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
@@ -2617,9 +2619,6 @@ End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSnippetInTupleLiteral() As Task
-            Dim snippetProvider As CompletionProvider =
-                New VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
-
             Using state = TestState.CreateVisualBasicTestState(
                   <Document><![CDATA[
 Class C
@@ -2628,8 +2627,7 @@ Class C
     End Sub
 End Class
 }]]></Document>,
-                  extraCompletionProviders:={snippetProvider},
-                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
                                                                                     LanguageNames.VisualBasic,
@@ -2644,10 +2642,6 @@ End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSnippetInTupleLiteralAfterComma() As Task
-            Dim snippetProvider As CompletionProvider =
-                New VisualStudio.LanguageServices.VisualBasic.Snippets.
-                    SnippetCompletionProvider(editorAdaptersFactoryService:=Nothing)
-
             Using state = TestState.CreateVisualBasicTestState(
                   <Document><![CDATA[
 Class C
@@ -2656,8 +2650,7 @@ Class C
     End Sub
 End Class
 }]]></Document>,
-                  extraCompletionProviders:={snippetProvider},
-                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
                                                                                     LanguageNames.VisualBasic,
@@ -2672,10 +2665,6 @@ End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSnippetsNotExclusiveWhenAlwaysShowing() As Task
-            Dim snippetProvider As CompletionProvider =
-                New VisualStudio.LanguageServices.VisualBasic.Snippets.
-                    SnippetCompletionProvider(editorAdaptersFactoryService:=Nothing)
-
             Using state = TestState.CreateVisualBasicTestState(
                   <Document><![CDATA[
 Class C
@@ -2685,8 +2674,7 @@ Class C
     End Sub
 End Class
 }]]></Document>,
-                  extraCompletionProviders:={snippetProvider},
-                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
                                                                                     LanguageNames.VisualBasic,

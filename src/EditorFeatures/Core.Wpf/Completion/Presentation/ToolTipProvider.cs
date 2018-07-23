@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class ToolTipProvider : IUIElementProvider<VSCompletion, ICompletionSession>
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ClassificationTypeMap _typeMap;
         private readonly IClassificationFormatMap _formatMap;
 
@@ -35,8 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly TextBlock _defaultTextBlock;
 
         [ImportingConstructor]
-        public ToolTipProvider(ClassificationTypeMap typeMap, IClassificationFormatMapService classificationFormatMapService)
+        public ToolTipProvider(IThreadingContext threadingContext, ClassificationTypeMap typeMap, IClassificationFormatMapService classificationFormatMapService)
         {
+            _threadingContext = threadingContext;
             _typeMap = typeMap;
             _formatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _defaultTextBlock = new TaggedText(TextTags.Text, "...").ToTextBlock(_formatMap, typeMap);
@@ -55,12 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private class CancellableContentControl : ContentControl
         {
-            private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
+            private readonly ForegroundThreadAffinitizedObject _foregroundObject;
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
             private readonly ToolTipProvider _toolTipProvider;
 
             public CancellableContentControl(ToolTipProvider toolTipProvider, CustomCommitCompletion item)
             {
+                _foregroundObject = new ForegroundThreadAffinitizedObject(toolTipProvider._threadingContext);
                 Debug.Assert(_foregroundObject.IsForeground());
                 _toolTipProvider = toolTipProvider;
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.VisualStudio.Text;
@@ -24,12 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
     {
         [ImportingConstructor]
         public VisualStudio15StructureTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ITextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(notificationService, textEditorFactoryService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
+                : base(threadingContext, notificationService, textEditorFactoryService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
         {
         }
 

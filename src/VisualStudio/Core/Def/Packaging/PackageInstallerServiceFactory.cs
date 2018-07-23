@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
@@ -64,10 +65,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         [ImportingConstructor]
         public PackageInstallerService(
+            IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             SVsServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(workspace, SymbolSearchOptions.Enabled,
+            : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {

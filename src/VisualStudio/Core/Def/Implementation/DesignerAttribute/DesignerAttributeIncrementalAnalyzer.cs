@@ -42,9 +42,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private IVSMDDesignerService _dotNotAccessDirectlyDesigner;
 
         public DesignerAttributeIncrementalAnalyzer(
+            IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             Contract.ThrowIfNull(_serviceProvider);

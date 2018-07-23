@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private static readonly ForegroundThreadData s_fallbackForegroundThreadData;
         private static ForegroundThreadData s_currentForegroundThreadData;
         private readonly ForegroundThreadData _foregroundThreadDataWhenCreated;
+        private readonly IThreadingContext _threadingContext;
 
         internal static ForegroundThreadData CurrentForegroundThreadData
         {
@@ -66,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         internal ForegroundThreadDataKind ForegroundKind => _foregroundThreadDataWhenCreated.Kind;
 
+        internal IThreadingContext ThreadingContext => _threadingContext;
+
         // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
         // AppDomain.  This method should be deleted in favor of forcing derivations of this type
         // to either explicitly inherit WPF Dispatcher thread or provide an explicit thread 
@@ -75,9 +78,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             s_fallbackForegroundThreadData = ForegroundThreadData.CreateDefault(Unknown);
         }
 
-        public ForegroundThreadAffinitizedObject(bool assertIsForeground = false)
+        public ForegroundThreadAffinitizedObject(IThreadingContext threadingContext, bool assertIsForeground = false)
         {
             _foregroundThreadDataWhenCreated = CurrentForegroundThreadData;
+            _threadingContext = threadingContext ?? throw new ArgumentNullException(nameof(threadingContext));
 
             // ForegroundThreadAffinitizedObject might not necessarily be created on a foreground thread.
             // AssertIsForeground here only if the object must be created on a foreground thread.

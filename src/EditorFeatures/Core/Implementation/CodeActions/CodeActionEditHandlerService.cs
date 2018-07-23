@@ -29,9 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
         [ImportingConstructor]
         public CodeActionEditHandlerService(
+            IThreadingContext threadingContext,
             IPreviewFactoryService previewService,
             IInlineRenameService renameService,
             ITextBufferAssociatedViewService associatedViewService)
+            : base(threadingContext)
         {
             _previewService = previewService;
             _renameService = renameService;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (op is PreviewOperation previewOp)
                 {
                     currentResult = SolutionPreviewResult.Merge(currentResult,
-                        new SolutionPreviewResult(new SolutionPreviewItem(
+                        new SolutionPreviewResult(ThreadingContext, new SolutionPreviewItem(
                             projectId: null, documentId: null,
                             lazyPreview: c => previewOp.GetPreviewAsync(c))));
                     continue;
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (title != null)
                 {
                     currentResult = SolutionPreviewResult.Merge(currentResult,
-                        new SolutionPreviewResult(new SolutionPreviewItem(
+                        new SolutionPreviewResult(ThreadingContext, new SolutionPreviewItem(
                             projectId: null, documentId: null, text: title)));
                     continue;
                 }

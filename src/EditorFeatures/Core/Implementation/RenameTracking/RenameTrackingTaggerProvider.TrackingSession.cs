@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public bool ForceRenameOverloads => _forceRenameOverloads;
 
             public TrackingSession(StateMachine stateMachine, SnapshotSpan snapshotSpan, IAsynchronousOperationListener asyncListener)
+                : base(stateMachine.ThreadingContext)
             {
                 AssertIsForeground();
 

@@ -27,8 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         [ImportingConstructor]
         public CompletionPresenter(
+            IThreadingContext threadingContext,
             ICompletionBroker completionBroker,
             IGlyphService glyphService)
+            : base(threadingContext)
         {
             _completionBroker = completionBroker;
             _glyphService = glyphService;
@@ -42,13 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
             return new CompletionPresenterSession(
+                ThreadingContext,
                 _completionBroker, _glyphService, textView, subjectBuffer);
         }
 
         ICompletionSource ICompletionSourceProvider.TryCreateCompletionSource(ITextBuffer textBuffer)
         {
             AssertIsForeground();
-            return new CompletionSource();
+            return new CompletionSource(ThreadingContext);
         }
     }
 }

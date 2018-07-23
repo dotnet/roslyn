@@ -60,6 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioProjectTracker projectTracker,
             IServiceProvider serviceProvider,
             VisualStudioDocumentTrackingService documentTrackingService)
+            : base(projectTracker.ThreadingContext)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 

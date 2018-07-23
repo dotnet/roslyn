@@ -32,10 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         [ImportingConstructor]
         public CPSProjectFactory(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspace,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            base(assertIsForeground: false)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            : base(threadingContext, assertIsForeground: false)
         {
             _serviceProvider = serviceProvider;
             _visualStudioWorkspace = visualStudioWorkspace;

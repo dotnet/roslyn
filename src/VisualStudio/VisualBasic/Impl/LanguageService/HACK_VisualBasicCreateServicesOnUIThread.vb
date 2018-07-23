@@ -3,6 +3,7 @@
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text.Editor
@@ -16,8 +17,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Inherits HACK_AbstractCreateServicesOnUiThread
 
         <ImportingConstructor>
-        Public Sub New(<Import(GetType(SVsServiceProvider))> serviceProvider As IServiceProvider)
-            MyBase.New(serviceProvider, LanguageNames.VisualBasic)
+        Public Sub New(threadingContext As IThreadingContext, <Import(GetType(SVsServiceProvider))> serviceProvider As IServiceProvider)
+            MyBase.New(threadingContext, serviceProvider, LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

@@ -29,8 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
 
         [ImportingConstructor]
         public RoslynBlockContextProvider(
+            IThreadingContext threadingContext,
             ITextEditorFactoryService textEditorFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService)
+            : base(threadingContext)
         {
             _textEditorFactoryService = textEditorFactoryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
@@ -84,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 RoslynBlockContextProvider provider,
                 IBlockTag blockTag,
                 ITextView textView)
+                : base(provider.ThreadingContext)
             {
                 _provider = provider;
                 BlockTag = blockTag;

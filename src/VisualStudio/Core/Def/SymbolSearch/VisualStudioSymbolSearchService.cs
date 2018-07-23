@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -45,9 +46,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         [ImportingConstructor]
         public VisualStudioSymbolSearchService(
+            IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             VSShell.SVsServiceProvider serviceProvider)
-            : base(workspace, SymbolSearchOptions.Enabled,
+            : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _installerService = workspace.Services.GetService<IPackageInstallerService>();
             _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
-            _logService = new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
+            _logService = new LogService(threadingContext, (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
             _progressService = workspace.Services.GetService<ISymbolSearchProgressService>();
         }
 

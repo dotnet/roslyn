@@ -20,7 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         private readonly IVsImageService2 _imageService;
 
         [ImportingConstructor]
-        public PreviewDialogService(SVsServiceProvider serviceProvider)
+        public PreviewDialogService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _previewChanges = (IVsPreviewChangesService)serviceProvider.GetService(typeof(SVsPreviewChangesService));
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
@@ -43,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             bool showCheckBoxes = true)
         {
             var engine = new PreviewEngine(
+                ThreadingContext,
                 title,
                 helpString,
                 description,

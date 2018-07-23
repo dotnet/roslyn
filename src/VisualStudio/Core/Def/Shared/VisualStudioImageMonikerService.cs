@@ -41,7 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         private readonly List<CompositeImage> _compositeImages = new List<CompositeImage>();
 
         [ImportingConstructor]
-        public VisualStudioImageMonikerService(SVsServiceProvider serviceProvider)
+        public VisualStudioImageMonikerService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
         }

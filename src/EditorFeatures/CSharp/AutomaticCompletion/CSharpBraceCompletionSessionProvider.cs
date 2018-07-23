@@ -4,6 +4,7 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private readonly ISmartIndentationService _smartIndentationService;
 
         [ImportingConstructor]
-        public CSharpEditorBraceCompletionSessionFactory(ISmartIndentationService smartIndentationService, ITextBufferUndoManagerProvider undoManager)
+        public CSharpEditorBraceCompletionSessionFactory(IThreadingContext threadingContext, ISmartIndentationService smartIndentationService, ITextBufferUndoManagerProvider undoManager)
+            : base(threadingContext)
         {
             _smartIndentationService = smartIndentationService;
             _undoManager = undoManager;

@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
                 IAsynchronousOperationListener asyncListener,
                 IForegroundNotificationService notificationService)
+                : base(dataSource.ThreadingContext)
             {
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
                 {
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 DebugRecordInitialStackTrace();
 
-                _workQueue = new AsynchronousSerialWorkQueue(asyncListener);
+                _workQueue = new AsynchronousSerialWorkQueue(ThreadingContext, asyncListener);
                 this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
                 _eventSource = CreateEventSource();

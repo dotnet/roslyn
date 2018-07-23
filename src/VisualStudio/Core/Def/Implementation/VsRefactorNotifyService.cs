@@ -17,6 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [Export(typeof(IRefactorNotifyService))]
     internal sealed class VsRefactorNotifyService : ForegroundThreadAffinitizedObject, IRefactorNotifyService
     {
+        [ImportingConstructor]
+        public VsRefactorNotifyService(IThreadingContext threadingContext)
+            : base(threadingContext)
+        {
+        }
+
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
             AssertIsForeground();

@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.VisualStudio.Shell
@@ -18,8 +19,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Inherits AbstractSnippetInfoService
 
         <ImportingConstructor>
-        Public Sub New(serviceProvider As SVsServiceProvider, listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(serviceProvider, Guids.VisualBasicDebuggerLanguageId, listenerProvider)
+        Public Sub New(threadingContext As IThreadingContext, serviceProvider As SVsServiceProvider, listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(threadingContext, serviceProvider, Guids.VisualBasicDebuggerLanguageId, listenerProvider)
         End Sub
     End Class
 End Namespace

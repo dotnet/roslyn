@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var taskScheduler = new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
 
             ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(Thread.CurrentThread, taskScheduler, kind);
-            ForegroundObject = new ForegroundThreadAffinitizedObject();
+            ForegroundObject = new ForegroundThreadAffinitizedObject(ThreadingContext.Invalid);
         }
 
         protected void LoadComponentsInUIContextOnceSolutionFullyLoaded(CancellationToken cancellationToken)

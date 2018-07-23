@@ -74,7 +74,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private bool _infoBarOpen = false;
 
         [ImportingConstructor]
-        public KeybindingResetDetector(VisualStudioWorkspace workspace, SVsServiceProvider serviceProvider)
+        public KeybindingResetDetector(IThreadingContext threadingContext, VisualStudioWorkspace workspace, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;

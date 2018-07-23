@@ -29,7 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private readonly IVsUIShell _uiShell;
 
         [ImportingConstructor]
-        public PreviewPaneService(SVsServiceProvider serviceProvider)
+        public PreviewPaneService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _uiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell;
         }

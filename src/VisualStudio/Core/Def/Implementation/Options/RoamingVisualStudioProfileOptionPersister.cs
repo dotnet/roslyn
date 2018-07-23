@@ -44,8 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         /// <remarks>We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.</remarks>
         [ImportingConstructor]
-        public RoamingVisualStudioProfileOptionPersister(IGlobalOptionService globalOptionService, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(assertIsForeground: true) // The GetService call requires being on the UI thread or else it will marshal and risk deadlock
+        public RoamingVisualStudioProfileOptionPersister(IThreadingContext threadingContext, IGlobalOptionService globalOptionService, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            : base(threadingContext, assertIsForeground: true) // The GetService call requires being on the UI thread or else it will marshal and risk deadlock
         {
             Contract.ThrowIfNull(globalOptionService);
 

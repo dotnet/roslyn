@@ -45,9 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// </remarks>
         [ImportingConstructor]
         public LanguageSettingsPersister(
+            IThreadingContext threadingContext,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IGlobalOptionService optionService)
-            : base(assertIsForeground: true)
+            : base(threadingContext, assertIsForeground: true)
         {
             _textManager = (IVsTextManager4)serviceProvider.GetService(typeof(SVsTextManager));
             _optionService = optionService;

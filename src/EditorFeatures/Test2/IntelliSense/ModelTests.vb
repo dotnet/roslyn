@@ -4,11 +4,13 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
     Public Class ModelTests
         Public Sub New()
@@ -21,17 +23,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Class TestModelComputation
             Inherits ModelComputation(Of Model)
 
-            Public Sub New(controller As IController(Of Model))
-                MyBase.New(controller, TaskScheduler.Default)
+            Public Sub New(threadingContext As IThreadingContext, controller As IController(Of Model))
+                MyBase.New(threadingContext, controller, TaskScheduler.Default)
             End Sub
 
-            Friend Shared Function Create(Optional controller As IController(Of Model) = Nothing) As TestModelComputation
+            Friend Shared Function Create(threadingContext As IThreadingContext, Optional controller As IController(Of Model) = Nothing) As TestModelComputation
                 If controller Is Nothing Then
                     Dim mock = New Mock(Of IController(Of Model))
                     controller = mock.Object
                 End If
 
-                Return New TestModelComputation(controller)
+                Return New TestModelComputation(threadingContext, controller)
             End Function
 
             Friend Sub Wait()
@@ -41,8 +43,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub ChainingTaskStartsAsyncOperation()
+            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
             Dim controller = New Mock(Of IController(Of Model))
-            Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
+            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) m)
 
@@ -55,8 +58,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub ChainingTaskThatCompletesNotifiesController()
+            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
             Dim controller = New Mock(Of IController(Of Model))
-            Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
+            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim model = New Model()
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) model)
@@ -67,8 +71,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub ControllerIsOnlyUpdatedAfterLastTaskCompletes()
+            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
             Dim controller = New Mock(Of IController(Of Model))
-            Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
+            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim model = New Model()
             Dim gate = New Object
 
@@ -87,6 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Async Function ControllerIsNotUpdatedIfComputationIsCancelled() As Task
+            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
             Dim controller = New Mock(Of IController(Of Model))
             Dim token = New Mock(Of IAsyncToken)
             controller.Setup(Function(c) c.BeginAsyncOperation(
@@ -94,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  Nothing,
                                  It.IsAny(Of String),
                                  It.IsAny(Of Integer))).Returns(token.Object)
-            Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
+            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim model = New Model()
             Dim checkpoint1 = New Checkpoint
             Dim checkpoint2 = New Checkpoint

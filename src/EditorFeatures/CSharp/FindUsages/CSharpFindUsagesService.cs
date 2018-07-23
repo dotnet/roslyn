@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.FindUsages
@@ -9,5 +10,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FindUsages
     [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.CSharp), Shared]
     internal class CSharpFindUsagesService : AbstractFindUsagesService
     {
+        [ImportingConstructor]
+        public CSharpFindUsagesService(IThreadingContext threadingContext)
+            : base(threadingContext)
+        {
+        }
     }
 }

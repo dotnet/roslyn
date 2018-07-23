@@ -18,10 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceService(typeof(IWorkspaceTaskSchedulerFactory), ServiceLayer.Host), Shared]
     internal class VisualStudioTaskSchedulerFactory : EditorTaskSchedulerFactory
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
-        public VisualStudioTaskSchedulerFactory(IAsynchronousOperationListenerProvider listenerProvider)
+        public VisualStudioTaskSchedulerFactory(IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider)
             : base(listenerProvider)
         {
+            _threadingContext = threadingContext;
         }
 
         public override IWorkspaceTaskScheduler CreateEventingTaskQueue()

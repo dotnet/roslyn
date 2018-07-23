@@ -2,6 +2,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -14,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     internal sealed class InteractiveCompletionCommandHandler : AbstractCompletionCommandHandler
     {
         [ImportingConstructor]
-        public InteractiveCompletionCommandHandler(IAsyncCompletionService completionService)
-            : base(completionService)
+        public InteractiveCompletionCommandHandler(IThreadingContext threadingContext, IAsyncCompletionService completionService)
+            : base(threadingContext, completionService)
         {
         }
     }

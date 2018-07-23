@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         #endregion
 
-        public ModelComputation(IController<TModel> controller, TaskScheduler computationTaskScheduler)
+        public ModelComputation(IThreadingContext threadingContext, IController<TModel> controller, TaskScheduler computationTaskScheduler)
+            : base(threadingContext)
         {
             _controller = controller;
             __taskScheduler = computationTaskScheduler;

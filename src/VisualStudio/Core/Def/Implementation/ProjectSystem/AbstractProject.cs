@@ -120,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
             ICommandLineParserService commandLineParserServiceOpt = null)
+            : base(projectTracker.ThreadingContext)
         {
             Contract.ThrowIfNull(projectSystemName);
 

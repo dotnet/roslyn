@@ -38,8 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         [ImportingConstructor]
         private VirtualMemoryNotificationListener(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
-            VisualStudioWorkspace workspace) : base(assertIsForeground: true)
+            VisualStudioWorkspace workspace)
+            : base(threadingContext, assertIsForeground: true)
         {
             _workspace = workspace;
             _workspace.WorkspaceChanged += OnWorkspaceChanged;

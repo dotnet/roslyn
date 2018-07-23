@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         [ImportingConstructor]
         public MiscellaneousFilesWorkspace(
+            IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             SaveEventsService saveEventsService,
@@ -61,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SVsServiceProvider serviceProvider) :
             base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
-            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(assertIsForeground: true);
+            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
 
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;

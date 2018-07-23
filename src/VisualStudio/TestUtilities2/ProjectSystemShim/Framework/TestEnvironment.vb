@@ -3,18 +3,16 @@
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Text
 Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -41,7 +39,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _monitorSelectionMock = New MockShellMonitorSelection(solutionIsFullyLoaded)
             _workspace = New TestWorkspace()
             _serviceProvider = New MockServiceProvider(_monitorSelectionMock, _workspace)
-            _projectTracker = New VisualStudioProjectTracker(_serviceProvider, _workspace)
+            _projectTracker = New VisualStudioProjectTracker(
+                _workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                _serviceProvider,
+                _workspace)
 
             Dim metadataReferenceProvider = New VisualStudioMetadataReferenceManager(_serviceProvider, _workspace.Services.GetService(Of ITemporaryStorageService)())
             Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
@@ -50,7 +51,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 AsynchronousOperationListenerProvider.NullListener)
 
             Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
-            Dim documentProvider = New DocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
+            Dim documentProvider = New DocumentProvider(
+                _projectTracker,
+                _serviceProvider,
+                documentTrackingService)
 
             _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
         End Sub

@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener asyncListener,
                 Mutex testSessionHookupMutex)
+                : base(eventHookupSessionManager.ThreadingContext)
             {
                 AssertIsForeground();
                 _cancellationTokenSource = new CancellationTokenSource();

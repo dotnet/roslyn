@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -17,11 +18,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
     {
         [ImportingConstructor]
         public CSharpGraphProvider(
+            IThreadingContext threadingContext,
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             IProgressionPrimaryWorkspaceProvider workspaceProvider,
             IAsynchronousOperationListenerProvider listenerProvider) :
-            base(glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, listenerProvider)
+            base(threadingContext, glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, listenerProvider)
         {
         }
     }
