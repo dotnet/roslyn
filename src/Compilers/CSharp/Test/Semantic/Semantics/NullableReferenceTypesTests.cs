@@ -12380,6 +12380,29 @@ class C
         }
 
         [Fact]
+        public void ConditionalBranching_18()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void Test(C? x, C? y)
+    {
+        if ((x = y)?.GetHashCode() != null)
+        {
+            x.ToString();
+            y.ToString(); // warn
+        }
+    }
+}", parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(10, 13)
+                );
+        }
+
+        [Fact]
         public void ConditionalBranching_Is_ReferenceType()
         {
             CSharpCompilation c = CreateCompilation(@"

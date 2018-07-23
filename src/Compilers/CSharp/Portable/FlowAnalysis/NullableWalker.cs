@@ -1473,25 +1473,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Skip reference conversions
                         operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
 
-                        if (operandComparedToNull.Type?.IsReferenceType == true)
+                        var slotBuilder = ArrayBuilder<int>.GetInstance();
+
+                        // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c
+                        // getOperandSlots will only return slots for locations that are reference types.
+                        getOperandSlots(operandComparedToNull, slotBuilder);
+                        if (slotBuilder.Count != 0)
                         {
-                            var slotBuilder = ArrayBuilder<int>.GetInstance();
-
-                            // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c
-                            getOperandSlots(operandComparedToNull, slotBuilder);
-                            if (slotBuilder.Count != 0)
+                            Normalize(ref this.State);
+                            Split();
+                            ref LocalState state = ref (op == BinaryOperatorKind.Equal) ? ref this.StateWhenFalse : ref this.StateWhenTrue;
+                            foreach (int slot in slotBuilder)
                             {
-                                Normalize(ref this.State);
-                                Split();
-                                ref LocalState state = ref (op == BinaryOperatorKind.Equal) ? ref this.StateWhenFalse : ref this.StateWhenTrue;
-                                foreach (int slot in slotBuilder)
-                                {
-                                    state[slot] = true;
-                                }
+                                state[slot] = true;
                             }
-
-                            slotBuilder.Free();
                         }
+
+                        slotBuilder.Free();
                     }
                 }
             }
@@ -1530,7 +1528,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // If we got a slot we must have processed the previous conditional receiver.
                                 Debug.Assert(_lastConditionalAccessSlot == -1);
 
-                                slotBuilder.Add(slot);
+                                // We need to continue the walk regardless of whether the receiver is a value
+                                // type, but we only want to update the slots of reference types
+                                if (conditional.Receiver.Type?.IsReferenceType == true)
+                                {
+                                    slotBuilder.Add(slot);
+                                }
 
                                 // When MakeSlot is called on the nested AccessExpression, it will recurse through receivers
                                 // until it gets to the BoundConditionalReceiver associated with this node. In our override,
@@ -1553,7 +1556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // we need more special handling here
 
                             slot = MakeSlot(operand);
-                            if (slot > 0)
+                            if (slot > 0 && operand.Type?.IsReferenceType == true)
                             {
                                 // If we got a slot then all previous BoundCondtionalReceivers must have been handled.
                                 Debug.Assert(_lastConditionalAccessSlot == -1);
