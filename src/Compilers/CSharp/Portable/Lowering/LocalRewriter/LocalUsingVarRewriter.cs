@@ -19,9 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundStatement> statements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
             for (int i = 0; i < statements.Length; i++)
             {
-                if (statements[i] is BoundLocalDeclaration localDeclaration && localDeclaration.LocalSymbol.IsUsing)
+                if (statements[i] is BoundLocalDeclaration localDeclaration)
                 {
-                    return LowerBoundLocalDeclarationUsingVar(node, statements);
+                    if (localDeclaration.LocalSymbol.IsUsing)
+                    {
+                        return LowerBoundLocalDeclarationUsingVar(node, statements);
+                    }
                 }
                 else if (statements[i] is BoundMultipleLocalDeclarations boundMultiple)
                 {
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock outermostBlock = new BoundBlock(
                             syntax: boundMultiple.Syntax,
                             locals: locals,
-                            statements: precedingStatements.ToImmutableArray());
+                            statements: precedingStatements.ToImmutableAndFree());
             return outermostBlock;
         }
 
