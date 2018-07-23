@@ -164,12 +164,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var result = ArrayBuilder<SearchResult>.GetInstance();
 
             // Prioritize the active documents if we have any.
-            var prioritySet = priorityDocuments.ToSet();
+            var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id))
+                                               .ToImmutableArray();
 
-            var highPriDocs = project.Documents.Where(d => prioritySet.Contains(d));
-            var lowPriDocs = project.Documents.Where(d => !prioritySet.Contains(d));
+            var highPriDocsSet = highPriDocs.ToSet();
+            var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d));
 
-            foreach (var document in highPriDocs.Concat(lowPriDocs))
+            var orderedDocs = highPriDocs.AddRange(lowPriDocs);
+
+#if DEBUG
+            Debug.Assert(orderedDocs.Length == project.Documents.Count(), "Didn't have the same number of project after ordering them!");
+            Debug.Assert(orderedDocs.Distinct().Count() == orderedDocs.Count(), "Ordered list contained a duplicate!");
+            Debug.Assert(project.Documents.All(d => orderedDocs.Contains(d)), "At least one document from the project was missing from the ordered list!");
+#endif
+
+            foreach (var document in orderedDocs)
             {
                 if (searchDocument != null && document != searchDocument)
                 {
