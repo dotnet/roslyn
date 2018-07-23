@@ -901,14 +901,15 @@ namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     [NonNullTypes(true)]
+    [System.Obsolete(""obsolete"")]
     class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Why isn't the usage of NonNullTypes reported as obsolete?
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
             VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
@@ -2090,7 +2091,7 @@ class B<T> : A<T> where T : A<T>.I
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
 
-            // PROTOTYPE(NullableReferenceTypes): We need to poison the attribute
+            // PROTOTYPE(NullableReferenceTypes): We need to poison the attribute (currently asserts in VerifyUsesOfNullability)
             //var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7);
             //comp.VerifyDiagnostics();
 
@@ -29781,7 +29782,7 @@ class P
             // No warnings with C#7.3.
             //comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3);
             //comp.VerifyDiagnostics();
-            // PROTOTYPE(NullableReferenceTypes): poison NonNullTypes attribute
+            // PROTOTYPE(NullableReferenceTypes): We need to poison the attribute (currently asserts in VerifyUsesOfNullability)
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
