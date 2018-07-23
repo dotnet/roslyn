@@ -396,6 +396,162 @@ RoOt = TruE");
         }
 
         [Fact]
+        public void LiteralBraces()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc\\{\\}def");
+            Assert.Equal("^.*/abc\\{\\}def$", regex);
+
+            Assert.Matches(regex, "/abc{}def");
+            Assert.Matches(regex, "/subdir/abc{}def");
+            Assert.DoesNotMatch(regex, "/abcdef");
+            Assert.DoesNotMatch(regex, "/abc}{def");
+        }
+
+        [Fact]
+        public void LiteralComma()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc\\,def");
+            Assert.Equal("^.*/abc,def$", regex);
+
+            Assert.Matches(regex, "/abc,def");
+            Assert.Matches(regex, "/subdir/abc,def");
+            Assert.DoesNotMatch(regex, "/abcdef");
+            Assert.DoesNotMatch(regex, "/abc\\,def");
+            Assert.DoesNotMatch(regex, "/abc`def");
+        }
+
+        [Fact]
+        public void SimpleChoice()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("*.{cs,vb,fs}");
+            Assert.Equal("^.*/[^/]*\\.(?:cs|vb|fs)$", regex);
+
+            Assert.Matches(regex, "/abc.cs");
+            Assert.Matches(regex, "/abc.vb");
+            Assert.Matches(regex, "/abc.fs");
+            Assert.Matches(regex, "/subdir/abc.cs");
+            Assert.Matches(regex, "/subdir/abc.vb");
+            Assert.Matches(regex, "/subdir/abc.fs");
+
+            Assert.DoesNotMatch(regex, "/abcxcs");
+            Assert.DoesNotMatch(regex, "/abcxvb");
+            Assert.DoesNotMatch(regex, "/abcxfs");
+            Assert.DoesNotMatch(regex, "/subdir/abcxcs");
+            Assert.DoesNotMatch(regex, "/subdir/abcxcb");
+            Assert.DoesNotMatch(regex, "/subdir/abcxcs");
+        }
+
+        [Fact]
+        public void OneChoiceHasSlashes()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("{*.cs,subdir/test.vb}");
+            // This is an interesting case that may be counterintuitive.  A reasonable understanding
+            // of the section matching could interpret the choice as generating multiple identical
+            // sections, so [{a, b, c}] would be equivalent to [a] ... [b] ... [c] with all of the
+            // same properties in each section. This is somewhat true, but the rules of how the matching
+            // prefixes are constructed violate this assumption because they are defined as whether or
+            // not a section contains a slash, not whether any of the choices contain a slash. So while
+            // [*.cs] usually translates into '**/*.cs' because it contains no slashes, the slashes in
+            // the second choice make this into '/*.cs', effectively matching only files in the root
+            // directory of the match, instead of all subdirectories.
+            Assert.Equal("^/(?:[^/]*\\.cs|subdir/test\\.vb)$", regex);
+
+            Assert.Matches(regex, "/test.cs");
+            Assert.Matches(regex, "/subdir/test.vb");
+
+            Assert.DoesNotMatch(regex, "/subdir/test.cs");
+            Assert.DoesNotMatch(regex, "/subdir/subdir/test.vb");
+            Assert.DoesNotMatch(regex, "/test.vb");
+        }
+
+        [Fact]
+        public void EmptyChoice()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("{}");
+            Assert.Equal("^.*/(?:)$", regex);
+
+            Assert.Matches(regex, "/");
+            Assert.Matches(regex, "/subdir/");
+            Assert.DoesNotMatch(regex, "/.");
+            Assert.DoesNotMatch(regex, "/anything");
+        }
+
+        [Fact]
+        public void SingleChoice()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("{*.cs}");
+            Assert.Equal("^.*/(?:[^/]*\\.cs)$", regex);
+
+            Assert.Matches(regex, "/test.cs");
+            Assert.Matches(regex, "/subdir/test.cs");
+            Assert.DoesNotMatch(regex, "test.vb");
+            Assert.DoesNotMatch(regex, "testxcs");
+        }
+
+        [Fact]
+        public void UnmatchedBraces()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("{{{{}}");
+            Assert.Null(regex);
+        }
+
+        [Fact]
+        public void CommaOutsideBraces()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc,def");
+            Assert.Null(regex);
+        }
+
+        [Fact]
+        public void RecursiveChoice()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("{test{.cs,.vb},other.{a{bb,cc}}}");
+            Assert.Equal("^.*/(?:test(?:\\.cs|\\.vb)|other\\.(?:a(?:bb|cc)))$", regex);
+
+            Assert.Matches(regex, "/test.cs");
+            Assert.Matches(regex, "/test.vb");
+            Assert.Matches(regex, "/subdir/test.cs");
+            Assert.Matches(regex, "/subdir/test.vb");
+            Assert.Matches(regex, "/other.abb");
+            Assert.Matches(regex, "/other.acc");
+
+            Assert.DoesNotMatch(regex, "/test.fs");
+            Assert.DoesNotMatch(regex, "/other.bbb");
+            Assert.DoesNotMatch(regex, "/other.ccc");
+            Assert.DoesNotMatch(regex, "/subdir/other.bbb");
+            Assert.DoesNotMatch(regex, "/subdir/other.ccc");
+        }
+
+        [Fact]
+        public void DashChoice()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab{-}cd{-,}ef");
+            Assert.Equal("^.*/ab(?:-)cd(?:-|)ef$", regex);
+
+            Assert.Matches(regex, "/ab-cd-ef");
+            Assert.Matches(regex, "/ab-cdef");
+
+            Assert.DoesNotMatch(regex, "/abcdef");
+            Assert.DoesNotMatch(regex, "/ab--cd-ef");
+            Assert.DoesNotMatch(regex, "/ab--cd--ef");
+        }
+
+        [Fact]
+        public void MiddleMatch()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab{cs,vb,fs}cd");
+            Assert.Equal("^.*/ab(?:cs|vb|fs)cd$", regex);
+
+            Assert.Matches(regex, "/abcscd");
+            Assert.Matches(regex, "/abvbcd");
+            Assert.Matches(regex, "/abfscd");
+
+            Assert.DoesNotMatch(regex, "/abcs");
+            Assert.DoesNotMatch(regex, "/abcd");
+            Assert.DoesNotMatch(regex, "/vbcd");
+        }
+
+        [Fact]
         public void EditorConfigToDiagnostics()
         {
             var configs = ArrayBuilder<EditorConfig>.GetInstance();

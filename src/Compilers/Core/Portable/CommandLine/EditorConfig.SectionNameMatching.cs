@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.IO;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using Roslyn.Utilities;
@@ -24,11 +23,11 @@ namespace Microsoft.CodeAnalysis
             // <path-list> ::= <path-item> | <path-item> <path-list>
             // <path-item> ::= "*"  | "**" | "?" | <char> | <choice> | <range>
             // <char> ::= any unicode character
+            // <choice> ::= "{" <choice-list> "}"
+            // <choice-list> ::= <path-list> | <path-list> "," <choice-list>
             //
             // PROTOTYPE(editorconfig): Below remains unimplemented
             //
-            // <choice> ::= "{" <choice-list> "}" 
-            // <choice-list> ::= <path-list> | <path-list> "," <choice-list>
             // <range> ::= "{" <integer> ".." <integer> "}"
             // <integer> ::= "-" <digit-list> | <digit-list>
             // <digit-list> ::= <digit> | <digit> <digit-list>
@@ -57,6 +56,28 @@ namespace Microsoft.CodeAnalysis
             }
 
             var lexer = new SectionNameLexer(sectionName);
+            if (!TryCompilePathList(ref lexer, sb))
+            {
+                return null;
+            }
+            sb.Append('$');
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// <![CDATA[
+        /// <path-list> ::= <path-item> | <path-item> <path-list>
+        /// <path-item> ::= "*"  | "**" | "?" | <char> | <choice> | <range>
+        /// <char> ::= any unicode character
+        /// <choice> ::= "{" <choice-list> "}"
+        /// <choice-list> ::= <path-list> | <path-list> "," <choice-list>
+        /// ]]>
+        /// </summary>
+        private static bool TryCompilePathList(
+            ref SectionNameLexer lexer,
+            StringBuilder sb,
+            bool parsingChoice = false)
+        {
             while (!lexer.IsDone)
             {
                 var tokenKind = lexer.Lex();
@@ -64,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     case TokenKind.BadToken:
                         // Parsing failure
-                        return null;
+                        return false;
                     case TokenKind.SimpleCharacter:
                         // Matches just this character
                         sb.Append(Regex.Escape(lexer.EatCurrentCharacter().ToString()));
@@ -82,12 +103,49 @@ namespace Microsoft.CodeAnalysis
                         // Matches any string of characters
                         sb.Append(".*");
                         break;
+                    case TokenKind.OpenCurly:
+                        // Back up token stream. The following helpers all expect a '{'
+                        lexer.Position--;
+                        // This is ambiguous between {num..num} and {item1,item2}
+                        // We need to look ahead to disambiguate. Looking for {num..num}
+                        // is easier because it can't be recursive.
+                        var range = TryParseNumberRange(ref lexer);
+                        if (range is null)
+                        {
+                            // Not a number range. Try a choice expression
+                            if (!TryCompileChoice(ref lexer, sb))
+                            {
+                                return false;
+                            }
+                            // Keep looping. There may be more after the '}'.
+                            break;
+                        }
+                        else
+                        {
+                            // PROTOTYPE: Implement number range compilation
+                            return false;
+                        }
+                    case TokenKind.CloseCurly:
+                        // Either the end of a choice, or a failed parse
+                        return parsingChoice;
+                    case TokenKind.Comma:
+                        // The end of a choice section, or a failed parse
+                        return parsingChoice;
                     case TokenKind.LiteralStar:
                         // Match a literal '*'
                         sb.Append("\\*");
                         break;
                     case TokenKind.LiteralQuestion:
                         sb.Append("\\?");
+                        break;
+                    case TokenKind.LiteralOpenBrace:
+                        sb.Append("\\{");
+                        break;
+                    case TokenKind.LiteralCloseBrace:
+                        sb.Append("\\}");
+                        break;
+                    case TokenKind.LiteralComma:
+                        sb.Append(",");
                         break;
                     case TokenKind.Backslash:
                         // Literal backslash
@@ -97,73 +155,187 @@ namespace Microsoft.CodeAnalysis
                         throw ExceptionUtilities.UnexpectedValue(tokenKind);
                 }
             }
-            sb.Append('$');
-
-            return sb.ToString();
+            // If we're parsing a choice we should not exit without a closing '}'
+            return !parsingChoice;
         }
 
-        private ref struct SectionNameLexer
+        /// <summary>
+        /// Parses choice defined by the following grammar:
+        /// <![CDATA[
+        /// <choice> ::= "{" <choice-list> "}"
+        /// <choice-list> ::= <path-list> | <path-list> "," <choice-list>
+        /// ]]>
+        /// </summary>
+        private static bool TryCompileChoice(ref SectionNameLexer lexer, StringBuilder sb)
+        {
+            if (lexer.Lex() != TokenKind.OpenCurly)
+            {
+                return false;
+            }
+
+            // Start a non-capturing group for the choice
+            sb.Append("(?:");
+
+            // We start immediately after a '{'
+            // Try to compile the nested <path-list>
+            while (TryCompilePathList(ref lexer, sb, parsingChoice: true))
+            {
+                // If we've succesfully compiled a <path-list> the last token should
+                // have been a ',' or a '}'
+                char lastChar = lexer[lexer.Position - 1];
+                if (lastChar == ',')
+                {
+                    // Another option
+                    sb.Append("|");
+                }
+                else if (lastChar == '}')
+                {
+                    // Close out the capture group
+                    sb.Append(")");
+                    return true;
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(lastChar);
+                }
+            }
+
+            // Propagate failure
+            return false;
+        }
+
+        /// <summary>
+        /// Parses range defined by the following grammar.
+        /// <![CDATA[
+        /// <range> ::= "{" <integer> ".." <integer> "}"
+        /// <integer> ::= "-" <digit-list> | <digit-list>
+        /// <digit-list> ::= <digit> | <digit> <digit-list>
+        /// <digit> ::= 0-9
+        /// ]]>
+        /// </summary>
+        private static (string numStart, string numEnd)? TryParseNumberRange(ref SectionNameLexer lexer)
+        {
+            var saved = lexer.Position;
+            if (lexer.Lex() != TokenKind.OpenCurly)
+            {
+                lexer.Position = saved;
+                return null;
+            }
+
+            var numStart = lexer.TryLexNumber();
+            if (numStart is null)
+            {
+                // Not a number
+                lexer.Position = saved;
+                return null;
+            }
+
+            // The next two characters must be ".."
+            if (!lexer.TryEatCurrentCharacter(out char c) || c != '.' ||
+                !lexer.TryEatCurrentCharacter(out c) || c != '.')
+            {
+                lexer.Position = saved;
+                return null;
+            }
+
+            // Now another number
+            var numEnd = lexer.TryLexNumber();
+            if (numEnd is null || lexer.IsDone || lexer.Lex() != TokenKind.CloseCurly)
+            {
+                // Not a number or no '}'
+                lexer.Position = saved;
+                return null;
+            }
+
+            return (numStart, numEnd);
+        }
+
+        private struct SectionNameLexer
         {
             private readonly string _sectionName;
 
-            private int _position;
+            public int Position { get; set; }
 
             public SectionNameLexer(string sectionName)
             {
                 _sectionName = sectionName;
-                _position = 0;
+                Position = 0;
             }
 
-            public bool IsDone => _position >= _sectionName.Length;
+            public bool IsDone => Position >= _sectionName.Length;
 
             public TokenKind Lex()
             {
-                int lexemeStart = _position;
-                switch (_sectionName[_position])
+                int lexemeStart = Position;
+                switch (_sectionName[Position])
                 {
                     case '*':
                     {
-                        int nextPos = _position + 1;
+                        int nextPos = Position + 1;
                         if (nextPos < _sectionName.Length &&
                             _sectionName[nextPos] == '*')
                         {
-                            _position += 2;
+                            Position += 2;
                             return TokenKind.StarStar;
                         }
                         else
                         {
-                            _position++;
+                            Position++;
                             return TokenKind.Star;
                         }
                     }
 
                     case '?':
-                        _position++;
+                        Position++;
                         return TokenKind.Question;
+
+                    case '{':
+                        Position++;
+                        return TokenKind.OpenCurly;
+
+                    case ',':
+                        Position++;
+                        return TokenKind.Comma;
+
+                    case '}':
+                        Position++;
+                        return TokenKind.CloseCurly;
 
                     case '\\':
                     {
                         // Backslash escapes the next character
-                        _position++;
-                        if (_position >= _sectionName.Length)
+                        Position++;
+                        if (Position >= _sectionName.Length)
                         {
                             return TokenKind.BadToken;
                         }
 
                         // Check for all of the possible escapes
-                        switch (_sectionName[_position++])
+                        switch (_sectionName[Position++])
                         {
                             case '\\':
                                 // "\\" -> "\"
                                 return TokenKind.Backslash;
 
                             case '*':
-                                // "*" -> "\*"
+                                // "\*" -> "\*"
                                 return TokenKind.LiteralStar;
 
                             case '?':
-                                // "?" -> "\?"
+                                // "\?" -> "\?"
                                 return TokenKind.LiteralQuestion;
+
+                            case '{':
+                                // "\{" -> "{"
+                                return TokenKind.LiteralOpenBrace;
+
+                            case ',':
+                                // "\," -> ","
+                                return TokenKind.LiteralComma;
+
+                            case '}':
+                                // "\}" -> "}"
+                                return TokenKind.LiteralCloseBrace;
 
                             default:
                                 return TokenKind.BadToken;
@@ -179,7 +351,61 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Call after getting <see cref="TokenKind.SimpleCharacter" /> from <see cref="Lex()" />
             /// </summary>
-            public char EatCurrentCharacter() => _sectionName[_position++];
+            public char EatCurrentCharacter() => _sectionName[Position++];
+
+            /// <summary>
+            /// Returns false if there are no more characters in the lex stream.
+            /// Otherwise, produces the next character in the stream and returns true.
+            /// </summary>
+            public bool TryEatCurrentCharacter(out char nextChar)
+            {
+                if (IsDone)
+                {
+                    nextChar = default;
+                    return false;
+                }
+                else
+                {
+                    nextChar = EatCurrentCharacter();
+                    return true;
+                }
+            }
+
+            public char this[int position] => _sectionName[position];
+
+            /// <summary>
+            /// Returns the string representation of a decimal integer, or null if
+            /// the current lexeme is not an integer.
+            /// PROTOTYPE: parsing numbers is not completed.
+            /// </summary>
+            public string TryLexNumber()
+            {
+                bool start = true;
+                var sb = new StringBuilder();
+
+                while (!IsDone)
+                {
+                    char currentChar = EatCurrentCharacter();
+                    if (start && currentChar == '-')
+                    {
+                        sb.Append('-');
+                    }
+                    else if (char.IsDigit(currentChar))
+                    {
+                        sb.Append(currentChar);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    start = false;
+                }
+
+                var str = sb.ToString();
+                return str.Length == 0 || str == "-"
+                    ? null
+                    : str;
+            }
         }
 
         private enum TokenKind
@@ -189,9 +415,16 @@ namespace Microsoft.CodeAnalysis
             Star,
             StarStar,
             Question,
+            OpenCurly,
+            CloseCurly,
+            Comma,
+            DoubleDot,
             Backslash,
             LiteralStar,
-            LiteralQuestion
+            LiteralQuestion,
+            LiteralOpenBrace,
+            LiteralCloseBrace,
+            LiteralComma
         }
     }
 }
