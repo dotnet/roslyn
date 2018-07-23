@@ -42,18 +42,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
-            Project project, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+            Project project, Document activeDocumentOpt, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             var client = await TryGetRemoteHostClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return await SearchProjectInCurrentProcessAsync(
-                    project, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                    project, activeDocumentOpt, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 return await SearchProjectInRemoteProcessAsync(
-                    client, project, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                    client, activeDocumentOpt, project, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
             }
         }
     }

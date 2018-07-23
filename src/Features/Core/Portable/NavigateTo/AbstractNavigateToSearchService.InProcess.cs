@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,21 +24,22 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             new ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>>();
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
-            Project project, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+            Project project, Document activeDocumentOpt, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
-                project, searchDocument: null, pattern: searchPattern, kinds, cancellationToken: cancellationToken);
+                project, activeDocumentOpt, searchDocument: null, pattern: searchPattern, kinds, cancellationToken: cancellationToken);
         }
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
-                document.Project, document, searchPattern, kinds, cancellationToken);
+                document.Project, activeDocumentOpt: null, document, searchPattern, kinds, cancellationToken);
         }
 
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindSearchResultsAsync(
-            Project project, Document searchDocument, string pattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+            Project project, Document activeDocumentOpt, Document searchDocument, 
+            string pattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
@@ -66,8 +68,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // scratch.
 #if true
                     var task = searchDocument != null
-                        ? ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken)
-                        : TryFilterPreviousSearchResultsAsync(project, searchDocument, pattern, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken);
+                        ? ComputeSearchResultsAsync(project, activeDocumentOpt, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken)
+                        : TryFilterPreviousSearchResultsAsync(project, activeDocumentOpt, searchDocument, pattern, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken);
 #else
                     var task = ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken);
 #endif
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task<ImmutableArray<SearchResult>> TryFilterPreviousSearchResultsAsync(
-            Project project, Document searchDocument, string pattern,
+            Project project, Document activeDocumentOpt, Document searchDocument, string pattern,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
@@ -111,9 +113,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // Didn't have previous results.  Or it was a very different pattern.
                 // Can't reuse.
                 searchResults = await ComputeSearchResultsAsync(
-                    project, searchDocument,
-                    nameMatcher, containerMatcherOpt,
-                    kinds,
+                    project, activeDocumentOpt, searchDocument,
+                    nameMatcher, containerMatcherOpt, kinds,
                     nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
             }
 
@@ -152,14 +153,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task<ImmutableArray<SearchResult>> ComputeSearchResultsAsync(
-            Project project, Document searchDocument,
+            Project project, Document activeDocumentOpt, Document searchDocument,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<SearchResult>.GetInstance();
-            foreach (var document in project.Documents)
+
+            // Prioritize the active document if we have one.
+            var documents = activeDocumentOpt == null
+                ? project.Documents
+                : project.Documents.Where(d => d == activeDocumentOpt)
+                                   .Concat(project.Documents.Where(d => d != activeDocumentOpt));
+
+            foreach (var document in documents)
             {
                 if (searchDocument != null && document != searchDocument)
                 {

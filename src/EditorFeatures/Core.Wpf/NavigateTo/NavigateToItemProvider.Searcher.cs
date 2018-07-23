@@ -68,11 +68,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     {
                         _progress.AddItems(_solution.Projects.Count());
 
-                        // Search each project with an independent threadpool task.
-                        var searchTasks = _solution.Projects.Select(
-                            p => Task.Run(() => SearchAsync(p), _cancellationToken)).ToArray();
+                        var workspace = _solution.Workspace;
+                        var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+                        var activeDocIdOpt = docTrackingService?.GetActiveDocument();
+                        var activeDocumentOpt = _solution.GetDocument(activeDocIdOpt);
 
-                        await Task.WhenAll(searchTasks).ConfigureAwait(false);
+                        if (activeDocumentOpt != null)
+                        {
+                            var activeProject = activeDocumentOpt.Project;
+
+                            // Search the current project first.  That way we can deliver
+                            // results that are closer in scope to the user quicker without
+                            // forcing them to do something like NavToInCurrentDoc
+                            await Task.Run(() => SearchAsync(activeProject, activeDocumentOpt), _cancellationToken).ConfigureAwait(false);
+                            var searchTasks = _solution.Projects
+                                                       .Where(p => p != activeProject)
+                                                       .Select(p => Task.Run(() => SearchAsync(p, activeDocumentOpt: null), _cancellationToken)).ToArray();
+
+                            await Task.WhenAll(searchTasks).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            // Search each project with an independent threadpool task.
+                            var searchTasks = _solution.Projects.Select(
+                                p => Task.Run(() => SearchAsync(p, activeDocumentOpt: null), _cancellationToken)).ToArray();
+
+                            await Task.WhenAll(searchTasks).ConfigureAwait(false);
+                        }
                     }
                 }
                 catch (OperationCanceledException)
@@ -84,11 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            private async Task SearchAsync(Project project)
+            private async Task SearchAsync(Project project, Document activeDocumentOpt)
             {
                 try
                 {
-                    await SearchAsyncWorker(project).ConfigureAwait(false);
+                    await SearchAsyncWorker(project, activeDocumentOpt).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -96,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            private async Task SearchAsyncWorker(Project project)
+            private async Task SearchAsyncWorker(Project project, Document activeDocumentOpt)
             {
                 if (_searchCurrentDocument && _currentDocument?.Project != project)
                 {
@@ -113,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         {
                             var searchTask = _currentDocument != null
                                 ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, _cancellationToken)
-                                : service.SearchProjectAsync(project, _searchPattern, _kinds, _cancellationToken);
+                                : service.SearchProjectAsync(project, activeDocumentOpt, _searchPattern, _kinds, _cancellationToken);
 
                             var results = await searchTask.ConfigureAwait(false);
                             if (results != null)

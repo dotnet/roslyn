@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
-            ProjectId projectId, string searchPattern, string[] kinds, CancellationToken cancellationToken)
+            ProjectId projectId, DocumentId activeDocIdOpt, string searchPattern, string[] kinds, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async token =>
             {
@@ -38,8 +38,10 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = await GetSolutionAsync(token).ConfigureAwait(false);
 
                     var project = solution.GetProject(projectId);
+                    var activeDocumentOpt = solution.GetDocument(activeDocIdOpt);
+
                     var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                        project, searchPattern, kinds.ToImmutableHashSet(), token).ConfigureAwait(false);
+                        project, activeDocumentOpt, searchPattern, kinds.ToImmutableHashSet(), token).ConfigureAwait(false);
 
                     return Convert(result);
                 }
