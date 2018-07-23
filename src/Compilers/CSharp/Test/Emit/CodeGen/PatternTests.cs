@@ -1901,5 +1901,73 @@ x = 5, y = 6
 x = 7, y = 8";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(28632, "https://github.com/dotnet/roslyn/issues/28632")]
+        public void UnboxNullableInRecursivePattern01()
+        {
+            var source =
+@"
+static class Program
+{
+    public static int M1(int? x)
+    {
+        return x is int y ? y : 1;
+    }
+    public static int M2(int? x)
+    {
+        return x is { } y ? y : 2;
+    }
+    public static void Main()
+    {
+        System.Console.WriteLine(M1(null));
+        System.Console.WriteLine(M2(null));
+        System.Console.WriteLine(M1(3));
+        System.Console.WriteLine(M2(4));
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"1
+2
+3
+4";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("Program.M1",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (int V_0) //y
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool int?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0013
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""int int?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_0015
+  IL_0013:  ldc.i4.1
+  IL_0014:  ret
+  IL_0015:  ldloc.0
+  IL_0016:  ret
+}");
+            compVerifier.VerifyIL("Program.M2",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (int V_0) //y
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool int?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0013
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""int int?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_0015
+  IL_0013:  ldc.i4.2
+  IL_0014:  ret
+  IL_0015:  ldloc.0
+  IL_0016:  ret
+}");
+        }
     }
 }
