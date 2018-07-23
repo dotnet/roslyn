@@ -354,8 +354,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string sourceFileName = "",
             bool skipUsesIsNullable = false) => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45, assemblyName, sourceFileName, skipUsesIsNullable);
 
+        public static CSharpCompilation CreateCompilationWithMscorlib45(
+            string[] source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "",
+            string sourceFileName = "",
+            bool skipUsesIsNullable = false) => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45, assemblyName, sourceFileName, skipUsesIsNullable);
+
         public static CSharpCompilation CreateCompilationWithMscorlib46(
             CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "",
+            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib46, assemblyName, sourceFileName);
+
+        public static CSharpCompilation CreateCompilationWithMscorlib46(
+            string[] source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
@@ -380,6 +397,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpCompilation CreateCompilationWithMscorlib40AndSystemCore(
             CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "",
+            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40AndSystemCore, assemblyName, sourceFileName);
+
+        public static CSharpCompilation CreateCompilationWithMscorlib40AndSystemCore(
+            string[] source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
