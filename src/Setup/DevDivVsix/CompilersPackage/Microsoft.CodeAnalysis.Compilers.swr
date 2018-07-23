@@ -5,6 +5,8 @@ package name=Microsoft.CodeAnalysis.Compilers
 
 vs.dependencies
   vs.dependency id=Microsoft.Net.PackageGroup.4.6.1.Redist
+  vs.dependency id=Microsoft.CodeAnalysis.Compilers.Resources
+                version=$(Version)
 
 vs.nonCriticalProcesses 
   vs.nonCriticalProcess name="VBCSCompiler" 

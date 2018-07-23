@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <MergeManifest Include="$(OutputPath)\Microsoft.CodeAnalysis.Compilers.json" />
+    <MergeManifest Include="$(OutputPath)\Microsoft.CodeAnalysis.Compilers.Resources.*.json" />
   </ItemGroup>
 
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
