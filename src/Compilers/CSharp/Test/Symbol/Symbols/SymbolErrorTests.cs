@@ -2562,7 +2562,7 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_AbstractAndExtern, "E").WithArguments("C.E"));
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): cycle")]
+        [Fact]
         public void CS0181ERR_BadAttributeParamType_Dynamic()
         {
             // PROTOTYPE(NullableReferenceTypes): cycle in MakeDefaultExpression calling IsNullable

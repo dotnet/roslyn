@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 typeSymbol.Accept(visitor);
 
-                if (includeNonNullability && !typeSymbol.IsNullableType() && type.IsAnnotated)
+                if (includeNullability && !typeSymbol.IsNullableType() && type.IsAnnotated)
                 {
                     AddPunctuation(SyntaxKind.QuestionToken);
                 }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddArrayRank(arrayType);
 
-                if (includeNonNullability && !ReferenceEquals(isNullable, null) && !isNullable.IsNullableType() && isNullable.IsAnnotated)
+                if (includeNullability && !ReferenceEquals(isNullable, null) && !isNullable.IsNullableType() && isNullable.IsAnnotated)
                 {
                     AddPunctuation(SyntaxKind.QuestionToken);
                 }

@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes /* | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier*/);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+            /*compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier*/);
 
         internal static readonly SymbolDisplayFormat TestDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
