@@ -1462,10 +1462,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (operandComparedToNull.Type?.IsReferenceType == true)
                         {
                             var slotBuilder = ArrayBuilder<int>.GetInstance();
+
+                            // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c
                             getOperandSlots(operandComparedToNull, slotBuilder);
-                            Normalize(ref this.State);
                             if (slotBuilder.Count != 0)
                             {
+                                Normalize(ref this.State);
                                 Split();
                                 ref LocalState state = ref (op == BinaryOperatorKind.Equal) ? ref this.StateWhenFalse : ref this.StateWhenTrue;
                                 foreach (int slot in slotBuilder)
@@ -1536,13 +1538,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // c.D has been invoked, c must be nonnull or we've thrown a NullRef), revisit whether
                             // we need more special handling here
 
-                            // If we're in this case, then all previous BoundCondtionalReceivers must have been handled.
-                            Debug.Assert(_lastConditionalAccessSlot == -1);
                             slot = MakeSlot(operand);
                             if (slot > 0)
                             {
+                                // If we got a slot then all previous BoundCondtionalReceivers must have been handled.
+                                Debug.Assert(_lastConditionalAccessSlot == -1);
+
                                 slotBuilder.Add(slot);
                             }
+
                             break;
                     }
 
