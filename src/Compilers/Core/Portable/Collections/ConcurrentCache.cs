@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis
     internal class ConcurrentCache<TKey, TValue> :
         CachingBase<ConcurrentCache<TKey, TValue>.Entry> where TKey : IEquatable<TKey>
     {
+        private readonly IEqualityComparer<TKey> _keyComparer;
+
         // class, to ensure atomic updates.
         internal class Entry
         {
@@ -31,18 +33,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public ConcurrentCache(int size)
+        public ConcurrentCache(int size, IEqualityComparer<TKey> keyComparer)
             : base(size)
         {
+            _keyComparer = keyComparer;
         }
+
+        public ConcurrentCache(int size)
+            : this(size, EqualityComparer<TKey>.Default) { }
 
         public bool TryAdd(TKey key, TValue value)
         {
-            var hash = key.GetHashCode();
+            var hash = _keyComparer.GetHashCode(key);
             var idx = hash & mask;
 
             var entry = this.entries[idx];
-            if (entry != null && entry.hash == hash && entry.key.Equals(key))
+            if (entry != null && entry.hash == hash && _keyComparer.Equals(entry.key, key))
             {
                 return false;
             }
@@ -53,11 +59,11 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            int hash = key.GetHashCode();
+            int hash = _keyComparer.GetHashCode(key);
             int idx = hash & mask;
 
             var entry = this.entries[idx];
-            if (entry != null && entry.hash == hash && entry.key.Equals(key))
+            if (entry != null && entry.hash == hash && _keyComparer.Equals(entry.key, key)) 
             {
                 value = entry.value;
                 return true;
