@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -281,6 +280,7 @@ if (true)
         protected override async Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
+            ITextSnapshot snapshot,
             int position,
             string expectedContent,
             string expectedDocumentationComment = null)
@@ -288,14 +288,17 @@ if (true)
             var provider = CreateProvider(workspace);
             var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
             Assert.NotNull(info);
-
             Assert.NotEqual(0, info.RelatedSpans.Length);
-            var tabSize = document.Project.Solution.Workspace.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
-            var text = await document.GetTextAsync();
 
-            var classifiedSpans = info.RelatedSpans.Select(s => new ClassifiedSpan(ClassificationTypeNames.Text, s));
-            var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans.ToImmutableArray(), tabSize);
-            var actualText = string.Concat(spans.Select(s => text.GetSubText(s.TextSpan).ToString()));
+            var trackingSpan = new Mock<ITrackingSpan>(MockBehavior.Strict);
+            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, snapshot, document, CancellationToken.None);
+            var containerElement = quickInfoItem.Item as ContainerElement;
+
+            var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();
+            Assert.NotEmpty(textElements);
+
+            var textElement = textElements.First();
+            var actualText = string.Concat(textElement.Runs.Select(r => r.Text));
             Assert.Equal(expectedContent, actualText);
         }
 
@@ -329,6 +332,7 @@ if (true)
                 var testDocument = workspace.Documents.Single();
                 var position = testDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
+                var snapshot = testDocument.TextBuffer.CurrentSnapshot;
 
                 if (string.IsNullOrEmpty(expectedContent))
                 {
@@ -336,7 +340,7 @@ if (true)
                 }
                 else
                 {
-                    await AssertContentIsAsync(workspace, document, position, expectedContent, expectedDocumentationComment);
+                    await AssertContentIsAsync(workspace, document, snapshot, position, expectedContent, expectedDocumentationComment);
                 }
             }
         }
