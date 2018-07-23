@@ -122,14 +122,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
                 // Now, process all visible docs that were not from the active project.
                 var tasks = new List<Task>();
-                foreach (var group in visibleDocs.GroupBy(d => d.Project))
+                foreach (var (currentProject, priorityDocs) in visibleDocs.GroupBy(d => d.Project))
                 {
-                    var currentProject = group.Key;
-
                     // make sure we only process this project if we didn't already process it above.
                     if (processedProjects.Add(currentProject))
                     {
-                        tasks.Add(Task.Run(() => SearchAsync(currentProject, group.ToImmutableArray()), _cancellationToken));
+                        tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.ToImmutableArray()), _cancellationToken));
                     }
                 }
 
