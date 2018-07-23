@@ -25,22 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (statements[i] is BoundMultipleLocalDeclarations boundMultiple)
                 {
-                    if (!boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
-                    {
-                        if (boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing)
+                    if (!boundMultiple.LocalDeclarations.IsDefaultOrEmpty && boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing)
+                    { ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(i);
+                        for (int j = 0; j < i; j++)
                         {
-                            ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(i);
-                            for (int j = 0; j < i; j++)
-                            {
-                                precedingStatements.Add(statements[j]);
-                            }
-                            ArrayBuilder<BoundStatement> followingStatements = ArrayBuilder<BoundStatement>.GetInstance(statements.Length - (i + 1));
-                            for (int k = i + 1; k < statements.Length; k++)
-                            {
-                                followingStatements.Add(statements[k]);
-                            }
-                            return LowerBoundMultipleLocalDeclarationUsingVar(boundMultiple, node.Locals, precedingStatements, followingStatements.ToImmutableArray());
+                            precedingStatements.Add(statements[j]);
                         }
+                        var followingStatements = ImmutableArray.Create(statements, i + 1, statements.Length - i - 1);
+                        return LowerBoundMultipleLocalDeclarationUsingVar(boundMultiple, node.Locals, precedingStatements, followingStatements);
                     }
                 }
             }
@@ -91,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     reversedUsingStatements.Add(boundUsing);
                 }
             }
-
-            ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(firstUsingIndex);
+            reversedStatements.Free();
+            ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(itemCount - firstUsingIndex);
             for (int i = 0; i < (itemCount - 1 - firstUsingIndex); i++)
             {
                 precedingStatements.Add(statements[i]);
@@ -101,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 precedingStatements.Add(reversedUsingStatements[reversedUsingStatements.Count - 1]);
             }
-
+            reversedUsingStatements.Free();
             BoundBlock outermostBlock = new BoundBlock(
                             syntax: node.Syntax,
                             locals: node.Locals,
-                            statements: precedingStatements.AsImmutableOrEmpty());
+                            statements: precedingStatements.ToImmutableOrEmptyAndFree());
             return outermostBlock;
         }
 
@@ -145,8 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         );
                 reversedUsingStatements.Add(boundUsing);
             }
-
+            
             precedingStatements.Add((BoundStatement)reversedUsingStatements[reversedUsingStatements.Count - 1]);
+            reversedLocals.Free();
+            reversedUsingStatements.Free();
             BoundBlock outermostBlock = new BoundBlock(
                             syntax: boundMultiple.Syntax,
                             locals: locals,
