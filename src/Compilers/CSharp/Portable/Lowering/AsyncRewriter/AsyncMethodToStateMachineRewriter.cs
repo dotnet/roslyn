@@ -269,8 +269,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // this.promiseOfValueOrEnd.SetException(ex);
                 var callSetException = F.ExpressionStatement(F.Call(
-                    F.Field(F.This(), _asyncIteratorInfo._promiseOfValueOrEndField),
-                    _asyncIteratorInfo._setException,
+                    F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField),
+                    _asyncIteratorInfo.SetExceptionMethod,
                     F.Local(exceptionLocal)));
 
                 return F.Block(
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     assignFinishedState,
                     F.If(
                         // if (promiseIsActive)
-                        F.Field(F.This(), _asyncIteratorInfo._promiseIsActiveField),
+                        F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField),
                         // this.promiseOfValueOrEnd.SetException(ex);
                         thenClause: callSetException,
                         // throw;
@@ -619,12 +619,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_asyncIteratorInfo != null);
 
             // this.promiseIsActive = true;
-            BoundFieldAccess promiseIsActiveField = F.Field(F.This(), _asyncIteratorInfo._promiseIsActiveField);
+            BoundFieldAccess promiseIsActiveField = F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField);
             var assignTrue = F.Assignment(promiseIsActiveField, F.Literal(true));
 
             // this.promiseOfValueOrEnd.Reset();
-            BoundFieldAccess promiseField = F.Field(F.This(), _asyncIteratorInfo._promiseOfValueOrEndField);
-            var callReset = F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo._resetMethod));
+            BoundFieldAccess promiseField = F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField);
+            var callReset = F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo.ResetMethod));
 
             // Produce:
             // if (!this.promiseIsActive)
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    this.promiseOfValueOrEnd.SetResult(result);
             // }
             return F.If(
-                F.Field(F.This(), _asyncIteratorInfo._promiseIsActiveField),
+                F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField),
                 thenClause: callSetResult);
         }
 
@@ -658,8 +658,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Produce:
             // this.promiseOfValueOrEnd.SetResult(result);
-            BoundFieldAccess promiseField = F.Field(F.This(), _asyncIteratorInfo._promiseOfValueOrEndField);
-            return F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo._setResult, F.Literal(result)));
+            BoundFieldAccess promiseField = F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField);
+            return F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo.SetResultMethod, F.Literal(result)));
         }
 
         private static ImmutableArray<LocalSymbol> SingletonOrPair(LocalSymbol first, LocalSymbol secondOpt)
@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                 // this.current = expression;
-                F.Assignment(F.Field(F.This(), _asyncIteratorInfo._currentField), rewrittenExpression));
+                F.Assignment(F.Field(F.This(), _asyncIteratorInfo.CurrentField), rewrittenExpression));
 
             blockBuilder.Add(
                 // previousState = this.state;
