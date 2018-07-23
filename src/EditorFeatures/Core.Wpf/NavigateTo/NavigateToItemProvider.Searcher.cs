@@ -71,6 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         _progress.AddItems(_solution.Projects.Count());
 
                         var workspace = _solution.Workspace;
+
+                        // If the workspace is tracking documents, use that to prioritize our search
+                        // order.  That way we provide results for the documents the user is working
+                        // on faster than the rest of the solution.
                         var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
                         if (docTrackingService != null)
                         {
@@ -95,12 +99,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 var processedProjects = new HashSet<Project>();
 
-                var activeDocOpt = _solution.GetDocument(docTrackingService.GetActiveDocument());
-                var visibleDocs = docTrackingService.GetVisibleDocuments()
-                                                    .Select(d => _solution.GetDocument(d))
+                var activeDocOpt = docTrackingService.GetActiveDocument(_solution);
+                var visibleDocs = docTrackingService.GetVisibleDocuments(_solution)
                                                     .Where(d => d != activeDocOpt)
-                                                    .WhereNotNull()
-                                                    .Distinct()
                                                     .ToImmutableArray();
 
                 // First, if there's an active document, search that project first, prioritizing
