@@ -815,6 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            Debug.Assert(!IsConditionalState);
             int slot = -1;
             if (isNull != null)
             {
@@ -827,7 +828,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(!IsConditionalState);
             base.VisitPattern(expression, pattern);
             Debug.Assert(IsConditionalState);
 

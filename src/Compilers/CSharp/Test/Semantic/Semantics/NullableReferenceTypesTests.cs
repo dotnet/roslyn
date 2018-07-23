@@ -11796,7 +11796,7 @@ class C : Base
             CSharpCompilation c = CreateCompilation(@"
 class C
 {
-    static void F<T>(T t, object? o)
+    static void F<T>(object? o)
     {
         if (o is T)
         {
@@ -11823,7 +11823,7 @@ class C
             CSharpCompilation c = CreateCompilation(@"
 class C
 {
-    static void F<T>(T t, object? o) where T : struct
+    static void F<T>(object? o) where T : struct
     {
         if (o is T)
         {
@@ -11850,7 +11850,7 @@ class C
             CSharpCompilation c = CreateCompilation(@"
 class C
 {
-    static void F<T>(T t, object? o) where T : class
+    static void F<T>(object? o) where T : class
     {
         if (o is T)
         {
@@ -12031,8 +12031,36 @@ class C
         }
 
         [Fact]
+        public void ConditionalBranching_IsConstantPattern_NonConstant()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        string nonConstant = ""hello"";
+        if (x is nonConstant)
+        {
+            x.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (7,18): error CS0150: A constant value is expected
+                //         if (x is nonConstant)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "nonConstant").WithLocation(7, 18),
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
         public void ConditionalBranching_IsConstantPattern_Null_AlreadyTestedAsNonNull()
         {
+            // PROTOTYPE(NullableReferenceTypes): confirm that we want such hidden warnings
             CSharpCompilation c = CreateCompilation(@"
 class C
 {
