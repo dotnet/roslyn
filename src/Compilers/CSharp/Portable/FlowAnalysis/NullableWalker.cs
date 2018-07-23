@@ -766,68 +766,82 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            // PROTOTYPE(NullableReferenceTypes): Move these asserts to base class.
-            Debug.Assert(!IsConditionalState);
+            VisitRvalue(node.Expression);
+            var expressionResultType = this._resultType;
 
-            // Create slot when the state is unconditional since EnsureCapacity should be
-            // called on all fields and that is simpler if state is limited to this.State.
-            int slot = -1;
-            if (this.State.Reachable)
+            VisitPattern(node.Expression, expressionResultType, node.Pattern);
+
+            SetResult(node);
+            return node;
+        }
+
+        /// <summary>
+        /// Examples:
+        /// `x is Point p`
+        /// `switch (x) ... case Point p:` // PROTOTYPE(NullableReferenceTypes): not yet handled
+        ///
+        /// If the expression is trackable, we'll return with different null-states for that expression in the two conditional states.
+        /// If the pattern is a `var` pattern, we'll also have re-inferred the `var` type with nullability and
+        /// updated the state for that declared local.
+        /// </summary>
+        private void VisitPattern(BoundExpression expression, TypeSymbolWithAnnotations expressionResultType, BoundPattern pattern)
+        {
+            bool? isNull = null; // the pattern tells us the expression (1) is null, (2) isn't null, or (3) we don't know.
+            switch (pattern.Kind)
             {
-                var pattern = node.Pattern;
-                // PROTOTYPE(NullableReferenceTypes): Handle patterns that ensure x is not null:
-                // x is T y // where T is not inferred via var
-                // x is K // where K is a constant other than null
-                if (pattern.Kind == BoundKind.ConstantPattern && ((BoundConstantPattern)pattern).ConstantValue?.IsNull == true)
-                {
-                    slot = MakeSlot(node.Expression);
-                    if (slot > 0)
+                case BoundKind.ConstantPattern:
+                    // If the constant is null, the pattern tells us the expression is null.
+                    // If the constant is not null, the pattern tells us the expression is not null.
+                    // If there is no constant, we don't know.
+                    isNull = ((BoundConstantPattern)pattern).ConstantValue?.IsNull;
+                    break;
+                case BoundKind.DeclarationPattern:
+                    var declarationPattern = (BoundDeclarationPattern)pattern;
+                    if (declarationPattern.IsVar)
                     {
-                        Normalize(ref this.State);
+                        // The result type and state of the expression carry into the variable declared by var pattern
+                        Symbol variable = declarationPattern.Variable;
+                        // No variable declared for discard (`i is var _`)
+                        if ((object)variable != null)
+                        {
+                            _variableTypes[variable] = expressionResultType;
+                            TrackNullableStateForAssignment(expression, expressionResultType, GetOrCreateSlot(variable), expressionResultType);
+                        }
                     }
+                    else
+                    {
+                        isNull = false; // the pattern tells us the expression is not null
+                    }
+                    break;
+            }
+
+            Debug.Assert(!IsConditionalState);
+            int slot = -1;
+            if (isNull != null)
+            {
+                // Create slot when the state is unconditional since EnsureCapacity should be
+                // called on all fields and that is simpler if state is limited to this.State.
+                slot = MakeSlot(expression);
+                if (slot > 0)
+                {
+                    Normalize(ref this.State);
                 }
             }
 
-            var result = base.VisitIsPatternExpression(node);
-
+            base.VisitPattern(expression, pattern);
             Debug.Assert(IsConditionalState);
-            if (slot > 0)
+
+            // PROTOTYPE(NullableReferenceTypes): We should only report such
+            // diagnostics for locals that are set or checked explicitly within this method.
+            if (expressionResultType?.IsNullable == false && isNull == true)
             {
-                this.StateWhenTrue[slot] = false;
-                this.StateWhenFalse[slot] = true;
+                ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
             }
 
-            SetResult(node);
-            return result;
-        }
-
-        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
-        {
-            base.VisitPattern(expression, pattern);
-            var whenFail = StateWhenFalse;
-            SetState(StateWhenTrue);
-            AssignPatternVariables(pattern);
-            SetConditionalState(this.State, whenFail);
-            SetUnknownResultNullability();
-        }
-
-        private void AssignPatternVariables(BoundPattern pattern)
-        {
-            switch (pattern.Kind)
+            if (slot > 0 && isNull != null)
             {
-                case BoundKind.DeclarationPattern:
-                    // PROTOTYPE(NullableReferenceTypes): Handle.
-                    break;
-                case BoundKind.WildcardPattern:
-                    break;
-                case BoundKind.ConstantPattern:
-                    {
-                        var pat = (BoundConstantPattern)pattern;
-                        this.VisitRvalue(pat.Value);
-                        break;
-                    }
-                default:
-                    break;
+                this.StateWhenTrue[slot] = !isNull;
+                this.StateWhenFalse[slot] = isNull;
             }
         }
 
@@ -3663,8 +3677,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIsOperator(BoundIsOperator node)
         {
+            Debug.Assert(!this.IsConditionalState);
+
+            int slot = -1;
+            var operand = node.Operand;
+            if (operand.Type?.IsValueType == false)
+            {
+                slot = MakeSlot(operand);
+                if (slot > 0)
+                {
+                    Normalize(ref this.State);
+                }
+            }
+
             var result = base.VisitIsOperator(node);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
+
+            if (slot > 0)
+            {
+                Split();
+                this.StateWhenTrue[slot] = true;
+                this.StateWhenFalse[slot] = false;
+            }
+
             SetResult(node);
             return result;
         }
@@ -4185,6 +4220,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _notNull.EnsureCapacity(capacity);
             }
 
+            /// <summary>
+            /// Use `true` value for not-null.
+            /// Use `false` value for maybe-null.
+            /// Use `null` value for unknown.
+            /// </summary>
             internal bool? this[int slot]
             {
                 get
