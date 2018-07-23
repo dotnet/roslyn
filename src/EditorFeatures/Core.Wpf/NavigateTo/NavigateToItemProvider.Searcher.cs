@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            internal async void Search()
+            internal async Task SearchAsync()
             {
                 try
                 {

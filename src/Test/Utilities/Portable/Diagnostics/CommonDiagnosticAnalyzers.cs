@@ -598,7 +598,9 @@ namespace Microsoft.CodeAnalysis
                 context.RegisterCompilationAction(AsyncAction);
             }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
             private async void AsyncAction(CompilationAnalysisContext context)
+#pragma warning restore VSTHRD100 // Avoid async void methods
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
                 await Task.FromResult(true);
