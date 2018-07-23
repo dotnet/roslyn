@@ -538,16 +538,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// traversal stops and that type is returned from this method. Otherwise if traversal
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
-        public static TypeSymbol VisitType<T>(this TypeSymbol type, Func<TypeSymbol, T, bool, bool> predicate, T arg, bool canDigThroughNullable =  false)
+        public static TypeSymbol VisitType<T>(
+            this TypeSymbol type,
+            Func<TypeSymbol, T, bool, bool> predicate,
+            T arg,
+            bool canDigThroughNullable = false)
+        {
+            return VisitType(typeWithAnnotationsOpt: null, type, predicate1: null, predicate2: predicate, arg, canDigThroughNullable);
+        }
+
+        public static TypeSymbol VisitType<T>(
+            this TypeSymbolWithAnnotations type,
+            Func<TypeSymbolWithAnnotations, T, bool, bool> predicate1,
+            Func<TypeSymbol, T, bool, bool> predicate2,
+            T arg)
+        {
+            return VisitType(
+                typeWithAnnotationsOpt: type,
+                typeOpt: null,
+                predicate1,
+                predicate2,
+                arg,
+                canDigThroughNullable: false);
+        }
+
+        private static TypeSymbol VisitType<T>(
+            TypeSymbolWithAnnotations typeWithAnnotationsOpt,
+            TypeSymbol typeOpt,
+            Func<TypeSymbolWithAnnotations, T, bool, bool> predicate1,
+            Func<TypeSymbol, T, bool, bool> predicate2,
+            T arg,
+            bool canDigThroughNullable)
         {
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
             // doing the natural recursion.
 
-            TypeSymbol current = type;
-
             while (true)
             {
+                TypeSymbol current = typeOpt ?? typeWithAnnotationsOpt?.TypeSymbol;
                 bool isNestedNamedType = false;
 
                 // Visit containing types from outer-most to inner-most.
@@ -563,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = containingType.VisitType(predicate, arg, canDigThroughNullable);
+                                var result = VisitType(null, containingType, predicate1, predicate2, arg, canDigThroughNullable);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -577,7 +606,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (predicate(current, arg, isNestedNamedType))
+                if (typeWithAnnotationsOpt is null || predicate1 is null ?
+                    predicate2(current, arg, isNestedNamedType) :
+                    predicate1(typeWithAnnotationsOpt, arg, isNestedNamedType))
                 {
                     return current;
                 }
@@ -606,7 +637,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {
                             // Let's try to avoid early resolution of nullable types
-                            var result = (canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : typeArg.TypeSymbol).VisitType(predicate, arg, canDigThroughNullable);
+                            var result = VisitType(
+                                typeWithAnnotationsOpt: canDigThroughNullable ? null : typeArg,
+                                typeOpt: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
+                                predicate1,
+                                predicate2,
+                                arg,
+                                canDigThroughNullable);
                             if ((object)result != null)
                             {
                                 return result;
@@ -627,7 +664,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Let's try to avoid early resolution of nullable types
-                current = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : next.TypeSymbol;
+                typeWithAnnotationsOpt = canDigThroughNullable ? null : next;
+                typeOpt = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
             }
         }
 

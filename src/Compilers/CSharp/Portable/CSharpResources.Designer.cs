@@ -7388,6 +7388,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A nullable type parameter must have a value type or reference type constraint..
+        /// </summary>
+        internal static string ERR_NullableUnconstrainedTypeParameter {
+            get {
+                return ResourceManager.GetString("ERR_NullableUnconstrainedTypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use of null is not valid in this context.
         /// </summary>
         internal static string ERR_NullNotValid {

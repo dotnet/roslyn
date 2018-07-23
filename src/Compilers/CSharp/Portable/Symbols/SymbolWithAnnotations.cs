@@ -333,6 +333,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public void CheckAllConstraints(ConversionsBase conversions, Location location, DiagnosticBag diagnostics)
         {
+            // The first unconstrained type parameter in the type.
+            var typeParameter = this.VisitType(
+                (t, a, b) => t.IsAnnotated && t.TypeSymbol.IsUnconstrainedTypeParameter(),
+                (t, a, b) => false,
+                (object)null);
+            if ((object)typeParameter != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, location);
+            }
             TypeSymbol.CheckAllConstraints(conversions, location, diagnostics);
         }
 
