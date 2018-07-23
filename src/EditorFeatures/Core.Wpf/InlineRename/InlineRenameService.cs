@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private InlineRenameSession _activeRenameSession;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineRenameService(
             IThreadingContext threadingContext,
             IWaitIndicator waitIndicator,

@@ -2,7 +2,6 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Host;
@@ -24,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly GlobalUndoService _singleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GlobalUndoServiceFactory(
             IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,

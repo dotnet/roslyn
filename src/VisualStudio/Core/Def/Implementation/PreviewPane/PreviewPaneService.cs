@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private readonly IVsUIShell _uiShell;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewPaneService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {

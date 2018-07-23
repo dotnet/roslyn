@@ -64,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             new ConcurrentDictionary<ProjectId, ProjectState>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PackageInstallerService(
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,

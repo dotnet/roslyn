@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages
         Inherits AbstractFindUsagesService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(threadingContext As IThreadingContext)
             MyBase.New(threadingContext)
         End Sub

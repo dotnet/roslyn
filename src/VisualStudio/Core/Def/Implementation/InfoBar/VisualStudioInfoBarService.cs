@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioInfoBarService(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,

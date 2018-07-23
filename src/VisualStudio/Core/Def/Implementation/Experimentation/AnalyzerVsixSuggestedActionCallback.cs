@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experimentation;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -37,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private LiveCodeAnalysisInstallStatus _installStatus = LiveCodeAnalysisInstallStatus.Unknown;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerVsixSuggestedActionCallback(
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,

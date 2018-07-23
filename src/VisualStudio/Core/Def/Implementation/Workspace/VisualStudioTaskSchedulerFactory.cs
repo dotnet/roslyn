@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTaskSchedulerFactory(IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider)
             : base(listenerProvider)
         {

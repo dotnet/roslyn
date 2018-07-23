@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioPersistentStorageLocationService(IThreadingContext threadingContext, [Import] SVsServiceProvider serviceProvider)
             : base(threadingContext, assertIsForeground: false)
         {

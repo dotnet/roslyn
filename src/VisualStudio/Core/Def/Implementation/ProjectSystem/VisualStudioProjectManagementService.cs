@@ -19,6 +19,7 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
     internal class VisualStudioProjectManagementService : ForegroundThreadAffinitizedObject, IProjectManagementService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectManagementService(IThreadingContext threadingContext)
             : base(threadingContext)
         {

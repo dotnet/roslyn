@@ -4,6 +4,7 @@ Imports System.ComponentModel.Composition
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Editor.Interactive
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.VisualStudio.LanguageServices.Interactive
 Imports Microsoft.VisualStudio.Shell
@@ -21,6 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
         Inherits VsInteractiveWindowProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(serviceProvider As SVsServiceProvider,
                        interactiveWindowFactory As IVsInteractiveWindowFactory,
                        classifierAggregator As IViewClassifierAggregatorService,

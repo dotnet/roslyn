@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
     internal sealed class CSharpVsInteractiveWindowProvider : VsInteractiveWindowProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVsInteractiveWindowProvider(
             SVsServiceProvider serviceProvider,
             IVsInteractiveWindowFactory interactiveWindowFactory,
