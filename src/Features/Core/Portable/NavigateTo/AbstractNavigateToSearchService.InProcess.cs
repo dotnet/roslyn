@@ -172,12 +172,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             var orderedDocs = highPriDocs.AddRange(lowPriDocs);
 
-#if DEBUG
             Debug.Assert(priorityDocuments.All(d => project.ContainsDocument(d.Id)), "Priority docs included doc not from project.");
             Debug.Assert(orderedDocs.Length == project.Documents.Count(), "Didn't have the same number of project after ordering them!");
             Debug.Assert(orderedDocs.Distinct().Count() == orderedDocs.Count(), "Ordered list contained a duplicate!");
             Debug.Assert(project.Documents.All(d => orderedDocs.Contains(d)), "At least one document from the project was missing from the ordered list!");
-#endif
 
             foreach (var document in orderedDocs)
             {
