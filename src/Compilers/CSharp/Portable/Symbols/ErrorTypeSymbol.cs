@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute) => null;
+        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => null;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
         {
             return null;
         }
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _hashCode;
         }
 
-        internal override bool NonNullTypes => _originalDefinition.NonNullTypes;
+        public override bool NonNullTypes => false;
     }
 
     internal sealed class ConstructedErrorTypeSymbol : SubstitutedErrorTypeSymbol
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(originalDefinition)
         {
             _containingSymbol = containingSymbol;
-            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, out _typeParameters);
+            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, nonNullTypesContext: this, out _typeParameters);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters

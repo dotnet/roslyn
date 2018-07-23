@@ -410,7 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
-            var tuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: convertedTypes.SelectAsArray((t, m) => TypeSymbolWithAnnotations.Create(m, t), compilation.SourceModule),
+            var tuple = TupleTypeSymbol.Create(locationOpt: null,
+                elementTypes: convertedTypes.SelectAsArray((t, m) => TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: m, t), compilation.SourceModule),
                 elementLocations, elementNames: names, compilation,
                 shouldCheckConstraints: true, errorPositions: default, syntax, diagnostics);
 

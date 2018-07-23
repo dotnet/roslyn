@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(
                         originalMethod,
                         this,
+                        nonNullTypesContext: originalMethod,
                         out typeParameters,
                         out constructedFromTypeParameters,
                         lambdaFrame.OriginalContainingMethodOpt);
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeMap = TypeMap.Empty.WithConcatAlphaRename(
                         originalMethod,
                         this,
+                        nonNullTypesContext: originalMethod,
                         out typeParameters,
                         out constructedFromTypeParameters,
                         stopAt: null);

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (IsGenericMethod)
                 {
-                    return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
+                    return GetTypeParametersAsTypeArguments();
                 }
                 else
                 {
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {

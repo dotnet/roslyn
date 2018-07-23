@@ -251,10 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
-        {
-            return null;
-        }
+        internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => null;
 
         internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
         {
@@ -578,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
         {
             result = this;
             return true;

@@ -215,19 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Are we in a context where un-annotated types should be interpreted as non-null?
-        /// The binder flags are used to break cycles.
         /// </summary>
-        internal bool NonNullTypes
-        {
-            get
-            {
-                if ((Flags & BinderFlags.NonNullTypesTrue) != 0)
-                {
-                    return true;
-                }
-                return ContainingMember().NonNullTypes;
-            }
-        }
+        internal Symbol NonNullTypesContext => ContainingMember();
 
         /// <summary>
         /// Is the contained code within a member method body?

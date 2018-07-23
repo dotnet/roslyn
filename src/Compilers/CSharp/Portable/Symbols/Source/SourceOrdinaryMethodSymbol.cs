@@ -1092,11 +1092,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation);
             }
 
+            // PROTOTYPE(NullableReferenceTypes): We should probably not be using NonNullTypes here (ie. in binding)
             if (((CSharpParseOptions)implementation.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                 implementation.NonNullTypes)
             {
                 ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
-                ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters;
+                ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArguments).Parameters;
 
                 for (int i = 0; i < implementationParameters.Length; i++)
                 {
@@ -1125,10 +1126,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            // PROTOTYPE(NullableReferenceTypes): Attributes should be merged across all partial
+            // declarations, although that is not the case currently. Uncomment the Debug.Assert
+            // when NonNullTypes no longer uses SyntaxBasedNonNullTypes.
+            //Debug.Assert(part1.NonNullTypes == part2.NonNullTypes);
             var typeParameters2 = part2.TypeParameters;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
-            var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
-            var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
+            var typeMap1 = new TypeMap(nonNullTypesContext: part1, typeParameters1, indexedTypeParameters, allowAlpha: true);
+            var typeMap2 = new TypeMap(nonNullTypesContext: part1, typeParameters2, indexedTypeParameters, allowAlpha: true);
 
             return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
         }

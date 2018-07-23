@@ -103,12 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InContextualAttributeBinder = 1 << 29,
 
-        /// <summary>
-        /// Indicates a context with [NonNullTypes(true)], so unannotated reference types should be interpreted as non-null.
-        /// This flag is used to avoid cycles.
-        /// </summary>
-        NonNullTypesTrue = 1 << 30,
-
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

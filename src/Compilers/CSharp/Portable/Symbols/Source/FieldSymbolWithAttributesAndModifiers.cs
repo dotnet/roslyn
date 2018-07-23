@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool NonNullTypes
+        public sealed override bool NonNullTypes
         {
             get
             {

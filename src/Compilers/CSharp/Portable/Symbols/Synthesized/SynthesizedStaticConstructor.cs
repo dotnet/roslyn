@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return TypeSymbolWithAnnotations.Create(ContainingModule, ContainingAssembly.GetSpecialType(SpecialType.System_Void));
+                return TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: ContainingModule, ContainingAssembly.GetSpecialType(SpecialType.System_Void));
             }
         }
 

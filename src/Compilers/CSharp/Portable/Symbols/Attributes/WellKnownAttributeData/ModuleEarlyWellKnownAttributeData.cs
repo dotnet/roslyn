@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ModuleEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
+        // PROTOTYPE(NullableReferenceTypes): we may not need an early attribute after cycle-busting refactoring
         #region NonNullTypesAttribute
         private bool? _nonNullTypes;
         public bool? NonNullTypes

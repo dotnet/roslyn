@@ -679,10 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol GetBaseTypeNoUseSiteDiagnostics(bool ignoreNonNullTypesAttribute)
-        {
-            return _underlyingType.BaseTypeNoUseSiteDiagnostics;
-        }
+        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _underlyingType.BaseTypeNoUseSiteDiagnostics;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
@@ -1443,9 +1440,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingType.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
         {
-            if (_underlyingType.ApplyNullableTransforms(transforms, useNonNullTypes, ref position, out TypeSymbol underlying))
+            if (_underlyingType.ApplyNullableTransforms(transforms, nonNullTypesContext, ref position, out TypeSymbol underlying))
             {
                 result = this.WithUnderlyingType((NamedTypeSymbol)underlying);
                 return true;
@@ -1507,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return underlying.SelectAsArray((u, tuple) => tuple.GetTupleMemberSymbolForUnderlyingMember(u), this).WhereAsArray(m => (object)m != null);
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved, bool ignoreNonNullTypesAttribute)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
         {
             return _underlyingType.GetDeclaredBaseType(basesBeingResolved);
         }

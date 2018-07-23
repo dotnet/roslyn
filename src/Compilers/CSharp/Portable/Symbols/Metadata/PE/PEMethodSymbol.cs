@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => IsGenericMethod ? TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations) : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => IsGenericMethod ? GetTypeParametersAsTypeArguments() : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
 
         public override Symbol AssociatedSymbol => _associatedPropertyOrEventOpt;
 
@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool NonNullTypes
+        public override bool NonNullTypes
         {
             get
             {

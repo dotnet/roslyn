@@ -172,7 +172,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private static TypeSymbolWithAnnotations CreateType(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
-            return TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
+            // NonNullTypesContext is unset because the actual context will
+            // be set when these types are transformed by the caller.
+            return TypeSymbolWithAnnotations.Create(type, NonNullTypesFalseContext.Instance, isAnnotated: false, CSharpCustomModifier.Convert(customModifiers));
         }
     }
 }

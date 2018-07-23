@@ -728,7 +728,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
-                                overridingMember.NonNullTypes &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(overriddenProperty.Type,
                                                              TypeCompareKind.AllIgnoreOptions |
@@ -775,7 +774,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
-                                overridingMember.NonNullTypes &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(overriddenEvent.Type,
                                                              TypeCompareKind.AllIgnoreOptions |
@@ -794,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (overridingMethod.IsGenericMethod)
                             {
-                                overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                                overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeArguments);
                             }
 
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
@@ -813,7 +811,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                                 !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
-                                overridingMember.NonNullTypes &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType,
                                                                     TypeCompareKind.AllIgnoreOptions |
@@ -826,7 +823,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                             !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
-                            overridingMember.NonNullTypes &&
                             (compilation = overridingMember.DeclaringCompilation) != null)
                         {
                             ImmutableArray<ParameterSymbol> overridingParameters = overridingMember.GetParameters();
@@ -835,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (overriddenMember.Kind == SymbolKind.Method && (overriddenMethod = (MethodSymbol)overriddenMember).IsGenericMethod)
                             {
-                                overriddenParameters = overriddenMethod.Construct(((MethodSymbol)overridingMember).TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters;
+                                overriddenParameters = overriddenMethod.Construct(((MethodSymbol)overridingMember).TypeArguments).Parameters;
                             }
                             else
                             {
