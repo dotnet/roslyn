@@ -144,6 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         tasks.Add(Task.Run(() => SearchAsync(currentProject, ImmutableArray<Document>.Empty), _cancellationToken));
                     }
                 }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             private async Task SearchAllProjectsAsync()
