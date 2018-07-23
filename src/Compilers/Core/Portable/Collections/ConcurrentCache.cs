@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis
 {
     // very simple cache with a specified size.
     // expiration policy is "new entry wins over old entry if hashed into the same bucket"
-    internal class ConcurrentCache<TKey, TValue> :
-        CachingBase<ConcurrentCache<TKey, TValue>.Entry> where TKey : IEquatable<TKey>
+    internal class ConcurrentCache<TKey, TValue> : CachingBase<ConcurrentCache<TKey, TValue>.Entry>
     {
         private readonly IEqualityComparer<TKey> _keyComparer;
 
