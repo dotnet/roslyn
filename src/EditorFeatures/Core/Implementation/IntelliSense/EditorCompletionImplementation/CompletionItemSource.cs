@@ -168,29 +168,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public async Task<object> GetDescriptionAsync(EditorCompletion.CompletionItem item, CancellationToken cancellationToken)
         {
-            // TODO: Should string.Empty returns here be null to avoid an empty popup? https://github.com/dotnet/roslyn/issues/27420
-
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(RoslynItem, out var roslynItem) ||
                 !item.Properties.TryGetProperty<ITextBuffer>(TriggerBuffer, out var triggerBuffer))
             {
-                return string.Empty;
+                return null;
             }
 
             if (!Workspace.TryGetWorkspace(triggerBuffer.AsTextContainer(), out var workspace))
             {
-                return string.Empty;
+                return null;
             }
 
             var documentId = workspace.GetDocumentIdInCurrentContext(triggerBuffer.AsTextContainer());
             if (documentId == null)
             {
-                return string.Empty;
+                return null;
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
             if (document == null)
             {
-                return string.Empty;
+                return null;
             }
 
             var service = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
