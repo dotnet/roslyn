@@ -149,6 +149,7 @@
         "Vsix\\RoslynDeployment\\RoslynDeployment.vsix",
         "Vsix\\Microsoft.VisualStudio.IntegrationTest.Setup\\Microsoft.VisualStudio.IntegrationTest.Setup.vsix",
         "Vsix\\CodeAnalysisCompilers\\Microsoft.CodeAnalysis.Compilers.vsix",
+        "Vsix\\CodeAnalysisCompilers\\Microsoft.CodeAnalysis.Compilers.Resources.*.vsix",
         "Vsix\\PortableFacades\\PortableFacades.vsix"
       ]
     },
