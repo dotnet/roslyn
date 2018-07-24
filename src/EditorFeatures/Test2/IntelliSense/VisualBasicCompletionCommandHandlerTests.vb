@@ -1408,7 +1408,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27431"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ListDismissedIfNoMatches() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
