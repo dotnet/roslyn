@@ -93,7 +93,6 @@ namespace BuildBoss
             // The Microsoft.CodeAnalysis.Compilers.swr file is used in part to ensure NGEN is run on the set of 
             // facades / implementation DLLs the compiler depends on. This set of DLLs is the same as what is 
             // included in our NuGet package. Need to make sure all the necessary managed DLLs are included here.
-            // TODO: fix this
             allGood &= VerifySwrFile(textWriter, @"src\Setup\DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.swr", swrRelativeFileNames);
 
             allGood &= VerifyNuPackage(
