@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return GetCommandState(args.SubjectBuffer);
         }
 
-        private void ShowGoldBarForCodeCleanupConfigurationIfNeeded(Document document, DocumentOptionSet docOptions)
+        private void ShowGoldBarForCodeCleanupConfigurationIfNeeded(Document document, bool performAdditionalCodeCleanupDuringFormatting)
         {
             AssertIsForeground();
             Logger.Log(FunctionId.CodeCleanupInfobar_BarDisplayed, KeyValueLogMessage.NoProperty);
@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var infoBarService = document.Project.Solution.Workspace.Services.GetRequiredService<IInfoBarService>();
 
             // wording for the Code Cleanup infobar will be different depending on if the feature is enabled
-            var infoBarMessage = docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting)
+            var infoBarMessage = performAdditionalCodeCleanupDuringFormatting
                     ? EditorFeaturesResources.Format_document_performed_additional_cleanup
                     : EditorFeaturesResources.Code_cleanup_is_not_configured;
 
-            var configButtonText = docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting)
+            var configButtonText = performAdditionalCodeCleanupDuringFormatting
                 ? EditorFeaturesResources.Change_configuration
                 : EditorFeaturesResources.Configure_it_now;
 
@@ -127,31 +127,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             FormatDocumentCommandArgs args, Document document, ICodeCleanupService codeCleanupService,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var workspace = document.Project.Solution.Workspace;
+            ABTest(document, workspace);
 
-            // AB Test
-            // If the feature is OFF and the feature options have not yet been set to their assigned flight, do so now
-            if (!docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting)
-                && !docOptions.GetOption(CodeCleanupABTestOptions.ParticipatedInExperiment))
-            {
-                var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+            // Show different gold bar text depends on PerformAdditionalCodeCleanupDuringFormatting value
+            ShowGoldBarForCodeCleanupConfigurationIfNeeded(document, workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language));
 
-                if (experimentationService != null)
-                {
-                    if (experimentationService.IsExperimentEnabled(s_experimentName))
-                    {
-                        workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language), true);
-                    }
-
-                    workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupABTestOptions.ParticipatedInExperiment), true);
-                }
-            }
-
-            // Need to show different gold bar if in experiment
-            ShowGoldBarForCodeCleanupConfigurationIfNeeded(document, docOptions);
-
-            if (docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting))
+            if (workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language))
             {
                 // Start with a single progress item, which is the one to actually apply
                 // the changes.
@@ -174,6 +156,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             else
             {
                 Format(args.TextView, document, selectionOpt: null, cancellationToken);
+            }
+        }
+
+        private static void ABTest(Document document, Workspace workspace)
+        {
+            // AB Test
+            // If the feature is OFF and the feature options have not yet been set to their assigned flight, do so now
+            if (!workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language)
+                && !workspace.Options.GetOption(CodeCleanupABTestOptions.ParticipatedInExperiment))
+            {
+                var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+
+                if (experimentationService != null)
+                {
+                    if (experimentationService.IsExperimentEnabled(s_experimentName))
+                    {
+                        workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language), true);
+                    }
+
+                    workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupABTestOptions.ParticipatedInExperiment), true);
+                }
             }
         }
 
