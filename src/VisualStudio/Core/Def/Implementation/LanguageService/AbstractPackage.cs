@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
@@ -29,7 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var taskScheduler = new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
 
             ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(Thread.CurrentThread, taskScheduler, kind);
-            ForegroundObject = new ForegroundThreadAffinitizedObject(ThreadingContext.Invalid);
+            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            ForegroundObject = new ForegroundThreadAffinitizedObject(componentModel.GetService<IThreadingContext>());
         }
 
         protected void LoadComponentsInUIContextOnceSolutionFullyLoaded(CancellationToken cancellationToken)

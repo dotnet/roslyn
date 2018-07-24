@@ -52,8 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
         /// This is Lazy because it might be created on a background thread when nothing is initialized yet.
         /// </summary>
-        private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject
-            = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject(ThreadingContext.Invalid));
+        private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject;
 
         private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
@@ -72,6 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _linkedFileUtilities = exportProvider.GetExportedValue<LinkedFileUtilities>();
+
+            _foregroundObject = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject(_threadingContext));
 
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
