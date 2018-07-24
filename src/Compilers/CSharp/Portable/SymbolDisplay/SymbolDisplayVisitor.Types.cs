@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var visitor = (SymbolDisplayVisitor)(visitorOpt ?? this.NotFirstVisitor);
             var typeSymbol = type.TypeSymbol;
 
-            bool includeNullability = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
-            bool includeNonNullability = format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
             if (typeSymbol.TypeKind == TypeKind.Array)
             {
@@ -26,15 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 typeSymbol.Accept(visitor);
-
-                if (includeNullability && !typeSymbol.IsNullableType() && type.IsAnnotated)
-                {
-                    AddPunctuation(SyntaxKind.QuestionToken);
-                }
-                else if (includeNonNullability && !typeSymbol.IsValueType && type.IsNullable == false)
-                {
-                    AddPunctuation(SyntaxKind.ExclamationToken);
-                }
+                AddNullableAnnotations(type);
             }
         }
 
@@ -85,8 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingNonArrayType.Accept(this.NotFirstVisitor);
             }
 
-            bool includeNullability = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
-            bool includeNonNullability = format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
             var arrayType = symbol;
             while (arrayType != null)
@@ -97,18 +85,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 AddArrayRank(arrayType);
-
-                if (includeNullability && !ReferenceEquals(isNullable, null) && !isNullable.IsNullableType() && isNullable.IsAnnotated)
-                {
-                    AddPunctuation(SyntaxKind.QuestionToken);
-                }
-                else if (includeNonNullability && !ReferenceEquals(isNullable, null) && !isNullable.IsValueType && isNullable.IsNullable == false)
-                {
-                    AddPunctuation(SyntaxKind.ExclamationToken);
-                }
+                AddNullableAnnotations(isNullable);
 
                 isNullable = (arrayType as ArrayTypeSymbol)?.ElementType;
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
+            }
+        }
+
+        private void AddNullableAnnotations(TypeSymbolWithAnnotations isNullable)
+        {
+            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
+                !ReferenceEquals(isNullable, null) &&
+                !isNullable.IsNullableType() &&
+                isNullable.IsAnnotated)
+            {
+                AddPunctuation(SyntaxKind.QuestionToken);
+            }
+            else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+                !ReferenceEquals(isNullable, null) &&
+                !isNullable.IsValueType &&
+                isNullable.IsNullable == false)
+            {
+                AddPunctuation(SyntaxKind.ExclamationToken);
             }
         }
 

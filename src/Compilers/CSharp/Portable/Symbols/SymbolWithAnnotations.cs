@@ -683,7 +683,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
             {
-                // PROTOTYPE(NullableReferenceTypes): made an aggressive change here
                 return !_isAnnotated || _typeSymbol.IsNullableType() ?
                     this :
                     new NonLazyType(_typeSymbol, NonNullTypesContext, isAnnotated: false, _customModifiers);

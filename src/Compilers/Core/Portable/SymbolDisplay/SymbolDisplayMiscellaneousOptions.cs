@@ -58,8 +58,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Append '?' to nullable reference types.
-        /// Note this causes SymbolDisplay to pull on IsNullable and therefore NonNullTypes,
-        /// so don't use this option in binding, in order to avoid cycles.
         /// PROTOTYPE(NullableReferenceTypes): review design for this option before shipping. See https://github.com/dotnet/roslyn/issues/26198
         /// </summary>
         IncludeNullableReferenceTypeModifier = 1 << 6,

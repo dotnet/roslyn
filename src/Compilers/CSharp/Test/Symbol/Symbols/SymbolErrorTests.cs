@@ -2565,7 +2565,6 @@ namespace NS
         [Fact]
         public void CS0181ERR_BadAttributeParamType_Dynamic()
         {
-            // PROTOTYPE(NullableReferenceTypes): cycle in MakeDefaultExpression calling IsNullable
             var text = @"
 using System;
 

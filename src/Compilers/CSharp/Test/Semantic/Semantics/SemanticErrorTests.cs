@@ -23972,7 +23972,6 @@ class Program
         [Fact, WorkItem(22880, "https://github.com/dotnet/roslyn/issues/22880")]
         public void AttributeCtorInParam()
         {
-            // PROTOTYPE(NullableReferenceTypes): cycle in symbol display (VisitTypeSymbolWithAnnotations) and MakeDefaultParameter
             var text = @"
 [A(1)]
 class A : System.Attribute {

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NullableReferenceTypesTests : CSharpTestBase
     {
-         const string NullableAttributeDefinition = @"
+         private const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(AttributeTargets.Event | // The type of the event is nullable, or has a nullable reference type as one of its constituents  
@@ -8582,7 +8582,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string?[]"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            VerifyOutVar(c, "string?[]");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -8606,7 +8606,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string?[]"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            VerifyOutVar(c, "string?[]");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -29909,7 +29909,6 @@ struct S : I
         [Fact]
         public void NonNullTypes_DecodeAttributeCycle_01_WithEvent()
         {
-            // PROTOTYPE(NullableReferenceTypes) Cycle with Equals when copying modifiers
             var source =
 @"using System;
 using System.Runtime.InteropServices;
@@ -29922,7 +29921,6 @@ struct S : I
 {
     event Func<int> I.E { add => throw null; remove => throw null; }
 }";
-            // PROTOTYPE(NullableReferenceTypes): cycles with Equals when copying modifiers
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
