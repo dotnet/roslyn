@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns a constructed type given its type arguments.
         /// </summary>
-        /// <param name="nonNullTypesContext">This context indicates how to interprete un-annotated types.</param>
+        /// <param name="nonNullTypesContext">This context indicates how to interpret un-annotated types.</param>
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(INonNullTypesContext nonNullTypesContext, params TypeSymbol[] typeArguments)

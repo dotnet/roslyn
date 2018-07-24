@@ -7,6 +7,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class UninitializedNonNullableFieldTests : CSharpTestBase
     {
+        private const string NonNullTypesAttributesDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+        private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
+
         [Fact]
         public void NoNonNullWarnings_CSharp7()
         {
@@ -213,18 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 ////     static C()
                 //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
         }
-
-        private const string NonNullTypesAttributesDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-        private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
 
         // Each constructor is handled in isolation.
         [Fact]

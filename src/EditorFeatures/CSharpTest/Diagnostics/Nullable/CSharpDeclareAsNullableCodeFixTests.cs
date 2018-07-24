@@ -32,7 +32,6 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-
         [Fact]
         public async Task FixAll()
         {

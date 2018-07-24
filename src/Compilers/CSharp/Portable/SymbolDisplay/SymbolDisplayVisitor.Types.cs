@@ -16,10 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var visitor = (SymbolDisplayVisitor)(visitorOpt ?? this.NotFirstVisitor);
             var typeSymbol = type.TypeSymbol;
 
-
             if (typeSymbol.TypeKind == TypeKind.Array)
             {
-                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: type);
+                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, typeOpt: type);
             }
             else
             {
@@ -30,10 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitArrayType(IArrayTypeSymbol symbol)
         {
-            VisitArrayType(symbol, isNullable: null);
+            VisitArrayType(symbol, typeOpt: null);
         }
 
-        private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations isNullable)
+        private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations typeOpt)
         {
             if (TryAddAlias(symbol, builder))
             {
@@ -75,7 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingNonArrayType.Accept(this.NotFirstVisitor);
             }
 
-
             var arrayType = symbol;
             while (arrayType != null)
             {
@@ -85,26 +83,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 AddArrayRank(arrayType);
-                AddNullableAnnotations(isNullable);
+                AddNullableAnnotations(typeOpt);
 
-                isNullable = (arrayType as ArrayTypeSymbol)?.ElementType;
+                typeOpt = (arrayType as ArrayTypeSymbol)?.ElementType;
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
         }
 
-        private void AddNullableAnnotations(TypeSymbolWithAnnotations isNullable)
+        private void AddNullableAnnotations(TypeSymbolWithAnnotations typeOpt)
         {
+            if (ReferenceEquals(typeOpt, null))
+            {
+                return;
+            }
+
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                !ReferenceEquals(isNullable, null) &&
-                !isNullable.IsNullableType() &&
-                isNullable.IsAnnotated)
+                !typeOpt.IsNullableType() &&
+                typeOpt.IsAnnotated)
             {
                 AddPunctuation(SyntaxKind.QuestionToken);
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                !ReferenceEquals(isNullable, null) &&
-                !isNullable.IsValueType &&
-                isNullable.IsNullable == false)
+                !typeOpt.IsValueType &&
+                typeOpt.IsNullable == false)
             {
                 AddPunctuation(SyntaxKind.ExclamationToken);
             }

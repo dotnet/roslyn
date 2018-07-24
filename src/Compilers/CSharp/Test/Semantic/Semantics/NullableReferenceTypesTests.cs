@@ -29467,7 +29467,7 @@ F(v).ToString();";
         /// should not result in a warning at the call site.
         /// </summary>
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "PROTOTYPE(NullalbeReferenceTypes): null check on default value temporarily skipped")]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
         public void ParameterDefaultValue_FromMetadata()
         {
             var source0 =
@@ -29506,7 +29506,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "PROTOTYPE(NullalbeReferenceTypes): null check on default value temporarily skipped")]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
         public void ParameterDefaultValue_01()
         {
             var source =
@@ -29600,7 +29600,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "PROTOTYPE(NullalbeReferenceTypes): null check on default value temporarily skipped")]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
         public void ParameterDefaultValue_03()
         {
             var source =
@@ -29766,7 +29766,7 @@ class P
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "PROTOTYPE(NullalbeReferenceTypes): null check on default value temporarily skipped")]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
         public void ParameterDefaultValue_04()
         {
             var source =
