@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
+    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(IsShipping)' == 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
 
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>

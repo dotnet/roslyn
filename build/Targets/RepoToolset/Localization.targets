@@ -27,6 +27,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="all" IsImplicitlyDefined="true" Condition="'$(NonShipping)' != 'true'" />
+    <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="all" IsImplicitlyDefined="true" Condition="'$(IsShipping)' == 'true'" />
   </ItemGroup>
 </Project>
