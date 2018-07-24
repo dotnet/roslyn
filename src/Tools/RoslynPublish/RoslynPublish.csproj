@@ -10,7 +10,7 @@
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <SignAssembly>false</SignAssembly>
     <AutomaticBindingRedirects>true</AutomaticBindingRedirects>
-    <Nonshipping>true</Nonshipping>
+    <IsShipping>false</IsShipping>
 
     <!-- https://github.com/dotnet/roslyn/issues/21183 -->
     <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>
