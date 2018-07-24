@@ -35239,7 +35239,7 @@ class A
 @"interface IA<T> { }
 interface IB<T> : IA<T?> { }
 class A<T> { }
-class B<T> : A<T[]?> { }
+class B<T> : A<(T, T?)> { }
 class C
 {
     static void F(IB<object> b) { }
@@ -35385,6 +35385,30 @@ class B : A
         }
 
         [Fact]
+        public void NullableT_ContainingType()
+        {
+            var source =
+@"class A<T>
+{
+    internal interface I { }
+    internal enum E { }
+}
+class C
+{
+    static void F1<T>(A<T?>.I  i) { }
+    static void F2<T>(A<T?>.E[] e) { }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,33): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     static void F2<T>(A<T?>.E[] e) { }
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "e").WithLocation(9, 33),
+                // (8,32): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     static void F1<T>(A<T?>.I  i) { }
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "i").WithLocation(8, 32));
+        }
+
+        [Fact]
         public void NullableT_MethodBody()
         {
             var source =
@@ -35397,6 +35421,49 @@ class C<T>
         var u = typeof(U?);
         object? o = default(T?);
         o = new U?[0];
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (14,37): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     internal override void F1<U>(U? u) { } // error
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "u").WithLocation(14, 37));
+        }
+
+        [Fact]
+        public void NullableT_Lambda()
+        {
+            var source =
+@"delegate void D<T>(T t);
+class C
+{
+    static void F<T>(D<T> d) { }
+    static void G<T>()
+    {
+        F((T? t) => { });
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (14,37): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     internal override void F1<U>(U? u) { } // error
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "u").WithLocation(14, 37));
+        }
+
+        [Fact]
+        public void NullableT_LocalFunction()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void F1<T>()
+    {
+        T? L1() => throw null;
+    }
+    static void F2()
+    {
+        void L2<T>(T?[] t) { }
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);

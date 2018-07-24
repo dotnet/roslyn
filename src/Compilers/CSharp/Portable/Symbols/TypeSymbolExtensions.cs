@@ -571,6 +571,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 canDigThroughNullable: false);
         }
 
+        // PROTOTYPE(NullableReferenceTypes): If TypeSymbolWithAnnotations is
+        // a struct, consider using a single type argument and a single predicate.
         private static TypeSymbol VisitType<T>(
             TypeSymbolWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt,
