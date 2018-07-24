@@ -599,9 +599,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _lazyNonNullTypes.Value();
                 }
 
-                // If no module-level attribute was set, then the default is `[NonNullTypes(false)]`
-                var data = GetDecodedWellKnownAttributeData();
-                bool value = data?.NonNullTypes ?? false;
+                bool value = false;
+                if (DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
+                {
+                   // If no module-level attribute was set, then the default is `[NonNullTypes(false)]`
+                   var data = GetDecodedWellKnownAttributeData();
+                   value = data?.NonNullTypes ?? false;
+                }
                 _lazyNonNullTypes = value.ToThreeState();
                 return value;
             }

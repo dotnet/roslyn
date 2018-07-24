@@ -2110,9 +2110,8 @@ class B<T> : A<T> where T : A<T>.I
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
 
-            // PROTOTYPE(NullableReferenceTypes): We need to poison the attribute (currently asserts in VerifyUsesOfNullability)
-            //var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7);
-            //comp.VerifyDiagnostics();
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
 
             comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
@@ -30665,9 +30664,8 @@ class P
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(86, 18));
 
             // No warnings with C#7.3.
-            //comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3);
-            //comp.VerifyDiagnostics();
-            // PROTOTYPE(NullableReferenceTypes): We need to poison the attribute (currently asserts in VerifyUsesOfNullability)
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -30698,7 +30696,49 @@ namespace System.Runtime.CompilerServices
             // When referenced from metadata and in a C# 8.0 compilation, it's okay to use this attribute
             var comp2 = CreateCompilation(NonNullTypesTrue, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypesInCSharp7_FromMetadata()
+        {
+            // PROTOTYPE(NullableReferenceTypes): NonNullTypes attribute on PE symbols should have no effect in a C# 7.3 compilation
+            var libSource = @"
+[System.Runtime.CompilerServices.NonNullTypes]
+public class C
+{
+    public static string field;
+}
+public class D
+{
+    [System.Runtime.CompilerServices.NonNullTypes]
+    public static string field;
+
+    [System.Runtime.CompilerServices.NonNullTypes]
+    public static string Method(string s) => throw null;
+
+    [System.Runtime.CompilerServices.NonNullTypes]
+    public static string Property { get; set; }
+}
+";
+            var libComp = CreateCompilation(new[] { libSource, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+class Client
+{
+    void M()
+    {
+        C /*T:C!*/ .field /*T:string!*/ = null;
+        D /*T:D!*/ .field /*T:string!*/ = null;
+        D.Method(null) /*T:string!*/;
+        D /*T:D!*/ .Property /*T:string!*/ = null;
     }
+}
+";
+            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
         [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]

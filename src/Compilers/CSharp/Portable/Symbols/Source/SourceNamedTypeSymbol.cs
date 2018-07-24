@@ -928,6 +928,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (!DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
+                {
+                    return false;
+                }
+
                 var data = GetDecodedWellKnownAttributeData();
                 return data?.NonNullTypes ?? base.NonNullTypes;
             }
