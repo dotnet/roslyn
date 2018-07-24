@@ -544,20 +544,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             T arg,
             bool canDigThroughNullable = false)
         {
-            return VisitType(typeWithAnnotationsOpt: null, type, predicate1: null, predicate2: predicate, arg, canDigThroughNullable);
+            return VisitType(typeWithAnnotationsOpt: null, type, typeWithAnnotationsPredicateOpt: null, typePredicate: predicate, arg, canDigThroughNullable);
         }
 
+        /// <summary>
+        /// Visit the given type and, in the case of compound types, visit all "sub type".
+        /// One of the predicates will be invoked at each type. If the type is a
+        /// TypeSymbolWithAnnotations, <paramref name="typeWithAnnotationsPredicate"/>
+        /// will be invoked; otherwise <paramref name="typePredicate"/> will be invoked.
+        /// If the predicate returns true for any type,
+        /// traversal stops and that type is returned from this method. Otherwise if traversal
+        /// completes without the predicate returning true for any type, this method returns null.
+        /// </summary>
         public static TypeSymbol VisitType<T>(
             this TypeSymbolWithAnnotations type,
-            Func<TypeSymbolWithAnnotations, T, bool, bool> predicate1,
-            Func<TypeSymbol, T, bool, bool> predicate2,
+            Func<TypeSymbolWithAnnotations, T, bool, bool> typeWithAnnotationsPredicate,
+            Func<TypeSymbol, T, bool, bool> typePredicate,
             T arg)
         {
             return VisitType(
                 typeWithAnnotationsOpt: type,
                 typeOpt: null,
-                predicate1,
-                predicate2,
+                typeWithAnnotationsPredicate,
+                typePredicate,
                 arg,
                 canDigThroughNullable: false);
         }
@@ -565,8 +574,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static TypeSymbol VisitType<T>(
             TypeSymbolWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt,
-            Func<TypeSymbolWithAnnotations, T, bool, bool> predicate1,
-            Func<TypeSymbol, T, bool, bool> predicate2,
+            Func<TypeSymbolWithAnnotations, T, bool, bool> typeWithAnnotationsPredicateOpt,
+            Func<TypeSymbol, T, bool, bool> typePredicate,
             T arg,
             bool canDigThroughNullable)
         {
@@ -592,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(null, containingType, predicate1, predicate2, arg, canDigThroughNullable);
+                                var result = VisitType(null, containingType, typeWithAnnotationsPredicateOpt, typePredicate, arg, canDigThroughNullable);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -606,9 +615,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (typeWithAnnotationsOpt is null || predicate1 is null ?
-                    predicate2(current, arg, isNestedNamedType) :
-                    predicate1(typeWithAnnotationsOpt, arg, isNestedNamedType))
+                if (typeWithAnnotationsOpt is null || typeWithAnnotationsPredicateOpt is null ?
+                    typePredicate(current, arg, isNestedNamedType) :
+                    typeWithAnnotationsPredicateOpt(typeWithAnnotationsOpt, arg, isNestedNamedType))
                 {
                     return current;
                 }
@@ -640,8 +649,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var result = VisitType(
                                 typeWithAnnotationsOpt: canDigThroughNullable ? null : typeArg,
                                 typeOpt: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
-                                predicate1,
-                                predicate2,
+                                typeWithAnnotationsPredicateOpt,
+                                typePredicate,
                                 arg,
                                 canDigThroughNullable);
                             if ((object)result != null)

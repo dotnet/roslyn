@@ -335,9 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // The first unconstrained type parameter in the type.
             var typeParameter = this.VisitType(
-                (t, a, b) => t.IsAnnotated && t.TypeSymbol.IsUnconstrainedTypeParameter(),
-                (t, a, b) => false,
-                (object)null);
+                typeWithAnnotationsPredicate: (t, a, b) => t.IsAnnotated && t.TypeSymbol.IsUnconstrainedTypeParameter(),
+                typePredicate: (t, a, b) => false,
+                arg: (object)null);
             if ((object)typeParameter != null)
             {
                 diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, location);

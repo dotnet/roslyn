@@ -3,8 +3,8 @@
   <file datatype="xml" source-language="en" target-language="it" original="../CSharpResources.resx">
     <body>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
-        <source>A nullable type parameter must have a value type or reference type constraint.</source>
-        <target state="new">A nullable type parameter must have a value type or reference type constraint.</target>
+        <source>A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.</source>
+        <target state="new">A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
