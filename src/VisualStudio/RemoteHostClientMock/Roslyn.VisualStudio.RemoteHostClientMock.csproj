@@ -19,7 +19,7 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>Vsix</RoslynProjectType>
-    <Nonshipping>true</Nonshipping>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
