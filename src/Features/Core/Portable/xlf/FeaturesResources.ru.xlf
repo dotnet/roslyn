@@ -22,6 +22,11 @@
         <target state="translated">Действия не могут быть пустыми.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_query">
+        <source>Convert to query</source>
+        <target state="new">Convert to query</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
         <target state="new">Add to '{0}'</target>

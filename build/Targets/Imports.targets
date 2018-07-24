@@ -6,13 +6,7 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
-  <Import Project="RepoToolset\Workarounds.targets"/>
-  <Import Project="RepoToolset\OptimizationData.targets"/>
-  <Import Project="RepoToolset\RepositoryInfo.targets"/>
-  <Import Project="RepoToolset\Localization.targets" />
-  <Import Project="RepoToolset\StrongName.targets" />
-  <Import Project="RepoToolset\SymStore.targets" />
-  <Import Project="RepoToolset\GenerateInternalsVisibleTo.targets" />
+  <Import Project="RepoToolset\Imports.targets" />
   <Import Project="VisualStudio.targets"/>
   <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
 
@@ -179,7 +173,7 @@
     In official build the content of ArtifactsSymStoreDirectory is uploaded to a symbol server.
   -->
   <PropertyGroup>
-    <PublishOutputToSymStore Condition="'$(Nonshipping)' == 'true'">false</PublishOutputToSymStore>
+    <PublishOutputToSymStore Condition="'$(IsShipping)' != 'true'">false</PublishOutputToSymStore>
   </PropertyGroup>
 
   <!--
@@ -199,5 +193,5 @@
   -->
   <Target Name="CheckLocStatus"
           DependsOnTargets="EnsureAllResourcesTranslated"
-          Condition="'$(NonShipping)' != 'true'" />
+          Condition="'$(IsShipping)' == 'true'" />
 </Project>
