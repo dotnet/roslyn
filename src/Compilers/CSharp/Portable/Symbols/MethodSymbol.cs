@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
 
-        public override bool NonNullTypes
+        public override bool? NonNullTypes
         {
             get
             {
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                return ContainingType?.NonNullTypes == true;
+                return ContainingType?.NonNullTypes;
             }
         }
 

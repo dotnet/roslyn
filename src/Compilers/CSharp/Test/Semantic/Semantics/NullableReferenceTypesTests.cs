@@ -157,6 +157,34 @@ class C
         }
 
         [Fact]
+        public void TestSuppressionOperatorWithoutNonNullTypesContext()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    string x = null!;
+    static void Main()
+    {
+        string y = null!;
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): should warn in field initializer as well
+            c.VerifyDiagnostics(
+                // (7,16): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         string y = null!;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(7, 16),
+                // (7,20): error CS8627: The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.
+                //         string y = null!;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "null!").WithLocation(7, 20),
+                // (4,12): warning CS0414: The field 'C.x' is assigned but its value is never used
+                //     string x = null!;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x").WithLocation(4, 12)
+                );
+        }
+
+        [Fact]
         public void NullableAttribute_NotRequiredCSharp7_01()
         {
             var source =

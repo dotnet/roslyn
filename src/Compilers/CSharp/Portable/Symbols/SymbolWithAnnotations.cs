@@ -204,7 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return true;
                 }
-                return NonNullTypesContext.NonNullTypes ? false : (bool?)null;
+
+                // A null NonNullTypes (ie. no attribute) means the same as NonNullTypes(false).
+                return NonNullTypesContext.NonNullTypes == true ? false : (bool?)null;
             }
         }
 
@@ -661,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         return true;
                     }
-                    if (NonNullTypesContext.NonNullTypes)
+                    if (NonNullTypesContext.NonNullTypes == true)
                     {
                         return false;
                     }

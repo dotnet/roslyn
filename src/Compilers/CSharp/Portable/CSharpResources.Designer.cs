@@ -13961,6 +13961,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContext {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContext_Title {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContext_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameter &apos;{0}&apos; has no matching param tag in the XML comment for &apos;{1}&apos; (but other parameters do).
         /// </summary>
         internal static string WRN_MissingParamTag {

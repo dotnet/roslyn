@@ -10,20 +10,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal interface INonNullTypesContext
     {
-        bool NonNullTypes { get; }
+        bool? NonNullTypes { get; }
     }
 
     // PROTOTYPE(NullableReferenceTypes): this probably can be removed once fine-grained context is passed everywhere
     internal sealed class NonNullTypesTrueContext : INonNullTypesContext
     {
         public static readonly INonNullTypesContext Instance = new NonNullTypesTrueContext();
-        public bool NonNullTypes => true;
+        public bool? NonNullTypes => true;
     }
 
     // PROTOTYPE(NullableReferenceTypes): this probably can be removed once fine-grained context is passed everywhere
     internal sealed class NonNullTypesFalseContext : INonNullTypesContext
     {
         public static readonly INonNullTypesContext Instance = new NonNullTypesFalseContext();
-        public bool NonNullTypes => false;
+        public bool? NonNullTypes => false;
     }
 }

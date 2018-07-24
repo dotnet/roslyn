@@ -397,6 +397,16 @@
         <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContext">
+        <source>The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</source>
+        <target state="new">The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContext_Title">
+        <source>The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</source>
+        <target state="new">The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
         <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>

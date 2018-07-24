@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _cachedDiagnostics; }
         }
 
-        public override bool NonNullTypes
+        public override bool? NonNullTypes
         {
             get
             {

@@ -260,6 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<string>.Empty;
         }
 
-        public override bool NonNullTypes => false;
+        public override bool? NonNullTypes => false;
     }
 }

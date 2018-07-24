@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool NonNullTypes
+        public override bool? NonNullTypes
         {
             get
             {
@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return container.NonNullTypes;
                 }
 
-                return ContainingModule?.NonNullTypes == true;
+                return ContainingModule?.NonNullTypes;
             }
         }
 

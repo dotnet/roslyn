@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool _hasBadAttributes;
 
-        private ThreeState _lazyNonNullTypes; // ThreeState.Unknown means un-initialized
+        private FourState _lazyNonNullTypes; // ThreeState.Unknown means un-initialized
 
         /// This maps from assembly name to a set of public keys. It uses concurrent dictionaries because it is built,
         /// one attribute at a time, in the callback that validates an attribute's application to a symbol. It is assumed
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public override bool NonNullTypes
+        public override bool? NonNullTypes
         {
             get
             {
@@ -599,14 +599,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _lazyNonNullTypes.Value();
                 }
 
-                bool value = false;
+                bool? value = null;
                 if (DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
                 {
-                   // If no module-level attribute was set, then the default is `[NonNullTypes(false)]`
                    var data = GetDecodedWellKnownAttributeData();
-                   value = data?.NonNullTypes ?? false;
+                   value = data?.NonNullTypes;
                 }
-                _lazyNonNullTypes = value.ToThreeState();
+
+                _lazyNonNullTypes = value.ToFourState();
                 return value;
             }
         }
