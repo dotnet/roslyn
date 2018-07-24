@@ -43,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly ITextBufferCloneService _textBufferCloneService;
+        private readonly LinkedFileUtilities _linkedFileUtilities;
 
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
@@ -70,6 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
+            _linkedFileUtilities = exportProvider.GetExportedValue<LinkedFileUtilities>();
+
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
             exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
@@ -84,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (DeferredState == null)
             {
                 _foregroundObject.Value.AssertIsForeground();
-                DeferredState = new DeferredInitializationState(_threadingContext, this, serviceProvider);
+                DeferredState = new DeferredInitializationState(_threadingContext, this, serviceProvider, _linkedFileUtilities);
             }
 
             return DeferredState.ProjectTracker;
@@ -927,7 +930,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var hierarchy = hostDocument.Project.Hierarchy;
-            var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
+            var sharedHierarchy = _linkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
             if (sharedHierarchy != null)
             {
                 if (sharedHierarchy.SetProperty(
@@ -969,7 +972,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Note that if there is a single head project and it's in the process of being unloaded
             // there might not be a host project.
-            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
+            var hostProject = _linkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
             if (hostProject?.Hierarchy == sharedHierarchy)
             {
                 return;
@@ -997,7 +1000,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (itemId != (uint)VSConstants.VSITEMID.Nil)
             {
-                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
+                var sharedHierarchy = _linkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
 
                 if (sharedHierarchy != null)
                 {
@@ -1062,14 +1065,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // If this is a regular document or a closed linked (non-shared) document, then use the
             // default logic for determining current context.
-            var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
+            var sharedHierarchy = _linkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
             if (sharedHierarchy == null)
             {
                 return base.GetDocumentIdInCurrentContext(documentId);
             }
 
             // This is a closed shared document, so we must determine the correct context.
-            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
+            var hostProject = _linkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
             var matchingProject = CurrentSolution.GetProject(hostProject.Id);
             if (matchingProject == null || hostProject.Hierarchy == sharedHierarchy)
             {

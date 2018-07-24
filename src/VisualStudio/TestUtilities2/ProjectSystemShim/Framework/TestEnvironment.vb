@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
@@ -24,6 +25,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class TestEnvironment
         Implements IDisposable
 
+        Private Shared ReadOnly s_exportProviderFactory As Lazy(Of IExportProviderFactory) = New Lazy(Of IExportProviderFactory)(
+            Function()
+                Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(LinkedFileUtilities))
+                Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
+            End Function)
+
         Private ReadOnly _monitorSelectionMock As MockShellMonitorSelection
         Private ReadOnly _workspace As TestWorkspace
         Private ReadOnly _serviceProvider As MockServiceProvider
@@ -37,12 +44,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             AbstractProject.CrashOnException = False
 
             _monitorSelectionMock = New MockShellMonitorSelection(solutionIsFullyLoaded)
-            _workspace = New TestWorkspace()
+            _workspace = New TestWorkspace(s_exportProviderFactory.Value.CreateExportProvider())
             _serviceProvider = New MockServiceProvider(_monitorSelectionMock, _workspace)
             _projectTracker = New VisualStudioProjectTracker(
                 _workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                 _serviceProvider,
-                _workspace)
+                _workspace,
+                _workspace.ExportProvider.GetExportedValue(Of LinkedFileUtilities))
 
             Dim metadataReferenceProvider = New VisualStudioMetadataReferenceManager(_serviceProvider, _workspace.Services.GetService(Of ITemporaryStorageService)())
             Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
@@ -54,7 +62,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Dim documentProvider = New DocumentProvider(
                 _projectTracker,
                 _serviceProvider,
-                documentTrackingService)
+                documentTrackingService,
+                _workspace.ExportProvider.GetExportedValue(Of LinkedFileUtilities))
 
             _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
         End Sub
