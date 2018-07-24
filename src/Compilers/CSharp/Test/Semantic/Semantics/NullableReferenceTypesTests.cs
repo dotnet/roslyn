@@ -30670,6 +30670,36 @@ class P
             // PROTOTYPE(NullableReferenceTypes): We need to poison the attribute (currently asserts in VerifyUsesOfNullability)
         }
 
+        [Fact]
+        public void PoisonNonNullTypes()
+        {
+            string poisonedDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    [System.Obsolete(""The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above)."")]
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+
+            var libComp = CreateCompilation(poisonedDefinition, parseOptions: TestOptions.Regular7);
+            libComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation(new[] { NonNullTypesTrue, poisonedDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,10): warning CS0618: 'NonNullTypesAttribute' is obsolete: 'The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above).'
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute", "The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above).").WithLocation(1, 10)
+                );
+
+            // When referenced from metadata and in a C# 8.0 compilation, it's okay to use this attribute
+            var comp2 = CreateCompilation(NonNullTypesTrue, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyDiagnostics();
+    }
+
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
         [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
         public void ParameterDefaultValue_04()
