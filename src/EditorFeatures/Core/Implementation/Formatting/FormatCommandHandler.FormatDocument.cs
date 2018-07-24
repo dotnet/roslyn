@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             // wording for the Code Cleanup infobar will be different depending on if the feature is enabled
             var infoBarMessage = performAdditionalCodeCleanupDuringFormatting
-                    ? EditorFeaturesResources.Format_document_performed_additional_cleanup
-                    : EditorFeaturesResources.Code_cleanup_is_not_configured;
+                ? EditorFeaturesResources.Format_document_performed_additional_cleanup
+                : EditorFeaturesResources.Code_cleanup_is_not_configured;
 
             var configButtonText = performAdditionalCodeCleanupDuringFormatting
                 ? EditorFeaturesResources.Change_configuration
