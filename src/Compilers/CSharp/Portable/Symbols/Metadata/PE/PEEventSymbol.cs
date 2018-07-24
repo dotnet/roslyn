@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const int targetSymbolCustomModifierCount = 0;
                 var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
 
-                // We start without annotations
+                // We start without annotation (they will be decoded below)
                 var type = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: containingType, typeSymbol);
 
                 // Decode nullable before tuple types to avoid converting between

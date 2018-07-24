@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames)); // Same custom modifiers as source type.
             Debug.Assert(resultType.Equals(destinationType,
-               TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)); // Same object/dynamic and tuple names as destination type.
-               // PROTOTYPE(NullableReferenceTypes): We want to check nullability, but that would pull on NonNullTypes too early (ie. cause cycles).
-               //TypeCompareKind.CompareNullableModifiersForReferenceTypes)); // Same nullability as destination type.
+                TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)); // Same object/dynamic and tuple names as destination type.
+                // PROTOTYPE(NullableReferenceTypes): We want to check nullability, but that would pull on NonNullTypes too early (ie. cause cycles).
+                //TypeCompareKind.CompareNullableModifiersForReferenceTypes)); // Same nullability as destination type.
 
             return resultType;
         }

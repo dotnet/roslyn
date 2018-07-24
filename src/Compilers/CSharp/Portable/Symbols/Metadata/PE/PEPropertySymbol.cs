@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Dynamify object type if necessary
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
 
-            // We start without annotations
+            // We start without annotation (they will be decoded below)
             var propertyType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, originalPropertyType, typeCustomModifiers);
 
             // Decode nullable before tuple types to avoid converting between

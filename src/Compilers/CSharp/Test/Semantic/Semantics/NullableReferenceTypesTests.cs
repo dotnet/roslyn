@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NullableReferenceTypesTests : CSharpTestBase
     {
-         private const string NullableAttributeDefinition = @"
+        private const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(AttributeTargets.Event | // The type of the event is nullable, or has a nullable reference type as one of its constituents  

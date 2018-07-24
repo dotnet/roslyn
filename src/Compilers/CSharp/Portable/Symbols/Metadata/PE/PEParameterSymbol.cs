@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isReturn,
             out bool isBad)
         {
-            // We start without annotations
+            // We start without annotation (they will be decoded below)
             var typeWithModifiers = TypeSymbolWithAnnotations.CreateUnannotated(containingSymbol, type, CSharpCustomModifier.Convert(customModifiers));
 
             PEParameterSymbol parameter = customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty

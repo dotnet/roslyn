@@ -804,11 +804,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!_underlying.TypeSymbol.IsValueType)
                 {
-                    //Debug.Assert(_underlying.IsNullable == false);
                     return _underlying;
                 }
 
-                //Debug.Assert(!this.IsNullable == false);
                 return this;
             }
 

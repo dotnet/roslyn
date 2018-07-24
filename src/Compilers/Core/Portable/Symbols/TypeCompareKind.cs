@@ -15,11 +15,18 @@ namespace Microsoft.CodeAnalysis
         IgnoreDynamic = 2,
         IgnoreTupleNames = 4,
         IgnoreDynamicAndTupleNames = IgnoreDynamic | IgnoreTupleNames,
+
         // PROTOTYPE(NullableReferenceTypes): Consider renaming the Nullable options,
         // perhaps CompareNullableAnnotations and IgnoreUnknownNullableAnnotations.
-        // Note: comparisons with nullability-related options pull on NonNullTypes, which can cause cycles.
+        /// <summary>
+        /// Note: comparisons with nullability-related options pull on NonNullTypes, which can cause cycles.
+        /// </summary>
         CompareNullableModifiersForReferenceTypes = 8,
-        UnknownNullableModifierMatchesAny = 16, // Has no impact without CompareNullableModifiersForReferenceTypes
+
+        /// <summary>
+        /// Has no impact without CompareNullableModifiersForReferenceTypes.
+        /// </summary>
+        UnknownNullableModifierMatchesAny = 16,
         AllAspects = CompareNullableModifiersForReferenceTypes, // PROTOTYPE(NullableReferenceTypes): Remove if not used.
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames,
         AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames
