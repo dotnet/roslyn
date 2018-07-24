@@ -425,6 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
+        // PROTOTYPE(NullableReferenceTypes): Implement with VisitType extension method.
         public bool ContainsNullableReferenceTypes()
         {
             var typeSymbol = TypeSymbol;

@@ -35233,6 +35233,45 @@ class A
         // that catches T? where T is unconstrained.
 
         [Fact]
+        public void NullableT_BaseAndInterfaces()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB<T> : IA<T?> { }
+class A<T> { }
+class B<T> : A<T[]?> { }
+class C
+{
+    static void F(IB<object> b) { }
+    static void G(B<object> b) { }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (14,37): error CS8627: A nullable type parameter must have a value type or reference type constraint.
+                //     internal override void F1<U>(U? u) { } // error
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "u").WithLocation(14, 37));
+        }
+
+        [Fact]
+        public void NullableT_Fields()
+        {
+            var source =
+@"#pragma warning disable 0169
+#pragma warning disable 8618
+class C<T, U>
+{
+    T? F;
+    static C<T?> G;
+    const object C = default(U?[]);
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (14,37): error CS8627: A nullable type parameter must have a value type or reference type constraint.
+                //     internal override void F1<U>(U? u) { } // error
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "u").WithLocation(14, 37));
+        }
+
+        [Fact]
         public void NullableT_ReturnType()
         {
             var source =
@@ -35337,7 +35376,68 @@ class B : A
         }
 
         [Fact]
-        public void NullableT_FromMetadata()
+        public void NullableT_MethodBody()
+        {
+            var source =
+@"#pragma warning disable 0168
+class C<T>
+{
+    static void M<U>()
+    {
+        T? t;
+        var u = typeof(U?);
+        object? o = default(T?);
+        o = new U?[0];
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (14,37): error CS8627: A nullable type parameter must have a value type or reference type constraint.
+                //     internal override void F1<U>(U? u) { } // error
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "u").WithLocation(14, 37));
+        }
+
+        [Fact]
+        public void NullableT_FromMetadata_BaseAndInterfaces()
+        {
+            var source0 =
+@".class public System.Runtime.CompilerServices.NullableAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool[] b) cil managed { ret }
+}
+.class interface public abstract IA`1<T>
+{
+}
+.class interface public abstract IB`1<T>
+    implements class IA`1<!T>
+{
+  .interfaceimpl type class IA`1<!T>
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+}
+.class public A`1<T>
+{
+}
+.class public B`1<T>
+    extends class A`1<!T>
+{
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+}";
+            var ref0 = CompileIL(source0);
+            var source1 =
+@"class C
+{
+    static void F(IB<object> b) { }
+    static void G(B<object> b) { }
+}";
+            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,15): error CS8627: A nullable type parameter must have a value type or reference type constraint.
+                //     static T? F4<T>() where T : new() => throw null; // error
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "F4").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void NullableT_FromMetadata_Methods()
         {
             var source0 =
 @".class public System.Runtime.CompilerServices.NullableAttribute extends [mscorlib]System.Attribute
@@ -35411,7 +35511,6 @@ class B : A
     }
 }";
             var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Report invalid method errors.
             comp.VerifyDiagnostics(
                 // (8,15): error CS8627: A nullable type parameter must have a value type or reference type constraint.
                 //     static T? F4<T>() where T : new() => throw null; // error
