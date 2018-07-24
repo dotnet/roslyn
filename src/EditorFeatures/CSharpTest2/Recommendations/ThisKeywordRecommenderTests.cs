@@ -490,6 +490,7 @@ $$");
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedLambdaExpressionInAnonymousMethod()
         {
@@ -509,6 +510,7 @@ $$");
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedAnonymousInLambdaExpression()
         {
@@ -528,6 +530,7 @@ $$");
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedAnonymousMethodInLambdaExpressionInStaticMethod()
         {
@@ -547,6 +550,7 @@ $$");
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedLambdaExpressionInAnonymousMethodInStaticMethod()
         {
@@ -562,6 +566,34 @@ $$");
                 $$
             };
         };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedLambdaExpressionInAProperty()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Action A
+    {
+        get { return delegate { $$ } }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedLambdaExpressionInAStaticProperty()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Action A
+    {
+        get { return delegate { $$ } }
     }
 }");
         }

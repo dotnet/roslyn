@@ -1772,10 +1772,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var enclosingSymbol = semanticModel.GetEnclosingSymbol(targetToken.SpanStart, cancellationToken);
 
-            while (enclosingSymbol is IMethodSymbol method && enclosingSymbol.ContainingSymbol is IMethodSymbol)
+            while (enclosingSymbol is IMethodSymbol && enclosingSymbol.ContainingSymbol is IMethodSymbol)
             {
                 // It is allowed to reference the instance (`this`) within a local function or anonymous function, as long as the containing method allows it
-                enclosingSymbol = method.ContainingSymbol;
+                enclosingSymbol = enclosingSymbol.ContainingSymbol;
             }
 
             return !enclosingSymbol.IsStatic;
