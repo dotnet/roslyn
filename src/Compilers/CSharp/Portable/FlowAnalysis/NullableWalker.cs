@@ -1574,8 +1574,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 } while (true);
 
                 bool shouldUpdateType(TypeSymbol operandType) =>
-                    operandType != null &&
-                    (operandType.IsReferenceType == true || operandType.IsUnconstrainedTypeParameter());
+                    !(operandType is null) &&
+                    (operandType.IsReferenceType || operandType.IsUnconstrainedTypeParameter());
             }
         }
 
