@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new NonLazyType(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, customModifiers);
         }
 
-        public TypeSymbolWithAnnotations AsNullableReferenceOrValueType(CSharpCompilation compilation)
+        public TypeSymbolWithAnnotations SetIsAnnotated(CSharpCompilation compilation)
         {
             Debug.Assert(compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
             Debug.Assert(CustomModifiers.IsEmpty);
