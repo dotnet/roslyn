@@ -544,42 +544,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             T arg,
             bool canDigThroughNullable = false)
         {
-            return VisitType(typeWithAnnotationsOpt: null, type, typeWithAnnotationsPredicateOpt: null, typePredicate: predicate, arg, canDigThroughNullable);
+            return VisitType(
+                typeWithAnnotationsOpt: null,
+                typeOpt: type,
+                typeWithAnnotationsPredicateOpt: null,
+                typePredicateOpt: predicate,
+                arg,
+                canDigThroughNullable);
         }
 
         /// <summary>
         /// Visit the given type and, in the case of compound types, visit all "sub type".
         /// One of the predicates will be invoked at each type. If the type is a
-        /// TypeSymbolWithAnnotations, <paramref name="typeWithAnnotationsPredicate"/>
-        /// will be invoked; otherwise <paramref name="typePredicate"/> will be invoked.
-        /// If the predicate returns true for any type,
+        /// TypeSymbolWithAnnotations, <paramref name="typeWithAnnotationsPredicateOpt"/>
+        /// will be invoked; otherwise <paramref name="typePredicateOpt"/> will be invoked.
+        /// If the corresponding predicate returns true for any type,
         /// traversal stops and that type is returned from this method. Otherwise if traversal
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
         public static TypeSymbol VisitType<T>(
-            this TypeSymbolWithAnnotations type,
-            Func<TypeSymbolWithAnnotations, T, bool, bool> typeWithAnnotationsPredicate,
-            Func<TypeSymbol, T, bool, bool> typePredicate,
-            T arg)
-        {
-            return VisitType(
-                typeWithAnnotationsOpt: type,
-                typeOpt: null,
-                typeWithAnnotationsPredicate,
-                typePredicate,
-                arg,
-                canDigThroughNullable: false);
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): If TypeSymbolWithAnnotations is
-        // a struct, consider using a single type argument and a single predicate.
-        private static TypeSymbol VisitType<T>(
+            // PROTOTYPE(NullableReferenceTypes): If TypeSymbolWithAnnotations
+            // is a struct, use a single type argument and a single predicate.
             TypeSymbolWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt,
             Func<TypeSymbolWithAnnotations, T, bool, bool> typeWithAnnotationsPredicateOpt,
-            Func<TypeSymbol, T, bool, bool> typePredicate,
+            Func<TypeSymbol, T, bool, bool> typePredicateOpt,
             T arg,
-            bool canDigThroughNullable)
+            bool canDigThroughNullable = false)
         {
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -603,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(null, containingType, typeWithAnnotationsPredicateOpt, typePredicate, arg, canDigThroughNullable);
+                                var result = VisitType(null, containingType, typeWithAnnotationsPredicateOpt, typePredicateOpt, arg, canDigThroughNullable);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -617,11 +608,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (typeWithAnnotationsOpt is null || typeWithAnnotationsPredicateOpt is null ?
-                    typePredicate(current, arg, isNestedNamedType) :
-                    typeWithAnnotationsPredicateOpt(typeWithAnnotationsOpt, arg, isNestedNamedType))
+                if ((object)typeWithAnnotationsOpt != null && typeWithAnnotationsPredicateOpt != null)
                 {
-                    return current;
+                    if (typeWithAnnotationsPredicateOpt(typeWithAnnotationsOpt, arg, isNestedNamedType))
+                    {
+                        return current;
+                    }
+                }
+                else if ((object)typeOpt != null && typePredicateOpt != null)
+                {
+                    if (typePredicateOpt(typeOpt, arg, isNestedNamedType))
+                    {
+                        return current;
+                    }
                 }
 
                 TypeSymbolWithAnnotations next;
@@ -652,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 typeWithAnnotationsOpt: canDigThroughNullable ? null : typeArg,
                                 typeOpt: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
                                 typeWithAnnotationsPredicateOpt,
-                                typePredicate,
+                                typePredicateOpt,
                                 arg,
                                 canDigThroughNullable);
                             if ((object)result != null)
@@ -1611,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Add(attr);
                 }
             }
-            if (type.ContainsNullableReferenceTypes())
+            if (type.ContainsNullableReferenceTypes(location: null, diagnostics: null))
             {
                 SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(type.TypeSymbol, type);
                 if (attr != null)

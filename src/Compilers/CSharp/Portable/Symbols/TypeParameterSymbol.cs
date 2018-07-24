@@ -566,11 +566,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(ContainingSymbol, Ordinal);
         }
 
-        internal override bool ContainsNullableReferenceTypes()
-        {
-            return false;
-        }
-
         internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
         {
         }

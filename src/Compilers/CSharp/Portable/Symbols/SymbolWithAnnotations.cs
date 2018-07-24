@@ -333,15 +333,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public void CheckAllConstraints(ConversionsBase conversions, Location location, DiagnosticBag diagnostics)
         {
-            // The first unconstrained type parameter in the type.
-            var typeParameter = this.VisitType(
-                typeWithAnnotationsPredicate: (t, a, b) => t.IsAnnotated && t.TypeSymbol.IsUnconstrainedTypeParameter(),
-                typePredicate: (t, a, b) => false,
-                arg: (object)null);
-            if ((object)typeParameter != null)
-            {
-                diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, location);
-            }
             TypeSymbol.CheckAllConstraints(conversions, location, diagnostics);
         }
 
@@ -425,17 +416,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
-        // PROTOTYPE(NullableReferenceTypes): Implement with VisitType extension method.
-        public bool ContainsNullableReferenceTypes()
+        public bool ContainsNullableReferenceTypes(Location location, DiagnosticBag diagnostics)
         {
-            var typeSymbol = TypeSymbol;
+            return ContainsNullableReferenceTypes(typeWithAnnotationsOpt: this, typeOpt: null, location, diagnostics);
+        }
 
-            if (IsNullable == true && !typeSymbol.IsValueType)
+        /// <summary>
+        /// Returns true if the type contains an annotated type.
+        /// If diagnostics is non-null, reports an error if the type contains an
+        /// annotated, unconstrained type parameter. The type can be specified
+        /// with either a TypeSymbolWithAnnotations or TypeSymbol.
+        /// </summary>
+        public static bool ContainsNullableReferenceTypes(
+            TypeSymbolWithAnnotations typeWithAnnotationsOpt,
+            TypeSymbol typeOpt,
+            Location location,
+            DiagnosticBag diagnostics)
+        {
+            Debug.Assert(diagnostics == null || location != null);
+
+            // Find an annotated type.
+            var type = TypeSymbolExtensions.VisitType(
+                    typeWithAnnotationsOpt,
+                    typeOpt,
+                typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && !t.TypeSymbol.IsValueType,
+                typePredicateOpt: null,
+                arg: (object)null);
+            if ((object)type == null)
             {
-                return true;
+                return false;
             }
 
-            return typeSymbol.ContainsNullableReferenceTypes();
+            if (diagnostics != null)
+            {
+                // Find an annotated, unconstrained type parameter.
+                var typeParameter = TypeSymbolExtensions.VisitType(
+                    typeWithAnnotationsOpt,
+                    typeOpt,
+                    typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && t.TypeSymbol.IsUnconstrainedTypeParameter(),
+                    typePredicateOpt: null,
+                    arg: (object)null);
+                if ((object)typeParameter != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, location ?? NoLocation.Singleton);
+                    return true;
+                }
+            }
+
+            return true;
         }
 
         public void AddNullableTransforms(ArrayBuilder<bool> transforms)

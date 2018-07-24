@@ -224,14 +224,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
 
+            var location = _syntax.ReturnType.Location;
             if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilation: false);
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
             }
 
-            if (returnType.ContainsNullableReferenceTypes())
+            if (returnType.ContainsNullableReferenceTypes(location, diagnostics))
             {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilation: false);
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
             }
 
             Debug.Assert(_refKind == RefKind.None

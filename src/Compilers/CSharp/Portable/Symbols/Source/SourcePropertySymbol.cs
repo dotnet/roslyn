@@ -733,9 +733,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
-            Location getTypeLocation() => CSharpSyntaxNode.Type.Location;
+            Location location = CSharpSyntaxNode.Type.Location;
 
-            Debug.Assert(getTypeLocation() != null);
+            Debug.Assert(location != null);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // property name location for any such errors. We'll do the same for return
@@ -750,14 +750,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, getTypeLocation(), modifyCompilation: true);
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.Type.ContainsNullableReferenceTypes())
+            if (this.Type.ContainsNullableReferenceTypes(location, diagnostics))
             {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getTypeLocation(), modifyCompilation: true);
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);
@@ -1164,7 +1164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            if (type.ContainsNullableReferenceTypes())
+            // PROTOTYPE(NullableReferenceTypes): Pass location and diagnostics to report error.
+            if (type.ContainsNullableReferenceTypes(location: null, diagnostics: null))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }

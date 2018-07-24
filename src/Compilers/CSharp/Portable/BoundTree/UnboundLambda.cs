@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilation: false);
 
-            if (returnType?.ContainsNullableReferenceTypes() == true)
+            if (returnType?.ContainsNullableReferenceTypes(lambdaSymbol.DiagnosticLocation, diagnostics) == true)
             {
                 binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
             }

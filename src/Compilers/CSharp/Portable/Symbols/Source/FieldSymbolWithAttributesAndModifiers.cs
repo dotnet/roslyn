@@ -390,7 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            if (type.ContainsNullableReferenceTypes())
+            // PROTOTYPE(NullableReferenceTypes): Pass location and diagnostics to report error.
+            if (type.ContainsNullableReferenceTypes(location: null, diagnostics: null))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }

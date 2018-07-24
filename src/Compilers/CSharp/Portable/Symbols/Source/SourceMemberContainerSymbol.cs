@@ -1409,20 +1409,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
 
+            var location = Locations[0];
             if (this.IsByRefLikeType)
             {
-                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
+                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             if (this.IsReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            if (this.BaseTypeNoUseSiteDiagnostics?.ContainsNullableReferenceTypes() == true ||
-                this.InterfacesNoUseSiteDiagnostics().Any(t => t.ContainsNullableReferenceTypes()))
+            // PROTOTYPE(NullableReferenceTypes): Visit all interfaces regardless of whether earlier ContainsNullableReferenceTypes returns true.
+            if (this.BaseTypeNoUseSiteDiagnostics?.ContainsNullableReferenceTypes(location, diagnostics) == true ||
+                this.InterfacesNoUseSiteDiagnostics().Any(t => t.ContainsNullableReferenceTypes(location, diagnostics)))
             {
-                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 
