@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             IBlockTag parentTag, ITextSnapshot snapshot, BlockSpan region)
         {
             return new RoslynBlockTag(
+                ThreadingContext,
                 this.TextEditorFactoryService,
                 this.ProjectionBufferFactoryService,
                 this.EditorOptionsFactoryService,

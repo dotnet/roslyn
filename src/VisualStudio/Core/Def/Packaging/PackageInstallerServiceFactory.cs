@@ -367,7 +367,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // they've all come in.
                 var cancellationToken = _tokenSource.Token;
                 Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)
-                    .ContinueWith(_ => ProcessBatchedChangesOnForeground(cancellationToken), cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, ForegroundTaskScheduler);
+                    .ContinueWith(
+                        async _ =>
+                        {
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                            ProcessBatchedChangesOnForeground(cancellationToken);
+                        },
+                        cancellationToken,
+                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default).Unwrap();
             }
         }
 
@@ -402,8 +410,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // After processing this single project, yield so the foreground thread
             // can do more work.  Then go and loop again so we can process the 
             // rest of the projects.
-            Task.Factory.SafeStartNew(
-                () => ProcessBatchedChangesOnForeground(cancellationToken), cancellationToken, ForegroundTaskScheduler);
+            Task.Factory.SafeStartNewFromAsync(
+                async () =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    ProcessBatchedChangesOnForeground(cancellationToken);
+                },
+                cancellationToken,
+                TaskScheduler.Default);
         }
 
         private ProjectId DequeueNextProject(Solution solution)

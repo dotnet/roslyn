@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
             {
                 return BlockTagState.CreateShrunkenTextView(
+                    _provider.ThreadingContext,
                     _provider._textEditorFactoryService, finalBuffer);
             }
 

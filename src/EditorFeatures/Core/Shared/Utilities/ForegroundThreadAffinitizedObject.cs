@@ -145,7 +145,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
             else
             {
-                return Task.Factory.SafeStartNew(action, cancellationToken, ForegroundTaskScheduler);
+                return Task.Factory.SafeStartNewFromAsync(
+                    async () =>
+                    {
+                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        action();
+                    },
+                    cancellationToken,
+                    TaskScheduler.Default);
             }
         }
 

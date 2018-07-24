@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -52,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
 
             return new RoslynOutliningRegionTag(
+                ThreadingContext,
                 this.TextEditorFactoryService,
                 this.ProjectionBufferFactoryService,
                 this.EditorOptionsFactoryService,

@@ -17,46 +17,44 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ThreadingContext([Import(AllowDefault = true)] JoinableTaskContext joinableTaskContext)
         {
-            bool hasMainThread;
             if (joinableTaskContext is null)
             {
-                Thread mainThread;
-                SynchronizationContext synchronizationContext;
-                switch (ForegroundThreadDataInfo.CreateDefault(ForegroundThreadDataKind.Unknown))
-                {
-                    case ForegroundThreadDataKind.JoinableTask:
-                        throw new NotSupportedException($"A {nameof(VisualStudio.Threading.JoinableTaskContext)} already exists, but we have no way to obtain it.");
-
-                    case ForegroundThreadDataKind.Wpf:
-                    case ForegroundThreadDataKind.WinForms:
-                    case ForegroundThreadDataKind.MonoDevelopGtk:
-                    case ForegroundThreadDataKind.MonoDevelopXwt:
-                    case ForegroundThreadDataKind.StaUnitTest:
-                        hasMainThread = true;
-                        mainThread = Thread.CurrentThread;
-                        synchronizationContext = SynchronizationContext.Current;
-                        break;
-
-                    case ForegroundThreadDataKind.ForcedByPackageInitialize:
-                    case ForegroundThreadDataKind.Unknown:
-                    default:
-                        hasMainThread = false;
-                        var denyExecutionSynchronizationContext = new DenyExecutionSynchronizationContext(SynchronizationContext.Current);
-                        mainThread = denyExecutionSynchronizationContext.MainThread;
-                        synchronizationContext = denyExecutionSynchronizationContext;
-                        break;
-                }
-
-                joinableTaskContext = new JoinableTaskContext(mainThread, synchronizationContext);
-            }
-            else
-            {
-                hasMainThread = true;
+               joinableTaskContext = CreateJoinableTaskContext();
             }
 
-            HasMainThread = hasMainThread;
+            HasMainThread = joinableTaskContext.MainThread.IsAlive;
             JoinableTaskContext = joinableTaskContext;
             JoinableTaskFactory = joinableTaskContext.Factory;
+        }
+
+        internal static JoinableTaskContext CreateJoinableTaskContext()
+        {
+            Thread mainThread;
+            SynchronizationContext synchronizationContext;
+            switch (ForegroundThreadDataInfo.CreateDefault(ForegroundThreadDataKind.Unknown))
+            {
+                case ForegroundThreadDataKind.JoinableTask:
+                    throw new NotSupportedException($"A {nameof(VisualStudio.Threading.JoinableTaskContext)} already exists, but we have no way to obtain it.");
+
+                case ForegroundThreadDataKind.Wpf:
+                case ForegroundThreadDataKind.WinForms:
+                case ForegroundThreadDataKind.MonoDevelopGtk:
+                case ForegroundThreadDataKind.MonoDevelopXwt:
+                case ForegroundThreadDataKind.StaUnitTest:
+                    mainThread = Thread.CurrentThread;
+                    synchronizationContext = SynchronizationContext.Current;
+                    break;
+
+                case ForegroundThreadDataKind.ForcedByPackageInitialize:
+                case ForegroundThreadDataKind.Unknown:
+                default:
+                    var denyExecutionSynchronizationContext = new DenyExecutionSynchronizationContext(SynchronizationContext.Current);
+                    mainThread = denyExecutionSynchronizationContext.MainThread;
+                    synchronizationContext = denyExecutionSynchronizationContext;
+                    break;
+            }
+
+            return new JoinableTaskContext(mainThread, synchronizationContext);
         }
 
         public bool HasMainThread

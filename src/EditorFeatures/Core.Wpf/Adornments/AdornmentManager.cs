@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
@@ -179,19 +180,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 if (needToScheduleUpdate)
                 {
                     // schedule an update
-                    var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".OnTagsChanged.2");
-                    _textView.VisualElement.Dispatcher.BeginInvoke(
-                        new System.Action(() =>
+                    _threadingContext.JoinableTaskFactory.WithPriority(_textView.VisualElement.Dispatcher, DispatcherPriority.Render).RunAsync(async () =>
                     {
-                        try
+                        using (_asyncListener.BeginAsyncOperation(GetType() + ".OnTagsChanged.2"))
                         {
+                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
                             UpdateInvalidSpans();
                         }
-                        finally
-                        {
-                            asyncToken.Dispose();
-                        }
-                    }), DispatcherPriority.Render);
+                    });
                 }
             }
         }

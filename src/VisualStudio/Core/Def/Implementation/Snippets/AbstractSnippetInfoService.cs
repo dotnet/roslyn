@@ -142,10 +142,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             // The rest of the process requires being on the UI thread, see the explanation on
             // PopulateSnippetCacheFromExpansionEnumeration for details
-            await Task.Factory.StartNew(() => PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                ForegroundTaskScheduler).ConfigureAwait(false);
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator);
         }
 
         /// <remarks>

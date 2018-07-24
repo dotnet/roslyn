@@ -269,7 +269,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
             else
             {
-                Task.Factory.StartNew(() => this.SetUserPreferencesMaybeAsync(languagePreferences), CancellationToken.None, TaskCreationOptions.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
+                Task.Factory.StartNew(
+                    async () =>
+                    {
+                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        this.SetUserPreferencesMaybeAsync(languagePreferences);
+                    },
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    TaskScheduler.Default).Unwrap();
             }
         }
     }

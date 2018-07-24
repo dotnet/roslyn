@@ -1,6 +1,10 @@
-using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.ComponentModel.Composition;
+using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Threading;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -8,17 +12,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     // in Text.Logic and Intellisense layers as an editor host provided service.
     internal class TestExportJoinableTaskContext
     {
-        [ThreadStatic]
-        private static JoinableTaskContext s_jtcThreadStatic;
+        private JoinableTaskContext _joinableTaskContext;
 
-        [Export]
-        private JoinableTaskContext JoinableTaskContext
+        public TestExportJoinableTaskContext()
         {
-            get
+            var synchronizationContext = SynchronizationContext.Current;
+            try
             {
-                // Make sure each import gets JTC set up with the calling thread as the "main" thread
-                return s_jtcThreadStatic ?? (s_jtcThreadStatic = new JoinableTaskContext());
+                if (synchronizationContext is AsyncTestSyncContext asyncTestSyncContext)
+                {
+                    SynchronizationContext innerSynchronizationContext = null;
+                    asyncTestSyncContext.Send(
+                        _ =>
+                        {
+                            innerSynchronizationContext = SynchronizationContext.Current;
+                        },
+                        null);
+
+                    SynchronizationContext.SetSynchronizationContext(innerSynchronizationContext);
+                }
+
+                _joinableTaskContext = ThreadingContext.CreateJoinableTaskContext();
+            }
+            finally
+            {
+                SynchronizationContext.SetSynchronizationContext(synchronizationContext);
             }
         }
+
+        [Export]
+        private JoinableTaskContext JoinableTaskContext => _joinableTaskContext;
     }
 }

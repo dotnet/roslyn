@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     internal sealed partial class ThreadingContext
     {
-        private class DenyExecutionSynchronizationContext : SynchronizationContext
+        private sealed class DenyExecutionSynchronizationContext : SynchronizationContext
         {
             private readonly SynchronizationContext _underlyingContext;
             private readonly Thread _mainThread;
