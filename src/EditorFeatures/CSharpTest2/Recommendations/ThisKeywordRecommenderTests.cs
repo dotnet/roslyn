@@ -572,13 +572,13 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
-        public async Task TestInNestedLambdaExpressionInAProperty()
+        public async Task TestInAnonymousMethodInAProperty()
         {
             await VerifyKeywordAsync(
 @"class C
 {
-    Action A
-    {
+    Action A 
+    { 
         get { return delegate { $$ } }
     }
 }");
@@ -586,7 +586,40 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
-        public async Task TestInNestedLambdaExpressionInAStaticProperty()
+        public async Task TestInAnonymousMethodInAPropertyInitializer()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Action B { get; } = delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAExpressionProperty()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Action A => delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAFieldInitializer()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Action A = delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAStaticProperty()
         {
             await VerifyAbsenceAsync(
 @"class C
@@ -598,6 +631,38 @@ $$");
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAStaticPropertyInitializer()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Action B { get; } = delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAStaticExpressionProperty()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Action A => delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAStaticFieldInitializer()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Action A = delegate { $$ }
+}");
+        }
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAttribute()
         {
