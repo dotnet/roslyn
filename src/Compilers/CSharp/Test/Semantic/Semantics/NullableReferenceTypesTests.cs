@@ -9269,6 +9269,28 @@ class C
         }
 
         [Fact]
+        public void AssertsTrue_NotNull_NullConditionalAccess()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    object? _o = null;
+    void Main(C? c)
+    {
+        MyAssert(c?._o != null);
+        c.ToString();
+        c._o.ToString();
+    }
+
+    void MyAssert([AssertsTrue] bool condition) => throw null;
+}
+" + AssertsTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void AssertsTrue_Null()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -12119,6 +12141,264 @@ class C
                  // (13,13): hidden CS8605: Result of the comparison is possibly always true.
                  //         if (y1 != null)
                  Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "y1 != null").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_14()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    C? _cField = null;
+    C _nonNullCField = new C();
+    C? GetC() => null;
+    C? CProperty { get => null; }
+
+    void Test1(C? c1)
+    {
+        if (c1?._cField != null)
+        {
+            c1._cField.ToString();
+        }
+        else
+        {
+            c1._cField.ToString(); // warn 1 2
+        }
+    }
+
+    void Test2()
+    {
+        C? c2 = GetC();
+        if (c2?._cField != null)
+        {
+            c2._cField.ToString();
+        }
+        else
+        {
+            c2._cField.ToString(); // warn 3 4
+        }
+    }
+
+    void Test3(C? c3)
+    {
+        if (c3?._cField?._cField != null)
+        {
+            c3._cField._cField.ToString();
+        }
+        else if (c3?._cField != null)
+        {
+            c3._cField.ToString();
+            c3._cField._cField.ToString(); // warn 5
+        }
+        else
+        {
+            c3.ToString(); // warn 6
+        }
+    }
+
+    void Test4(C? c4)
+    {
+        if (c4?._nonNullCField._cField?._nonNullCField._cField != null)
+        {
+            c4._nonNullCField._cField._nonNullCField._cField.ToString();
+        }
+        else
+        {
+            c4._nonNullCField._cField._nonNullCField._cField.ToString(); // warn 7 8 9
+        }
+    }
+
+    void Test5(C? c5)
+    {
+        if (c5?._cField == null)
+        {
+            c5._cField.ToString(); // warn 10 11
+        }
+        else
+        {
+            c5._cField.ToString();
+        }
+    }
+
+    void Test6(C? c6)
+    {
+        if (c6?._cField?.GetC() != null)
+        {
+            c6._cField.GetC().ToString(); // warn 12
+        }
+    }
+
+    void Test7(C? c7)
+    {
+        if (c7?._cField?.CProperty != null)
+        {
+            c7._cField.CProperty.ToString();
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             c1._cField.ToString(); // warn 1 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(17, 13),
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             c1._cField.ToString(); // warn 1 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1._cField").WithLocation(17, 13),
+
+                // (30,13): warning CS8602: Possible dereference of a null reference.
+                //             c2._cField.ToString(); // warn 3 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2").WithLocation(30, 13),
+                // (30,13): warning CS8602: Possible dereference of a null reference.
+                //             c2._cField.ToString(); // warn 3 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2._cField").WithLocation(30, 13),
+
+                // (43,13): warning CS8602: Possible dereference of a null reference.
+                //             c3._cField._cField.ToString(); // warn 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3._cField._cField").WithLocation(43, 13),
+
+                // (47,13): warning CS8602: Possible dereference of a null reference.
+                //             c3.ToString(); // warn 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3").WithLocation(47, 13),
+
+                // (59,13): warning CS8602: Possible dereference of a null reference.
+                //             c4._nonNullCField._cField._nonNullCField._cField.ToString(); // warn 7 8 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c4").WithLocation(59, 13),
+                // (59,13): warning CS8602: Possible dereference of a null reference.
+                //             c4._nonNullCField._cField._nonNullCField._cField.ToString(); // warn 7 8 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c4._nonNullCField._cField").WithLocation(59, 13),
+                // (59,13): warning CS8602: Possible dereference of a null reference.
+                //             c4._nonNullCField._cField._nonNullCField._cField.ToString(); // warn 7 8 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c4._nonNullCField._cField._nonNullCField._cField").WithLocation(59, 13),
+
+                // (67,13): warning CS8602: Possible dereference of a null reference.
+                //             c5._cField.ToString(); // warn 10 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c5").WithLocation(67, 13),
+                // (67,13): warning CS8602: Possible dereference of a null reference.
+                //             c5._cField.ToString(); // warn 10 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c5._cField").WithLocation(67, 13),
+
+                // (79,13): warning CS8602: Possible dereference of a null reference.
+                //             c6._cField.GetC().ToString(); // warn 12
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c6._cField.GetC()").WithLocation(79, 13)
+            );
+        }
+
+        [Fact]
+        public void ConditionalBranching_15()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void Test(C? c1)
+    {
+        if (c1?[0] != null)
+        {
+            c1.ToString();
+            c1[0].ToString(); // warn 1
+        }
+        else
+        {
+            c1.ToString(); // warn 2
+        }
+    }
+
+    object? this[int i] { get => null; }
+}
+", parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             c1[0].ToString(); // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1[0]").WithLocation(9, 13),
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             c1.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(13, 13)
+            );
+        }
+
+        [Fact]
+        public void ConditionalBranching_16()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void Test<T>(T t)
+    {
+        if (t?.ToString() != null)
+        {
+            t.ToString();
+        }
+        else
+        {
+            t.ToString(); // warn
+        }
+    }
+}", parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): We are currently warning on all unconstrained type parameter invocations
+            // https://github.com/dotnet/roslyn/issues/28792
+            compilation.VerifyDiagnostics(
+                // (6,13): warning CS8602: Possible dereference of a null reference.
+                //         if (t?.ToString() != null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(6, 13),
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(8, 13),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             t.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_17()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    object? Prop { get; }
+    object? GetObj(bool val) => null;
+    void Test(C? c1, C? c2)
+    {
+        if (c1?.GetObj(c2?.Prop != null) != null)
+        {
+            c2.Prop.ToString(); // warn 1 2
+        }
+    }
+}", parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             c2.Prop.ToString(); // warn 1 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2").WithLocation(10, 13),
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             c2.Prop.ToString(); // warn 1 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2.Prop").WithLocation(10, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_18()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void Test(C? x, C? y)
+    {
+        if ((x = y)?.GetHashCode() != null)
+        {
+            x.ToString();
+            y.ToString(); // warn
+        }
+    }
+}", parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 13)
                 );
         }
 
