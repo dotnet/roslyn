@@ -3,12 +3,14 @@
 This project allows Visual Studio extension developers to write integration tests that run inside an experimental
 instance of Visual Studio.
 
+[![License](https://img.shields.io/github/license/Microsoft/vs-extension-testing.svg)](https://raw.githubusercontent.com/Microsoft/vs-extension-testing/master/LICENSE)
+
 # Installation and Use
 
 ## Requirements
 
-* Extension development requires Visual Studio 2017. Version 15.7 or newer is recommended for the best Test Explorer
-  experience.
+* Extension development requires [Visual Studio 2017](https://visualstudio.microsoft.com/vs/). Version 15.7 or newer is
+  recommended for the best Test Explorer experience.
 * Extensions themselves must target one or more versions of Visual Studio from the following list:
     * Visual Studio 2012
     * Visual Studio 2013
@@ -90,3 +92,7 @@ Tests will be automatically discovered and **Test Explorer** updated after each 
 
 Apply the `[IdeFact]` attribute to tests that need to run in the IDE. After building the project, the tests will
 appear in **Test Explorer** where they can be launched for running and/or debugging directly.
+
+# Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for information about our Code of Conduct and contributing guidelines.
