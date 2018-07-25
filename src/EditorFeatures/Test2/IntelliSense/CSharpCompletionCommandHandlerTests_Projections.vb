@@ -34,7 +34,7 @@ public override void Execute() {
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAfterDot() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -65,15 +65,15 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(".", view, buffer)
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSession(view:=view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Console")
+                Await state.AssertSelectedCompletionItem(displayText:="Console", view:=view)
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInObjectCreationExpression() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -105,7 +105,7 @@ class C
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True, view:=view)
             End Using
         End Function
 

@@ -1110,10 +1110,10 @@ End Module|}          </Document>)
                 Dim subjectBuffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer("(", view, subjectBuffer)
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSession(view:=view)
                 state.SendTypeCharsToSpecificViewAndBuffer("a", view, subjectBuffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="arg")
+                Await state.AssertSelectedCompletionItem(displayText:="arg", view:=view)
 
                 Dim text = view.TextSnapshot.GetText()
                 Dim projection = DirectCast(topProjectionBuffer.TextBuffer, IProjectionBuffer)
@@ -1127,7 +1127,7 @@ End Module|}          </Document>)
                 editorOperations.Backspace()
                 editorOperations.InsertText("b")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="bbb")
+                Await state.AssertSelectedCompletionItem(displayText:="bbb", view:=view)
 
                 ' prepare to remap our subject buffer
                 Dim subjectBufferText = subjectDocument.TextBuffer.CurrentSnapshot.GetText()
@@ -1148,10 +1148,10 @@ End Module|}          </Document>)
 
                 ' the same completion session should still be active after the remapping.
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="bbb")
+                Await state.AssertSelectedCompletionItem(displayText:="bbb", view:=view)
                 state.SendTypeCharsToSpecificViewAndBuffer("b", view, subjectBuffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="bbb")
+                Await state.AssertSelectedCompletionItem(displayText:="bbb", view:=view)
 
                 ' verify we can commit even when unmapped
                 projection.ReplaceSpans(0, projection.CurrentSnapshot.GetSourceSpans.Count, {projection.CurrentSnapshot.GetText()}, EditOptions.DefaultMinimalChange, editTag:=Nothing)

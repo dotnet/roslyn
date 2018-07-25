@@ -43,7 +43,7 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAfterDot() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -72,15 +72,15 @@ End Class
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(".", view, buffer)
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSession(view:=view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Console")
+                Await state.AssertSelectedCompletionItem(displayText:="Console", view:=view)
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInObjectCreationExpression() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -109,11 +109,11 @@ End Class
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSession(view:=view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Str", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="String", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="String", isHardSelected:=True, view:=view)
             End Using
         End Function
     End Class

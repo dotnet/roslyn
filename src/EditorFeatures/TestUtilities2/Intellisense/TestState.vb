@@ -264,9 +264,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         End Function
 
-        Public Async Function AssertCompletionSession(Optional numberOfItems As Integer = 0) As Task
+        Public Async Function AssertCompletionSession(Optional numberOfItems As Integer = 0, Optional view As ITextView = Nothing) As Task
+            If view Is Nothing Then
+                view = TextView
+            End If
+
             Await WaitForAsynchronousOperationsAsync()
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
             Assert.NotNull(session)
 
             If numberOfItems <> 0 Then
@@ -371,10 +375,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
-                               Optional filterText As String = Nothing) As Task
+                               Optional filterText As String = Nothing,
+                               Optional view As ITextView = Nothing) As Task
+            If view Is Nothing Then
+                view = TextView
+            End If
+
             Await WaitForAsynchronousOperationsAsync()
 
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
             Assert.NotNull(session)
             Dim items = session.GetComputedItems(CancellationToken.None)
 
@@ -448,6 +457,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overloads Sub SendDelete()
             Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))
             MyBase.SendDelete(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDelete)
+        End Sub
+
+        Public Sub SendDeleteToSpecificViewAndBuffer(view As IWpfTextView, buffer As ITextBuffer)
+            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))
+            compHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, buffer), AddressOf MyBase.SendDelete, TestCommandExecutionContext.Create())
         End Sub
 
         Public Sub SendTypeCharsToSpecificViewAndBuffer(typeChars As String, view As IWpfTextView, buffer As ITextBuffer)
