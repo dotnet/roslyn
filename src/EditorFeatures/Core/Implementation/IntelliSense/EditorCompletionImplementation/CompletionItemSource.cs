@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 attributeImages = ImmutableArray.Create(
                     new ImageElement(
                         warningImage,
-                        "Temporary Automation Name")); // TODO: Get automation names, here and below https://github.com/dotnet/roslyn/issues/27430
+                        EditorFeaturesResources.Warning));
             }
 
             var item = new EditorCompletion.CompletionItem(
                 roslynItem.DisplayText,
                 this,
-                new ImageElement(new ImageId(imageId.Guid, imageId.Id), "Temporary Automation Name"),
+                new ImageElement(new ImageId(imageId.Guid, imageId.Id), roslynItem.DisplayText),
                 filters,
                 suffix: string.Empty,
                 insertionText,
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                         var itemFilter = new EditorCompletion.CompletionFilter(
                             filter.DisplayText, 
                             filter.AccessKey.ToString(), 
-                            new ImageElement(new ImageId(imageId.Guid, imageId.Id), "Temporary Automation Name"));
+                            new ImageElement(new ImageId(imageId.Guid, imageId.Id),EditorFeaturesResources.Filter));
                         filterCache[filter.DisplayText] = itemFilter;
                         listBuilder.Add(itemFilter);
                     }
