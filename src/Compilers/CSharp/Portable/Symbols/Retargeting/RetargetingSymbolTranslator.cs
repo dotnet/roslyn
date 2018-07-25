@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 if (modifiersHaveChanged || underlyingType.TypeSymbol != newTypeSymbol)
                 {
-                    return underlyingType.Update(newTypeSymbol, newModifiers);
+                    return underlyingType.WithTypeAndModifiers(newTypeSymbol, newModifiers);
                 }
 
                 return underlyingType;

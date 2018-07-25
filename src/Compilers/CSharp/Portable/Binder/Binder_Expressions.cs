@@ -2538,7 +2538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!kind.IsIdentity || argument.Kind == BoundKind.TupleLiteral)
                 {
-                    TypeSymbol type = GetCorrespondingParameterType(ref result, parameters, arg);
+                    TypeSymbolWithAnnotations type = GetCorrespondingParameterType(ref result, parameters, arg);
 
                     // NOTE: for some reason, dev10 doesn't report this for indexer accesses.
                     if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && type.IsUnsafe())
@@ -2548,35 +2548,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //CONSIDER: Return a bad expression so that HasErrors is true?
                     }
 
-                    arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, type, diagnostics);
+                    arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, type.TypeSymbol, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
-                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    TypeSymbolWithAnnotations parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutVariablePendingInference)argument).SetInferredType(parameterType, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
                 {
-                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    TypeSymbolWithAnnotations parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, this, success: true);
                 }
                 else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
                 {
-                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    TypeSymbolWithAnnotations parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     Debug.Assert((object)parameterType != null);
                     arguments[arg] = ((BoundDiscardExpression)argument).SetInferredType(parameterType);
                 }
             }
         }
 
-        private TypeSymbol GetCorrespondingParameterType(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
+        private TypeSymbolWithAnnotations GetCorrespondingParameterType(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
         {
             int paramNum = result.ParameterFromArgument(arg);
-            var type = parameters[paramNum].Type.TypeSymbol;
+            var type = parameters[paramNum].Type;
 
             if (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
-                type = ((ArrayTypeSymbol)type).ElementType.TypeSymbol;
+                type = ((ArrayTypeSymbol)type.TypeSymbol).ElementType;
             }
 
             return type;

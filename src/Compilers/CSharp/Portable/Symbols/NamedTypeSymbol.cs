@@ -864,7 +864,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(params TypeSymbol[] typeArguments)
         {
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, nonNullTypesContext: null);
+        }
+
+        /// <summary>
+        /// Returns a constructed type given its type arguments.
+        /// </summary>
+        /// <param name="nonNullTypesContext">This context indicates how to interpret un-annotated types.</param>
+        /// <param name="typeArguments">The immediate type arguments to be replaced for type
+        /// parameters in the type.</param>
+        public NamedTypeSymbol Construct(INonNullTypesContext nonNullTypesContext, params TypeSymbol[] typeArguments)
+        {
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, nonNullTypesContext);
         }
 
         /// <summary>
@@ -874,7 +885,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments)
         {
-            return ConstructWithoutModifiers(typeArguments, false);
+            // PROTOTYPE(NullableReferenceTypes): We should fix the callers to pass an explicit context.
+            return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext: null);
         }
 
         /// <summary>
@@ -883,7 +895,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="typeArguments"></param>
         public NamedTypeSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
         {
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
+            // PROTOTYPE(NullableReferenceTypes): We should fix the callers to pass an explicit context.
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, nonNullTypesContext: null);
         }
 
         /// <summary>
@@ -913,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => (object)type != null && type.IsErrorType();
 
-        private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
+        private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound, INonNullTypesContext nonNullTypesContext)
         {
             ImmutableArray<TypeSymbolWithAnnotations> modifiedArguments;
 
@@ -930,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(typeArguments.Length);
                 foreach (TypeSymbol t in typeArguments)
                 {
-                    builder.Add((object)t == null ? null : TypeSymbolWithAnnotations.Create(t));
+                    builder.Add((object)t == null ? null : TypeSymbolWithAnnotations.Create(nonNullTypesContext, t));
                 }
 
                 modifiedArguments = builder.ToImmutableAndFree();

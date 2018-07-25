@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // Note, modifiers are not involved, this is behavior of the native compiler.
-                transformedTypeArgsBuilder.Add(typeArg.Update(transformedTypeArg, typeArg.CustomModifiers));
+                transformedTypeArgsBuilder.Add(typeArg.WithTypeAndModifiers(transformedTypeArg, typeArg.CustomModifiers));
                 anyTransformed |= transformedTypeArg != typeArg.TypeSymbol;
             }
 
@@ -333,8 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return transformedElementType == arrayType.ElementType.TypeSymbol ?
                 arrayType :
                 arrayType.IsSZArray ?
-                    ArrayTypeSymbol.CreateSZArray(_containingAssembly, arrayType.ElementType.Update(transformedElementType, arrayType.ElementType.CustomModifiers)) :
-                    ArrayTypeSymbol.CreateMDArray(_containingAssembly, arrayType.ElementType.Update(transformedElementType, arrayType.ElementType.CustomModifiers), arrayType.Rank, arrayType.Sizes, arrayType.LowerBounds);
+                    ArrayTypeSymbol.CreateSZArray(_containingAssembly, arrayType.ElementType.WithTypeAndModifiers(transformedElementType, arrayType.ElementType.CustomModifiers)) :
+                    ArrayTypeSymbol.CreateMDArray(_containingAssembly, arrayType.ElementType.WithTypeAndModifiers(transformedElementType, arrayType.ElementType.CustomModifiers), arrayType.Rank, arrayType.Sizes, arrayType.LowerBounds);
         }
 
         private PointerTypeSymbol TransformPointerType(PointerTypeSymbol pointerType)
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return transformedPointedAtType == pointerType.PointedAtType.TypeSymbol ?
                 pointerType :
-                new PointerTypeSymbol(pointerType.PointedAtType.Update(transformedPointedAtType, pointerType.PointedAtType.CustomModifiers));
+                new PointerTypeSymbol(pointerType.PointedAtType.WithTypeAndModifiers(transformedPointedAtType, pointerType.PointedAtType.CustomModifiers));
         }
 
         private bool HasFlag => _index < _dynamicTransformFlags.Length || !_checkLength;

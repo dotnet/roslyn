@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 string toDisplayString(SyntaxNode syntaxOpt)
                 {
                     return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type) ?
-                        type.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat) :
+                        type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat) :
                         null;
                 }
             }

@@ -447,7 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var declaredBase = _lazyDeclaredBaseTypeWithoutNullability;
                 if ((object)declaredBase != null)
                 {
-                    declaredBase = (NamedTypeSymbol)NullableTypeDecoder.TransformOrEraseNullability(TypeSymbolWithAnnotations.Create(declaredBase), _handle, ContainingPEModule).TypeSymbol;
+                    declaredBase = (NamedTypeSymbol)NullableTypeDecoder.TransformType(
+                        TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, declaredBase), _handle, ContainingPEModule).TypeSymbol;
                 }
                 Interlocked.CompareExchange(ref _lazyDeclaredBaseTypeWithNullability, declaredBase, ErrorTypeSymbol.UnknownResultType);
             }
@@ -510,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
-                        typeSymbol = NullableTypeDecoder.TransformOrEraseNullability(TypeSymbolWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol).TypeSymbol;
+                        typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, typeSymbol), interfaceImpl, moduleSymbol).TypeSymbol;
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol ?? new UnsupportedMetadataTypeSymbol(); // interface list contains a bad type
                         symbols.Add(namedTypeSymbol);

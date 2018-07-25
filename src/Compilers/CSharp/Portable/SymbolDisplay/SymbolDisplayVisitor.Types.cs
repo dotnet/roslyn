@@ -15,39 +15,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var visitor = (SymbolDisplayVisitor)(visitorOpt ?? this.NotFirstVisitor);
             var typeSymbol = type.TypeSymbol;
-            bool? isNullable = type.IsNullable;
-            if (typeSymbol.TypeKind == TypeKind.Array && isNullable.HasValue)
+
+            if (typeSymbol.TypeKind == TypeKind.Array)
             {
-                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, isNullable: isNullable);
+                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, typeOpt: type);
             }
             else
             {
                 typeSymbol.Accept(visitor);
-
-                switch (isNullable)
-                {
-                    case true:
-                        if (!typeSymbol.IsNullableType() && format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
-                        {
-                            AddPunctuation(SyntaxKind.QuestionToken);
-                        }
-                        break;
-                    case false:
-                        if (!typeSymbol.IsValueType && format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
-                        {
-                            AddPunctuation(SyntaxKind.ExclamationToken);
-                        }
-                        break;
-                }
+                AddNullableAnnotations(type);
             }
         }
 
         public override void VisitArrayType(IArrayTypeSymbol symbol)
         {
-            VisitArrayType(symbol, isNullable: null);
+            VisitArrayType(symbol, typeOpt: null);
         }
 
-        private void VisitArrayType(IArrayTypeSymbol symbol, bool? isNullable)
+        private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations typeOpt)
         {
             if (TryAddAlias(symbol, builder))
             {
@@ -98,25 +83,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 AddArrayRank(arrayType);
+                AddNullableAnnotations(typeOpt);
 
-                switch (isNullable)
-                {
-                    case true:
-                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
-                        {
-                            AddPunctuation(SyntaxKind.QuestionToken);
-                        }
-                        break;
-                    case false:
-                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
-                        {
-                            AddPunctuation(SyntaxKind.ExclamationToken);
-                        }
-                        break;
-                }
-
-                isNullable = (arrayType as ArrayTypeSymbol)?.ElementType.IsNullable;
+                typeOpt = (arrayType as ArrayTypeSymbol)?.ElementType;
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
+            }
+        }
+
+        private void AddNullableAnnotations(TypeSymbolWithAnnotations typeOpt)
+        {
+            if (ReferenceEquals(typeOpt, null))
+            {
+                return;
+            }
+
+            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
+                !typeOpt.IsNullableType() &&
+                typeOpt.IsAnnotated)
+            {
+                AddPunctuation(SyntaxKind.QuestionToken);
+            }
+            else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+                !typeOpt.IsValueType &&
+                typeOpt.IsNullable == false)
+            {
+                AddPunctuation(SyntaxKind.ExclamationToken);
             }
         }
 

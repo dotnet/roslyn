@@ -19,11 +19,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
 
         private static readonly TestParameters s_nullableFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
 
+        private const string NonNullTypes = @"
+[module: System.Runtime.CompilerServices.NonNullTypes(true)]
+
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+
         [Fact]
         public async Task FixAll()
         {
             await TestInRegularAndScript1Async(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static string M()
     {
@@ -37,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
             return null;
     }
 }",
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static string? M()
     {
@@ -57,14 +72,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixReturnType()
         {
             await TestInRegularAndScript1Async(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static string M()
     {
         return [|null|];
     }
 }",
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static string? M()
     {
@@ -77,14 +94,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixReturnType_WithTrivia()
         {
             await TestInRegularAndScript1Async(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static /*before*/ string /*after*/ M()
     {
         return [|null|];
     }
 }",
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static /*before*/ string? /*after*/ M()
     {
@@ -97,11 +116,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixReturnType_ArrowBody()
         {
             await TestInRegularAndScript1Async(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static string M() => [|null|];
 }",
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static string? M() => null;
 }", parameters: s_nullableFeature);
@@ -112,7 +133,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixReturnType_LocalFunction_ArrowBody()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static void M()
     {
@@ -126,7 +148,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixLocalFunctionReturnType()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     void M()
     {
@@ -142,7 +165,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task NoFixAlreadyNullableReturnType()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static string? M()
     {
@@ -156,7 +180,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixField()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     string x = [|null|];
 }", parameters: s_nullableFeature);
@@ -166,14 +191,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixLocalDeclaration()
         {
             await TestInRegularAndScript1Async(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static void M()
     {
         string x = [|null|];
     }
 }",
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static void M()
     {
@@ -186,7 +213,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixLocalDeclaration_WithVar()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static void M()
     {
@@ -199,7 +227,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task NoFixMultiDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static void M()
     {
@@ -213,7 +242,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixPropertyDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     string x { get; set; } = [|null|];
 }", parameters: s_nullableFeature);
@@ -223,11 +253,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixPropertyDeclaration_WithReturnNull()
         {
             await TestInRegularAndScript1Async(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     string x { get { return [|null|]; } }
 }",
-@"class Program
+NonNullTypes + @"
+class Program
 {
     string? x { get { return null; } }
 }", parameters: s_nullableFeature);
@@ -237,26 +269,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixPropertyDeclaration_ArrowBody()
         {
             await TestInRegularAndScript1Async(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     string x => [|null|];
 }",
-@"class Program
+NonNullTypes + @"
+class Program
 {
     string? x => null;
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): the warning is temporarily disabled in this scenario to avoid cycle")]
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
         public async Task FixOptionalParameter()
         {
             await TestInRegularAndScript1Async(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static void M(string x = [|null|]) { }
 }",
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static void M(string? x = null) { }
 }", parameters: s_nullableFeature);
@@ -266,14 +302,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         public async Task FixLocalWithAs()
         {
             await TestInRegularAndScript1Async(
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static void M(object o)
     {
         string x = [|o as string|];
     }
 }",
-@"class Program
+NonNullTypes + @"
+class Program
 {
     static void M(object o)
     {

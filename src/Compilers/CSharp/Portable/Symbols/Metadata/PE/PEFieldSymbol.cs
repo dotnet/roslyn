@@ -213,12 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
 
-                TypeSymbolWithAnnotations type = TypeSymbolWithAnnotations.Create(typeSymbol, customModifiersArray);
+                // We start without annotations
+                var type = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, typeSymbol, customModifiersArray);
+
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
                 // PROTOTYPE(NullableReferenceTypes): Avoid setting IsNullable in TypeSymbolWithAnnotations.Create
                 // only to undo that in TransformOrEraseNullability. Same comment applies to other uses of TransformOrEraseNullability.
-                type = NullableTypeDecoder.TransformOrEraseNullability(type, _handle, moduleSymbol);
+                type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 
                 _lazyIsVolatile = isVolatile;

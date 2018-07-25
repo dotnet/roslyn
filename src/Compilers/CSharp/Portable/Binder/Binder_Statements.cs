@@ -1353,7 +1353,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_VoidAssignment, op1.Syntax.Location);
             }
 
-            return op1.SetInferredType(inferredType);
+            // PROTOTYPE(NullableReferenceTypes): this TypeSymbolWithAnnotations has bad annotation and context
+            return op1.SetInferredType(TypeSymbolWithAnnotations.Create(inferredType));
         }
 
         private BoundAssignmentOperator BindAssignment(

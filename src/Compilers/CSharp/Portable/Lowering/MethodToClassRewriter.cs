@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var visitedTypeArgs = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(typeArgs.Length);
             foreach (var typeArg in typeArgs)
             {
-                visitedTypeArgs.Add(typeArg.Update(VisitType(typeArg.TypeSymbol), typeArg.CustomModifiers));
+                visitedTypeArgs.Add(typeArg.WithTypeAndModifiers(VisitType(typeArg.TypeSymbol), typeArg.CustomModifiers));
             }
 
             return newMethod.Construct(visitedTypeArgs.ToImmutableAndFree());

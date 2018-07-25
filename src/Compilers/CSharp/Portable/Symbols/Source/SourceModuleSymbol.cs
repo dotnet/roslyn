@@ -620,7 +620,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // We only bind early attributes, as binding all attributes leads to cycles
                 ModuleEarlyWellKnownAttributeData earlyAttributes = ComputeEarlyAttributes();
-                bool value = earlyAttributes?.NonNullTypes ?? UtilizesNullableReferenceTypes;
+
+                // If no module-level attribute was set, then the default is `[NonNullTypes(false)]`
+                bool value = earlyAttributes?.NonNullTypes ?? false;
                 _lazyNonNullTypes = value.ToThreeState();
                 return value;
             }

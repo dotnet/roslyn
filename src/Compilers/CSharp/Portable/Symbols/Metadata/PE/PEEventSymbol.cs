@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (eventType.IsNil)
                 {
-                    _eventType = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(mrEx));
+                    _eventType = TypeSymbolWithAnnotations.CreateUnannotated(containingType, new UnsupportedMetadataTypeSymbol(mrEx));
                 }
             }
 
@@ -96,10 +96,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 const int targetSymbolCustomModifierCount = 0;
                 var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
-                var type = TypeSymbolWithAnnotations.Create(typeSymbol);
+
+                // We start without annotation (they will be decoded below)
+                var type = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: containingType, typeSymbol);
+
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformOrEraseNullability(type, handle, moduleSymbol);
+                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
                 _eventType = type;
             }
