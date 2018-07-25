@@ -1079,6 +1079,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return null;
                 }
+                return obsoleteData;
             }
 
             // [Experimental] is always a warning, not an
