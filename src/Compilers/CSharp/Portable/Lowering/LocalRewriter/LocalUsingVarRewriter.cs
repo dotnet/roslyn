@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class LocalUsingVarRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+    internal sealed class LocalUsingVarRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         public static BoundNode Rewrite(BoundStatement statement)
         {
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            ImmutableArray<BoundStatement> statements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
+            ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
             for (int i = 0; i < statements.Length; i++)
             {
                 if (statements[i] is BoundLocalDeclaration localDeclaration)
@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!boundMultiple.LocalDeclarations.IsDefaultOrEmpty && boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing)
                     {
+                        // precedingStatements is freed by LowerBoundMultipleLocalDeclarationUsingVar when the outer block is created
                         ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(i);
                         for (int j = 0; j < i; j++)
                         {
