@@ -60,14 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private class CancellableContentControl : ContentControl
         {
-            private readonly ForegroundThreadAffinitizedObject _foregroundObject;
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
             private readonly ToolTipProvider _toolTipProvider;
 
             public CancellableContentControl(ToolTipProvider toolTipProvider, CustomCommitCompletion item)
             {
-                _foregroundObject = new ForegroundThreadAffinitizedObject(toolTipProvider._threadingContext);
-                Debug.Assert(_foregroundObject.IsForeground());
+                Debug.Assert(toolTipProvider._threadingContext.JoinableTaskContext.IsOnMainThread);
                 _toolTipProvider = toolTipProvider;
 
                 // Set our content to be "..." initially.
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             private void ProcessDescription(Task<CompletionDescription> obj)
             {
-                Debug.Assert(_foregroundObject.IsForeground());
+                Debug.Assert(_toolTipProvider._threadingContext.JoinableTaskContext.IsOnMainThread);
 
                 // If we were canceled, or didn't run all the way to completion, then don't bother
                 // updating the UI.

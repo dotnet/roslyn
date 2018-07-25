@@ -50,9 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
-        /// This is Lazy because it might be created on a background thread when nothing is initialized yet.
         /// </summary>
-        private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject;
+        private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
         private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
@@ -72,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _linkedFileUtilities = exportProvider.GetExportedValue<LinkedFileUtilities>();
 
-            _foregroundObject = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject(_threadingContext));
+            _foregroundObject = new ForegroundThreadAffinitizedObject(_threadingContext);
 
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
@@ -87,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (DeferredState == null)
             {
-                _foregroundObject.Value.AssertIsForeground();
+                ThreadHelper.ThrowIfNotOnUIThread();
                 DeferredState = new DeferredInitializationState(_threadingContext, this, serviceProvider, _linkedFileUtilities);
             }
 
@@ -137,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
-            if (_foregroundObject.IsValueCreated && !_foregroundObject.Value.IsForeground())
+            if (!ThreadHelper.JoinableTaskContext.IsOnMainThread)
             {
                 throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
             }
@@ -201,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal bool IsCPSProject(CodeAnalysis.Project project)
         {
-            _foregroundObject.Value.AssertIsForeground();
+            ThreadHelper.ThrowIfNotOnUIThread();
 
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
@@ -792,7 +791,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            if (!_foregroundObject.Value.IsForeground())
+            if (!ThreadHelper.JoinableTaskContext.IsOnMainThread)
             {
                 throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
@@ -1200,7 +1199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            _foregroundObject.Value.AssertIsForeground();
+            ThreadHelper.ThrowIfNotOnUIThread();
             if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
                 !TryGetHierarchy(referencedProject, out var referencedHierarchy))
             {

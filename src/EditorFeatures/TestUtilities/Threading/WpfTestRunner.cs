@@ -92,12 +92,6 @@ namespace Roslyn.Test.Utilities
 
                 using (await SharedData.TestSerializationGate.DisposableWaitAsync(CancellationToken.None))
                 {
-                    // Sync up FTAO to the context that we are creating here. 
-                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(
-                        Thread.CurrentThread,
-                        new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background)),
-                        ForegroundThreadDataKind.StaUnitTest);
-
                     // Reset our flag ensuring that part of this test actually needs WpfFact
                     s_wpfFactRequirementReason = null;
 
@@ -132,14 +126,34 @@ namespace Roslyn.Test.Utilities
         /// Asserts that the test is running on a <see cref="WpfFactAttribute"/> or <see cref="WpfTheoryAttribute"/>
         /// test method, and records the reason for requiring the use of an STA thread.
         /// </summary>
-        public static void RequireWpfFact(string reason)
+        internal static void RequireWpfFact(string reason)
         {
-            if (ForegroundThreadDataInfo.CurrentForegroundThreadDataKind != ForegroundThreadDataKind.StaUnitTest)
+            if (!(GetEffectiveSynchronizationContext() is DispatcherSynchronizationContext))
             {
-                throw new Exception($"This test requires {nameof(WpfFactAttribute)} because '{reason}' but is missing {nameof(WpfFactAttribute)}. Either the attribute should be changed, or the reason it needs an STA thread audited.");
+                throw new InvalidOperationException($"This test requires {nameof(WpfFactAttribute)} because '{reason}' but is missing {nameof(WpfFactAttribute)}. Either the attribute should be changed, or the reason it needs an STA thread audited.");
             }
 
             s_wpfFactRequirementReason = reason;
+        }
+
+        internal static SynchronizationContext GetEffectiveSynchronizationContext()
+        {
+            if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
+            {
+                SynchronizationContext innerSynchronizationContext = null;
+                asyncTestSyncContext.Send(
+                    _ =>
+                    {
+                        innerSynchronizationContext = SynchronizationContext.Current;
+                    },
+                    null);
+
+                return innerSynchronizationContext;
+            }
+            else
+            {
+                return SynchronizationContext.Current;
+            }
         }
     }
 }

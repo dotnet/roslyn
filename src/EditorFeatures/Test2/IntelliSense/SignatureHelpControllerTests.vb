@@ -2,7 +2,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Windows.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
@@ -23,11 +22,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     <[UseExportProvider]>
     Public Class SignatureHelpControllerTests
-        Public Sub New()
-            ' The controller expects to be on a UI thread
-            TestWorkspace.ResetThreadAffinity()
-        End Sub
-
         <WpfFact>
         Public Sub InvokeSignatureHelpWithoutDocumentShouldNotStartNewSession()
             Dim emptyProvider = New Mock(Of IDocumentProvider)

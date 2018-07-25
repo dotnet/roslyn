@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
+namespace Roslyn.Test.Utilities
 {
     // Based on CoreCLR's implementation of the TaskScheduler they return from TaskScheduler.FromCurrentSynchronizationContext
     internal class SynchronizationContextTaskScheduler : TaskScheduler

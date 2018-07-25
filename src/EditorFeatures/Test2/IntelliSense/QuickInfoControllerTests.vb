@@ -22,10 +22,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class QuickInfoControllerTests
 
-        Public Sub New()
-            TestWorkspace.ResetThreadAffinity()
-        End Sub
-
         <WpfFact>
         Public Sub InvokeQuickInfoWithoutDocumentShouldNotQueryProviders()
             Dim emptyProvider = New Mock(Of IDocumentProvider)

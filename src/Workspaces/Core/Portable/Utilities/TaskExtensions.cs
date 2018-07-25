@@ -8,18 +8,50 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Utilities;
+
+#if DEBUG
+using System.Linq.Expressions;
+#endif
 
 namespace Roslyn.Utilities
 {
     [SuppressMessage("ApiDesign", "CA1068", Justification = "Matching TPL Signatures")]
     internal static partial class TaskExtensions
     {
+#if DEBUG
+        private static readonly Lazy<Func<Thread, bool>> s_isThreadPoolThread = new Lazy<Func<Thread, bool>>(
+            () =>
+            {
+                var property = typeof(Thread).GetTypeInfo().GetDeclaredProperty("IsThreadPoolThread");
+                if (property is null)
+                {
+                    return null;
+                }
+
+                var threadParameter = Expression.Parameter(typeof(Thread), "thread");
+                var expression = Expression.Lambda<Func<Thread, bool>>(
+                    Expression.Call(threadParameter, property.GetMethod),
+                    threadParameter);
+
+                return expression.Compile();
+            });
+
+        private static bool IsThreadPoolThread(Thread thread)
+        {
+            if (s_isThreadPoolThread.Value is null)
+            {
+                // This platform doesn't support IsThreadPoolThread
+                return false;
+            }
+
+            return s_isThreadPoolThread.Value(thread);
+        }
+#endif
+
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)
         {
 #if DEBUG
-            var threadKind = ForegroundThreadDataInfo.CurrentForegroundThreadDataKind;
-            if (threadKind == ForegroundThreadDataKind.Unknown)
+            if (IsThreadPoolThread(Thread.CurrentThread))
             {
                 // If you hit this when running tests then your code is in error.  WaitAndGetResult
                 // should only be called from a foreground thread.  There are a few ways you may 
@@ -35,7 +67,7 @@ namespace Roslyn.Utilities
                 // If you are calling WaitAndGetResult from product code, then that code must
                 // be a foreground thread (i.e. a command handler).  It cannot be from a threadpool
                 // thread *ever*.
-                throw new InvalidOperationException($"{nameof(WaitAndGetResult)} can only be called from a 'foreground' thread.");
+                throw new InvalidOperationException($"{nameof(WaitAndGetResult)} cannot be called from a thread pool thread.");
             }
 #endif
 
