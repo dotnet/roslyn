@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private CommonModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private ModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -508,44 +508,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCharSetAttribute))
             {
                 CharSet charSet = attribute.GetConstructorArgument<CharSet>(0, SpecialType.System_Enum);
-                if (!CommonModuleWellKnownAttributeData.IsValidCharSet(charSet))
+                if (!ModuleWellKnownAttributeData.IsValidCharSet(charSet))
                 {
                     CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
-                    arguments.GetOrCreateData<CommonModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
+                    arguments.GetOrCreateData<ModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutForAssemblyAttribute))
             {
                 DecodeOneNullableOptOutForAssemblyAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics);
             }
-        }
-
-        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
-        {
-            bool hasAnyDiagnostics;
-            CSharpAttributeData boundAttribute;
-
-            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NonNullTypesAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
             {
-                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!boundAttribute.HasErrors)
-                {
-                    bool value = boundAttribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-                    arguments.GetOrCreateData<ModuleEarlyWellKnownAttributeData>().NonNullTypes = value;
-                    if (!hasAnyDiagnostics)
-                    {
-                        return boundAttribute;
-                    }
-                }
-
-                return null;
+                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().NonNullTypes = value;
             }
-
-            return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 
         private void DecodeOneNullableOptOutForAssemblyAttribute(
@@ -618,28 +599,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _lazyNonNullTypes.Value();
                 }
 
-                // We only bind early attributes, as binding all attributes leads to cycles
-                ModuleEarlyWellKnownAttributeData earlyAttributes = ComputeEarlyAttributes();
-
                 // If no module-level attribute was set, then the default is `[NonNullTypes(false)]`
-                bool value = earlyAttributes?.NonNullTypes ?? false;
+                var data = GetDecodedWellKnownAttributeData();
+                bool value = data?.NonNullTypes ?? false;
                 _lazyNonNullTypes = value.ToThreeState();
                 return value;
             }
-        }
-
-        private ModuleEarlyWellKnownAttributeData ComputeEarlyAttributes()
-        {
-            CustomAttributesBag<CSharpAttributeData> bag = null;
-            var mergedAttributes = ((SourceAssemblySymbol)ContainingAssembly).GetAttributeDeclarations();
-            LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), ref bag, earlyDecodingOnly: true);
-            if (bag != null)
-            {
-                Debug.Assert(bag.IsEarlyDecodedWellKnownAttributeDataComputed);
-                return (ModuleEarlyWellKnownAttributeData)bag.EarlyDecodedWellKnownAttributeData;
-            }
-
-            return null;
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
