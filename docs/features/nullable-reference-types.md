@@ -222,10 +222,10 @@ _We may expose some higher-level concepts (to address questions 2 and 3 convenie
 | `int?` / `Nullable<int>` | `true` (_needs confirmation_) |
 | `Nullable<T>` | `true` |
 | `T? where T : class` | `true` |
-| `T? where T : struct` | `true` |
+| `T? where T : struct` | `true` (_needs confirmation_) |
 | `string` | `false` |
 | `int` | `false` |
-| `T where T: class/object` | `false` |
+| `T where T : class/object` | `false` |
 | `T where T : class?` | `false` |
 | `T where T : struct` | `false` |
 | `T` | `false` |
