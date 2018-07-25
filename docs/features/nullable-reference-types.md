@@ -66,6 +66,7 @@ If there is no `[NonNullTypes]` attribute at any containing scope, including the
 [NonNullTypes(true), Nullable(new[] { false, true })] string[] NotNullMaybeNull; // string?[]!
 ```
 `NonNullTypesAttribute` is not synthesized by the compiler. If the attribute is used explicitly in source, the type declaration must be provided explicitly to the compilation. The type should be defined in the framework.
+`NonNullTypesAttribute` can only be used in C# 8.0 compilations (or above).
 
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._
@@ -205,5 +206,26 @@ var y = F1(maybeNullString); // List<string?> or List<string~> ?
 var z = F2(obliviousString); // List<string~>! or List<string!>! ?
 var w = F3(obliviousString); // List<string~>! or List<string?>! ?
 ```
-## Compiler switch
-_Describe behavior when feature is disabled._
+
+## Public APIs
+There are a few questions that an API consumer would want to answer:
+1. should I print a `?` after the type?
+2. can I assign a `null` value to a variable of this type?
+3. could I read a `null` value from a variable of this type?
+
+Two primitive concepts we wish to expose are: `IsAnnotated` and `NonNullTypes`.
+_We may expose some higher-level concepts (to address questions 2 and 3 conveniently) as well._
+
+|  | IsAnnotated |
+|--| ----------- |
+| `string?` | `true` |
+| `int?` / `Nullable<int>` | `true` (_needs confirmation_) |
+| `Nullable<T>` | `true` |
+| `T? where T : class` | `true` |
+| `T? where T : struct` | `true` (_needs confirmation_) |
+| `string` | `false` |
+| `int` | `false` |
+| `T where T : class/object` | `false` |
+| `T where T : class?` | `false` |
+| `T where T : struct` | `false` |
+| `T` | `false` |
