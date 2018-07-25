@@ -7,7 +7,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
     <TargetFramework>net46</TargetFramework>
-    <Nonshipping>true</Nonshipping>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
