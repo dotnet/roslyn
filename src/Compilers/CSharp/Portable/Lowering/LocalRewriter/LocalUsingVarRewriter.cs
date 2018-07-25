@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (statements[i] is BoundMultipleLocalDeclarations boundMultiple)
                 {
                     if (!boundMultiple.LocalDeclarations.IsDefaultOrEmpty && boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing)
-                    { ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(i);
+                    {
+                        ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(i);
                         for (int j = 0; j < i; j++)
                         {
                             precedingStatements.Add(statements[j]);
