@@ -439,6 +439,8 @@ function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packag
         $packArgs = "$packArgs /p:OfficialBuild=true"
     }
 
+    Write-Host $dotnet $packArgs
+
     if ($useConsole) {
         Exec-Console $dotnet $packArgs
     }

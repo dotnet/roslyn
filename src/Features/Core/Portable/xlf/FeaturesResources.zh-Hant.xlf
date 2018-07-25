@@ -22,6 +22,11 @@
         <target state="translated">動作不可為空。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_query">
+        <source>Convert to query</source>
+        <target state="new">Convert to query</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
         <target state="translated">新增至 '{0}'</target>
