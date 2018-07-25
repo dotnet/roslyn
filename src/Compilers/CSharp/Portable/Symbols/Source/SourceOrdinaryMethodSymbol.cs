@@ -1092,20 +1092,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation);
             }
 
-            // PROTOTYPE(NullableReferenceTypes): We should probably not be using NonNullTypes here (ie. in binding)
-            if (((CSharpParseOptions)implementation.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
-                implementation.NonNullTypes)
-            {
-                ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
-                ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArguments).Parameters;
+            ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
+            ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArguments).Parameters;
 
-                for (int i = 0; i < implementationParameters.Length; i++)
+            for (int i = 0; i < implementationParameters.Length; i++)
+            {
+                if (!implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
+                    implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions))
                 {
-                    if (!implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
-                        implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementation.Locations[0], new FormattedSymbol(implementationParameters[i], SymbolDisplayFormat.ShortFormat));
-                    }
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementation.Locations[0], new FormattedSymbol(implementationParameters[i], SymbolDisplayFormat.ShortFormat));
                 }
             }
         }
