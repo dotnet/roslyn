@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IWpfDifferenceViewerFactoryService differenceViewerService)
             : base(threadingContext)
         {
-            Contract.ThrowIfTrue(this.ForegroundKind == ForegroundThreadDataKind.Unknown);
+            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
 
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;

@@ -1,17 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
-using System.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -41,9 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private class VisualStudioTaskScheduler : IWorkspaceTaskScheduler
         {
             private readonly Lazy<WorkspaceTaskQueue> _queue;
-            private readonly WorkspaceTaskSchedulerFactory _factory;
+            private readonly VisualStudioTaskSchedulerFactory _factory;
 
-            public VisualStudioTaskScheduler(WorkspaceTaskSchedulerFactory factory)
+            public VisualStudioTaskScheduler(VisualStudioTaskSchedulerFactory factory)
             {
                 _factory = factory;
                 _queue = new Lazy<WorkspaceTaskQueue>(CreateQueue);
@@ -52,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private WorkspaceTaskQueue CreateQueue()
             {
                 // At this point, we have to know what the UI thread is.
-                Contract.ThrowIfTrue(ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+                Contract.ThrowIfFalse(_factory._threadingContext.HasMainThread);
                 return new WorkspaceTaskQueue(_factory, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
             }
 

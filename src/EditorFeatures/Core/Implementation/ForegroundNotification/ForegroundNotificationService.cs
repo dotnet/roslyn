@@ -7,12 +7,11 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 {
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _lastProcessedTimeInMS = Environment.TickCount;
 
             // Only start the background processing task if foreground work is allowed
-            if (ForegroundKind != ForegroundThreadDataKind.Unknown)
+            if (threadingContext.HasMainThread)
             {
                 Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
             }
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
 
             // Assert we have some kind of foreground thread
-            Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
 
             var current = Environment.TickCount;
 
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
 
             // Assert we have some kind of foreground thread
-            Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
 
             var current = Environment.TickCount;
 

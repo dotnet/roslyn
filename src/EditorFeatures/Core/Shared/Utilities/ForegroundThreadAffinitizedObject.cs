@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             if (assertIsForeground)
             {
                 // Assert we have some kind of foreground thread
-                Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+                Contract.ThrowIfFalse(threadingContext.HasMainThread);
 
                 AssertIsForeground();
             }
