@@ -348,6 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_MissingNonNullTypesContext:
+                case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                     return 1;
                 default:
                     return 0;

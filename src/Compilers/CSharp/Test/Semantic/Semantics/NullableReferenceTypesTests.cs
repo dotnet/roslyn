@@ -161,7 +161,6 @@ class C
         }
 
         [Fact]
-        public void SuppressionOperatorWithoutNonNullTypesContext()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -185,6 +184,70 @@ class C
                 // (4,12): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     string x = null!;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x").WithLocation(4, 12)
+                );
+        }
+
+        [Fact]
+        public void TestAnnotationWithoutNonNullTypes()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static string? field = M2(out string? x1);
+    static string? P
+    {
+        get
+        {
+            string? x2 = null;
+            return x2;
+        }
+    }
+    static string? M()
+    {
+        string? x3 = null;
+        return x3;
+    }
+    static string M2(out string? x4) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): we need to warn on misuse of annotation every place a type could appear (not just in executable code)
+            c.VerifyDiagnostics(
+                // (4,41): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //     static string? field = M2(out string? x1);
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 41),
+                // (9,19): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //             string? x2 = null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 19),
+                // (15,15): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         string? x3 = null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 15)
+                );
+        }
+
+        [Fact]
+        public void TestAnnotationWithoutNonNullTypes_GenericType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C<T>
+{
+    T? M(T? x1) { T? y1 = x1; return y1; }
+}
+class D<T> where T : class
+{
+    T? M(T? x2) { T? y2 = x2; return y2; }
+}
+class E<T> where T : struct
+{
+    T? M(T? x3) { T? y3 = x3; return y3; }
+}
+", parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): we need to warn on misuse of annotation every place a type could appear (not just in executable code)
+            c.VerifyDiagnostics(
+                // (8,20): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //     T? M(T? x2) { T? y2 = x2; return y2; }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 20)
                 );
         }
 
@@ -2340,6 +2403,12 @@ class C
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
+                // (14,24): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         foreach (string? ns in NCollection())
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 24),
+                // (34,24): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         foreach (string? ns in FalseNCollection())
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(34, 24),
                 // (16,13): warning CS8602: Possible dereference of a null reference.
                 //             ns /*T:string?*/ .ToString(); // warn 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns").WithLocation(16, 13),
@@ -2501,6 +2570,12 @@ class C
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
+                // (13,24): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         NOut(out string? ns2);
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 24),
+                // (21,29): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         FalseNOut(out string? ns3);
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 29),
                 // (14,9): warning CS8602: Possible dereference of a null reference.
                 //         ns2 /*T:string?*/ .ToString(); // warn 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns2").WithLocation(14, 9),
@@ -2669,6 +2744,12 @@ public class Base
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
+                // (13,15): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         string? ns2 = NMethod();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 15),
+                // (21,15): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         string? ns3 = FalseNMethod();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 15),
                 // (14,9): warning CS8602: Possible dereference of a null reference.
                 //         ns2 /*T:string?*/ .ToString(); // warn 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns2").WithLocation(14, 9),
@@ -4935,7 +5016,13 @@ class B : A
             compilation.VerifyDiagnostics(
                 // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override string?[] M1()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31),
+                // (20,26): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         return new string?[] {};
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 26),
+                // (26,21): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(26, 21)
                 );
         }
 
@@ -5105,7 +5192,13 @@ class B : IA
             compilation.VerifyDiagnostics(
                 // (11,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
                 //     string?[] IA.M1()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(11, 18)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(11, 18),
+                // (13,26): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         return new string?[] {};
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
+                // (19,21): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 21)
                 );
         }
 
@@ -8187,7 +8280,7 @@ public class C
         [Fact]
         public void MethodWithOutNullableParameter_AfterNotNullWhenTrue()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(new[] { @"
 using System.Runtime.CompilerServices;
 public class C
 {
@@ -8209,7 +8302,7 @@ public class C
     }
     public static bool M([NotNullWhenTrue] string? s, out string? s2) => throw null;
 }
-" + NotNullWhenTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition, NotNullWhenTrueAttributeDefinition }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (10,13): warning CS8602: Possible dereference of a null reference.
@@ -8233,7 +8326,7 @@ public class C
         [Fact]
         public void MethodWithOutNullableParameter_AfterEnsuresNotNull()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(new[] { @"
 using System.Runtime.CompilerServices;
 public class C
 {
@@ -8255,7 +8348,7 @@ public class C
     }
     public static bool M([EnsuresNotNull] string? s, out string? s2) => throw null;
 }
-" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition, EnsuresNotNullAttributeDefinition }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (10,13): warning CS8602: Possible dereference of a null reference.
@@ -9293,7 +9386,7 @@ public class C
         [Fact]
         public void NotNullWhenTrue_Simple()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(new[] { @"
 using System.Runtime.CompilerServices;
 public class C
 {
@@ -9312,7 +9405,7 @@ public class C
     }
     public static bool TryGetValue(string key, [NotNullWhenTrue] out string? value) => throw null;
 }
-" + NotNullWhenTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition, NotNullWhenTrueAttributeDefinition }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (13,13): warning CS8602: Possible dereference of a null reference.
@@ -9332,7 +9425,7 @@ public class C
         {
             // When both NotNullWhenTrue and NotNullWhenFalse are applied, it's the same as EnsuresNotNull,
             // even if the method doesn't return bool.
-            CSharpCompilation c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(new[] { @"
 using System.Runtime.CompilerServices;
 public class C
 {
@@ -9343,7 +9436,7 @@ public class C
     }
     public static void M([NotNullWhenTrue, NotNullWhenFalse] out string? value) => throw null;
 }
-" + NotNullWhenTrueAttributeDefinition + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition, NotNullWhenTrueAttributeDefinition, NotNullWhenFalseAttributeDefinition } , parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics();
 
@@ -12261,7 +12354,7 @@ class C
         [Fact]
         public void ConditionalBranching_14()
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateCompilation(new[] { @"
 class C
 {
     C? _cField = null;
@@ -12351,7 +12444,7 @@ class C
         }
     }
 }
-", parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (17,13): warning CS8602: Possible dereference of a null reference.
@@ -12786,7 +12879,7 @@ class C
         [Fact]
         public void ConditionalBranching_IsConstantPattern_NullConstant()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(new[] { @"
 class C
 {
     void Test(object? x)
@@ -12802,7 +12895,7 @@ class C
         }
     }
 }
-", parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -36981,7 +37074,7 @@ class B4<T> : A<T?, T?>, I<T?, T?>
         o = new C<object>(); // 2
     }
 }";
-            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,19): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //         o = new C<object?>(); // 1
@@ -37015,7 +37108,7 @@ class B4<T> : A<T?, T?>, I<T?, T?>
         o = new C<object, object>(); // 4
     }
 }";
-            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, new[] { ref0 }, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes
             // drops the top-level nullability when emitting the `T?` constraint. See also
             // AttributeTests_Nullable.EmitAttribute_Constraint_03.

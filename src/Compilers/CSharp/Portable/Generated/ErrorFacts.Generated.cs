@@ -204,6 +204,7 @@
                 case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                 case ErrorCode.WRN_MissingNonNullTypesContext:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
+                case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                     return true;
                 default:
                     return false;
