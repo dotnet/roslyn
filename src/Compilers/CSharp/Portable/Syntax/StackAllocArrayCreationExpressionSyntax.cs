@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public partial class SyntaxFactory
     {
         public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, TypeSyntax type)
-            =>  StackAllocArrayCreationExpression(stackAllocKeyword, type, default(InitializerExpressionSyntax));
+            => StackAllocArrayCreationExpression(stackAllocKeyword, type, default(InitializerExpressionSyntax));
 
         public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
             => LocalDeclarationStatement(default(SyntaxToken), modifiers, declaration, semicolonToken);
