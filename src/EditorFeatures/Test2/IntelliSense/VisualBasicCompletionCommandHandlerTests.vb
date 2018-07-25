@@ -248,7 +248,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27655"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestReturn1() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <document>
@@ -569,7 +569,7 @@ End Class]]></Document>)
         End Function
 
         <WorkItem(543496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543496")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27655"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNumericLiteralWithNoMatch() As Task
             Using state = TestState.CreateVisualBasicTestState(
                   <Document>
@@ -598,7 +598,7 @@ End Module</Document>.NormalizedValue, state.GetDocumentText())
         End Function
 
         <WorkItem(543496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543496")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27655"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNumericLiteralWithPartialMatch() As Task
             Using state = TestState.CreateVisualBasicTestState(
                   <Document>
@@ -629,7 +629,7 @@ End Module</Document>.NormalizedValue, state.GetDocumentText())
         End Function
 
         <WorkItem(543496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543496")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27655"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNumbersAfterLetters() As Task
             Using state = TestState.CreateVisualBasicTestState(
                   <Document>
@@ -1679,7 +1679,7 @@ End Module</Document>)
         End Function
 
         <WorkItem(792569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792569")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27655"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitOnEnter() As Task
             Dim expected = <Document>Module M
     Sub Main()

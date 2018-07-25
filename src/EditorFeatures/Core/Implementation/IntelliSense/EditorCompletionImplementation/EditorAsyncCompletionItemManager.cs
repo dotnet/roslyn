@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             {
                 if (!IsAfterDot(data.Snapshot, session.ApplicableToSpan))
                 {
+                    session.Dismiss();
                     return Task.FromResult(new EditorCompletion.FilteredCompletionModel(ImmutableArray<EditorCompletion.CompletionItemWithHighlight>.Empty, 0));
                 }
             }
