@@ -1177,6 +1177,10 @@
   <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
   </Node>
+  <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="Index" Type="int"/>
+  </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
@@ -1776,6 +1780,12 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression" Null="allow"/>
+  </Node>
+
+  <Node Name="BoundITuplePattern" Base="BoundPattern">
+    <Field Name="getLengthMethod" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="getItemMethod" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="disallow"/>
   </Node>
 
   <!-- A subpattern, either in a positional or property part of a recursive pattern. -->

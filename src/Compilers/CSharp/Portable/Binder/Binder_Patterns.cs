@@ -479,7 +479,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }
-
         }
 
         TypeSymbol BindRecursivePatternType(TypeSyntax typeSyntax, TypeSymbol inputType, DiagnosticBag diagnostics, ref bool hasErrors, out BoundTypeExpression boundDeclType)
@@ -513,6 +512,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSyntax typeSyntax = node.Type;
             TypeSymbol declType = BindRecursivePatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
 
+            if (ShouldUseITuple(node, declType, diagnostics, out NamedTypeSymbol iTupleType, out MethodSymbol iTupleGetLength, out MethodSymbol iTupleGetItem))
+            {
+                return BindITuplePattern(node, inputType, iTupleType, iTupleGetLength, iTupleGetItem, hasErrors, diagnostics);
+            }
+
             MethodSymbol deconstructMethod = null;
             ImmutableArray<BoundSubpattern> deconstructionSubpatterns = default;
             if (node.DeconstructionPatternClause != null)
@@ -530,6 +534,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
+        }
+
+        private BoundPattern BindITuplePattern(
+            RecursivePatternSyntax node,
+            TypeSymbol inputType,
+            NamedTypeSymbol iTupleType,
+            MethodSymbol iTupleGetLength,
+            MethodSymbol iTupleGetItem,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
+        {
+            var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
+            var deconstruction = node.DeconstructionPatternClause;
+            var patterns = ArrayBuilder<BoundSubpattern>.GetInstance(deconstruction.Subpatterns.Count);
+            for (int i = 0; i < deconstruction.Subpatterns.Count; i++)
+            {
+                var subpatternSyntax = deconstruction.Subpatterns[i];
+                TypeSymbol elementType = objectType;
+                if (subpatternSyntax.NameColon != null)
+                {
+                    // error: name not permitted in ITuple deconstruction
+                    diagnostics.Add(ErrorCode.ERR_ArgumentNameInITuplePattern, subpatternSyntax.NameColon.Location);
+                }
+
+                var boundSubpattern = new BoundSubpattern(
+                    subpatternSyntax,
+                    null,
+                    BindPattern(subpatternSyntax.Pattern, elementType, false, diagnostics));
+                patterns.Add(boundSubpattern);
+            }
+
+            return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, patterns.ToImmutableAndFree(), inputType, hasErrors);
         }
 
         private ImmutableArray<BoundSubpattern> BindDeconstructionPatternClause(
@@ -569,55 +605,161 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BindPattern(subpatternSyntax.Pattern, elementType, isError, diagnostics));
                     patterns.Add(boundSubpattern);
                 }
-            }
-            else
-            {
-                // It is not a tuple type. Seek an appropriate Deconstruct method.
-                var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
-                BoundExpression deconstruct = MakeDeconstructInvocationExpression(
-                    node.Subpatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
-                deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
-                if (deconstructMethod is null)
-                {
-                    hasErrors = true;
-                }
 
-                int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0;
-                for (int i = 0; i < node.Subpatterns.Count; i++)
+                return patterns.ToImmutableAndFree();
+            }
+
+            // It is not a tuple type or ITuple. Seek an appropriate Deconstruct method.
+            var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
+            BoundExpression deconstruct = MakeDeconstructInvocationExpression(
+                node.Subpatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
+            deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
+            if (deconstructMethod is null)
+            {
+                hasErrors = true;
+            }
+
+            int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0;
+            for (int i = 0; i < node.Subpatterns.Count; i++)
+            {
+                var subPattern = node.Subpatterns[i];
+                bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
+                TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
+                ParameterSymbol parameter = null;
+                if (subPattern.NameColon != null && !isError)
                 {
-                    var subPattern = node.Subpatterns[i];
-                    bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
-                    TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
-                    ParameterSymbol parameter = null;
-                    if (subPattern.NameColon != null && !isError)
+                    // Check that the given name is the same as the corresponding parameter of the method.
+                    string name = subPattern.NameColon.Name.Identifier.ValueText;
+                    int parameterIndex = i + skippedExtensionParameters;
+                    if (parameterIndex < deconstructMethod.ParameterCount)
                     {
-                        // Check that the given name is the same as the corresponding parameter of the method.
-                        string name = subPattern.NameColon.Name.Identifier.ValueText;
-                        int parameterIndex = i + skippedExtensionParameters;
-                        if (parameterIndex < deconstructMethod.ParameterCount)
+                        parameter = deconstructMethod.Parameters[parameterIndex];
+                        string parameterName = parameter.Name;
+                        if (name != parameterName)
                         {
-                            parameter = deconstructMethod.Parameters[parameterIndex];
-                            string parameterName = parameter.Name;
-                            if (name != parameterName)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
-                            }
-                        }
-                        else
-                        {
-                            Debug.Assert(deconstructMethod is ErrorMethodSymbol);
+                            diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
                         }
                     }
-                    BoundSubpattern boundSubpattern = new BoundSubpattern(
-                        subPattern,
-                        parameter,
-                        BindPattern(subPattern.Pattern, elementType, isError, diagnostics)
-                        );
-                    patterns.Add(boundSubpattern);
+                    else
+                    {
+                        Debug.Assert(deconstructMethod is ErrorMethodSymbol);
+                    }
                 }
+                var boundSubpattern = new BoundSubpattern(
+                    subPattern,
+                    parameter,
+                    BindPattern(subPattern.Pattern, elementType, isError, diagnostics)
+                    );
+                patterns.Add(boundSubpattern);
             }
 
             return patterns.ToImmutableAndFree();
+        }
+
+        private bool ShouldUseITuple(
+            RecursivePatternSyntax node,
+            TypeSymbol declType,
+            DiagnosticBag diagnostics,
+            out NamedTypeSymbol iTupleType,
+            out MethodSymbol iTupleGetLength,
+            out MethodSymbol iTupleGetItem)
+        {
+            iTupleType = null;
+            iTupleGetLength = iTupleGetItem = null;
+            if (declType.IsTupleType)
+            {
+                return false;
+            }
+
+            if (node.Type != null)
+            {
+                // ITuple matching only applies if no type is given explicitly.
+                return false;
+            }
+
+            if (node.PropertyPatternClause != null)
+            {
+                // ITuple matching only applies if there is no property pattern part.
+                return false;
+            }
+
+            if (node.DeconstructionPatternClause == null)
+            {
+                // ITuple matching only applies if there is a deconstruction pattern part.
+                return false;
+            }
+
+            if (node.Designation != null)
+            {
+                // ITuple matching only applies if there is no designation (what type would the designation be?)
+                return false;
+            }
+
+            if (((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+            {
+                return false;
+            }
+
+            iTupleType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ITuple);
+            if (iTupleType.TypeKind != TypeKind.Interface)
+            {
+                // When compiling to a platform that lacks the interface ITuple (i.e. it is an error type), we simply do not match using it.
+                return false;
+            }
+
+            // Resolution 2017-11-20 LDM: permit matching via ITuple only for `object`, `ITuple`, and types that are
+            // declared to implement `ITuple` but contain no `Deconstruct` methods.
+            if (declType != (object)Compilation.GetSpecialType(SpecialType.System_Object) &&
+                declType != (object)Compilation.DynamicType &&
+                declType != (object)iTupleType &&
+                !hasBaseInterface(declType, iTupleType))
+            {
+                return false;
+            }
+
+            // If there are any accessible Deconstruct method members, then we do not permit ITuple
+            var lookupResult = LookupResult.GetInstance();
+            try
+            {
+                const LookupOptions options = LookupOptions.MustBeInvocableIfMember | LookupOptions.AllMethodsOnArityZero;
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                this.LookupMembersWithFallback(lookupResult, declType, WellKnownMemberNames.DeconstructMethodName, arity: 0, ref useSiteDiagnostics, basesBeingResolved: null, options: options);
+                diagnostics.Add(node, useSiteDiagnostics);
+                if (lookupResult.IsMultiViable)
+                {
+                    foreach (var symbol in lookupResult.Symbols)
+                    {
+                        if (symbol.Kind == SymbolKind.Method)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                lookupResult.Free();
+            }
+
+            // Ensure ITuple has a Length and indexer
+            iTupleGetLength = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length);
+            iTupleGetItem = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item);
+            if (iTupleGetLength is null || iTupleGetItem is null)
+            {
+                // This might not result in an ideal diagnostic
+                return false;
+            }
+
+            // passed all the filters; permit using ITuple
+            return true;
+
+            bool hasBaseInterface(TypeSymbol type, NamedTypeSymbol possibleBaseInterface)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var result = Compilation.Conversions.ClassifyBuiltInConversion(type, possibleBaseInterface, ref useSiteDiagnostics).IsImplicit;
+                diagnostics.Add(node, useSiteDiagnostics);
+                return result;
+            }
         }
 
         /// <summary>

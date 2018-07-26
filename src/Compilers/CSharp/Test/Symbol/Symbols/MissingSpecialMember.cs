@@ -570,6 +570,9 @@ namespace System
                     case WellKnownType.ExtSentinel:
                         // Not a real type
                         continue;
+                    case WellKnownType.System_Runtime_CompilerServices_ITuple:
+                        // Not available on any platform profiles yet
+                        continue;
                 }
 
                 switch (wkt)
@@ -874,6 +877,8 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
+                    case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
                         // Not always available.
                         continue;
                 }

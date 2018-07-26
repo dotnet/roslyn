@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundDagEvaluation
     {
         public override bool Equals(object obj) => obj is BoundDagEvaluation other && this.Equals(other);
-        public bool Equals(BoundDagEvaluation other)
+        public virtual bool Equals(BoundDagEvaluation other)
         {
             return other != (object)null && this.Kind == other.Kind && this.Input.Equals(other.Input) && this.Symbol == other.Symbol;
         }
@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagPropertyEvaluation e: return e.Property;
                     case BoundDagTypeEvaluation e: return e.Type;
                     case BoundDagDeconstructEvaluation e: return e.DeconstructMethod;
+                    case BoundDagIndexEvaluation e: return e.Property;
                     default: throw ExceptionUtilities.UnexpectedValue(this.Kind);
                 }
             }
@@ -31,11 +32,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public static bool operator ==(BoundDagEvaluation left, BoundDagEvaluation right)
         {
-            return (left == (object)null) ? right == (object)null : left.Equals(right);
+            return (left is null) ? right is null : left.Equals(right);
         }
         public static bool operator !=(BoundDagEvaluation left, BoundDagEvaluation right)
         {
             return !(left == right);
+        }
+    }
+
+    partial class BoundDagIndexEvaluation
+    {
+        public override bool Equals(object obj) => obj is BoundDagIndexEvaluation other && this.Equals(other);
+        public override bool Equals(BoundDagEvaluation obj) => obj is BoundDagIndexEvaluation other && this.Equals(other);
+        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
+        public bool Equals(BoundDagIndexEvaluation other)
+        {
+            return base.Equals(other) && this.Index == other.Index;
         }
     }
 }

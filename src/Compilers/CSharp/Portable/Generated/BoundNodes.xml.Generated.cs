@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagTypeEvaluation,
         DagFieldEvaluation,
         DagPropertyEvaluation,
+        DagIndexEvaluation,
         SwitchSection,
         PatternSwitchLabel,
         SequencePointExpression,
@@ -183,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DiscardPattern,
         DeclarationPattern,
         RecursivePattern,
+        ITuplePattern,
         Subpattern,
         DiscardExpression,
         ThrowExpression,
@@ -4515,6 +4517,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundDagIndexEvaluation : BoundDagEvaluation
+    {
+        public BoundDagIndexEvaluation(SyntaxNode syntax, PropertySymbol property, int index, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagIndexEvaluation, syntax, input, hasErrors || input.HasErrors())
+        {
+
+            Debug.Assert(property != null, "Field 'property' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(input != null, "Field 'input' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Property = property;
+            this.Index = index;
+        }
+
+
+        public PropertySymbol Property { get; }
+
+        public int Index { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitDagIndexEvaluation(this);
+        }
+
+        public BoundDagIndexEvaluation Update(PropertySymbol property, int index, BoundDagTemp input)
+        {
+            if (property != this.Property || index != this.Index || input != this.Input)
+            {
+                var result = new BoundDagIndexEvaluation(this.Syntax, property, index, input, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundSwitchSection : BoundStatementList
     {
         public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundPatternSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
@@ -6786,6 +6823,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundITuplePattern : BoundPattern
+    {
+        public BoundITuplePattern(SyntaxNode syntax, MethodSymbol getLengthMethod, MethodSymbol getItemMethod, ImmutableArray<BoundSubpattern> deconstruction, TypeSymbol inputType, bool hasErrors = false)
+            : base(BoundKind.ITuplePattern, syntax, inputType, hasErrors || deconstruction.HasErrors())
+        {
+
+            Debug.Assert(getLengthMethod != null, "Field 'getLengthMethod' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(getItemMethod != null, "Field 'getItemMethod' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!deconstruction.IsDefault, "Field 'deconstruction' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.getLengthMethod = getLengthMethod;
+            this.getItemMethod = getItemMethod;
+            this.Deconstruction = deconstruction;
+        }
+
+
+        public MethodSymbol getLengthMethod { get; }
+
+        public MethodSymbol getItemMethod { get; }
+
+        public ImmutableArray<BoundSubpattern> Deconstruction { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitITuplePattern(this);
+        }
+
+        public BoundITuplePattern Update(MethodSymbol getLengthMethod, MethodSymbol getItemMethod, ImmutableArray<BoundSubpattern> deconstruction, TypeSymbol inputType)
+        {
+            if (getLengthMethod != this.getLengthMethod || getItemMethod != this.getItemMethod || deconstruction != this.Deconstruction || inputType != this.InputType)
+            {
+                var result = new BoundITuplePattern(this.Syntax, getLengthMethod, getItemMethod, deconstruction, inputType, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundSubpattern : BoundNode
     {
         public BoundSubpattern(SyntaxNode syntax, Symbol symbol, BoundPattern pattern, bool hasErrors = false)
@@ -7279,6 +7356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagFieldEvaluation(node as BoundDagFieldEvaluation, arg);
                 case BoundKind.DagPropertyEvaluation: 
                     return VisitDagPropertyEvaluation(node as BoundDagPropertyEvaluation, arg);
+                case BoundKind.DagIndexEvaluation: 
+                    return VisitDagIndexEvaluation(node as BoundDagIndexEvaluation, arg);
                 case BoundKind.SwitchSection: 
                     return VisitSwitchSection(node as BoundSwitchSection, arg);
                 case BoundKind.PatternSwitchLabel: 
@@ -7387,6 +7466,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeclarationPattern(node as BoundDeclarationPattern, arg);
                 case BoundKind.RecursivePattern: 
                     return VisitRecursivePattern(node as BoundRecursivePattern, arg);
+                case BoundKind.ITuplePattern: 
+                    return VisitITuplePattern(node as BoundITuplePattern, arg);
                 case BoundKind.Subpattern: 
                     return VisitSubpattern(node as BoundSubpattern, arg);
                 case BoundKind.DiscardExpression: 
@@ -7847,6 +7928,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
+        public virtual R VisitDagIndexEvaluation(BoundDagIndexEvaluation node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
         public virtual R VisitSwitchSection(BoundSwitchSection node, A arg)
         {
             return this.DefaultVisit(node, arg);
@@ -8060,6 +8145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitRecursivePattern(BoundRecursivePattern node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitITuplePattern(BoundITuplePattern node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -8535,6 +8624,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
+        public virtual BoundNode VisitDagIndexEvaluation(BoundDagIndexEvaluation node)
+        {
+            return this.DefaultVisit(node);
+        }
         public virtual BoundNode VisitSwitchSection(BoundSwitchSection node)
         {
             return this.DefaultVisit(node);
@@ -8748,6 +8841,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitRecursivePattern(BoundRecursivePattern node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
             return this.DefaultVisit(node);
         }
@@ -9348,6 +9445,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Input);
             return null;
         }
+        public override BoundNode VisitDagIndexEvaluation(BoundDagIndexEvaluation node)
+        {
+            this.Visit(node.Input);
+            return null;
+        }
         public override BoundNode VisitSwitchSection(BoundSwitchSection node)
         {
             this.VisitList(node.SwitchLabels);
@@ -9638,6 +9740,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.Deconstruction);
             this.VisitList(node.Properties);
             this.Visit(node.VariableAccess);
+            return null;
+        }
+        public override BoundNode VisitITuplePattern(BoundITuplePattern node)
+        {
+            this.VisitList(node.Deconstruction);
             return null;
         }
         public override BoundNode VisitSubpattern(BoundSubpattern node)
@@ -10310,6 +10417,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(node.Property, input);
         }
+        public override BoundNode VisitDagIndexEvaluation(BoundDagIndexEvaluation node)
+        {
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(node.Property, node.Index, input);
+        }
         public override BoundNode VisitSwitchSection(BoundSwitchSection node)
         {
             ImmutableArray<BoundPatternSwitchLabel> switchLabels = (ImmutableArray<BoundPatternSwitchLabel>)this.VisitList(node.SwitchLabels);
@@ -10658,6 +10770,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression variableAccess = (BoundExpression)this.Visit(node.VariableAccess);
             TypeSymbol inputType = this.VisitType(node.InputType);
             return node.Update(declaredType, node.DeconstructMethod, deconstruction, properties, node.Variable, variableAccess, inputType);
+        }
+        public override BoundNode VisitITuplePattern(BoundITuplePattern node)
+        {
+            ImmutableArray<BoundSubpattern> deconstruction = (ImmutableArray<BoundSubpattern>)this.VisitList(node.Deconstruction);
+            TypeSymbol inputType = this.VisitType(node.InputType);
+            return node.Update(node.getLengthMethod, node.getItemMethod, deconstruction, inputType);
         }
         public override BoundNode VisitSubpattern(BoundSubpattern node)
         {
@@ -11800,6 +11918,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
+        public override TreeDumperNode VisitDagIndexEvaluation(BoundDagIndexEvaluation node, object arg)
+        {
+            return new TreeDumperNode("dagIndexEvaluation", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("property", node.Property, null),
+                new TreeDumperNode("index", node.Index, null),
+                new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            }
+            );
+        }
         public override TreeDumperNode VisitSwitchSection(BoundSwitchSection node, object arg)
         {
             return new TreeDumperNode("switchSection", null, new TreeDumperNode[]
@@ -12414,6 +12542,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("properties", null, node.Properties.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.Properties select Visit(x, null)),
                 new TreeDumperNode("variable", node.Variable, null),
                 new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
+                new TreeDumperNode("inputType", node.InputType, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitITuplePattern(BoundITuplePattern node, object arg)
+        {
+            return new TreeDumperNode("iTuplePattern", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("getLengthMethod", node.getLengthMethod, null),
+                new TreeDumperNode("getItemMethod", node.getItemMethod, null),
+                new TreeDumperNode("deconstruction", null, from x in node.Deconstruction select Visit(x, null)),
                 new TreeDumperNode("inputType", node.InputType, null)
             }
             );
