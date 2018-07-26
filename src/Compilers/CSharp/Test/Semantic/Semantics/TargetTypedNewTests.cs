@@ -896,7 +896,7 @@ class Program
         }
 
         [Fact]
-        public void TestOverloadResolution()
+        public void TestOverloadResolution1()
         {
             var comp = CreateCompilation(@"
 class C
@@ -923,6 +923,94 @@ class Program
                 //         M(new(1), 1);
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new(1)").WithArguments("D", "1").WithLocation(18, 11)
                 );
+        }
+
+        [Fact]
+        public void TestOverloadResolution2()
+        {
+            var comp = CreateCompilation(@"
+using System;
+class A
+{
+    public A(int i) {}
+}
+class B : A
+{
+    public B(int i) : base(i) {}
+}
+
+class Program
+{
+    static void M(A a) => Console.Write(""A"");
+    static void M(B a) => Console.Write(""B"");
+
+    public static void Main()
+    {
+        M(new(43));
+    }
+}
+", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "B");
+        }
+
+        [Fact]
+        public void TestOverloadResolution3()
+        {
+            var comp = CreateCompilation(@"
+using System;
+class A
+{
+    public A(int i) {}
+}
+class B : A
+{
+    public B(int i) : base(i) {}
+}
+
+class Program
+{
+    static void M(A a) => Console.Write(""A"");
+    static void M(B a) => Console.Write(""B"");
+
+    public static void Main()
+    {
+        M(new(Missing()));
+    }
+}
+", options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (19,15): error CS0103: The name 'Missing' does not exist in the current context
+                //         M(new(Missing()));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(19, 15));
+        }
+
+        [Fact]
+        public void TestOverloadResolution4()
+        {
+            var comp = CreateCompilation(@"
+class A
+{
+    public A(int i) {}
+}
+class B : A
+{
+    public B(int i) : base(i) {}
+}
+
+class Program
+{
+    public static void Main()
+    {
+        M(new(Missing()));
+    }
+}
+", options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (15,9): error CS0103: The name 'M' does not exist in the current context
+                //         M(new(Missing()));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(15, 9),
+                // (15,15): error CS0103: The name 'Missing' does not exist in the current context
+                //         M(new(Missing()));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(15, 15));
         }
 
         [Fact]

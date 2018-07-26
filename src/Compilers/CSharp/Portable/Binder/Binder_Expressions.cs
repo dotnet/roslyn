@@ -4652,9 +4652,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
-                ConstantValue constantValueOpt = (boundInitializerOpt == null && method.IsDefaultValueTypeConstructor()) ?
-                    FoldParameterlessValueTypeConstructor(type) :
-                    null;
+                ConstantValue constantValueOpt = (boundInitializerOpt == null && !forTargetTypedNew && method.IsDefaultValueTypeConstructor())
+                    ? FoldParameterlessValueTypeConstructor(type)
+                    : null;
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
