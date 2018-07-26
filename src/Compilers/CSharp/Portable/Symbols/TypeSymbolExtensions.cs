@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TypeSymbol VisitType<T>(
             // PROTOTYPE(NullableReferenceTypes): If TypeSymbolWithAnnotations
             // is a struct, use a single type argument and a single predicate.
-            TypeSymbolWithAnnotations typeWithAnnotationsOpt,
+            this TypeSymbolWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt,
             Func<TypeSymbolWithAnnotations, T, bool, bool> typeWithAnnotationsPredicateOpt,
             Func<TypeSymbol, T, bool, bool> typePredicateOpt,
@@ -1610,7 +1610,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Add(attr);
                 }
             }
-            if (type.ContainsNullableReferenceTypes(location: null, diagnostics: null))
+            // PROTOTYPE(NullableReferenceTypes): type.ReportAnnotatedUnconstrainedTypeParameterIfAny()
+            if (type.ContainsNullableReferenceTypes())
             {
                 SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(type.TypeSymbol, type);
                 if (attr != null)

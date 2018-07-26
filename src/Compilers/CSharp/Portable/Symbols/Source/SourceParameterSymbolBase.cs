@@ -96,8 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Pass location and diagnostics to report error.
-            if (type.ContainsNullableReferenceTypes(location: null, diagnostics: null))
+            // PROTOTYPE(NullableReferenceTypes): type.ReportAnnotatedUnconstrainedTypeParameterIfAny()
+
+            if (type.ContainsNullableReferenceTypes())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }

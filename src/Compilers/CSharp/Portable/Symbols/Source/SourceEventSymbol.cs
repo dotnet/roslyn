@@ -320,8 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Pass location and diagnostics to report error.
-            if (type.ContainsNullableReferenceTypes(location: null, diagnostics: null))
+            // PROTOTYPE(NullableReferenceTypes): type.ReportAnnotatedUnconstrainedTypeParameterIfAny()
+
+            if (type.ContainsNullableReferenceTypes())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
@@ -683,7 +684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckModifiersAndType(diagnostics);
             this.Type.CheckAllConstraints(conversions, location, diagnostics);
 
-            if (this.Type.ContainsNullableReferenceTypes(location, diagnostics))
+            this.Type.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
+            if (this.Type.ContainsNullableReferenceTypes())
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }

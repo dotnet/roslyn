@@ -622,9 +622,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool IsManagedType { get; }
 
-        internal bool ContainsNullableReferenceTypes(Location location, DiagnosticBag diagnostics)
+        internal bool ContainsNullableReferenceTypes()
         {
-            return TypeSymbolWithAnnotations.ContainsNullableReferenceTypes(typeWithAnnotationsOpt: null, typeOpt: this, location, diagnostics);
+            return TypeSymbolWithAnnotations.ContainsNullableReferenceTypes(typeWithAnnotationsOpt: null, typeOpt: this);
+        }
+
+        internal bool ContainsAnnotatedUnconstrainedTypeParameter()
+        {
+            return TypeSymbolWithAnnotations.ContainsAnnotatedUnconstrainedTypeParameter(typeWithAnnotationsOpt: null, typeOpt: this);
         }
 
         internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);

@@ -416,54 +416,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
-        public bool ContainsNullableReferenceTypes(Location location, DiagnosticBag diagnostics)
+        /// <summary>
+        /// Returns true if the type contains an annotated reference type.
+        /// </summary>
+        public bool ContainsNullableReferenceTypes()
         {
-            return ContainsNullableReferenceTypes(typeWithAnnotationsOpt: this, typeOpt: null, location, diagnostics);
+            return ContainsNullableReferenceTypes(this, typeOpt: null);
         }
 
-        /// <summary>
-        /// Returns true if the type contains an annotated type.
-        /// If diagnostics is non-null, reports an error if the type contains an
-        /// annotated, unconstrained type parameter. The type can be specified
-        /// with either a TypeSymbolWithAnnotations or TypeSymbol.
-        /// </summary>
         public static bool ContainsNullableReferenceTypes(
             TypeSymbolWithAnnotations typeWithAnnotationsOpt,
-            TypeSymbol typeOpt,
-            Location location,
-            DiagnosticBag diagnostics)
+            TypeSymbol typeOpt)
         {
-            Debug.Assert(diagnostics == null || location != null);
-
-            // Find an annotated type.
             var type = TypeSymbolExtensions.VisitType(
-                    typeWithAnnotationsOpt,
-                    typeOpt,
+                typeWithAnnotationsOpt,
+                typeOpt,
                 typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && !t.TypeSymbol.IsValueType,
                 typePredicateOpt: null,
                 arg: (object)null);
-            if ((object)type == null)
-            {
-                return false;
-            }
+            return (object)type != null;
+        }
 
-            if (diagnostics != null)
-            {
-                // Find an annotated, unconstrained type parameter.
-                var typeParameter = TypeSymbolExtensions.VisitType(
-                    typeWithAnnotationsOpt,
-                    typeOpt,
-                    typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && t.TypeSymbol.IsUnconstrainedTypeParameter(),
-                    typePredicateOpt: null,
-                    arg: (object)null);
-                if ((object)typeParameter != null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, location ?? NoLocation.Singleton);
-                    return true;
-                }
-            }
+        /// <summary>
+        /// Returns true if the type contains an annotated unconstrained type parameter.
+        /// </summary>
+        public bool ContainsAnnotatedUnconstrainedTypeParameter()
+        {
+            return ContainsAnnotatedUnconstrainedTypeParameter(this, typeOpt: null);
+        }
 
-            return true;
+        public static bool ContainsAnnotatedUnconstrainedTypeParameter(
+            TypeSymbolWithAnnotations typeWithAnnotationsOpt,
+            TypeSymbol typeOpt)
+        {
+            var typeParameter = TypeSymbolExtensions.VisitType(
+                typeWithAnnotationsOpt,
+                typeOpt,
+                typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && t.TypeSymbol.IsUnconstrainedTypeParameter(),
+                typePredicateOpt: null,
+                arg: (object)null);
+            return (object)typeParameter != null;
+        }
+
+        public void ReportAnnotatedUnconstrainedTypeParameterIfAny(Location location, DiagnosticBag diagnostics)
+        {
+            if (ContainsAnnotatedUnconstrainedTypeParameter())
+            {
+                ReportAnnotatedUnconstrainedTypeParameter(location, diagnostics);
+            }
+        }
+
+        public static void ReportAnnotatedUnconstrainedTypeParameter(Location location, DiagnosticBag diagnostics)
+        {
+            diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, location ?? NoLocation.Singleton);
         }
 
         public void AddNullableTransforms(ArrayBuilder<bool> transforms)

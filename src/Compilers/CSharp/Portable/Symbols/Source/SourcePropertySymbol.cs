@@ -755,7 +755,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.Type.ContainsNullableReferenceTypes(location, diagnostics))
+            this.Type.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
+            if (this.Type.ContainsNullableReferenceTypes())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1164,8 +1165,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Pass location and diagnostics to report error.
-            if (type.ContainsNullableReferenceTypes(location: null, diagnostics: null))
+            // PROTOTYPE(NullableReferenceTypes): type.ReportAnnotatedUnconstrainedTypeParameterIfAny()
+
+            if (type.ContainsNullableReferenceTypes())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }

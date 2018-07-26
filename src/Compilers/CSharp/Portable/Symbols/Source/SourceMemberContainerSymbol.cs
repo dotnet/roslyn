@@ -1420,9 +1420,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Visit all interfaces regardless of whether earlier ContainsNullableReferenceTypes returns true.
-            if (this.BaseTypeNoUseSiteDiagnostics?.ContainsNullableReferenceTypes(location, diagnostics) == true ||
-                this.InterfacesNoUseSiteDiagnostics().Any(t => t.ContainsNullableReferenceTypes(location, diagnostics)))
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            bool containsAnnotatedUnconstrained = false;
+            bool containsNullable = false;
+            if ((object)baseType != null)
+            {
+                if (baseType.ContainsAnnotatedUnconstrainedTypeParameter())
+                {
+                    containsAnnotatedUnconstrained = true;
+                }
+                if (baseType.ContainsNullableReferenceTypes())
+                {
+                    containsNullable = true;
+                }
+            }
+            foreach (var @interface in InterfacesNoUseSiteDiagnostics())
+            {
+                if (@interface.ContainsAnnotatedUnconstrainedTypeParameter())
+                {
+                    containsAnnotatedUnconstrained = true;
+                }
+                if (@interface.ContainsNullableReferenceTypes())
+                {
+                    containsNullable = true;
+                }
+            }
+            if (containsAnnotatedUnconstrained)
+            {
+                TypeSymbolWithAnnotations.ReportAnnotatedUnconstrainedTypeParameter(location, diagnostics);
+            }
+            if (containsNullable)
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }

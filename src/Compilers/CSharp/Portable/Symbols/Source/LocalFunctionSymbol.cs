@@ -230,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
             }
 
-            if (returnType.ContainsNullableReferenceTypes(location, diagnostics))
+            returnType.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
+            if (returnType.ContainsNullableReferenceTypes())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
             }

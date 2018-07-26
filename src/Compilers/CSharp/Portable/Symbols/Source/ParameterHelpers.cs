@@ -136,7 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var parameter in parameters)
             {
                 var location = parameter.GetNonNullSyntaxNode().Location;
-                if (parameter.Type.ContainsNullableReferenceTypes(location, diagnostics))
+                var parameterType = parameter.Type;
+                parameterType.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
+                if (parameterType.ContainsNullableReferenceTypes())
                 {
                     // These parameters might not come from a compilation (example: lambdas evaluated in EE).
                     // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.

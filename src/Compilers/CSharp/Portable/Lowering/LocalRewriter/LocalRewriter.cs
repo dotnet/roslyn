@@ -718,10 +718,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckNullableSymbols(MethodSymbol symbol)
         {
             var location = symbol.Locations.FirstOrDefault();
-            if (symbol.ReturnType.ContainsNullableReferenceTypes(location, _diagnostics) ||
-                // PROTOTYPE(NullableReferenceTypes): Need to check all parameters regardless
-                // of whether return type or earlier parameter returned true.
-                symbol.Parameters.Any(p => p.Type.ContainsNullableReferenceTypes(location, _diagnostics)))
+            var returnType = symbol.ReturnType;
+            var parameters = symbol.Parameters;
+            if (returnType.ContainsAnnotatedUnconstrainedTypeParameter() ||
+                parameters.Any(p => p.Type.ContainsAnnotatedUnconstrainedTypeParameter()))
+            {
+                TypeSymbolWithAnnotations.ReportAnnotatedUnconstrainedTypeParameter(location, _diagnostics);
+            }
+            if (returnType.ContainsNullableReferenceTypes() ||
+                parameters.Any(p => p.Type.ContainsNullableReferenceTypes()))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
             }
