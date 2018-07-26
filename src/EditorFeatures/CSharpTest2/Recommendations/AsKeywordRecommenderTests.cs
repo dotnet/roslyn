@@ -115,5 +115,26 @@ $$");
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var x = .$$0;"));
         }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterAsync()
+        {
+            await VerifyAbsenceAsync(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(async $$
+    }
+
+    void Bar(Func<int, string> f)
+    {
+    }
+}");
+        }
     }
 }
