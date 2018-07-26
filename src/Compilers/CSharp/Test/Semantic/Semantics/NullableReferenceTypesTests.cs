@@ -19318,7 +19318,7 @@ class C
         x4 = (new T4?[1])[0];
         x4 = new System.Nullable<int>? { }; // warn 11
     }
-    static void F4<T4>() where T4 : class
+    static void F5<T5>() where T5 : class
     {
         object? x5;
         x5 = new T5?(); // warn 12 and 13
@@ -19328,9 +19328,6 @@ class C
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (32,17): error CS0111: Type 'C' already defines a member called 'F4' with the same parameter types
-                //     static void F4<T4>() where T4 : class
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "F4").WithArguments("F4", "C").WithLocation(32, 17),
                 // (6,14): warning CS8629: Cannot use a nullable reference type in object creation.
                 //         x1 = new object?(); // warn 1
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new object?()").WithArguments("object").WithLocation(6, 14),
@@ -19364,21 +19361,18 @@ class C
                 // (30,18): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         x4 = new System.Nullable<int>? { }; // warn 11
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "System.Nullable<int>?").WithArguments("System.Nullable<T>", "T", "int?").WithLocation(30, 18),
-                // (35,18): error CS0246: The type or namespace name 'T5' could not be found (are you missing a using directive or an assembly reference?)
-                //         x5 = new T5?(); // warn 12
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T5").WithArguments("T5").WithLocation(35, 18),
                 // (35,14): warning CS8629: Cannot use a nullable reference type in object creation.
-                //         x5 = new T5?(); // warn 12
+                //         x5 = new T5?(); // warn 12 and 13
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T5?()").WithArguments("T5").WithLocation(35, 14),
-                // (36,18): error CS0246: The type or namespace name 'T5' could not be found (are you missing a using directive or an assembly reference?)
-                //         x5 = new T5? { }; // warn 13
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T5").WithArguments("T5").WithLocation(36, 18),
+                // (35,14): error CS0304: Cannot create an instance of the variable type 'T5' because it does not have the new() constraint
+                //         x5 = new T5?(); // warn 12 and 13
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T5?()").WithArguments("T5").WithLocation(35, 14),
                 // (36,14): warning CS8629: Cannot use a nullable reference type in object creation.
-                //         x5 = new T5? { }; // warn 13
+                //         x5 = new T5? { }; // warn 14 and 15
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T5? { }").WithArguments("T5").WithLocation(36, 14),
-                // (37,19): error CS0246: The type or namespace name 'T5' could not be found (are you missing a using directive or an assembly reference?)
-                //         x5 = (new T5?[1])[0];
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T5").WithArguments("T5").WithLocation(37, 19)
+                // (36,14): error CS0304: Cannot create an instance of the variable type 'T5' because it does not have the new() constraint
+                //         x5 = new T5? { }; // warn 14 and 15
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T5? { }").WithArguments("T5").WithLocation(36, 14)
                 );
         }
 
