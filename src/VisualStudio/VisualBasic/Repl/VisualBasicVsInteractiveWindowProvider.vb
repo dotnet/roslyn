@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
         Protected Overrides ReadOnly Property Id As Guid
             Get
-                Return VisualBasicVsInteractiveWindowPackage.Id
+                Return VisualBasicVsInteractiveWindowPackage.IdGuid
             End Get
         End Property
 

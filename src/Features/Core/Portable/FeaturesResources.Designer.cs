@@ -934,6 +934,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to query.
+        /// </summary>
+        internal static string Convert_to_query {
+            get {
+                return ResourceManager.GetString("Convert_to_query", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to struct.
+        /// </summary>
+        internal static string Convert_to_struct {
+            get {
+                return ResourceManager.GetString("Convert_to_struct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to tuple.
         /// </summary>
         internal static string Convert_to_tuple {
@@ -1329,6 +1347,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Format_string_contains_invalid_placeholder {
             get {
                 return ResourceManager.GetString("Format_string_contains_invalid_placeholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Formatting document.
+        /// </summary>
+        internal static string Formatting_document {
+            get {
+                return ResourceManager.GetString("Formatting_document", resourceCulture);
             }
         }
         
@@ -3523,6 +3550,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to updating usages in containing member.
+        /// </summary>
+        internal static string updating_usages_in_containing_member {
+            get {
+                return ResourceManager.GetString("updating_usages_in_containing_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to updating usages in containing project.
+        /// </summary>
+        internal static string updating_usages_in_containing_project {
+            get {
+                return ResourceManager.GetString("updating_usages_in_containing_project", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to updating usages in containing type.
+        /// </summary>
+        internal static string updating_usages_in_containing_type {
+            get {
+                return ResourceManager.GetString("updating_usages_in_containing_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to updating usages in dependent projects.
+        /// </summary>
+        internal static string updating_usages_in_dependent_projects {
+            get {
+                return ResourceManager.GetString("updating_usages_in_dependent_projects", resourceCulture);
             }
         }
         
