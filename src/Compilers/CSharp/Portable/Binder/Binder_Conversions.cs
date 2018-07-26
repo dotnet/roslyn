@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion: new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying),
                     @checked: false,
                     explicitCastInCode: isCast,
-                    constantValueOpt: null,
+                    constantValueOpt: null, // A "target-typed new" would never produce a constant.
                     type: destination);
             }
 

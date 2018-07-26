@@ -4672,7 +4672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.LocalScopeDepth,
                         diagnostics);
 
-                    if (forTargetTypedNew && memberResolutionResult.Member.IsDefaultValueTypeConstructor())
+                    if (forTargetTypedNew && method.IsDefaultValueTypeConstructor())
                     {
                         Error(diagnostics, ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, node, type);
                         hasError = true;
@@ -4900,7 +4900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindTypeParameterCreationExpression(ObjectCreationExpressionSyntax node, TypeParameterSymbol typeParameter, AnalyzedArguments analyzedArguments, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
         {
-            if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
+            if (!typeParameter.IsInstantiable())
             {
                 diagnostics.Add(ErrorCode.ERR_NoNewTyvar, node.Location, typeParameter);
             }

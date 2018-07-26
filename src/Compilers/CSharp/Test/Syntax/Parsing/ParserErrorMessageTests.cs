@@ -2670,9 +2670,9 @@ namespace x
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (7,17): error CS0815: Cannot assign new () to an implicitly-typed variable
+                // (7,17): error CS0815: Cannot assign new(...) to an implicitly-typed variable
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = new ()").WithArguments("new ()").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = new ()").WithArguments("new(...)").WithLocation(7, 17));
         }
 
         [Fact]
