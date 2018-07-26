@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 if (experimentationService != null
                     && experimentationService.IsExperimentEnabled(s_experimentName))
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment), true);
-                    workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language), true);
+                    workspace.Options = workspace.Options.WithChangedOption(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment, true);
+                    workspace.Options = workspace.Options.WithChangedOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language, true);
                     return true;
                 }
             }
