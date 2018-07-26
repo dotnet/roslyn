@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -186,17 +187,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
             var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
-            return new SingleExportProviderFactory(catalog, exportProviderFactory);
+            return new SingleExportProviderFactory(catalog, configuration, exportProviderFactory);
         }
 
         private class SingleExportProviderFactory : IExportProviderFactory
         {
             private readonly ComposableCatalog _catalog;
+            private readonly CompositionConfiguration _configuration;
             private readonly IExportProviderFactory _exportProviderFactory;
 
-            public SingleExportProviderFactory(ComposableCatalog catalog, IExportProviderFactory exportProviderFactory)
+            public SingleExportProviderFactory(ComposableCatalog catalog, CompositionConfiguration configuration, IExportProviderFactory exportProviderFactory)
             {
                 _catalog = catalog;
+                _configuration = configuration;
                 _exportProviderFactory = exportProviderFactory;
             }
 
@@ -215,6 +218,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var expected = _expectedProviderForCatalog;
                 if (expected == null)
                 {
+                    Assert.Empty(_configuration.CompositionErrors);
+
                     expected = _exportProviderFactory.CreateExportProvider();
                     expected = Interlocked.CompareExchange(ref _expectedProviderForCatalog, expected, null) ?? expected;
                     Interlocked.CompareExchange(ref _currentExportProvider, expected, null);

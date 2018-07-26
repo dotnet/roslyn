@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.CodingConventions;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                         .ToArray();
         }
 
-        public static IEnumerable<Assembly> GetEditorAssemblies()
+        public static ComposableCatalog GetEditorAssemblyCatalog()
         {
             var assemblies = new[]
             {
@@ -55,6 +57,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
                 // Microsoft.VisualStudio.Platform.VSEditor.dll:
                 Assembly.LoadFrom("Microsoft.VisualStudio.Platform.VSEditor.dll"),
+
+                // Microsoft.VisualStudio.CodingConventions.dll:
+                typeof(ICodingConventionsManager).Assembly,
 
                 // Microsoft.VisualStudio.Text.Logic.dll:
                 //   Must include this because several editor options are actually stored as exported information 
@@ -77,7 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly
             };
 
-            return assemblies;
+            return ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver())
+                .WithPart(typeof(FakePeekResultFactory))
+                .WithPart(typeof(FakeExperimentationServiceInternal))
+                .WithPart(typeof(FakeLoggingServiceInternal))
+                .WithPart(typeof(FakeVsEditorAdaptersFactoryService));
         }
     }
 }

@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     {
         public static ComposableCatalog CreateAssemblyCatalog()
         {
-            return ExportProviderCache.GetOrCreateAssemblyCatalog(
-                GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetEditorAssemblies()), ExportProviderCache.CreateResolver());
+            return ExportProviderCache
+                .GetOrCreateAssemblyCatalog(GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct(), ExportProviderCache.CreateResolver())
+                .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog());
         }
 
         public static Type[] GetLanguageNeutralTypes()
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
                 typeof(Implementation.InlineRename.InlineRenameService), // Ensure that EditorFeatures.Wpf is included in the composition
+                typeof(TextBufferAssociatedViewService),
                 typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider)
             };
 

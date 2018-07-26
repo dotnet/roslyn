@@ -22,48 +22,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         private readonly System.ComponentModel.Composition.Hosting.ExportProvider _exportProvider;
 
         internal static readonly IExportProviderFactory ExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-            ExportProviderCache.GetOrCreateAssemblyCatalog(
-                new[]
-                {
-                    typeof(TestWaitIndicator).Assembly,
-                    typeof(TestInteractiveEvaluator).Assembly,
-                    typeof(IInteractiveWindow).Assembly
-                }
-                .Concat(TestExportProvider.GetCSharpAndVisualBasicAssemblies())
-                .Concat(MinimalTestExportProvider.GetEditorAssemblies())));
-
-        // Provide an export of ILoggingServiceInternal to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/570290
-        [Export(typeof(ILoggingServiceInternal))]
-        private sealed class HACK_LoggingProvider : ILoggingServiceInternal
-        {
-            public void AdjustCounter(string key, string name, int delta = 1)
-            {
-            }
-
-            public void PostCounters()
-            {
-            }
-
-            public void PostEvent(string key, params object[] namesAndProperties)
-            {
-            }
-
-            public void PostEvent(string key, IReadOnlyList<object> namesAndProperties)
-            {
-            }
-
-            public void PostEvent(TelemetryEventType eventType, string eventName, TelemetryResult result = TelemetryResult.Success, params (string name, object property)[] namesAndProperties)
-            {
-            }
-
-            public void PostEvent(TelemetryEventType eventType, string eventName, TelemetryResult result, IReadOnlyList<(string name, object property)> namesAndProperties)
-            {
-            }
-
-            public void PostFault(string eventName, string description, Exception exceptionObject, string additionalErrorInfo, bool? isIncludedInWatsonSample)
-            {
-            }
-        }
+            ExportProviderCache
+                .GetOrCreateAssemblyCatalog(
+                    new[]
+                    {
+                        typeof(TestWaitIndicator).Assembly,
+                        typeof(TestInteractiveEvaluator).Assembly,
+                        typeof(IInteractiveWindow).Assembly
+                    })
+                .WithParts(TestExportProvider.GetCSharpAndVisualBasicAssemblyCatalog())
+                .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog()));
 
         internal InteractiveWindowTestHost(ExportProvider exportProvider)
         {

@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static IExportProviderFactory CreateExportProviderFactory()
         {
-            var assemblies = TestExportProvider
-                .GetCSharpAndVisualBasicAssemblies()
-                .Concat(new[] { typeof(EditorServicesUtil).Assembly });
-            return ExportProviderCache.GetOrCreateExportProviderFactory(ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver()));
+            var catalog = TestExportProvider
+                .GetCSharpAndVisualBasicAssemblyCatalog()
+                .WithParts(ExportProviderCache.GetOrCreateAssemblyCatalog(new[] { typeof(EditorServicesUtil).Assembly }, ExportProviderCache.CreateResolver()));
+            return ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
         }
     }
 }
