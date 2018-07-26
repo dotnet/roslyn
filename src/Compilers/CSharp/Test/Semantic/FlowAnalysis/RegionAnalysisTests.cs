@@ -6229,6 +6229,40 @@ class C {
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
+        [Fact]
+        [WorkItem(26028, "https://github.com/dotnet/roslyn/issues/26028")]
+        public void BrokenForeach01()
+        {
+            var source = @"class C
+{
+    void M()
+    {
+        foreach (var x
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            // The foreach loop is broken, so its embedded statement is filled in during syntax error recovery. It is zero-width.
+            var stmt = tree.GetCompilationUnitRoot().DescendantNodesAndSelf().OfType<ForEachStatementSyntax>().Single().Statement;
+            Assert.Equal(0, stmt.Span.Length);
+
+            var dataFlowAnalysisResults = model.AnalyzeDataFlow(stmt);
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
         #endregion
     }
 }

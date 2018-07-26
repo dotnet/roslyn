@@ -19,18 +19,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string EqualsName = "Equals";
         private const string DefaultName = "Default";
         private const string ObjName = "obj";
-        private const string OtherName = "other";
+        public const string OtherName = "other";
 
         public static IMethodSymbol CreateEqualsMethod(
             this SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> symbols,
+            ImmutableArray<ISymbol> symbols, 
+            string localNameOpt,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
             var statements = CreateEqualsMethodStatements(
-                factory, compilation, containingType, symbols, cancellationToken);
+                factory, compilation, containingType, symbols, localNameOpt, cancellationToken);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             return CreateEqualsMethod(compilation, statements);
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
+            string localNameOpt,
             CancellationToken cancellationToken)
         {
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //
             //      var order = obj as CustomerOrder;
 
-            var localName = GetLocalName(containingType);
+            var localName = localNameOpt ?? GetLocalName(containingType);
 
             var localNameExpression = factory.IdentifierName(localName);
 

@@ -8,21 +8,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compilers", "Compilers", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{5DC491BA-E836-47C1-A4AA-3C770742718B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeAnalysis", "src\Compilers\Core\Portable\CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis", "src\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CSharp", "CSharp", "{9EECE6A3-C098-44D0-8ACD-0D8691EC8C3F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCodeAnalysis", "src\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj", "{B501A547-C911-4A05-AC6E-274A50DFF30E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp", "src\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj", "{B501A547-C911-4A05-AC6E-274A50DFF30E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VisualBasic", "VisualBasic", "{11F63FDD-6EB7-4993-8769-8C8DC5DA29C3}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeAnalysis", "src\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj", "{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic", "src\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj", "{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csc", "src\Compilers\CSharp\csc\csc.csproj", "{E3CD2895-76A8-4D11-A316-EA67CB5EA42C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc", "src\Compilers\VisualBasic\vbc\vbc.csproj", "{8CE3A581-2969-4864-A803-013E9D977C3A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSBuildTask", "src\Compilers\Core\MSBuildTask\MSBuildTask.csproj", "{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Build.Tasks.CodeAnalysis", "src\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj", "{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBCSCompiler", "src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj", "{649CE05A-529C-40D7-A501-CA9BCFEE40DC}"
 EndProject
