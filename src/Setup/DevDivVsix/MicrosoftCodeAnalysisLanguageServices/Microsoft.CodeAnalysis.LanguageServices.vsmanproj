@@ -16,6 +16,7 @@
   <ItemGroup>
     <MergeManifest Include="$(OutputPath)\..\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
     <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.InteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json" />
+    <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.InteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.Resources.*.json" />
     <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
     <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.*.json" />
   </ItemGroup>

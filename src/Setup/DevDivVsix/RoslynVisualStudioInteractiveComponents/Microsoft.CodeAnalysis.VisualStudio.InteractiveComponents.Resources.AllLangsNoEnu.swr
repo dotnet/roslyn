@@ -1,0 +1,11 @@
+folder "InstallDir:\Common7\IDE\CommonExtensions\Microsoft\ManagedLanguages\VBCSharp\InteractiveComponents\$(Culture)"
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.CSharp\$(Culture)\Microsoft.CodeAnalysis.CSharp.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures\$(Culture)\Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.CSharp.Scripting\$(Culture)\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis\$(Culture)\Microsoft.CodeAnalysis.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.Features\$(Culture)\Microsoft.CodeAnalysis.Features.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.InteractiveEditorFeatures\$(Culture)\Microsoft.CodeAnalysis.InteractiveEditorFeatures.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.Scripting\$(Culture)\Microsoft.CodeAnalysis.Scripting.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.Workspaces.Desktop\$(Culture)\Microsoft.CodeAnalysis.Workspaces.Desktop.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.Workspaces\$(Culture)\Microsoft.CodeAnalysis.Workspaces.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.VisualStudio.CSharp.Repl\$(Culture)\Microsoft.VisualStudio.CSharp.Repl.resources.dll
