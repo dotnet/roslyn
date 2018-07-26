@@ -10407,10 +10407,11 @@ tryAgain:
                 scanTypeFlags != ScanTypeFlags.NotType &&
                 tokenAfterType == SyntaxKind.OpenBracketToken;
 
-            return !isPossibleArrayCreation &&
-                scanTypeFlags != ScanTypeFlags.NullableType && // Allow parsing of nullable tuple creation e.g. new(a, b)?()
-                tokenAfterType != SyntaxKind.OpenParenToken && // Allow parsing of erroneous tuple creation e.g. new(a, b)() for better error recovery
-                this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
+            return !isPossibleArrayCreation && this.CurrentToken.Kind == SyntaxKind.OpenParenToken &&
+                // Allow parsing of nullable tuple creation e.g. new(a, b)?()
+                scanTypeFlags != ScanTypeFlags.NullableType &&
+                // Allow parsing of erroneous tuple creation e.g. new(a, b)() for better error recovery
+                (scanTypeFlags != ScanTypeFlags.TupleType || tokenAfterType != SyntaxKind.OpenParenToken);
         }
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()
