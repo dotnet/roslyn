@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 FindReferencesSearchOptions.Default, cancellationToken);
         }
 
+        // Internal so both our existing API can call this *as well as* test code that wants
+        // to validate options (but doesn't want to bother with all the progress-goop).
         internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
