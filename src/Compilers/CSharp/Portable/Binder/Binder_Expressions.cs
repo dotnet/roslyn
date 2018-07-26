@@ -3574,58 +3574,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundExpression BindObjectCreationExpression(ObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var type = BindType(node.Type, diagnostics);
-            var typeSymbol = type.TypeSymbol;
+            var typeWithAnnotations = BindType(node.Type, diagnostics);
+            var type = typeWithAnnotations.TypeSymbol;
 
-            if (type.IsAnnotated && !typeSymbol.IsNullableType())
+            if (typeWithAnnotations.IsAnnotated && !type.IsNullableType())
             {
-                diagnostics.Add(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, node.Location, typeSymbol);
+                diagnostics.Add(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, node.Location, type);
             }
 
             BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer == null ?
                 null :
                 BindInitializerExpression(
                     syntax: node.Initializer,
-                    type: typeSymbol,
+                    type: type,
                     typeSyntax: node.Type,
                     diagnostics: diagnostics);
 
-            switch (typeSymbol.TypeKind)
+            switch (type.TypeKind)
             {
                 case TypeKind.Struct:
                 case TypeKind.Class:
                 case TypeKind.Enum:
                 case TypeKind.Error:
-                    return BindClassCreationExpression(node, (NamedTypeSymbol)typeSymbol, GetName(node.Type), boundInitializerOpt, diagnostics);
+                    return BindClassCreationExpression(node, (NamedTypeSymbol)type, GetName(node.Type), boundInitializerOpt, diagnostics);
 
                 case TypeKind.Delegate:
-                    return BindDelegateCreationExpression(node, (NamedTypeSymbol)typeSymbol, diagnostics);
+                    return BindDelegateCreationExpression(node, (NamedTypeSymbol)type, diagnostics);
 
                 case TypeKind.Interface:
-                    return BindInterfaceCreationExpression(node, (NamedTypeSymbol)typeSymbol, boundInitializerOpt, diagnostics);
+                    return BindInterfaceCreationExpression(node, (NamedTypeSymbol)type, boundInitializerOpt, diagnostics);
 
                 case TypeKind.TypeParameter:
-                    return BindTypeParameterCreationExpression(node, (TypeParameterSymbol)typeSymbol, boundInitializerOpt, diagnostics);
+                    return BindTypeParameterCreationExpression(node, (TypeParameterSymbol)type, boundInitializerOpt, diagnostics);
 
                 case TypeKind.Submission:
                     // script class is synthesized and should not be used as a type of a new expression:
-                    throw ExceptionUtilities.UnexpectedValue(typeSymbol.TypeKind);
+                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
 
                 case TypeKind.Pointer:
-                    typeSymbol = new ExtendedErrorTypeSymbol(typeSymbol, LookupResultKind.NotCreatable,
-                        diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, typeSymbol));
+                    type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
+                        diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, type));
                     goto case TypeKind.Class;
 
                 case TypeKind.Dynamic:
                     // we didn't find any type called "dynamic" so we are using the builtin dynamic type, which has no constructors:
                 case TypeKind.Array:
                     // ex: new ref[]
-                    typeSymbol = new ExtendedErrorTypeSymbol(typeSymbol, LookupResultKind.NotCreatable,
-                        diagnostics.Add(ErrorCode.ERR_InvalidObjectCreation, node.Type.Location, typeSymbol));
+                    type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
+                        diagnostics.Add(ErrorCode.ERR_InvalidObjectCreation, node.Type.Location, type));
                     goto case TypeKind.Class;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(typeSymbol.TypeKind);
+                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
             }
         }
 

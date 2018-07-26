@@ -19316,40 +19316,69 @@ class C
         x4 = new T4?(); // warn 9
         x4 = new T4? { }; // warn 10
         x4 = (new T4?[1])[0];
+        x4 = new System.Nullable<int>? { }; // warn 11
+    }
+    static void F4<T4>() where T4 : class
+    {
+        object? x5;
+        x5 = new T5?(); // warn 12 and 13
+        x5 = new T5? { }; // warn 14 and 15
+        x5 = (new T5?[1])[0]; // warn 16
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,14): error CS8629: Cannot use a nullable reference type in object creation.
+                // (32,17): error CS0111: Type 'C' already defines a member called 'F4' with the same parameter types
+                //     static void F4<T4>() where T4 : class
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "F4").WithArguments("F4", "C").WithLocation(32, 17),
+                // (6,14): warning CS8629: Cannot use a nullable reference type in object creation.
                 //         x1 = new object?(); // warn 1
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new object?()").WithArguments("object").WithLocation(6, 14),
-                // (7,14): error CS8629: Cannot use a nullable reference type in object creation.
+                // (7,14): warning CS8629: Cannot use a nullable reference type in object creation.
                 //         x1 = new object? { }; // warn 2
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new object? { }").WithArguments("object").WithLocation(7, 14),
-                // (13,14): error CS8629: Cannot use a nullable reference type in object creation.
+                // (13,14): warning CS8629: Cannot use a nullable reference type in object creation.
                 //         x2 = new T2?(); // warn 3 and 4
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T2?()").WithArguments("T2").WithLocation(13, 14),
                 // (13,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
                 //         x2 = new T2?(); // warn 3 and 4
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2?()").WithArguments("T2").WithLocation(13, 14),
-                // (14,14): error CS8629: Cannot use a nullable reference type in object creation.
+                // (14,14): warning CS8629: Cannot use a nullable reference type in object creation.
                 //         x2 = new T2? { }; // warn 5 and 6
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T2? { }").WithArguments("T2").WithLocation(14, 14),
                 // (14,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
                 //         x2 = new T2? { }; // warn 5 and 6
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2? { }").WithArguments("T2").WithLocation(14, 14),
-                // (20,14): error CS8629: Cannot use a nullable reference type in object creation.
+                // (20,14): warning CS8629: Cannot use a nullable reference type in object creation.
                 //         x3 = new T3?(); // warn 7
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T3?()").WithArguments("T3").WithLocation(20, 14),
-                // (21,14): error CS8629: Cannot use a nullable reference type in object creation.
+                // (21,14): warning CS8629: Cannot use a nullable reference type in object creation.
                 //         x3 = new T3? { }; // warn 8
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T3? { }").WithArguments("T3").WithLocation(21, 14),
-                // (27,14): error CS8629: Cannot use a nullable reference type in object creation.
+                // (27,14): warning CS8629: Cannot use a nullable reference type in object creation.
                 //         x4 = new T4?(); // warn 9
                 Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T4?()").WithArguments("T4").WithLocation(27, 14),
-                // (28,14): error CS8629: Cannot use a nullable reference type in object creation.
+                // (28,14): warning CS8629: Cannot use a nullable reference type in object creation.
                 //         x4 = new T4? { }; // warn 10
-                Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T4? { }").WithArguments("T4").WithLocation(28, 14)
+                Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T4? { }").WithArguments("T4").WithLocation(28, 14),
+                // (30,18): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         x4 = new System.Nullable<int>? { }; // warn 11
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "System.Nullable<int>?").WithArguments("System.Nullable<T>", "T", "int?").WithLocation(30, 18),
+                // (35,18): error CS0246: The type or namespace name 'T5' could not be found (are you missing a using directive or an assembly reference?)
+                //         x5 = new T5?(); // warn 12
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T5").WithArguments("T5").WithLocation(35, 18),
+                // (35,14): warning CS8629: Cannot use a nullable reference type in object creation.
+                //         x5 = new T5?(); // warn 12
+                Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T5?()").WithArguments("T5").WithLocation(35, 14),
+                // (36,18): error CS0246: The type or namespace name 'T5' could not be found (are you missing a using directive or an assembly reference?)
+                //         x5 = new T5? { }; // warn 13
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T5").WithArguments("T5").WithLocation(36, 18),
+                // (36,14): warning CS8629: Cannot use a nullable reference type in object creation.
+                //         x5 = new T5? { }; // warn 13
+                Diagnostic(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, "new T5? { }").WithArguments("T5").WithLocation(36, 14),
+                // (37,19): error CS0246: The type or namespace name 'T5' could not be found (are you missing a using directive or an assembly reference?)
+                //         x5 = (new T5?[1])[0];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T5").WithArguments("T5").WithLocation(37, 19)
                 );
         }
 
