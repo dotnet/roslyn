@@ -65,8 +65,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
 
-        ImmutableArray<Nullability> TypeParameterNullability { get; }
-
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
         /// If nothing has been substituted for a give type parameters,

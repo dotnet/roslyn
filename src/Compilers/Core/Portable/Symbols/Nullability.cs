@@ -4,8 +4,8 @@ namespace Microsoft.CodeAnalysis
 {
     public enum Nullability
     {
-        NonNull,
-        CanBeNull,
-        Unknown
+        Unknown = 0,
+        NonNull = 1,
+        MaybeNull = 2
     }
 }

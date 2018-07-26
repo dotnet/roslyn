@@ -34,9 +34,9 @@ Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayParts(Microsoft.CodeAnalysis.Sema
 Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Nullability nullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
 Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintTypeNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.Nullability.CanBeNull = 1 -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.Nullability.NonNull = 0 -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.Nullability.Unknown = 2 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.MaybeNull = 2 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.NonNull = 1 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.Unknown = 0 -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.OperationKind.SuppressNullableWarning = 97 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation
