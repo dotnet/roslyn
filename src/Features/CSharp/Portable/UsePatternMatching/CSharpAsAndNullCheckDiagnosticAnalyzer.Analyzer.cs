@@ -83,6 +83,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 {
                     switch (current.Kind())
                     {
+                        case SyntaxKind.LogicalAndExpression when !defAssignedWhenTrue:
+                        case SyntaxKind.LogicalOrExpression when defAssignedWhenTrue:
+                            // Since the pattern variable is only definitely assigned if the pattern
+                            // succeeded, in the following cases it would not be safe to use pattern-matching.
+                            // For example:
+                            //
+                            //      if ((x = o as string) == null && SomeExpression)
+                            //      if ((x = o as string) != null || SomeExpression)
+                            //
+                            // Here, x would never be definitely assigned if pattern-matching were used.
+                            return false;
+
+                        case SyntaxKind.LogicalAndExpression:
+                        case SyntaxKind.LogicalOrExpression:
+
                         // Parentheses and cast expressions do not contribute to the flow analysis.
                         case SyntaxKind.ParenthesizedExpression:
                         case SyntaxKind.CastExpression:
@@ -97,31 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         case SyntaxKind.LogicalNotExpression:
                             // The !-operator negates the definitive assignment state.
                             defAssignedWhenTrue = !defAssignedWhenTrue;
-                            continue;
-
-                        case SyntaxKind.LogicalAndExpression:
-                            if (!defAssignedWhenTrue)
-                            {
-                                // Since the pattern variable is only definitely assigned if the pattern
-                                // succeeded, in the following cases it would not be safe to use pattern-matching.
-                                // For example:
-                                //
-                                //      if ((x = o as string) == null && SomeExpression)
-                                //      if ((x = o as string) != null || SomeExpression)
-                                //
-                                // Here, x would never be definitely assigned if pattern-matching were used.
-                                return false;
-                            }
-
-                            continue;
-
-                        case SyntaxKind.LogicalOrExpression:
-                            if (defAssignedWhenTrue)
-                            {
-                                // See the comment above.
-                                return false;
-                            }
-
                             continue;
 
                         case SyntaxKind.ConditionalExpression:
