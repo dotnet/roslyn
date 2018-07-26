@@ -312,6 +312,18 @@ class C
             });
         }
 
+        private const string NonNullTypesAttributesDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+        private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
+
         [Fact]
         public void EmitAttribute_BaseClass()
         {
@@ -349,7 +361,7 @@ public class B2 : A<object?>
         F(y, y);
     }
 }";
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'B1' doesn't match target type 'A<object?>' for parameter 'y' in 'void C.F(A<object> x, A<object?> y)'.
                 //         F(x, x);
@@ -395,7 +407,7 @@ public class B : I<object?>
         F(y, y);
     }
 }";
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.F(I<object> x, I<object?> y)'.
                 //         F(x, x);
@@ -445,7 +457,7 @@ public class B : I<(object X, object? Y)>
         F(b, b);
     }
 }";
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<(object, object?)>' for parameter 'b' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
                 //         F(a, a);

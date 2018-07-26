@@ -5,11 +5,10 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Information decoded from early well-known custom attributes applied on a module.
+    /// Information decoded from well-known custom attributes applied on a module.
     /// </summary>
-    internal sealed class ModuleEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
+    internal sealed class ModuleWellKnownAttributeData : CommonModuleWellKnownAttributeData
     {
-        // PROTOTYPE(NullableReferenceTypes): we may not need an early attribute after cycle-busting refactoring
         #region NonNullTypesAttribute
         private bool? _nonNullTypes;
         public bool? NonNullTypes

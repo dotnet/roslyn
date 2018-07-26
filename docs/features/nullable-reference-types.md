@@ -66,6 +66,7 @@ If there is no `[NonNullTypes]` attribute at any containing scope, including the
 [NonNullTypes(true), Nullable(new[] { false, true })] string[] NotNullMaybeNull; // string?[]!
 ```
 `NonNullTypesAttribute` is not synthesized by the compiler. If the attribute is used explicitly in source, the type declaration must be provided explicitly to the compilation. The type should be defined in the framework.
+`NonNullTypesAttribute` can only be used in C# 8.0 compilations (or above).
 
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._
@@ -75,9 +76,17 @@ Flow analysis is used to infer the nullability of variables within executable co
 
 ### Warnings
 _Describe set of warnings. Differentiate W warnings._
+If the analysis determines that a null check always (or never) passes, a hidden diagnostic is produced. For example: `"string" is null`.
 
 ### Null tests
-_Describe the set of tests that affect flow state._
+A number of null checks affect the flow state when tested for:
+- comparisons to `null`: `x == null` and `x != null`
+- `is` operator: `x is null`, `x is K` (where `K` is a constant), `x is string`, `x is string s`
+
+Invocation of methods annotated with the following attributes will also affect flow analysis:
+- `[NotNullWhenTrue]` (e.g. `TryGetValue`) and `[NotNullWhenFalse]` (e.g. `string.IsNullOrEmpty`)
+- `[EnsuresNotNull]` (e.g. `ThrowIfNull`)
+- `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
 
 ## `default`
 `default(T)` is `T?` if `T` is a reference type.
@@ -197,5 +206,26 @@ var y = F1(maybeNullString); // List<string?> or List<string~> ?
 var z = F2(obliviousString); // List<string~>! or List<string!>! ?
 var w = F3(obliviousString); // List<string~>! or List<string?>! ?
 ```
-## Compiler switch
-_Describe behavior when feature is disabled._
+
+## Public APIs
+There are a few questions that an API consumer would want to answer:
+1. should I print a `?` after the type?
+2. can I assign a `null` value to a variable of this type?
+3. could I read a `null` value from a variable of this type?
+
+Two primitive concepts we wish to expose are: `IsAnnotated` and `NonNullTypes`.
+_We may expose some higher-level concepts (to address questions 2 and 3 conveniently) as well._
+
+|  | IsAnnotated |
+|--| ----------- |
+| `string?` | `true` |
+| `int?` / `Nullable<int>` | `true` (_needs confirmation_) |
+| `Nullable<T>` | `true` |
+| `T? where T : class` | `true` |
+| `T? where T : struct` | `true` (_needs confirmation_) |
+| `string` | `false` |
+| `int` | `false` |
+| `T where T : class/object` | `false` |
+| `T where T : class?` | `false` |
+| `T where T : struct` | `false` |
+| `T` | `false` |

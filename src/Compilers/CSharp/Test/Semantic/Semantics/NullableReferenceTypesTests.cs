@@ -243,7 +243,7 @@ class C
         public void UnannotatedAssemblies_WithSomeExtraAnnotations()
         {
             // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-            var comp = CreateCompilation(new[] { "", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation("", parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var systemNamespace = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingNamespace;
 
@@ -296,7 +296,7 @@ namespace System
             VerifyUsesOfNullability(systemNamespace, expected);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Needs to be adjusted for NonNullTypes(false) default context")]
         public void UnannotatedAssemblies_01()
         {
             var source0 =
@@ -743,7 +743,7 @@ public class D : C
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 18));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Needs to be adjusted for NonNullTypes(false) default context")]
         public void UnannotatedAssemblies_09()
         {
             var source0 =
@@ -854,13 +854,13 @@ public sealed class B : A<object>
         }
 
         [Fact]
-        public void NonNullTypes_Circular()
+        public void NonNullTypes_False_Circular()
         {
             string source = @"
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    [NonNullTypes(false)]
+    [NonNullTypesAttribute(false)]
     class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
@@ -1037,6 +1037,26 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics();
         }
 
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): stack overflow")]
+        public void NonNullTypes_DoNotWarnInsideAttributes()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+[NonNullTypes(true)]
+class C
+{
+    [System.Obsolete(D.M1(D.M2()))]
+    class D
+    {
+        static void M1(string x) => throw null;
+        static string? M2() => throw null;
+    }
+}
+";
+            var comp = CreateCompilation(source + NonNullTypesAttributesDefinition, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void NonNullTypes_AttributeDefinedMultipleTimes()
         {
@@ -1155,7 +1175,7 @@ class E
         External.s /*T:string!*/ = null; // warn 1
         External.ns /*T:string?*/ = null;
 
-        External.fs /*T:string!*/ = null!; // PROTOTYPE(NullableReferenceTypes): the type from metadata is incorrect
+        External.fs /*T:string*/ = null;
         External.fns /*T:string?*/ = null;
 
         OuterA.A.s /*T:string!*/ = null; // warn 2
@@ -1197,8 +1217,7 @@ class E
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(73, 36)
                 );
 
-            // PROTOTYPE(NullableReferenceTypes): problem when loading NonNullTypes from metadata
-            //verifyExternal(compilation);
+            verifyExternal(compilation);
 
             var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
             Assert.False(outerA.NonNullTypes);
@@ -1348,7 +1367,7 @@ class E
         External.s.Item /*T:string!*/ = null; // warn 1
         External.ns.Item /*T:string?*/ = null;
 
-        External.fs.Item /*T:string!*/ = null!; // PROTOTYPE(NullableReferenceTypes): incorrect type from metadata (should be oblivious)
+        External.fs.Item /*T:string*/ = null;
         External.fns.Item /*T:string?*/ = null;
 
         OuterA.A.s.Item /*T:string!*/ = null; // warn 2
@@ -1509,10 +1528,10 @@ public class External
             var source = @"
 using System.Runtime.CompilerServices;
 
-[NonNullTypes(false)]
+[NonNullTypesAttribute(false)]
 public class OuterA
 {
-    [NonNullTypes(true)]
+    [type: NonNullTypesAttribute(true)]
     public class A
     {
         public static string[] s;
@@ -5783,7 +5802,17 @@ partial class C1
 }";
             var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (17,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
+                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("x").WithLocation(17, 18),
+                // (17,18): warning CS8611: Nullability of reference types in type of parameter 'y' doesn't match partial method declaration.
+                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("y").WithLocation(17, 18),
+                // (17,18): warning CS8611: Nullability of reference types in type of parameter 'z' doesn't match partial method declaration.
+                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("z").WithLocation(17, 18)
+                );
         }
 
         [Fact]
@@ -5801,12 +5830,12 @@ class A
 ";
             CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8).
                 VerifyDiagnostics(
-                 // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
-                 //     void Test1(string x2) {}
-                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test1").WithArguments("Test1", "A").WithLocation(5, 10),
-                 // (8,13): error CS0111: Type 'A' already defines a member called 'Test2' with the same parameter types
-                 //     string? Test2(string y2) { return y2; }
-                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test2").WithArguments("Test2", "A").WithLocation(8, 13)
+                // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
+                //     void Test1(string x2) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test1").WithArguments("Test1", "A").WithLocation(5, 10),
+                // (8,13): error CS0111: Type 'A' already defines a member called 'Test2' with the same parameter types
+                //     string? Test2(string y2) { return y2; }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test2").WithArguments("Test2", "A").WithLocation(8, 13)
                 );
         }
 
@@ -8381,7 +8410,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -8405,7 +8434,7 @@ public class C
             var model = compilation.GetSemanticModel(tree);
             var outVar = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
             var symbol = (LocalSymbol)model.GetSymbolInfo(outVar).Symbol;
-            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat));
             Assert.Null(model.GetDeclaredSymbol(outVar));
         }
 
@@ -8419,7 +8448,7 @@ public class C
             var varDecl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(d => d.Declaration.Type.IsVar).Single();
             var variable = varDecl.Declaration.Variables.Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(variable);
-            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat));
             Assert.Null(model.GetSymbolInfo(variable).Symbol);
         }
 
@@ -8547,7 +8576,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -8571,7 +8600,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!");// PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -8596,7 +8625,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -8620,7 +8649,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string?[]!"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            VerifyOutVar(c, "string?[]");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -8644,7 +8673,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string?[]!"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            VerifyOutVar(c, "string?[]");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -8668,7 +8697,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string![]!"); // PROTOTYPE(NullableReferenceTypes): expecting string![]
+            VerifyOutVar(c, "string![]");
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -8689,7 +8718,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string![]!"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            VerifyOutVar(c, "string![]"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -8710,7 +8739,7 @@ public class C
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): T is inferred to string! instead of string?, so the `var` gets `string!`
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -8731,7 +8760,7 @@ public class C
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -9281,6 +9310,28 @@ class C
     void MyAssert([AssertsTrue] bool condition) => throw null;
 }
 ", NonNullTypesTrue, AssertsTrueAttributeDefinition, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssertsTrue_NotNull_NullConditionalAccess()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    object? _o = null;
+    void Main(C? c)
+    {
+        MyAssert(c?._o != null);
+        c.ToString();
+        c._o.ToString();
+    }
+
+    void MyAssert([AssertsTrue] bool condition) => throw null;
+}
+" + AssertsTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics();
         }
@@ -11267,7 +11318,7 @@ public class C
         public void EnsuresNotNull_TypeInference()
         {
             // PROTOTYPE(NullableReferenceTypes): This test raises the question of flowing information from annotations into the inferred type
-            CSharpCompilation c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(new[] { @"
 using System.Runtime.CompilerServices;
 public class C
 {
@@ -11278,7 +11329,7 @@ public class C
     }
     public static void ThrowIfNull<T>([EnsuresNotNull] T x1, out T x2) => throw null;
 }
-" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition, EnsuresNotNullAttributeDefinition }, parseOptions: TestOptions.Regular8);
 
             c.VerifyTypes();
             c.VerifyDiagnostics(
@@ -12136,6 +12187,756 @@ class C
                  // (13,13): hidden CS8605: Result of the comparison is possibly always true.
                  //         if (y1 != null)
                  Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "y1 != null").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_14()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    C? _cField = null;
+    C _nonNullCField = new C();
+    C? GetC() => null;
+    C? CProperty { get => null; }
+
+    void Test1(C? c1)
+    {
+        if (c1?._cField != null)
+        {
+            c1._cField.ToString();
+        }
+        else
+        {
+            c1._cField.ToString(); // warn 1 2
+        }
+    }
+
+    void Test2()
+    {
+        C? c2 = GetC();
+        if (c2?._cField != null)
+        {
+            c2._cField.ToString();
+        }
+        else
+        {
+            c2._cField.ToString(); // warn 3 4
+        }
+    }
+
+    void Test3(C? c3)
+    {
+        if (c3?._cField?._cField != null)
+        {
+            c3._cField._cField.ToString();
+        }
+        else if (c3?._cField != null)
+        {
+            c3._cField.ToString();
+            c3._cField._cField.ToString(); // warn 5
+        }
+        else
+        {
+            c3.ToString(); // warn 6
+        }
+    }
+
+    void Test4(C? c4)
+    {
+        if (c4?._nonNullCField._cField?._nonNullCField._cField != null)
+        {
+            c4._nonNullCField._cField._nonNullCField._cField.ToString();
+        }
+        else
+        {
+            c4._nonNullCField._cField._nonNullCField._cField.ToString(); // warn 7 8 9
+        }
+    }
+
+    void Test5(C? c5)
+    {
+        if (c5?._cField == null)
+        {
+            c5._cField.ToString(); // warn 10 11
+        }
+        else
+        {
+            c5._cField.ToString();
+        }
+    }
+
+    void Test6(C? c6)
+    {
+        if (c6?._cField?.GetC() != null)
+        {
+            c6._cField.GetC().ToString(); // warn 12
+        }
+    }
+
+    void Test7(C? c7)
+    {
+        if (c7?._cField?.CProperty != null)
+        {
+            c7._cField.CProperty.ToString();
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             c1._cField.ToString(); // warn 1 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(17, 13),
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             c1._cField.ToString(); // warn 1 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1._cField").WithLocation(17, 13),
+
+                // (30,13): warning CS8602: Possible dereference of a null reference.
+                //             c2._cField.ToString(); // warn 3 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2").WithLocation(30, 13),
+                // (30,13): warning CS8602: Possible dereference of a null reference.
+                //             c2._cField.ToString(); // warn 3 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2._cField").WithLocation(30, 13),
+
+                // (43,13): warning CS8602: Possible dereference of a null reference.
+                //             c3._cField._cField.ToString(); // warn 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3._cField._cField").WithLocation(43, 13),
+
+                // (47,13): warning CS8602: Possible dereference of a null reference.
+                //             c3.ToString(); // warn 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3").WithLocation(47, 13),
+
+                // (59,13): warning CS8602: Possible dereference of a null reference.
+                //             c4._nonNullCField._cField._nonNullCField._cField.ToString(); // warn 7 8 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c4").WithLocation(59, 13),
+                // (59,13): warning CS8602: Possible dereference of a null reference.
+                //             c4._nonNullCField._cField._nonNullCField._cField.ToString(); // warn 7 8 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c4._nonNullCField._cField").WithLocation(59, 13),
+                // (59,13): warning CS8602: Possible dereference of a null reference.
+                //             c4._nonNullCField._cField._nonNullCField._cField.ToString(); // warn 7 8 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c4._nonNullCField._cField._nonNullCField._cField").WithLocation(59, 13),
+
+                // (67,13): warning CS8602: Possible dereference of a null reference.
+                //             c5._cField.ToString(); // warn 10 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c5").WithLocation(67, 13),
+                // (67,13): warning CS8602: Possible dereference of a null reference.
+                //             c5._cField.ToString(); // warn 10 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c5._cField").WithLocation(67, 13),
+
+                // (79,13): warning CS8602: Possible dereference of a null reference.
+                //             c6._cField.GetC().ToString(); // warn 12
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c6._cField.GetC()").WithLocation(79, 13)
+            );
+        }
+
+        [Fact]
+        public void ConditionalBranching_15()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void Test(C? c1)
+    {
+        if (c1?[0] != null)
+        {
+            c1.ToString();
+            c1[0].ToString(); // warn 1
+        }
+        else
+        {
+            c1.ToString(); // warn 2
+        }
+    }
+
+    object? this[int i] { get => null; }
+}
+", parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             c1[0].ToString(); // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1[0]").WithLocation(9, 13),
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             c1.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(13, 13)
+            );
+        }
+
+        [Fact]
+        public void ConditionalBranching_16()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void Test<T>(T t)
+    {
+        if (t?.ToString() != null)
+        {
+            t.ToString();
+        }
+        else
+        {
+            t.ToString(); // warn
+        }
+    }
+}", parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): We are currently warning on all unconstrained type parameter invocations
+            // https://github.com/dotnet/roslyn/issues/28792
+            compilation.VerifyDiagnostics(
+                // (6,13): warning CS8602: Possible dereference of a null reference.
+                //         if (t?.ToString() != null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(6, 13),
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(8, 13),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             t.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_17()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    object? Prop { get; }
+    object? GetObj(bool val) => null;
+    void Test(C? c1, C? c2)
+    {
+        if (c1?.GetObj(c2?.Prop != null) != null)
+        {
+            c2.Prop.ToString(); // warn 1 2
+        }
+    }
+}", parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             c2.Prop.ToString(); // warn 1 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2").WithLocation(10, 13),
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             c2.Prop.ToString(); // warn 1 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2.Prop").WithLocation(10, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_18()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void Test(C? x, C? y)
+    {
+        if ((x = y)?.GetHashCode() != null)
+        {
+            x.ToString();
+            y.ToString(); // warn
+        }
+    }
+}", parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_ReferenceType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        if (x is C)
+        {
+            x.ToString();
+        }
+        else
+        {
+            x.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_GenericType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class Base { }
+class C : Base
+{
+    void Test<T>(C? x) where T : Base
+    {
+        if (x is T)
+        {
+            x.ToString();
+        }
+        else
+        {
+            x.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_UnconstrainedGenericType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F<T>(object? o)
+    {
+        if (o is T)
+        {
+            o.ToString();
+        }
+        else
+        {
+            o.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             o.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_StructConstrainedGenericType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F<T>(object? o) where T : struct
+    {
+        if (o is T)
+        {
+            o.ToString();
+        }
+        else
+        {
+            o.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             o.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_ClassConstrainedGenericType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F<T>(object? o) where T : class
+    {
+        if (o is T)
+        {
+            o.ToString();
+        }
+        else
+        {
+            o.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             o.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_UnconstrainedGenericOperand()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F<T>(T t, object? o)
+    {
+        if (t is string) t.ToString();
+        if (t is string s) { t.ToString(); s.ToString(); }
+        if (t != null) t.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): even unconstrained generic types can be known to be non-null
+            c.VerifyDiagnostics(
+                // (6,26): warning CS8602: Possible dereference of a null reference.
+                //         if (t is string) t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(6, 26),
+                // (7,30): warning CS8602: Possible dereference of a null reference.
+                //         if (t is string s) { t.ToString(); s.ToString(); }
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 30),
+                // (8,24): warning CS8602: Possible dereference of a null reference.
+                //         if (t != null) t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(8, 24)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_Is_NullOperand()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    static void F(object? o)
+    {
+        if (null is string) return;
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (null is string) return;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "null is string").WithArguments("string").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsConstantPattern_Null()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        if (x is null)
+        {
+            x.ToString(); // warn
+        }
+        else
+        {
+            x.ToString();
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsConstantPattern_NullInverted()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        if (!(x is null))
+        {
+            x.ToString();
+        }
+        else
+        {
+            x.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsConstantPattern_NonNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        const string nonNullConstant = ""hello"";
+        if (x is nonNullConstant)
+        {
+            x.ToString();
+        }
+        else
+        {
+            x.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsConstantPattern_NullConstant()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        const string? nullConstant = null;
+        if (x is nullConstant)
+        {
+            x.ToString(); // warn
+        }
+        else
+        {
+            x.ToString();
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsConstantPattern_NonConstant()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        string nonConstant = ""hello"";
+        if (x is nonConstant)
+        {
+            x.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (7,18): error CS0150: A constant value is expected
+                //         if (x is nonConstant)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "nonConstant").WithLocation(7, 18),
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsConstantPattern_Null_AlreadyTestedAsNonNull()
+        {
+            // PROTOTYPE(NullableReferenceTypes): confirm that we want such hidden warnings
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        if (x != null)
+        {
+            if (x is null) // hidden
+            {
+                x.ToString(); // warn
+            }
+            else
+            {
+                x.ToString();
+            }
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,22): hidden CS8606: Result of the comparison is possibly always false.
+                //             if (x is null) // hidden
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "null").WithLocation(8, 22),
+                // (10,17): warning CS8602: Possible dereference of a null reference.
+                //                 x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsConstantPattern_Null_AlreadyTestedAsNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        if (x == null)
+        {
+            if (x is null)
+            {
+                x.ToString(); // warn
+            }
+            else
+            {
+                x.ToString();
+            }
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (10,17): warning CS8602: Possible dereference of a null reference.
+                //                 x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsDeclarationPattern()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        if (x is C c)
+        {
+            x.ToString();
+            c.ToString();
+        }
+        else
+        {
+            x.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsVarDeclarationPattern()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        if (x is var c)
+        {
+            x.ToString(); // warn 1
+            c /*T:object?*/ .ToString(); // warn 2
+        }
+        else
+        {
+            x.ToString(); // warn 3
+        }
+
+        if (x is var _)
+        {
+            x.ToString(); // warn 4
+        }
+        else
+        {
+            x.ToString(); // warn 5
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             c /*T:object?*/ .ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 13),
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13),
+                // (18,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(18, 13),
+                // (22,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(22, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_IsVarDeclarationPattern_AlreadyTestedAsNonNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Test(object? x)
+    {
+        if (x != null)
+        {
+            if (x is var c)
+            {
+                c /*T:object!*/ .ToString();
+                c = null; // warn
+            }
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (11,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //                 c = null; // warn
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 21)
                 );
         }
 
@@ -25245,26 +26046,7 @@ partial class C
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(NullableReferenceTypes): Unexpected warnings
             c.VerifyDiagnostics(
-                // (11,20): warning CS8601: Possible null reference assignment.
-                //             c.F1 = x21;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(11, 20),
-                // (12,20): warning CS8601: Possible null reference assignment.
-                //             c.P1 = x21;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(12, 20),
-                // (13,18): warning CS8604: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
-                //             c.M3(x21);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(13, 18),
-                // (19,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.F1 ?? x22;
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(19, 19),
-                // (20,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.P1 ?? x22;
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(20, 19),
-                // (21,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.M1() ?? x22;
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(21, 19),
                 // (27,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //             x23 = c.F2; // warn 2
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.F2").WithLocation(27, 19),
@@ -29524,7 +30306,7 @@ F(v).ToString();";
         /// should not result in a warning at the call site.
         /// </summary>
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
         public void ParameterDefaultValue_FromMetadata()
         {
             var source0 =
@@ -29563,7 +30345,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
         public void ParameterDefaultValue_01()
         {
             var source =
@@ -29657,7 +30439,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
         public void ParameterDefaultValue_03()
         {
             var source =
@@ -29823,7 +30605,7 @@ class P
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
         public void ParameterDefaultValue_04()
         {
             var source =
@@ -29963,7 +30745,7 @@ struct S : I
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes) Cycle with Equals when copying modifiers")]
+        [Fact]
         public void NonNullTypes_DecodeAttributeCycle_01_WithEvent()
         {
             var source =
@@ -29976,9 +30758,8 @@ interface I
 [StructLayout(LayoutKind.Auto)]
 struct S : I
 {
-    public event Func<int> I.E { add => throw null; remove => throw null; }
+    event Func<int> I.E { add => throw null; remove => throw null; }
 }";
-            // PROTOTYPE(NullableReferenceTypes): cycles with Equals when copying modifiers
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);

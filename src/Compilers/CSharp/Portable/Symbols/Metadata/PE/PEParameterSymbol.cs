@@ -257,10 +257,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // CONSIDER: Can we make parameter type computation lazy?
                 var typeSymbol = DynamicTypeDecoder.TransformType(type.TypeSymbol, countOfCustomModifiers, handle, moduleSymbol, refKind);
-                type = type.Update(typeSymbol, type.CustomModifiers);
+                type = type.WithTypeAndModifiers(typeSymbol, type.CustomModifiers);
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformOrEraseNullability(type, handle, moduleSymbol, extraAnnotations);
+                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, extraAnnotations);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
             }
 
@@ -284,12 +284,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (externalNullableAnnotations.IsDefault)
             {
-                return type.SetUnknownNullabilityForReferenceTypesIfNecessary(module);
+                return type;
             }
             else
             {
                 // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
-                return NullableTypeDecoder.TransformType(type, externalNullableAnnotations);
+                // We currently don't have a mechanism for external annotations to affect the NonNullType context, so
+                // any external annotation is taken to imply a `[NonNullTypes(true)]` context
+                return NullableTypeDecoder.TransformType(type, externalNullableAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
             }
         }
 
@@ -315,7 +317,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isReturn,
             out bool isBad)
         {
-            var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
+            // We start without annotation (they will be decoded below)
+            var typeWithModifiers = TypeSymbolWithAnnotations.CreateUnannotated(containingSymbol, type, CSharpCustomModifier.Convert(customModifiers));
+
             PEParameterSymbol parameter = customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty
                 ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, extraAnnotations, handle, 0, out isBad)
                 : new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, extraAnnotations, handle, out isBad);

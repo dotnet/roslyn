@@ -7,6 +7,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class UninitializedNonNullableFieldTests : CSharpTestBase
     {
+        private const string NonNullTypesAttributesDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+        private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
+
         [Fact]
         public void NoNonNullWarnings_CSharp7()
         {
@@ -35,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     internal object?[] F3;
     private object[]? F4;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (1,7): warning CS8618: Non-nullable field 'F3' is uninitialized.
                 // class C
@@ -69,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         F4 = new[] { x, y };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8618: Non-nullable field 'F3' is uninitialized.
                 //     internal C()
@@ -98,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     internal readonly object?[] F3;
     private readonly object[]? F4;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (1,7): warning CS8618: Non-nullable field 'F3' is uninitialized.
                 // class C
@@ -132,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         F4 = new[] { x, y };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8618: Non-nullable field 'F3' is uninitialized.
                 //     internal C()
@@ -246,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         F3 = z;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8618: Non-nullable field 'F2' is uninitialized.
                 //     private C()
@@ -286,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         P4 = new[] { x, y };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8618: Non-nullable property 'P3' is uninitialized.
                 //     internal C()
@@ -326,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         P4 = new[] { x, y };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8618: Non-nullable property 'P3' is uninitialized.
                 //     internal C()
@@ -449,7 +461,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8618: Non-nullable property 'P1' is uninitialized.
                 //     private C()
@@ -511,7 +523,7 @@ class C5<T, U> where T : A where U : T
     T F5;
     U G5;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (4,7): warning CS8618: Non-nullable field 'G1' is uninitialized.
                 // class C1<T, U> where U : T
@@ -572,7 +584,7 @@ class C5<T, U> where T : A where U : T
             P = new [] { s };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,14): warning CS8618: Non-nullable property 'P' is uninitialized.
                 //     internal C(string s)
@@ -599,7 +611,7 @@ class C5<T, U> where T : A where U : T
             P = new [] { s };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,14): error CS0843: Auto-implemented property 'S.P' must be fully assigned before control is returned to the caller.
                 //     internal S(string s)
@@ -710,7 +722,7 @@ class C
         L(new object());
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,5): warning CS8618: Non-nullable field 'G' is uninitialized.
                 //     C()

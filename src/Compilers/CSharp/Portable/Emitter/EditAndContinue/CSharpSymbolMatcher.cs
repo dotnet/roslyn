@@ -336,10 +336,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 if (symbol.IsSZArray)
                 {
-                    return ArrayTypeSymbol.CreateSZArray(_otherAssembly, symbol.ElementType.Update(otherElementType, otherModifiers));
+                    return ArrayTypeSymbol.CreateSZArray(_otherAssembly, symbol.ElementType.WithTypeAndModifiers(otherElementType, otherModifiers));
                 }
 
-                return ArrayTypeSymbol.CreateMDArray(_otherAssembly, symbol.ElementType.Update(otherElementType, otherModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
+                return ArrayTypeSymbol.CreateMDArray(_otherAssembly, symbol.ElementType.WithTypeAndModifiers(otherElementType, otherModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
             }
 
             public override Symbol VisitEvent(EventSymbol symbol)
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                                                     newType = t.TypeSymbol;
                                                                                 }
 
-                                                                                return t.Update(newType, v.VisitCustomModifiers(t.CustomModifiers));
+                                                                                return t.WithTypeAndModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers));
                                                                             }, this);
 
                     if (translationFailed)
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return null;
                 }
                 var otherModifiers = VisitCustomModifiers(symbol.PointedAtType.CustomModifiers);
-                return new PointerTypeSymbol(symbol.PointedAtType.Update(otherPointedAtType, otherModifiers));
+                return new PointerTypeSymbol(symbol.PointedAtType.WithTypeAndModifiers(otherPointedAtType, otherModifiers));
             }
 
             public override Symbol VisitProperty(PropertySymbol symbol)
@@ -884,10 +884,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 if (symbol.IsSZArray)
                 {
-                    return ArrayTypeSymbol.CreateSZArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementType.Update(translatedElementType, translatedModifiers));
+                    return ArrayTypeSymbol.CreateSZArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementType.WithTypeAndModifiers(translatedElementType, translatedModifiers));
                 }
 
-                return ArrayTypeSymbol.CreateMDArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementType.Update(translatedElementType, translatedModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
+                return ArrayTypeSymbol.CreateMDArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementType.WithTypeAndModifiers(translatedElementType, translatedModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
             }
 
             public override Symbol VisitDynamicType(DynamicTypeSymbol symbol)
@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if ((object)originalDef != type)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => t.Update((TypeSymbol)v.Visit(t.TypeSymbol), 
+                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.TypeSymbol), 
                                                                                                                                                   v.VisitCustomModifiers(t.CustomModifiers)), 
                                                                                                                  this);
 
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 var translatedPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType.TypeSymbol);
                 var translatedModifiers = VisitCustomModifiers(symbol.PointedAtType.CustomModifiers);
-                return new PointerTypeSymbol(symbol.PointedAtType.Update(translatedPointedAtType, translatedModifiers));
+                return new PointerTypeSymbol(symbol.PointedAtType.WithTypeAndModifiers(translatedPointedAtType, translatedModifiers));
             }
 
             public override Symbol VisitTypeParameter(TypeParameterSymbol symbol)

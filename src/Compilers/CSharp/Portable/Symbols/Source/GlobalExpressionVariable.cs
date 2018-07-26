@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>. 
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        private TypeSymbol SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbolWithAnnotations type)
+        private TypeSymbolWithAnnotations SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbolWithAnnotations type)
         {
             var originalType = _lazyType;
 
@@ -123,14 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
             }
-            return _lazyType.TypeSymbol;
+            return _lazyType;
         }
 
         /// <summary>
         /// Can add some diagnostics into <paramref name="diagnostics"/>.
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        internal TypeSymbol SetType(TypeSymbolWithAnnotations type, DiagnosticBag diagnostics)
+        internal TypeSymbolWithAnnotations SetType(TypeSymbolWithAnnotations type, DiagnosticBag diagnostics)
         {
             return SetType(DeclaringCompilation, diagnostics, type);
         }

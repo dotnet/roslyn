@@ -66,8 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if ((object)explicitlyImplementedEvent != null)
             {
                 CopyEventCustomModifiers(explicitlyImplementedEvent, ref _type, ContainingAssembly, nonNullTypesContext: this);
-
-                TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, explicitlyImplementedEvent, true, diagnostics);
             }
 
             AccessorDeclarationSyntax addSyntax = null;
@@ -186,6 +184,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var explicitInterfaceSpecifier = this.ExplicitInterfaceSpecifier;
                 Debug.Assert(explicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+            }
+
+            if (!_explicitInterfaceImplementations.IsEmpty)
+            {
+                // Note: we delayed nullable-related checks that could pull on NonNullTypes
+                EventSymbol explicitlyImplementedEvent = _explicitInterfaceImplementations[0];
+                TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, explicitlyImplementedEvent, true, diagnostics);
             }
         }
 

@@ -272,17 +272,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
                     if (_lazyType.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
-                        _lazyType = _lazyType.Update(
+                        _lazyType = _lazyType.WithTypeAndModifiers(
                             CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, _lazyType.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: this),
                             overriddenPropertyType.CustomModifiers);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
-
-                    if (isExplicitInterfaceImplementation)
-                    {
-                        TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrImplementedProperty, true, diagnostics);
-                    }
                 }
             }
             else if (_refKind == RefKind.RefReadOnly)
@@ -746,6 +741,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(this.CSharpSyntaxNode);
                 Debug.Assert(explicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+
+                // Note: we delayed nullable-related checks that could pull on NonNullTypes
+                PropertySymbol overriddenOrImplementedProperty = null;
+                if (this.IsOverride)
+                {
+                    overriddenOrImplementedProperty = this.OverriddenProperty;
+                }
+                else if (!_explicitInterfaceImplementations.IsEmpty)
+                {
+                    overriddenOrImplementedProperty = _explicitInterfaceImplementations[0];
+                }
+
+                if (overriddenOrImplementedProperty != null)
+                {
+                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrImplementedProperty, true, diagnostics);
+                }
             }
 
             if (_refKind == RefKind.RefReadOnly)
@@ -1119,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private CommonPropertyWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private PropertyWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -1127,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonPropertyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (PropertyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1267,11 +1278,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
-                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -1301,6 +1312,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
+            {
+                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().NonNullTypes = value;
             }
         }
 
@@ -1518,8 +1534,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE(NullableReferenceTypes): temporary solution to avoid cycle
-                return SyntaxBasedNonNullTypes(this.CSharpSyntaxNode.AttributeLists) ?? base.NonNullTypes;
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.NonNullTypes ?? base.NonNullTypes;
             }
         }
     }

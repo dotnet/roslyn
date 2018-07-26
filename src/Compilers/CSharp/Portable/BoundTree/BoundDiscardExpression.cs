@@ -7,10 +7,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundDiscardExpression
     {
-        public BoundExpression SetInferredType(TypeSymbol type)
+        public BoundExpression SetInferredType(TypeSymbolWithAnnotations type)
         {
             Debug.Assert((object)Type == null && (object)type != null);
-            return this.Update(type);
+            // PROTOTYPE(NullableReferenceTypes): we're dropping the annotation
+            return this.Update(type.TypeSymbol);
         }
 
         public BoundDiscardExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
