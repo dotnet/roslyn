@@ -24,8 +24,11 @@
 
     <JenkinsBuild>false</JenkinsBuild>
     <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
+    <VstsBuild>false</VstsBuild>
+    <VstsBuild Condition="'$(BUILD_REPOSITORY_ID)' != ''">true</VstsBuild>
     <DeveloperBuild>false</DeveloperBuild>
-    <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
+    <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true' AND '$(VstsBuild)' != 'true'">true</DeveloperBuild>
+    <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
     <ContinuousIntegrationBuild Condition="!$(DeveloperBuild)">true</ContinuousIntegrationBuild>
 
     <NuGetToolPath>$(RepoRoot)nuget.exe</NuGetToolPath>
