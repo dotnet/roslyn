@@ -68,6 +68,10 @@ If there is no `[NonNullTypes]` attribute at any containing scope, including the
 `NonNullTypesAttribute` is not synthesized by the compiler. If the attribute is used explicitly in source, the type declaration must be provided explicitly to the compilation. The type should be defined in the framework.
 `NonNullTypesAttribute` can only be used in C# 8.0 compilations (or above).
 
+`NonNullTypesAttribute` will be marked as `Obsolete` with a magic string:
+"The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above)."
+The C# 8.0 compiler (or above) will ignore this `Obsolete` marker. The effect is that the `NonNullTypes` attribute is poisoned from being used with older compilers (which do not honour it and perform nullability flow analysis).
+
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._
 
