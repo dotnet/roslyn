@@ -615,9 +615,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return current;
                     }
                 }
-                else if ((object)typeOpt != null && typePredicateOpt != null)
+                else if (typePredicateOpt != null)
                 {
-                    if (typePredicateOpt(typeOpt, arg, isNestedNamedType))
+                    if (typePredicateOpt(current, arg, isNestedNamedType))
                     {
                         return current;
                     }
