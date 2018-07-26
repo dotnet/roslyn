@@ -303,9 +303,15 @@ class Client
     }
 }
 ";
-            // PROTOTYPE(NullableReferenceTypes): expecting warnings
-            var comp2 = CreateCompilation(client, references: new[] { c.EmitToImageReference() });
-            comp2.VerifyDiagnostics();
+            var comp2 = CreateCompilation(client, references: new[] { c.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         c.M("").ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"c.M("""")").WithLocation(6, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         d.M("").ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"d.M("""")").WithLocation(7, 9)
+                );
         }
 
         [Fact]
