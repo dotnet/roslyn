@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         JoinableTask,
         ForcedByPackageInitialize,
         MonoDevelopGtk,
+        MonoDevelopXwt,
         Unknown
     }
 
@@ -28,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind defaultKind)
         {
-            var syncConextTypeName = SynchronizationContext.Current?.GetType().FullName;
+            var syncContextTypeName = SynchronizationContext.Current?.GetType().FullName;
 
-            switch (syncConextTypeName)
+            switch (syncContextTypeName)
             {
                 case "System.Windows.Threading.DispatcherSynchronizationContext":
 
@@ -47,6 +48,10 @@ namespace Microsoft.CodeAnalysis.Utilities
                 case "MonoDevelop.Ide.DispatchService+GtkSynchronizationContext":
 
                     return MonoDevelopGtk;
+
+                case "Xwt.XwtSynchronizationContext":
+
+                    return MonoDevelopXwt;
 
                 default:
 

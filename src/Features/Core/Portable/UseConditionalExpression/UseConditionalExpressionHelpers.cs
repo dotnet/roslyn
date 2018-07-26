@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         /// <summary>
         /// Will unwrap a block with a single statement in it to just that block.  Used so we can
-        /// support both ```if (expr) { statement }``` and ```if (expr) statement```
+        /// support both <c>if (expr) { statement }</c> and <c>if (expr) statement</c>
         /// </summary>
         public static IOperation UnwrapSingleStatementBlock(IOperation statement)
             => statement is IBlockOperation block && block.Operations.Length == 1

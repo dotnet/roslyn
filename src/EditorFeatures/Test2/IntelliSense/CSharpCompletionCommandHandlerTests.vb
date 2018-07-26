@@ -385,7 +385,8 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Assert.Contains("(Variable x, Variable ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                Await state.AssertNoCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=False)
+                Assert.True(state.CompletionItemsContainsAll({"variable"}))
             End Using
         End Function
 
@@ -3858,7 +3859,7 @@ class C
                 context.AddItem(CompletionItem.Create(
                     "CustomItem",
                     rules:=CompletionItemRules.Default.WithMatchPriority(1000)))
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
 
             Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean

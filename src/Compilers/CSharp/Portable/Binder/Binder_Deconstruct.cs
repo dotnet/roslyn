@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Find the Deconstruct method for the expression on the right, that will fit the number of assignable variables on the left.
         /// Returns an invocation expression if the Deconstruct method is found.
         ///     If so, it outputs placeholders that were coerced to the output types of the resolved Deconstruct method.
-        /// The overload resolution is similar to writing `receiver.Deconstruct(out var x1, out var x2, ...)`.
+        /// The overload resolution is similar to writing <c>receiver.Deconstruct(out var x1, out var x2, ...)</c>.
         /// </summary>
         private BoundExpression MakeDeconstructInvocationExpression(
                                     int numCheckedVariables, BoundExpression receiver, SyntaxNode rightSyntax,

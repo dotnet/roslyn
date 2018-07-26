@@ -2,12 +2,36 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal static class ISyntaxFactsServiceExtensions
     {
+        public static bool IsLegalIdentifier(this ISyntaxFactsService syntaxFacts, string name)
+        {
+            if (name.Length == 0)
+            {
+                return false;
+            }
+
+            if (!syntaxFacts.IsIdentifierStartCharacter(name[0]))
+            {
+                return false;
+            }
+
+            for (int i = 1; i < name.Length; i++)
+            {
+                if (!syntaxFacts.IsIdentifierPartCharacter(name[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public static bool IsWord(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
         {
             return syntaxFacts.IsIdentifier(token)
@@ -59,8 +83,36 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 .WithLeadingTrivia(leadingTrivia)
                 .WithTrailingTrivia(trailingTrivia);
 
+            // If there's no trivia between the original node and the tokens around it, then add
+            // elastic markers so the formatting engine will spaces if necessary to keep things
+            // parseable.
+            if (resultNode.GetLeadingTrivia().Count == 0)
+            {
+                var previousToken = node.GetFirstToken().GetPreviousToken();
+                if (previousToken.TrailingTrivia.Count == 0 &&
+                    syntaxFacts.IsWordOrNumber(previousToken) &&
+                    syntaxFacts.IsWordOrNumber(resultNode.GetFirstToken()))
+                {
+                    resultNode = resultNode.WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
+                }
+            }
+
+            if (resultNode.GetTrailingTrivia().Count == 0)
+            {
+                var nextToken = node.GetLastToken().GetNextToken();
+                if (nextToken.LeadingTrivia.Count == 0 &&
+                    syntaxFacts.IsWordOrNumber(nextToken) &&
+                    syntaxFacts.IsWordOrNumber(resultNode.GetLastToken()))
+                {
+                    resultNode = resultNode.WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker);
+                }
+            }
+
             return resultNode;
         }
+
+        private static bool IsWordOrNumber(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
+            => syntaxFacts.IsWord(token) || syntaxFacts.IsNumericLiteral(token);
 
         public static bool SpansPreprocessorDirective(this ISyntaxFactsService service, SyntaxNode node)
             => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
@@ -82,5 +134,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             syntaxFacts.GetPartsOfBinaryExpression(node, out _, out var token, out _);
             return token;
         }
+
+        public static bool IsAnonymousOrLocalFunctionStatement(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+            => syntaxFacts.IsAnonymousFunction(node) ||
+               syntaxFacts.IsLocalFunctionStatement(node);
+
     }
 }

@@ -1032,13 +1032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                replacementNode = memberAccess.Name
-                replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
-                    .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
-                        memberAccess.Name.Identifier,
-                        semanticModel)) _
-                    .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
-                    .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+                replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
                 issueSpan = memberAccess.Expression.Span
 
                 If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
@@ -1053,6 +1047,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return False
+        End Function
+
+        <Extension>
+        Public Function GetNameWithTriviaMoved(memberAccess As MemberAccessExpressionSyntax,
+                                               semanticModel As SemanticModel) As SimpleNameSyntax
+            Dim replacementNode = memberAccess.Name
+            replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
+                .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
+                    memberAccess.Name.Identifier,
+                    semanticModel)) _
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+
+            Return replacementNode
         End Function
 
         <Extension>
@@ -1093,7 +1101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' <Remarks>
         ''' Note: This helper exists solely to work around Bug 1012713. Once it is fixed, this helper must be
         ''' deleted in favor of <see cref="InsideCrefReference(ExpressionSyntax)"/>.
-        ''' Context: Bug 1012713 makes it so that the compiler doesn't support `PredefinedType.Member` inside crefs 
+        ''' Context: Bug 1012713 makes it so that the compiler doesn't support <c>PredefinedType.Member</c> inside crefs 
         ''' (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't 
         ''' support simplifying types names Like System.Int32.MaxValue to Integer.MaxValue.
         ''' </Remarks>

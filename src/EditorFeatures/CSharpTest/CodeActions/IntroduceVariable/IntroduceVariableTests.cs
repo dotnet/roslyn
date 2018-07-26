@@ -4878,8 +4878,7 @@ class C
         public async Task Tuple_IntroduceLocalForAllOccurrences()
         {
             // Cannot refactor tuple as local constant
-            await Assert.ThrowsAsync<Xunit.Sdk.InRangeException>(() =>
-             TestInRegularAndScriptAsync(
+            await TestActionCountAsync(
 @"class C
 {
     void Goo()
@@ -4887,9 +4886,7 @@ class C
         Bar([|(1, ""hello"")|]);
         Bar((1, ""hello"");
     }
-}",
-                @"",
-                index: 3));
+}", count: 2);
         }
 
         [WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")]

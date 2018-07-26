@@ -123,13 +123,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitConvertSimpleNumeric(conversion As BoundConversion, typeFrom As PrimitiveTypeCode, typeTo As PrimitiveTypeCode, checked As Boolean)
             Debug.Assert(typeFrom.IsIntegral() OrElse typeFrom.IsFloatingPoint() OrElse typeFrom = PrimitiveTypeCode.Char)
             Debug.Assert(typeTo.IsIntegral() OrElse typeTo.IsFloatingPoint())
-
-            Debug.Assert(Not (typeFrom.IsFloatingPoint() AndAlso typeTo.IsIntegral() AndAlso
-                              Not (conversion.Operand.Kind = BoundKind.Call AndAlso
-                                   DirectCast(conversion.Operand, BoundCall).Method.Equals(
-                                       Me._module.SourceModule.ContainingSourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble)))),
-                         "About to ignore VB rules for rounding float numbers.")
-
             _builder.EmitNumericConversion(typeFrom, typeTo, checked)
         End Sub
 

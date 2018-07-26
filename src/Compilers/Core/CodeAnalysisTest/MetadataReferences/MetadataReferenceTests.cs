@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class MetadataReferenceTests : TestBase
     {
 // Tests require AppDomains
-#if NET461
+#if NET46
         [Fact]
         public void CreateFromAssembly_NoMetadata()
         {

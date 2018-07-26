@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
         {
             await TestInRegularAndScriptAsync(
 @"
-#define NET461
+#define NET46
 
 using System;
 
@@ -223,7 +223,7 @@ namespace ClassLibrary
     {
         public static string GetText()
         {
-#if NET461
+#if NET46
         return ""Hello from "" + Environment.OSVersion;
 #elif NETSTANDARD1_4
         return ""Hello from .NET Standard"";
@@ -235,7 +235,7 @@ namespace ClassLibrary
     }
 }",
 @"
-#define NET461
+#define NET46
 
 using System;
 
@@ -245,7 +245,7 @@ namespace ClassLibrary
     {
         public static string GetText()
         {
-#if NET461
+#if NET46
         return ""Hello from "" + Environment.OSVersion;
 #elif NETSTANDARD1_4
         return ""Hello from .NET Standard"";

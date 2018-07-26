@@ -218,6 +218,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // #if (x)   ->   #if x
+            if (node.Parent is DirectiveTriviaSyntax)
+            {
+                return true;
+            }
+
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.

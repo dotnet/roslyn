@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -179,9 +179,7 @@ namespace RunTests
         /// </summary>
         private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
         {
-            var procDumpFilePath = GetProcDumpInfo(options).Value.ProcDumpFilePath;
-
-            async Task DumpProcess(Process targetProcess, string dumpFilePath)
+            async Task DumpProcess(Process targetProcess, string procDumpExeFilePath, string dumpFilePath)
             {
                 var name = targetProcess.ProcessName;
 
@@ -196,7 +194,7 @@ namespace RunTests
                 try
                 {
                     var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
-                    var processInfo = ProcessRunner.CreateProcess(procDumpFilePath, args, cancellationToken: cancellationToken);
+                    var processInfo = ProcessRunner.CreateProcess(procDumpExeFilePath, args, cancellationToken: cancellationToken);
                     var processOutput = await processInfo.Result;
 
                     // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
@@ -209,7 +207,7 @@ namespace RunTests
                     else
                     {
                         ConsoleUtil.WriteLine($"FAILED with {processOutput.ExitCode}");
-                        ConsoleUtil.WriteLine($"{procDumpFilePath} {args}");
+                        ConsoleUtil.WriteLine($"{procDumpExeFilePath} {args}");
                         ConsoleUtil.WriteLine(string.Join(Environment.NewLine, processOutput.OutputLines));
                     }
                 }
@@ -230,7 +228,7 @@ namespace RunTests
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, dumpFilePath);
+                    await DumpProcess(proc, procDumpInfo.Value.ProcDumpFilePath, dumpFilePath);
                     counter++;
                 }
             }
@@ -293,12 +291,12 @@ namespace RunTests
 
                 // As a starting point we will just schedule the items we know to be a performance
                 // bottleneck.  Can adjust as we get real data.
-                if (name == "Roslyn.Compilers.CSharp.Emit.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.UnitTests.dll" ||
+                if (name == "Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll" ||
+                    name == "Microsoft.CodeAnalysis.EditorFeatures.UnitTests.dll" ||
                     name == "Roslyn.Services.Editor.UnitTests2.dll" ||
-                    name == "Roslyn.VisualStudio.Services.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.CSharp.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.VisualBasic.UnitTests.dll")
+                    name == "Microsoft.VisualStudio.LanguageServices.UnitTests.dll" ||
+                    name == "Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests.dll" ||
+                    name == "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests.dll")
                 {
                     list.AddRange(scheduler.Schedule(assemblyPath));
                 }

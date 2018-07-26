@@ -646,6 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.ComplexElementInitializerExpression:
                 case SyntaxKind.Interpolation:
                 case SyntaxKind.RefExpression:
+                case SyntaxKind.LockStatement:
                     // Direct parent kind checks.
                     return true;
             }
@@ -911,9 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            replacementNode = memberAccess.Name
-                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
-                .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
+            replacementNode = memberAccess.GetNameWithTriviaMoved();
             issueSpan = memberAccess.Expression.Span;
 
             if (replacementNode == null)
@@ -923,6 +922,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
         }
+
+        public static SimpleNameSyntax GetNameWithTriviaMoved(this MemberAccessExpressionSyntax memberAccess)
+            => memberAccess.Name
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
 
         private static bool TryGetReplacementCandidates(
             SemanticModel semanticModel,

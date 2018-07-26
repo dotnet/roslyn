@@ -714,6 +714,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Update a new solution instance with a fork of the specified project.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly fork current solution snapshot
+        /// </summary>
+        internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            Contract.Requires(this.ContainsProject(projectId));
+
+            return ForkProject(GetProjectState(projectId));
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
@@ -1196,25 +1214,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            // check to see if this solution has already been branched before with the same doc & text changes.
-            // this helps reduce duplicate parsing when typing, and separate services generating duplicate symbols.
-            if (mode == PreservationMode.PreserveIdentity)
-            {
-                var branch = _firstBranch;
-                if (branch != null && branch.Id == documentId && branch.Text == text)
-                {
-                    return branch.Solution;
-                }
-            }
-
-            var newSolution = this.WithDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
-
-            if (mode == PreservationMode.PreserveIdentity && _firstBranch == null)
-            {
-                Interlocked.CompareExchange(ref _firstBranch, new SolutionBranch(documentId, text, newSolution), null);
-            }
-
-            return newSolution;
+            return this.WithDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
         }
 
         /// <summary>
@@ -1243,22 +1243,6 @@ namespace Microsoft.CodeAnalysis
 
             var newSolution = this.WithTextDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
             return newSolution;
-        }
-
-        private SolutionBranch _firstBranch;
-
-        private class SolutionBranch
-        {
-            public readonly DocumentId Id;
-            public readonly SourceText Text;
-            public readonly SolutionState Solution;
-
-            public SolutionBranch(DocumentId id, SourceText text, SolutionState solution)
-            {
-                this.Id = id;
-                this.Text = text;
-                this.Solution = solution;
-            }
         }
 
         /// <summary>
@@ -1683,7 +1667,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <code>null</code> when the project
+        /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
         private Task<Compilation> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
@@ -1692,7 +1676,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the compilation for the specified <see cref="ProjectState"/>.  Can return <code>null</code> when the project
+        /// Returns the compilation for the specified <see cref="ProjectState"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
         public Task<Compilation> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
@@ -1778,6 +1762,25 @@ namespace Microsoft.CodeAnalysis
             }
 
             return state.GetPartialMetadataReference(this, fromProject, projectReference, cancellationToken);
+        }
+
+        public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            var result = GetCompilationTracker(id).ContainsSymbolsWithNameFromDeclarationOnlyCompilation(name, filter, cancellationToken);
+            if (result.HasValue)
+            {
+                return result.Value;
+            }
+
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
+            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
+            if (compilation == null)
+            {
+                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
+                return false;
+            }
+
+            return compilation.ContainsSymbolsWithName(name, filter, cancellationToken);
         }
 
         public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)

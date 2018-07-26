@@ -784,18 +784,28 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
+            /// check whether the compilation contains any declaration symbol from syntax trees with
+            /// given name
+            /// </summary>
+            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(string name, SymbolFilter filter, CancellationToken cancellationToken)
+            {
+                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
+                var state = this.ReadState();
+                return state.DeclarationOnlyCompilation == null
+                    ? default(bool?)
+                    : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(name, filter, cancellationToken);
+            }
+
+            /// <summary>
             /// check whether the compilation contains any declaration symbol from syntax trees with given name
             /// </summary>
             public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
             {
-                var state = this.ReadState();
-                if (state.DeclarationOnlyCompilation == null)
-                {
-                    return null;
-                }
-
                 // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
-                return state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
+                var state = this.ReadState();
+                return state.DeclarationOnlyCompilation == null
+                    ? default(bool?)
+                    : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
             }
 
             /// <summary>
@@ -843,15 +853,16 @@ namespace Microsoft.CodeAnalysis
             private AsyncLazy<VersionStamp> _lazyDependentVersion;
             private AsyncLazy<VersionStamp> _lazyDependentSemanticVersion;
 
-            public async Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+            public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 if (_lazyDependentVersion == null)
                 {
+                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(solution, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(tmp, c), cacheResult: true), null);
                 }
 
-                return await _lazyDependentVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return _lazyDependentVersion.GetValueAsync(cancellationToken);
             }
 
             private async Task<VersionStamp> ComputeDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
@@ -875,15 +886,16 @@ namespace Microsoft.CodeAnalysis
                 return version;
             }
 
-            public async Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 if (_lazyDependentSemanticVersion == null)
                 {
+                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(solution, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(tmp, c), cacheResult: true), null);
                 }
 
-                return await _lazyDependentSemanticVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return _lazyDependentSemanticVersion.GetValueAsync(cancellationToken);
             }
 
             private async Task<VersionStamp> ComputeDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)

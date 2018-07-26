@@ -107,7 +107,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         /*<bind>*/Action a = () => 1;/*</bind>*/
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(7, 36)
             };
@@ -207,7 +207,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         Action a = /*<bind>*/(Action)(() => 1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(7, 45)
             };
@@ -383,7 +383,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Target: 
                   IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
+                      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
     Initializer: 
       null
 ";
@@ -512,7 +512,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Target: 
                   IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+                      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
     Initializer: 
       null
 ";
@@ -545,7 +545,7 @@ class Program
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, @"
 IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ", new DiagnosticDescription[]
             {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -555,7 +555,7 @@ IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodRefere
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, @"
 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
   Children(1):
-      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ", new DiagnosticDescription[]
             {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -590,7 +590,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Target: 
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
     Initializer: 
       null
 ";
@@ -622,7 +622,7 @@ class Program
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
   Children(1):
-      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -654,7 +654,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
   Target: 
     IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -742,7 +742,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
   Target: 
     IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -814,7 +814,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
   Target: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
       Children(1):
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -913,7 +913,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         Action a = /*<bind>*/new Action(() => 1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(7, 47)
             };
@@ -1009,7 +1009,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
   Target: 
     IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1069,7 +1069,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
   Target: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'this.M1')
       Children(1):
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid) (Syntax: 'this')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid) (Syntax: 'this')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(7,41): error CS0176: Member 'Program.M1()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -1159,7 +1159,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
   Target: 
     IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ", new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
@@ -1170,7 +1170,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
   Target: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
       Children(1):
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ", new DiagnosticDescription[] {
                 // file.cs(7,41): error CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
@@ -1200,7 +1200,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
   Target: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
       Children(1):
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0123: No overload for 'M1' matches delegate 'Action'
@@ -1238,10 +1238,10 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Synta
   Children(2):
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M3')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M3')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M3')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0149: Method name expected
@@ -1272,7 +1272,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
   Target: 
     IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'System.Action' to 'System.Action<string>'
@@ -1303,7 +1303,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
   Target: 
     IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'System.Action' to 'System.Func<string>'
@@ -1373,7 +1373,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Synta
                   null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         Action a = /*<bind>*/new Action((Action)(() => 1))/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(7, 56)
             };
@@ -1434,7 +1434,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
       Target: 
         IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1495,7 +1495,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Synta
         Target: 
           IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -1529,7 +1529,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Synta
         Target: 
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(7,41): error CS0123: No overload for 'M1' matches delegate 'Action'
@@ -1563,7 +1563,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Target: 
         IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'System.Action' to 'System.Action<string>'
@@ -1597,7 +1597,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Target: 
         IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'System.Action' to 'System.Func<string>'
@@ -1631,7 +1631,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action<System.Int32>, IsI
         Target: 
           IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(7,35): error CS0123: No overload for 'Action.Invoke()' matches delegate 'Action<int>'
@@ -1709,7 +1709,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Target: 
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
     Initializer: 
       null
 ";
@@ -1749,7 +1749,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Target: 
                   IMethodReferenceOperation: void Program.M1(System.Int32 i) (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
+                      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
     Initializer: 
       null
 ";
@@ -1781,7 +1781,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<
   Target: 
     IMethodReferenceOperation: void Program.M1(System.String s) (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1811,7 +1811,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<
   Target: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
       Children(1):
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0123: No overload for 'Program.M1(object)' matches delegate 'Action<int>'
@@ -1820,6 +1820,179 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DelegateCreation_NoControlFlow()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    void M(Action a1, Action a2, Action a3, Action a4)
+    /*<bind>*/{
+        a1 = () => { };
+        a2 = M2;
+        a3 = new Action(a4);
+    }/*</bind>*/
+
+    void M2() { }
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a1 = () => { };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action) (Syntax: 'a1 = () => { }')
+              Left: 
+                IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a1')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: '() => { }')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '() => { }')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Exit
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                    }
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a2 = M2;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action) (Syntax: 'a2 = M2')
+              Left: 
+                IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a2')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'M2')
+                  Target: 
+                    IMethodReferenceOperation: void C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'M2')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a3 = new Action(a4);')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action) (Syntax: 'a3 = new Action(a4)')
+              Left: 
+                IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a3')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'new Action(a4)')
+                  Target: 
+                    IParameterReferenceOperation: a4 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a4')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DelegateCreation_ControlFlowInTarget()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    void M(Action a1, Action a2, Action a3)
+    /*<bind>*/
+    {
+        a1 = new Action(a2 ?? a3);
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    CaptureIds: [0] [2]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a1')
+              Value: 
+                IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a1')
+
+        Next (Regular) Block[B2]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a2')
+                  Value: 
+                    IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a2')
+
+            Jump if True (Regular) to Block[B4]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a2')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Action, IsImplicit) (Syntax: 'a2')
+                Leaving: {R2}
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a2')
+                  Value: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Action, IsImplicit) (Syntax: 'a2')
+
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a3')
+              Value: 
+                IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a3')
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a1 = new Ac ... (a2 ?? a3);')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action) (Syntax: 'a1 = new Ac ... n(a2 ?? a3)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Action, IsImplicit) (Syntax: 'a1')
+                  Right: 
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'new Action(a2 ?? a3)')
+                      Target: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Action, IsImplicit) (Syntax: 'a2 ?? a3')
+
+        Next (Regular) Block[B6]
+            Leaving: {R1}
+}
+
+Block[B6] - Exit
+    Predecessors: [B5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
     }
 }

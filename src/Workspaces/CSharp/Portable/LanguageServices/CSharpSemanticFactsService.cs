@@ -231,6 +231,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node is AwaitExpressionSyntax awaitExpression)
+            {
+                var info = semanticModel.GetAwaitExpressionInfo(awaitExpression);
+                return info.GetAwaiterMethod;
+            }
+
+            return null;
+        }
+
         public ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node)
         {
             if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
@@ -267,13 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 FlattenDeconstructionMethods(nested, builder);
             }
-        }
-
-        public bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation)
-        {
-            return fromSymbol != null &&
-                toSymbol != null &&
-                ((CSharpCompilation)compilation).ClassifyConversion(fromSymbol, toSymbol).IsImplicit;
         }
 
         public bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)

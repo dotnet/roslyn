@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -33,7 +34,14 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             // if wrong compilation is given, GetSemanticModel will throw due to tree not belong to the given compilation.
-            var model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            var model = operation.SemanticModel ?? compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            if (model.IsSpeculativeSemanticModel)
+            {
+                // GetDiagnostics not supported for speculative semantic model.
+                // https://github.com/dotnet/roslyn/issues/28075
+                return false;
+            }
+
             return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
@@ -297,6 +305,22 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return argumentRefKinds[index];
+        }
+
+        /// <summary>
+        /// Gets the root operation for the <see cref="IOperation"/> tree containing the given <paramref name="operation"/>.
+        /// </summary>
+        /// <param name="operation">Operation whose root is requested.</param>
+        internal static IOperation GetRootOperation(this IOperation operation)
+        {
+            Debug.Assert(operation != null);
+
+            while (operation.Parent != null)
+            {
+                operation = operation.Parent;
+            }
+
+            return operation;
         }
     }
 }

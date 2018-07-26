@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                     }
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 

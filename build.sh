@@ -146,6 +146,12 @@ function pack_all() {
     fi
 }
 
+function stop_processes {
+    echo "Killing running build processes..."
+    pkill -9 "dotnet" || true
+    pkill -9 "vbcscompiler" || true
+}
+
 if [[ "$build_in_docker" = true ]]
 then
     echo "Docker exec: $args"
@@ -169,7 +175,7 @@ if [[ "$build_bootstrap" == true ]]
 then
     echo "Building bootstrap toolset"
     bootstrap_build_args="${build_args} /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
-    bootstrap_files=( 'src/Compilers/CSharp/csc/csc.csproj' 'src/Compilers/VisualBasic/vbc/vbc.csproj' 'src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj' 'src/Compilers/Core/MSBuildTask/MSBuildTask.csproj')
+    bootstrap_files=( 'src/Compilers/CSharp/csc/csc.csproj' 'src/Compilers/VisualBasic/vbc/vbc.csproj' 'src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj' 'src/Compilers/Core/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.csproj')
     for bootstrap_file in "${bootstrap_files[@]}"
     do
         bootstrap_name=$(basename $bootstrap_file)
@@ -184,6 +190,7 @@ then
     chmod -R 755 ${bootstrap_path}/microsoft.netcore.compilers
 
     dotnet clean Compilers.sln 
+    stop_processes
 fi
 
 if [[ "${use_bootstrap}" == true ]]

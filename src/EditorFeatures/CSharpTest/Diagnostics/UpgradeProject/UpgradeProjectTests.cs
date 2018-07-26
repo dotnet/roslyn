@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
             ParseOptions parseOptions,
             int index = 0)
         {
-            var parameters = new TestParameters(parseOptions: parseOptions);
+            var parameters = new TestParameters(parseOptions: parseOptions, index: index);
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var actions = await GetCodeActionsAsync(workspace, parameters);
-                var operations = await VerifyInputsAndGetOperationsAsync(index, actions, priority: null);
+                var (_, action) = await GetCodeActionsAsync(workspace, parameters);
+                var operations = await VerifyActionAndGetOperationsAsync(action, default);
 
                 var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
                 var oldSolution = appliedChanges.Item1;
