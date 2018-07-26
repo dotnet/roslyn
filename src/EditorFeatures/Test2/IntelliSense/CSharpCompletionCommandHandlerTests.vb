@@ -3568,7 +3568,7 @@ class C
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27448"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges()
             Dim provider = New MultipleChangeCompletionProvider()
 
@@ -3606,16 +3606,7 @@ class C
 
                 ' This should have happened as two text changes to the buffer.
                 Dim changes = snapshotBeforeCommit.Version.Changes
-                Assert.Equal(2, changes.Count)
-
-                Dim actualChanges = changes.ToArray()
-                Dim firstChange = actualChanges(0)
-                Assert.Equal(New Span(0, 0), firstChange.OldSpan)
-                Assert.Equal("using NewUsing;", firstChange.NewText)
-
-                Dim secondChange = actualChanges(1)
-                Assert.Equal(New Span(testDocument.CursorPosition.Value, 0), secondChange.OldSpan)
-                Assert.Equal("InsertedItem", secondChange.NewText)
+                Assert.Equal(1, changes.Count)
 
                 ' Make sure new edits happen after the text that was inserted.
                 state.SendTypeChars("1")
@@ -3633,7 +3624,7 @@ class C
             End Using
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27448"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges2()
             Dim provider = New MultipleChangeCompletionProvider()
 
@@ -3671,16 +3662,7 @@ class C
 
                 ' This should have happened as two text changes to the buffer.
                 Dim changes = snapshotBeforeCommit.Version.Changes
-                Assert.Equal(2, changes.Count)
-
-                Dim actualChanges = changes.ToArray()
-                Dim firstChange = actualChanges(0)
-                Assert.Equal(New Span(0, 0), firstChange.OldSpan)
-                Assert.Equal("using NewUsing;", firstChange.NewText)
-
-                Dim secondChange = actualChanges(1)
-                Assert.Equal(New Span(testDocument.CursorPosition.Value - "Custom".Length, "Custom".Length), secondChange.OldSpan)
-                Assert.Equal("InsertedItem", secondChange.NewText)
+                Assert.Equal(1, changes.Count)
 
                 ' Make sure new edits happen after the text that was inserted.
                 state.SendTypeChars("1")
@@ -3843,6 +3825,7 @@ class C
 
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
+            Implements IFeaturesCustomCommitCompletionProvider
 
             Private _text As String
             Private _caretPosition As Integer
@@ -3863,7 +3846,7 @@ class C
                 Return True
             End Function
 
-            Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
+            Private Function IFeaturesCustomCommitCompletionProvider_GetChangeAsync(document As Document, item As CompletionItem, Optional commitKey As Char? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionChange) Implements IFeaturesCustomCommitCompletionProvider.GetChangeAsync
                 Dim newText =
 "using NewUsing;
 using System;
