@@ -11007,7 +11007,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to target typed new.
+        ///   Looks up a localized string similar to target-typed new.
         /// </summary>
         internal static string IDS_FeatureTargetTypedNew {
             get {

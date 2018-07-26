@@ -5354,7 +5354,4 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureTargetTypedNew" xml:space="preserve">
     <value>target-typed new</value>
   </data>
-  <data name="ERR_TargetTypedNewInExpressionTree" xml:space="preserve">
-    <value>An expression tree lambda may not contain a target-typed new</value>
-  </data>
 </root>

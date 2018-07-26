@@ -12,11 +12,6 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TargetTypedNewInExpressionTree">
-        <source>An expression tree lambda may not contain a target-typed new</source>
-        <target state="new">An expression tree lambda may not contain a target-typed new</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureTargetTypedNew">
         <source>target-typed new</source>
         <target state="new">target-typed new</target>
