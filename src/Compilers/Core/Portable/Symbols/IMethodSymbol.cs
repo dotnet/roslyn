@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol ReturnType { get; }
 
+        Nullability ReturnTypeNullability { get; }
+
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
         /// If nothing has been substituted for a given type parameter,
@@ -97,11 +99,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
+        ImmutableArray<Nullability> TypeArgumentsNullability { get; }
+
         /// <summary>
         /// Get the type parameters on this method. If the method has not generic,
         /// returns an empty list.
         /// </summary>
         ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
+
+        ImmutableArray<Nullability> TypeParameterNullability { get; }
 
         /// <summary>
         /// Gets the parameters of this method. If this method has no parameters, returns
@@ -134,6 +140,8 @@ namespace Microsoft.CodeAnalysis
         /// If this method can be applied to an object, returns the type of object it is applied to.
         /// </summary>
         ITypeSymbol ReceiverType { get; }
+
+        Nullability ReceiverTypeNullability { get; }
 
         /// <summary>
         /// If this method is a reduced extension method, returns the definition of extension

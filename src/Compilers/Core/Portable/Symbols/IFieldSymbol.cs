@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
+        Nullability TypeNullability { get; }
+
         /// <summary>
         /// Returns false if the field wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.

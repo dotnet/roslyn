@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ImmutableArray<ITypeSymbol> ConstraintTypes { get; }
 
+        ImmutableArray<Nullability> ConstraintTypeNullability { get; }
+
         /// <summary>
         /// Get the original definition of this type symbol. If this symbol is derived from another
         /// symbol by (say) type substitution, this gets the original symbol, as it was defined in

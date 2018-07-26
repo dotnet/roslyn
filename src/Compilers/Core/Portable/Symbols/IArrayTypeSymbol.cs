@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol ElementType { get; }
 
+        Nullability ElementNullability { get; }
+
         /// <summary>
         /// Custom modifiers associated with the array type, or an empty array if there are none.
         /// </summary>

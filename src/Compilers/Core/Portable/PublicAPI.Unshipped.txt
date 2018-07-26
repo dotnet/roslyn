@@ -14,12 +14,34 @@ Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation.Local.get -> Microsoft.CodeAnalysis.ILocalSymbol
+Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IDiscardSymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IEventSymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IFieldSymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.ILocalSymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IMethodSymbol.ReceiverTypeNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IMethodSymbol.ReturnTypeNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentsNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.IMethodSymbol.TypeParameterNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.INamedTypeSymbol.TypeParameterNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.IOperation.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
+Microsoft.CodeAnalysis.IParameterSymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IPropertySymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintTypeNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.CanBeNull = 1 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.NonNull = 0 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.Unknown = 2 -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.OperationKind.SuppressNullableWarning = 97 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier = 64 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
+Microsoft.CodeAnalysis.Symbols.Nullability
+Microsoft.CodeAnalysis.Symbols.Nullability.CanBeNull = 1 -> Microsoft.CodeAnalysis.Symbols.Nullability
+Microsoft.CodeAnalysis.Symbols.Nullability.NonNull = 0 -> Microsoft.CodeAnalysis.Symbols.Nullability
+Microsoft.CodeAnalysis.Symbols.Nullability.Unknown = 2 -> Microsoft.CodeAnalysis.Symbols.Nullability
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>

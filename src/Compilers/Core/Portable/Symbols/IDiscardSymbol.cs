@@ -14,5 +14,7 @@ namespace Microsoft.CodeAnalysis
         /// The type of the discarded value.
         /// </summary>
         ITypeSymbol Type { get; }
+
+        Nullability TypeNullability { get; }
     }
 }
