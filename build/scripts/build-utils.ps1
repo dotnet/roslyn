@@ -148,6 +148,7 @@ function Ensure-DotnetSdk() {
         Create-Directory $cliDir
         Create-Directory $toolsDir
         $destFile = Join-Path $toolsDir "dotnet-install.ps1"
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
