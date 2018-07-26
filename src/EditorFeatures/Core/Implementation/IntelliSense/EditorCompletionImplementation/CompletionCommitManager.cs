@@ -123,8 +123,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var service = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
 
-            // TODO: Better error handling https://github.com/dotnet/roslyn/issues/27412
             bool includesCommitCharacter;
+            if (!buffer.CheckEditAccess())
+            {
+                // We are on the wrong thread.
+                return EditorCompletion.CommitBehavior.None;
+            }
+
+            if (buffer.EditInProgress)
+            {
+                return EditorCompletion.CommitBehavior.None;
+            }
+
             using (var edit = buffer.CreateEdit())
             {
                 var provider = service.GetProvider(roslynItem);
