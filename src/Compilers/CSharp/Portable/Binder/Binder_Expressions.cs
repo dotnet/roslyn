@@ -3574,52 +3574,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundExpression BindObjectCreationExpression(ObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var type = BindType(node.Type, diagnostics).TypeSymbol;
+            var type = BindType(node.Type, diagnostics);
+            var typeSymbol = type.TypeSymbol;
+
+            if (type.IsAnnotated && !typeSymbol.IsNullableType())
+            {
+                diagnostics.Add(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, node.Location, typeSymbol);
+            }
 
             BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer == null ?
                 null :
                 BindInitializerExpression(
                     syntax: node.Initializer,
-                    type: type,
+                    type: typeSymbol,
                     typeSyntax: node.Type,
                     diagnostics: diagnostics);
 
-            switch (type.TypeKind)
+            switch (typeSymbol.TypeKind)
             {
                 case TypeKind.Struct:
                 case TypeKind.Class:
                 case TypeKind.Enum:
                 case TypeKind.Error:
-                    return BindClassCreationExpression(node, (NamedTypeSymbol)type, GetName(node.Type), boundInitializerOpt, diagnostics);
+                    return BindClassCreationExpression(node, (NamedTypeSymbol)typeSymbol, GetName(node.Type), boundInitializerOpt, diagnostics);
 
                 case TypeKind.Delegate:
-                    return BindDelegateCreationExpression(node, (NamedTypeSymbol)type, diagnostics);
+                    return BindDelegateCreationExpression(node, (NamedTypeSymbol)typeSymbol, diagnostics);
 
                 case TypeKind.Interface:
-                    return BindInterfaceCreationExpression(node, (NamedTypeSymbol)type, boundInitializerOpt, diagnostics);
+                    return BindInterfaceCreationExpression(node, (NamedTypeSymbol)typeSymbol, boundInitializerOpt, diagnostics);
 
                 case TypeKind.TypeParameter:
-                    return BindTypeParameterCreationExpression(node, (TypeParameterSymbol)type, boundInitializerOpt, diagnostics);
+                    return BindTypeParameterCreationExpression(node, (TypeParameterSymbol)typeSymbol, boundInitializerOpt, diagnostics);
 
                 case TypeKind.Submission:
                     // script class is synthesized and should not be used as a type of a new expression:
-                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
+                    throw ExceptionUtilities.UnexpectedValue(typeSymbol.TypeKind);
 
                 case TypeKind.Pointer:
-                    type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
-                        diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, type));
+                    typeSymbol = new ExtendedErrorTypeSymbol(typeSymbol, LookupResultKind.NotCreatable,
+                        diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, typeSymbol));
                     goto case TypeKind.Class;
 
                 case TypeKind.Dynamic:
                     // we didn't find any type called "dynamic" so we are using the builtin dynamic type, which has no constructors:
                 case TypeKind.Array:
                     // ex: new ref[]
-                    type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
-                        diagnostics.Add(ErrorCode.ERR_InvalidObjectCreation, node.Type.Location, type));
+                    typeSymbol = new ExtendedErrorTypeSymbol(typeSymbol, LookupResultKind.NotCreatable,
+                        diagnostics.Add(ErrorCode.ERR_InvalidObjectCreation, node.Type.Location, typeSymbol));
                     goto case TypeKind.Class;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
+                    throw ExceptionUtilities.UnexpectedValue(typeSymbol.TypeKind);
             }
         }
 

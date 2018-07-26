@@ -95,6 +95,7 @@ _Is `default(T?)` an error?_
 ```c#
 string? s = default(string); // assigns ?, no warning
 string t = default; // assigns ?, warning
+T t = default; // assigns ?, warning
 ```
 
 ### Conversions
@@ -205,6 +206,13 @@ var x = F1(notNullString);   // List<string!> or List<string~> ?
 var y = F1(maybeNullString); // List<string?> or List<string~> ?
 var z = F2(obliviousString); // List<string~>! or List<string!>! ?
 var w = F3(obliviousString); // List<string~>! or List<string?>! ?
+```
+
+## Object creation
+A warning is reported for creating an instance of a nullable reference type.
+```c#
+new C?(); // warning
+new List<C?>(); // ok
 ```
 
 ## Public APIs

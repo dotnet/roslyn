@@ -11844,6 +11844,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use a nullable reference type in object creation..
+        /// </summary>
+        internal static string WRN_AnnotationDisallowedInObjectCreation {
+            get {
+                return ResourceManager.GetString("WRN_AnnotationDisallowedInObjectCreation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot use a nullable reference type in object creation..
+        /// </summary>
+        internal static string WRN_AnnotationDisallowedInObjectCreation_Title {
+            get {
+                return ResourceManager.GetString("WRN_AnnotationDisallowedInObjectCreation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; from module &apos;{1}&apos; will be ignored in favor of the instance appearing in source.
         /// </summary>
         internal static string WRN_AssemblyAttributeFromModuleIsOverridden {
