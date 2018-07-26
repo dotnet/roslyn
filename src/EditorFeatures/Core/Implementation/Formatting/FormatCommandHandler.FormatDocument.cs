@@ -128,16 +128,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         {
             var workspace = document.Project.Solution.Workspace;
             var isFeatureTurnedOnThroughABTest = TurnOnCodeCleanupForGroupBIfInABTest(document, workspace);
+            var performAdditionalCodeCleanupDuringFormatting = workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language);
 
             // if feature is turned on through AB test, we need to show the Gold bar even if they set NeverShowCodeCleanupInfoBarAgain == true before
             if (isFeatureTurnedOnThroughABTest ||
                 !workspace.Options.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language))
             {
                 // Show different gold bar text depends on PerformAdditionalCodeCleanupDuringFormatting value
-                ShowGoldBarForCodeCleanupConfiguration(document, workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language));
+                ShowGoldBarForCodeCleanupConfiguration(document, performAdditionalCodeCleanupDuringFormatting);
             }
 
-            if (workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language))
+            if (performAdditionalCodeCleanupDuringFormatting)
             {
                 // Start with a single progress item, which is the one to actually apply
                 // the changes.
@@ -175,8 +176,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 if (experimentationService != null
                     && experimentationService.IsExperimentEnabled(s_experimentName))
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment, true);
-                    workspace.Options = workspace.Options.WithChangedOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language, true);
+                    workspace.Options = workspace.Options.WithChangedOption(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment, true)
+                                                         .WithChangedOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language, true);
                     return true;
                 }
             }
