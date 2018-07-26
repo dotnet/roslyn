@@ -508,6 +508,32 @@ $@"class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(28821, "https://github.com/dotnet/roslyn/issues/28821")]
+        public async Task TestDefiniteAssignment8()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static void Foo(System.Activator bar)
+    {
+    }
+
+    static void Main(string[] args)
+    {
+        var a = new object();
+        [|var|] b = a as System.Activator;
+        if ((b == null) && false)
+        {
+        }
+        else
+        {
+            Foo(b);
+        }
+    }
+}");
+        }
+
         [WorkItem(15957, "https://github.com/dotnet/roslyn/issues/15957")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestTrivia1()
