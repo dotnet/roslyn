@@ -29,16 +29,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return GetCommandState(args.SubjectBuffer);
         }
 
-        private void ShowGoldBarForCodeCleanupConfigurationIfNeeded(Document document, bool performAdditionalCodeCleanupDuringFormatting)
+        private void ShowGoldBarForCodeCleanupConfiguration(Document document, bool performAdditionalCodeCleanupDuringFormatting)
         {
             AssertIsForeground();
             Logger.Log(FunctionId.CodeCleanupInfobar_BarDisplayed, KeyValueLogMessage.NoProperty);
 
             var workspace = document.Project.Solution.Workspace;
 
-            // if info bar was shown before, no need to show it again
-            if (workspace.Options.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language) ||
-                workspace.Options.GetOption(CodeCleanupOptions.CodeCleanupInfoBarShown, document.Project.Language))
+            // if info bar was shown already in same VS session, no need to show it again
+            if (workspace.Options.GetOption(CodeCleanupOptions.CodeCleanupInfoBarShown, document.Project.Language))
             {
                 return;
             }
@@ -128,10 +127,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
-            ABTest(document, workspace);
+            var isFeatureTurnedOnThroughABTest = TurnOnCodeCleanupForGroupBIfInABTest(document, workspace);
 
-            // Show different gold bar text depends on PerformAdditionalCodeCleanupDuringFormatting value
-            ShowGoldBarForCodeCleanupConfigurationIfNeeded(document, workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language));
+            // if feature is turned on through AB test, we need to show the Gold bar even if they set NeverShowCodeCleanupInfoBarAgain == true before
+            if (isFeatureTurnedOnThroughABTest ||
+                !workspace.Options.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language))
+            {
+                // Show different gold bar text depends on PerformAdditionalCodeCleanupDuringFormatting value
+                ShowGoldBarForCodeCleanupConfiguration(document, workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language));
+            }
 
             if (workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language))
             {
@@ -159,25 +163,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
         }
 
-        private static void ABTest(Document document, Workspace workspace)
+        private static bool TurnOnCodeCleanupForGroupBIfInABTest(Document document, Workspace workspace)
         {
-            // AB Test
-            // If the feature is OFF and the feature options have not yet been set to their assigned flight, do so now
+            // If the feature is OFF and the feature options have not yet been Enabled to their assigned flight, do so now
+            // Do not reset the options if we already set it for them once, so options won't get reset if user manually disabled it already after it is enabled by the flight
             if (!workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language)
-                && !workspace.Options.GetOption(CodeCleanupABTestOptions.ParticipatedInExperiment))
+                && !workspace.Options.GetOption(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment))
             {
                 var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
 
-                if (experimentationService != null)
+                if (experimentationService != null
+                    && experimentationService.IsExperimentEnabled(s_experimentName))
                 {
-                    if (experimentationService.IsExperimentEnabled(s_experimentName))
-                    {
-                        workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language), true);
-                    }
-
-                    workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupABTestOptions.ParticipatedInExperiment), true);
+                    workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment), true);
+                    workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language), true);
+                    return true;
                 }
             }
+
+            return false;
         }
 
         private async Task<ImmutableArray<TextChange>> GetCodeCleanupAndFormatChangesAsync(

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\CodeCleanup\";
 
-        public static readonly Option<bool> ParticipatedInExperiment = new Option<bool>(nameof(CodeCleanupABTestOptions), nameof(ParticipatedInExperiment),
-            defaultValue: false, storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ParticipatedInExperiment)));
+        public static readonly Option<bool> SettingIsAlreadyUpdatedByExperiment = new Option<bool>(nameof(CodeCleanupABTestOptions), nameof(SettingIsAlreadyUpdatedByExperiment),
+            defaultValue: false, storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SettingIsAlreadyUpdatedByExperiment)));
     }
 }
