@@ -254,7 +254,7 @@ class C
         }
 
         [Fact]
-        public void TestAnnotationWithoutNonNullTypes_GenericType()
+        public void AnnotationWithoutNonNullTypes_GenericType()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C<T>

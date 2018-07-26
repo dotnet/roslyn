@@ -579,7 +579,7 @@ class Program
         new C<B2?>();
     }
 }";
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics();
 
             var type = comp2.GetMember<NamedTypeSymbol>("C");
@@ -681,10 +681,10 @@ public class C<T> where T : A<object>
         new C<object, string>();
     }
 }";
-            var comp2 = CreateCompilation(new[] { source, source2 }, parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(new[] { source, source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp2.VerifyEmitDiagnostics();
 
-            comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyEmitDiagnostics();
 
             var type = comp2.GetMember<NamedTypeSymbol>("C");
@@ -1292,7 +1292,7 @@ class C
         F((object? o) => { });
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
             comp.VerifyEmitDiagnostics(
                 // (9,12): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //         F((object? o) => { });
@@ -1311,7 +1311,7 @@ class C
         L();
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
             comp.VerifyEmitDiagnostics(
                 // (5,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //         object?[] L() => throw new System.NotImplementedException();
@@ -1330,7 +1330,7 @@ class C
         L(null, 2);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
             comp.VerifyEmitDiagnostics(
                 // (5,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //         void L(object? x, object y) { }
