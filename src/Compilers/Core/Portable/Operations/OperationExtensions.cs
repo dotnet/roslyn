@@ -330,12 +330,18 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <returns>The corresponding loop operation or <c>null</c> in case not found (e.g. no loop syntax or the branch
         /// belongs to switch instead of loop operation)</returns>
         /// <exception cref="ArgumentNullException"><paramref name="branchOperation"/> is null</exception>
-        /// <exception cref="InvalidOperationException">Invalid branch kind. Applicable kinds: <see cref="BranchKind.Break"/> and <see cref="BranchKind.Continue"/>.</exception>
+        /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph or it has an invalid branch kind. 
+        /// Applicable kinds: <see cref="BranchKind.Break"/> and <see cref="BranchKind.Continue"/>.</exception>
         public static ILoopOperation GetCorrespondingLoop(this IBranchOperation branchOperation)
         {
             if (branchOperation == null)
             {
                 throw new ArgumentNullException(nameof(branchOperation));
+            }
+
+            if (branchOperation.SemanticModel == null)
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
             }
 
             if (branchOperation.BranchKind != BranchKind.Break && branchOperation.BranchKind != BranchKind.Continue)
@@ -355,12 +361,18 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <returns>The corresponding switch operation or <c>null</c> in case not found (e.g. no switch syntax or the branch
         /// belongs to loop instead of switch operation)</returns>
         /// <exception cref="ArgumentNullException"><paramref name="branchOperation"/> is null</exception>
-        /// <exception cref="InvalidOperationException">Invalid branch kind. Applicable kinds: <see cref="BranchKind.Break"/>.</exception>
+        /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph or it has an invalid branch kind. 
+        /// Applicable kinds: <see cref="BranchKind.Break"/>.</exception>
         public static ISwitchOperation GetCorrespondingSwitch(this IBranchOperation branchOperation)
         {
             if (branchOperation == null)
             {
                 throw new ArgumentNullException(nameof(branchOperation));
+            }
+
+            if (branchOperation.SemanticModel == null)
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
             }
 
             if (branchOperation.BranchKind != BranchKind.Break)

@@ -630,4 +630,7 @@
   <data name="InvalidBranchKindForFindingCorrespondingSwitch" xml:space="preserve">
     <value>Invalid branch kind. Finding a corresponding switch requires 'break' kind, but the current branch kind provided is '{0}'.</value>
   </data>
+  <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
+    <value>The provided operation must not be part of a Control Flow Graph.</value>
+  </data>
 </root>
