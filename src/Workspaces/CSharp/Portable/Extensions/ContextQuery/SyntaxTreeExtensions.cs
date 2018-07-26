@@ -2570,7 +2570,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsIsOrAsContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsIsOrAsContext(
+            this SyntaxTree syntaxTree, SemanticModel semanticModel,
+            int position, SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken)
         {
             // cases:
             //    expr |
@@ -2636,6 +2639,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     if (token.Parent.IsParentKind(SyntaxKind.Argument) &&
                         CodeAnalysis.CSharpExtensions.IsKind(((ArgumentSyntax)token.Parent.Parent).RefOrOutKeyword, SyntaxKind.OutKeyword))
+                    {
+                        return false;
+                    }
+                }
+
+                if (token.Text == SyntaxFacts.GetText(SyntaxKind.AsyncKeyword))
+                {
+                    // async $$
+                    //
+                    // 'async' will look like a normal identifier.  But we don't want to follow it
+                    // with 'is' or 'as' if it's actually the start of a lambda.
+                    var delegateType = CSharpTypeInferenceService.Instance.InferDelegateType(
+                        semanticModel, token.SpanStart, cancellationToken);
+                    if (delegateType != null)
                     {
                         return false;
                     }
