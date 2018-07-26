@@ -537,13 +537,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.ImplicitNew:
-                    if (_inExpressionLambda)
-                    {
-                        Error(ErrorCode.ERR_TargetTypedNewInExpressionTree, node);
-                    }
-                    break;
-
                 default:
                     break;
             }

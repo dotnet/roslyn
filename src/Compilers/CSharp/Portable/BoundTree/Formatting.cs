@@ -160,6 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class UnboundObjectCreationExpression
     {
-        public override object Display => Syntax;
+        public override object Display => "new(...)";
     }
 }

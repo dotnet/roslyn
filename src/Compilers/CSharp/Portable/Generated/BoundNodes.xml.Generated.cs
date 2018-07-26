@@ -4691,24 +4691,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class UnboundObjectCreationExpression : BoundExpression
     {
-        public UnboundObjectCreationExpression(SyntaxNode syntax, bool hasErrors)
+        public UnboundObjectCreationExpression(SyntaxNode syntax, AnalyzedArguments analyzedArguments, bool hasErrors)
             : base(BoundKind.UnboundObjectCreationExpression, syntax, null, hasErrors)
         {
+
+            Debug.Assert(analyzedArguments != null, "Field 'analyzedArguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.AnalyzedArguments = analyzedArguments;
         }
 
-        public UnboundObjectCreationExpression(SyntaxNode syntax)
+        public UnboundObjectCreationExpression(SyntaxNode syntax, AnalyzedArguments analyzedArguments)
             : base(BoundKind.UnboundObjectCreationExpression, syntax, null)
         {
+
+            Debug.Assert(analyzedArguments != null, "Field 'analyzedArguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.AnalyzedArguments = analyzedArguments;
         }
 
+
+        public AnalyzedArguments AnalyzedArguments { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitUnboundObjectCreationExpression(this);
         }
 
-        public UnboundObjectCreationExpression Update()
+        public UnboundObjectCreationExpression Update(AnalyzedArguments analyzedArguments)
         {
+            if (analyzedArguments != this.AnalyzedArguments)
+            {
+                var result = new UnboundObjectCreationExpression(this.Syntax, analyzedArguments, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
             return this;
         }
     }
@@ -9425,7 +9441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update();
+            return node.Update(node.AnalyzedArguments);
         }
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
@@ -10866,6 +10882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("unboundObjectCreationExpression", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("analyzedArguments", node.AnalyzedArguments, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

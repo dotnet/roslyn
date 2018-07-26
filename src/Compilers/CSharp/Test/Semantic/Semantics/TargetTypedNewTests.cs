@@ -35,16 +35,18 @@ namespace System
             var comp = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
 using System.Linq.Expressions;
-class C {
+class C
+{
+    public C() => Console.Write(""1"");
     public static void Main()
     {
         Expression<Func<C>> a = () => new();
+        a.Compile()();
     }
 }
-", options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (7,39): error CS9368: An expression tree lambda may not contain a target-typed new
-                //         Expression<Func<C>> a = () => new();
-                Diagnostic(ErrorCode.ERR_TargetTypedNewInExpressionTree, "new()").WithLocation(7, 39));
+", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "1");
         }
 
         [Fact]
@@ -54,16 +56,16 @@ class C {
 using System;
 using System.Linq.Expressions;
 struct S {
-    public S(int i) {}
+    public S(int i) => Console.Write(""1"");
     public static void Main()
     {
         Expression<Func<S?>> a = () => new(43);
+        a.Compile()();
     }
 }
-", options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (8,40): error CS9368: An expression tree lambda may not contain a target-typed new
-                //         Expression<Func<S?>> a = () => new(43);
-                Diagnostic(ErrorCode.ERR_TargetTypedNewInExpressionTree, "new(43)").WithLocation(8, 40));
+", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "1");
         }
 
         [Fact]
@@ -280,9 +282,9 @@ unsafe class C
     }
 }
 ", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (12,13): error CS0815: Cannot assign new() to an implicitly-typed variable
+                // (12,13): error CS0815: Cannot assign new(...) to an implicitly-typed variable
                 //         var v0 = new();
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v0 = new()").WithArguments("new()").WithLocation(12, 13),
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v0 = new()").WithArguments("new(...)").WithLocation(12, 13),
                 // (13,21): error CS9367: The default constructor of the value type 'Struct' may not be used with target-typed 'new'. Consider using 'default' instead.
                 //         Struct v1 = new();
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, "new()").WithArguments("Struct").WithLocation(13, 21),
@@ -325,9 +327,9 @@ unsafe class C
                 // (25,9): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //         Error v13 = new();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(25, 9),
-                // (26,17): error CS9366: The type 'T' may not be used as the target-type of 'new'.
+                // (26,17): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
                 //         T v14 = new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new()").WithArguments("T").WithLocation(26, 17),
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("T").WithLocation(26, 17),
                 // (27,36): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         ValueTuple<int, int> v15 = new();
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new()").WithArguments("(int, int)").WithLocation(27, 36),
@@ -412,9 +414,9 @@ unsafe class C
                 // (24,20): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //         var v13 = (Error)new();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(24, 20),
-                // (25,19): error CS9366: The type 'T' may not be used as the target-type of 'new'.
+                // (25,22): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
                 //         var v14 = (T)new();
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "(T)new()").WithArguments("T").WithLocation(25, 19),
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("T").WithLocation(25, 22),
                 // (26,19): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var v15 = (ValueTuple<int, int>)new();
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(ValueTuple<int, int>)new()").WithArguments("(int, int)").WithLocation(26, 19),
@@ -588,9 +590,9 @@ class X {
     }
 }
 ", options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (5,29): error CS0117: 'new()' does not contain a definition for 'field'
+                // (5,29): error CS0117: 'new(...)' does not contain a definition for 'field'
                 //         Console.Write(new().field);
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("new()", "field").WithLocation(5, 29)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("new(...)", "field").WithLocation(5, 29)
                 );
         }
 
@@ -965,6 +967,27 @@ struct S
 ", options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "S");
+        }
+
+        [Fact]
+        public void AsStatement()
+        {
+            var comp = CreateCompilation(@"
+struct S
+{
+    public static void Main()
+    {
+        new(a) { x };
+    }
+}
+", options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (6,13): error CS0103: The name 'a' does not exist in the current context
+                //         new(a) { x };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 13),
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         new(a) { x };
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "new(a) { x }").WithLocation(6, 9)
+                );
         }
     }
 }
