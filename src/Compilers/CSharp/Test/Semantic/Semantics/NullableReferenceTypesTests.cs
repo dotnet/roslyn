@@ -5765,7 +5765,17 @@ partial class C1
 }";
             var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (17,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
+                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("x").WithLocation(17, 18),
+                // (17,18): warning CS8611: Nullability of reference types in type of parameter 'y' doesn't match partial method declaration.
+                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("y").WithLocation(17, 18),
+                // (17,18): warning CS8611: Nullability of reference types in type of parameter 'z' doesn't match partial method declaration.
+                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("z").WithLocation(17, 18)
+                );
         }
 
         [Fact]
@@ -5783,12 +5793,12 @@ class A
 ";
             CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8).
                 VerifyDiagnostics(
-                 // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
-                 //     void Test1(string x2) {}
-                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test1").WithArguments("Test1", "A").WithLocation(5, 10),
-                 // (8,13): error CS0111: Type 'A' already defines a member called 'Test2' with the same parameter types
-                 //     string? Test2(string y2) { return y2; }
-                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test2").WithArguments("Test2", "A").WithLocation(8, 13)
+                // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
+                //     void Test1(string x2) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test1").WithArguments("Test1", "A").WithLocation(5, 10),
+                // (8,13): error CS0111: Type 'A' already defines a member called 'Test2' with the same parameter types
+                //     string? Test2(string y2) { return y2; }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test2").WithArguments("Test2", "A").WithLocation(8, 13)
                 );
         }
 

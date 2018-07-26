@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         #region NonNullTypesAttribute
-
         private bool? _nonNullTypes;
         public bool? NonNullTypes
         {
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SetDataStored();
             }
         }
-
         #endregion
     }
 }
