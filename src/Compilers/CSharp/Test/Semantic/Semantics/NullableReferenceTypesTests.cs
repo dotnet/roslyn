@@ -161,6 +161,7 @@ class C
         }
 
         [Fact]
+        public void TestSuppressionWithoutNonNullTypes()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -193,19 +194,34 @@ class C
             CSharpCompilation c = CreateCompilation(@"
 class C
 {
-    static string? field = M2(out string? x1);
+    static string? field = M2(out string? x1); // warn 1
     static string? P
     {
         get
         {
-            string? x2 = null;
+            string? x2 = null; // warn 2
             return x2;
         }
     }
-    static string? M()
+    static string? MethodWithLocalFunction()
     {
-        string? x3 = null;
+        string? x3 = local(); // warn 3
         return x3;
+
+        string? local() // warn 4
+        {
+            string? x4 = null; // warn 5
+            return x4;
+        }
+    }
+    static string? Lambda()
+    {
+        System.Func<string?> x5 = () =>  // warn 6
+        {
+            string? x6 = null; // warn 7
+            return x6;
+        };
+        return x5();
     }
     static string M2(out string? x4) => throw null;
 }
@@ -213,15 +229,27 @@ class C
 
             // PROTOTYPE(NullableReferenceTypes): we need to warn on misuse of annotation every place a type could appear (not just in executable code)
             c.VerifyDiagnostics(
-                // (4,41): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
-                //     static string? field = M2(out string? x1);
+                // (4,41): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //     static string? field = M2(out string? x1); // warn 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 41),
-                // (9,19): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
-                //             string? x2 = null;
+                // (9,19): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //             string? x2 = null; // warn 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 19),
-                // (15,15): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
-                //         string? x3 = null;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 15)
+                // (15,15): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         string? x3 = local(); // warn 3
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 15),
+                // (20,19): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //             string? x4 = null; // warn 5
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 19),
+                // (18,15): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         string? local() // warn 4
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 15),
+                // (26,27): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         System.Func<string?> x5 = () =>  // warn 6
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(26, 27),
+                // (28,19): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //             string? x6 = null; // warn 7
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 19)
                 );
         }
 
@@ -231,23 +259,38 @@ class C
             CSharpCompilation c = CreateCompilation(@"
 class C<T>
 {
-    T? M(T? x1) { T? y1 = x1; return y1; }
+    T? M(T? x1)
+    {
+        T? y1 = x1; // warn 1
+        return y1;
+    }
 }
 class D<T> where T : class
 {
-    T? M(T? x2) { T? y2 = x2; return y2; }
+    T? M(T? x2)
+    {
+        T? y2 = x2; // warn 2
+        return y2;
+    }
 }
 class E<T> where T : struct
 {
-    T? M(T? x3) { T? y3 = x3; return y3; }
+    T? M(T? x3)
+    {
+        T? y3 = x3;
+        return y3;
+    }
 }
 ", parseOptions: TestOptions.Regular8);
 
             // PROTOTYPE(NullableReferenceTypes): we need to warn on misuse of annotation every place a type could appear (not just in executable code)
             c.VerifyDiagnostics(
-                // (8,20): warning CS8628: The annotation for nullable reference types can only be used in code with a `[NonNullTypes(true)]` context.
-                //     T? M(T? x2) { T? y2 = x2; return y2; }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 20)
+                // (14,10): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         T? y2 = x2; // warn 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 10),
+                // (6,10): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         T? y1 = x1; // warn 1
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 10)
                 );
         }
 

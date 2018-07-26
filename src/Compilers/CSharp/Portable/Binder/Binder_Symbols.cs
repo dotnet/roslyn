@@ -346,10 +346,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (InExecutableBinder)
                             {
-                                // Inside a method body or other executable code, we can afford to pull on NonNullTypes symbol or question IsReferenceType without causing cycles.
-                                // Types created outside executable context should be check by the responsible symbol (the method symbol checks its return type, for instance).
+                                // Inside a method body or other executable code, we can afford to pull on NonNullTypes symbol or question IsValueType without causing cycles.
+                                // Types created outside executable context should be checked by the responsible symbol (the method symbol checks its return type, for instance).
 
-                                if (typeArgument.IsReferenceType && NonNullTypesContext.NonNullTypes != true)
+                                if (!typeArgument.IsValueType && NonNullTypesContext.NonNullTypes != true)
                                 {
                                     diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, nullableSyntax.QuestionToken.GetLocation());
                                 }
