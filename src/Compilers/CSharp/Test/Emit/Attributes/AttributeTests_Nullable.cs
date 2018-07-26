@@ -864,6 +864,7 @@ class C
             AssertAttribute(comp);
         }
 
+        // See https://github.com/dotnet/roslyn/issues/28862.
         [Fact]
         public void EmitAttribute_QueryClauseParameters()
         {

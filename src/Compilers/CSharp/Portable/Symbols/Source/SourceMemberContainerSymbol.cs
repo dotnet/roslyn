@@ -1421,35 +1421,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
-            bool containsAnnotatedUnconstrained = false;
-            bool containsNullable = false;
-            if ((object)baseType != null)
-            {
-                if (baseType.ContainsAnnotatedUnconstrainedTypeParameter())
-                {
-                    containsAnnotatedUnconstrained = true;
-                }
-                if (baseType.ContainsNullableReferenceTypes())
-                {
-                    containsNullable = true;
-                }
-            }
-            foreach (var @interface in InterfacesNoUseSiteDiagnostics())
-            {
-                if (@interface.ContainsAnnotatedUnconstrainedTypeParameter())
-                {
-                    containsAnnotatedUnconstrained = true;
-                }
-                if (@interface.ContainsNullableReferenceTypes())
-                {
-                    containsNullable = true;
-                }
-            }
-            if (containsAnnotatedUnconstrained)
+            var interfaces = InterfacesNoUseSiteDiagnostics();
+            if (baseType?.ContainsAnnotatedUnconstrainedTypeParameter() == true ||
+                interfaces.Any(t => t.ContainsAnnotatedUnconstrainedTypeParameter()))
             {
                 TypeSymbolWithAnnotations.ReportAnnotatedUnconstrainedTypeParameter(location, diagnostics);
             }
-            if (containsNullable)
+            if (baseType?.ContainsNullableReferenceTypes() == true ||
+                interfaces.Any(t => t.ContainsNullableReferenceTypes()))
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
