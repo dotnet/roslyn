@@ -26,20 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return LowerBoundLocalDeclarationUsingVar(node, statements);
                     }
                 }
-                else if (statements[i] is BoundMultipleLocalDeclarations boundMultiple)
-                {
-                    if (!boundMultiple.LocalDeclarations.IsDefaultOrEmpty && boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing)
-                    {
-                        // precedingStatements is freed by LowerBoundMultipleLocalDeclarationUsingVar when the outer block is created
-                        ArrayBuilder<BoundStatement> precedingStatements = ArrayBuilder<BoundStatement>.GetInstance(i);
-                        for (int j = 0; j < i; j++)
-                        {
-                            precedingStatements.Add(statements[j]);
-                        }
-                        var followingStatements = ImmutableArray.Create(statements, i + 1, statements.Length - i - 1);
-                        return LowerBoundMultipleLocalDeclarationUsingVar(boundMultiple, node.Locals, precedingStatements, followingStatements);
-                    }
-                }
+                
             }
             return node;
         }
@@ -103,53 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: node.Syntax,
                             locals: node.Locals,
                             statements: precedingStatements.ToImmutableOrEmptyAndFree());
-            return outermostBlock;
-        }
-
-        private BoundBlock LowerBoundMultipleLocalDeclarationUsingVar(BoundMultipleLocalDeclarations boundMultiple,
-                                                                      ImmutableArray<LocalSymbol> locals,
-                                                                      ArrayBuilder<BoundStatement> precedingStatements,
-                                                                      ImmutableArray<BoundStatement> followingStatements)
-        {
-            int itemCount = boundMultiple.LocalDeclarations.Length;
-            ArrayBuilder<BoundLocalDeclaration> reversedLocals = ArrayBuilder<BoundLocalDeclaration>.GetInstance(itemCount);
-            reversedLocals.AddRange(boundMultiple.LocalDeclarations, itemCount);
-            reversedLocals.ReverseContents();
-
-            ArrayBuilder<BoundUsingStatement> reversedUsingStatements = ArrayBuilder<BoundUsingStatement>.GetInstance();
-            for (int i = 0; i < reversedLocals.Count; i++)
-            {
-                // The first element in the reversed lists' using statement must contain all following statements.
-                // All other elements will only contain the previous element as a following statement.
-                var innerBlockStatements = i == 0 ? followingStatements : ImmutableArray.Create((BoundStatement)reversedUsingStatements[reversedUsingStatements.Count - 1]);
-
-                BoundBlock innerBlock = new BoundBlock(
-                            syntax: boundMultiple.Syntax,
-                            locals: ImmutableArray<LocalSymbol>.Empty,
-                            statements: innerBlockStatements
-                            );
-
-                BoundUsingStatement boundUsing = new BoundUsingStatement(
-                        syntax: boundMultiple.Syntax,
-                        locals: ImmutableArray<LocalSymbol>.Empty,
-                        declarationsOpt: new BoundMultipleLocalDeclarations(
-                            boundMultiple.Syntax,
-                            ImmutableArray.Create(boundMultiple.LocalDeclarations[i])),
-                        expressionOpt: null,
-                        iDisposableConversion: Conversion.Identity,
-                        disposeMethodOpt: null,
-                        body: innerBlock
-                        );
-                reversedUsingStatements.Add(boundUsing);
-            }
-            
-            precedingStatements.Add((BoundStatement)reversedUsingStatements[reversedUsingStatements.Count - 1]);
-            reversedLocals.Free();
-            reversedUsingStatements.Free();
-            BoundBlock outermostBlock = new BoundBlock(
-                            syntax: boundMultiple.Syntax,
-                            locals: locals,
-                            statements: precedingStatements.ToImmutableAndFree());
             return outermostBlock;
         }
 
