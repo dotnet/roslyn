@@ -156,6 +156,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_PrivateProtected
                 Case Feature.InterpolatedStrings
                     Return ERRID.FEATURE_InterpolatedStrings
+                Case Feature.CommentsAfterLineContinuation
+                    Return ERRID.FEATURE_CommentsAfterLineContinuation
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

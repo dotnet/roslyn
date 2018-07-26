@@ -6822,9 +6822,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to Please use language version {0} or greater to use comments after line continuation character..
         '''</summary>
-        Friend ReadOnly Property ERR_LineContWithCommentPreV16() As String
+        Friend ReadOnly Property ERR_LineContWithCommentPreV161() As String
             Get
-                Return ResourceManager.GetString("ERR_LineContWithCommentPreV16", resourceCulture)
+                Return ResourceManager.GetString("ERR_LineContWithCommentPreV161", resourceCulture)
             End Get
         End Property
         
@@ -12051,6 +12051,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_CollectionInitializers() As String
             Get
                 Return ResourceManager.GetString("FEATURE_CollectionInitializers", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to comments after line continuation.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_CommentsAfterLineContinuation() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_CommentsAfterLineContinuation", resourceCulture)
             End Get
         End Property
         
