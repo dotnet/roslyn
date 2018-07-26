@@ -138,40 +138,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             var node = (ObjectCreationExpressionSyntax)source.Syntax;
             var arguments = ((UnboundObjectCreationExpression)source).AnalyzedArguments;
 
-            TypeSymbol strippedType = destination.StrippedType();
+            TypeSymbol type = destination.StrippedType();
             BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer != null
-                ? BindInitializerExpression(syntax: node.Initializer, type: strippedType, typeSyntax: syntax, diagnostics)
+                ? BindInitializerExpression(syntax: node.Initializer, type: type, typeSyntax: syntax, diagnostics)
                 : null;
 
-            BoundExpression result;
-            switch (strippedType.TypeKind)
+            if (ReportBadTargetType(syntax, type, diagnostics))
             {
-                case TypeKind.Array:
-                case TypeKind.Enum:
-                case TypeKind.Delegate:
-                case TypeKind.Interface:
-                    Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, strippedType);
-                    goto default;
+                return MakeBadExpressionForObjectCreation(node, destination, boundInitializerOpt, arguments);
+            }
 
-                case TypeKind.Pointer:
-                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, strippedType);
-                    goto default;
-
-                case TypeKind.Dynamic:
-                    Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, strippedType);
-                    goto default;
-
-                case TypeKind.Struct when strippedType.IsTupleType:
-                    Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, strippedType);
-                    goto default;
-
+            BoundExpression result;
+            switch (type.TypeKind)
+            {
                 case TypeKind.Struct:
                 case TypeKind.Class:
                     result = BindClassCreationExpression(
                         node,
-                        typeName: strippedType.Name,
+                        typeName: type.Name,
                         typeNode: node,
-                        type: (NamedTypeSymbol)strippedType,
+                        type: (NamedTypeSymbol)type,
                         arguments,
                         diagnostics,
                         boundInitializerOpt,
@@ -181,14 +167,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.TypeParameter:
                     result = BindTypeParameterCreationExpression(
                         node,
-                        typeParameter: (TypeParameterSymbol)strippedType,
+                        typeParameter: (TypeParameterSymbol)type,
                         arguments,
                         boundInitializerOpt,
                         diagnostics);
                     break;
 
                 default:
-                    return MakeBadExpressionForObjectCreation(node, destination, boundInitializerOpt, arguments);
+                    throw ExceptionUtilities.UnexpectedValue(type.Kind);
             }
 
             if (destination.IsNullableType())
@@ -204,6 +190,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        private bool ReportBadTargetType(SyntaxNode syntax, TypeSymbol type, DiagnosticBag diagnostics)
+        {
+            switch (type.TypeKind)
+            {
+                case TypeKind.Array:
+                case TypeKind.Enum:
+                case TypeKind.Delegate:
+                case TypeKind.Interface:
+                    Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, type);
+                    return true;
+
+                case TypeKind.Pointer:
+                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
+                    return true;
+
+                case TypeKind.Dynamic:
+                    Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, type);
+                    return true;
+
+                case TypeKind.Struct when type.IsTupleType:
+                    Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, type);
+                    return true;
+
+                case TypeKind.Struct:
+                case TypeKind.Class:
+                case TypeKind.TypeParameter:
+                    return false;
+
+                default:
+                    return true;
+            }
         }
 
         protected BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)

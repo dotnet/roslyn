@@ -4906,6 +4906,7 @@ var(x,y)=(1,2);
 
             await AssertFormatAsync(expectedCode, code);
         }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
