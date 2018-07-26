@@ -257,25 +257,25 @@ class C
         public void AnnotationWithoutNonNullTypes_GenericType()
         {
             CSharpCompilation c = CreateCompilation(@"
-class C<T>
+public class C<T>
 {
-    T? M(T? x1)
+    public T? M(T? x1)
     {
         T? y1 = x1; // warn 1
         return y1;
     }
 }
-class D<T> where T : class
+public class D<T> where T : class
 {
-    T? M(T? x2)
+    public T? M(T? x2)
     {
         T? y2 = x2; // warn 2
         return y2;
     }
 }
-class E<T> where T : struct
+public class E<T> where T : struct
 {
-    T? M(T? x3)
+    public T? M(T? x3)
     {
         T? y3 = x3;
         return y3;
@@ -292,6 +292,20 @@ class E<T> where T : struct
                 //         T? y1 = x1; // warn 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 10)
                 );
+
+            var client = @"
+class Client
+{
+    void M(C<string> c, D<string> d)
+    {
+        c.M("""").ToString();
+        d.M("""").ToString();
+    }
+}
+";
+            // PROTOTYPE(NullableReferenceTypes): expecting warnings
+            var comp2 = CreateCompilation(client, references: new[] { c.EmitToImageReference() });
+            comp2.VerifyDiagnostics();
         }
 
         [Fact]
