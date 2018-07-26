@@ -300,10 +300,16 @@ function Build-ExtraSignArtifacts() {
         Write-Host "Building CompilersCodeAnalysis Swix"
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.swixproj"
 
-        Write-Host "Building CompilersCodeAnalysis Resource Swixes"
         $vsLanguages = "chs", "cht", "csy", "fra", "deu", "ita", "jpn", "kor", "plk", "ptb", "rus", "esn", "trk"
+
+        Write-Host "Building CompilersCodeAnalysis Resource Swixes"
         foreach ($language in $vsLanguages) {
             Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.Resources.swixproj" "/p:Lang=$($language)"
+        }
+
+        Write-Host "Building VisualStudioSetup Resources Swixes"
+        foreach ($language in $vsLanguages) {
+            Run-MSBuild "DevDivVsix\RoslynVisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.swixproj" "/p:Lang=$($language)"
         }
 
         $dest = @($configDir)

@@ -65,6 +65,10 @@ function Copy-InsertionItems() {
         $items += "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.Resources.$($language).vsix"
         $items += "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.Resources.$($language).vsmand"
         $items += "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.Resources.$($language).json"
+
+        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.$($langauge).vsix"
+        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.$($langauge).vsmand"
+        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.$($langauge).json"
     }
 
     foreach ($item in $items) { 

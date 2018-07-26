@@ -14,6 +14,7 @@
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    <Dependency Id="Microsoft.CodeAnalysis.VisualStudio.Setup.Resources" DisplayName="Language Service Resources" d:Source="Manual" Version="|%CurrentProject%;GetBuildVersion|" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.Workspaces.dll" />
