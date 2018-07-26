@@ -10389,13 +10389,13 @@ tryAgain:
             // previous token should be NewKeyword
 
             ScanTypeFlags scanTypeFlags;
+            SyntaxKind tokenAfterType;
+
             var resetPoint = this.GetResetPoint();
             try
             {
                 scanTypeFlags = this.ScanNonArrayType();
-                isPossibleArrayCreation =
-                    scanTypeFlags != ScanTypeFlags.NotType &&
-                    this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
+                tokenAfterType = this.CurrentToken.Kind;
             }
             finally
             {
@@ -10403,8 +10403,13 @@ tryAgain:
                 this.Release(ref resetPoint);
             }
 
+            isPossibleArrayCreation =
+                scanTypeFlags != ScanTypeFlags.NotType &&
+                tokenAfterType == SyntaxKind.OpenBracketToken;
+
             return !isPossibleArrayCreation &&
-                scanTypeFlags != ScanTypeFlags.NullableType &&
+                scanTypeFlags != ScanTypeFlags.NullableType && // Allow parsing of nullable tuple creation e.g. new(a, b)?()
+                tokenAfterType != SyntaxKind.OpenParenToken && // Allow parsing of erroneous tuple creation e.g. new(a, b)() for better error recovery
                 this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
         }
 

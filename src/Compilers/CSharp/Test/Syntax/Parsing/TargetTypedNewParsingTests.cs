@@ -170,38 +170,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestInvalidTupleCreation()
         {
-            UsingExpression("new(int,int)()",
-                // (1,5): error CS1525: Invalid expression term 'int'
-                // new(int,int){}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 5),
-                // (1,9): error CS1525: Invalid expression term 'int'
-                // new(int,int){}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 9));
-            N(SyntaxKind.InvocationExpression);
+            UsingExpression("new(int,int)()");
+            N(SyntaxKind.ObjectCreationExpression);
             {
-                N(SyntaxKind.ObjectCreationExpression);
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.TupleType);
                 {
-                    N(SyntaxKind.NewKeyword);
-                    N(SyntaxKind.ArgumentList);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.TupleElement);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Argument);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
+                            N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Argument);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                        }
-                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.TupleElement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
                 N(SyntaxKind.ArgumentList);
                 {
@@ -248,13 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestInvalidTupleCreationWithInitializer()
         {
-            UsingExpression("new(int,int){}",
-                // (1,5): error CS1525: Invalid expression term 'int'
-                // new(int,int){}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 5),
-                // (1,9): error CS1525: Invalid expression term 'int'
-                // new(int,int){}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 9));
+            UsingExpression("new(a,b){}");
             N(SyntaxKind.ObjectCreationExpression);
             {
                 N(SyntaxKind.NewKeyword);
@@ -263,17 +248,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Argument);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.Argument);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
                     }
                     N(SyntaxKind.CloseParenToken);
