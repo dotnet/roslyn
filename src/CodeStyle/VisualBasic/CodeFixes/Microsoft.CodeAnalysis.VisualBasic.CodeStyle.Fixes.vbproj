@@ -20,7 +20,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Tests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Tests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="VBCodeStyleFixesResources.Designer.vb">

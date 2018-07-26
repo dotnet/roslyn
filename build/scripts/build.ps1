@@ -439,6 +439,8 @@ function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packag
         $packArgs = "$packArgs /p:OfficialBuild=true"
     }
 
+    Write-Host $dotnet $packArgs
+
     if ($useConsole) {
         Exec-Console $dotnet $packArgs
     }
@@ -598,8 +600,8 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($cibuild -or $official) {
-        # Use a 50 minute timeout on CI
-        $args += " -xml -timeout:50"
+        # Use a 75 minute timeout on CI
+        $args += " -xml -timeout:75"
     }
 
     if ($procdump) {

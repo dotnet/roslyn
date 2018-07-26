@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _searchCurrentDocument = searchCurrentDocument;
                 _kinds = kinds;
                 _cancellationToken = cancellationToken;
-                _progress = new ProgressTracker(callback.ReportProgress);
+                _progress = new ProgressTracker((_, current, maximum) => callback.ReportProgress(current, maximum));
                 _asyncListener = asyncListener;
 
                 if (_searchCurrentDocument)

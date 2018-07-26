@@ -20,7 +20,7 @@
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" Key="$(VisualStudioKey)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">

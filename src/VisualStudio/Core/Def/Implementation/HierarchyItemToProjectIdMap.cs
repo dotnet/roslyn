@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceService(typeof(IHierarchyItemToProjectIdMap), ServiceLayer.Host), Shared]
     internal class HierarchyItemToProjectIdMap : IHierarchyItemToProjectIdMap
