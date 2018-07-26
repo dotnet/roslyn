@@ -17,11 +17,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ITypeSymbol Type { get; }
 
+        public Nullability TypeNullability { get; }
+
         /// <summary>
         /// The type of the expression after it has undergone an implicit conversion. If the type
         /// did not undergo an implicit conversion, returns the same as Type.
         /// </summary>
         public ITypeSymbol ConvertedType { get; }
+
+        public Nullability ConvertedTypeNullability { get; }
 
         internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType)
             : this()

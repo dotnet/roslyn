@@ -213,6 +213,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A formatted string representation of the symbol.</returns>
         string ToDisplayString(SymbolDisplayFormat format = null);
 
+        string ToDisplayString(Nullability nullability, SymbolDisplayFormat format = null);
+
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. Useful for
         /// colorizing the display string.
@@ -221,6 +223,8 @@ namespace Microsoft.CodeAnalysis
         /// SymbolDisplayFormat.ErrorMessageFormat.</param>
         /// <returns>A read-only array of string parts.</returns>
         ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null);
+
+        ImmutableArray<SymbolDisplayPart> ToDisplayParts(Nullability nullability, SymbolDisplayFormat format = null);
 
         /// <summary>
         /// Convert a symbol to a string that can be displayed to the user. May be tailored to a
@@ -237,6 +241,12 @@ namespace Microsoft.CodeAnalysis
             int position,
             SymbolDisplayFormat format = null);
 
+        string ToMinimalDisplayString(
+            SemanticModel semanticModel,
+            int position,
+            Nullability nullability,
+            SymbolDisplayFormat format = null);
+
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. May be tailored
         /// to a specific location in the source code. Useful for colorizing the display string.
@@ -250,6 +260,12 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             SemanticModel semanticModel,
             int position,
+            SymbolDisplayFormat format = null);
+
+        ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            SemanticModel semanticModel,
+            int position,
+            Nullability nullability,
             SymbolDisplayFormat format = null);
 
         /// <summary>
