@@ -7,6 +7,11 @@
         <target state="new">Applying changes</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_configuration">
+        <source>Change configuration</source>
+        <target state="new">Change configuration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
         <source>Code cleanup is not configured</source>
         <target state="translated">A limpeza de código não está configurada</target>
@@ -20,6 +25,11 @@
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
         <target state="translated">Não exibir esta mensagem novamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document_performed_additional_cleanup">
+        <source>Format Document performed additional cleanup</source>
+        <target state="new">Format Document performed additional cleanup</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">

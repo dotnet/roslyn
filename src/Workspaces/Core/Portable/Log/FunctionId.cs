@@ -427,6 +427,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeCleanup_ApplyCodeFixesAsync,
         CodeCleanup_RemoveUnusedImports,
         CodeCleanup_SortImports,
-        CodeCleanup_Format
+        CodeCleanup_Format,
+        CodeCleanupABTest_AssignedToOnByDefault,
+        CodeCleanupABTest_AssignedToOffByDefault
     }
 }
