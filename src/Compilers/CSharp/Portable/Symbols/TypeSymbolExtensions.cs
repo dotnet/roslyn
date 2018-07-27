@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             T arg,
             bool canDigThroughNullable = false)
         {
-            Debug.Assert(((object)typeWithAnnotationsOpt == null) != ((object)typeOpt == null));
+            Debug.Assert((typeWithAnnotationsOpt is null) != (typeOpt is null));
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
