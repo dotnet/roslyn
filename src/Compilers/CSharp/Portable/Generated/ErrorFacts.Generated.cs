@@ -202,7 +202,6 @@
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
-                case ErrorCode.WRN_AnnotationDisallowedInObjectCreation:
                     return true;
                 default:
                     return false;

@@ -209,9 +209,9 @@ var w = F3(obliviousString); // List<string~>! or List<string?>! ?
 ```
 
 ## Object creation
-A warning is reported for creating an instance of a nullable reference type.
+An error is reported for creating an instance of a nullable reference type.
 ```c#
-new C?(); // warning
+new C?(); // error
 new List<C?>(); // ok
 ```
 

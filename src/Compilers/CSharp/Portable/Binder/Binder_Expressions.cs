@@ -3579,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (typeWithAnnotations.IsAnnotated && !type.IsNullableType())
             {
-                diagnostics.Add(ErrorCode.WRN_AnnotationDisallowedInObjectCreation, node.Location, type);
+                diagnostics.Add(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, node.Location, type);
             }
 
             BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer == null ?
