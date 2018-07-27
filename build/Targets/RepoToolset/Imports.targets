@@ -14,7 +14,10 @@
   <Import Project="GenerateInternalsVisibleTo.targets" />
   <Import Project="Workarounds.targets"/>
   <Import Project="RepositoryInfo.targets"/>
+  <Import Project="Version.targets"/>
+
   <Import Project="Localization.targets" />
   <Import Project="OptimizationData.targets"/>
   <Import Project="SymStore.targets"/>
+
 </Project>
