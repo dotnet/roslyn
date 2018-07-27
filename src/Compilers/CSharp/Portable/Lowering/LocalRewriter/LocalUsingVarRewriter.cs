@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -46,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (reversedStatements[i] is BoundLocalDeclaration localDeclaration && !(reversedStatements[i] is BoundReturnStatement) && SwitchBinder.ContainsUsingVariable(reversedStatements[i]))
                 {
+                    Debug.Assert(!(localDeclaration.IDisposableConversion.Value != default && localDeclaration.DisposeMethodOpt != default));
+
                     var followingStatements = GetFollowingStatements(statements, itemCount - 1 - i);
                     firstUsingIndex = i;
 
@@ -68,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             localDeclaration.Syntax,
                             ImmutableArray.Create(localDeclaration)),
                         expressionOpt: null,
-                        iDisposableConversion: Conversion.Identity,
-                        disposeMethodOpt: null,
+                        iDisposableConversion: localDeclaration.IDisposableConversion.Value,
+                        disposeMethodOpt: localDeclaration.DisposeMethodOpt,
                         body: innerBlock
                         );
                     reversedUsingStatements.Add(boundUsing);

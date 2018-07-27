@@ -606,10 +606,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeSyntax = node.Declaration.Type.SkipRef(out _);
             bool isConst = node.IsConst;
-
+            var variableList = node.Declaration.Variables;
+            int variableCount = variableList.Count;
             bool isVar;
             AliasSymbol alias;
             TypeSymbol declType = BindVariableType(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
+            Conversion iDisposableConversion = default;
+            MethodSymbol disposeMethod = default;
 
             // UNDONE: "possible expression" feature for IDE
 
@@ -621,14 +624,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (node.UsingKeyword != default)
             {
                 kind = LocalDeclarationKind.UsingVariable;
-            }
+                BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
+                int i = 0;
+                foreach (var variableDeclaratorSyntax in variableList)
+                {
+                    boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclaratorSyntax, typeSyntax, declType, alias, diagnostics);
+                }
 
-            var variableList = node.Declaration.Variables;
-            int variableCount = variableList.Count;
+                BindUsingVariableDeclaration(this,
+                                             diagnostics,
+                                             new BoundMultipleLocalDeclarations(
+                                                 node,
+                                                 boundDeclarations.AsImmutableOrNull()),
+                                             diagnostics.HasAnyErrors(),
+                                             node.Declaration,
+                                             out iDisposableConversion,
+                                             out disposeMethod);
+            }
 
             if (variableCount == 1)
             {
-                return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node);
+                return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node, disposeMethod, iDisposableConversion);
             }
             else
             {
@@ -642,6 +658,70 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
             }
+        }
+
+        internal void BindUsingVariableDeclaration(Binder originalBinder, DiagnosticBag diagnostics, BoundMultipleLocalDeclarations declarationsOpt, bool hasErrors,
+                                                   VariableDeclarationSyntax declarationSyntax, out Conversion iDisposableConversion, out MethodSymbol disposeMethod)
+        {
+            TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+            iDisposableConversion = Conversion.NoConversion;
+            disposeMethod = null;
+            ImmutableArray<BoundLocalDeclaration> declarations;
+
+            originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
+
+            Debug.Assert(!declarations.IsEmpty);
+
+            declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
+
+            TypeSymbol declType = declarations[0].DeclaredType.Type;
+
+            if (declType.IsDynamic())
+            {
+                iDisposableConversion = Conversion.ImplicitDynamic;
+            }
+            else
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
+                diagnostics.Add(declarationSyntax, useSiteDiagnostics);
+
+                if (!iDisposableConversion.IsImplicit)
+                {
+                    disposeMethod = TryFindDisposePatternMethod(declType, declarationSyntax, diagnostics);
+                    if (disposeMethod is null)
+                    {
+                        if (!declType.IsErrorType())
+                        {
+                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                        }
+                        hasErrors = true;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks for a Dispose method on exprType in the case that there is no explicit
+        /// IDisposable conversion.
+        /// </summary>
+        /// <param name="exprType">Type of the expression over which to iterate</param>
+        /// <param name="diagnostics">Populated with warnings if there are near misses</param>
+        /// <returns>True if a matching method is found with correct return type.</returns>
+        internal MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            LookupResult lookupResult = LookupResult.GetInstance();
+            
+            MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.DisposeMethodName, lookupResult, syntaxNode, warningsOnly: true, diagnostics, syntaxNode.SyntaxTree, MessageID.IDS_Disposable);
+            lookupResult.Free();
+
+            if (disposeMethod?.ReturnsVoid == false)
+            {
+                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, exprType, MessageID.IDS_Disposable.Localize(), disposeMethod);
+                disposeMethod = null;
+            }
+
+            return disposeMethod;
         }
 
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
@@ -817,7 +897,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol declTypeOpt,
             AliasSymbol aliasOpt,
             DiagnosticBag diagnostics,
-            CSharpSyntaxNode associatedSyntaxNode = null)
+            CSharpSyntaxNode associatedSyntaxNode = null,
+            MethodSymbol disposeMethod = default, 
+            Conversion iDisposableConversion = default)
         {
             Debug.Assert(declarator != null);
 
@@ -829,7 +911,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            declTypeOpt,
                                            aliasOpt,
                                            diagnostics,
-                                           associatedSyntaxNode);
+                                           associatedSyntaxNode,
+                                           disposeMethod,
+                                           iDisposableConversion);
         }
 
         protected BoundLocalDeclaration BindVariableDeclaration(
@@ -841,11 +925,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol declTypeOpt,
             AliasSymbol aliasOpt,
             DiagnosticBag diagnostics,
-            CSharpSyntaxNode associatedSyntaxNode = null)
+            CSharpSyntaxNode associatedSyntaxNode = null,
+            MethodSymbol disposeMethod = default,
+            Conversion iDisposableConversion = default)
         {
             Debug.Assert(declarator != null);
             Debug.Assert((object)declTypeOpt != null || isVar);
             Debug.Assert(typeSyntax != null);
+            Debug.Assert(!(disposeMethod != default && iDisposableConversion != default));
 
             var localDiagnostics = DiagnosticBag.GetInstance();
             // if we are not given desired syntax, we use declarator
@@ -1004,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.AddRangeAndFree(localDiagnostics);
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declTypeOpt);
-            return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, hasErrors);
+            return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, disposeMethod, iDisposableConversion, hasErrors);
         }
 
         internal ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)

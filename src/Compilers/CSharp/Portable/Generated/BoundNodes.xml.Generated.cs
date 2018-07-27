@@ -2384,7 +2384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocalDeclaration : BoundStatement
     {
-        public BoundLocalDeclaration(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, BoundExpression initializerOpt, ImmutableArray<BoundExpression> argumentsOpt, bool hasErrors = false)
+        public BoundLocalDeclaration(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, BoundExpression initializerOpt, ImmutableArray<BoundExpression> argumentsOpt, MethodSymbol disposeMethodOpt, Conversion? iDisposableConversion, bool hasErrors = false)
             : base(BoundKind.LocalDeclaration, syntax, hasErrors || declaredType.HasErrors() || initializerOpt.HasErrors() || argumentsOpt.HasErrors())
         {
 
@@ -2395,6 +2395,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.DeclaredType = declaredType;
             this.InitializerOpt = initializerOpt;
             this.ArgumentsOpt = argumentsOpt;
+            this.DisposeMethodOpt = disposeMethodOpt;
+            this.IDisposableConversion = iDisposableConversion;
         }
 
 
@@ -2406,16 +2408,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<BoundExpression> ArgumentsOpt { get; }
 
+        public MethodSymbol DisposeMethodOpt { get; }
+
+        public Conversion? IDisposableConversion { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitLocalDeclaration(this);
         }
 
-        public BoundLocalDeclaration Update(LocalSymbol localSymbol, BoundTypeExpression declaredType, BoundExpression initializerOpt, ImmutableArray<BoundExpression> argumentsOpt)
+        public BoundLocalDeclaration Update(LocalSymbol localSymbol, BoundTypeExpression declaredType, BoundExpression initializerOpt, ImmutableArray<BoundExpression> argumentsOpt, MethodSymbol disposeMethodOpt, Conversion? iDisposableConversion)
         {
-            if (localSymbol != this.LocalSymbol || declaredType != this.DeclaredType || initializerOpt != this.InitializerOpt || argumentsOpt != this.ArgumentsOpt)
+            if (localSymbol != this.LocalSymbol || declaredType != this.DeclaredType || initializerOpt != this.InitializerOpt || argumentsOpt != this.ArgumentsOpt || disposeMethodOpt != this.DisposeMethodOpt || iDisposableConversion != this.IDisposableConversion)
             {
-                var result = new BoundLocalDeclaration(this.Syntax, localSymbol, declaredType, initializerOpt, argumentsOpt, this.HasErrors);
+                var result = new BoundLocalDeclaration(this.Syntax, localSymbol, declaredType, initializerOpt, argumentsOpt, disposeMethodOpt, iDisposableConversion, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9029,7 +9035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
             BoundExpression initializerOpt = (BoundExpression)this.Visit(node.InitializerOpt);
             ImmutableArray<BoundExpression> argumentsOpt = (ImmutableArray<BoundExpression>)this.VisitList(node.ArgumentsOpt);
-            return node.Update(node.LocalSymbol, declaredType, initializerOpt, argumentsOpt);
+            return node.Update(node.LocalSymbol, declaredType, initializerOpt, argumentsOpt, node.DisposeMethodOpt, node.IDisposableConversion);
         }
         public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
         {
@@ -10195,7 +10201,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("localSymbol", node.LocalSymbol, null),
                 new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
                 new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
-                new TreeDumperNode("argumentsOpt", null, node.ArgumentsOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.ArgumentsOpt select Visit(x, null))
+                new TreeDumperNode("argumentsOpt", null, node.ArgumentsOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.ArgumentsOpt select Visit(x, null)),
+                new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null),
+                new TreeDumperNode("iDisposableConversion", node.IDisposableConversion, null)
             }
             );
         }

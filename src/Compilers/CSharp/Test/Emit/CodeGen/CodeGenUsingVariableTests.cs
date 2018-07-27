@@ -347,5 +347,57 @@ class C2
   IL_002e:  ret
 }");
         }
+
+        [Fact]
+        public void UsingVariableUsingPatternIntersectionEmitTest()
+        {
+            var source = @"
+    using System;
+    class C1
+    {
+        public void M()
+        {
+            Console.WriteLine(""This method has run."");
+        }
+        public void Dispose()
+        {
+            Console.WriteLine(""This object has been properly disposed."");
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            using C1 o1 = new C1();
+            o1.M();
+        }
+    }";
+
+            var output = @"This method has run.
+This object has been properly disposed.";
+            CompileAndVerify(source, expectedOutput: output).VerifyIL("Program.Main", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (C1 V_0) //o1
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  ldloc.0
+    IL_0007:  callvirt   ""void C1.M()""
+    IL_000c:  leave.s    IL_0018
+  }
+  finally
+  {
+    IL_000e:  ldloc.0
+    IL_000f:  brfalse.s  IL_0017
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""void C1.Dispose()""
+    IL_0017:  endfinally
+  }
+  IL_0018:  ret
+}");
+        }
     }
 }
