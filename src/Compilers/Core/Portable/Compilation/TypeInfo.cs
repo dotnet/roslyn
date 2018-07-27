@@ -17,7 +17,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ITypeSymbol Type { get; }
 
-        public Nullability TypeNullability { get; }
+        /// <summary>
+        /// The nullability of the expression represented by the syntax node.
+        /// </summary>
+        public Nullability Nullability { get; }
 
         /// <summary>
         /// The type of the expression after it has undergone an implicit conversion. If the type
@@ -25,7 +28,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ITypeSymbol ConvertedType { get; }
 
-        public Nullability ConvertedTypeNullability { get; }
+        /// <summary>
+        /// The nullability of the expression after conversions have been applied. For most expressions,
+        /// this will be identical to <see cref="Nullability"/>, with the exception being user-defined
+        /// conversions that have differing return and input nullability.
+        /// </summary>
+        public Nullability ConvertedNullability { get; }
 
         internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType)
             : this()

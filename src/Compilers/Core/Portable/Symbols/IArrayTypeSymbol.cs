@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol ElementType { get; }
 
+        /// <summary>
+        /// Gets the nullability of the elements stored in the array.
+        /// </summary>
         Nullability ElementNullability { get; }
 
         /// <summary>
