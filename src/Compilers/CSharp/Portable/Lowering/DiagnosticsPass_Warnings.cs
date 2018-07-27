@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckForBitwiseOrSignExtend(node, node.OperatorKind, node.Left, node.Right);
+            CheckBinOp(node);
             CheckNullableNullBinOp(node);
             CheckLiftedBinOp(node);
             CheckRelationals(node);
@@ -719,6 +720,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void CheckBinOp(BoundBinaryOperator node)
+        {
+            Debug.Assert(node != null);
+
+            if (node.OperatorKind.IsLifted())
+            {
+                return;
+            }
+
+            if (!_compilation.FeatureStrictEnabled)
+            {
+                return;
+            }
+
+            switch (node.OperatorKind.Operator())
+            {
+                case BinaryOperatorKind.Equal:
+                case BinaryOperatorKind.NotEqual:
+                    // CS0472: The result of the expression is always '{0}' since a value of type '{1}' is never equal to 'null' of type '{2}'
+                    //
+                    // Produce the warning if one side is always null and the other is never null.
+                    // That is, we have something like "if (myInt == null)"
+
+                    string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
+                    TypeSymbol valueType;
+
+                    // we use a separate warning code for cases newly detected in later versions of the compiler
+                    if (node.Right.IsLiteralOrConvertedNull() && node.Left.IsBoxedValueType(out valueType))
+                    {
+                        Error(ErrorCode.WRN_NubExprIsConstBool2, node, always, valueType, node.Right.Type);
+                    }
+                    else if (node.Left.IsLiteralOrConvertedNull() && node.Right.IsBoxedValueType(out valueType))
+                    {
+                        Error(ErrorCode.WRN_NubExprIsConstBool2, node, always, valueType, node.Left.Type);
+                    }
+                    break;
+            }
+        }
+
         private void CheckNullableNullBinOp(BoundBinaryOperator node)
         {
             if ((node.OperatorKind & BinaryOperatorKind.NullableNull) == 0)
@@ -737,7 +777,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
 
-                    // we use a separate warning code for cases newly detected in later versions of the compiler
                     if (node.Right.IsLiteralNull() && node.Left.NullableAlwaysHasValue())
                     {
                         Error(ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), node.Left.Type);
@@ -786,6 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
 
+                    // we use a separate warning code for cases newly detected in later versions of the compiler
                     if (_compilation.FeatureStrictEnabled || !node.OperatorKind.IsUserDefined())
                     {
                         if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())

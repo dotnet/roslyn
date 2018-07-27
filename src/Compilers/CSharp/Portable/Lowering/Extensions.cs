@@ -126,5 +126,74 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             return false;
         }
+
+        public static bool IsLiteralOrConvertedNull(this BoundExpression expr)
+        {
+            Debug.Assert(expr != null);
+
+            if ((object)expr.Type == null && expr.ConstantValue == ConstantValue.Null)
+            {
+                return true;
+            }
+
+            if ((object)expr.Type == null || expr.Type.IsNullableType())
+            {
+                return false;
+            }
+
+            // "default(object)" never has a value.
+            if (expr.Kind == BoundKind.DefaultExpression)
+            {
+                return true;
+            }
+
+            if (expr.Kind == BoundKind.Conversion)
+            {
+                var conversion = (BoundConversion)expr;
+                switch (conversion.ConversionKind)
+                {
+                    case ConversionKind.DefaultOrNullLiteral:
+                        // Any "null literal conversion" is a conversion from the literals null/default.
+                        return true;
+                    case ConversionKind.ImplicitReference:
+                    case ConversionKind.ExplicitReference:
+                        return conversion.Operand.IsLiteralOrConvertedNull();
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsBoxedValueType(this BoundExpression expr, out TypeSymbol valueType)
+        {
+            Debug.Assert(expr != null);
+
+            valueType = null;
+
+            if (expr.Type?.SpecialType != SpecialType.System_Object)
+            {
+                return false;
+            }
+
+            if (expr.Kind != BoundKind.Conversion)
+            {
+                return false;
+            }
+
+            var conversion = (BoundConversion)expr;
+            switch (conversion.ConversionKind)
+            {
+                case ConversionKind.Boxing:
+                    var type = conversion.Operand.Type;
+                    if (type?.IsValueType == true)
+                    {
+                        valueType = type;
+                        return true;
+                    }
+                    return false;
+            }
+
+            return false;
+        }
     }
 }
