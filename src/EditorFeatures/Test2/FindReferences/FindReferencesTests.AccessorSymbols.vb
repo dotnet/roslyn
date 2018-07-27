@@ -503,5 +503,432 @@ class Usages
 </Workspace>
             Await TestStreamingFeature(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_Feature1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+interface IC
+    property {|Definition:Prop|} as integer
+end interface
+
+class C
+    implements IC
+
+    public overridable property Prop as integer implements IC.[|Prop|]
+        {|Definition:$$get|}
+        end get
+        set(value as integer)
+        end set
+    end property
+end class
+
+class D
+    inherits C
+
+    public overrides property prop as integer
+        {|Definition:get|}
+            return mybase.[|prop|]
+        end get
+        set(value as integer)
+            mybase.prop = value
+        end set
+    end property
+end class
+
+class Usages
+    sub M()
+        dim ic1 as IC
+        dim n1 = nameof(ic1.Prop)
+        dim v1 = ic1.[|Prop|]
+        ic1.Prop = 1
+        ic1.[|Prop|] += 1
+
+        dim c1 as C
+        dim n2 = nameof(c1.Prop)
+        dim v2 = c1.[|Prop|]
+        c1.Prop = 1
+        c1.[|Prop|] += 1
+
+        dim d1 as D
+        dim n3 = nameof(d1.Prop)
+        dim v3 = d1.[|Prop|]
+        d1.Prop = 1
+        d1.[|Prop|] += 1
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_Feature2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+interface IC
+    property {|Definition:Prop|} as integer
+end interface
+
+class C
+    implements IC
+
+    public overridable property Prop as integer implements IC.[|Prop|]
+        {|Definition:get|}
+        end get
+        set(value as integer)
+        end set
+    end property
+end class
+
+class D
+    inherits C
+
+    public overrides property prop as integer
+        {|Definition:$$get|}
+            return mybase.[|prop|]
+        end get
+        set(value as integer)
+            mybase.prop = value
+        end set
+    end property
+end class
+
+class Usages
+    sub M()
+        dim ic1 as IC
+        dim n1 = nameof(ic1.Prop)
+        dim v1 = ic1.[|Prop|]
+        ic1.Prop = 1
+        ic1.[|Prop|] += 1
+
+        dim c1 as C
+        dim n2 = nameof(c1.Prop)
+        dim v2 = c1.[|Prop|]
+        c1.Prop = 1
+        c1.[|Prop|] += 1
+
+        dim d1 as D
+        dim n3 = nameof(d1.Prop)
+        dim v3 = d1.[|Prop|]
+        d1.Prop = 1
+        d1.[|Prop|] += 1
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_Feature1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+interface IC
+    property {|Definition:Prop|} as integer
+end interface
+
+class C
+    implements IC
+
+    public overridable property Prop as integer implements IC.Prop
+        get
+        end get
+        {|Definition:$$set|}(value as integer)
+        end set
+    end property
+end class
+
+class D
+    inherits C
+
+    public overrides property prop as integer
+        get
+            return mybase.prop
+        end get
+        {|Definition:set|}(value as integer)
+            mybase.[|prop|] = value
+        end set
+    end property
+end class
+
+class Usages
+    sub M()
+        dim ic1 as IC
+        dim n1 = nameof(ic1.Prop)
+        dim v1 = ic1.Prop
+        ic1.[|Prop|] = 1
+        ic1.[|Prop|] += 1
+
+        dim c1 as C
+        dim n2 = nameof(c1.Prop)
+        dim v2 = c1.Prop
+        c1.[|Prop|] = 1
+        c1.[|Prop|] += 1
+
+        dim d1 as D
+        dim n3 = nameof(d1.Prop)
+        dim v3 = d1.Prop
+        d1.[|Prop|] = 1
+        d1.[|Prop|] += 1
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_Feature2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+interface IC
+    property {|Definition:Prop|} as integer
+end interface
+
+class C
+    implements IC
+
+    public overridable property Prop as integer implements IC.Prop
+        get
+        end get
+        {|Definition:set|}(value as integer)
+        end set
+    end property
+end class
+
+class D
+    inherits C
+
+    public overrides property prop as integer
+        get
+            return mybase.prop
+        end get
+        {|Definition:$$set|}(value as integer)
+            mybase.[|prop|] = value
+        end set
+    end property
+end class
+
+class Usages
+    sub M()
+        dim ic1 as IC
+        dim n1 = nameof(ic1.Prop)
+        dim v1 = ic1.Prop
+        ic1.[|Prop|] = 1
+        ic1.[|Prop|] += 1
+
+        dim c1 as C
+        dim n2 = nameof(c1.Prop)
+        dim v2 = c1.Prop
+        c1.[|Prop|] = 1
+        c1.[|Prop|] += 1
+
+        dim d1 as D
+        dim n3 = nameof(d1.Prop)
+        dim v3 = d1.Prop
+        d1.[|Prop|] = 1
+        d1.[|Prop|] += 1
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_FromProp_1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+interface IC
+    property {|Definition:$$Prop|} as integer
+end interface
+
+class C
+    implements IC
+
+    public overridable property {|Definition:Prop|} as integer implements IC.[|Prop|]
+        get
+        end get
+        set(value as integer)
+        end set
+    end property
+end class
+
+class D
+    inherits C
+
+    public overrides property {|Definition:prop|} as integer
+        get
+            return mybase.[|prop|]
+        end get
+        set(value as integer)
+            mybase.[|prop|] = value
+        end set
+    end property
+end class
+
+class Usages
+    sub M()
+        dim ic1 as IC
+        dim n1 = nameof(ic1.[|Prop|])
+        dim v1 = ic1.[|Prop|]
+        ic1.[|Prop|] = 1
+        ic1.[|Prop|] += 1
+
+        dim c1 as C
+        dim n2 = nameof(c1.[|Prop|])
+        dim v2 = c1.[|Prop|]
+        c1.[|Prop|] = 1
+        c1.[|Prop|] += 1
+
+        dim d1 as D
+        dim n3 = nameof(d1.[|Prop|])
+        dim v3 = d1.[|Prop|]
+        d1.[|Prop|] = 1
+        d1.[|Prop|] += 1
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_FromProp_2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+interface IC
+    property {|Definition:Prop|} as integer
+end interface
+
+class C
+    implements IC
+
+    public overridable property {|Definition:$$Prop|} as integer implements IC.[|Prop|]
+        get
+        end get
+        set(value as integer)
+        end set
+    end property
+end class
+
+class D
+    inherits C
+
+    public overrides property {|Definition:prop|} as integer
+        get
+            return mybase.[|prop|]
+        end get
+        set(value as integer)
+            mybase.[|prop|] = value
+        end set
+    end property
+end class
+
+class Usages
+    sub M()
+        dim ic1 as IC
+        dim n1 = nameof(ic1.[|Prop|])
+        dim v1 = ic1.[|Prop|]
+        ic1.[|Prop|] = 1
+        ic1.[|Prop|] += 1
+
+        dim c1 as C
+        dim n2 = nameof(c1.[|Prop|])
+        dim v2 = c1.[|Prop|]
+        c1.[|Prop|] = 1
+        c1.[|Prop|] += 1
+
+        dim d1 as D
+        dim n3 = nameof(d1.[|Prop|])
+        dim v3 = d1.[|Prop|]
+        d1.[|Prop|] = 1
+        d1.[|Prop|] += 1
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_FromProp_3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+interface IC
+    property {|Definition:Prop|} as integer
+end interface
+
+class C
+    implements IC
+
+    public overridable property {|Definition:Prop|} as integer implements IC.[|Prop|]
+        get
+        end get
+        set(value as integer)
+        end set
+    end property
+end class
+
+class D
+    inherits C
+
+    public overrides property {|Definition:$$prop|} as integer
+        get
+            return mybase.[|prop|]
+        end get
+        set(value as integer)
+            mybase.[|prop|] = value
+        end set
+    end property
+end class
+
+class Usages
+    sub M()
+        dim ic1 as IC
+        dim n1 = nameof(ic1.[|Prop|])
+        dim v1 = ic1.[|Prop|]
+        ic1.[|Prop|] = 1
+        ic1.[|Prop|] += 1
+
+        dim c1 as C
+        dim n2 = nameof(c1.[|Prop|])
+        dim v2 = c1.[|Prop|]
+        c1.[|Prop|] = 1
+        c1.[|Prop|] += 1
+
+        dim d1 as D
+        dim n3 = nameof(d1.[|Prop|])
+        dim v3 = d1.[|Prop|]
+        d1.[|Prop|] = 1
+        d1.[|Prop|] += 1
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
     End Class
 End Namespace

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SymbolSearchEnabled)));
 
         public static readonly Option<bool> SymbolFinderEnabled = new Option<bool>(
-            nameof(RemoteFeatureOptions), nameof(SymbolFinderEnabled), defaultValue: true,
+            nameof(RemoteFeatureOptions), nameof(SymbolFinderEnabled), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SymbolFinderEnabled)));
 
         public static readonly Option<bool> DiagnosticsEnabled = new Option<bool>(

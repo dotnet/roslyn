@@ -551,9 +551,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            Return syntaxTree _
-                .GetTargetToken(position, cancellationToken) _
-                .IsChildToken(Of NameOfExpressionSyntax)(Function(nameOfExpression) nameOfExpression.OpenParenToken)
+            Dim token = syntaxTree.GetTargetToken(position, cancellationToken)
+            If token.Kind() = SyntaxKind.OpenParenToken AndAlso
+               token.Parent.Kind() = SyntaxKind.NameOfExpression Then
+                Return True
+            End If
+
+            If token.Kind() = SyntaxKind.DotToken Then
+                Dim name = TryCast(token.Parent, ExpressionSyntax)
+                While TypeOf name?.Parent Is NameSyntax OrElse
+                    TypeOf name?.Parent Is MemberAccessExpressionSyntax
+
+                    name = DirectCast(name.Parent, ExpressionSyntax)
+                End While
+
+                Return TypeOf name?.Parent Is NameOfExpressionSyntax
+            End If
+
+            Return False
         End Function
 
         <Extension()>
