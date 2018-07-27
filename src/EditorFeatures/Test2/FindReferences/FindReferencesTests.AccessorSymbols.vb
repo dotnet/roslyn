@@ -850,6 +850,52 @@ class Usages
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Attribute1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class CAttribute : Attribute
+{
+    public virtual int Prop { {|Definition:$$get|} => 0; set { } }
+}
+
+[C(Prop = 1)]
+class D
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Attribute1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class CAttribute : Attribute
+{
+    public virtual int Prop { get => 0; {|Definition:$$set|} { } }
+}
+
+[C([|Prop|] = 1)]
+class D
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVBAccessor_Get_Feature1() As Task
             Dim input =
 <Workspace>
@@ -1573,6 +1619,62 @@ class Usages
         dim v1 = d1(0)
         d1[||](0) = 1
     end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_Attribute1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+imports System
+
+class CAttribute 
+    inherits Attribute
+
+    public property Prop as integer
+        {|Definition:$$get|}
+        end get
+        set(value as integer)
+        end set
+    end property
+end class
+
+&lt;C(Prop:=1)&gt;
+class D
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_Attribute1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+imports System
+
+class CAttribute 
+    inherits Attribute
+
+    public property Prop as integer
+        get
+        end get
+        {|Definition:$$set|}(value as integer)
+        end set
+    end property
+end class
+
+&lt;C([|Prop|]:=1)&gt;
+class D
 end class
         </Document>
     </Project>
