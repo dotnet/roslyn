@@ -2541,7 +2541,10 @@ class A
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 8),
                 // (6,8): error CS1002: ; expected
                 // 		using
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 8));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 8),
+                // (7,1): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                // 	}
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "").WithLocation(7, 1));
         }
 
         // If statement directly following a using ()

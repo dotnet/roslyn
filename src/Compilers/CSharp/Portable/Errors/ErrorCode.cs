@@ -1578,6 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 7.3
         WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
+        ERR_UsingVarInSwitchCase = 8389,
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

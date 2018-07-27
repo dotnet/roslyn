@@ -8212,7 +8212,6 @@ tryAgain:
             {
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
-
                 this.ParseLocalDeclaration(variables,
                     allowLocalFunctions: true,
                     mods: mods.ToList(),
@@ -8248,7 +8247,8 @@ tryAgain:
                     usingKeyword,
                     mods.ToList(),
                     _syntaxFactory.VariableDeclaration(type, variables),
-                    semicolon);
+                    semicolon
+                    );
             }
             finally
             {

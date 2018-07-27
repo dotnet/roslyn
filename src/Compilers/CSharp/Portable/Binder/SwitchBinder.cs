@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -560,10 +559,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (var statement in node.Statements)
             {
-                boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
+                var boundStatement = sectionBinder.BindStatement(statement, diagnostics);
+                if (ContainsUsingVariable(boundStatement))
+                {
+                    diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
+                }
+                boundStatementsBuilder.Add(boundStatement);
             }
 
             return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+        }
+
+        internal static bool ContainsUsingVariable(BoundStatement boundStatement)
+        {
+            if (boundStatement is BoundLocalDeclaration boundLocal)
+            {
+                return boundLocal.LocalSymbol.IsUsing;
+            }
+            else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
+            {
+                return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
+            }
+            return false;
         }
 
         private Dictionary<SyntaxNode, LabelSymbol> _labelsByNode;

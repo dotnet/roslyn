@@ -1244,6 +1244,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
+                BoundNode usingVarLoweredNode = LocalUsingVarRewriter.Rewrite(body);
+                BoundStatement toLower = usingVarLoweredNode == null ? body : (BoundStatement)usingVarLoweredNode;
+
                 bool sawLambdas;
                 bool sawLocalFunctions;
                 bool sawAwaitInExceptionHandler;
@@ -1252,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method,
                     methodOrdinal,
                     method.ContainingType,
-                    body,
+                    toLower,
                     compilationState,
                     previousSubmissionFields: previousSubmissionFields,
                     allowOmissionOfConditionalCalls: true,
