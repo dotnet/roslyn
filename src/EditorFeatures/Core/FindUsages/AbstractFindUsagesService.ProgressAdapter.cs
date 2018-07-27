@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     {
                         definitionItem = await definition.Symbol.ToClassifiedDefinitionItemAsync(
                             _solution.GetProject(definition.ProjectId), includeHiddenLocations: false, 
-                            FindReferencesSearchOptions.Default, _context.CancellationToken).ConfigureAwait(false);
+                            _options, _context.CancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[definition.Symbol] = definitionItem;
                     }

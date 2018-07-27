@@ -505,6 +505,87 @@ class Usages
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_ObjectInitializer1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public virtual int Prop { {|Definition:$$get|}; set; }
+}
+
+class Usages
+{
+    void M()
+    {
+        new C
+        {
+            Prop = 1
+        };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_ObjectInitializer1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public virtual int Prop { get; {|Definition:$$set|}; }
+}
+
+class Usages
+{
+    void M()
+    {
+        new C
+        {
+            [|Prop|] = 1
+        };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Prop_ObjectInitializer1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public virtual int {|Definition:$$Prop|} { get; set; }
+}
+
+class Usages
+{
+    void M()
+    {
+        new C
+        {
+            [|Prop|] = 1
+        };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVBAccessor_Get_Feature1() As Task
             Dim input =
 <Workspace>
@@ -923,6 +1004,90 @@ class Usages
         dim v3 = d1.[|Prop|]
         d1.[|Prop|] = 1
         d1.[|Prop|] += 1
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_ObjectInitializer1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+class C
+    public property Prop as integer
+        {|Definition:$$get|}
+            return 0
+        end get
+        set(value as integer)
+        end set
+end class
+
+class Usages
+    sub M()
+        dim x = new C with {
+            .Prop = 1
+        }
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_ObjectInitializer1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+class C
+    public property Prop as integer
+        get
+            return 0
+        end get
+        {|Definition:$$set|}(value as integer)
+        end set
+end class
+
+class Usages
+    sub M()
+        dim x = new C with {
+            .[|Prop|] = 1
+        }
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Property_ObjectInitializer1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+class C
+    public property {|Definition:$$Prop|} as integer
+        get
+            return 0
+        end get
+        set(value as integer)
+        end set
+end class
+
+class Usages
+    sub M()
+        dim x = new C with {
+            .[|Prop|] = 1
+        }
     end sub
 end class
         </Document>
