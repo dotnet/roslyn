@@ -818,24 +818,24 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = this.CurrentSolution;
 
                 var newSolution = oldSolution;
-                var oldInfo = oldSolution.GetDocument(documentId).GetDocumentInfoWithoutContent();
+                var oldAttributes = oldSolution.GetDocument(documentId).State.Attributes;
 
-                if (oldInfo.Name != newInfo.Name)
+                if (oldAttributes.Name != newInfo.Name)
                 {
                     newSolution = newSolution.WithDocumentName(documentId, newInfo.Name);
                 }
 
-                if (oldInfo.Folders != newInfo.Folders)
+                if (oldAttributes.Folders != newInfo.Folders)
                 {
                     newSolution = newSolution.WithDocumentFolders(documentId, newInfo.Folders);
                 }
 
-                if (oldInfo.FilePath != newInfo.FilePath)
+                if (oldAttributes.FilePath != newInfo.FilePath)
                 {
                     newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath);
                 }
 
-                if (oldInfo.SourceCodeKind != newInfo.SourceCodeKind)
+                if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
                 {
                     newSolution = newSolution.WithDocumentSourceCodeKind(documentId, newInfo.SourceCodeKind);
                 }
@@ -1394,7 +1394,8 @@ namespace Microsoft.CodeAnalysis
             // update info if changed
             if (newDoc.HasInfoChanged(oldDoc))
             {
-                ApplyDocumentInfoChanged(documentId, newDoc.GetDocumentInfoWithoutContent());
+                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
+                ApplyDocumentInfoChanged(documentId, new DocumentInfo(newDoc.State.Attributes, loader: null));
             }
 
             // update text if changed
