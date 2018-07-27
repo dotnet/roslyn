@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -281,7 +282,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The changes necessary to format the tree.</returns>
         public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => GetFormattedTextChangesAsync(node, workspace, options, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+        {
+            options = options ?? workspace.Options;
+            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
+            var resultTask = GetFormattedTextChangesAsync(node, workspace, options, cancellationToken);
+            Debug.Assert(resultTask.IsCompleted);
+            return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);
+        }
 
         internal static Task<IList<TextChange>> GetFormattedTextChangesAsync(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
             => GetFormattedTextChangesAsync(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), workspace, options, rules: null, cancellationToken: cancellationToken);

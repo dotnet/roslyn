@@ -1370,6 +1370,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix formatting.
+        /// </summary>
+        internal static string Formatting_analyzer_code_fix {
+            get {
+                return ResourceManager.GetString("Formatting_analyzer_code_fix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix formatting.
+        /// </summary>
+        internal static string Formatting_analyzer_message {
+            get {
+                return ResourceManager.GetString("Formatting_analyzer_message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix formatting.
+        /// </summary>
+        internal static string Formatting_analyzer_title {
+            get {
+                return ResourceManager.GetString("Formatting_analyzer_title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Formatting document.
         /// </summary>
         internal static string Formatting_document {

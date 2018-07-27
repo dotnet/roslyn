@@ -92,9 +92,13 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _language = token1.Language;
             }
 
-            // set synchronous task executor if it is debug mode or if there is not many things to format
-            this.TaskExecutor = optionSet.GetOption(FormattingOptions.DebugMode, _language) ? TaskExecutor.Synchronous :
-                                    (SpanToFormat.Length < ConcurrentThreshold) ? TaskExecutor.Synchronous : executor;
+            // set synchronous task executor if it is enabled (explicitly or as part of debug mode) or if there is not
+            // many things to format
+            var synchronousExecutorAllowed =
+                !optionSet.GetOption(FormattingOptions.AllowConcurrent)
+                || optionSet.GetOption(FormattingOptions.DebugMode, _language);
+            var useSynchronousExecutor = synchronousExecutorAllowed || SpanToFormat.Length < ConcurrentThreshold;
+            TaskExecutor = useSynchronousExecutor ? TaskExecutor.Synchronous : executor;
         }
 
         protected abstract AbstractTriviaDataFactory CreateTriviaFactory();

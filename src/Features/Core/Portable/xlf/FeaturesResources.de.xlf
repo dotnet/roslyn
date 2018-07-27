@@ -62,6 +62,21 @@
         <target state="translated">Tippfehler "{0}" korrigieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Formatting_analyzer_code_fix">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_analyzer_message">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_analyzer_title">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Dokument wird formatiert</target>
