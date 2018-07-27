@@ -1420,6 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            // PROTOTYPE(NullableReferenceTypes): Report diagnostics for base type and interfaces at more specific locations.
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = InterfacesNoUseSiteDiagnostics();
             if (baseType?.ContainsAnnotatedUnconstrainedTypeParameter() == true ||

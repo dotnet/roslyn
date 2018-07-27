@@ -216,7 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _sawLambdas = true;
             CheckRefReadOnlySymbols(node.Symbol);
-            CheckNullableSymbols(node.Symbol);
 
             var oldContainingSymbol = _factory.CurrentFunction;
             try
@@ -234,7 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _sawLocalFunctions = true;
             CheckRefReadOnlySymbols(node.Symbol);
-            CheckNullableSymbols(node.Symbol);
 
             if (node.Symbol.TypeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
             {
@@ -712,23 +710,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol.Parameters.Any(p => p.RefKind == RefKind.In))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
-            }
-        }
-
-        private void CheckNullableSymbols(MethodSymbol symbol)
-        {
-            var location = symbol.Locations.FirstOrDefault();
-            var returnType = symbol.ReturnType;
-            var parameters = symbol.Parameters;
-            if (returnType.ContainsAnnotatedUnconstrainedTypeParameter() ||
-                parameters.Any(p => p.Type.ContainsAnnotatedUnconstrainedTypeParameter()))
-            {
-                TypeSymbolWithAnnotations.ReportAnnotatedUnconstrainedTypeParameter(location, _diagnostics);
-            }
-            if (returnType.ContainsNullableReferenceTypes() ||
-                parameters.Any(p => p.Type.ContainsNullableReferenceTypes()))
-            {
-                _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
             }
         }
     }
