@@ -534,6 +534,29 @@ $@"class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(28866, "https://github.com/dotnet/roslyn/issues/28866")]
+        public async Task TestWrittenExpressionBeforeNullCheck()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Foo
+{
+    object Data { get; set; }
+
+    void DoFoo()
+    {
+        [|var|] oldData = this.Data as string;
+
+        Data = null;
+
+        if (oldData != null)
+        {
+            // Do something
+        }
+    }
+}");
+        }
+
         [WorkItem(15957, "https://github.com/dotnet/roslyn/issues/15957")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestTrivia1()

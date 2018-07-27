@@ -138,6 +138,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            // Check if the as operand is ever written up to the point of null check.
+            //
+            //      var s = field as string;
+            //      field = null;
+            //      if (s != null) { ... }
+            //
+            // It's no longer safe to use pattern-matching because 'field is string s' would never be true.
+            var asOperand = semanticModel.GetSymbolInfo(asExpression.Left, cancellationToken).Symbol;
+            var symbolName = asOperand?.Name;
+            if (symbolName != null)
+            {
+                var localStatementStart = localStatement.SpanStart;
+                var comparisonSpanStart = comparison.SpanStart;
+
+                foreach (var descendentNode in enclosingBlock.DescendantNodes())
+                {
+                    var descendentNodeSpanStart = descendentNode.SpanStart;
+                    if (descendentNodeSpanStart <= localStatementStart)
+                    {
+                        continue;
+                    }
+
+                    if (descendentNodeSpanStart >= comparisonSpanStart)
+                    {
+                        break;
+                    }
+
+                    if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
+                        identifierName.Identifier.ValueText == symbolName &&
+                        asOperand.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
+                        identifierName.IsOnlyWrittenTo())
+                    {
+                        return;
+                    }
+                }
+            }
+
             var analyzer = new Analyzer(
                 semanticModel,
                 localSymbol,
