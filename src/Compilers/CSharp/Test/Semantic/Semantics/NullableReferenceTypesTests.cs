@@ -67,6 +67,7 @@ namespace System.Runtime.CompilerServices
                     AttributeTargets.Property |
                     AttributeTargets.Struct,
                     AllowMultiple = false)]
+    [System.Obsolete(""The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above)."")]
     public sealed class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
@@ -157,25 +158,25 @@ class C
         }
 
         [Fact]
-        public void TestSuppressionOperatorWithoutNonNullTypesContext()
+        public void SuppressionOperatorWithoutNonNullTypesContext()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
 {
     string x = null!;
-    static void Main()
+    static void Main(string z = null!)
     {
         string y = null!;
     }
 }
 ", parseOptions: TestOptions.Regular8);
 
-            // PROTOTYPE(NullableReferenceTypes): should warn in field initializer as well
+            // PROTOTYPE(NullableReferenceTypes): should warn in field initializer and non-executable code as well
             c.VerifyDiagnostics(
                 // (7,16): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         string y = null!;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(7, 16),
-                // (7,20): error CS8627: The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.
+                // (7,20): warning CS8627: The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.
                 //         string y = null!;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "null!").WithLocation(7, 20),
                 // (4,12): warning CS0414: The field 'C.x' is assigned but its value is never used
@@ -1648,7 +1649,7 @@ public class Oblivious
 
             var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
             obliviousComp.VerifyDiagnostics();
-            verifyOblivious(obliviousComp);
+            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: null);
 
             var lib = @"
 public class External
@@ -1776,7 +1777,7 @@ class E
         /// <summary>
         /// The type and all of its members should have the expected NonNullTypes value.
         /// </summary>
-        private static void VerifyNonNullTypes(NamedTypeSymbol type, bool expectNonNullTypes)
+        private static void VerifyNonNullTypes(NamedTypeSymbol type, bool? expectNonNullTypes)
         {
             Assert.Equal(expectNonNullTypes, type.NonNullTypes);
 
@@ -1786,7 +1787,7 @@ class E
             }
         }
 
-        private static void VerifyNonNullTypes(Symbol symbol, bool expectNonNullTypes)
+        private static void VerifyNonNullTypes(Symbol symbol, bool? expectNonNullTypes)
         {
             switch (symbol)
             {
@@ -1805,14 +1806,14 @@ class E
             }
         }
 
-        private static void VerifyNonNullTypes(PropertySymbol property, bool expectNonNullTypes)
+        private static void VerifyNonNullTypes(PropertySymbol property, bool? expectNonNullTypes)
         {
             Assert.Equal(expectNonNullTypes, property.NonNullTypes);
             VerifyNonNullTypes(property.GetMethod, expectNonNullTypes);
             VerifyNonNullTypes(property.SetMethod, expectNonNullTypes);
         }
 
-        private static void VerifyNonNullTypes(MethodSymbol method, bool expectNonNullTypes)
+        private static void VerifyNonNullTypes(MethodSymbol method, bool? expectNonNullTypes)
         {
             Assert.Equal(expectNonNullTypes, method.NonNullTypes);
 
@@ -1836,7 +1837,7 @@ public class Oblivious
 ";
 
             var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
-            verifyOblivious(obliviousComp);
+            VerifyNonNullTypes((NamedTypeSymbol)obliviousComp.GetMember("Oblivious"), expectNonNullTypes: null);
 
             var lib = @"
 public class External
@@ -2138,8 +2139,12 @@ class B<T> : A<T> where T : A<T>.I
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7);
-            comp.VerifyDiagnostics();
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                );
 
             comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
@@ -10238,6 +10243,10 @@ namespace System
         Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
         Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
         GenericParameter = 16384, All = 32767 }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute(string message) => throw null;
+    }
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
@@ -10400,6 +10409,10 @@ namespace System
         Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
         Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
         GenericParameter = 16384, All = 32767 }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute(string message) => throw null;
+    }
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
@@ -30710,20 +30723,76 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-
             var libComp = CreateCompilation(poisonedDefinition, parseOptions: TestOptions.Regular7);
             libComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(new[] { NonNullTypesTrue, poisonedDefinition }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (1,10): warning CS0618: 'NonNullTypesAttribute' is obsolete: 'The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above).'
+            var comp1 = CreateCompilation(new[] { NonNullTypesTrue, poisonedDefinition }, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics(
+                // (1,10): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute", "The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above).").WithLocation(1, 10)
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
                 );
 
-            // When referenced from metadata and in a C# 8.0 compilation, it's okay to use this attribute
-            var comp2 = CreateCompilation(NonNullTypesTrue, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(new[] { NonNullTypesTrue, poisonedDefinition }, parseOptions: TestOptions.Regular8);
             comp2.VerifyDiagnostics();
+
+            // When referenced from metadata and in a C# 8.0 compilation, it's okay to use this attribute
+            var comp3 = CreateCompilation(NonNullTypesTrue, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp3.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypesInCSharp7_InSource()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.NonNullTypes]
+public class C
+{
+    public static string field;
+}
+public class D
+{
+    [System.Runtime.CompilerServices.NonNullTypes]
+    public static string field;
+
+    [System.Runtime.CompilerServices.NonNullTypes]
+    public static string Method(string s) => throw null;
+
+    [System.Runtime.CompilerServices.NonNullTypes]
+    public static string Property { get; set; }
+
+    [System.Runtime.CompilerServices.NonNullTypes]
+    public static event System.Action Event;
+
+    void M()
+    {
+        C.field /*T:string!*/ = null;
+        D.field /*T:string!*/ = null;
+        D.Method(null) /*T:string!*/;
+        D.Property /*T:string!*/ = null;
+        D.Event /*T:System.Action!*/();
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (2,2): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(2, 2),
+                // (12,6): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //     [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(12, 6),
+                // (15,6): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //     [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(15, 6),
+                // (18,6): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //     [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(18, 6),
+                // (9,6): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //     [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(9, 6)
+                );
+            comp.VerifyTypes();
         }
 
         [Fact]
@@ -30746,25 +30815,37 @@ public class D
 
     [System.Runtime.CompilerServices.NonNullTypes]
     public static string Property { get; set; }
+
+    [System.Runtime.CompilerServices.NonNullTypes]
+    public static event System.Action Event;
 }
 ";
             var libComp = CreateCompilation(new[] { libSource, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            libComp.VerifyDiagnostics();
+            libComp.VerifyDiagnostics(
+                // (19,39): warning CS0067: The event 'D.Event' is never used
+                //     public static event System.Action Event;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event").WithArguments("D.Event").WithLocation(19, 39)
+                );
 
             var source = @"
 class Client
 {
     void M()
     {
-        C /*T:C!*/ .field /*T:string!*/ = null;
-        D /*T:D!*/ .field /*T:string!*/ = null;
+        C.field /*T:string!*/ = null;
+        D.field /*T:string!*/ = null;
         D.Method(null) /*T:string!*/;
-        D /*T:D!*/ .Property /*T:string!*/ = null;
+        D.Property /*T:string!*/ = null;
+        D.Event /*T:System.Action*/();
     }
 }
 ";
             var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,11): error CS0079: The event 'D.Event' can only appear on the left hand side of += or -=
+                //         D.Event /*T:System.Action*/();
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Event").WithArguments("D.Event").WithLocation(10, 11)
+                );
             comp.VerifyTypes();
         }
 
@@ -33352,6 +33433,10 @@ namespace System
         Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
         Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
         GenericParameter = 16384, All = 32767 }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute(string message) => throw null;
+    }
 }
 namespace System.Collections
 {
@@ -33388,24 +33473,24 @@ class C
 }";
             var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (46,13): warning CS8602: Possible dereference of a null reference.
+                // (50,13): warning CS8602: Possible dereference of a null reference.
                 //             x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(46, 13),
-                // (47,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(50, 13),
+                // (51,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (object y in e)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(47, 18),
-                // (48,13): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(51, 18),
+                // (52,13): warning CS8602: Possible dereference of a null reference.
                 //             y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(48, 13),
-                // (53,13): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(52, 13),
+                // (57,13): warning CS8602: Possible dereference of a null reference.
                 //             z.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(53, 13),
-                // (54,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(57, 13),
+                // (58,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (object w in e)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(54, 18),
-                // (55,13): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(58, 18),
+                // (59,13): warning CS8602: Possible dereference of a null reference.
                 //             w.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(55, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(59, 13));
         }
 
         // z.ToString() should warn if IEnumerator.Current is annotated as `object?`.

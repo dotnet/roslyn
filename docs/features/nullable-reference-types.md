@@ -70,7 +70,7 @@ If there is no `[NonNullTypes]` attribute at any containing scope, including the
 
 `NonNullTypesAttribute` will be marked as `Obsolete` with a magic string:
 "The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above)."
-The C# 8.0 compiler (or above) will ignore this `Obsolete` marker. The effect is that the `NonNullTypes` attribute is poisoned from being used with older compilers (which do not honour it and perform nullability flow analysis).
+The C# 8.0 compiler (or above) will ignore this `Obsolete` marker, but will produce an error if the language version is below 8.0. The effect is that the `NonNullTypes` attribute is poisoned from being used with older compilers (which do not honor it and do not perform nullability flow analysis).
 
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._

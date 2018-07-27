@@ -964,21 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                switch (MethodKind)
-                {
-                    case MethodKind.PropertyGet:
-                    case MethodKind.PropertySet:
-                    case MethodKind.EventAdd:
-                    case MethodKind.EventRemove:
-                        var propertyOrEvent = AssociatedSymbol;
-                        if ((object)propertyOrEvent != null)
-                        {
-                            return propertyOrEvent.NonNullTypes;
-                        }
-                        break;
-                }
-
-                return ContainingType?.NonNullTypes;
+                return (AssociatedSymbol ?? ContainingType)?.NonNullTypes;
             }
         }
 

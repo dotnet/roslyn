@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return null;
             }
-
+            
             // At this point, we are going to issue diagnostics and therefore the data shouldn't be
             // uninitialized.
             Debug.Assert(!data.IsUninitialized);
@@ -159,6 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // a bug in this area (i.e. always produce a warning when there's no message) and we have to match it.
                 // Debug.Assert(!data.IsError);
                 return new CSDiagnosticInfo(isColInit ? ErrorCode.WRN_DeprecatedCollectionInitAdd : ErrorCode.WRN_DeprecatedSymbol, symbol);
+            }
+            else if (data.Message == PEModule.NonNullTypesMarker)
+            {
+                return null;
             }
             else
             {

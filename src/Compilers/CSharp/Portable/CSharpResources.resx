@@ -5370,13 +5370,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.</value>
   </data>
   <data name="ERR_NotNullableOperatorNotReferenceType" xml:space="preserve">
-    <value>The ! operator can only be applied to reference types.</value>
+    <value>The suppression operator (!) can only be applied to reference types.</value>
+  </data>
+  <data name="ERR_NonNullTypesNotAvailable" xml:space="preserve">
+    <value>Please use language version {0} or greater to use the NonNullTypes attribute.</value>
   </data>
   <data name="WRN_MissingNonNullTypesContext" xml:space="preserve">
-    <value>The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</value>
+    <value>The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.</value>
   </data>
   <data name="WRN_MissingNonNullTypesContext_Title" xml:space="preserve">
-    <value>The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</value>
+    <value>The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>

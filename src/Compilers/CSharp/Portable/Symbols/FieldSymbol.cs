@@ -162,20 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(IsDefinition);
-
-                var associatedSymbol = AssociatedSymbol;
-                if ((object)associatedSymbol != null)
-                {
-                    switch (associatedSymbol.Kind)
-                    {
-                        case SymbolKind.Property:
-                        case SymbolKind.Event:
-                            return associatedSymbol.NonNullTypes;
-                    }
-
-                }
-
-                return ContainingType?.NonNullTypes;
+                return (AssociatedSymbol ?? ContainingType)?.NonNullTypes;
             }
         }
 

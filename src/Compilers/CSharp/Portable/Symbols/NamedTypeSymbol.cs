@@ -1298,15 +1298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(IsDefinition);
-
-                var container = ContainingType;
-
-                if ((object)container != null)
-                {
-                    return container.NonNullTypes;
-                }
-
-                return ContainingModule?.NonNullTypes;
+                return ((Symbol)ContainingType ?? base.ContainingModule)?.NonNullTypes;
             }
         }
 

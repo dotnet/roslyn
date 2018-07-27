@@ -3846,6 +3846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this._member.NonNullTypes == null)
             {
+                // PROTOTYPE(NullableReferenceTypes): consider reporting this warning in binding like we do for misused ? annotation.
                 Diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContext, node.Syntax.GetLocation());
             }
 

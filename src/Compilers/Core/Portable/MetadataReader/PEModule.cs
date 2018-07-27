@@ -1067,17 +1067,11 @@ namespace Microsoft.CodeAnalysis
             if (info.HasValue)
             {
                 ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(info);
-                if (obsoleteData == null)
+                switch (obsoleteData?.Message)
                 {
-                    return obsoleteData;
-                }
-                if (ignoreByRefLikeMarker && obsoleteData.Message == ByRefLikeMarker)
-                {
-                    return null;
-                }
-                if (obsoleteData.Message == NonNullTypesMarker)
-                {
-                    return null;
+                    case ByRefLikeMarker when ignoreByRefLikeMarker:
+                    case NonNullTypesMarker:
+                        return null;
                 }
                 return obsoleteData;
             }

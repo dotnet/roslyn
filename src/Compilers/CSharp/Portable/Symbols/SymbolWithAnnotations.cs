@@ -188,8 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns:
         /// true if annotated;
-        /// false if unannotated and [NonNullTypes(true); and
-        /// null if unannotated and [NonNullTypes(false).
+        /// false if unannotated and [NonNullTypes(true)] and
+        /// null if unannotated and [NonNullTypes(false)].
         /// </summary>
         /// <remarks>
         /// This property considers IsAnnotated and NonNullTypes only. Compare with
