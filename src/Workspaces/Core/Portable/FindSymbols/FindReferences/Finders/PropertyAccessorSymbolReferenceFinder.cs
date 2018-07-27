@@ -44,20 +44,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var result = await FindDocumentsAsync(
                 project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
 
-            if (options.AssociatePropertyReferencesWithSpecificAccessor)
+            if (symbol.AssociatedSymbol is IPropertySymbol property &&
+                options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 // we want to associate normal property references with the specific 
                 // accessor being referenced.  So we also need to include documents 
                 // with our property's name.
-                var propDocuments = await FindDocumentsAsync(
-                    project, documents, cancellationToken, symbol.AssociatedSymbol.Name).ConfigureAwait(false);
-                result = result.AddRange(propDocuments);
+                result = await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
+                    property, project, documents,
+                    options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return result;
         }
 
-        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        private Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
+            Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        {
+            return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsElementAccessExpression, cancellationToken);
+        }
+
+        protected override async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol, Document document, SemanticModel semanticModel, 
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
@@ -67,19 +75,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
-                var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    SymbolAndProjectId.Create(property, document.Project.Id),
-                    document, semanticModel, options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
+                var propertyReferences = await PropertySymbolReferenceFinder.Instance.FindAllReferencesInDocumentAsync(
+                    property, document, semanticModel, 
+                    options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
                     cancellationToken).ConfigureAwait(false);
 
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+
                 var accessorReferences = propertyReferences.WhereAsArray(
                     loc =>
                     {
                         var accessors = GetReferencedAccessorSymbols(
-                            semanticFacts, semanticModel, property,
-                            loc.Location.FindNode(getInnermostNodeForTie: true, cancellationToken),
-                            cancellationToken);
+                            syntaxFacts, semanticFacts, semanticModel, property, loc.node, cancellationToken);
                         return accessors.Contains(symbol);
                     });
 

@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+            return SpecializedTasks.EmptyImmutableArray<(SyntaxNode node, ReferenceLocation location)>();
         }
     }
 }

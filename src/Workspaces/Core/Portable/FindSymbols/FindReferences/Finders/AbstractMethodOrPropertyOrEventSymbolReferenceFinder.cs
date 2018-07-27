@@ -59,9 +59,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
-            ISemanticFactsService semanticFacts, SemanticModel model,
-            IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, 
+            SemanticModel model, IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)
         {
+            if (syntaxFacts.IsForEachStatement(node))
+            {
+                var symbols = semanticFacts.GetForEachSymbols(model, node);
+
+                // the only accessor method referenced in a foreach-statement is the .Current's
+                // get-accessor
+                return ImmutableArray.Create(symbols.CurrentProperty.GetMethod);
+            }
+
             if (semanticFacts.IsWrittenTo(model, node, cancellationToken))
             {
                 // if it was only written to, then only the setter was referenced.

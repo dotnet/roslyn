@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         symbolAndProjectId, document, semanticModel, _options, _cancellationToken).ConfigureAwait(false);
                     foreach (var location in references)
                     {
-                        await HandleLocationAsync(symbolAndProjectId, location).ConfigureAwait(false);
+                        await HandleLocationAsync(symbolAndProjectId, location.location).ConfigureAwait(false);
                     }
                 }
                 finally

@@ -79,29 +79,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 predefinedType == actualType;
         }
 
-        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
             INamedTypeSymbol namedType,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var namedTypereferences = await FindReferencesInDocumentWorker(
+            var namedTypeReferences = await FindReferencesInDocumentWorker(
                 namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             // Mark any references that are also Constructor references.  Some callers
             // will want to know about these so they won't display duplicates.
             return await MarkConstructorReferences(
-                namedType, document, semanticModel, namedTypereferences, cancellationToken).ConfigureAwait(false);
+                namedType, document, semanticModel, namedTypeReferences, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<ReferenceLocation>> MarkConstructorReferences(
+        private async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> MarkConstructorReferences(
             INamedTypeSymbol namedType, Document document,
             SemanticModel semanticModel,
-            ImmutableArray<ReferenceLocation> namedTypereferences,
+            ImmutableArray<(SyntaxNode node, ReferenceLocation location)> namedTypeReferences,
             CancellationToken cancellationToken)
         {
-            var constructorReferences = ArrayBuilder<ReferenceLocation>.GetInstance();
+            var constructorReferences = ArrayBuilder<(SyntaxNode node, ReferenceLocation location)>.GetInstance();
             foreach (var constructor in namedType.Constructors)
             {
                 var references = await ConstructorSymbolReferenceFinder.Instance.FindAllReferencesInDocumentAsync(
@@ -109,13 +109,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 constructorReferences.AddRange(references);
             }
 
-            var result = ArrayBuilder<ReferenceLocation>.GetInstance();
-            foreach (var reference in namedTypereferences)
+            var result = ArrayBuilder<(SyntaxNode node, ReferenceLocation location)>.GetInstance();
+            foreach (var reference in namedTypeReferences)
             {
                 if (Contains(constructorReferences, reference))
                 {
                     var localReference = reference;
-                    localReference.IsDuplicateReferenceLocation = true;
+                    localReference.location.IsDuplicateReferenceLocation = true;
                     result.Add(localReference);
                 }
                 else
@@ -128,12 +128,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private bool Contains(
-            ArrayBuilder<ReferenceLocation> constructorReferences,
-            ReferenceLocation reference)
+            ArrayBuilder<(SyntaxNode node, ReferenceLocation location)> constructorReferences,
+            (SyntaxNode node, ReferenceLocation location) reference)
         {
             foreach (var constructorRef in constructorReferences)
             {
-                if (reference.Location == constructorRef.Location)
+                if (reference.location.Location == constructorRef.location.Location)
                 {
                     return true;
                 }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return false;
         }
 
-        private static async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentWorker(
+        private static async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentWorker(
             INamedTypeSymbol namedType,
             Document document,
             SemanticModel semanticModel,
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return nonAliasReferences.Concat(aliasReferences);
         }
 
-        internal static async Task<ImmutableArray<ReferenceLocation>> FindNonAliasReferencesAsync(
+        internal static async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindNonAliasReferencesAsync(
             INamedTypeSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
         }
 
-        private static Task<ImmutableArray<ReferenceLocation>> FindOrdinaryReferencesAsync(
+        private static Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindOrdinaryReferencesAsync(
             INamedTypeSymbol namedType,
             Document document,
             SemanticModel semanticModel,
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 namedType.Name, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
-        private static Task<ImmutableArray<ReferenceLocation>> FindPredefinedTypeReferencesAsync(
+        private static Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindPredefinedTypeReferencesAsync(
             INamedTypeSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var predefinedType = symbol.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
             {
-                return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+                return SpecializedTasks.EmptyImmutableArray<(SyntaxNode node, ReferenceLocation location)>();
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private static Task<ImmutableArray<ReferenceLocation>> FindAttributeReferencesAsync(
+        private static Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindAttributeReferencesAsync(
             INamedTypeSymbol namedType,
             Document document,
             SemanticModel semanticModel,
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out var simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, semanticModel, symbolsMatch, cancellationToken)
-                : SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+                : SpecializedTasks.EmptyImmutableArray<(SyntaxNode node, ReferenceLocation location)>();
         }
     }
 }

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
             SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, 
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
     }

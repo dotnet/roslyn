@@ -586,6 +586,50 @@ class Usages
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Indexer1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IC
+{
+    int this[int i] { {|Definition:$$get|} => 0; set { } }
+}
+
+class C : IC
+{
+    public virtual int this[int i] { {|Definition:get|} => 0; set { } }
+}
+
+class D : C
+{
+    public override int this[int i] { {|Definition:get|} => base[||][i]; set { base[i] = value; } }
+}
+
+class Usages
+{
+    void M()
+    {
+        IC ic;
+        var v1 = ic[||][0]
+        ic[0] = 1
+
+        C c;
+        var v1 = c[||][0]
+        c[0] = 1
+
+        D d;
+        var v1 = d[||][0]
+        d[0] = 1
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVBAccessor_Get_Feature1() As Task
             Dim input =
 <Workspace>
