@@ -1611,6 +1611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NotNullableOperatorNotReferenceType = 8624,
         WRN_NullAsNonNullable = 8625,
         WRN_NoBestNullabilityConditionalExpression = 8626,
+        ERR_NullableUnconstrainedTypeParameter = 8627,
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

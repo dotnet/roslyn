@@ -745,27 +745,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override bool ContainsNullableReferenceTypes()
-        {
-            if (IsDefinition)
-            {
-                return false;
-            }
-
-            if (ContainingType?.ContainsNullableReferenceTypes() == true)
-            {
-                return true;
-            }
-
-            if ((object)ConstructedFrom != this &&
-                this.TypeArgumentsNoUseSiteDiagnostics.Any(arg => arg.ContainsNullableReferenceTypes()))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
         {
             ContainingType?.AddNullableTransforms(transforms);

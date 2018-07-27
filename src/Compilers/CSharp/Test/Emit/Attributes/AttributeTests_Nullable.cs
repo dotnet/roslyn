@@ -864,6 +864,34 @@ class C
             AssertAttribute(comp);
         }
 
+        // See https://github.com/dotnet/roslyn/issues/28862.
+        [Fact]
+        public void EmitAttribute_QueryClauseParameters()
+        {
+            var source0 =
+@"public class A
+{
+    public static object?[] F(object[] x) => x;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"using System.Linq;
+class B
+{
+    static void M(object[] c)
+    {
+        var z = from x in A.F(c)
+            let y = x
+            where y != null
+            select y;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            AssertAttribute(comp);
+        }
+
         [Fact]
         public void EmitAttribute_LocalFunctionReturnType()
         {

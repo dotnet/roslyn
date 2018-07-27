@@ -435,14 +435,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool ContainsNullableReferenceTypes()
         {
-            var typeSymbol = TypeSymbol;
+            return ContainsNullableReferenceTypes(this, typeOpt: null);
+        }
 
-            if (IsNullable == true && !typeSymbol.IsValueType)
+        public static bool ContainsNullableReferenceTypes(
+            TypeSymbolWithAnnotations typeWithAnnotationsOpt,
+            TypeSymbol typeOpt)
+        {
+            var type = TypeSymbolExtensions.VisitType(
+                typeWithAnnotationsOpt,
+                typeOpt,
+                typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && !t.TypeSymbol.IsValueType,
+                typePredicateOpt: null,
+                arg: (object)null);
+            return (object)type != null;
+        }
+
+        /// <summary>
+        /// Returns true if the type contains an annotated unconstrained type parameter.
+        /// </summary>
+        public bool ContainsAnnotatedUnconstrainedTypeParameter()
+        {
+            return ContainsAnnotatedUnconstrainedTypeParameter(this, typeOpt: null);
+        }
+
+        public static bool ContainsAnnotatedUnconstrainedTypeParameter(
+            TypeSymbolWithAnnotations typeWithAnnotationsOpt,
+            TypeSymbol typeOpt)
+        {
+            var typeParameter = TypeSymbolExtensions.VisitType(
+                typeWithAnnotationsOpt,
+                typeOpt,
+                typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && t.TypeSymbol.IsUnconstrainedTypeParameter(),
+                typePredicateOpt: null,
+                arg: (object)null);
+            return (object)typeParameter != null;
+        }
+
+        public void ReportAnnotatedUnconstrainedTypeParameterIfAny(Location location, DiagnosticBag diagnostics)
+        {
+            if (ContainsAnnotatedUnconstrainedTypeParameter())
             {
-                return true;
+                ReportAnnotatedUnconstrainedTypeParameter(location, diagnostics);
             }
+        }
 
-            return typeSymbol.ContainsNullableReferenceTypes();
+        public static void ReportAnnotatedUnconstrainedTypeParameter(Location location, DiagnosticBag diagnostics)
+        {
+            diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, location ?? NoLocation.Singleton);
         }
 
         public void AddNullableTransforms(ArrayBuilder<bool> transforms)

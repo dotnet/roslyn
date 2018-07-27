@@ -216,11 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool ContainsNullableReferenceTypes()
-        {
-            return false;
-        }
-
         internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
         {
         }

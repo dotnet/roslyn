@@ -159,6 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
+            // PROTOTYPE(NullableReferenceTypes): Type.ReportAnnotatedUnconstrainedTypeParameterIfAny()
+
             if (Type.ContainsNullableReferenceTypes())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, Type));

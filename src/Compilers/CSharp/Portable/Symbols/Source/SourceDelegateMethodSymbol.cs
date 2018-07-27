@@ -303,28 +303,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
             {
-                Location getReturnTypeLocation()
-                {
-                    var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
-                    return syntax.ReturnType.GetLocation();
-                }
+                var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
+                var location = syntax.ReturnType.GetLocation();
 
-                Debug.Assert(getReturnTypeLocation() != null);
+                Debug.Assert(location != null);
 
                 base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
                 if (_refKind == RefKind.RefReadOnly)
                 {
-                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
+                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
+                ReturnType.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
                 if (ReturnType.ContainsNullableReferenceTypes())
                 {
-                    this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
+                    this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
+                ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(Parameters, diagnostics);
                 ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
             }
 

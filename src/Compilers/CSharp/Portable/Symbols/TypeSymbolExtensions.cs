@@ -538,16 +538,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// traversal stops and that type is returned from this method. Otherwise if traversal
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
-        public static TypeSymbol VisitType<T>(this TypeSymbol type, Func<TypeSymbol, T, bool, bool> predicate, T arg, bool canDigThroughNullable =  false)
+        public static TypeSymbol VisitType<T>(
+            this TypeSymbol type,
+            Func<TypeSymbol, T, bool, bool> predicate,
+            T arg,
+            bool canDigThroughNullable = false)
         {
+            return VisitType(
+                typeWithAnnotationsOpt: null,
+                typeOpt: type,
+                typeWithAnnotationsPredicateOpt: null,
+                typePredicateOpt: predicate,
+                arg,
+                canDigThroughNullable);
+        }
+
+        /// <summary>
+        /// Visit the given type and, in the case of compound types, visit all "sub type".
+        /// One of the predicates will be invoked at each type. If the type is a
+        /// TypeSymbolWithAnnotations, <paramref name="typeWithAnnotationsPredicateOpt"/>
+        /// will be invoked; otherwise <paramref name="typePredicateOpt"/> will be invoked.
+        /// If the corresponding predicate returns true for any type,
+        /// traversal stops and that type is returned from this method. Otherwise if traversal
+        /// completes without the predicate returning true for any type, this method returns null.
+        /// </summary>
+        public static TypeSymbol VisitType<T>(
+            // PROTOTYPE(NullableReferenceTypes): If TypeSymbolWithAnnotations
+            // is a struct, use a single type argument and a single predicate.
+            this TypeSymbolWithAnnotations typeWithAnnotationsOpt,
+            TypeSymbol typeOpt,
+            Func<TypeSymbolWithAnnotations, T, bool, bool> typeWithAnnotationsPredicateOpt,
+            Func<TypeSymbol, T, bool, bool> typePredicateOpt,
+            T arg,
+            bool canDigThroughNullable = false)
+        {
+            Debug.Assert((typeWithAnnotationsOpt is null) != (typeOpt is null));
+
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
             // doing the natural recursion.
 
-            TypeSymbol current = type;
-
             while (true)
             {
+                TypeSymbol current = typeOpt ?? typeWithAnnotationsOpt?.TypeSymbol;
                 bool isNestedNamedType = false;
 
                 // Visit containing types from outer-most to inner-most.
@@ -563,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = containingType.VisitType(predicate, arg, canDigThroughNullable);
+                                var result = VisitType(null, containingType, typeWithAnnotationsPredicateOpt, typePredicateOpt, arg, canDigThroughNullable);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -577,9 +610,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (predicate(current, arg, isNestedNamedType))
+                if ((object)typeWithAnnotationsOpt != null && typeWithAnnotationsPredicateOpt != null)
                 {
-                    return current;
+                    if (typeWithAnnotationsPredicateOpt(typeWithAnnotationsOpt, arg, isNestedNamedType))
+                    {
+                        return current;
+                    }
+                }
+                else if (typePredicateOpt != null)
+                {
+                    if (typePredicateOpt(current, arg, isNestedNamedType))
+                    {
+                        return current;
+                    }
                 }
 
                 TypeSymbolWithAnnotations next;
@@ -606,7 +649,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {
                             // Let's try to avoid early resolution of nullable types
-                            var result = (canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : typeArg.TypeSymbol).VisitType(predicate, arg, canDigThroughNullable);
+                            var result = VisitType(
+                                typeWithAnnotationsOpt: canDigThroughNullable ? null : typeArg,
+                                typeOpt: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
+                                typeWithAnnotationsPredicateOpt,
+                                typePredicateOpt,
+                                arg,
+                                canDigThroughNullable);
                             if ((object)result != null)
                             {
                                 return result;
@@ -627,7 +676,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Let's try to avoid early resolution of nullable types
-                current = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : next.TypeSymbol;
+                typeWithAnnotationsOpt = canDigThroughNullable ? null : next;
+                typeOpt = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
             }
         }
 
@@ -1562,6 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Add(attr);
                 }
             }
+            // PROTOTYPE(NullableReferenceTypes): type.ReportAnnotatedUnconstrainedTypeParameterIfAny()
             if (type.ContainsNullableReferenceTypes())
             {
                 SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(type.TypeSymbol, type);

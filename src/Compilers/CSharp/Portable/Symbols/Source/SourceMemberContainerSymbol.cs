@@ -1409,20 +1409,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
 
+            var location = Locations[0];
             if (this.IsByRefLikeType)
             {
-                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
+                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             if (this.IsReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            if (this.BaseTypeNoUseSiteDiagnostics?.ContainsNullableReferenceTypes() == true ||
-                this.InterfacesNoUseSiteDiagnostics().Any(t => t.ContainsNullableReferenceTypes()))
+            // PROTOTYPE(NullableReferenceTypes): Report diagnostics for base type and interfaces at more specific locations.
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            var interfaces = InterfacesNoUseSiteDiagnostics();
+            if (baseType?.ContainsAnnotatedUnconstrainedTypeParameter() == true ||
+                interfaces.Any(t => t.ContainsAnnotatedUnconstrainedTypeParameter()))
             {
-                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
+                TypeSymbolWithAnnotations.ReportAnnotatedUnconstrainedTypeParameter(location, diagnostics);
+            }
+            if (baseType?.ContainsNullableReferenceTypes() == true ||
+                interfaces.Any(t => t.ContainsNullableReferenceTypes()))
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 

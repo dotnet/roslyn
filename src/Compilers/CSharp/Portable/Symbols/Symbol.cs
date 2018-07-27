@@ -304,6 +304,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<SyntaxReference> builder = ArrayBuilder<SyntaxReference>.GetInstance();
             foreach (Location location in locations)
             {
+                // Location may be null. See https://github.com/dotnet/roslyn/issues/28862.
+                if (location == null)
+                {
+                    continue;
+                }
                 if (location.IsInSource)
                 {
                     SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);

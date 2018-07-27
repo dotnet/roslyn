@@ -728,9 +728,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
-            Location getTypeLocation() => CSharpSyntaxNode.Type.Location;
+            Location location = CSharpSyntaxNode.Type.Location;
 
-            Debug.Assert(getTypeLocation() != null);
+            Debug.Assert(location != null);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // property name location for any such errors. We'll do the same for return
@@ -761,16 +761,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, getTypeLocation(), modifyCompilation: true);
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
+            this.Type.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
             if (this.Type.ContainsNullableReferenceTypes())
             {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getTypeLocation(), modifyCompilation: true);
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(this.Parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);
         }
 
@@ -1174,6 +1176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes,
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
+
+            // PROTOTYPE(NullableReferenceTypes): type.ReportAnnotatedUnconstrainedTypeParameterIfAny()
 
             if (type.ContainsNullableReferenceTypes())
             {

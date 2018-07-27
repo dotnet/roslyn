@@ -1430,11 +1430,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool ContainsNullableReferenceTypes()
-        {
-            return _elementTypes.Any(t => t.ContainsNullableReferenceTypes());
-        }
-
         internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
         {
             _underlyingType.AddNullableTransforms(transforms);

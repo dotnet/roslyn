@@ -127,9 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            var location = ErrorLocation;
+            this.Type.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
             if (this.Type.ContainsNullableReferenceTypes())
             {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, ErrorLocation, modifyCompilation: true);
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 

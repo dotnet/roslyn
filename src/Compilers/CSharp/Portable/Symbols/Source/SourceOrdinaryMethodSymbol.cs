@@ -1015,9 +1015,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
-            Location getReturnTypeLocation() => GetSyntax().ReturnType.Location;
+            var location = GetSyntax().ReturnType.Location;
 
-            Debug.Assert(getReturnTypeLocation() != null);
+            Debug.Assert(location != null);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // method name location for any such errors. We'll do the same for return
@@ -1045,16 +1045,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
+            ReturnType.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
             if (ReturnType.ContainsNullableReferenceTypes())
             {
-                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(Parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
         }
 
