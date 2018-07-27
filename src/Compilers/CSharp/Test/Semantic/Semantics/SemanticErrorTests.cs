@@ -24011,30 +24011,57 @@ class C
     static void F2(S s2)
     {
         bool b;
-        b = (object)s2 == default(object);
-        b = default(object) == (object)s2;
-        b = (object)s2 != default(object);
-        b = default(object) != (object)s2;
+        b = (object)new S() == default(object);
+        b = default(object) == (object)new S();
+        b = (object)new S() != default(object);
+        b = default(object) != (object)new S();
     }
-    static void F3(S s3)
+    static void F3()
     {
         bool b;
-        b = (object)s3 == default;
-        b = default == (object)s3;
-        b = (object)s3 != default;
-        b = default != (object)s3;
+        b = (object)new S { } == default;
+        b = default == (object)new S { };
+        b = (object)new S { } != default;
+        b = default != (object)new S { };
     }
-    static void F4(S s4)
+    static void F4()
     {
         bool b;
-        b = ReferenceEquals(s4, null);
-        b = ReferenceEquals(null, s4);
-        b = !ReferenceEquals(s4, null);
-        b = !ReferenceEquals(null, s4);
+        b = (object)FS() == (object)null;
+        b = (object)default == (object)FS();
+        b = (object)FS() != (object)default;
+        b = (object)null != (object)FS();
+        S FS() => throw null;
+    }
+    static void F5(S s5)
+    {
+        bool b;
+        b = (System.ValueType)s5 == null;
+        b = null == (System.ValueType)s5;
+        b = (System.ValueType)s5 != null;
+        b = null != (System.ValueType)s5;
+    }
+    static void F6(S s6)
+    {
+        bool b;
+        b = (dynamic)s6 == null;
+        b = null == (dynamic)s6;
+        b = (dynamic)s6 != null;
+        b = null != (dynamic)s6;
+    }
+    static void F7(S s7)
+    {
+        bool b;
+        b = ReferenceEquals(s7, null);
+        b = ReferenceEquals(null, s7);
+        b = !ReferenceEquals(s7, null);
+        b = !ReferenceEquals(null, s7);
     }
 }";
+
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics();
+
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
@@ -24050,41 +24077,45 @@ class C
                 //         b = null != (object)s1;
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s1").WithArguments("true", "S", "object").WithLocation(10, 13),
                 // (15,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
-                //         b = (object)s2 == default(object);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s2 == default(object)").WithArguments("false", "S", "object").WithLocation(15, 13),
+                //         b = (object)new S() == default(object);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)new S() == default(object)").WithArguments("false", "S", "object").WithLocation(15, 13),
                 // (16,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
-                //         b = default(object) == (object)s2;
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default(object) == (object)s2").WithArguments("false", "S", "object").WithLocation(16, 13),
+                //         b = default(object) == (object)new S();
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default(object) == (object)new S()").WithArguments("false", "S", "object").WithLocation(16, 13),
                 // (17,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'object'
-                //         b = (object)s2 != default(object);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s2 != default(object)").WithArguments("true", "S", "object").WithLocation(17, 13),
+                //         b = (object)new S() != default(object);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)new S() != default(object)").WithArguments("true", "S", "object").WithLocation(17, 13),
                 // (18,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'object'
-                //         b = default(object) != (object)s2;
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default(object) != (object)s2").WithArguments("true", "S", "object").WithLocation(18, 13),
+                //         b = default(object) != (object)new S();
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default(object) != (object)new S()").WithArguments("true", "S", "object").WithLocation(18, 13),
                 // (23,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
-                //         b = (object)s3 == default;
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s3 == default").WithArguments("false", "S", "object").WithLocation(23, 13),
+                //         b = (object)new S { } == default;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)new S { } == default").WithArguments("false", "S", "object").WithLocation(23, 13),
                 // (24,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
-                //         b = default == (object)s3;
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default == (object)s3").WithArguments("false", "S", "object").WithLocation(24, 13),
+                //         b = default == (object)new S { };
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default == (object)new S { }").WithArguments("false", "S", "object").WithLocation(24, 13),
                 // (25,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'object'
-                //         b = (object)s3 != default;
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s3 != default").WithArguments("true", "S", "object").WithLocation(25, 13),
+                //         b = (object)new S { } != default;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)new S { } != default").WithArguments("true", "S", "object").WithLocation(25, 13),
                 // (26,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'object'
-                //         b = default != (object)s3;
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default != (object)s3").WithArguments("true", "S", "object").WithLocation(26, 13));
-
-            // Test s == (object)null
-            // Test (object)s == (object)null
-            // Test s == default(object)
-            // Test s == default(ValueType)
-            // Test (object)F() == null
-            // Test (dynamic)s == null
-            Assert.True(false);
+                //         b = default != (object)new S { };
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default != (object)new S { }").WithArguments("true", "S", "object").WithLocation(26, 13),
+                // (31,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = (object)FS() == (object)null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)FS() == (object)null").WithArguments("false", "S", "object").WithLocation(31, 13),
+                // (32,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = (object)default == (object)FS();
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)default == (object)FS()").WithArguments("false", "S", "object").WithLocation(32, 13),
+                // (33,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = (object)FS() != (object)default;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)FS() != (object)default").WithArguments("true", "S", "object").WithLocation(33, 13),
+                // (34,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = (object)null != (object)FS();
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)null != (object)FS()").WithArguments("true", "S", "object").WithLocation(34, 13));
         }
 
         [Fact]
-        public void TypeParameterTypeComparedToNull()
+        public void ValueTypeComparedToNull_TypeParameters()
         {
             var source =
 @"struct S { }
@@ -24112,8 +24143,10 @@ class C
         b = ReferenceEquals(t3, null);
     }
 }";
+
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics();
+
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
             comp.VerifyDiagnostics(
                 // (21,13): warning CS8073: The result of the expression is always 'false' since a value of type 'T3' is never equal to 'null' of type 'object'
@@ -24122,6 +24155,297 @@ class C
                 // (22,13): warning CS8073: The result of the expression is always 'true' since a value of type 'T3' is never equal to 'null' of type 'object'
                 //         b = default != (object)t3;
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default != (object)t3").WithArguments("true", "T3", "object").WithLocation(22, 13));
+        }
+
+        [Fact]
+        public void ValueTypeComparedToNull_WithIncompleteOperators()
+        {
+            var source =
+@"struct S0
+{
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+}
+struct S1
+{
+    public static bool operator==(S1 a, S1 b) => true;
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+}
+struct S2
+{
+    public static bool operator==(S2? a, S2? b) => true;
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+}
+struct S3
+{
+    public static bool operator==(S3 a, S3 b) => true;
+    public static bool operator!=(S3? a, S3? b) => false;
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+}
+struct S4
+{
+    public static bool operator==(S4 a, S4? b) => true;
+    public static bool operator!=(S4? a, S4 b) => false;
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+}
+class C
+{
+    static void F0(S0 s0)
+    {
+        bool b;
+        b = s0 == null;
+        b = (object)s0 == null;
+        b = null != s0;
+        b = null != (object)s0;
+    }
+    static void F1(S1 s1)
+    {
+        bool b;
+        b = s1 == null;
+        b = (object)s1 == null;
+        b = null != s1;
+        b = null != (object)s1;
+    }
+    static void F2(S2 s2)
+    {
+        bool b;
+        b = s2 == null;
+        b = (object)s2 == null;
+        b = null != s2;
+        b = null != (object)s2;
+    }
+    static void F3(S3 s3)
+    {
+        bool b;
+        b = s3 == null;
+        b = (object)s3 == null;
+        b = null != s3;
+        b = null != (object)s3;
+    }
+    static void F4(S4 s4)
+    {
+        bool b;
+        b = s4 == null;
+        b = (object)s4 == null;
+        b = null != s4;
+        b = null != (object)s4;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS0216: The operator 'S1.operator ==(S1, S1)' requires a matching operator '!=' to also be defined
+                //     public static bool operator==(S1 a, S1 b) => true;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("S1.operator ==(S1, S1)", "!=").WithLocation(8, 32),
+                // (14,32): error CS0216: The operator 'S2.operator ==(S2?, S2?)' requires a matching operator '!=' to also be defined
+                //     public static bool operator==(S2? a, S2? b) => true;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("S2.operator ==(S2?, S2?)", "!=").WithLocation(14, 32),
+                // (20,32): error CS0216: The operator 'S3.operator ==(S3, S3)' requires a matching operator '!=' to also be defined
+                //     public static bool operator==(S3 a, S3 b) => true;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("S3.operator ==(S3, S3)", "!=").WithLocation(20, 32),
+                // (21,32): error CS0216: The operator 'S3.operator !=(S3?, S3?)' requires a matching operator '==' to also be defined
+                //     public static bool operator!=(S3? a, S3? b) => false;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "!=").WithArguments("S3.operator !=(S3?, S3?)", "==").WithLocation(21, 32),
+                // (27,32): error CS0216: The operator 'S4.operator ==(S4, S4?)' requires a matching operator '!=' to also be defined
+                //     public static bool operator==(S4 a, S4? b) => true;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("S4.operator ==(S4, S4?)", "!=").WithLocation(27, 32),
+                // (28,32): error CS0216: The operator 'S4.operator !=(S4?, S4)' requires a matching operator '==' to also be defined
+                //     public static bool operator!=(S4? a, S4 b) => false;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "!=").WithArguments("S4.operator !=(S4?, S4)", "==").WithLocation(28, 32),
+                // (37,13): error CS0019: Operator '==' cannot be applied to operands of type 'S0' and '<null>'
+                //         b = s0 == null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s0 == null").WithArguments("==", "S0", "<null>").WithLocation(37, 13),
+                // (39,13): error CS0019: Operator '!=' cannot be applied to operands of type '<null>' and 'S0'
+                //         b = null != s0;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null != s0").WithArguments("!=", "<null>", "S0").WithLocation(39, 13),
+                // (47,13): error CS0019: Operator '!=' cannot be applied to operands of type '<null>' and 'S1'
+                //         b = null != s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null != s1").WithArguments("!=", "<null>", "S1").WithLocation(47, 13),
+                // (55,13): error CS0019: Operator '!=' cannot be applied to operands of type '<null>' and 'S2'
+                //         b = null != s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null != s2").WithArguments("!=", "<null>", "S2").WithLocation(55, 13));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+            comp.VerifyDiagnostics(
+                // (8,32): error CS0216: The operator 'S1.operator ==(S1, S1)' requires a matching operator '!=' to also be defined
+                //     public static bool operator==(S1 a, S1 b) => true;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("S1.operator ==(S1, S1)", "!=").WithLocation(8, 32),
+                // (14,32): error CS0216: The operator 'S2.operator ==(S2?, S2?)' requires a matching operator '!=' to also be defined
+                //     public static bool operator==(S2? a, S2? b) => true;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("S2.operator ==(S2?, S2?)", "!=").WithLocation(14, 32),
+                // (20,32): error CS0216: The operator 'S3.operator ==(S3, S3)' requires a matching operator '!=' to also be defined
+                //     public static bool operator==(S3 a, S3 b) => true;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("S3.operator ==(S3, S3)", "!=").WithLocation(20, 32),
+                // (21,32): error CS0216: The operator 'S3.operator !=(S3?, S3?)' requires a matching operator '==' to also be defined
+                //     public static bool operator!=(S3? a, S3? b) => false;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "!=").WithArguments("S3.operator !=(S3?, S3?)", "==").WithLocation(21, 32),
+                // (27,32): error CS0216: The operator 'S4.operator ==(S4, S4?)' requires a matching operator '!=' to also be defined
+                //     public static bool operator==(S4 a, S4? b) => true;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("S4.operator ==(S4, S4?)", "!=").WithLocation(27, 32),
+                // (28,32): error CS0216: The operator 'S4.operator !=(S4?, S4)' requires a matching operator '==' to also be defined
+                //     public static bool operator!=(S4? a, S4 b) => false;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "!=").WithArguments("S4.operator !=(S4?, S4)", "==").WithLocation(28, 32),
+                // (37,13): error CS0019: Operator '==' cannot be applied to operands of type 'S0' and '<null>'
+                //         b = s0 == null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s0 == null").WithArguments("==", "S0", "<null>").WithLocation(37, 13),
+                // (39,13): error CS0019: Operator '!=' cannot be applied to operands of type '<null>' and 'S0'
+                //         b = null != s0;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null != s0").WithArguments("!=", "<null>", "S0").WithLocation(39, 13),
+                // (38,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S0' is never equal to 'null' of type 'object'
+                //         b = (object)s0 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s0 == null").WithArguments("false", "S0", "object").WithLocation(38, 13),
+                // (40,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S0' is never equal to 'null' of type 'object'
+                //         b = null != (object)s0;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s0").WithArguments("true", "S0", "object").WithLocation(40, 13),
+                // (47,13): error CS0019: Operator '!=' cannot be applied to operands of type '<null>' and 'S1'
+                //         b = null != s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null != s1").WithArguments("!=", "<null>", "S1").WithLocation(47, 13),
+                // (45,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S1' is never equal to 'null' of type 'S1?'
+                //         b = s1 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "s1 == null").WithArguments("false", "S1", "S1?").WithLocation(45, 13),
+                // (46,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S1' is never equal to 'null' of type 'object'
+                //         b = (object)s1 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s1 == null").WithArguments("false", "S1", "object").WithLocation(46, 13),
+                // (48,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S1' is never equal to 'null' of type 'object'
+                //         b = null != (object)s1;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s1").WithArguments("true", "S1", "object").WithLocation(48, 13),
+                // (55,13): error CS0019: Operator '!=' cannot be applied to operands of type '<null>' and 'S2'
+                //         b = null != s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null != s2").WithArguments("!=", "<null>", "S2").WithLocation(55, 13),
+                // (54,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S2' is never equal to 'null' of type 'object'
+                //         b = (object)s2 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s2 == null").WithArguments("false", "S2", "object").WithLocation(54, 13),
+                // (56,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S2' is never equal to 'null' of type 'object'
+                //         b = null != (object)s2;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s2").WithArguments("true", "S2", "object").WithLocation(56, 13),
+                // (61,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S3' is never equal to 'null' of type 'S3?'
+                //         b = s3 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "s3 == null").WithArguments("false", "S3", "S3?").WithLocation(61, 13),
+                // (62,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S3' is never equal to 'null' of type 'object'
+                //         b = (object)s3 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s3 == null").WithArguments("false", "S3", "object").WithLocation(62, 13),
+                // (64,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S3' is never equal to 'null' of type 'object'
+                //         b = null != (object)s3;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s3").WithArguments("true", "S3", "object").WithLocation(64, 13),
+                // (70,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S4' is never equal to 'null' of type 'object'
+                //         b = (object)s4 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s4 == null").WithArguments("false", "S4", "object").WithLocation(70, 13),
+                // (72,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S4' is never equal to 'null' of type 'object'
+                //         b = null != (object)s4;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s4").WithArguments("true", "S4", "object").WithLocation(72, 13));
+        }
+
+        [Fact]
+        public void ValueTypeComparedToNull_WithCompleteOperators()
+        {
+            var source =
+@"struct S5
+{
+    public static bool operator==(S5 a, S5 b) => true;
+    public static bool operator!=(S5 a, S5 b) => false;
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+}
+struct S6
+{
+    public static bool operator==(S6? a, S6? b) => true;
+    public static bool operator!=(S6? a, S6? b) => false;
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+}
+struct S7
+{
+    public static bool operator==(S7 a, S7 b) => true;
+    public static bool operator==(S7? a, S7? b) => true;
+    public static bool operator!=(S7 a, S7 b) => false;
+    public static bool operator!=(S7? a, S7? b) => false;
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+}
+struct S8
+{
+    public static bool operator==(S8? a, S8 b) => true;
+    public static bool operator==(S8 a, S8? b) => true;
+    public static bool operator!=(S8? a, S8 b) => false;
+    public static bool operator!=(S8 a, S8? b) => false;
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+}
+class C
+{
+    static void F5(S5 s5)
+    {
+        bool b;
+        b = s5 == null;
+        b = (object)s5 == null;
+        b = null != s5;
+        b = null != (object)s5;
+    }
+    static void F6(S6 s6)
+    {
+        bool b;
+        b = s6 == null;
+        b = (object)s6 == null;
+        b = null != s6;
+        b = null != (object)s6;
+    }
+    static void F7(S7 s7)
+    {
+        bool b;
+        b = s7 == null;
+        b = (object)s7 == null;
+        b = null != s7;
+        b = null != (object)s7;
+    }
+    static void F8(S8 s8)
+    {
+        bool b;
+        b = s8 == null;
+        b = (object)s8 == null;
+        b = null != s8;
+        b = null != (object)s8;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+            comp.VerifyDiagnostics(
+                // (38,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S5' is never equal to 'null' of type 'S5?'
+                //         b = s5 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "s5 == null").WithArguments("false", "S5", "S5?").WithLocation(38, 13),
+                // (39,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S5' is never equal to 'null' of type 'object'
+                //         b = (object)s5 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s5 == null").WithArguments("false", "S5", "object").WithLocation(39, 13),
+                // (40,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S5' is never equal to 'null' of type 'S5?'
+                //         b = null != s5;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != s5").WithArguments("true", "S5", "S5?").WithLocation(40, 13),
+                // (41,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S5' is never equal to 'null' of type 'object'
+                //         b = null != (object)s5;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s5").WithArguments("true", "S5", "object").WithLocation(41, 13),
+                // (47,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S6' is never equal to 'null' of type 'object'
+                //         b = (object)s6 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s6 == null").WithArguments("false", "S6", "object").WithLocation(47, 13),
+                // (49,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S6' is never equal to 'null' of type 'object'
+                //         b = null != (object)s6;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s6").WithArguments("true", "S6", "object").WithLocation(49, 13),
+                // (55,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S7' is never equal to 'null' of type 'object'
+                //         b = (object)s7 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s7 == null").WithArguments("false", "S7", "object").WithLocation(55, 13),
+                // (57,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S7' is never equal to 'null' of type 'object'
+                //         b = null != (object)s7;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s7").WithArguments("true", "S7", "object").WithLocation(57, 13),
+                // (63,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S8' is never equal to 'null' of type 'object'
+                //         b = (object)s8 == null;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)s8 == null").WithArguments("false", "S8", "object").WithLocation(63, 13),
+                // (65,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S8' is never equal to 'null' of type 'object'
+                //         b = null != (object)s8;
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s8").WithArguments("true", "S8", "object").WithLocation(65, 13));
         }
     }
 }
