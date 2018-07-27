@@ -475,7 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilation: false);
+            var lambdaParameters = lambdaSymbol.Parameters;
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
 
             if ((object)returnType != null)
             {
@@ -486,7 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ParameterHelpers.EnsureNullableAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(lambdaParameters, diagnostics);
+            ParameterHelpers.EnsureNullableAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
 
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 

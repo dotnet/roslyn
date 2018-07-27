@@ -135,15 +135,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameter in parameters)
             {
-                var location = parameter.GetNonNullSyntaxNode().Location;
-                var parameterType = parameter.Type;
-                parameterType.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
-                if (parameterType.ContainsNullableReferenceTypes())
+                if (parameter.Type.ContainsNullableReferenceTypes())
                 {
                     // These parameters might not come from a compilation (example: lambdas evaluated in EE).
                     // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
-                    parameter.DeclaringCompilation?.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation);
+                    parameter.DeclaringCompilation?.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
                 }
+            }
+        }
+
+        internal static void ReportAnnotatedUnconstrainedTypeParameters(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        {
+            foreach (var parameter in parameters)
+            {
+                var location = parameter.GetNonNullSyntaxNode().Location;
+                parameter.Type.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
             }
         }
 

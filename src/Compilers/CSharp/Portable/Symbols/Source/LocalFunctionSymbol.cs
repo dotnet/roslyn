@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics: diagnostics);
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(parameters, diagnostics, modifyCompilation: false);
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;

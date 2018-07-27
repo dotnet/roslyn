@@ -772,6 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(this.Parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);
         }
 
