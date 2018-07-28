@@ -1475,7 +1475,8 @@ End Class";
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 
-            Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
+            var actualResult = (await cleanDocument.GetSyntaxRootAsync()).ToFullString();
+            Assert.Equal(expectedResult, actualResult);
         }
 
         private static Document CreateDocument(string code, string language, LanguageVersion langVersion)
