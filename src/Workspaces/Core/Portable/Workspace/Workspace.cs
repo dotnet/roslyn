@@ -671,21 +671,16 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                OnDocumentAdded_NoLock(documentInfo);
+                var documentId = documentInfo.Id;
+
+                CheckProjectIsInCurrentSolution(documentId.ProjectId);
+                CheckDocumentIsNotInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
             }
-        }
-
-        private void OnDocumentAdded_NoLock(DocumentInfo documentInfo)
-        {
-            var documentId = documentInfo.Id;
-
-            CheckProjectIsInCurrentSolution(documentId.ProjectId);
-            CheckDocumentIsNotInCurrentSolution(documentId);
-
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
-
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -714,23 +709,18 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                OnDocumentRemoved_NoLock(documentId);
+                CheckDocumentIsInCurrentSolution(documentId);
+
+                this.CheckDocumentCanBeRemoved(documentId);
+
+                var oldSolution = this.CurrentSolution;
+
+                this.ClearDocumentData(documentId);
+
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentRemoved, oldSolution, newSolution, documentId: documentId);
             }
-        }
-
-        private void OnDocumentRemoved_NoLock(DocumentId documentId)
-        {
-            CheckDocumentIsInCurrentSolution(documentId);
-
-            this.CheckDocumentCanBeRemoved(documentId);
-
-            var oldSolution = this.CurrentSolution;
-
-            this.ClearDocumentData(documentId);
-
-            var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId));
-
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentRemoved, oldSolution, newSolution, documentId: documentId);
         }
 
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)
