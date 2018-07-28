@@ -19283,8 +19283,6 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(36, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Report errors
-        // for 'new object?()', 'new T?()', etc.
         [Fact]
         public void New_01()
         {
@@ -19294,46 +19292,88 @@ class C
     static void F1()
     {
         object? x1;
-        x1 = new object?();
-        x1 = new object? { };
+        x1 = new object?(); // error 1
+        x1 = new object? { }; // error 2
         x1 = (new object?[1])[0];
     }
     static void F2<T2>()
     {
         object? x2;
-        x2 = new T2?();
-        x2 = new T2? { };
+        x2 = new T2?(); // error 3 and 4
+        x2 = new T2? { }; // error 5 and 6
         x2 = (new T2?[1])[0];
     }
-    static void F3<T3>() where T3 : class
+    static void F3<T3>() where T3 : class, new()
     {
         object? x3;
-        x3 = new T3?();
-        x3 = new T3? { };
+        x3 = new T3?(); // error 7
+        x3 = new T3? { }; // error 8
         x3 = (new T3?[1])[0];
     }
     static void F4<T4>() where T4 : new()
     {
         object? x4;
-        x4 = new T4?();
-        x4 = new T4? { };
+        x4 = new T4?(); // error 9
+        x4 = new T4? { }; // error 10
         x4 = (new T4?[1])[0];
+        x4 = new System.Nullable<int>? { }; // error 11
+    }
+    static void F5<T5>() where T5 : class
+    {
+        object? x5;
+        x5 = new T5?(); // error 12 and 13
+        x5 = new T5? { }; // error 14 and 15
+        x5 = (new T5?[1])[0]; // error 16
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (6,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x1 = new object?(); // error 1
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new object?()").WithArguments("object").WithLocation(6, 14),
+                // (7,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x1 = new object? { }; // error 2
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new object? { }").WithArguments("object").WithLocation(7, 14),
+                // (13,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x2 = new T2?(); // error 3 and 4
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T2?()").WithArguments("T2").WithLocation(13, 14),
                 // (13,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
-                //         x2 = new T2?();
+                //         x2 = new T2?(); // error 3 and 4
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2?()").WithArguments("T2").WithLocation(13, 14),
+                // (14,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x2 = new T2? { }; // error 5 and 6
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T2? { }").WithArguments("T2").WithLocation(14, 14),
                 // (14,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
-                //         x2 = new T2? { };
+                //         x2 = new T2? { }; // error 5 and 6
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2? { }").WithArguments("T2").WithLocation(14, 14),
-                // (20,14): error CS0304: Cannot create an instance of the variable type 'T3' because it does not have the new() constraint
-                //         x3 = new T3?();
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T3?()").WithArguments("T3").WithLocation(20, 14),
-                // (21,14): error CS0304: Cannot create an instance of the variable type 'T3' because it does not have the new() constraint
-                //         x3 = new T3? { };
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T3? { }").WithArguments("T3").WithLocation(21, 14));
+                // (20,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x3 = new T3?(); // error 7
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T3?()").WithArguments("T3").WithLocation(20, 14),
+                // (21,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x3 = new T3? { }; // error 8
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T3? { }").WithArguments("T3").WithLocation(21, 14),
+                // (27,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x4 = new T4?(); // error 9
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T4?()").WithArguments("T4").WithLocation(27, 14),
+                // (28,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x4 = new T4? { }; // error 10
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T4? { }").WithArguments("T4").WithLocation(28, 14),
+                // (30,18): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         x4 = new System.Nullable<int>? { }; // error 11
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "System.Nullable<int>?").WithArguments("System.Nullable<T>", "T", "int?").WithLocation(30, 18),
+                // (35,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x5 = new T5?(); // error 12 and 13
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T5?()").WithArguments("T5").WithLocation(35, 14),
+                // (35,14): error CS0304: Cannot create an instance of the variable type 'T5' because it does not have the new() constraint
+                //         x5 = new T5?(); // error 12 and 13
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T5?()").WithArguments("T5").WithLocation(35, 14),
+                // (36,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x5 = new T5? { }; // error 14 and 15
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T5? { }").WithArguments("T5").WithLocation(36, 14),
+                // (36,14): error CS0304: Cannot create an instance of the variable type 'T5' because it does not have the new() constraint
+                //         x5 = new T5? { }; // error 14 and 15
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T5? { }").WithArguments("T5").WithLocation(36, 14)
+                );
         }
 
         [Fact]
@@ -20758,6 +20798,32 @@ class C
                  //         x2 = typeof(C) ?? x2;
                  Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "typeof(C)").WithLocation(15, 14)
                 );
+        }
+
+        [Fact]
+        public void TypeOf_02()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class List<T> { }
+class C<T, TClass, TStruct>
+    where TClass : class
+    where TStruct : struct
+{
+    void M()
+    {
+        _ = typeof(C<int, object, int>?);
+        _ = typeof(T?);
+        _ = typeof(TClass?);
+        _ = typeof(TStruct?);
+        _ = typeof(List<T?>);
+        _ = typeof(List<TClass?>);
+        _ = typeof(List<TStruct?>);
+    }
+}
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): should nullable reference types be disallowed in `typeof`?
+            c.VerifyDiagnostics();
         }
 
         [Fact]

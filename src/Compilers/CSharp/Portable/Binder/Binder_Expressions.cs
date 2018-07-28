@@ -3574,7 +3574,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundExpression BindObjectCreationExpression(ObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var type = BindType(node.Type, diagnostics).TypeSymbol;
+            var typeWithAnnotations = BindType(node.Type, diagnostics);
+            var type = typeWithAnnotations.TypeSymbol;
+
+            if (typeWithAnnotations.IsAnnotated && !type.IsNullableType())
+            {
+                diagnostics.Add(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, node.Location, type);
+            }
 
             BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer == null ?
                 null :

@@ -377,6 +377,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use a nullable reference type in object creation..
+        /// </summary>
+        internal static string ERR_AnnotationDisallowedInObjectCreation {
+            get {
+                return ResourceManager.GetString("ERR_AnnotationDisallowedInObjectCreation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot use ref, out, or in parameter &apos;{0}&apos; inside an anonymous method, lambda expression, query expression, or local function.
         /// </summary>
         internal static string ERR_AnonDelegateCantUse {
