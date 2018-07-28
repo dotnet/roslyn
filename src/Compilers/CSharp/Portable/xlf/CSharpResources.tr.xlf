@@ -7,6 +7,11 @@
         <target state="new">Cannot use a nullable reference type in object creation.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullTypesNotAvailable">
+        <source>Please use language version {0} or greater to use the NonNullTypes attribute.</source>
+        <target state="new">Please use language version {0} or greater to use the NonNullTypes attribute.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
         <source>A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.</source>
         <target state="new">A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.</target>
@@ -398,13 +403,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContext">
-        <source>The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</source>
-        <target state="new">The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</target>
+        <source>The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.</source>
+        <target state="new">The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContext_Title">
-        <source>The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</source>
-        <target state="new">The suppression operator should be used in code with a `[NonNullTypes(true/false)]` context.</target>
+        <source>The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.</source>
+        <target state="new">The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
@@ -9021,8 +9026,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullableOperatorNotReferenceType">
-        <source>The ! operator can only be applied to reference types.</source>
-        <target state="new">The ! operator can only be applied to reference types.</target>
+        <source>The suppression operator (!) can only be applied to reference types.</source>
+        <target state="new">The suppression operator (!) can only be applied to reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoBestNullabilityConditionalExpression">

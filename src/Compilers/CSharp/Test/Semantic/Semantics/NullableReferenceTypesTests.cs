@@ -2141,7 +2141,7 @@ class B<T> : A<T> where T : A<T>.I
 
             comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
-                // (1,10): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
                 );
@@ -19368,46 +19368,46 @@ class C
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (6,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x1 = new object?(); // error 1
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new object?()").WithArguments("object").WithLocation(6, 14),
-                // (7,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (7,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x1 = new object? { }; // error 2
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new object? { }").WithArguments("object").WithLocation(7, 14),
-                // (13,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (13,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x2 = new T2?(); // error 3 and 4
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T2?()").WithArguments("T2").WithLocation(13, 14),
                 // (13,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
                 //         x2 = new T2?(); // error 3 and 4
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2?()").WithArguments("T2").WithLocation(13, 14),
-                // (14,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (14,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x2 = new T2? { }; // error 5 and 6
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T2? { }").WithArguments("T2").WithLocation(14, 14),
                 // (14,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
                 //         x2 = new T2? { }; // error 5 and 6
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2? { }").WithArguments("T2").WithLocation(14, 14),
-                // (20,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (20,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x3 = new T3?(); // error 7
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T3?()").WithArguments("T3").WithLocation(20, 14),
-                // (21,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (21,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x3 = new T3? { }; // error 8
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T3? { }").WithArguments("T3").WithLocation(21, 14),
-                // (27,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (27,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x4 = new T4?(); // error 9
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T4?()").WithArguments("T4").WithLocation(27, 14),
-                // (28,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (28,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x4 = new T4? { }; // error 10
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T4? { }").WithArguments("T4").WithLocation(28, 14),
                 // (30,18): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         x4 = new System.Nullable<int>? { }; // error 11
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "System.Nullable<int>?").WithArguments("System.Nullable<T>", "T", "int?").WithLocation(30, 18),
-                // (35,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (35,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x5 = new T5?(); // error 12 and 13
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T5?()").WithArguments("T5").WithLocation(35, 14),
                 // (35,14): error CS0304: Cannot create an instance of the variable type 'T5' because it does not have the new() constraint
                 //         x5 = new T5?(); // error 12 and 13
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T5?()").WithArguments("T5").WithLocation(35, 14),
-                // (36,14): error CS8628: Cannot use a nullable reference type in object creation.
+                // (36,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x5 = new T5? { }; // error 14 and 15
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T5? { }").WithArguments("T5").WithLocation(36, 14),
                 // (36,14): error CS0304: Cannot create an instance of the variable type 'T5' because it does not have the new() constraint
@@ -30728,7 +30728,7 @@ namespace System.Runtime.CompilerServices
 
             var comp1 = CreateCompilation(new[] { NonNullTypesTrue, poisonedDefinition }, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics(
-                // (1,10): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
                 );
@@ -30776,19 +30776,19 @@ public class D
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
-                // (2,2): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // (2,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 // [System.Runtime.CompilerServices.NonNullTypes]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(2, 2),
-                // (12,6): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // (12,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 //     [System.Runtime.CompilerServices.NonNullTypes]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(12, 6),
-                // (15,6): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // (15,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 //     [System.Runtime.CompilerServices.NonNullTypes]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(15, 6),
-                // (18,6): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // (18,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 //     [System.Runtime.CompilerServices.NonNullTypes]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(18, 6),
-                // (9,6): error CS8628: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // (9,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 //     [System.Runtime.CompilerServices.NonNullTypes]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(9, 6)
                 );
