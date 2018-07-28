@@ -160,7 +160,6 @@ collection.
     <Rule Id="VSSDK003" Action="Warning" /> <!-- Support async tool windows -->
   </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
-    <Rule Id="VSTHRD001" Action="None" /> <!-- Avoid legacy thread switching APIs -->
     <Rule Id="VSTHRD002" Action="None" /> <!-- Avoid problematic synchronous waits -->
     <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
     <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->
