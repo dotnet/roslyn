@@ -664,16 +664,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static ImmutableHashSet<string> GetFilePaths(ImmutableArray<DocumentInfo> documents)
-        {
-            var map = ImmutableHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase);
-            foreach (var document in documents)
-            {
-                map = map.Add(document.FilePath);
-            }
-            return map;
-        }
-
         /// <summary>
         /// Call this method when a document is added to a project in the host environment.
         /// </summary>
