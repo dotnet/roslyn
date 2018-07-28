@@ -2417,24 +2417,7 @@ End Module
             Dim parameters2 As New TestParameters()
             Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters2)
                 workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId)
-                Assert.Equal(1, diagnostics.Count)
-            End Using
-
-            source =
-        <Code>
-Imports System
-Class C
-    Dim x as Integer
-    Sub F()
-        Dim z = [|Me.x|]
-    End Sub
-End Module
-</Code>
-
-            Dim parameters3 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters3)
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
+                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
         End Function
@@ -2489,24 +2472,6 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        Public Async Function TestMeWithNoType() As Task
-            Await TestInRegularAndScriptAsync(
-"Class C
-    Dim x = 7
-    Sub M()
-        [|Me|].x = Nothing
-    End Sub
-End Class",
-"Class C
-    Dim x = 7
-    Sub M()
-        x = Nothing
-    End Sub
-End Class")
-        End Function
-
         <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestMyClassShouldNotBeRemoved() As Task
@@ -2538,15 +2503,6 @@ End Class",
         Test()
     End Sub
 End Class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
-            Await TestDiagnosticInfoAsync(
-                "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
-                options:=OptionsSet(SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
-                diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                diagnosticSeverity:=DiagnosticSeverity.Error)
         End Function
 
         <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>

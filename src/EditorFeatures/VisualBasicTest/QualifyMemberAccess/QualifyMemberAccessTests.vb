@@ -434,9 +434,10 @@ CodeStyleOptions.QualifyEventAccess)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
-        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionSilent() As Task
-            Await TestMissingAsyncWithOptionAndNotification(
+        Public Async Function QualifyMemberAccessOnNotificationOptionSilent() As Task
+            Await TestAsyncWithOptionAndNotification(
 "Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
+"Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Silent)
         End Function
 
@@ -617,6 +618,94 @@ class C
 End Class
 ",
 CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InAttribute1() As Task
+            Await TestMissingAsyncWithOption("
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+
+    Public Sub New(name as String)
+    End Sub
+End Class
+
+<My(NameOf([|Goo|]))>
+Class C
+    Private Property Goo As String
+End Class
+",
+CodeStyleOptions.QualifyPropertyAccess)
+        End Function
+
+        <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InAttribute2() As Task
+            Await TestMissingAsyncWithOption("
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+
+    Public Sub New(name as String)
+    End Sub
+End Class
+
+Class C
+    <My(NameOf([|Goo|]))>
+    Private Property Goo As String
+End Class
+",
+CodeStyleOptions.QualifyPropertyAccess)
+        End Function
+
+        <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InAttribute3() As Task
+            Await TestMissingAsyncWithOption("
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+
+    Public Sub New(name as String)
+    End Sub
+End Class
+
+Class C
+    Private Property Goo As String
+
+    <My(NameOf([|Goo|]))>
+    Private Bar As Integer
+End Class
+",
+CodeStyleOptions.QualifyPropertyAccess)
+        End Function
+
+        <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InAttribute4() As Task
+            Await TestMissingAsyncWithOption("
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+
+    Public Sub New(name as String)
+    End Sub
+End Class
+
+Class C
+    Private Property Goo As String
+
+    Sub X(<My(NameOf([|Goo|]))>v as integer)
+    End Sub    
+End Class
+",
+CodeStyleOptions.QualifyPropertyAccess)
         End Function
     End Class
 End Namespace
