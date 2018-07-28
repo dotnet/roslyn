@@ -681,6 +681,22 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when multiple document are added to one or more projects in the host environment.
+        /// </summary>
+        protected internal void OnDocumentsAdded(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.AddDocuments(documentInfos));
+
+                // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
+                // DocumentId associated with it, and we don't want to be raising multiple events.
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution);
+            }
+        }
+
+        /// <summary>
         /// Call this method when a document is reloaded in the host environment.
         /// </summary>
         protected internal void OnDocumentReloaded(DocumentInfo newDocumentInfo)
