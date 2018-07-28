@@ -91,6 +91,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(reader.Read());
                 return (U)reader.Value;
             }
+
+            protected char GetCharacter(string character)
+            {
+                if (character.Length == 1)
+                {
+                    return character[0];
+                }
+
+                return default;
+            }
         }
 
         private class TextSpanJsonConverter : BaseJsonConverter<TextSpan>

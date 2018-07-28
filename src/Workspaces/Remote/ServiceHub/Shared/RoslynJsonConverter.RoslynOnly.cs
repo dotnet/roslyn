@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -37,6 +37,350 @@ namespace Microsoft.CodeAnalysis.Remote
             Add(builder, new AddImportFixDataJsonConverter());
 
             Add(builder, new AnalyzerPerformanceInfoConverter());
+
+            Add(builder, new CompletionChangeConverter());
+            Add(builder, new CompletionItemConverter());
+            Add(builder, new CompletionItemRulesConverter());
+            Add(builder, new CharacterSetModificationRuleConverter());
+
+            Add(builder, new CompletionDescriptionConverter());
+            Add(builder, new CompletionTriggerConverter());
+            Add(builder, new CompletionListConverter());
+
+            Add(builder, new CompletionRulesConverter());
+        }
+
+        private class CompletionRulesConverter : BaseJsonConverter<CompletionRules>
+        {
+            protected override CompletionRules ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var dismissIfEmpty = ReadProperty<bool>(reader);
+                var dismissIfLastCharacterDeleted = ReadProperty<bool>(reader);
+                var defaultCommitCharacters = ReadProperty<IList<char>>(reader, serializer).ToImmutableArray();
+
+                var defaultEnterKeyRule = (EnterKeyRule)ReadProperty<long>(reader);
+                var snippetsRule = (SnippetsRule)ReadProperty<long>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return CompletionRules.Create(
+                    dismissIfEmpty, dismissIfLastCharacterDeleted, defaultCommitCharacters, defaultEnterKeyRule, snippetsRule);
+            }
+
+            protected override void WriteValue(JsonWriter writer, CompletionRules value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(value.DismissIfEmpty));
+                writer.WriteValue(value.DismissIfEmpty);
+
+                writer.WritePropertyName(nameof(value.DismissIfLastCharacterDeleted));
+                writer.WriteValue(value.DismissIfLastCharacterDeleted);
+
+                writer.WritePropertyName(nameof(value.DefaultCommitCharacters));
+                serializer.Serialize(writer, (IList<char>)value.DefaultCommitCharacters);
+
+                writer.WritePropertyName(nameof(value.DefaultEnterKeyRule));
+                writer.WriteValue((int)value.DefaultEnterKeyRule);
+
+                writer.WritePropertyName(nameof(value.SnippetsRule));
+                writer.WriteValue((int)value.SnippetsRule);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class CompletionListConverter : BaseJsonConverter<CompletionList>
+        {
+            protected override CompletionList ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var items = ReadProperty<IList<CompletionItem>>(reader, serializer).ToImmutableArray();
+                var span = ReadProperty<TextSpan>(reader, serializer);
+                var rules = ReadProperty<CompletionRules>(reader, serializer);
+                var suggestionModeItem = ReadProperty<CompletionItem>(reader, serializer);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return CompletionList.Create(span, items, rules, suggestionModeItem);
+            }
+
+            protected override void WriteValue(JsonWriter writer, CompletionList value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(value.Items));
+                serializer.Serialize(writer, (IList<CompletionItem>)value.Items);
+
+                writer.WritePropertyName(nameof(value.Span));
+                serializer.Serialize(writer, value.Span);
+
+                writer.WritePropertyName(nameof(value.Rules));
+                serializer.Serialize(writer, value.Rules);
+
+                writer.WritePropertyName(nameof(value.SuggestionModeItem));
+                serializer.Serialize(writer, value.SuggestionModeItem);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class CompletionTriggerConverter : BaseJsonConverter<CompletionTrigger>
+        {
+            protected override CompletionTrigger ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var trigger = (CompletionTriggerKind)ReadProperty<long>(reader);
+                var character = ReadProperty<string>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new CompletionTrigger(trigger, GetCharacter(character));
+            }
+
+            protected override void WriteValue(JsonWriter writer, CompletionTrigger value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(value.Kind));
+                writer.WriteValue((int)value.Kind);
+
+                writer.WritePropertyName(nameof(value.Character));
+                writer.WriteValue(value.Character);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class CompletionDescriptionConverter : BaseJsonConverter<CompletionDescription>
+        {
+            protected override CompletionDescription ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var taggedParts = ReadProperty<IList<TaggedText>>(reader, serializer).ToImmutableArray();
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return CompletionDescription.Create(taggedParts);
+            }
+
+            protected override void WriteValue(JsonWriter writer, CompletionDescription value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(value.TaggedParts));
+                serializer.Serialize(writer, (IList<TaggedText>)value.TaggedParts);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class CharacterSetModificationRuleConverter : BaseJsonConverter<CharacterSetModificationRule>
+        {
+            protected override CharacterSetModificationRule ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var characterSetModificationKind = (CharacterSetModificationKind)ReadProperty<long>(reader);
+                var characters = ReadProperty<IList<char>>(reader, serializer).ToImmutableArray();
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return CharacterSetModificationRule.Create(characterSetModificationKind, characters);
+            }
+
+            protected override void WriteValue(JsonWriter writer, CharacterSetModificationRule value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(value.Kind));
+                writer.WriteValue((int)value.Kind);
+
+                writer.WritePropertyName(nameof(value.Characters));
+                serializer.Serialize(writer, (IList<char>)value.Characters);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class CompletionItemRulesConverter : BaseJsonConverter<CompletionItemRules>
+        {
+            protected override CompletionItemRules ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var filterCharacterRules = ReadProperty<IList<CharacterSetModificationRule>>(reader, serializer).ToImmutableArray();
+                var commitCharacterRules = ReadProperty<IList<CharacterSetModificationRule>>(reader, serializer).ToImmutableArray();
+                var enterKeyRule = (EnterKeyRule)ReadProperty<long>(reader);
+                var formatOnCommit = ReadProperty<bool>(reader);
+                var matchPriority = ReadProperty<long>(reader);
+                var selectionBehavior = (CompletionItemSelectionBehavior)ReadProperty<long>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return CompletionItemRules.Create(filterCharacterRules, commitCharacterRules, enterKeyRule, formatOnCommit, (int)matchPriority, selectionBehavior);
+            }
+
+            protected override void WriteValue(JsonWriter writer, CompletionItemRules value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(value.FilterCharacterRules));
+                serializer.Serialize(writer, (IList<CharacterSetModificationRule>)value.FilterCharacterRules);
+
+                writer.WritePropertyName(nameof(value.CommitCharacterRules));
+                serializer.Serialize(writer, (IList<CharacterSetModificationRule>)value.CommitCharacterRules);
+
+                writer.WritePropertyName(nameof(value.EnterKeyRule));
+                writer.WriteValue((int)value.EnterKeyRule);
+
+                writer.WritePropertyName(nameof(value.FormatOnCommit));
+                writer.WriteValue(value.FormatOnCommit);
+
+                writer.WritePropertyName(nameof(value.MatchPriority));
+                writer.WriteValue(value.MatchPriority);
+
+                writer.WritePropertyName(nameof(value.SelectionBehavior));
+                writer.WriteValue((int)value.SelectionBehavior);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class CompletionItemConverter : BaseJsonConverter<CompletionItem>
+        {
+            protected override CompletionItem ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var displayText = ReadProperty<string>(reader);
+                var filterText = ReadProperty<string>(reader);
+                var sortText = ReadProperty<string>(reader);
+                var span = ReadProperty<TextSpan>(reader, serializer);
+                var properties = ReadProperty<IDictionary<string, string>>(reader, serializer).ToImmutableDictionary();
+                var tags = ReadProperty<IList<string>>(reader, serializer).ToImmutableArray();
+                var rules = ReadProperty<CompletionItemRules>(reader, serializer);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                var item = CompletionItem.Create(displayText, filterText, sortText, properties, tags, rules);
+
+                // not sure why we have this kind of pattern.
+                item.Span = span;
+
+                return item;
+            }
+
+            protected override void WriteValue(JsonWriter writer, CompletionItem value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(value.DisplayText));
+                writer.WriteValue(value.DisplayText);
+
+                writer.WritePropertyName(nameof(value.FilterText));
+                writer.WriteValue(value.FilterText);
+
+                writer.WritePropertyName(nameof(value.SortText));
+                writer.WriteValue(value.SortText);
+
+                writer.WritePropertyName(nameof(value.Span));
+                serializer.Serialize(writer, value.Span);
+
+                writer.WritePropertyName(nameof(value.Properties));
+                serializer.Serialize(writer, (IDictionary<string, string>)value.Properties);
+
+                writer.WritePropertyName(nameof(value.Tags));
+                serializer.Serialize(writer, (IList<string>)value.Tags);
+
+                writer.WritePropertyName(nameof(value.Rules));
+                serializer.Serialize(writer, value.Rules);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class CompletionChangeConverter : BaseJsonConverter<CompletionChange>
+        {
+            protected override CompletionChange ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var textChange = ReadProperty<TextChange>(reader, serializer);
+                var newPosition = ReadProperty<long>(reader);
+                var includesCommitCharacter = ReadProperty<bool>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return CompletionChange.Create(textChange, (newPosition == int.MinValue) ? (int?)null : (int)newPosition, includesCommitCharacter);
+            }
+
+            protected override void WriteValue(JsonWriter writer, CompletionChange value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(value.TextChange));
+                serializer.Serialize(writer, value.TextChange);
+
+                writer.WritePropertyName(nameof(value.NewPosition));
+                writer.WriteValue(value.NewPosition ?? int.MinValue);
+
+                writer.WritePropertyName(nameof(value.IncludesCommitCharacter));
+                writer.WriteValue(value.IncludesCommitCharacter);
+
+                writer.WriteEndObject();
+            }
         }
 
         private class TodoCommentDescriptorJsonConverter : BaseJsonConverter<TodoCommentDescriptor>

@@ -17,7 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Implements ILanguageServiceFactory
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicCompletionService(languageServices.WorkspaceServices.Workspace)
+            Dim workspace = languageServices.WorkspaceServices.Workspace
+            Return New Dispatcher(workspace, New VisualBasicCompletionService(workspace))
         End Function
     End Class
 
@@ -45,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Private ReadOnly _workspace As Workspace
 
         Public Sub New(workspace As Workspace,
-                       Optional exclusiveProviders As ImmutableArray(Of CompletionProvider) ? = Nothing)
+                       Optional exclusiveProviders As ImmutableArray(Of CompletionProvider)? = Nothing)
             MyBase.New(workspace, exclusiveProviders)
             _workspace = workspace
         End Sub
