@@ -7,6 +7,11 @@
         <target state="translated">Dodaj modyfikatory dostępności</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_await">
+        <source>Add await</source>
+        <target state="new">Add await</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_remove_braces_for_single_line_control_statements">
         <source>Add/remove braces for single-line control statements</source>
         <target state="translated">Dodaj/usuń nawiasy klamrowe w przypadku jednowierszowych instrukcji sterowania</target>

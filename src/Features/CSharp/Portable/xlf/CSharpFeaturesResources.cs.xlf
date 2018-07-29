@@ -7,6 +7,11 @@
         <target state="translated">Přidat modifikátory dostupnosti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_await">
+        <source>Add await</source>
+        <target state="new">Add await</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_remove_braces_for_single_line_control_statements">
         <source>Add/remove braces for single-line control statements</source>
         <target state="translated">Přidat/odebrat složené závorky pro řídicí příkazy na jeden řádek</target>

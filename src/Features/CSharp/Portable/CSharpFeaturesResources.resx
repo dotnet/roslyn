@@ -126,6 +126,9 @@
   <data name="Invert_if" xml:space="preserve">
     <value>Invert if</value>
   </data>
+  <data name="Add_await" xml:space="preserve">
+    <value>Add await</value>
+  </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">
     <value>Simplify lambda expression</value>
   </data>
