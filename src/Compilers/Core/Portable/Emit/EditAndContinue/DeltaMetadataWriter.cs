@@ -1444,6 +1444,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 _changes = writer._changes;
             }
 
+            // PROTOTYPE(NullableReferenceTypes): test EnC scenario with NonNullTypes attribute
+            protected override bool ProcessReferencesInCurrentModule
+                => false;
+
             public override void Visit(CommonPEModuleBuilder module)
             {
                 this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));

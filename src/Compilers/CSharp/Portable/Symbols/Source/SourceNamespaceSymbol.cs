@@ -324,6 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 builder.Add(BuildSymbol(declaration, diagnostics));
             }
+            builder.AddInjectedSymbols(containingNamespace: this);
             var result = builder.CreateMap();
 
             var memberOfArity = new Symbol[10];
@@ -555,6 +556,81 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return result;
+            }
+
+            public void AddInjectedSymbols(SourceNamespaceSymbol containingNamespace)
+            {
+                const string CodeAnalysis = "CodeAnalysis";
+                const string System = "System";
+                const string Microsoft = "Microsoft";
+                const string Runtime = "Runtime";
+                const string CompilerServices = "CompilerServices";
+
+                if (containingNamespace.IsGlobalNamespace)
+                {
+                    if (!_dictionary.ContainsKey(System))
+                    {
+                        Add(makeEmptyNamespace(System));
+                    }
+                    if (!_dictionary.ContainsKey(Microsoft))
+                    {
+                        Add(makeEmptyNamespace(Microsoft));
+                    }
+                }
+                else if (isSystem(containingNamespace) && !_dictionary.ContainsKey(Runtime))
+                {
+                    Add(makeEmptyNamespace(Runtime));
+                }
+                else if (isRuntime(containingNamespace) && !_dictionary.ContainsKey(CompilerServices))
+                {
+                    Add(makeEmptyNamespace(CompilerServices));
+                }
+                else if (isMicrosoft(containingNamespace) && !_dictionary.ContainsKey(CodeAnalysis))
+                {
+                    Add(makeEmptyNamespace(CodeAnalysis));
+                }
+                else if (isCompilerServices(containingNamespace) && !_dictionary.ContainsKey("NonNullTypesAttribute"))
+                {
+                    Add(InjectedNonNullTypesAttributeSymbol.Create(containingNamespace));
+                }
+                else if (isCodeAnalysis(containingNamespace) && !_dictionary.ContainsKey("EmbeddedAttribute"))
+                {
+                    Add(InjectedEmbeddedAttributeSymbol.Create(containingNamespace));
+                }
+
+                SourceNamespaceSymbol makeEmptyNamespace(string name)
+                {
+                    var mergedDeclaration = MergedNamespaceDeclaration.Create(name);
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    var result = new InjectedNamespaceSymbol(containingNamespace._module, containingNamespace, mergedDeclaration, diagnostics);
+                    diagnostics.Free();
+                    return result;
+                }
+
+                bool isSystem(NamespaceSymbol symbol)
+                {
+                    return symbol.Name == System && symbol.ContainingNamespace.IsGlobalNamespace;
+                }
+
+                bool isRuntime(NamespaceSymbol symbol)
+                {
+                    return symbol.Name == Runtime && isSystem(symbol.ContainingNamespace);
+                }
+
+                bool isCompilerServices(NamespaceSymbol symbol)
+                {
+                    return symbol.Name == CompilerServices && isRuntime(symbol.ContainingNamespace);
+                }
+
+                bool isMicrosoft(NamespaceSymbol symbol)
+                {
+                    return symbol.Name == Microsoft && symbol.ContainingNamespace.IsGlobalNamespace;
+                }
+
+                bool isCodeAnalysis(NamespaceSymbol symbol)
+                {
+                    return symbol.Name == CodeAnalysis && isMicrosoft(symbol.ContainingNamespace);
+                }
             }
         }
     }

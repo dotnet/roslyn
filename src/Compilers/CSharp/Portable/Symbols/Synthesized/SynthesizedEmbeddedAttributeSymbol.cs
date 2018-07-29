@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 4) It has System.Runtime.CompilerServices.CompilerGeneratedAttribute
     /// 5) It has a parameter-less constructor
     /// </summary>
-    internal sealed class SynthesizedEmbeddedAttributeSymbol : NamedTypeSymbol
+    internal class SynthesizedEmbeddedAttributeSymbol : NamedTypeSymbol
     {
         private readonly string _name;
         private readonly NamedTypeSymbol _baseType;
@@ -60,11 +60,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public SynthesizedEmbeddedAttributeSymbol(
+            AttributeDescription description,
+            NamespaceSymbol containingNamespace,
+            CSharpCompilation compilation,
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors,
+            DiagnosticBag diagnostics)
+        {
+            _name = description.Name;
+            _baseType = compilation.GetWellKnownType(WellKnownType.System_Attribute);
+
+            // Report errors in case base type was missing or bad
+            Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
+
+            _constructors = getConstructors(compilation, this, diagnostics);
+            _namespace = containingNamespace;
+            _module = containingNamespace.ContainingModule;
+        }
+
         public new ImmutableArray<MethodSymbol> Constructors => _constructors;
 
         public override int Arity => 0;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
+
+        public override bool IsImplicitlyDeclared => true;
+
+        internal override bool IsManagedType => false;
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
@@ -100,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => true;
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics => throw new NotImplementedException();
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics => ImmutableArray<TypeSymbolWithAnnotations>.Empty;
 
         internal override bool MangleName => false;
 
@@ -168,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddSynthesizedAttribute(
                 ref attributes,
-                moduleBuilder.SynthesizeEmbeddedAttribute());
+                moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor));
         }
     }
 

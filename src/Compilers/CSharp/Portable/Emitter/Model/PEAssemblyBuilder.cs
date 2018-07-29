@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
 
-        private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyNullableAttribute;
+        private ImmutableArray<NamedTypeSymbol> _lazyInjectedTypes;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -73,10 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
             CreateEmbeddedAttributesIfNeeded(diagnostics);
-            if ((object)_lazyEmbeddedAttribute != null)
-            {
-                builder.Add(_lazyEmbeddedAttribute);
-            }
 
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
@@ -172,15 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public AssemblyIdentity Identity => _sourceAssembly.Identity;
         public Version AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
 
-        internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
-        {
-            // _lazyEmbeddedAttribute should have been created before calling this method.
-            return new SynthesizedAttributeData(
-                _lazyEmbeddedAttribute.Constructors[0],
-                ImmutableArray<TypedConstant>.Empty,
-                ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
-        }
-
         internal override SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
         {
             if ((object)_lazyNullableAttribute != null)
@@ -236,41 +223,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
         {
-            if (this.NeedsGeneratedIsReadOnlyAttribute)
+            if (this.NeedsGeneratedIsReadOnlyAttribute && _lazyIsReadOnlyAttribute is null)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+                NeedsEmbeddedAttribute = true;
 
-                CreateEmbeddedAttributeIfNeeded(
+                CreateEmbeddedAttribute(
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute);
             }
 
-            if (this.NeedsGeneratedIsByRefLikeAttribute)
+            if (this.NeedsGeneratedIsByRefLikeAttribute && _lazyIsByRefLikeAttribute is null)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+                NeedsEmbeddedAttribute = true;
 
-                CreateEmbeddedAttributeIfNeeded(
+                CreateEmbeddedAttribute(
                     ref _lazyIsByRefLikeAttribute,
                     diagnostics,
                     AttributeDescription.IsByRefLikeAttribute);
             }
 
-            if (this.NeedsGeneratedIsUnmanagedAttribute)
+            if (this.NeedsGeneratedIsUnmanagedAttribute && _lazyIsUnmanagedAttribute is null)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+                NeedsEmbeddedAttribute = true;
 
-                CreateEmbeddedAttributeIfNeeded(
+                CreateEmbeddedAttribute(
                     ref _lazyIsUnmanagedAttribute,
                     diagnostics,
                     AttributeDescription.IsUnmanagedAttribute);
             }
 
-            if (this.NeedsGeneratedNullableAttribute)
+            if (this.NeedsGeneratedNullableAttribute && _lazyNullableAttribute is null)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+                NeedsEmbeddedAttribute = true;
 
-                CreateEmbeddedAttributeIfNeeded(
+                CreateEmbeddedAttribute(
                     ref _lazyNullableAttribute,
                     diagnostics,
                     AttributeDescription.NullableAttribute,
@@ -278,33 +265,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
+        protected override bool InjectedSymbolsAreFrozen => !_lazyInjectedTypes.IsDefault;
+
+        /// <summary>
+        /// Get injected types that are needed (ie. were used) and report the diagnostics they held onto (only once).
+        /// </summary>
+        protected sealed override ImmutableArray<NamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics)
         {
-            CreateEmbeddedAttributeIfNeeded(
-                ref _lazyEmbeddedAttribute,
-                diagnostics,
-                AttributeDescription.CodeAnalysisEmbeddedAttribute);
+            if (!_lazyInjectedTypes.IsDefault)
+            {
+                return _lazyInjectedTypes;
+            }
+
+            ArrayBuilder<NamedTypeSymbol> builder = null;
+            if (NeedsNonNullTypesAttribute)
+            {
+                addInjectedAttribute(AttributeDescription.NonNullTypesAttribute, canUseFromSource: true);
+                NeedsEmbeddedAttribute = true;
+            }
+
+            if (NeedsEmbeddedAttribute)
+            {
+                addInjectedAttribute(AttributeDescription.CodeAnalysisEmbeddedAttribute, canUseFromSource: false);
+            }
+
+            var result = builder is null ? ImmutableArray<NamedTypeSymbol>.Empty : builder.ToImmutableAndFree();
+            ImmutableInterlocked.InterlockedInitialize(ref _lazyInjectedTypes, result);
+            return _lazyInjectedTypes;
+
+            void addInjectedAttribute(AttributeDescription description, bool canUseFromSource)
+            {
+                string fullName = description.FullName;
+                var attributeMetadataName = MetadataTypeName.FromFullName(fullName);
+                NamedTypeSymbol attribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+
+                if (attribute is InjectedAttributeSymbol injected)
+                {
+                    diagnostics.AddRange(injected.Diagnostics);
+                    builder = builder ?? ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                    builder.Add(attribute);
+                }
+                else if (!canUseFromSource)
+                {
+                    // if the attribute is defined in source, we can't embed it (we'll produce a diagnostic)
+                    diagnostics.Add(ErrorCode.ERR_TypeReserved, attribute.Locations[0], fullName);
+                }
+            }
         }
 
-        private void CreateEmbeddedAttributeIfNeeded(
+        private void CreateEmbeddedAttribute(
             ref SynthesizedEmbeddedAttributeSymbol symbol,
             DiagnosticBag diagnostics,
             AttributeDescription description,
             Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors = null)
         {
-            if ((object)symbol == null)
+            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+            Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+
+            if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
             {
-                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-                Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
-
-                if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
-                {
-                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
-                }
-
-                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, getAdditionalConstructors, diagnostics);
+                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
             }
+
+            symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, getAdditionalConstructors, diagnostics);
         }
 
         private static ImmutableArray<MethodSymbol> GetAdditionalNullableAttributeConstructors(

@@ -69,15 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
             }
 
-            if (!this.IsDefinition)
-            {
-                PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-                return moduleBeingBuilt.Translate(this.ContainingType,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                  diagnostics: context.Diagnostics);
-            }
+            NamedTypeSymbol containingType = this.ContainingType;
+            var moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            return this.ContainingType;
+            return moduleBeingBuilt.Translate(containingType,
+                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                diagnostics: context.Diagnostics,
+                needDeclaration: this.IsDefinition);
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)

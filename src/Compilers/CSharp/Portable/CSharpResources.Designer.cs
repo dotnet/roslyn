@@ -11169,6 +11169,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to injected type.
+        /// </summary>
+        internal static string IDS_InjectedType {
+            get {
+                return ResourceManager.GetString("IDS_InjectedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to invariantly.
         /// </summary>
         internal static string IDS_Invariantly {

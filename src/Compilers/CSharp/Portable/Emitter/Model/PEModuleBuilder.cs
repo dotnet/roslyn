@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
         public override NoPia.EmbeddedTypesManager EmbeddedTypesManagerOpt
-        {
-            get { return _embeddedTypesManagerOpt; }
-        }
+            => _embeddedTypesManagerOpt;
 
         // Gives the name of this module (may not reflect the name of the underlying symbol).
         // See Assembly.MetadataName.
@@ -45,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private bool _needsGeneratedIsUnmanagedAttribute_Value;
         private bool _needsGeneratedAttributes_IsFrozen;
         private bool _needsGeneratedNullableAttribute_Value;
+        private NamedTypeSymbol _nonNullTypesAttribute;
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -115,6 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 _embeddedTypesManagerOpt = new NoPia.EmbeddedTypesManager(this);
             }
+
+            _nonNullTypesAttribute = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
         }
 
         public override string Name
@@ -450,6 +451,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     if ((object)memberNamespace != null)
                     {
                         namespacesToProcess.Push(memberNamespace);
+                    }
+                    else if (member is InjectedAttributeSymbol injectedNonNullTypes)
+                    {
+                        // Skip injected attributes. We'll only embed those that are used.
+                        continue;
                     }
                     else
                     {
@@ -952,6 +958,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics);
             }
 
+            if (!InjectedSymbolsAreFrozen && namedTypeSymbol.Equals(_nonNullTypesAttribute))
+            {
+                NeedsNonNullTypesAttribute = true;
+            }
+
             return namedTypeSymbol;
         }
 
@@ -1446,8 +1457,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
         }
-
-        internal abstract SynthesizedAttributeData SynthesizeEmbeddedAttribute();
 
         internal SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
         {

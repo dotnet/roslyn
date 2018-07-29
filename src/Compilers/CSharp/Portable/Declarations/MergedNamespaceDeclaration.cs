@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<SingleNamespaceDeclaration> _declarations;
         private ImmutableArray<MergedNamespaceOrTypeDeclaration> _lazyChildren;
 
-        private MergedNamespaceDeclaration(ImmutableArray<SingleNamespaceDeclaration> declarations)
-            : base(declarations.IsEmpty ? string.Empty : declarations[0].Name)
+        private MergedNamespaceDeclaration(ImmutableArray<SingleNamespaceDeclaration> declarations, string name = null)
+            : base(name ?? (declarations.IsEmpty ? string.Empty : declarations[0].Name))
         {
             _declarations = declarations;
         }
@@ -30,6 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MergedNamespaceDeclaration(ImmutableArray.Create(declaration));
         }
 
+        public static MergedNamespaceDeclaration Create(string name)
+        {
+            // For injected namespaces, we need an empty merged declaration with a name
+            return new MergedNamespaceDeclaration(ImmutableArray<SingleNamespaceDeclaration>.Empty, name);
+        }
+
         public override DeclarationKind Kind
         {
             get
@@ -40,6 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LexicalSortKey GetLexicalSortKey(CSharpCompilation compilation)
         {
+            if (_declarations.Length == 0)
+            {
+                return LexicalSortKey.NotInSource;
+            }
+
             LexicalSortKey sortKey = new LexicalSortKey(_declarations[0].NameLocation, compilation);
             for (var i = 1; i < _declarations.Length; i++)
             {

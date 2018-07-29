@@ -991,11 +991,8 @@ WriteLine(new Complex(2, 6).Real);
         {
             Execute("nameof(Microsoft.CodeAnalysis)");
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "CodeAnalysis", "Microsoft") }",
-                ReadErrorOutputToEnd());
-
-            Assert.Equal("", ReadOutputToEnd());
+            AssertEx.Empty(ReadErrorOutputToEnd());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("\"CodeAnalysis\"", ReadOutputToEnd());
         }
 
         [Fact]

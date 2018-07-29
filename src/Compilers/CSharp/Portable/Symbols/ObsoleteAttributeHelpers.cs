@@ -160,10 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Debug.Assert(!data.IsError);
                 return new CSDiagnosticInfo(isColInit ? ErrorCode.WRN_DeprecatedCollectionInitAdd : ErrorCode.WRN_DeprecatedSymbol, symbol);
             }
-            else if (data.Message == PEModule.NonNullTypesMarker)
-            {
-                return null;
-            }
             else
             {
                 ErrorCode errorCode = data.IsError

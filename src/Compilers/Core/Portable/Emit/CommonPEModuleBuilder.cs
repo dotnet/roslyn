@@ -421,6 +421,36 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
+        private bool _needsNonNullTypesAttribute;
+        /// <summary>
+        /// Track usage of the NonNullTypes injected type, so it can be added to module to be emitted.
+        /// </summary>
+        protected bool NeedsNonNullTypesAttribute
+        {
+            get => _needsNonNullTypesAttribute;
+            set
+            {
+                Debug.Assert(!InjectedSymbolsAreFrozen);
+                _needsNonNullTypesAttribute = value;
+            }
+        }
+
+        private bool _needsEmbeddedAttribute;
+        /// <summary>
+        /// Track usage of the Embedded injected type, so it can be added to module to be emitted.
+        /// </summary>
+        protected bool NeedsEmbeddedAttribute
+        {
+            get => _needsEmbeddedAttribute;
+            set
+            {
+                Debug.Assert(!InjectedSymbolsAreFrozen);
+                _needsEmbeddedAttribute = value;
+            }
+        }
+
+        protected virtual bool InjectedSymbolsAreFrozen { get; }
+
         protected PEModuleBuilder(
             TCompilation compilation,
             TSourceModuleSymbol sourceModule,
@@ -477,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
-            Cci.NoPiaReferenceIndexer noPiaIndexer = null;
+            Cci.TypeReferenceIndexer typeReferenceIndexer = null;
             HashSet<string> names;
 
             // First time through, we need to collect emitted names of all top level types.
@@ -490,30 +520,34 @@ namespace Microsoft.CodeAnalysis.Emit
                 names = null;
             }
 
-            // First time through, we need to push things through NoPiaReferenceIndexer
-            // to make sure we collect all to be embedded NoPia types and members.
-            if (EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen)
+            // First time through, we need to push things through TypeReferenceIndexer
+            // to make sure we collect all to be embedded NoPia types and members, as well as detect any usage of NonNullTypes.
+            if ((EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen) ||
+                !InjectedSymbolsAreFrozen)
             {
-                noPiaIndexer = new Cci.NoPiaReferenceIndexer(context);
-                Debug.Assert(names != null);
-                this.Dispatch(noPiaIndexer);
+                typeReferenceIndexer = new Cci.TypeReferenceIndexer(context);
+
+                // Run this reference indexer on the assembly- and module-level attributes first.
+                // We'll run it on all other types below.
+                // The purpose is to trigger Translate on all types.
+                this.Dispatch(typeReferenceIndexer);
             }
 
             AddTopLevelType(names, _rootModuleType);
-            VisitTopLevelType(noPiaIndexer, _rootModuleType);
+            VisitTopLevelType(typeReferenceIndexer, _rootModuleType);
             yield return _rootModuleType;
 
             foreach (var type in this.GetAnonymousTypes(context))
             {
                 AddTopLevelType(names, type);
-                VisitTopLevelType(noPiaIndexer, type);
+                VisitTopLevelType(typeReferenceIndexer, type);
                 yield return type;
             }
 
             foreach (var type in this.GetTopLevelTypesCore(context))
             {
                 AddTopLevelType(names, type);
-                VisitTopLevelType(noPiaIndexer, type);
+                VisitTopLevelType(typeReferenceIndexer, type);
                 yield return type;
             }
 
@@ -521,8 +555,15 @@ namespace Microsoft.CodeAnalysis.Emit
             if (privateImpl != null)
             {
                 AddTopLevelType(names, privateImpl);
-                VisitTopLevelType(noPiaIndexer, privateImpl);
+                VisitTopLevelType(typeReferenceIndexer, privateImpl);
                 yield return privateImpl;
+            }
+
+            foreach (var injected in GetInjectedTypes(context.Diagnostics))
+            {
+                AddTopLevelType(names, injected);
+                VisitTopLevelType(typeReferenceIndexer, injected);
+                yield return injected;
             }
 
             if (EmbeddedTypesManagerOpt != null)
@@ -539,6 +580,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 Debug.Assert(_namesOfTopLevelTypes == null);
                 _namesOfTopLevelTypes = names;
             }
+        }
+
+        protected virtual ImmutableArray<TNamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics)
+        {
+            return ImmutableArray<TNamedTypeSymbol>.Empty;
         }
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
@@ -579,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Emit
             names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
         }
 
-        private static void VisitTopLevelType(Cci.NoPiaReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)
+        private static void VisitTopLevelType(Cci.TypeReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)
         {
             noPiaIndexer?.Visit((Cci.ITypeDefinition)type);
         }
