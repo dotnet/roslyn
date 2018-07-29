@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private class Searcher
         {
             private readonly Solution _solution;
+            private readonly IAsynchronousOperationListener _asyncListener;
+            private readonly IDocumentTrackingService _documentTrackingService;
             private readonly INavigateToItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
@@ -30,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly IImmutableSet<string> _kinds;
             private readonly Document _currentDocument;
             private readonly ProgressTracker _progress;
-            private readonly IAsynchronousOperationListener _asyncListener;
             private readonly CancellationToken _cancellationToken;
 
             public Searcher(
                 Solution solution,
                 IAsynchronousOperationListener asyncListener,
+                IDocumentTrackingService documentTrackingService,
                 INavigateToItemDisplayFactory displayFactory,
                 INavigateToCallback callback,
                 string searchPattern,
@@ -44,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 CancellationToken cancellationToken)
             {
                 _solution = solution;
+                _asyncListener = asyncListener;
+                _documentTrackingService = documentTrackingService;
                 _displayFactory = displayFactory;
                 _callback = callback;
                 _searchPattern = searchPattern;
@@ -51,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _kinds = kinds;
                 _cancellationToken = cancellationToken;
                 _progress = new ProgressTracker((_, current, maximum) => callback.ReportProgress(current, maximum));
-                _asyncListener = asyncListener;
 
                 if (_searchCurrentDocument)
                 {
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         // If the workspace is tracking documents, use that to prioritize our search
                         // order.  That way we provide results for the documents the user is working
                         // on faster than the rest of the solution.
-                        var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+                        var docTrackingService = _documentTrackingService ?? workspace.Services.GetService<IDocumentTrackingService>();
                         if (docTrackingService != null)
                         {
                             await SearchProjectsInPriorityOrder(docTrackingService).ConfigureAwait(false);

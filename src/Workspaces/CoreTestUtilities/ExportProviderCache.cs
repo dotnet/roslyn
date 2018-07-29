@@ -163,6 +163,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static ComposableCatalog WithoutPartsOfTypes(this ComposableCatalog catalog, params Type[] types)
+            => WithoutPartsOfTypes(catalog, (IEnumerable<Type>)types);
+
         public static IExportProviderFactory GetOrCreateExportProviderFactory(ComposableCatalog catalog)
         {
             if (catalog == s_defaultHostCatalog)
