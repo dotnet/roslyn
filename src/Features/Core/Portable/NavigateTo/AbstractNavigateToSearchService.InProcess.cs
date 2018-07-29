@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                                                .ToImmutableArray();
 
             var highPriDocsSet = highPriDocs.ToSet();
-            var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d));
+            var lowPriDocs = project.Documents.Where(d => !highPriDocsSet.Contains(d));
 
             var orderedDocs = highPriDocs.AddRange(lowPriDocs);
 
