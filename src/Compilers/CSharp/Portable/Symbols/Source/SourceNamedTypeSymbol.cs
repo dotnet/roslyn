@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
         private string _lazyDocComment;
+        private string _lazyExpandedDocComment;
 
         private ThreeState _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown;
 
@@ -109,7 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
+            if (expandIncludes)
+            {
+                return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: true, ref _lazyExpandedDocComment);
+            }
+            else
+            {
+                return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: false, ref _lazyDocComment);
+            }
         }
 
         #endregion

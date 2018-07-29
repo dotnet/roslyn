@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxReference _syntaxReference;
 
         private string _lazyDocComment;
+        private string _lazyExpandedDocComment;
         private ConstantValue _lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
         private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
 
@@ -221,7 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
+            if (expandIncludes)
+            {
+                return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: true, ref _lazyExpandedDocComment);
+            }
+            else
+            {
+                return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: false, ref _lazyDocComment);
+            }
         }
 
         internal sealed override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)

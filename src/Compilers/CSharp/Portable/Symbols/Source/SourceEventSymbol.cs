@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SymbolCompletionState _state;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private string _lazyDocComment;
+        private string _lazyExpandedDocComment;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
         private ThreeState _lazyIsWindowsRuntimeEvent = ThreeState.Unknown;
 
@@ -587,7 +588,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
+            if (expandIncludes)
+            {
+                return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: true, ref _lazyExpandedDocComment);
+            }
+            else
+            {
+                return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: false, ref _lazyDocComment);
+            }
         }
 
         protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeWithAnnotations type, AssemblySymbol containingAssembly)
