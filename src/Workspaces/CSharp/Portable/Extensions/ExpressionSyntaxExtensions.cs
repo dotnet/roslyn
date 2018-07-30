@@ -500,11 +500,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var invocation = expression?.GetAncestor<InvocationExpressionSyntax>();
-            if (invocation?.Expression is MemberAccessExpressionSyntax memberAccess &&
-                memberAccess.Name is IdentifierNameSyntax name &&
+            if (invocation?.Expression is IdentifierNameSyntax name &&
                 name.Identifier.Text == SyntaxFacts.GetText(SyntaxKind.NameOfKeyword))
             {
-                return semanticModel.GetMemberGroup(memberAccess, cancellationToken).IsDefaultOrEmpty;
+                return semanticModel.GetMemberGroup(name, cancellationToken).IsDefaultOrEmpty;
             }
 
             return false;

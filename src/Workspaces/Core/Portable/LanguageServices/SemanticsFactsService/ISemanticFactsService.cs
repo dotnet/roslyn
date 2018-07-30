@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
-        bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
         bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
 

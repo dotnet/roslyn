@@ -273,11 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsNameOfContext(position, semanticModel, cancellationToken);
-        }
-
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
