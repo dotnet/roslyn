@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return null;
             }
-            
+
             // At this point, we are going to issue diagnostics and therefore the data shouldn't be
             // uninitialized.
             Debug.Assert(!data.IsUninitialized);
