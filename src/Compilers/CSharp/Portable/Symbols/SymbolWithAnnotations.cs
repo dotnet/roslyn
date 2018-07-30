@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new NonLazyType(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, customModifiers);
         }
 
-        public TypeSymbolWithAnnotations AsNullableReferenceOrValueType(CSharpCompilation compilation)
+        public TypeSymbolWithAnnotations SetIsAnnotated(CSharpCompilation compilation)
         {
             Debug.Assert(compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
             Debug.Assert(CustomModifiers.IsEmpty);
@@ -188,8 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns:
         /// true if annotated;
-        /// false if unannotated and [NonNullTypes(true); and
-        /// null if unannotated and [NonNullTypes(false).
+        /// false if unannotated and [NonNullTypes(true)] and
+        /// null if unannotated and [NonNullTypes(false)].
         /// </summary>
         /// <remarks>
         /// This property considers IsAnnotated and NonNullTypes only. Compare with
@@ -204,7 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return true;
                 }
-                return NonNullTypesContext.NonNullTypes ? false : (bool?)null;
+
+                // A null NonNullTypes (ie. no attribute) means the same as NonNullTypes(false).
+                return NonNullTypesContext.NonNullTypes == true ? false : (bool?)null;
             }
         }
 
@@ -661,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         return true;
                     }
-                    if (NonNullTypesContext.NonNullTypes)
+                    if (NonNullTypesContext.NonNullTypes == true)
                     {
                         return false;
                     }

@@ -1096,7 +1096,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
             ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArguments).Parameters;
-
             for (int i = 0; i < implementationParameters.Length; i++)
             {
                 if (!implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
