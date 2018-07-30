@@ -656,8 +656,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundMultipleLocalDeclarations BindUsingVariableDeclaration(Binder originalBinder, DiagnosticBag diagnostics, bool hasErrors, SyntaxNode node,
-                                                                     VariableDeclarationSyntax declarationSyntax, out Conversion iDisposableConversion, out MethodSymbol disposeMethod)
+        internal BoundMultipleLocalDeclarations BindUsingVariableDeclaration(Binder originalBinder,
+                                                                             DiagnosticBag diagnostics,
+                                                                             bool hasErrors,
+                                                                             SyntaxNode node,
+                                                                             VariableDeclarationSyntax declarationSyntax,
+                                                                             out Conversion iDisposableConversion,
+                                                                             out MethodSymbol disposeMethod)
         {
             TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
             iDisposableConversion = Conversion.NoConversion;
@@ -665,6 +670,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundLocalDeclaration> declarations;
 
             originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
+            Debug.Assert(!declarations.IsEmpty);
+
             TypeSymbol declType = declarations[0].DeclaredType.Type;
 
             if (declType.IsDynamic())
@@ -691,8 +698,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-
-            Debug.Assert(!declarations.IsEmpty);
             return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
         }
 
