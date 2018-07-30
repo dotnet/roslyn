@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BindUsingVariableDeclaration(originalBinder, diagnostics, declarationsOpt, hasErrors, declarationSyntax, out iDisposableConversion, out disposeMethod);
+                declarationsOpt = BindUsingVariableDeclaration(originalBinder, diagnostics, declarationsOpt, hasErrors, declarationSyntax, out iDisposableConversion, out disposeMethod);
             }
 
             BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);

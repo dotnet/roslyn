@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundDeclarations.AsImmutableOrNull();
         }
 
-        internal void BindUsingVariableDeclaration(Binder originalBinder, DiagnosticBag diagnostics, BoundMultipleLocalDeclarations declarationsOpt, bool hasErrors,
+        internal BoundMultipleLocalDeclarations BindUsingVariableDeclaration(Binder originalBinder, DiagnosticBag diagnostics, BoundMultipleLocalDeclarations declarationsOpt, bool hasErrors,
                                                    VariableDeclarationSyntax declarationSyntax, out Conversion iDisposableConversion, out MethodSymbol disposeMethod)
         {
             TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
@@ -701,6 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+            return declarationsOpt;
         }
 
         /// <summary>
