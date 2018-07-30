@@ -18,6 +18,6 @@
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToRazor Include="Microsoft.VisualStudio.LanguageServices.Razor" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
   </ItemGroup>
 </Project>

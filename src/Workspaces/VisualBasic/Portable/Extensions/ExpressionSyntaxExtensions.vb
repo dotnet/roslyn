@@ -1032,13 +1032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                replacementNode = memberAccess.Name
-                replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
-                    .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
-                        memberAccess.Name.Identifier,
-                        semanticModel)) _
-                    .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
-                    .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+                replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
                 issueSpan = memberAccess.Expression.Span
 
                 If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
@@ -1053,6 +1047,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return False
+        End Function
+
+        <Extension>
+        Public Function GetNameWithTriviaMoved(memberAccess As MemberAccessExpressionSyntax,
+                                               semanticModel As SemanticModel) As SimpleNameSyntax
+            Dim replacementNode = memberAccess.Name
+            replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
+                .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
+                    memberAccess.Name.Identifier,
+                    semanticModel)) _
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+
+            Return replacementNode
         End Function
 
         <Extension>

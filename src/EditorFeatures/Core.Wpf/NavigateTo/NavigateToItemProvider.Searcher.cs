@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
             private readonly bool _searchCurrentDocument;
-            private readonly ISet<string> _kinds;
+            private readonly IImmutableSet<string> _kinds;
             private readonly Document _currentDocument;
             private readonly ProgressTracker _progress;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 INavigateToCallback callback,
                 string searchPattern,
                 bool searchCurrentDocument,
-                ISet<string> kinds,
+                IImmutableSet<string> kinds,
                 CancellationToken cancellationToken)
             {
                 _solution = solution;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _searchCurrentDocument = searchCurrentDocument;
                 _kinds = kinds;
                 _cancellationToken = cancellationToken;
-                _progress = new ProgressTracker(callback.ReportProgress);
+                _progress = new ProgressTracker((_, current, maximum) => callback.ReportProgress(current, maximum));
                 _asyncListener = asyncListener;
 
                 if (_searchCurrentDocument)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 {
                     using (cacheService.EnableCaching(project.Id))
                     {
-                        var service = project.LanguageServices.GetService<INavigateToSearchService>();
+                        var service = TryGetNavigateToSearchService(project);
                         if (service != null)
                         {
                             var searchTask = _currentDocument != null
