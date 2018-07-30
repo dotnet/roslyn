@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
                 else
                 {
-                    // We are trying to figure out the projects that directly depend on the project that contains the declaration for 
+                    // We are trying to figure out the projects that directly depend on the project that contains the declaration for
                     // the rename symbol.  Other projects should not be affected by the rename.
                     var relevantProjects = projectIdsOfRenameSymbolDeclaration.Concat(projectIdsOfRenameSymbolDeclaration.SelectMany(p =>
                        solution.GetProjectDependencyGraph().GetProjectsThatDirectlyDependOnThisProject(p))).Distinct();
@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.Rename
         private static bool ShouldRenameOnlyAffectDeclaringProject(ISymbol symbol)
         {
             // Explicit interface implementations can cascade to other projects
-            return symbol.DeclaredAccessibility == Accessibility.Private && !symbol.ExplicitInterfaceImplementations().Any();
+            // check if the symbol is override. https://github.com/dotnet/roslyn/issues/25682
+            return symbol.DeclaredAccessibility == Accessibility.Private && !symbol.ExplicitInterfaceImplementations().Any() && !symbol.IsOverride;
         }
 
         internal static TokenRenameInfo GetTokenRenameInfo(
