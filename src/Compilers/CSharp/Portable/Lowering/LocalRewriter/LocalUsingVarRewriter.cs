@@ -20,12 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
             for (int i = 0; i < statements.Length; i++)
             {
-                if (statements[i] is BoundLocalDeclaration localDeclaration)
+                if (statements[i] is BoundUsingLocalDeclarations localDeclaration)
                 {
-                    if (localDeclaration.LocalSymbol.IsUsing)
-                    {
-                        return LowerBoundLocalDeclarationUsingVar(node, statements);
-                    }
+                    return LowerBoundLocalDeclarationUsingVar(node, statements);
                 }
                 
             }
@@ -45,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < itemCount; i++)
             {
-                if (reversedStatements[i] is BoundLocalDeclaration localDeclaration && !(reversedStatements[i] is BoundReturnStatement) && SwitchBinder.ContainsUsingVariable(reversedStatements[i]))
+                if (reversedStatements[i] is BoundUsingLocalDeclarations localDeclaration && SwitchBinder.ContainsUsingVariable(reversedStatements[i]))
                 {
                     Debug.Assert(!(localDeclaration.IDisposableConversion.Value != default && localDeclaration.DisposeMethodOpt != default));
 
@@ -67,9 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundUsingStatement boundUsing = new BoundUsingStatement(
                         syntax: localDeclaration.Syntax,
                         locals: ImmutableArray<LocalSymbol>.Empty,
-                        declarationsOpt: new BoundMultipleLocalDeclarations(
-                            localDeclaration.Syntax,
-                            ImmutableArray.Create(localDeclaration)),
+                        declarationsOpt: localDeclaration,
                         expressionOpt: null,
                         iDisposableConversion: localDeclaration.IDisposableConversion.Value,
                         disposeMethodOpt: localDeclaration.DisposeMethodOpt,

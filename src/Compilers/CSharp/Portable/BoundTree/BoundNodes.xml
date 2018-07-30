@@ -724,8 +724,6 @@
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
     <Field Name="InitializerOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="ArgumentsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
-    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="Allow"/>
-    <Field Name="IDisposableConversion" Type="Conversion?" Null="Allow"/>
   </Node>
 
   <!--
@@ -736,6 +734,11 @@
   -->
   <Node Name="BoundMultipleLocalDeclarations" Base="BoundStatement">
     <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;"/>
+  </Node>
+
+  <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarations">
+    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="Allow"/>
+    <Field Name="IDisposableConversion" Type="Conversion?" Null="Allow"/>
   </Node>
 
   <!-- 
