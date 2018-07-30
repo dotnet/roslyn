@@ -319,5 +319,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueLocalName
             Return MyBase.GenerateUniqueLocalName(semanticModel, location, containerOpt, baseName, cancellationToken)
         End Function
+
+        Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInsideNameOfExpression
+            Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
+        End Function
     End Class
 End Namespace

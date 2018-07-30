@@ -496,8 +496,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression is IdentifierNameSyntax && expression.Parent is NameColonSyntax;
         }
 
-        public static bool IsInsideNameOf(this ExpressionSyntax expression)
-            => expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
+        public static bool IsInsideNameOfExpression(
+            this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var invocation = expression?.GetAncestor<InvocationExpressionSyntax>();
+            if (invocation?.Expression is MemberAccessExpressionSyntax memberAccess &&
+                memberAccess.Name is IdentifierNameSyntax name &&
+                name.Identifier.Text == SyntaxFacts.GetText(SyntaxKind.NameOfKeyword))
+            {
+                return semanticModel.GetMemberGroup(memberAccess, cancellationToken).IsDefaultOrEmpty;
+            }
+
+            return false;
+        }
 
         private static bool CanReplace(ISymbol symbol)
         {

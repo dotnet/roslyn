@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -144,13 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public bool SupportsParameterizedProperties
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool SupportsParameterizedProperties => false;
 
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
@@ -376,5 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return semanticModel.GetSymbolInfo(node, cancellationToken);
         }
+
+        public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
     }
 }

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 // Wasn't written. This could be a normal read, or used through something
                 // like nameof().
-                return semanticFacts.IsNameOfContext(model, node.SpanStart, cancellationToken)
+                return semanticFacts.IsInsideNameOfExpression(model, node, cancellationToken)
                     ? ImmutableArray<IMethodSymbol>.Empty
                     : ImmutableArray.Create(property.GetMethod);
             }
