@@ -139,6 +139,8 @@
   </Target>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
-  
+  <Target Name="GetBuildVersion" Returns="$(VsixVersion)">
+    <Error Text="Invalid format of OfficialBuildId: '$(OfficialBuildId)'"
+           Condition="$(VersionSuffixDateStamp) != '' and ($(VersionSuffixDateStamp.Length) != 5 or $(VersionSuffixBuildOfTheDayPadded.Length) != 2)"/>
+  </Target>
 </Project>

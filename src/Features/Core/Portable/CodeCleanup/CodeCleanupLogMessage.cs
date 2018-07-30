@@ -7,13 +7,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal static class CodeCleanupLogMessage
     {
-        public static KeyValueLogMessage Create(DocumentOptionSet docOptions)
+        public static KeyValueLogMessage Create(OptionSet optionSet)
         {
             return KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
                 foreach (var option in CodeCleanupOptionsProvider.SingletonOptions)
                 {
-                    m[option.Name] = docOptions.GetOption((PerLanguageOption<bool>)option, LanguageNames.CSharp);
+                    m[option.Name] = optionSet.GetOption((PerLanguageOption<bool>)option, LanguageNames.CSharp);
                 }
             });
         }
