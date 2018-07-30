@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
-        <target state="new">Applying changes</target>
+        <target state="translated">Применение изменений</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">

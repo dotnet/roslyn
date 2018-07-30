@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
-        <target state="new">Perform additional code cleanup during formatting</target>
+        <target state="translated">서식을 지정하는 동안 추가 코드 정리 수행</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">

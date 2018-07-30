@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
-        <target state="new">Perform additional code cleanup during formatting</target>
+        <target state="translated">Zusätzliche Codebereinigung während der Formatierung durchführen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
