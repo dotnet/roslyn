@@ -432,6 +432,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change configuration.
+        /// </summary>
+        internal static string Change_configuration {
+            get {
+                return ResourceManager.GetString("Change_configuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change Signature.
         /// </summary>
         internal static string Change_Signature {
@@ -797,6 +806,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Format_Document {
             get {
                 return ResourceManager.GetString("Format_Document", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format Document performed additional cleanup.
+        /// </summary>
+        internal static string Format_document_performed_additional_cleanup {
+            get {
+                return ResourceManager.GetString("Format_document_performed_additional_cleanup", resourceCulture);
             }
         }
         
