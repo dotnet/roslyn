@@ -1,0 +1,7 @@
+use vs
+
+package name=Microsoft.CodeAnalysis.ExpressionEvaluator.Resources
+        version=$(Version)
+        vs.package.language=$(LangCountry)
+
+# No files to work around bug #239676

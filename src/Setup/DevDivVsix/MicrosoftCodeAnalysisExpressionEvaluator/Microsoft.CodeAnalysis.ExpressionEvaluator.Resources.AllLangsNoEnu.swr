@@ -1,0 +1,3 @@
+folder "InstallDir:\Common7\IDE\CommonExtensions\Microsoft\ManagedLanguages\VBCSharp\ExpressionEvaluators\$(Culture)"
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.ResultProvider\$(Culture)\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\$(Culture)\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.resources.dll

@@ -14,6 +14,7 @@
   </Installation>
   <Dependencies>
     <Dependency Version="[|VisualStudioSetup;GetBuildVersion|,]" DisplayName="Roslyn Language Services" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
+    <Dependency Id="Microsoft.CodeAnalysis.ExpressionEvaluator.Resources" DisplayName="Roslyn Expression Evaluators Resources" d:Source="Manual" Version="|%CurrentProject%;GetBuildVersion|" />
   </Dependencies>
   <Assets>
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="BasicExpressionCompiler" Path="|BasicExpressionCompiler;VsdConfigOutputGroup|" />

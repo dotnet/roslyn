@@ -136,6 +136,7 @@
       "strongName": null,
       "values": [
         "Vsix\\ExpressionEvaluatorPackage\\ExpressionEvaluatorPackage.vsix",
+        "Vsix\\ExpressionEvaluatorPackage\\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.*.vsix",
         "Vsix\\Roslyn.Compilers.Extension\\Roslyn.Compilers.Extension.vsix",
         "Vsix\\Roslyn.VisualStudio.DiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\\Roslyn.VisualStudio.InteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.vsix",
