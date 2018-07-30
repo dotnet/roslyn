@@ -16,13 +16,14 @@
     <OutputType>Library</OutputType>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecFile></NuspecFile>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <Target Name="_InitializeNuspecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="InitializeSourceControlInformation">
     <PropertyGroup>
       <_Version></_Version>
-      <_Version Condition="'$(NuGetPackageKind)' == 'release'">$(NuGetReleaseVersion)</_Version>
-      <_Version Condition="'$(NuGetPackageKind)' == 'prerelease'">$(NuGetPreReleaseVersion)</_Version>
-      <_Version Condition="'$(NuGetPackageKind)' == 'perbuildprerelease'">$(NuGetPerBuildPreReleaseVersion)</_Version>
+      <_Version Condition="'$(NuGetPackageKind)' == 'release'">$(VersionPrefix)</_Version>
+      <_Version Condition="'$(NuGetPackageKind)' == 'prerelease'">$(VersionPrefix)-$(PreReleaseVersionLabel)</_Version>
+      <_Version Condition="'$(NuGetPackageKind)' == 'perbuildprerelease'">$(VersionPrefix)-$(PreReleaseVersionLabel)-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_Version>
       <_Version Condition="'$(NuGetPackageKind)' == 'bootstrap'">42.42.42.42-bootstrap</_Version>
       <_CommitPathMessage>This an unofficial build from a developer's machine.</_CommitPathMessage>
       <_CommitPathMessage Condition="'$(ContinuousIntegrationBuild)' == 'true'">This package was built from the source at https://github.com/dotnet/roslyn/commit/$(SourceRevisionId).</_CommitPathMessage>
