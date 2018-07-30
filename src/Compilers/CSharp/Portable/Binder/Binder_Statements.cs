@@ -613,8 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol declType = BindVariableType(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
             Conversion iDisposableConversion = default;
             MethodSymbol disposeMethod = default;
-
-            // UNDONE: "possible expression" feature for IDE
+            ImmutableArray<BoundLocalDeclaration> boundDeclarations = ImmutableArray<BoundLocalDeclaration>.Empty;
 
             LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
             if (isConst)
@@ -624,18 +623,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (node.UsingKeyword != default)
             {
                 kind = LocalDeclarationKind.UsingVariable;
-                BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
-                int i = 0;
-                foreach (var variableDeclaratorSyntax in variableList)
-                {
-                    boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclaratorSyntax, typeSyntax, declType, alias, diagnostics);
-                }
-
+                boundDeclarations = GetBoundLocalDeclarationImmutableArray(kind, isVar, typeSyntax, declType, alias, diagnostics, variableCount, variableList);
                 BindUsingVariableDeclaration(this,
                                              diagnostics,
                                              new BoundMultipleLocalDeclarations(
                                                  node,
-                                                 boundDeclarations.AsImmutableOrNull()),
+                                                 boundDeclarations),
                                              diagnostics.HasAnyErrors(),
                                              node.Declaration,
                                              out iDisposableConversion,
@@ -648,16 +641,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
-
-                int i = 0;
-                foreach (var variableDeclaratorSyntax in variableList)
+                if (node.UsingKeyword == default)
                 {
-                    boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclaratorSyntax, typeSyntax, declType, alias, diagnostics);
+                    boundDeclarations = GetBoundLocalDeclarationImmutableArray(kind, isVar, typeSyntax, declType, alias, diagnostics, variableCount, variableList);
                 }
-
-                return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
+                return new BoundMultipleLocalDeclarations(node, boundDeclarations);
             }
+        }
+
+        private ImmutableArray<BoundLocalDeclaration> GetBoundLocalDeclarationImmutableArray(LocalDeclarationKind kind, bool isVar, TypeSyntax typeSyntax, TypeSymbol declType,
+                                                                                             AliasSymbol alias, DiagnosticBag diagnostics, int variableCount, 
+                                                                                             SeparatedSyntaxList<VariableDeclaratorSyntax> variableList)
+        {
+            BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
+            int i = 0;
+            foreach (var variableDeclarationSyntax in variableList)
+            {
+                boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclarationSyntax, typeSyntax, declType, alias, diagnostics);
+            }
+            return boundDeclarations.AsImmutableOrNull();
         }
 
         internal void BindUsingVariableDeclaration(Binder originalBinder, DiagnosticBag diagnostics, BoundMultipleLocalDeclarations declarationsOpt, bool hasErrors,
