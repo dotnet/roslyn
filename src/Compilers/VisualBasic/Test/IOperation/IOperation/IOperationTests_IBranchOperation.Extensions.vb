@@ -13,6 +13,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
+        Public Sub GetCorrespondingLoop_ForNull_ThrowsArgumentNullException()
+            Assert.ThrowsAny(Of ArgumentNullException)(Function() OperationExtensions.GetCorrespondingLoop(Nothing))
+        End Sub
+        
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
+        <Fact>
+        Public Sub GetCorrespondingSwitch_ForNull_ThrowsArgumentNullException()
+            Assert.ThrowsAny(Of ArgumentNullException)(Function() OperationExtensions.GetCorrespondingSwitch(Nothing))
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
+        <Fact>
+        Public Sub GetCorrespondingLoop_ForGotoBranch_ThrowsInvalidOperationException()
+            Dim source = <![CDATA[
+Class C
+    Sub F
+begin:
+        For i = 0 To 1
+            GoTo begin 'BIND:"GoTo begin"
+        Next
+    End Sub
+End Class
+]]>.Value
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(source, fileName)
+            Dim compilation = CreateEmptyCompilation({syntaxTree})
+
+            Dim result = GetOperationAndSyntaxForTest(Of GoToStatementSyntax)(compilation, fileName)
+            Dim branch = TryCast(result.operation, IBranchOperation)
+
+            Dim ex = Assert.ThrowsAny(Of InvalidOperationException)(Function() branch.GetCorrespondingLoop())
+            Assert.Equal("Invalid branch kind. Finding a corresponding loop requires 'break' or 'continue' kinds, " +
+                         "but the current branch kind provided is 'GoTo'.", ex.Message)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
+        <Fact>
+        Public Sub GetCorrespondingSwitch_ForContinueBranch_ThrowsInvalidOperationException()
+            Dim source = <![CDATA[
+Class C
+    Sub F
+        For i = 0 To 1
+            Select Case 2
+                Case 2
+                    Continue For 'BIND:"Continue For"
+            End Select
+        Next
+    End Sub
+End Class
+]]>.Value
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(source, fileName)
+            Dim compilation = CreateEmptyCompilation({syntaxTree})
+
+            Dim result = GetOperationAndSyntaxForTest(Of ContinueStatementSyntax)(compilation, fileName)
+            Dim branch = TryCast(result.operation, IBranchOperation)
+
+            Dim ex = Assert.ThrowsAny(Of InvalidOperationException)(Function() branch.GetCorrespondingSwitch())
+            Assert.Equal("Invalid branch kind. Finding a corresponding switch requires 'break' kind, but the current " +
+                         "branch kind provided is 'Continue'.", ex.Message)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
+        <Fact>
         Public Sub GetCorrespondingLoop_ForLoopWithExit()
             AssertOuterIsCorrespondingLoopOfInner(Of ForBlockSyntax, ExitStatementSyntax)(
             <![CDATA[
@@ -351,10 +421,8 @@ End Class
             source As string, findCorresponding As Func(Of IBranchOperation, IOperation)) As (outer As IOperation, corresponding As IOperation)
 
             Dim fileName = "a.vb"
-            Dim parseOptions = TestOptions.RegularWithFlowAnalysisFeature
-            Dim syntaxTree = Parse(source, fileName, parseOptions)
-            Dim references As IEnumerable(Of MetadataReference) = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(MsvbRef_v4_0_30319_17929)
-            Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll)
+            Dim syntaxTree = Parse(source, fileName)
+            Dim compilation = CreateEmptyCompilation({syntaxTree})
 
             Dim holder As (operation As IOperation, node As SyntaxNode)
             holder = GetOperationAndSyntaxForTest(Of TOuterSyntax)(compilation, fileName, 1)
