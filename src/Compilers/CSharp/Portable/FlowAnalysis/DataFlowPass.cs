@@ -1561,7 +1561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ITuplePattern:
                     {
                         var pat = (BoundITuplePattern)pattern;
-                        foreach (var subpat in pat.Deconstruction)
+                        foreach (var subpat in pat.Subpatterns)
                         {
                             AssignPatternVariables(subpat.Pattern);
                         }

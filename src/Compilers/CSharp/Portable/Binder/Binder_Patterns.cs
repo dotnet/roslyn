@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+            if (Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
             {
                 return false;
             }

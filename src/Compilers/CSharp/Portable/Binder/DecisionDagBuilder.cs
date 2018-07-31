@@ -300,11 +300,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundPatternBinding> bindings)
         {
             var syntax = pattern.Syntax;
-            var patternLength = pattern.Deconstruction.Length;
+            var patternLength = pattern.Subpatterns.Length;
             var objectType = this._compilation.GetSpecialType(SpecialType.System_Object);
-            var getLengthProperty = (PropertySymbol)pattern.getLengthMethod.AssociatedSymbol;
+            var getLengthProperty = (PropertySymbol)pattern.GetLengthMethod.AssociatedSymbol;
             Debug.Assert(getLengthProperty.Type.SpecialType == SpecialType.System_Int32);
-            var getItemProperty = (PropertySymbol)pattern.getItemMethod.AssociatedSymbol;
+            var getItemProperty = (PropertySymbol)pattern.GetItemMethod.AssociatedSymbol;
             var iTupleType = getLengthProperty.ContainingType;
             Debug.Assert(iTupleType.Name == "ITuple");
 
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, valueAsITuple);
                 tests.Add(indexEvaluation);
                 var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation, 0);
-                MakeTestsAndBindings(indexTemp, pattern.Deconstruction[i].Pattern, tests, bindings);
+                MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, tests, bindings);
             }
         }
 

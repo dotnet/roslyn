@@ -6825,37 +6825,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundITuplePattern : BoundPattern
     {
-        public BoundITuplePattern(SyntaxNode syntax, MethodSymbol getLengthMethod, MethodSymbol getItemMethod, ImmutableArray<BoundSubpattern> deconstruction, TypeSymbol inputType, bool hasErrors = false)
-            : base(BoundKind.ITuplePattern, syntax, inputType, hasErrors || deconstruction.HasErrors())
+        public BoundITuplePattern(SyntaxNode syntax, MethodSymbol getLengthMethod, MethodSymbol getItemMethod, ImmutableArray<BoundSubpattern> subpatterns, TypeSymbol inputType, bool hasErrors = false)
+            : base(BoundKind.ITuplePattern, syntax, inputType, hasErrors || subpatterns.HasErrors())
         {
 
             Debug.Assert(getLengthMethod != null, "Field 'getLengthMethod' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(getItemMethod != null, "Field 'getItemMethod' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(!deconstruction.IsDefault, "Field 'deconstruction' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!subpatterns.IsDefault, "Field 'subpatterns' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.getLengthMethod = getLengthMethod;
-            this.getItemMethod = getItemMethod;
-            this.Deconstruction = deconstruction;
+            this.GetLengthMethod = getLengthMethod;
+            this.GetItemMethod = getItemMethod;
+            this.Subpatterns = subpatterns;
         }
 
 
-        public MethodSymbol getLengthMethod { get; }
+        public MethodSymbol GetLengthMethod { get; }
 
-        public MethodSymbol getItemMethod { get; }
+        public MethodSymbol GetItemMethod { get; }
 
-        public ImmutableArray<BoundSubpattern> Deconstruction { get; }
+        public ImmutableArray<BoundSubpattern> Subpatterns { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitITuplePattern(this);
         }
 
-        public BoundITuplePattern Update(MethodSymbol getLengthMethod, MethodSymbol getItemMethod, ImmutableArray<BoundSubpattern> deconstruction, TypeSymbol inputType)
+        public BoundITuplePattern Update(MethodSymbol getLengthMethod, MethodSymbol getItemMethod, ImmutableArray<BoundSubpattern> subpatterns, TypeSymbol inputType)
         {
-            if (getLengthMethod != this.getLengthMethod || getItemMethod != this.getItemMethod || deconstruction != this.Deconstruction || inputType != this.InputType)
+            if (getLengthMethod != this.GetLengthMethod || getItemMethod != this.GetItemMethod || subpatterns != this.Subpatterns || inputType != this.InputType)
             {
-                var result = new BoundITuplePattern(this.Syntax, getLengthMethod, getItemMethod, deconstruction, inputType, this.HasErrors);
+                var result = new BoundITuplePattern(this.Syntax, getLengthMethod, getItemMethod, subpatterns, inputType, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9744,7 +9744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
-            this.VisitList(node.Deconstruction);
+            this.VisitList(node.Subpatterns);
             return null;
         }
         public override BoundNode VisitSubpattern(BoundSubpattern node)
@@ -10773,9 +10773,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
-            ImmutableArray<BoundSubpattern> deconstruction = (ImmutableArray<BoundSubpattern>)this.VisitList(node.Deconstruction);
+            ImmutableArray<BoundSubpattern> subpatterns = (ImmutableArray<BoundSubpattern>)this.VisitList(node.Subpatterns);
             TypeSymbol inputType = this.VisitType(node.InputType);
-            return node.Update(node.getLengthMethod, node.getItemMethod, deconstruction, inputType);
+            return node.Update(node.GetLengthMethod, node.GetItemMethod, subpatterns, inputType);
         }
         public override BoundNode VisitSubpattern(BoundSubpattern node)
         {
@@ -12550,9 +12550,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("iTuplePattern", null, new TreeDumperNode[]
             {
-                new TreeDumperNode("getLengthMethod", node.getLengthMethod, null),
-                new TreeDumperNode("getItemMethod", node.getItemMethod, null),
-                new TreeDumperNode("deconstruction", null, from x in node.Deconstruction select Visit(x, null)),
+                new TreeDumperNode("getLengthMethod", node.GetLengthMethod, null),
+                new TreeDumperNode("getItemMethod", node.GetItemMethod, null),
+                new TreeDumperNode("subpatterns", null, from x in node.Subpatterns select Visit(x, null)),
                 new TreeDumperNode("inputType", node.InputType, null)
             }
             );

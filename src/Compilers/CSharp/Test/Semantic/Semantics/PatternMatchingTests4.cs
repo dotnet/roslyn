@@ -438,6 +438,60 @@ public class C : ITuple
         }
 
         [Fact]
+        public void ITuple_06b()
+        {
+            // - should not match when input type extends ITuple and has Deconstruct (type parameter)
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+public class C : ITuple
+{
+    int ITuple.Length => 3;
+    object ITuple.this[int i] => i + 3;
+    public static void Main()
+    {
+        M(new C());
+    }
+    public static void M<T>(T t) where T: C
+    {
+        Console.WriteLine(t is (3, 4)); // false
+        Console.WriteLine(t is (3, 4, 5)); // TRUE
+        Console.WriteLine(t is (3, 0, 5)); // false
+        Console.WriteLine(t is (3, 4, 5, 6)); // false
+    }
+    public int Deconstruct() => 0;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,32): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
+                //         Console.WriteLine(t is (3, 4)); // false
+                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4)").WithArguments("Deconstruct", "2").WithLocation(13, 32),
+                // (13,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 2 out parameters and a void return type.
+                //         Console.WriteLine(t is (3, 4)); // false
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("T", "2").WithLocation(13, 32),
+                // (14,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
+                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
+                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5)").WithArguments("Deconstruct", "3").WithLocation(14, 32),
+                // (14,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
+                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("T", "3").WithLocation(14, 32),
+                // (15,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
+                //         Console.WriteLine(t is (3, 0, 5)); // false
+                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 0, 5)").WithArguments("Deconstruct", "3").WithLocation(15, 32),
+                // (15,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
+                //         Console.WriteLine(t is (3, 0, 5)); // false
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("T", "3").WithLocation(15, 32),
+                // (16,32): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
+                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
+                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5, 6)").WithArguments("Deconstruct", "4").WithLocation(16, 32),
+                // (16,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 4 out parameters and a void return type.
+                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("T", "4").WithLocation(16, 32)
+                );
+        }
+
+        [Fact]
         public void ITuple_07()
         {
             // - should not match when input type extends ITuple and has Deconstruct (inherited)
@@ -658,6 +712,43 @@ public class C : System.Runtime.CompilerServices.ITuple
                 //         Console.WriteLine(t is (3, 4, 5));
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("object", "3").WithLocation(17, 32)
                 );
+        }
+
+        [Fact]
+        public void ObsoleteITuple()
+        {
+            var source =
+@"using System;
+namespace System.Runtime.CompilerServices
+{
+    [Obsolete(""WarningOnly"")]
+    public interface ITuple
+    {
+        int Length { get; }
+        object this[int index] { get; }
+    }
+}
+public class C : System.Runtime.CompilerServices.ITuple
+{
+    int System.Runtime.CompilerServices.ITuple.Length => 3;
+    object System.Runtime.CompilerServices.ITuple.this[int i] => i + 3;
+    public static void Main()
+    {
+        object t = new C();
+        Console.WriteLine(t is (3, 4, 5));
+    }
+}
+";
+            // Use a version of the platform APIs that lack ITuple
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+
+            compilation.VerifyDiagnostics(
+                // (11,18): warning CS0618: 'ITuple' is obsolete: 'WarningOnly'
+                // public class C : System.Runtime.CompilerServices.ITuple
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "System.Runtime.CompilerServices.ITuple").WithArguments("System.Runtime.CompilerServices.ITuple", "WarningOnly").WithLocation(11, 18)
+                );
+            var expectedOutput = @"True";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

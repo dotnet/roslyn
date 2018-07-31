@@ -563,15 +563,14 @@ namespace System
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
-                    // Not yet in the platform.
+                        // Not yet in the platform.
+                        continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
+                    case WellKnownType.System_Runtime_CompilerServices_ITuple:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
                         // Not a real type
-                        continue;
-                    case WellKnownType.System_Runtime_CompilerServices_ITuple:
-                        // Not available on any platform profiles yet
                         continue;
                 }
 

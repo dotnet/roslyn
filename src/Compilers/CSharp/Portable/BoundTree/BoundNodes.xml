@@ -1783,9 +1783,9 @@
   </Node>
 
   <Node Name="BoundITuplePattern" Base="BoundPattern">
-    <Field Name="getLengthMethod" Type="MethodSymbol" Null="disallow"/>
-    <Field Name="getItemMethod" Type="MethodSymbol" Null="disallow"/>
-    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="disallow"/>
+    <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="disallow"/>
   </Node>
 
   <!-- A subpattern, either in a positional or property part of a recursive pattern. -->
