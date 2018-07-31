@@ -6162,6 +6162,31 @@ End Class
             End Using
         End Sub
 
+        <WorkItem(25655, "https://github.com/dotnet/roslyn/issues/25655")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameClassWithNoCompilationProjectReferencingProject()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="NoCompilation" CommonReferences="false">
+                        <ProjectReference>CSharpProject</ProjectReference>
+                        <Document>
+                            // a no-compilation document
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+                        <Document>
+                            public class [|$$A|]
+                            {
+                                public [|A|]()
+                                {
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="B")
+            End Using
+        End Sub
+
 #Region "Rename in strings/comments"
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>

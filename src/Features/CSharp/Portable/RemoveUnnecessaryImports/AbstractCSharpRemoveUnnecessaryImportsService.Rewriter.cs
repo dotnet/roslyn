@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 SyntaxList<UsingDirectiveSyntax> oldUsings,
                 SyntaxList<UsingDirectiveSyntax> newUsings)
             {
-                Contract.Requires(oldUsings.Count == newUsings.Count);
+                Debug.Assert(oldUsings.Count == newUsings.Count);
 
                 var result = new HashSet<UsingDirectiveSyntax>();
                 for (int i = 0; i < oldUsings.Count; i++)

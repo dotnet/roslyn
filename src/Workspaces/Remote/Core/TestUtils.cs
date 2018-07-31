@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
         {
             if (!project.State.TryGetStateChecksums(out var projectChecksums))
             {
-                Contract.Requires(!RemoteSupportedLanguages.IsSupported(project.Language));
+                Debug.Assert(!RemoteSupportedLanguages.IsSupported(project.Language));
                 return;
             }
 
