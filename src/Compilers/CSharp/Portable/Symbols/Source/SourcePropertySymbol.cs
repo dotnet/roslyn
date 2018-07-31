@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (syntax.Kind() == SyntaxKind.IndexerDeclaration) ? ((IndexerDeclarationSyntax)syntax).ParameterList : null;
         }
 
-        public override bool NonNullTypes
+        public override bool? NonNullTypes
         {
             get
             {

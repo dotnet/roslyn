@@ -91,12 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasSpecialName { get; }
 
-        public override bool NonNullTypes
+        public override bool? NonNullTypes
         {
             get
             {
                 Debug.Assert(IsDefinition);
-                return ContainingType?.NonNullTypes == true;
+                return ContainingType?.NonNullTypes;
             }
         }
 

@@ -3846,6 +3846,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
         {
+            if (this._member.NonNullTypes == null)
+            {
+                // PROTOTYPE(NullableReferenceTypes): consider reporting this warning in binding like we do for misused ? annotation.
+                Diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContext, node.Syntax.GetLocation());
+            }
+
             base.VisitSuppressNullableWarningExpression(node);
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?

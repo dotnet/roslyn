@@ -960,25 +960,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
 
-        public override bool NonNullTypes
+        public override bool? NonNullTypes
         {
             get
             {
-                switch (MethodKind)
-                {
-                    case MethodKind.PropertyGet:
-                    case MethodKind.PropertySet:
-                    case MethodKind.EventAdd:
-                    case MethodKind.EventRemove:
-                        var propertyOrEvent = AssociatedSymbol;
-                        if ((object)propertyOrEvent != null)
-                        {
-                            return propertyOrEvent.NonNullTypes;
-                        }
-                        break;
-                }
-
-                return ContainingType?.NonNullTypes == true;
+                return (AssociatedSymbol ?? ContainingType)?.NonNullTypes;
             }
         }
 

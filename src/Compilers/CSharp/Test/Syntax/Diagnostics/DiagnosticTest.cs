@@ -279,6 +279,7 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullAsNonNullable:
                         case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
+                        case ErrorCode.WRN_MissingNonNullTypesContext:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

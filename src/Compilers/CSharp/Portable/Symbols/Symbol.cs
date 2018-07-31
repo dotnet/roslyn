@@ -839,6 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Is module/type/method/field/property/event/parameter definition opted-in/out of treating un-annotated types as non-null.
         /// This is determined by the presence of the `[NonNullTypes]` attribute.
+        /// Returns null if no attribute was set.
         /// Not valid to call on non-definitions.
         ///
         /// To avoid cycles, this property should not be accessed directly, except in its overrides (fall back to parent).
@@ -846,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="TypeSymbolWithAnnotations.IsAnnotatedWithNonNullTypesContext"/>, which delay its evaluation using
         /// <see cref="INonNullTypesContext"/>.
         /// </summary>
-        public virtual bool NonNullTypes
+        public virtual bool? NonNullTypes
         {
             get
             {

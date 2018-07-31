@@ -156,7 +156,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)attributeConstructor != null)
             {
-                ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
+                if (attributeConstructor.ContainingType == Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute))
+                {
+                    // Ignore Obsolete error for NonNullTypes, and produce a specific error for required language version instead.
+                    if (Compilation.LanguageVersion < MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())
+                    {
+                        // PROTOTYPE(NullableReferenceTypes): this error code should trigger UpgradeProject
+                        Error(diagnostics, ErrorCode.ERR_NonNullTypesNotAvailable, node,
+                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureStaticNullChecking.RequiredVersion()));
+                    }
+                }
+                else
+                {
+                    ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
+                }
             }
 
             if (attributeConstructor?.Parameters.Any(p => p.RefKind == RefKind.In) == true)
