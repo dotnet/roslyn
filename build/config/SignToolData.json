@@ -116,9 +116,11 @@
         "Dlls\\Microsoft.CodeAnalysis.ExpressionCompiler\\Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll",
         "Dlls\\Microsoft.CodeAnalysis.FunctionResolver\\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll",
         "Dlls\\Microsoft.CodeAnalysis.ResultProvider\\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll",
+        "Dlls\\Microsoft.CodeAnalysis.ResultProvider\\*\\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.resources.dll",
         "Dlls\\Microsoft.CodeAnalysis.CSharp.ExpressionCompiler\\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll",
         "Dlls\\Microsoft.CodeAnalysis.CSharp.ResultProvider\\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll",
         "Dlls\\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll",
+        "Dlls\\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\\*\\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.resources.dll",
         "Dlls\\Microsoft.CodeAnalysis.VisualBasic.ResultProvider\\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll"
       ]
     },
@@ -127,6 +129,7 @@
       "strongName": "MsSharedLib72",
       "values": [
         "Dlls\\ResultProvider.NetFX20\\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll",
+        "Dlls\\ResultProvider.NetFX20\\*\\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.resources.dll",
         "Dlls\\CSharpResultProvider.NetFX20\\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll",
         "Dlls\\BasicResultProvider.NetFX20\\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll"
       ]
