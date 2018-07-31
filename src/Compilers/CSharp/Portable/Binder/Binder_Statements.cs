@@ -608,9 +608,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int variableCount = variableList.Count;
 
             bool isConst = node.IsConst;
-            bool IsUsing = node.UsingKeyword != default;
-            bool IsMultiple = variableCount > 1;
-
             var typeSyntax = node.Declaration.Type.SkipRef(out _);
             bool isVar;
             AliasSymbol alias;
@@ -624,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 kind = LocalDeclarationKind.Constant;
             }
-            if (IsUsing)
+            if (node.UsingKeyword != default)
             {
                 kind = LocalDeclarationKind.UsingVariable;
                 var declarations = BindUsingVariableDeclaration(
@@ -636,11 +633,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     out iDisposableConversion,
                                                     out disposeMethod);
                 return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
-
             }
             else
             {
-                if (IsMultiple)
+                if (variableCount > 1)
                 {
                     BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
                     int i = 0;
@@ -665,7 +661,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                              out Conversion iDisposableConversion,
                                                                              out MethodSymbol disposeMethod)
         {
-            TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
             iDisposableConversion = Conversion.NoConversion;
             disposeMethod = null;
             ImmutableArray<BoundLocalDeclaration> declarations;
@@ -682,6 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
                 iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
@@ -699,7 +695,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return declarations;
-            //return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
         }
 
         /// <summary>
