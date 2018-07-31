@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
-        private TypeSymbolWithAnnotationsBuilder _lazyType;
+        private TypeSymbolWithAnnotations.Builder _lazyType;
         private SyntaxReference _typeSyntax;
 
         internal GlobalExpressionVariable(

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private readonly TypeSyntax _typeSyntax;
         private readonly LocalDeclarationKind _declarationKind;
-        private TypeSymbolWithAnnotationsBuilder _type;
+        private TypeSymbolWithAnnotations.Builder _type;
 
         /// <summary>
         /// Scope to which the local can "escape" via aliasing/ref assignment.

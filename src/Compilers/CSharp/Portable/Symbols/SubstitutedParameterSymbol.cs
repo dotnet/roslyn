@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var mapOrType = _mapOrType;
-                if (mapOrType is TypeSymbolWithAnnotations)
+                if (mapOrType is TypeSymbolWithAnnotations type)
                 {
-                    return (TypeSymbolWithAnnotations)mapOrType;
+                    return type;
                 }
 
                 TypeSymbolWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.Type);
