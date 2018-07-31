@@ -4,29 +4,31 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class TypeConversions : ConversionsBase
     {
         public TypeConversions(AssemblySymbol corLibrary)
-            : this(corLibrary, currentRecursionDepth: 0, includeNullability: false)
+            : this(corLibrary, currentRecursionDepth: 0, includeNullability: false, otherNullabilityOpt: null)
         {
         }
 
-        private TypeConversions(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability)
-            : base(corLibrary, currentRecursionDepth, includeNullability)
+        private TypeConversions(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability, TypeConversions otherNullabilityOpt)
+            : base(corLibrary, currentRecursionDepth, includeNullability, otherNullabilityOpt)
         {
         }
 
         protected override ConversionsBase CreateInstance(int currentRecursionDepth)
         {
-            return new TypeConversions(this.corLibrary, currentRecursionDepth, IncludeNullability);
+            return new TypeConversions(this.corLibrary, currentRecursionDepth, IncludeNullability, otherNullabilityOpt: null);
         }
 
-        internal override ConversionsBase WithNullability(bool includeNullability)
+        protected override ConversionsBase WithNullabilityCore(bool includeNullability)
         {
-            return (IncludeNullability == includeNullability) ? this : new TypeConversions(corLibrary, currentRecursionDepth, includeNullability);
+            Debug.Assert(IncludeNullability != includeNullability);
+            return new TypeConversions(corLibrary, currentRecursionDepth, includeNullability, this);
         }
 
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

@@ -918,7 +918,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var constraintType in constraintTypes)
             {
-                // PROTOTYPE(NullableReferenceTypes): Conversions should cache version without IncludeNullability.
                 if (SatisfiesConstraintType(conversions.WithNullability(false), typeArgument, constraintType, ref useSiteDiagnostics))
                 {
                     if (warningsBuilderOpt != null)

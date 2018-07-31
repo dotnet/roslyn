@@ -20,16 +20,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly bool IncludeNullability;
 
-        protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability)
+        private ConversionsBase _lazyOtherNullability;
+
+        protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability, ConversionsBase otherNullabilityOpt)
         {
             Debug.Assert((object)corLibrary != null);
+            Debug.Assert(otherNullabilityOpt == null || includeNullability == !otherNullabilityOpt.IncludeNullability);
+            Debug.Assert(otherNullabilityOpt == null || currentRecursionDepth == otherNullabilityOpt.currentRecursionDepth);
 
             this.corLibrary = corLibrary;
             this.currentRecursionDepth = currentRecursionDepth;
             IncludeNullability = includeNullability;
+            _lazyOtherNullability = otherNullabilityOpt;
         }
 
-        internal abstract ConversionsBase WithNullability(bool includeNullability);
+        internal ConversionsBase WithNullability(bool includeNullability)
+        {
+            if (IncludeNullability == includeNullability)
+            {
+                return this;
+            }
+            if (_lazyOtherNullability == null)
+            {
+                _lazyOtherNullability = WithNullabilityCore(includeNullability);
+            }
+            Debug.Assert(_lazyOtherNullability.IncludeNullability == includeNullability);
+            Debug.Assert(_lazyOtherNullability._lazyOtherNullability == this);
+            return _lazyOtherNullability;
+        }
+
+        protected abstract ConversionsBase WithNullabilityCore(bool includeNullability);
 
         public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
