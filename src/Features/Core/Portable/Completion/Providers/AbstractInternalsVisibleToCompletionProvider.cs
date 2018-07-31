@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
+                if (IsProjectTypeUnsupported(project))
+                {
+                    continue;
+                }
+
                 if (allInternalsVisibleToAttributesOfProject.Contains(project.AssemblyName))
                 {
                     continue;
@@ -144,6 +149,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.AddItem(completionItem);
             }
         }
+
+        private static bool IsProjectTypeUnsupported(Project project)
+            => !project.SupportsCompilation;
 
         private async Task<IImmutableSet<string>> GetAllInternalsVisibleToAssemblyNamesOfProjectAsync(CompletionContext completionContext, CancellationToken cancellationToken)
         {

@@ -11369,7 +11369,7 @@ public class X
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Scope_Query_01()
         {
             var source =
@@ -12667,7 +12667,7 @@ public class X
             VerifyModelForOutVarWithoutDataFlow(model, y4Decl, y4Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Query_01()
         {
             var source =
@@ -19347,7 +19347,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_01()
         {
             var text = @"
@@ -19386,7 +19386,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_02()
         {
             var text = @"
@@ -19425,7 +19425,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_03()
         {
             var text = @"
@@ -33941,7 +33941,7 @@ public class C
         }
 
         [WorkItem(19382, "https://github.com/dotnet/roslyn/issues/19382")]
-        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void DiscardAndArgList()
         {
             var text = @"

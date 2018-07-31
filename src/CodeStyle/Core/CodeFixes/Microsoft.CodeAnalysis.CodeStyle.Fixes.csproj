@@ -18,9 +18,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CodeStyle.Tests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Tests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Tests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.Tests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Tests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Tests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CodeStyleFixesResources.Designer.cs">

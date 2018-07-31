@@ -18,7 +18,7 @@
     <LibGit2SharpVersion>0.22.0</LibGit2SharpVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
-    <MicroBuildPluginsSwixBuildVersion>1.0.295</MicroBuildPluginsSwixBuildVersion>
+    <MicroBuildPluginsSwixBuildVersion>1.0.422</MicroBuildPluginsSwixBuildVersion>
     <MicrosoftAzureKeyVaultVersion>2.0.6</MicrosoftAzureKeyVaultVersion>
     <MicrosoftBuildVersion>15.1.0-preview-000458-02</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.1.0-preview-000458-02</MicrosoftBuildFrameworkVersion>
@@ -71,7 +71,7 @@
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>
     <MicrosoftServiceHubClientVersion>1.1.122-rc</MicrosoftServiceHubClientVersion>
-    <MicrosoftSourceLinkVersion>1.0.0-beta-63001-01</MicrosoftSourceLinkVersion>
+    <MicrosoftSourceLinkVersion>1.0.0-beta-63119-01</MicrosoftSourceLinkVersion>
     <MicrosoftTplDataflowVersion>4.5.24</MicrosoftTplDataflowVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.0.26730-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
@@ -253,6 +253,10 @@
     <xunitrunnerconsoleVersion>2.3.1</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
     <xunitrunnervisualstudioVersion>2.3.1</xunitrunnervisualstudioVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <UsingToolPdbConverter>true</UsingToolPdbConverter>
   </PropertyGroup>
 
   <PropertyGroup>
