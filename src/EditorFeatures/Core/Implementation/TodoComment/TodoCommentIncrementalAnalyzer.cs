@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 // check whether we can use the data as it is (can happen when re-using persisted data from previous VS session)
                 if (CheckVersions(document, textVersion, syntaxVersion, existingData))
                 {
-                    Contract.Requires(_workspace == document.Project.Solution.Workspace);
+                    Debug.Assert(_workspace == document.Project.Solution.Workspace);
                     RaiseTaskListUpdated(_workspace, document.Project.Solution, document.Id, existingData.Items);
                     return;
                 }
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             // * NOTE * cancellation can't throw after this point.
             if (existingData == null || existingData.Items.Length > 0 || data.Items.Length > 0)
             {
-                Contract.Requires(_workspace == document.Project.Solution.Workspace);
+                Debug.Assert(_workspace == document.Project.Solution.Workspace);
                 RaiseTaskListUpdated(_workspace, document.Project.Solution, document.Id, data.Items);
             }
         }
