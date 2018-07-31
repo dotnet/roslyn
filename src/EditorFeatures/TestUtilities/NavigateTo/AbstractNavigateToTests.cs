@@ -68,8 +68,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         protected async Task TestAsync(string content, Func<TestWorkspace, Task> body)
         {
-            await TestAsync(content, body, outOfProcess: true);
-            await TestAsync(content, body, outOfProcess: false);
+            // Keep track of tested combinations to ensure all expected tests run
+            var testedCombinations = new HashSet<(bool outOfProcess, Type documentTrackingServiceType)>();
+
+            await TestAsync(content, BodyWrapper, outOfProcess: true);
+            await TestAsync(content, BodyWrapper, outOfProcess: false);
+
+            Assert.Contains((true, null), testedCombinations);
+            Assert.Contains((true, typeof(FirstDocIsActiveDocumentTrackingService)), testedCombinations);
+            Assert.Contains((true, typeof(FirstDocIsVisibleDocumentTrackingService)), testedCombinations);
+            Assert.Contains((true, typeof(FirstDocIsActiveAndVisibleDocumentTrackingService)), testedCombinations);
+
+            Assert.Contains((false, null), testedCombinations);
+            Assert.Contains((false, typeof(FirstDocIsActiveDocumentTrackingService)), testedCombinations);
+            Assert.Contains((false, typeof(FirstDocIsVisibleDocumentTrackingService)), testedCombinations);
+            Assert.Contains((false, typeof(FirstDocIsActiveAndVisibleDocumentTrackingService)), testedCombinations);
+
+            return;
+
+            // Local function
+            Task BodyWrapper(TestWorkspace workspace)
+            {
+                // Track the current test setup
+                var outOfProcess = workspace.Options.GetOption(RemoteFeatureOptions.OutOfProcessAllowed);
+                var documentTrackingServiceType = workspace.Services.GetService<IDocumentTrackingService>()?.GetType();
+                testedCombinations.Add((outOfProcess, documentTrackingServiceType));
+
+                // Run the test itself
+                return body(workspace);
+            }
         }
 
         private async Task TestAsync(string content, Func<TestWorkspace, Task> body, bool outOfProcess)
