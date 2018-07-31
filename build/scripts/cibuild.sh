@@ -16,7 +16,7 @@ then
     export HOME="$(cd ~ && pwd)"
 fi
 
-# There's no reason to send telemetry or prime a local package cach when building
+# There's no reason to send telemetry or prime a local package cache when building
 # in CI.
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
