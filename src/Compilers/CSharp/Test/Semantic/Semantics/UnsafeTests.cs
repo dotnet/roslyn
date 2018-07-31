@@ -6356,7 +6356,11 @@ class Program
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = stackalloc int[2]) //CS0213 - already fixed
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int[2]").WithLocation(6, 25));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = stackalloc int[2]) //CS0213 - already fixed
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int[2]").WithLocation(6, 25));
@@ -7651,10 +7655,11 @@ unsafe class C
     int* p = stackalloc int[1];
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"));
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(4, 14)
+            );
         }
 
         [Fact]
@@ -7668,10 +7673,11 @@ unsafe class C
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,21): error CS1525: Invalid expression term 'stackalloc'
+
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,21): error CS1736: Default parameter value for 'p' must be a compile-time constant
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "stackalloc int[1]").WithArguments("p").WithLocation(4, 21)
             );
         }
 
@@ -7698,10 +7704,11 @@ unsafe class C
             var text = @"
 unsafe int* p = stackalloc int[1];
 ";
-            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
-                //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (2,17): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                // unsafe int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(2, 17)
+            );
         }
 
         #endregion stackalloc diagnostic tests

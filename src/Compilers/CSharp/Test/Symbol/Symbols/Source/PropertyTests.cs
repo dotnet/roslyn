@@ -2873,10 +2873,10 @@ unsafe class Test
     }
 }
 ";
-            CreateCompilation(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
-                // (4,30): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (4,30): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //     int* property { get; } = stackalloc int[256];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 30)
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[256]").WithArguments("int", "int*").WithLocation(4, 30)
                 );
         }
         [Fact]

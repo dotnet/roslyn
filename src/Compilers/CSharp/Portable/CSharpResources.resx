@@ -5420,4 +5420,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PointerTypeInPatternMatching" xml:space="preserve">
     <value>Pattern-matching is not permitted for pointer types.</value>
   </data>
+  <data name="IDS_FeatureNestedStackalloc" xml:space="preserve">
+    <value>stackalloc in nested expressions</value>
+  </data>
 </root>
