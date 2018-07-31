@@ -217,6 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateNonLazyType(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, customModifiers);
         }
 
+        /// <summary>
+        /// True if the fields are unset.
+        /// </summary>
+        internal bool IsNull => _defaultType is null;
+
         public TypeSymbolWithAnnotations SetIsAnnotated(CSharpCompilation compilation)
         {
             Debug.Assert(compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
@@ -247,8 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeSymbolWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);
         public TypeSymbolWithAnnotations AsNotNullableReferenceType() => _extensions.AsNotNullableReferenceType(this);
 
-        public TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) => _extensions.WithModifiers(this, customModifiers);
-        public TypeSymbolWithAnnotations WithNonNullTypesContext(INonNullTypesContext nonNullTypesContext) => _extensions.WithNonNullTypesContext(this, nonNullTypesContext);
+        public TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>
+            _extensions.WithModifiers(this, customModifiers);
+        public TypeSymbolWithAnnotations WithNonNullTypesContext(INonNullTypesContext nonNullTypesContext) =>
+            _extensions.WithNonNullTypesContext(this, nonNullTypesContext);
 
         public TypeSymbol TypeSymbol => _extensions?.GetResolvedType(_defaultType);
         public TypeSymbol NullableUnderlyingTypeOrSelf => _extensions.GetNullableUnderlyingTypeOrSelf(_defaultType);
@@ -334,7 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsDynamic() => TypeSymbol.IsDynamic();
         public bool IsObjectType() => TypeSymbol.IsObjectType();
         public bool IsArray() => TypeSymbol.IsArray();
-        public bool IsRestrictedType(bool ignoreSpanLikeTypes = false) => _extensions.IsRestrictedType(_defaultType, ignoreSpanLikeTypes);
+        public bool IsRestrictedType(bool ignoreSpanLikeTypes = false) =>
+            _extensions.IsRestrictedType(_defaultType, ignoreSpanLikeTypes);
         public bool IsPointerType() => TypeSymbol.IsPointerType();
         public bool IsErrorType() => TypeSymbol.IsErrorType();
         public bool IsUnsafe() => TypeSymbol.IsUnsafe();
@@ -342,10 +350,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsNullableTypeOrTypeParameter() => TypeSymbol.IsNullableTypeOrTypeParameter();
         public bool IsVoid => _extensions.IsVoid(_defaultType);
         public bool IsSZArray() => _extensions.IsSZArray(_defaultType);
-        public TypeSymbolWithAnnotations GetNullableUnderlyingType() => TypeSymbol.GetNullableUnderlyingTypeWithAnnotations();
+        public TypeSymbolWithAnnotations GetNullableUnderlyingType() =>
+            TypeSymbol.GetNullableUnderlyingTypeWithAnnotations();
 
-        internal bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress) => _extensions.GetIsReferenceType(_defaultType, inProgress);
-        internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress) => _extensions.GetIsValueType(_defaultType, inProgress);
+        internal bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress) =>
+            _extensions.GetIsReferenceType(_defaultType, inProgress);
+        internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress) =>
+            _extensions.GetIsValueType(_defaultType, inProgress);
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
@@ -443,7 +454,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeCompareKind comparison) => _extensions.TypeSymbolEquals(this, other, comparison);
+        internal bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeCompareKind comparison) =>
+            _extensions.TypeSymbolEquals(this, other, comparison);
 
         public bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
@@ -462,8 +474,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteDiagnostics);
         }
 
-        public TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap) => _extensions.SubstituteType(this, typeMap, withTupleUnification: false);
-        public TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap) => _extensions.SubstituteType(this, typeMap, withTupleUnification: true);
+        public TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap) =>
+            _extensions.SubstituteType(this, typeMap, withTupleUnification: false);
+        public TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap) =>
+            _extensions.SubstituteType(this, typeMap, withTupleUnification: true);
 
         internal TypeSymbolWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap, bool withTupleUnification)
         {
@@ -501,7 +515,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
         }
 
-        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics) => _extensions.ReportDiagnosticsIfObsolete(this, binder, syntax, diagnostics);
+        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics) =>
+            _extensions.ReportDiagnosticsIfObsolete(this, binder, syntax, diagnostics);
 
         internal bool TypeSymbolEqualsCore(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
         {
@@ -524,7 +539,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public bool Is(TypeParameterSymbol other) => _extensions.Is(_defaultType, other);
 
-        public TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) => _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
+        public TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
+            _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
 
         public bool ContainsNullableReferenceTypes()
         {
@@ -726,29 +742,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new LazyNullableTypeParameter(compilation, underlying);
             }
 
-            public abstract TypeSymbol GetResolvedType(TypeSymbol defaultType);
-            public abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
+            internal abstract TypeSymbol GetResolvedType(TypeSymbol defaultType);
+            internal abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
 
-            public abstract TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type);
-            public abstract TypeSymbolWithAnnotations AsNotNullableReferenceType(TypeSymbolWithAnnotations type);
+            internal abstract TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type);
+            internal abstract TypeSymbolWithAnnotations AsNotNullableReferenceType(TypeSymbolWithAnnotations type);
 
-            public abstract TypeSymbolWithAnnotations WithModifiers(TypeSymbolWithAnnotations type, ImmutableArray<CustomModifier> customModifiers);
-            public abstract TypeSymbolWithAnnotations WithNonNullTypesContext(TypeSymbolWithAnnotations type, INonNullTypesContext nonNullTypesContext);
+            internal abstract TypeSymbolWithAnnotations WithModifiers(TypeSymbolWithAnnotations type, ImmutableArray<CustomModifier> customModifiers);
+            internal abstract TypeSymbolWithAnnotations WithNonNullTypesContext(TypeSymbolWithAnnotations type, INonNullTypesContext nonNullTypesContext);
 
-            public abstract TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol);
+            internal abstract TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol);
 
             internal abstract bool GetIsReferenceType(TypeSymbol typeSymbol, ConsList<TypeParameterSymbol> inProgress);
             internal abstract bool GetIsValueType(TypeSymbol typeSymbol, ConsList<TypeParameterSymbol> inProgress);
 
-            public abstract TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol);
+            internal abstract TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol);
 
-            public abstract SpecialType GetSpecialType(TypeSymbol typeSymbol);
-            public abstract bool IsRestrictedType(TypeSymbol typeSymbol, bool ignoreSpanLikeTypes);
-            public abstract bool IsStatic(TypeSymbol typeSymbol);
-            public abstract bool IsVoid(TypeSymbol typeSymbol);
-            public abstract bool IsSZArray(TypeSymbol typeSymbol);
+            internal abstract SpecialType GetSpecialType(TypeSymbol typeSymbol);
+            internal abstract bool IsRestrictedType(TypeSymbol typeSymbol, bool ignoreSpanLikeTypes);
+            internal abstract bool IsStatic(TypeSymbol typeSymbol);
+            internal abstract bool IsVoid(TypeSymbol typeSymbol);
+            internal abstract bool IsSZArray(TypeSymbol typeSymbol);
 
-            public abstract bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other);
+            internal abstract bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other);
 
             internal abstract TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbolWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
@@ -767,16 +783,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _customModifiers = customModifiers;
             }
 
-            public override TypeSymbol GetResolvedType(TypeSymbol defaultType) => defaultType;
-            public override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
+            internal override TypeSymbol GetResolvedType(TypeSymbol defaultType) => defaultType;
+            internal override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
 
-            public override SpecialType GetSpecialType(TypeSymbol typeSymbol) => typeSymbol.SpecialType;
-            public override bool IsRestrictedType(TypeSymbol typeSymbol, bool ignoreSpanLikeTypes) => typeSymbol.IsRestrictedType(ignoreSpanLikeTypes);
-            public override bool IsStatic(TypeSymbol typeSymbol) => typeSymbol.IsStatic;
-            public override bool IsVoid(TypeSymbol typeSymbol) => typeSymbol.SpecialType == SpecialType.System_Void;
-            public override bool IsSZArray(TypeSymbol typeSymbol) => typeSymbol.IsSZArray();
+            internal override SpecialType GetSpecialType(TypeSymbol typeSymbol) => typeSymbol.SpecialType;
+            internal override bool IsRestrictedType(TypeSymbol typeSymbol, bool ignoreSpanLikeTypes) => typeSymbol.IsRestrictedType(ignoreSpanLikeTypes);
+            internal override bool IsStatic(TypeSymbol typeSymbol) => typeSymbol.IsStatic;
+            internal override bool IsVoid(TypeSymbol typeSymbol) => typeSymbol.SpecialType == SpecialType.System_Void;
+            internal override bool IsSZArray(TypeSymbol typeSymbol) => typeSymbol.IsSZArray();
 
-            public override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => typeSymbol.StrippedType();
+            internal override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => typeSymbol.StrippedType();
 
             internal override bool GetIsReferenceType(TypeSymbol typeSymbol, ConsList<TypeParameterSymbol> inProgress)
             {
@@ -796,34 +812,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return typeSymbol.IsValueType;
             }
 
-            public override TypeSymbolWithAnnotations WithModifiers(TypeSymbolWithAnnotations type, ImmutableArray<CustomModifier> customModifiers)
+            internal override TypeSymbolWithAnnotations WithModifiers(TypeSymbolWithAnnotations type, ImmutableArray<CustomModifier> customModifiers)
             {
                 return TypeSymbolWithAnnotations.CreateNonLazyType(type._defaultType, type.NonNullTypesContext, type.IsAnnotated, customModifiers);
             }
 
-            public override TypeSymbolWithAnnotations WithNonNullTypesContext(TypeSymbolWithAnnotations type, INonNullTypesContext nonNullTypesContext)
+            internal override TypeSymbolWithAnnotations WithNonNullTypesContext(TypeSymbolWithAnnotations type, INonNullTypesContext nonNullTypesContext)
             {
                 Debug.Assert(nonNullTypesContext != null);
                 return TypeSymbolWithAnnotations.CreateNonLazyType(type._defaultType, nonNullTypesContext, type.IsAnnotated, _customModifiers);
             }
 
-            public override TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol) => typeSymbol;
+            internal override TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol) => typeSymbol;
 
             // PROTOTYPE(NullableReferenceTypes): Use WithCustomModifiers.Is() => false
             // and set IsNullable=null always for GetTypeParametersAsTypeArguments.
-            public override bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other) => typeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && _customModifiers.IsEmpty;
+            internal override bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other) =>
+                typeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && _customModifiers.IsEmpty;
 
             internal override TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbolWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
             {
                 return TypeSymbolWithAnnotations.CreateNonLazyType(typeSymbol, type.NonNullTypesContext, type.IsAnnotated, customModifiers);
             }
 
-            public override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type)
+            internal override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type)
             {
                 return TypeSymbolWithAnnotations.CreateNonLazyType(type._defaultType, type.NonNullTypesContext, isAnnotated: true, _customModifiers);
             }
 
-            public override TypeSymbolWithAnnotations AsNotNullableReferenceType(TypeSymbolWithAnnotations type)
+            internal override TypeSymbolWithAnnotations AsNotNullableReferenceType(TypeSymbolWithAnnotations type)
             {
                 var defaultType = type._defaultType;
                 return TypeSymbolWithAnnotations.CreateNonLazyType(defaultType, type.NonNullTypesContext, isAnnotated: defaultType.IsNullableType(), _customModifiers);
@@ -865,9 +882,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _underlying = underlying;
             }
 
-            public override bool IsVoid(TypeSymbol typeSymbol) => false;
-            public override bool IsSZArray(TypeSymbol typeSymbol) => false;
-            public override bool IsStatic(TypeSymbol typeSymbol) => false;
+            internal override bool IsVoid(TypeSymbol typeSymbol) => false;
+            internal override bool IsSZArray(TypeSymbol typeSymbol) => false;
+            internal override bool IsStatic(TypeSymbol typeSymbol) => false;
 
             private TypeSymbol GetResolvedType()
             {
@@ -898,17 +915,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlying.GetIsValueType(inProgress);
             }
 
-            public override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => _underlying.TypeSymbol;
+            internal override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => _underlying.TypeSymbol;
 
-            public override SpecialType GetSpecialType(TypeSymbol typeSymbol)
+            internal override SpecialType GetSpecialType(TypeSymbol typeSymbol)
             {
                 var specialType = _underlying.SpecialType;
                 return specialType.IsValueType() ? SpecialType.None : specialType;
             }
 
-            public override bool IsRestrictedType(TypeSymbol typeSymbol, bool ignoreSpanLikeTypes) => _underlying.IsRestrictedType(ignoreSpanLikeTypes);
+            internal override bool IsRestrictedType(TypeSymbol typeSymbol, bool ignoreSpanLikeTypes) => _underlying.IsRestrictedType(ignoreSpanLikeTypes);
 
-            public override TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol)
+            internal override TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol)
             {
                 var resolvedType = GetResolvedType();
                 Debug.Assert(resolvedType.IsNullableType() && CustomModifiers.IsEmpty);
@@ -917,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // PROTOTYPE(NullableReferenceTypes): This implementation looks
             // incorrect since a type parameter cannot be Nullable<T>.
-            public override bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other)
+            internal override bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other)
             {
                 if (!other.IsNullableType())
                 {
@@ -928,10 +945,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return resolvedType.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
             }
 
-            public override TypeSymbol GetResolvedType(TypeSymbol defaultType) => GetResolvedType();
-            public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
+            internal override TypeSymbol GetResolvedType(TypeSymbol defaultType) => GetResolvedType();
+            internal override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-            public override TypeSymbolWithAnnotations WithModifiers(TypeSymbolWithAnnotations type, ImmutableArray<CustomModifier> customModifiers)
+            internal override TypeSymbolWithAnnotations WithModifiers(TypeSymbolWithAnnotations type, ImmutableArray<CustomModifier> customModifiers)
             {
                 if (customModifiers.IsEmpty)
                 {
@@ -947,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return TypeSymbolWithAnnotations.CreateNonLazyType(resolvedType, type.NonNullTypesContext, isAnnotated: true, customModifiers);
             }
 
-            public override TypeSymbolWithAnnotations WithNonNullTypesContext(TypeSymbolWithAnnotations type, INonNullTypesContext nonNullTypesContext)
+            internal override TypeSymbolWithAnnotations WithNonNullTypesContext(TypeSymbolWithAnnotations type, INonNullTypesContext nonNullTypesContext)
             {
                 return TypeSymbolWithAnnotations.CreateLazyNullableType(_compilation, _underlying.WithNonNullTypesContext(nonNullTypesContext));
             }
@@ -962,12 +979,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return TypeSymbolWithAnnotations.CreateNonLazyType(typeSymbol, type.NonNullTypesContext, isAnnotated: true, customModifiers);
             }
 
-            public override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type)
+            internal override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type)
             {
                 return type;
             }
 
-            public override TypeSymbolWithAnnotations AsNotNullableReferenceType(TypeSymbolWithAnnotations type)
+            internal override TypeSymbolWithAnnotations AsNotNullableReferenceType(TypeSymbolWithAnnotations type)
             {
                 if (!_underlying.TypeSymbol.IsValueType)
                 {
