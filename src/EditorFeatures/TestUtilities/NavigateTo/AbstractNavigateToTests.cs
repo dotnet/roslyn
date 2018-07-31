@@ -111,8 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             string content, Func<TestWorkspace, Task> body, bool outOfProcess, 
             Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
         {
-            using (var workspace = SetupWorkspace(
-                content, s_exportProviderFactory.Value.CreateExportProvider(), createTrackingService))
+            using (var workspace = SetupWorkspace(content, createTrackingService))
             {
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
                                                      .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
@@ -123,9 +122,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private protected TestWorkspace SetupWorkspace(
-            XElement workspaceElement, ExportProvider exportProvider, 
+            XElement workspaceElement,
             Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
         {
+            var exportProvider = s_exportProviderFactory.Value.CreateExportProvider();
             var documentTrackingServiceFactory = exportProvider.GetExportedValue<DocumentTrackingServiceFactory>();
             documentTrackingServiceFactory.FactoryMethod = createTrackingService;
 
@@ -135,9 +135,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private protected TestWorkspace SetupWorkspace(
-            string content, ExportProvider exportProvider, 
+            string content,
             Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
         {
+            var exportProvider = s_exportProviderFactory.Value.CreateExportProvider();
             var documentTrackingServiceFactory = exportProvider.GetExportedValue<DocumentTrackingServiceFactory>();
             documentTrackingServiceFactory.FactoryMethod = createTrackingService;
 
