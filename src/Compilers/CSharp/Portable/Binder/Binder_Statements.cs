@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsUsing)
             {
                 kind = LocalDeclarationKind.UsingVariable;
-                return BindUsingVariableDeclaration(
+                var declarations = BindUsingVariableDeclaration(
                                                     this,
                                                     diagnostics,
                                                     diagnostics.HasAnyErrors(),
@@ -635,7 +635,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     node.Declaration,
                                                     out iDisposableConversion,
                                                     out disposeMethod);
-                
+                return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
+
             }
             else
             {
@@ -656,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundMultipleLocalDeclarations BindUsingVariableDeclaration(Binder originalBinder,
+        internal ImmutableArray<BoundLocalDeclaration> BindUsingVariableDeclaration(Binder originalBinder,
                                                                              DiagnosticBag diagnostics,
                                                                              bool hasErrors,
                                                                              SyntaxNode node,
@@ -697,8 +698,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-
-            return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
+            return declarations;
+            //return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
         }
 
         /// <summary>
