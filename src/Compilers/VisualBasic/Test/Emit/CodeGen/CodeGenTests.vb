@@ -4814,7 +4814,7 @@ hi
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub ParameterByRefVal()
             CompileAndVerify(
            <compilation>
@@ -11119,7 +11119,7 @@ True
         End Sub
 
         <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestMSVBTypeNameAPI()
             Dim vbCompilation = CreateVisualBasicCompilation("TestMSVBTypeNameAPI",
             <![CDATA[Public Module Program
@@ -12464,7 +12464,7 @@ End Module
         End Sub
 
         <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug529162()
             Dim source =
 <compilation>

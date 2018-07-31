@@ -116,7 +116,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
             Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
             If objectManager IsNot Nothing Then
-                Me._libraryManager = New ObjectBrowserLibraryManager(Me)
+                Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, Workspace)
 
                 If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me._libraryManager, Me._libraryManagerCookie)) Then
                     Me._libraryManagerCookie = 0

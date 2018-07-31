@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Utilities</RootNamespace>
     <TargetFramework>net46</TargetFramework>
-    <Nonshipping>true</Nonshipping>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -80,6 +80,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
   </ItemGroup>
 </Project>
