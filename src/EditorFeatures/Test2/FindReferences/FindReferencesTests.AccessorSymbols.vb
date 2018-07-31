@@ -611,16 +611,16 @@ class Usages
     void M()
     {
         IC ic;
-        var v1 = ic[||][0]
-        ic[0] = 1
+        var v1 = ic[||][0];
+        ic[0] = 1;
 
         C c;
-        var v1 = c[||][0]
-        c[0] = 1
+        var v1 = c[||][0];
+        c[0] = 1;
 
         D d;
-        var v1 = d[||][0]
-        d[0] = 1
+        var v1 = d[||][0];
+        d[0] = 1;
     }
 }
         </Document>
@@ -655,16 +655,16 @@ class Usages
     void M()
     {
         IC ic;
-        var v1 = ic[||][0]
-        ic[0] = 1
+        var v1 = ic[||][0];
+        ic[0] = 1;
 
         C c;
-        var v1 = c[||][0]
-        c[0] = 1
+        var v1 = c[||][0];
+        c[0] = 1;
 
         D d;
-        var v1 = d[||][0]
-        d[0] = 1
+        var v1 = d[||][0];
+        d[0] = 1;
     }
 }
         </Document>
@@ -699,16 +699,16 @@ class Usages
     void M()
     {
         IC ic;
-        var v1 = ic[||][0]
-        ic[0] = 1
+        var v1 = ic[||][0];
+        ic[0] = 1;
 
         C c;
-        var v1 = c[||][0]
-        c[0] = 1
+        var v1 = c[||][0];
+        c[0] = 1;
 
         D d;
-        var v1 = d[||][0]
-        d[0] = 1
+        var v1 = d[||][0];
+        d[0] = 1;
     }
 }
         </Document>
@@ -743,16 +743,16 @@ class Usages
     void M()
     {
         IC ic;
-        var v1 = ic[0]
-        ic[||][0] = 1
+        var v1 = ic[0];
+        ic[||][0] = 1;
 
         C c;
-        var v1 = c[0]
-        c[||][0] = 1
+        var v1 = c[0];
+        c[||][0] = 1;
 
         D d;
-        var v1 = d[0]
-        d[||][0] = 1
+        var v1 = d[0];
+        d[||][0] = 1;
     }
 }
         </Document>
@@ -787,16 +787,16 @@ class Usages
     void M()
     {
         IC ic;
-        var v1 = ic[0]
-        ic[||][0] = 1
+        var v1 = ic[0];
+        ic[||][0] = 1;
 
         C c;
-        var v1 = c[0]
-        c[||][0] = 1
+        var v1 = c[0];
+        c[||][0] = 1;
 
         D d;
-        var v1 = d[0]
-        d[||][0] = 1
+        var v1 = d[0];
+        d[||][0] = 1;
     }
 }
         </Document>
@@ -831,16 +831,16 @@ class Usages
     void M()
     {
         IC ic;
-        var v1 = ic[0]
-        ic[||][0] = 1
+        var v1 = ic[0];
+        ic[||][0] = 1;
 
         C c;
-        var v1 = c[0]
-        c[||][0] = 1
+        var v1 = c[0];
+        c[||][0] = 1;
 
         D d;
-        var v1 = d[0]
-        d[||][0] = 1
+        var v1 = d[0];
+        d[||][0] = 1;
     }
 }
         </Document>
