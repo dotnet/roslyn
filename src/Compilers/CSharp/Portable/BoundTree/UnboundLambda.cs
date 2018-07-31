@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: Should InferredReturnType.UseSiteDiagnostics be merged into BoundLambda.Diagnostics?
             var returnType = inferredReturnType.Type;
-            if (!returnType.IsNull)
+            if (returnType.IsNull)
             {
                 returnType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesUnusedContext.Instance, LambdaSymbol.InferenceFailureReturnType);
             }

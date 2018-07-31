@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var oldArgument = oldTypeArguments[i];
                 var newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
 
-                if (!changed && oldArgument.IsSameAs(newArgument))
+                if (!changed && !oldArgument.IsSameAs(newArgument))
                 {
                     changed = true;
                 }
