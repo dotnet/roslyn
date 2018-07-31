@@ -96,5 +96,12 @@ End Class
 <ClassDeclaration>Dim x = New Goo _
 |</ClassDeclaration>, "With")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<ClassDeclaration>Dim x = New Goo _ ' Test
+|</ClassDeclaration>, "With")
+        End Function
     End Class
 End Namespace
