@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : symbol.Name;
         }
 
-        protected override async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamespaceSymbol symbol,
             Document document,
             SemanticModel semanticModel,

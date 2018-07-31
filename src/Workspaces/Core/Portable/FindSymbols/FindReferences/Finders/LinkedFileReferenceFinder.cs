@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyImmutableArray<Project>();
         }
 
-        public Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
+        public Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<(SyntaxNode node, ReferenceLocation location)>();
+            return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
         }
     }
 }

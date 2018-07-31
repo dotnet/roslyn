@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsElementAccessExpression, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol, Document document, SemanticModel semanticModel, 
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     loc =>
                     {
                         var accessors = GetReferencedAccessorSymbols(
-                            syntaxFacts, semanticFacts, semanticModel, property, loc.node, cancellationToken);
+                            syntaxFacts, semanticFacts, semanticModel, property, loc.Node, cancellationToken);
                         return accessors.Contains(symbol);
                     });
 

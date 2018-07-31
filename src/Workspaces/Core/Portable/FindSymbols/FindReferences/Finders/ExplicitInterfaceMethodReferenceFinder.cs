@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        protected override Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             // An explicit method can't be referenced anywhere.
-            return SpecializedTasks.EmptyImmutableArray<(SyntaxNode node, ReferenceLocation location)>();
+            return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
         }
     }
 }

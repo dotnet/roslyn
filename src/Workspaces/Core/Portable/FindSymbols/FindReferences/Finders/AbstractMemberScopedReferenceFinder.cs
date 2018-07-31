@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return Task.FromResult(ImmutableArray.Create(document));
         }
 
-        protected override async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     symbol, document, semanticModel, tokens, cancellationToken).ConfigureAwait(false);
             }
 
-            return ImmutableArray<(SyntaxNode node, ReferenceLocation location)>.Empty;
+            return ImmutableArray<FinderLocation>.Empty;
         }
 
         private static ISymbol GetContainer(ISymbol symbol)
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInTokensWithSymbolNameAsync(
+        protected Task<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 findParentNode: null, cancellationToken: cancellationToken);
         }
 
-        protected Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInTokensWithSymbolNameAsync(
+        protected Task<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInContainerAsync(
+        private Task<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
             TSymbol symbol,
             ISymbol container,
             Document document,
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 findParentNode: null, cancellationToken: cancellationToken);
         }
 
-        private Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInContainerAsync(
+        private Task<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
             TSymbol symbol,
             ISymbol container,
             Document document,

@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.Name == WellKnownMemberNames.CurrentPropertyName;
         }
 
-        protected override Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return FindAllReferencesInDocumentAsync(symbol, document, semanticModel, options, cancellationToken);
         }
 
-        internal async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindAllReferencesInDocumentAsync(
+        internal async Task<ImmutableArray<FinderLocation>> FindAllReferencesInDocumentAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
@@ -114,22 +114,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 nameReferences = nameReferences.WhereAsArray(loc =>
                 {
                     var accessors = GetReferencedAccessorSymbols(
-                        syntaxFacts, semanticFacts, semanticModel, symbol, loc.node, cancellationToken);
+                        syntaxFacts, semanticFacts, semanticModel, symbol, loc.Node, cancellationToken);
                     return accessors.Length == 0;
                 });
             }
 
             var forEachReferences = IsForEachProperty(symbol)
                 ? await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<(SyntaxNode, ReferenceLocation)>.Empty;
+                : ImmutableArray<FinderLocation>.Empty;
 
             var elementAccessReferences = symbol.IsIndexer
                 ? await FindElementAccessReferencesAsync(symbol, document, semanticModel, options, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<(SyntaxNode, ReferenceLocation)>.Empty;
+                : ImmutableArray<FinderLocation>.Empty;
 
             var indexerCrefReferences = symbol.IsIndexer
                 ? await FindIndexerCrefReferencesAsync(symbol, document, semanticModel, options, cancellationToken)
-                : ImmutableArray<(SyntaxNode, ReferenceLocation)>.Empty;
+                : ImmutableArray<FinderLocation>.Empty;
 
             return nameReferences.Concat(forEachReferences)
                                  .Concat(elementAccessReferences)
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsIndexerMemberCref, cancellationToken);
         }
 
-        private async Task<ImmutableArray<(SyntaxNode, ReferenceLocation)>> FindElementAccessReferencesAsync(
+        private async Task<ImmutableArray<FinderLocation>> FindElementAccessReferencesAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 // Looking for individual get/set references.  Don't find anything here. 
                 // these results will be provided by the PropertyAccessorSymbolReferenceFinder
-                return ImmutableArray<(SyntaxNode, ReferenceLocation)>.Empty;
+                return ImmutableArray<FinderLocation>.Empty;
             }
 
             var symbolsMatch = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var elementAccessExpressions = syntaxRoot.DescendantNodes().Where(syntaxFacts.IsElementAccessExpression);
-            var locations = ArrayBuilder<(SyntaxNode, ReferenceLocation)>.GetInstance();
+            var locations = ArrayBuilder<FinderLocation>.GetInstance();
 
             foreach (var node in elementAccessExpressions)
             {
@@ -184,22 +184,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     }
 
                     var location = argumentList.SyntaxTree.GetLocation(new TextSpan(argumentList.SpanStart, 0));
-                    locations.Add(
-                        (node, new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: reason)));
+                    locations.Add(new FinderLocation(
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: reason)));
                 }
             }
 
             return locations.ToImmutableAndFree();
         }
 
-        private async Task<ImmutableArray<(SyntaxNode, ReferenceLocation)>> FindIndexerCrefReferencesAsync(
+        private async Task<ImmutableArray<FinderLocation>> FindIndexerCrefReferencesAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             if (options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 // can't find indexer get/set accessors in a cref.
-                return ImmutableArray<(SyntaxNode, ReferenceLocation)>.Empty;
+                return ImmutableArray<FinderLocation>.Empty;
             }
 
             var symbolsMatch = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var indexerMemberCrefs = syntaxRoot.DescendantNodes(descendIntoTrivia: true)
                                                .Where(syntaxFacts.IsIndexerMemberCRef);
 
-            var locations = ArrayBuilder<(SyntaxNode, ReferenceLocation)>.GetInstance();
+            var locations = ArrayBuilder<FinderLocation>.GetInstance();
 
             foreach (var node in indexerMemberCrefs)
             {
@@ -221,8 +221,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (match.matched)
                 {
                     var location = node.SyntaxTree.GetLocation(new TextSpan(node.SpanStart, 0));
-                    locations.Add(
-                        (node, new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.reason)));
+                    locations.Add(new FinderLocation(
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.reason)));
                 }
             }
 

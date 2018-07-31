@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return Task.FromResult(project.Documents.ToImmutableArray());
         }
 
-        protected override async Task<ImmutableArray<(SyntaxNode node, ReferenceLocation location)>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
@@ -103,10 +103,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
 
-            var result = invocations.Concat(convertedAnonymousFunctions).Select(
-                n => (n, new ReferenceLocation(document, null, n.GetLocation(), isImplicit: false, isWrittenTo: false, candidateReason: CandidateReason.None)));
-
-            return result.ToImmutableArray();
+            return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
+                n => new FinderLocation(n, new ReferenceLocation(document, null, n.GetLocation(), isImplicit: false, isWrittenTo: false, candidateReason: CandidateReason.None)));
         }
     }
 }
