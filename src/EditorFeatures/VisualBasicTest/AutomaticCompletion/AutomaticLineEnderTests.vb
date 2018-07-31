@@ -238,6 +238,26 @@ End Module
 </code>)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        Public Sub TestWithLineContinuationCommentsAfterLineContinuation()
+            Test(
+<code>
+Module M
+    Sub Main()
+        Dim _ ' Test
+            $$
+    End Sub
+End Module
+</code>,
+<code>
+Module M
+    Sub Main()
+        Dim _ ' Test$$
+    End Sub
+End Module
+</code>)
+        End Sub
+
         Private Overloads Sub Test(expected As XElement, code As XElement)
             Test(expected.NormalizedValue(), code.NormalizedValue())
         End Sub

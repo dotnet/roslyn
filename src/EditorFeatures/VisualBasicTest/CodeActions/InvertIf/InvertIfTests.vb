@@ -689,6 +689,32 @@ End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function TestKeepExplicitLineContinuationTriviaCommentsAfterLineContinuationMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main()
+        I[||]f a And b _ ' Test
+        Or c Then
+            aMethod()
+        Else
+            bMethod()
+        End If
+    End Sub
+End Module",
+"Module Program
+    Sub Main()
+        If (Not a Or Not b) _ ' Test
+        And Not c Then
+            bMethod()
+        Else
+            aMethod()
+        End If
+    End Sub
+End Module")
+        End Function
+
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestKeepTriviaInStatementsInMultiLineIfBlock() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
