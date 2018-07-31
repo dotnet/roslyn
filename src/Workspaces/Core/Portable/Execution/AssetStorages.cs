@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 if (result.Count == numberOfChecksumsToSearch)
                 {
                     // no checksum left to find
-                    Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
+                    Debug.Assert(searchingChecksumsLeft.Object.Count == 0);
                     return result;
                 }
 
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Execution
                         if (result.Count == numberOfChecksumsToSearch)
                         {
                             // no checksum left to find
-                            Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
+                            Debug.Assert(searchingChecksumsLeft.Object.Count == 0);
                             return result;
                         }
                     }
