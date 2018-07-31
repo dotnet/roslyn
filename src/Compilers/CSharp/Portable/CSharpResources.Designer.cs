@@ -7217,6 +7217,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please use language version {0} or greater to use the NonNullTypes attribute..
+        /// </summary>
+        internal static string ERR_NonNullTypesNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_NonNullTypesNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
         /// </summary>
         internal static string ERR_NonTaskMainCantBeAsync {
@@ -7325,7 +7334,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The ! operator can only be applied to reference types..
+        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types..
         /// </summary>
         internal static string ERR_NotNullableOperatorNotReferenceType {
             get {
@@ -13957,6 +13966,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_MainIgnored_Title {
             get {
                 return ResourceManager.GetString("WRN_MainIgnored_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContext {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContext_Title {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContext_Title", resourceCulture);
             }
         }
         

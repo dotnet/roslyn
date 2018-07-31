@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public override bool NonNullTypes => false;
+        public override bool? NonNullTypes => false;
 
         public override int GetHashCode()
         {

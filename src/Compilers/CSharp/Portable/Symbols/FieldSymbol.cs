@@ -157,25 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes);
 
-        public override bool NonNullTypes
+        public override bool? NonNullTypes
         {
             get
             {
                 Debug.Assert(IsDefinition);
-
-                var associatedSymbol = AssociatedSymbol;
-                if ((object)associatedSymbol != null)
-                {
-                    switch (associatedSymbol.Kind)
-                    {
-                        case SymbolKind.Property:
-                        case SymbolKind.Event:
-                            return associatedSymbol.NonNullTypes;
-                    }
-
-                }
-
-                return ContainingType?.NonNullTypes == true;
+                return (AssociatedSymbol ?? ContainingType)?.NonNullTypes;
             }
         }
 

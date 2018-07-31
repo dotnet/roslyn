@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool NonNullTypes
+        public override bool? NonNullTypes
         {
             get
             {

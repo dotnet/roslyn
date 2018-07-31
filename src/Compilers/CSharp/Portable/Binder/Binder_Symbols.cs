@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbolWithAnnotations constructedType;
                         if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
                         {
-                            constructedType = typeArgument.AsNullableReferenceOrValueType(Compilation);
+                            constructedType = typeArgument.SetIsAnnotated(Compilation);
                             if (!ShouldCheckConstraints)
                             {
                                 diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
