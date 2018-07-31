@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     .Concat(documentsOfRenameSymbolDeclaration.First().Id)
                     .Select(d => d.ProjectId).Distinct();
 
+                // perf optimization: only look in declaring project when possible
                 if (ShouldRenameOnlyAffectDeclaringProject(symbol))
                 {
                     var isSubset = renameLocations.Select(l => l.DocumentId.ProjectId).Distinct().Except(projectIdsOfRenameSymbolDeclaration).IsEmpty();
@@ -108,9 +109,24 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         private static bool ShouldRenameOnlyAffectDeclaringProject(ISymbol symbol)
         {
-            // Explicit interface implementations can cascade to other projects
-            // check if the symbol is override. https://github.com/dotnet/roslyn/issues/25682
-            return symbol.DeclaredAccessibility == Accessibility.Private && !symbol.ExplicitInterfaceImplementations().Any() && !symbol.IsOverride;
+            if (symbol.DeclaredAccessibility == Accessibility.Private)
+            {
+                // Explicit interface implementations can cascade to other projects
+                // we check if the symbol is an override. If it's overriding something (even if private) it's an error, but we can rename across that error.
+                // https://github.com/dotnet/roslyn/issues/25682
+                if (symbol.ExplicitInterfaceImplementations().Any() || symbol.IsOverride)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
 
         internal static TokenRenameInfo GetTokenRenameInfo(
