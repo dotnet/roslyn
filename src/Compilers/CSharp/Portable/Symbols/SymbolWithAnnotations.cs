@@ -28,10 +28,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private bool _isAnnotated;
             private Extensions _extensions;
 
+            /// <summary>
+            /// The underlying type, unless overridden by _extensions.
+            /// </summary>
             internal TypeSymbol DefaultType => _defaultType;
 
+            /// <summary>
+            /// True if the fields of the builder are unset.
+            /// </summary>
             internal bool IsNull => _defaultType is null;
 
+            /// <summary>
+            /// Set the fields of the builder.
+            /// </summary>
             internal bool InterlockedInitialize(TypeSymbolWithAnnotations type)
             {
                 if ((object)_defaultType != null)
@@ -44,6 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (object)Interlocked.CompareExchange(ref _defaultType, type._defaultType, null) == null;
             }
 
+            /// <summary>
+            /// Create immutable TypeSymbolWithAnnotations instance.
+            /// </summary>
             internal TypeSymbolWithAnnotations ToType()
             {
                 return (object)_defaultType == null ?
