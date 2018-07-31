@@ -130,10 +130,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // background task complete when its result has finally been displayed on the UI.
             var asyncToken = _controller.BeginAsyncOperation();
 
+#pragma warning disable VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
             // Create the task that will actually run the transformation step.
             var nextTask = _lastTask.SafeContinueWithFromAsync(
                 t => transformModelAsync(t.Result, _stopCancellationToken),
                 _stopCancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, _taskScheduler);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
 
             // The next task is now the last task in the chain.
             _lastTask = nextTask;
