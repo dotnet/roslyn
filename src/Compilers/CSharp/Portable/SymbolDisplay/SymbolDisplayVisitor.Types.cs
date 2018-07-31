@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitArrayType(IArrayTypeSymbol symbol)
         {
-            VisitArrayType(symbol, typeOpt: null);
+            VisitArrayType(symbol, typeOpt: default);
         }
 
-        private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations? typeOpt)
+        private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations typeOpt)
         {
             if (TryAddAlias(symbol, builder))
             {
@@ -85,28 +85,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddArrayRank(arrayType);
                 AddNullableAnnotations(typeOpt);
 
-                typeOpt = (arrayType as ArrayTypeSymbol)?.ElementType;
+                typeOpt = (arrayType as ArrayTypeSymbol)?.ElementType ?? default;
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
         }
 
-        private void AddNullableAnnotations(TypeSymbolWithAnnotations? typeOpt)
+        private void AddNullableAnnotations(TypeSymbolWithAnnotations typeOpt)
         {
-            if (!typeOpt.HasValue)
+            if (typeOpt.IsNull)
             {
                 return;
             }
 
-            var type = typeOpt.Value;
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                !type.IsNullableType() &&
-                type.IsAnnotated)
+                !typeOpt.IsNullableType() &&
+                typeOpt.IsAnnotated)
             {
                 AddPunctuation(SyntaxKind.QuestionToken);
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                !type.IsValueType &&
-                type.IsNullable == false)
+                !typeOpt.IsValueType &&
+                typeOpt.IsNullable == false)
             {
                 AddPunctuation(SyntaxKind.ExclamationToken);
             }
