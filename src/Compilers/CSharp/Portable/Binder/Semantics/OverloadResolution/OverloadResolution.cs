@@ -2229,7 +2229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // - an inferred return type X exists for E in the context of the parameter list of D(§7.5.2.12), and an identity conversion exists from X to Y
                 var x = lambda.GetInferredReturnType(ref useSiteDiagnostics);
-                if (x != null && Conversions.HasIdentityConversion(x.TypeSymbol, y))
+                if (!x.IsNull && Conversions.HasIdentityConversion(x.TypeSymbol, y))
                 {
                     return true;
                 }
@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var x = lambda.InferReturnType(d1, ref useSiteDiagnostics);
-                        if (x == null)
+                        if (x.IsNull)
                         {
                             return true;
                         }

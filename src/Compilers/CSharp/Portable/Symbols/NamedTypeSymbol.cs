@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     result = this;
                     return false;
                 }
-                else if (oldTypeArgument != newTypeArgument)
+                else if (!oldTypeArgument.IsSameAs(newTypeArgument))
                 {
                     allTypeArguments[i] = newTypeArgument;
                     haveChanges = true;
@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeSymbolWithAnnotations oldTypeArgument = allTypeArguments[i];
                 TypeSymbolWithAnnotations newTypeArgument = oldTypeArgument.SetUnknownNullabilityForReferenceTypes();
-                if (oldTypeArgument != newTypeArgument)
+                if (!oldTypeArgument.IsSameAs(newTypeArgument))
                 {
                     allTypeArguments[i] = newTypeArgument;
                     haveChanges = true;
@@ -901,9 +901,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
-        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsNullFunction = type => type == null;
+        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsNullFunction = type => type.IsNull;
 
-        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => type != null && type.IsErrorType();
+        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => !type.IsNull && type.IsErrorType();
 
         private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound, INonNullTypesContext nonNullTypesContext)
         {

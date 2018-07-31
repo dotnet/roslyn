@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TypeSymbolWithAnnotations.Create(resultType);
             }
 
-            if (bestResultType == null || bestResultType.SpecialType == SpecialType.System_Void)
+            if (bestResultType.IsNull || bestResultType.SpecialType == SpecialType.System_Void)
             {
                 // If the best type was 'void', ERR_CantReturnVoid is reported while binding the "return void"
                 // statement(s).
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var lambda in _returnInferenceCache.Values)
             {
                 var type = lambda.InferredReturnType.Type;
-                if (type != null)
+                if (!type.IsNull)
                 {
                     any = true;
                     yield return type.TypeSymbol;
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!any)
             {
                 var type = BindForErrorRecovery().InferredReturnType.Type;
-                if (type != null)
+                if (!type.IsNull)
                 {
                     yield return type.TypeSymbol;
                 }
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambdaParameters = lambdaSymbol.Parameters;
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
 
-            if (returnType != null)
+            if (!returnType.IsNull)
             {
                 returnType.ReportAnnotatedUnconstrainedTypeParameterIfAny(lambdaSymbol.DiagnosticLocation, diagnostics);
                 if (returnType.ContainsNullableReferenceTypes())
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsAsync && !ErrorFacts.PreventsSuccessfulDelegateConversion(diagnostics))
             {
-                if (returnType != null && // Can be null if "delegateType" is not actually a delegate type.
+                if (!returnType.IsNull && // Can be null if "delegateType" is not actually a delegate type.
                     returnType.SpecialType != SpecialType.System_Void &&
                     !returnType.TypeSymbol.IsNonGenericTaskType(binder.Compilation) &&
                     !returnType.TypeSymbol.IsGenericTaskType(binder.Compilation))
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: Should InferredReturnType.UseSiteDiagnostics be merged into BoundLambda.Diagnostics?
             var returnType = inferredReturnType.Type;
-            if (returnType == null)
+            if (!returnType.IsNull)
             {
                 returnType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesUnusedContext.Instance, LambdaSymbol.InferenceFailureReturnType);
             }
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Builder.Append(parameter.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
             }
 
-            if (lambda.ReturnType != null)
+            if (!lambda.ReturnType.IsNull)
             {
                 builder.Builder.Append(lambda.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
             }

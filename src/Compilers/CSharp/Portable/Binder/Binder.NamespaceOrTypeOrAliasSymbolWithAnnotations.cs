@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type, Symbol symbol)
             {
-                Debug.Assert(type == null != (symbol is null));
+                Debug.Assert(type.IsNull != (symbol is null));
                 Debug.Assert(!(symbol is TypeSymbol));
                 _type = type;
                 _symbol = symbol;
@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal TypeSymbolWithAnnotations Type => _type;
             internal Symbol Symbol => _symbol ?? Type.TypeSymbol;
-            internal bool IsType => _type != null;
+            internal bool IsType => !_type.IsNull;
             internal bool IsAlias => _symbol?.Kind == SymbolKind.Alias;
             internal NamespaceOrTypeSymbol NamespaceOrTypeSymbol => Symbol as NamespaceOrTypeSymbol;
-            internal bool IsDefault => _type == null && _symbol is null;
+            internal bool IsDefault => _type.IsNull && _symbol is null;
 
             internal static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, Symbol symbol)
             {

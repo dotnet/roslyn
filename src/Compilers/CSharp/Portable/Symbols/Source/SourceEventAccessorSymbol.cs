@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override void MethodChecks(DiagnosticBag diagnostics)
         {
-            Debug.Assert(_lazyParameters.IsDefault == (_lazyReturnType == null));
+            Debug.Assert(_lazyParameters.IsDefault == _lazyReturnType.IsNull);
 
             // CONSIDER: currently, we're copying the custom modifiers of the event overridden
             // by this method's associated event (by using the associated event's type, which is
             // copied from the overridden event).  It would be more correct to copy them from
             // the specific accessor that this method is overriding (as in SourceMemberMethodSymbol).
 
-            if (_lazyReturnType == null)
+            if (_lazyReturnType.IsNull)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;
                 Debug.Assert(compilation != null);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                Debug.Assert(_lazyReturnType != null);
+                Debug.Assert(!_lazyReturnType.IsNull);
                 return base.ReturnsVoid;
             }
         }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                Debug.Assert(_lazyReturnType != null);
+                Debug.Assert(!_lazyReturnType.IsNull);
                 return _lazyReturnType;
             }
         }

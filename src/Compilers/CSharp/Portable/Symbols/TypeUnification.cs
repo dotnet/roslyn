@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     previous = type;
                     type = type.SubstituteType(substitution);
-                } while (type != previous);
+                } while (!type.IsSameAs(previous));
             }
 
             return type;
@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool CanUnifyHelper(TypeSymbolWithAnnotations t1, TypeSymbolWithAnnotations t2, ref MutableTypeMap substitution)
         {
-            if (t1 == null || t2 == null)
+            if (t1.IsNull || t2.IsNull)
             {
-                return t1 == t2;
+                return t1.IsSameAs(t2);
             }
 
             if (t1.TypeSymbol == t2.TypeSymbol && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))

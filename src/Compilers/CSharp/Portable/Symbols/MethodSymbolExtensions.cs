@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeArgsForConstraintsCheck = typeArgs.SelectAsArray(a => TypeSymbolWithAnnotations.Create(a));
             for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
             {
-                if (typeArgsForConstraintsCheck[i] == null)
+                if (typeArgsForConstraintsCheck[i].IsNull)
                 {
                     firstNullInTypeArgs = i;
                     var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (; i < typeArgsForConstraintsCheck.Length; i++)
                     {
                         var typeArg = typeArgsForConstraintsCheck[i];
-                        if (typeArg == null)
+                        if (typeArg.IsNull)
                         {
                             notInferredTypeParameters.Add(typeParams[i]);
                             builder.Add(TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType));

@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // If we got a valid result that was not void then use the inferred type
                 // else create an error type.
-                if (inferredType != null &&
+                if (!inferredType.IsNull &&
                     inferredType.SpecialType != SpecialType.System_Void)
                 {
                     declType = inferredType;
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            Debug.Assert(declType != null);
+            Debug.Assert(!declType.IsNull);
 
             //
             // Note that we drop the diagnostics on the floor! That is because this code is invoked mainly in

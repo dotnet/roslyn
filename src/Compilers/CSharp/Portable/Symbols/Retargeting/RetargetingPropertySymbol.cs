@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                if (_lazyType == null)
+                if (_lazyType.IsNull)
                 {
                     var type = this.RetargetingTranslator.Retarget(_underlyingProperty.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
                     if (type.TypeSymbol.TryAsDynamicIfNoPia(this.ContainingType, out TypeSymbol asDynamic))

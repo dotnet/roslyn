@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var oldArgument = oldTypeArguments[i];
                 var newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
 
-                if (!changed && oldArgument != newArgument)
+                if (!changed && oldArgument.IsSameAs(newArgument))
                 {
                     changed = true;
                 }
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var oldElement = t.ElementType;
             TypeSymbolWithAnnotations element = oldElement.SubstituteTypeWithTupleUnification(this);
-            if (element == oldElement)
+            if (element.IsSameAs(oldElement))
             {
                 return t;
             }
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var oldPointedAtType = t.PointedAtType;
             var pointedAtType = oldPointedAtType.SubstituteTypeWithTupleUnification(this);
-            if (pointedAtType == oldPointedAtType)
+            if (pointedAtType.IsSameAs(oldPointedAtType))
             {
                 return t;
             }

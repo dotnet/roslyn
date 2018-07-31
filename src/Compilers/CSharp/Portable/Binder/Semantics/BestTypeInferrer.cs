@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? isNullable = false;
             foreach (var type in types)
             {
-                if (type == null)
+                if (type.IsNull)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Should ignore untyped
                     // expressions such as unbound lambdas and typeless tuples.
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var type = expr.GetTypeAndNullability(includeNullability);
 
-                if (type != null)
+                if (!type.IsNull)
                 {
                     if (type.IsErrorType())
                     {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var type1 = expr1.GetTypeAndNullability(includeNullability);
 
-            if (type1 != null)
+            if (!type1.IsNull)
             {
                 if (type1.IsErrorType())
                 {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var type2 = expr2.GetTypeAndNullability(includeNullability);
 
-            if (type2 != null)
+            if (!type2.IsNull)
             {
                 if (type2.IsErrorType())
                 {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for(int i = 0; i < types.Length; i++)
             {
                 var type = types[i];
-                if (best == null)
+                if (best.IsNull)
                 {
                     best = type;
                     bestIndex = i;
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var better = Better(best, type, conversions, ref useSiteDiagnostics);
 
-                    if (better == null)
+                    if (better.IsNull)
                     {
                         best = default;
                     }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (best == null)
+            if (best.IsNull)
             {
                 return default;
             }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbolWithAnnotations type = types[i];
                 TypeSymbolWithAnnotations better = Better(best, type, conversions, ref useSiteDiagnostics);
 
-                if (better == null || !best.Equals(better, TypeCompareKind.ConsiderEverything))
+                if (better.IsNull || !best.Equals(better, TypeCompareKind.ConsiderEverything))
                 {
                     return default;
                 }
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type2;
             }
 
-            if (type2 == null || type2.IsErrorType())
+            if (type2.IsNull || type2.IsErrorType())
             {
                 return type1;
             }

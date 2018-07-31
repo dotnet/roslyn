@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             T arg,
             bool canDigThroughNullable = false)
         {
-            Debug.Assert((typeWithAnnotationsOpt == null) != (typeOpt is null));
+            Debug.Assert(typeWithAnnotationsOpt.IsNull != (typeOpt is null));
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (typeWithAnnotationsOpt != null && typeWithAnnotationsPredicateOpt != null)
+                if (!typeWithAnnotationsOpt.IsNull && typeWithAnnotationsPredicateOpt != null)
                 {
                     if (typeWithAnnotationsPredicateOpt(typeWithAnnotationsOpt, arg, isNestedNamedType))
                     {

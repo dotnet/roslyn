@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     bool isVar;
                     type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
-                    Debug.Assert(type != null || isVar);
+                    Debug.Assert(!type.IsNull || isVar);
 
                     if (isVar)
                     {
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                         }
 
-                        if (type == null)
+                        if (type.IsNull)
                         {
                             type = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, binder.CreateErrorType("var"));
                         }

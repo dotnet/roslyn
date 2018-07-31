@@ -22,19 +22,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundExpression SetInferredType(TypeSymbolWithAnnotations type, DiagnosticBag diagnosticsOpt)
         {
-            Debug.Assert(type != null);
+            Debug.Assert(!type.IsNull);
 
             return SetInferredType(type, null, diagnosticsOpt);
         }
 
         internal BoundExpression SetInferredType(TypeSymbolWithAnnotations type, Binder binderOpt, DiagnosticBag diagnosticsOpt)
         {
-            Debug.Assert(binderOpt != null || type != null);
+            Debug.Assert(binderOpt != null || !type.IsNull);
             Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
                 (this.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
                     ((DeclarationExpressionSyntax)this.Syntax).Designation.Kind() == SyntaxKind.SingleVariableDesignation));
 
-            bool inferenceFailed = (type == null);
+            bool inferenceFailed = type.IsNull;
 
             if (inferenceFailed)
             {

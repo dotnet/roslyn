@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (other == null || !TypeSymbolEquals(other, comparison))
+            if (other.IsNull || !TypeSymbolEquals(other, comparison))
             {
                 return false;
             }
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int GetHashCode(TypeSymbolWithAnnotations obj)
             {
-                if (obj == null)
+                if (obj.IsNull)
                 {
                     return 0;
                 }
@@ -446,9 +446,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool Equals(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
             {
-                if (x == null)
+                if (x.IsNull)
                 {
-                    return y == null;
+                    return y.IsNull;
                 }
                 return x.Equals(y, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
             }
@@ -701,24 +701,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        // Field-wise ReferenceEquals.
+#pragma warning disable CS0809
+        [Obsolete("Unsupported", error: true)]
         public static bool operator ==(TypeSymbolWithAnnotations? x, TypeSymbolWithAnnotations? y)
+#pragma warning restore CS0809
         {
-            return AreFieldsReferenceEquals(x.GetValueOrDefault(), y.GetValueOrDefault());
+            throw ExceptionUtilities.Unreachable;
+        }
+
+#pragma warning disable CS0809
+        [Obsolete("Unsupported", error: true)]
+        public static bool operator !=(TypeSymbolWithAnnotations? x, TypeSymbolWithAnnotations? y)
+#pragma warning restore CS0809
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         // Field-wise ReferenceEquals.
-        public static bool operator !=(TypeSymbolWithAnnotations? x, TypeSymbolWithAnnotations? y)
+        internal bool IsSameAs(TypeSymbolWithAnnotations other)
         {
-            return !(x == y);
-        }
-
-        private static bool AreFieldsReferenceEquals(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
-        {
-            return ReferenceEquals(x._defaultType, y._defaultType) &&
-                ReferenceEquals(x.NonNullTypesContext, y.NonNullTypesContext) &&
-                x.IsAnnotated == y.IsAnnotated &&
-                ReferenceEquals(x._extensions, y._extensions);
+            return ReferenceEquals(_defaultType, other._defaultType) &&
+                ReferenceEquals(NonNullTypesContext, other.NonNullTypesContext) &&
+                IsAnnotated == other.IsAnnotated &&
+                ReferenceEquals(_extensions, other._extensions);
         }
 
         /// <summary>
@@ -1001,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var newUnderlying = _underlying.SubstituteTypeCore(typeMap, withTupleUnification);
-                if (newUnderlying != this._underlying)
+                if (!newUnderlying.IsSameAs(this._underlying))
                 {
                     if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.AllAspects) ||
                             newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&

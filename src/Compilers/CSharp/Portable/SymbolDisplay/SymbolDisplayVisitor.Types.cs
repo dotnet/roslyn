@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingNonArrayType = ((IArrayTypeSymbol)underlyingNonArrayType).ElementType;
             }
 
-            if (underlyingNonArrayTypeWithAnnotations != null)
+            if (!underlyingNonArrayTypeWithAnnotations.IsNull)
             {
                 VisitTypeSymbolWithAnnotations(underlyingNonArrayTypeWithAnnotations);
             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddNullableAnnotations(TypeSymbolWithAnnotations? typeOpt)
         {
-            if (typeOpt == null)
+            if (!typeOpt.HasValue)
             {
                 return;
             }

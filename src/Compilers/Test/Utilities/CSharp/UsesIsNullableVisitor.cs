@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private bool UsesIsNullable(TypeSymbolWithAnnotations type)
         {
-            if (type == null)
+            if (type.IsNull)
             {
                 return false;
             }
