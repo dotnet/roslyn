@@ -613,17 +613,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             TypeSymbol declType = BindVariableType(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
 
-            Conversion iDisposableConversion = default;
-            MethodSymbol disposeMethod = default;
-
-            LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
-            if (isConst)
-            {
-                kind = LocalDeclarationKind.Constant;
-            }
             if (node.UsingKeyword != default)
             {
-                kind = LocalDeclarationKind.UsingVariable;
+                Conversion iDisposableConversion;
+                MethodSymbol disposeMethod;
                 var declarations = BindUsingVariableDeclaration(
                                                     this,
                                                     diagnostics,
@@ -636,6 +629,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
+                if (isConst)
+                {
+                    kind = LocalDeclarationKind.Constant;
+                }
                 if (variableCount > 1)
                 {
                     BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
@@ -648,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node, disposeMethod, iDisposableConversion);
+                    return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node);
                 }
             }
         }
