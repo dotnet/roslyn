@@ -663,6 +663,30 @@ namespace NS
             }
         }
 
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameTrackingOnReference_Attribute()
+        {
+            var code = @"
+class My$$Attribute : Attribute
+{
+}
+";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("s");
+                await state.AssertTag("MyAttribute", "MysAttribute", invokeAction: true);
+                var expectedCode = @"
+class MysAttribute : Attribute
+{
+}
+";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+
+            }
+        }
+
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotifiesThirdPartiesOfRenameOperation()

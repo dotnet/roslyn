@@ -82,6 +82,55 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        public void VerifyAttributeRename()
+        {
+            var markup = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+[|My|]
+class Program
+{
+    static void Main(string[] args)
+    {
+         Console.WriteLine(""Hello World!"");
+    }
+    private class |My|Attribute : Attribute
+    {
+    }
+}";
+            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            {
+                SetUpEditor(markup);
+                InlineRenameDialog.Invoke();
+
+                MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+                var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+                AssertEx.SetEqual(renameSpans, tags);
+
+                VisualStudio.Editor.SendKeys(VirtualKey.T, VirtualKey.E, VirtualKey.S, VirtualKey.T, VirtualKey.Enter);
+                VisualStudio.Editor.Verify.TextContains(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+[TEST]
+class Program
+{
+    static void Main(string[] args)
+    {
+         Console.WriteLine(""Hello World!"");
+    }
+    private class TESTAttribute : Attribute
+    {
+    }
+}");
+                telemetry.VerifyFired("vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore");
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
