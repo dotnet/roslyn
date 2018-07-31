@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.Remote
             BaseJsonConverter<T> converter)
             => builder.Add(typeof(T), converter);
 
-        internal bool TryAdd<T>(BaseJsonConverter<T> converter)
-            => _map.TryAdd(typeof(T), converter);
+        internal bool TryAdd(Type type, JsonConverter converter)
+            => _map.TryAdd(type, converter);
 
-        internal abstract class BaseJsonConverter<T> : JsonConverter
+        private abstract class BaseJsonConverter<T> : JsonConverter
         {
             public sealed override bool CanConvert(Type objectType) => typeof(T) == objectType;
 
