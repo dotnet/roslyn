@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expression = node.ExpressionOpt;
                 var type = (expression is null) ?
-                    TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesFalseContext.Instance, NoReturnExpression) :
+                    TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesUnusedContext.Instance, NoReturnExpression) :
                     TypeSymbolWithAnnotations.Create(expression.Type?.SetUnknownNullabilityForReferenceTypes());
                 _builder.Add((node.RefKind, type));
                 return null;
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = inferredReturnType.Type;
             if (returnType == null)
             {
-                returnType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesFalseContext.Instance, LambdaSymbol.InferenceFailureReturnType);
+                returnType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesUnusedContext.Instance, LambdaSymbol.InferenceFailureReturnType);
             }
             lambdaSymbol.SetInferredReturnType(inferredReturnType.RefKind, returnType);
 
