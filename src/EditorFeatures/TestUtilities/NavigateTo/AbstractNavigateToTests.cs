@@ -236,88 +236,88 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             result = a.SecondarySort.CompareTo(b.SecondarySort);
             return result;
         }
-    }
 
-    public class FirstDocIsActiveDocumentTrackingService : IDocumentTrackingService
-    {
-        private readonly Workspace _workspace;
-
-        public FirstDocIsActiveDocumentTrackingService(Workspace workspace)
+        private class FirstDocIsActiveDocumentTrackingService : IDocumentTrackingService
         {
-            _workspace = workspace;
+            private readonly Workspace _workspace;
+
+            public FirstDocIsActiveDocumentTrackingService(Workspace workspace)
+            {
+                _workspace = workspace;
+            }
+
+            public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
+            public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
+
+            public DocumentId GetActiveDocument()
+                => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
+
+            public ImmutableArray<DocumentId> GetVisibleDocuments()
+                => ImmutableArray<DocumentId>.Empty;
         }
 
-        public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
-
-        public DocumentId GetActiveDocument()
-            => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
-
-        public ImmutableArray<DocumentId> GetVisibleDocuments()
-            => ImmutableArray<DocumentId>.Empty;
-    }
-
-    public class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
-    {
-        private readonly Workspace _workspace;
-
-        public FirstDocIsVisibleDocumentTrackingService(Workspace workspace)
+        private class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
         {
-            _workspace = workspace;
+            private readonly Workspace _workspace;
+
+            public FirstDocIsVisibleDocumentTrackingService(Workspace workspace)
+            {
+                _workspace = workspace;
+            }
+
+            public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
+            public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
+
+            public DocumentId GetActiveDocument()
+                => null;
+
+            public ImmutableArray<DocumentId> GetVisibleDocuments()
+                => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
         }
 
-        public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
-
-        public DocumentId GetActiveDocument()
-            => null;
-
-        public ImmutableArray<DocumentId> GetVisibleDocuments()
-            => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
-    }
-
-    public class FirstDocIsActiveAndVisibleDocumentTrackingService : IDocumentTrackingService
-    {
-        private readonly Workspace _workspace;
-
-        public FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
+        private class FirstDocIsActiveAndVisibleDocumentTrackingService : IDocumentTrackingService
         {
-            _workspace = workspace;
+            private readonly Workspace _workspace;
+
+            public FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
+            {
+                _workspace = workspace;
+            }
+
+            public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
+            public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
+
+            public DocumentId GetActiveDocument()
+                => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
+
+            public ImmutableArray<DocumentId> GetVisibleDocuments()
+                => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
         }
 
-        public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
-
-        public DocumentId GetActiveDocument()
-            => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
-
-        public ImmutableArray<DocumentId> GetVisibleDocuments()
-            => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
-    }
-
-    [Export]
-    [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Host)]
-    [Shared]
-    [PartNotDiscoverable]
-    public sealed class DocumentTrackingServiceFactory : IWorkspaceServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentTrackingServiceFactory()
+        [Export]
+        [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Host)]
+        [Shared]
+        [PartNotDiscoverable]
+        public sealed class DocumentTrackingServiceFactory : IWorkspaceServiceFactory
         {
-            FactoryMethod = null;
-        }
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public DocumentTrackingServiceFactory()
+            {
+                FactoryMethod = null;
+            }
 
-        internal Func<HostWorkspaceServices, IDocumentTrackingService> FactoryMethod
-        {
-            get;
-            set;
-        }
+            internal Func<HostWorkspaceServices, IDocumentTrackingService> FactoryMethod
+            {
+                get;
+                set;
+            }
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return FactoryMethod?.Invoke(workspaceServices);
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+            {
+                return FactoryMethod?.Invoke(workspaceServices);
+            }
         }
     }
 }
