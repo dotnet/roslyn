@@ -74,5 +74,68 @@ namespace ClassLibrary2
             End Using
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameOverrideMemberFromDerivedClass_abstract_virtual()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
+                            <Document>
+namespace ClassLibrary1
+{
+    public abstract class Class1
+    {
+        public abstract void M();
+    }
+}
+                        </Document>
+                        </Project>
+                        <Project Language="C#" AssemblyName="ClassLibrary2" CommonReferences="true">
+                            <ProjectReference>ClassLibrary1</ProjectReference>
+                            <Document>
+namespace ClassLibrary2
+{
+    public class Class2 : ClassLibrary1.Class1
+    {
+        virtual void [|$$M|]() { }
+    }
+}
+                        </Document>
+                        </Project>
+                    </Workspace>, renameTo:="A")
+
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameOverrideMemberFromDerivedClass_abstract_override()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
+                            <Document>
+namespace ClassLibrary1
+{
+    public abstract class Class1
+    {
+        public virtual void [|M|]();
+    }
+}
+                        </Document>
+                        </Project>
+                        <Project Language="C#" AssemblyName="ClassLibrary2" CommonReferences="true">
+                            <ProjectReference>ClassLibrary1</ProjectReference>
+                            <Document>
+namespace ClassLibrary2
+{
+    public class Class2 : ClassLibrary1.Class1
+    {
+        override void [|$$M|]() { }
+    }
+}
+                        </Document>
+                        </Project>
+                    </Workspace>, renameTo:="A")
+
+            End Using
+        End Sub
     End Class
 End Namespace
