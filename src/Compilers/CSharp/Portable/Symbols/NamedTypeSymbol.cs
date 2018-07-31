@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                modifiedArguments = typeArguments.SelectAsArray((t, c) => TypeSymbolWithAnnotations.Create(c, t), nonNullTypesContext);
+                modifiedArguments = typeArguments.SelectAsArray((t, c) => t == null ? default : TypeSymbolWithAnnotations.Create(c, t), nonNullTypesContext);
             }
 
             return Construct(modifiedArguments, unbound);

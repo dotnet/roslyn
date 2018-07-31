@@ -159,7 +159,7 @@ namespace System
             Assert.Equal("System.IAsyncResult", beginInvoke.ReturnType.TypeSymbol.ToTestDisplayString());
             for (int i = 0; i < invoke.Parameters.Length; i++)
             {
-                Assert.Equal(invoke.Parameters[i].Type, beginInvoke.Parameters[i].Type);
+                Assert.Equal(invoke.Parameters[i].Type.TypeSymbol, beginInvoke.Parameters[i].Type.TypeSymbol);
                 Assert.Equal(invoke.Parameters[i].RefKind, beginInvoke.Parameters[i].RefKind);
             }
             var lastParameterType = beginInvoke.Parameters[invoke.Parameters.Length].Type.TypeSymbol;
@@ -168,13 +168,13 @@ namespace System
             Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.TypeSymbol.ToTestDisplayString());
 
             var endInvoke = myDel.GetMembers("EndInvoke").Single() as MethodSymbol;
-            Assert.Equal(invoke.ReturnType, endInvoke.ReturnType);
+            Assert.Equal(invoke.ReturnType.TypeSymbol, endInvoke.ReturnType.TypeSymbol);
             int k = 0;
             for (int i = 0; i < invoke.Parameters.Length; i++)
             {
                 if (invoke.Parameters[i].RefKind != RefKind.None)
                 {
-                    Assert.Equal(invoke.Parameters[i].Type, endInvoke.Parameters[k].Type);
+                    Assert.Equal(invoke.Parameters[i].Type.TypeSymbol, endInvoke.Parameters[k].Type.TypeSymbol);
                     Assert.Equal(invoke.Parameters[i].RefKind, endInvoke.Parameters[k++].RefKind);
                 }
             }
