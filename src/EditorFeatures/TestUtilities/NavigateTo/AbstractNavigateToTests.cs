@@ -33,6 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
     [UseExportProvider]
     public abstract class AbstractNavigateToTests
     {
+        // Maps tracking service type to the export provider factory
+        private static readonly Dictionary<Type, IExportProviderFactory> _exportProviders
+            = new Dictionary<Type, IExportProviderFactory>();
+
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
 
@@ -72,13 +76,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         protected async Task TestAsync(string content, Func<TestWorkspace, Task> body, Type trackingServiceType)
         {
-            var catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
-            if (trackingServiceType != null)
+            IExportProviderFactory exportProviderFactory;
+            if (trackingServiceType is null)
             {
-                catalog = catalog.WithPart(trackingServiceType);
+                exportProviderFactory = TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic;
+            }
+            else if (!_exportProviders.TryGetValue(trackingServiceType, out exportProviderFactory))
+            {
+                exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
+                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(trackingServiceType));
+                _exportProviders[trackingServiceType] = exportProviderFactory;
             }
 
-            var exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(catalog).CreateExportProvider();
+            var exportProvider = exportProviderFactory.CreateExportProvider();
 
             await TestAsync(content, body, outOfProcess: true, exportProvider);
             await TestAsync(content, body, outOfProcess: false, exportProvider);
