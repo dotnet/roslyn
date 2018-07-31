@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,19 +26,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         protected override TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider)
             => TestWorkspace.CreateCSharp(content, exportProvider: exportProvider);
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task NoItemsForEmptyFile(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task NoItemsForEmptyFile()
         {
             await TestAsync("", async w =>
             {
                 Assert.Empty(await _aggregator.GetItemsAsync("Hello"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindClass(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindClass()
         {
             await TestAsync(
 @"class Goo
@@ -48,12 +45,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindVerbatimClass(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindVerbatimClass()
         {
             await TestAsync(
 @"class @static
@@ -66,12 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 // Check searching for @static too
                 item = (await _aggregator.GetItemsAsync("@static")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "static", "[|static|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindNestedClass(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindNestedClass()
         {
             await TestAsync(
 @"class Goo
@@ -86,12 +81,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 var item = (await _aggregator.GetItemsAsync("DogBed")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "DogBed", "[|DogBed|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindMemberInANestedClass(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindMemberInANestedClass()
         {
             await TestAsync(
 @"class Goo
@@ -109,12 +103,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 var item = (await _aggregator.GetItemsAsync("Method")).Single();
                 VerifyNavigateToResultItem(item, "Method", "[|Method|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo.Bar.DogBed", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindGenericClassWithConstraints(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindGenericClassWithConstraints()
         {
             await TestAsync(
 @"using System.Collections;
@@ -125,12 +118,11 @@ class Goo<T> where T : IEnumerable
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindGenericMethodWithConstraints(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindGenericMethodWithConstraints()
         {
             await TestAsync(
 @"using System;
@@ -144,12 +136,11 @@ class Goo<U>
             {
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|Bar|]<T>(T)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo<U>", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindPartialClass(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindPartialClass()
         {
             await TestAsync(
 @"public partial class Goo
@@ -168,12 +159,11 @@ partial class Goo
                 var items = await _aggregator.GetItemsAsync("Goo");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindTypesInMetadata(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindTypesInMetadata()
         {
             await TestAsync(
 @"using System;
@@ -182,12 +172,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var items = await _aggregator.GetItemsAsync("FileStyleUriParser");
                 Assert.Equal(items.Count(), 0);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindClassInNamespace(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindClassInNamespace()
         {
             await TestAsync(
 @"namespace Bar
@@ -199,12 +188,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindStruct(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindStruct()
         {
             await TestAsync(
 @"struct Bar
@@ -213,12 +201,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("B")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Structure, Glyph.StructureInternal);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindEnum(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindEnum()
         {
             await TestAsync(
 @"enum Colors
@@ -230,12 +217,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Colors")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Colors", "[|Colors|]", PatternMatchKind.Exact, NavigateToItemKind.Enum, Glyph.EnumInternal);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindEnumMember(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindEnumMember()
         {
             await TestAsync(
 @"enum Colors
@@ -247,12 +233,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("R")).Single();
                 VerifyNavigateToResultItem(item, "Red", "[|R|]ed", PatternMatchKind.Prefix, NavigateToItemKind.EnumItem, Glyph.EnumMemberPublic);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindField1(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindField1()
         {
             await TestAsync(
 @"class Goo
@@ -262,12 +247,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("b")).Single();
                 VerifyNavigateToResultItem(item, "bar", "[|b|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindField2(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindField2()
         {
             await TestAsync(
 @"class Goo
@@ -277,12 +261,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("ba")).Single();
                 VerifyNavigateToResultItem(item, "bar", "[|ba|]r", PatternMatchKind.Prefix, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindField3(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindField3()
         {
             await TestAsync(
 @"class Goo
@@ -291,12 +274,11 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 Assert.Empty(await _aggregator.GetItemsAsync("ar"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindVerbatimField(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindVerbatimField()
         {
             await TestAsync(
 @"class Goo
@@ -310,12 +292,11 @@ Class Program { FileStyleUriParser f; }", async w =>
                 // Check searching for@string too
                 item = (await _aggregator.GetItemsAsync("@string")).Single();
                 VerifyNavigateToResultItem(item, "string", "[|string|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindPtrField1(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindPtrField1()
         {
             await TestAsync(
 @"class Goo
@@ -324,12 +305,11 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 Assert.Empty(await _aggregator.GetItemsAsync("ar"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindPtrField2(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindPtrField2()
         {
             await TestAsync(
 @"class Goo
@@ -339,12 +319,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("b")).Single();
                 VerifyNavigateToResultItem(item, "bar", "[|b|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Field, Glyph.FieldPrivate);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindConstField(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindConstField()
         {
             await TestAsync(
 @"class Goo
@@ -354,36 +333,33 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("ba")).Single();
                 VerifyNavigateToResultItem(item, "bar", "[|ba|]r", PatternMatchKind.Prefix, NavigateToItemKind.Constant, Glyph.ConstantPrivate);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindIndexer(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindIndexer()
         {
             var program = @"class Goo { int[] arr; public int this[int i] { get { return arr[i]; } set { arr[i] = value; } } }";
             await TestAsync(program, async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("this")).Single();
                 VerifyNavigateToResultItem(item, "this", "[|this|][int]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindEvent(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindEvent()
         {
             var program = "class Goo { public event EventHandler ChangedEventHandler; }";
             await TestAsync(program, async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("CEH")).Single();
                 VerifyNavigateToResultItem(item, "ChangedEventHandler", "[|C|]hanged[|E|]vent[|H|]andler", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Event, Glyph.EventPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindAutoProperty(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindAutoProperty()
         {
             await TestAsync(
 @"class Goo
@@ -393,12 +369,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("B")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Property, Glyph.PropertyPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindMethod(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindMethod()
         {
             await TestAsync(
 @"class Goo
@@ -408,12 +383,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
                 VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindVerbatimMethod(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindVerbatimMethod()
         {
             await TestAsync(
 @"class Goo
@@ -427,12 +401,11 @@ Class Program { FileStyleUriParser f; }", async w =>
                 // Verify if we search for @static too
                 item = (await _aggregator.GetItemsAsync("@static")).Single();
                 VerifyNavigateToResultItem(item, "static", "[|static|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindParameterizedMethod(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindParameterizedMethod()
         {
             await TestAsync(
 @"class Goo
@@ -444,12 +417,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
                 VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething(int, string)", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindConstructor(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindConstructor()
         {
             await TestAsync(
 @"class Goo
@@ -461,12 +433,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method);
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindParameterizedConstructor(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindParameterizedConstructor()
         {
             await TestAsync(
 @"class Goo
@@ -478,12 +449,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method);
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindStaticConstructor(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindStaticConstructor()
         {
             await TestAsync(
 @"class Goo
@@ -495,12 +465,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method && t.Name != ".ctor");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|].static Goo()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindPartialMethods(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindPartialMethods()
         {
             await TestAsync("partial class Goo { partial void Bar(); } partial class Goo { partial void Bar() { Console.Write(\"hello\"); } }", async w =>
             {
@@ -510,12 +479,11 @@ Class Program { FileStyleUriParser f; }", async w =>
                 var items = await _aggregator.GetItemsAsync("Bar");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindPartialMethodDefinitionOnly(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindPartialMethodDefinitionOnly()
         {
             await TestAsync(
 @"partial class Goo
@@ -525,12 +493,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindPartialMethodImplementationOnly(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindPartialMethodImplementationOnly()
         {
             await TestAsync(
 @"partial class Goo
@@ -542,12 +509,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
                 VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindOverriddenMembers(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindOverriddenMembers()
         {
             var program = "class Goo { public virtual string Name { get; set; } } class DogBed : Goo { public override string Name { get { return base.Name; } set {} } }";
             await TestAsync(program, async w =>
@@ -572,12 +538,11 @@ Class Program { FileStyleUriParser f; }", async w =>
 
                 Assert.Equal("Name", itemDisplay.Name);
                 Assert.Equal(string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"), itemDisplay.AdditionalInformation);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindInterface(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindInterface()
         {
             await TestAsync(
 @"public interface IGoo
@@ -586,12 +551,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("IG")).Single();
                 VerifyNavigateToResultItem(item, "IGoo", "[|IG|]oo", PatternMatchKind.Prefix, NavigateToItemKind.Interface, Glyph.InterfacePublic);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindDelegateInNamespace(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindDelegateInNamespace()
         {
             await TestAsync(
 @"namespace Goo
@@ -601,12 +565,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("DoStuff")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "DoStuff", "[|DoStuff|]", PatternMatchKind.Exact, NavigateToItemKind.Delegate, Glyph.DelegateInternal);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindLambdaExpression(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindLambdaExpression()
         {
             await TestAsync(
 @"using System;
@@ -618,12 +581,11 @@ class Goo
             {
                 var item = (await _aggregator.GetItemsAsync("sqr")).Single();
                 VerifyNavigateToResultItem(item, "sqr", "[|sqr|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindArray(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindArray()
         {
             await TestAsync(
 @"class Goo
@@ -633,12 +595,11 @@ class Goo
             {
                 var item = (await _aggregator.GetItemsAsync("itemArray")).Single();
                 VerifyNavigateToResultItem(item, "itemArray", "[|itemArray|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindClassAndMethodWithSameName(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindClassAndMethodWithSameName()
         {
             await TestAsync(
 @"class Goo
@@ -659,12 +620,11 @@ class Test
                 };
                 var items = await _aggregator.GetItemsAsync("Goo");
                 VerifyNavigateToResultItems(expectedItems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindMethodNestedInGenericTypes(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindMethodNestedInGenericTypes()
         {
             await TestAsync(
 @"class A<T>
@@ -682,12 +642,11 @@ class Test
             {
                 var item = (await _aggregator.GetItemsAsync("M")).Single();
                 VerifyNavigateToResultItem(item, "M", "[|M|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "A<T>.B.C<U>", "Test"));
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task OrderingOfConstructorsAndTypes(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task OrderingOfConstructorsAndTypes()
         {
             await TestAsync(
 @"class C1
@@ -719,12 +678,11 @@ class C2
                 var items = (await _aggregator.GetItemsAsync("C")).ToList();
                 items.Sort(CompareNavigateToItems);
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task NavigateToMethodWithNullableParameter(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task NavigateToMethodWithNullableParameter()
         {
             await TestAsync(
 @"class C
@@ -736,12 +694,11 @@ class C2
             {
                 var item = (await _aggregator.GetItemsAsync("M")).Single();
                 VerifyNavigateToResultItem(item, "M", "[|M|](object?)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task StartStopSanity(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task StartStopSanity()
         {
             // Verify that multiple calls to start/stop and dispose don't blow up
             await TestAsync(
@@ -759,12 +716,11 @@ class C2
 
                 // Dispose the provider
                 _provider.Dispose();
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task DescriptionItems(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task DescriptionItems()
         {
             await TestAsync("public\r\nclass\r\nGoo\r\n{ }", async w =>
             {
@@ -782,12 +738,11 @@ class C2
                 assertDescription("File:", w.Documents.Single().Name);
                 assertDescription("Line:", "3"); // one based line number
                 assertDescription("Project:", "Test");
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task TermSplittingTest1(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task TermSplittingTest1()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
@@ -802,12 +757,11 @@ class C2
                 Assert.Equal(expecteditems.Count(), items.Count());
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task TermSplittingTest2(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task TermSplittingTest2()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
@@ -819,12 +773,11 @@ class C2
                 var items = await _aggregator.GetItemsAsync("GKW");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task TermSplittingTest3(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task TermSplittingTest3()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
@@ -836,36 +789,33 @@ class C2
                 var items = await _aggregator.GetItemsAsync("K W");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task TermSplittingTest4(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task TermSplittingTest4()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
             {
                 var items = await _aggregator.GetItemsAsync("WKG");
                 Assert.Empty(items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task TermSplittingTest5(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task TermSplittingTest5()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("G_K_W")).Single();
                 VerifyNavigateToResultItem(item, "get_key_word", "[|g|]et[|_k|]ey[|_w|]ord", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Field, Glyph.FieldPrivate);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task TermSplittingTest6(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task TermSplittingTest6()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
@@ -879,24 +829,22 @@ class C2
                 var items = await _aggregator.GetItemsAsync("get word");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task TermSplittingTest7(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task TermSplittingTest7()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
             {
                 var items = await _aggregator.GetItemsAsync("GTW");
                 Assert.Empty(items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task TestIndexer1(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task TestIndexer1()
         {
             var source =
 @"class C
@@ -922,12 +870,11 @@ class D
                 var items = await _aggregator.GetItemsAsync("this");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task DottedPattern1(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task DottedPattern1()
         {
             var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
             await TestAsync(source, async w =>
@@ -940,12 +887,11 @@ class D
                 var items = await _aggregator.GetItemsAsync("B.Q");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task DottedPattern2(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task DottedPattern2()
         {
             var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
             await TestAsync(source, async w =>
@@ -957,12 +903,11 @@ class D
                 var items = await _aggregator.GetItemsAsync("C.Q");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task DottedPattern3(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task DottedPattern3()
         {
             var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
             await TestAsync(source, async w =>
@@ -975,12 +920,11 @@ class D
                 var items = await _aggregator.GetItemsAsync("B.B.Q");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task DottedPattern4(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task DottedPattern4()
         {
             var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
             await TestAsync(source, async w =>
@@ -993,12 +937,11 @@ class D
                 var items = await _aggregator.GetItemsAsync("Baz.Quux");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task DottedPattern5(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task DottedPattern5()
         {
             var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
             await TestAsync(source, async w =>
@@ -1011,12 +954,11 @@ class D
                 var items = await _aggregator.GetItemsAsync("G.B.B.Quux");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task DottedPattern6(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task DottedPattern6()
         {
             var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
             await TestAsync(source, async w =>
@@ -1028,13 +970,12 @@ class D
                 var items = await _aggregator.GetItemsAsync("F.F.B.B.Quux");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         [WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task DottedPattern7(Type trackingServiceType)
+        public async Task DottedPattern7()
         {
             var source = "namespace Goo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }";
             await TestAsync(source, async w =>
@@ -1047,7 +988,7 @@ class D
                 var items = await _aggregator.GetItemsAsync("Baz.Q");
 
                 VerifyNavigateToResultItems(expecteditems, items);
-            }, trackingServiceType);
+            });
         }
 
         [WorkItem(1174255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
@@ -1097,9 +1038,8 @@ class D
         }
 
         [WorkItem(11474, "https://github.com/dotnet/roslyn/pull/11474")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task FindFuzzy1(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindFuzzy1()
         {
             await TestAsync(
 @"class C
@@ -1111,13 +1051,12 @@ class D
             {
                 var item = (await _aggregator.GetItemsAsync("ToEror")).Single();
                 VerifyNavigateToResultItem(item, "ToError", "ToError()", PatternMatchKind.Fuzzy, NavigateToItemKind.Method, Glyph.MethodPublic);
-            }, trackingServiceType);
+            });
         }
 
         [WorkItem(18843, "https://github.com/dotnet/roslyn/issues/18843")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        [MemberData(nameof(TrackingServiceTypes))]
-        public async Task Test__arglist(Type trackingServiceType)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task Test__arglist()
         {
             await TestAsync(
 @"class C
@@ -1129,7 +1068,7 @@ class D
 {
     var item = (await _aggregator.GetItemsAsync("ToError")).Single();
     VerifyNavigateToResultItem(item, "ToError", "[|ToError|](__arglist)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic);
-}, trackingServiceType);
+});
         }
     }
 }

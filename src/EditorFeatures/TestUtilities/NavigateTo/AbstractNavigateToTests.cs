@@ -33,9 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
     [UseExportProvider]
     public abstract class AbstractNavigateToTests
     {
-        // Maps tracking service type to the export provider factory
-        private static readonly Dictionary<Type, IExportProviderFactory> _exportProviders
-            = new Dictionary<Type, IExportProviderFactory>();
+        private static readonly Lazy<IExportProviderFactory> s_exportProviderFactory =
+            new Lazy<IExportProviderFactory>(() =>
+            {
+                var catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(DocumentTrackingServiceFactory));
+                return ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
+            });
 
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
@@ -60,43 +63,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         internal readonly static PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousSubstring, true, false, ImmutableArray<Span>.Empty);
         internal readonly static PatternMatch s_emptyFuzzyPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Fuzzy, true, false, ImmutableArray<Span>.Empty);
 
-        public static IEnumerable<object[]> TrackingServiceTypes
-        {
-            get
-            {
-                yield return new object[] { null };
-                yield return new object[] { typeof(FirstDocIsActiveDocumentTrackingService.Factory) };
-                yield return new object[] { typeof(FirstDocIsVisibleDocumentTrackingService.Factory) };
-                yield return new object[] { typeof(FirstDocIsActiveAndVisibleDocumentTrackingService.Factory) };
-            }
-        }
-
         protected abstract TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider);
         protected abstract string Language { get; }
 
-        protected async Task TestAsync(string content, Func<TestWorkspace, Task> body, Type trackingServiceType)
+        protected async Task TestAsync(string content, Func<TestWorkspace, Task> body)
         {
-            IExportProviderFactory exportProviderFactory;
-            if (trackingServiceType is null)
-            {
-                exportProviderFactory = TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic;
-            }
-            else if (!_exportProviders.TryGetValue(trackingServiceType, out exportProviderFactory))
-            {
-                exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(trackingServiceType));
-                _exportProviders[trackingServiceType] = exportProviderFactory;
-            }
-
-            var exportProvider = exportProviderFactory.CreateExportProvider();
-
-            await TestAsync(content, body, outOfProcess: true, exportProvider);
-            await TestAsync(content, body, outOfProcess: false, exportProvider);
+            await TestAsync(content, body, outOfProcess: true);
+            await TestAsync(content, body, outOfProcess: false);
         }
 
-        internal async Task TestAsync(string content, Func<TestWorkspace, Task> body, bool outOfProcess, ExportProvider exportProvider)
+        private async Task TestAsync(string content, Func<TestWorkspace, Task> body, bool outOfProcess)
         {
-            using (var workspace = SetupWorkspace(content, exportProvider))
+            await TestAsync(content, body, outOfProcess, null);
+            await TestAsync(content, body, outOfProcess, w => new FirstDocIsActiveDocumentTrackingService(w.Workspace));
+            await TestAsync(content, body, outOfProcess, w => new FirstDocIsVisibleDocumentTrackingService(w.Workspace));
+            await TestAsync(content, body, outOfProcess, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w.Workspace));
+        }
+
+        private async Task TestAsync(
+            string content, Func<TestWorkspace, Task> body, bool outOfProcess, 
+            Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
+        {
+            using (var workspace = SetupWorkspace(
+                content, s_exportProviderFactory.Value.CreateExportProvider(), createTrackingService))
             {
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
                                                      .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
@@ -106,15 +95,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             }
         }
 
-        private protected TestWorkspace SetupWorkspace(XElement workspaceElement, ExportProvider exportProvider)
+        private protected TestWorkspace SetupWorkspace(
+            XElement workspaceElement, ExportProvider exportProvider, 
+            Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
         {
+            var documentTrackingServiceFactory = exportProvider.GetExportedValue<DocumentTrackingServiceFactory>();
+            documentTrackingServiceFactory.FactoryMethod = createTrackingService;
+
             var workspace = TestWorkspace.Create(workspaceElement, exportProvider: exportProvider);
             InitializeWorkspace(workspace);
             return workspace;
         }
 
-        private protected TestWorkspace SetupWorkspace(string content, ExportProvider exportProvider)
+        private protected TestWorkspace SetupWorkspace(
+            string content, ExportProvider exportProvider, 
+            Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
         {
+            var documentTrackingServiceFactory = exportProvider.GetExportedValue<DocumentTrackingServiceFactory>();
+            documentTrackingServiceFactory.FactoryMethod = createTrackingService;
+
             var workspace = CreateWorkspace(content, exportProvider);
             InitializeWorkspace(workspace);
             return workspace;
@@ -216,7 +215,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
     {
         private readonly Workspace _workspace;
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public FirstDocIsActiveDocumentTrackingService(Workspace workspace)
         {
             _workspace = workspace;
@@ -230,31 +228,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()
             => ImmutableArray<DocumentId>.Empty;
-
-        [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Host)]
-        [Shared]
-        [PartNotDiscoverable]
-        public sealed class Factory : IWorkspaceServiceFactory
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
-            }
-
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                return new FirstDocIsActiveDocumentTrackingService(workspaceServices.Workspace);
-            }
-        }
     }
 
     public class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
     {
         private readonly Workspace _workspace;
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public FirstDocIsVisibleDocumentTrackingService(Workspace workspace)
         {
             _workspace = workspace;
@@ -268,31 +247,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()
             => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
-
-        [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Host)]
-        [Shared]
-        [PartNotDiscoverable]
-        public sealed class Factory : IWorkspaceServiceFactory
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
-            }
-
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                return new FirstDocIsVisibleDocumentTrackingService(workspaceServices.Workspace);
-            }
-        }
     }
 
     public class FirstDocIsActiveAndVisibleDocumentTrackingService : IDocumentTrackingService
     {
         private readonly Workspace _workspace;
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
         {
             _workspace = workspace;
@@ -306,23 +266,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()
             => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
+    }
 
-        [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Host)]
-        [Shared]
-        [PartNotDiscoverable]
-        public sealed class Factory : IWorkspaceServiceFactory
+    [Export]
+    [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Host)]
+    [Shared]
+    [PartNotDiscoverable]
+    public sealed class DocumentTrackingServiceFactory : IWorkspaceServiceFactory
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DocumentTrackingServiceFactory()
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
-            }
+            FactoryMethod = null;
+        }
 
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                return new FirstDocIsActiveAndVisibleDocumentTrackingService(workspaceServices.Workspace);
-            }
+        internal Func<HostWorkspaceServices, IDocumentTrackingService> FactoryMethod
+        {
+            get;
+            set;
+        }
+
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        {
+            return FactoryMethod?.Invoke(workspaceServices);
         }
     }
 }
