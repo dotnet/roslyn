@@ -109,24 +109,27 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         private static bool ShouldRenameOnlyAffectDeclaringProject(ISymbol symbol)
         {
-            if (symbol.DeclaredAccessibility == Accessibility.Private)
+            if (symbol.DeclaredAccessibility != Accessibility.Private)
             {
-                // Explicit interface implementations can cascade to other projects
-                // we check if the symbol is an override. If it's overriding something (even if private) it's an error, but we can rename across that error.
-                // https://github.com/dotnet/roslyn/issues/25682
-                if (symbol.ExplicitInterfaceImplementations().Any() || symbol.IsOverride)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-            else
-            {
+                // non-private members can influence other projects.
                 return false;
             }
+
+            if (symbol.ExplicitInterfaceImplementations().Any())
+            {
+                // Explicit interface implementations can cascade to other projects
+                return false;
+            }
+
+            if (symbol.IsOverride)
+            {
+                // private-overrides aren't actually legal.  But if we see one, we tolerate it and search other projects in case
+                // they override it.
+                // https://github.com/dotnet/roslyn/issues/25682
+                return false;
+            }
+
+            return true;
         }
 
         internal static TokenRenameInfo GetTokenRenameInfo(
