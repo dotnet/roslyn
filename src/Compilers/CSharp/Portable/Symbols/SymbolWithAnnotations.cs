@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal TypeSymbolWithAnnotations ToType()
             {
-                return new TypeSymbolWithAnnotations(_defaultType, _nonNullTypesContext, _isAnnotated, _extensions);
+                return (object)_defaultType == null ?
+                    default :
+                    new TypeSymbolWithAnnotations(_defaultType, _nonNullTypesContext, _isAnnotated, _extensions);
             }
 
             internal string GetDebuggerDisplay() => ToType().GetDebuggerDisplay();

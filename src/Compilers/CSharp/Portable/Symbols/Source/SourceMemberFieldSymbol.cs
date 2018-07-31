@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyType.IsNull)
+                if (!_lazyType.IsNull)
                 {
                     Debug.Assert(_lazyType.DefaultType.IsPointerType() ==
                         IsPointerFieldSyntactically());

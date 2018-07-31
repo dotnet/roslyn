@@ -1465,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // PROTOTYPE(NullableReferenceTypes): This check is incorrect since it compares declared
                         // nullability rather than tracked nullability. Moreover, we should only report such
                         // diagnostics for locals that are set or checked explicitly within this method.
-                        if (operandComparedToNullType.IsNullable == false)
+                        if (operandComparedToNullType != null && operandComparedToNullType.IsNullable == false)
                         {
                             ReportStaticNullCheckingDiagnostics(op == BinaryOperatorKind.Equal ?
                                                                     ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse :
