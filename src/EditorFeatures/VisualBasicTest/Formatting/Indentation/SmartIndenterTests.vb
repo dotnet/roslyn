@@ -1261,6 +1261,7 @@ End Class</Code>.Value
                 expectedIndentation:=14)
         End Sub
 
+        ' This test is never run
         Public Sub TestQueryExpressionExplicitLineContinued()
             ' This should still follow indent of 'From', as in Dev10
 
@@ -1275,6 +1276,21 @@ End Class</Code>.Value
                 expectedIndentation:=26)
         End Sub
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestQueryExpressionExplicitLineContinuedCommentsAfterLineContinuation()
+            ' This should still follow indent of 'From', as in Dev10
+
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim q = From c In From c2 in b _ ' Test
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=26)
+        End Sub
 #End Region
 
 #Region "Implicit line-continuation"
@@ -1420,12 +1436,42 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationInExpressionCommentsAfterLineContinuation()
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim q = 1 + _ ' Test
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=12)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestMultipleExplicitLineContinuationsInExpression()
             Dim code = <Code>Class C
     Sub Method()
         Dim q = 1 + _
                     2 + _
                         3 + _
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=5,
+                expectedIndentation:=24)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestMultipleExplicitLineContinuationsInExpressionCommentsAfterLineContinuation()
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim q = 1 + _ ' Test
+                    2 + _ ' Test
+                        3 + _ ' Test
 </Code>.Value
 
             AssertSmartIndent(
@@ -1449,9 +1495,35 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationInFieldDeclarationCommentsAfterLineContinuation()
+            Dim code = <Code>Class C
+    Dim q _ ' Test
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=2,
+                expectedIndentation:=8)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestExplicitLineContinuationAfterAttributeInNamespace()
             Dim code = "Namespace goo" & vbCrLf &
                        "    <SomeAttribute()> _" & vbCrLf &
+                       ""
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=2,
+                expectedIndentation:=4)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationAfterAttributeInNamespaceCommentsAfterLineContinuation()
+            Dim code = "Namespace goo" & vbCrLf &
+                       "    <SomeAttribute()> _ ' Test" & vbCrLf &
                        ""
 
             AssertSmartIndent(
@@ -1476,6 +1548,20 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationWithMultipleAttributesCommentsAfterLineContinuation()
+            Dim code = "Namespace goo" & vbCrLf &
+                       "    <SomeAttribute1()> _ ' Test" & vbCrLf &
+                       "    <SomeAttribute2()> _ ' Test 1" & vbCrLf &
+                       ""
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=4)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestExplicitLineContinuationAfterAttributeInClass()
             Dim code = "Namespace goo" & vbCrLf &
                        "    Class C" & vbCrLf &
@@ -1488,6 +1574,19 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationAfterAttributeInClassCommentsAfterLineContinuation()
+            Dim code = "Namespace goo" & vbCrLf &
+                       "    Class C" & vbCrLf &
+                       "        <SomeAttribute()> _ ' Test" & vbCrLf &
+                       ""
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=8)
+        End Sub
 #End Region
 
 #Region "Statement Separators"
