@@ -112,7 +112,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
-#pragma warning disable CS0618 // MatchKind is obsolete
         protected void VerifyNavigateToResultItems(
             List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
@@ -197,10 +196,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             result = a.SecondarySort.CompareTo(b.SecondarySort);
             return result;
         }
-#pragma warning restore CS0618 // MatchKind is obsolete
     }
 
-#pragma warning disable CS0067
     public class FirstDocIsActiveDocumentTrackingService : IDocumentTrackingService
     {
         private readonly Workspace _workspace;
@@ -210,8 +207,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             _workspace = workspace;
         }
 
-        public event EventHandler<DocumentId> ActiveDocumentChanged;
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
+        public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
+        public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
         public DocumentId GetActiveDocument()
             => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
@@ -229,8 +226,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             _workspace = workspace;
         }
 
-        public event EventHandler<DocumentId> ActiveDocumentChanged;
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
+        public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
+        public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
         public DocumentId GetActiveDocument()
             => null;
@@ -248,8 +245,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             _workspace = workspace;
         }
 
-        public event EventHandler<DocumentId> ActiveDocumentChanged;
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
+        public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
+        public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
         public DocumentId GetActiveDocument()
             => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
@@ -257,5 +254,4 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         public ImmutableArray<DocumentId> GetVisibleDocuments()
             => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
     }
-#pragma warning restore
 }
