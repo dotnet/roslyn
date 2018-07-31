@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Operations
             operation?.Accept(this);
         }
 
+        public virtual void Test()
+        { }
+
         public virtual void DefaultVisit(IOperation operation)
         {
             // no-op
