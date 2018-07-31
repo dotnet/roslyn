@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Text;
@@ -13,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static readonly AggregateJsonConverter Instance = new AggregateJsonConverter();
 
-        private readonly ImmutableDictionary<Type, JsonConverter> _map;
+        private readonly ConcurrentDictionary<Type, JsonConverter> _map;
 
         private AggregateJsonConverter()
         {
-            _map = CreateConverterMap();
+            _map = new ConcurrentDictionary<Type, JsonConverter>(CreateConverterMap());
         }
 
         public override bool CanConvert(Type objectType)
@@ -55,11 +56,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private static void Add<T>(
             ImmutableDictionary<Type, JsonConverter>.Builder builder,
             BaseJsonConverter<T> converter)
-        {
-            builder.Add(typeof(T), converter);
-        }
+            => builder.Add(typeof(T), converter);
 
-        private abstract class BaseJsonConverter<T> : JsonConverter
+        internal bool TryAdd<T>(BaseJsonConverter<T> converter)
+            => _map.TryAdd(typeof(T), converter);
+
+        internal abstract class BaseJsonConverter<T> : JsonConverter
         {
             public sealed override bool CanConvert(Type objectType) => typeof(T) == objectType;
 
