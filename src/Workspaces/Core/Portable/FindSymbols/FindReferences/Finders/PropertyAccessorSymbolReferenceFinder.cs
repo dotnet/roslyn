@@ -59,12 +59,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result;
         }
 
-        private Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
-            Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
-        {
-            return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsElementAccessExpression, cancellationToken);
-        }
-
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol, Document document, SemanticModel semanticModel, 
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
