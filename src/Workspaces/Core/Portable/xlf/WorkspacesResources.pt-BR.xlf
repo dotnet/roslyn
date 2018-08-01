@@ -7,6 +7,11 @@
         <target state="translated">Ocorreu um erro ao ler o arquivo de configuração especificado: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Somente Refatoração</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">Símbolo "{0}" não é da fonte.</target>
@@ -799,7 +804,7 @@
       </trans-unit>
       <trans-unit id="Variables_captured_colon">
         <source>Variables captured:</source>
-        <target state="new">Variables captured:</target>
+        <target state="translated">Variáveis capturadas:</target>
         <note />
       </trans-unit>
     </body>

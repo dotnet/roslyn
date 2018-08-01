@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -84,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
         public IVisualStudioHostDocument TryGetDocumentForFile(
-            IVisualStudioHostProject hostProject,
+            AbstractProject hostProject,
             string filePath,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
@@ -93,12 +94,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             EventHandler<bool> openedHandler = null,
             EventHandler<bool> closingHandler = null)
         {
+            var itemid = hostProject.Hierarchy.TryGetItemId(filePath);
+
+            var folderNames = getFolderNames(itemid).AsImmutableOrEmpty();
             return TryGetDocumentForFile(
-                (AbstractProject)hostProject,
+                hostProject,
                 filePath,
                 sourceCodeKind,
                 canUseTextBuffer,
-                getFolderNames,
+                folderNames,
                 updatedOnDiskHandler,
                 openedHandler,
                 closingHandler);
@@ -116,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filePath,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
-            Func<uint, IReadOnlyList<string>> getFolderNames,
+            ImmutableArray<string> folderNames,
             EventHandler updatedOnDiskHandler = null,
             EventHandler<bool> openedHandler = null,
             EventHandler<bool> closingHandler = null)
@@ -180,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this,
                     hostProject,
                     documentKey,
-                    getFolderNames,
+                    folderNames,
                     sourceCodeKind,
                     _fileChangeService,
                     openTextBuffer,

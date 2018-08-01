@@ -2,6 +2,28 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">L'analizzatore '{0}' ha generato l'eccezione seguente:
+'{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">Il blocco operazioni specificato non appartiene al contesto di analisi corrente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">L'operazione specificata non contiene un elemento padre non Null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">L'operazione specificata contiene un modello semantico Null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">Il tipo di output non è supportato.</target>
@@ -467,13 +489,6 @@
         <target state="translated">L'analizzatore '{0}' ha generato un'eccezione di tipo '{1}'. Messaggio: '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">L'analizzatore '{0}' ha generato l'eccezione seguente:
-'{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
         <target state="translated">Errore del driver dell'analizzatore</target>
@@ -498,7 +513,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Le modifiche devono essere ordinate e non sovrapposte.</target>
+        <target state="translated">Le modifiche non devono sovrapporsi.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -573,7 +588,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">Il nodo da tracciare non è un discendente della radice.</target>
+        <target state="translated">Il nodo di cui tenere traccia non è un discendente della radice.</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">
@@ -828,9 +843,9 @@
         <target state="translated">Avviso: non è stato possibile abilitare JIT multicore a causa dell'eccezione {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerDiagnosticIdReported">
-        <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="translated">L'ID della diagnostica restituita è '{0}', che deve essere restituito solo da un compilatore.</target>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="translated">La funzionalità 'Analisi flusso' è disabilitata.</target>
         <note />
       </trans-unit>
     </body>

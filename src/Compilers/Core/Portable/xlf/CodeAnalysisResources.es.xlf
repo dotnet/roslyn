@@ -2,6 +2,28 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">El analizador '{0}' inició la siguiente excepción:
+'{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">El bloque de operaciones dado no pertenece al contexto de análisis actual.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">La operación dada tiene un elemento primario no nulo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">La operación dada tiene un modelo semántico nulo.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">Tipo de salida no admitida.</target>
@@ -467,13 +489,6 @@
         <target state="translated">El analizador '{0}' produjo una excepción de tipo '{1}' con el mensaje '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">El analizador '{0}' inició la siguiente excepción:
-'{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
         <target state="translated">Error del controlador del analizador</target>
@@ -498,7 +513,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Los cambios deben estar ordenados y no superponerse.</target>
+        <target state="translated">Los cambios no deben superponerse.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -828,9 +843,9 @@
         <target state="translated">Advertencia: No se puede habilitar el JIT de varios núcleos debido a una excepción: {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerDiagnosticIdReported">
-        <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="translated">El diagnóstico notificado tiene un identificador "{0}", que solo debería notificar un compilador.</target>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="translated">La característica “Flow-Analysis” está deshabilitada.</target>
         <note />
       </trans-unit>
     </body>

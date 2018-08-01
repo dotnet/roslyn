@@ -97,7 +97,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentsWithDeconstructionAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments);
+            var awaitExpressionDocuments = IsGetAwaiterMethod(methodSymbol)
+                ? await FindDocumentsWithAwaitExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<Document>.Empty;
+
+            return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments).Concat(awaitExpressionDocuments);
         }
 
         private bool IsForEachMethod(IMethodSymbol methodSymbol)
@@ -109,6 +113,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private bool IsDeconstructMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.DeconstructMethodName;
+
+        private bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
+            => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
 
         protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
@@ -133,6 +140,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var deconstructMatches = await FindReferencesInDeconstructionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
                 nameMatches = nameMatches.Concat(deconstructMatches);
+            }
+
+            if (IsGetAwaiterMethod(symbol))
+            {
+                var getAwaiterMatches = await FindReferencesInAwaitExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                nameMatches = nameMatches.Concat(getAwaiterMatches);
             }
 
             return nameMatches;

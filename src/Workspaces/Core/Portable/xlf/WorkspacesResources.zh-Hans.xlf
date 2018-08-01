@@ -7,6 +7,11 @@
         <target state="translated">读取指定的配置文件时出错: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">仅重构</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">符号“{0}”不是来自源。</target>
@@ -799,7 +804,7 @@
       </trans-unit>
       <trans-unit id="Variables_captured_colon">
         <source>Variables captured:</source>
-        <target state="new">Variables captured:</target>
+        <target state="translated">已捕获变量:</target>
         <note />
       </trans-unit>
     </body>

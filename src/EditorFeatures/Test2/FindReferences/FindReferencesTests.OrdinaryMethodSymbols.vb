@@ -55,6 +55,83 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_GetAwaiter() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+public class C
+{
+    public TaskAwaiter<bool> {|Definition:Get$$Awaiter|}() => Task.FromResult(true).GetAwaiter();
+
+    static async void M(C c)
+    {
+        [|await|] c;
+        [|await|] c;
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_GetAwaiter_VB() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Function {|Definition:Get$$Awaiter|}() As TaskAwaiter(Of Boolean)
+    End Function
+
+    Shared Async Sub M(c As C)
+        [|Await|] c
+    End Sub
+End Class
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_GetAwaiterInAnotherDocument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+public class C
+{
+   public TaskAwaiter<bool> {|Definition:Get$$Awaiter|}() => Task.FromResult(true).GetAwaiter();
+}
+        ]]></Document>
+        <Document><![CDATA[
+class D
+{
+    static async void M(C c)
+    {
+        [|await|] c;
+        [|await|] c;
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
         Public Async Function FindReferences_Deconstruction() As Task
             Dim input =
 <Workspace>

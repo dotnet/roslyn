@@ -7,6 +7,11 @@
         <target state="translated">讀取指定的組態檔時發生錯誤: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">僅重構</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">符號 "{0}" 非來自來源。</target>
@@ -514,7 +519,7 @@
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_old_tree">
         <source>Node '{0}' must be contained in the old tree.</source>
-        <target state="translated">舊的樹狀結構中必須包含節點 '{0}'</target>
+        <target state="translated">舊的樹狀結構中必須包含節點 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_member_0_is_not_declared_within_the_declaration_of_the_symbol">
@@ -799,7 +804,7 @@
       </trans-unit>
       <trans-unit id="Variables_captured_colon">
         <source>Variables captured:</source>
-        <target state="new">Variables captured:</target>
+        <target state="translated">已擷取的變數:</target>
         <note />
       </trans-unit>
     </body>

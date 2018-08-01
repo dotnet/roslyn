@@ -1,3 +1,4 @@
+*REMOVED*static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(this string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax.AddArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax
@@ -83,3 +84,4 @@ Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithStartQuoteToken(Micr
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
+static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool

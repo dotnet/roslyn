@@ -472,11 +472,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
 
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
             _conflictResolutionTask = _allRenameLocationsTask.SafeContinueWithFromAsync(
                t => t.Result.GetReplacementsAsync(replacementText, optionSet, cancellationToken),
                cancellationToken,
                TaskContinuationOptions.OnlyOnRanToCompletion,
                TaskScheduler.Default);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
 
             _conflictResolutionTask.CompletesAsyncOperation(asyncToken);
         }
@@ -490,6 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
+#pragma warning disable VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(QueueApplyReplacements));
             _conflictResolutionTask
                 .SafeContinueWith(
@@ -504,6 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     TaskContinuationOptions.OnlyOnRanToCompletion,
                     ForegroundTaskScheduler)
                 .CompletesAsyncOperation(asyncToken);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
         }
 
         private async Task<(IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult)> ComputeMergeResultAsync(IInlineRenameReplacementInfo replacementInfo, CancellationToken cancellationToken)
@@ -563,7 +567,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
             else
             {
-                Contract.Assert(outcome.HasFlag(RenameLogMessage.UserActionOutcome.Canceled));
+                Debug.Assert(outcome.HasFlag(RenameLogMessage.UserActionOutcome.Canceled));
                 Logger.Log(FunctionId.Rename_InlineSession_Session, RenameLogMessage.Create(
                     _optionSet,
                     outcome,

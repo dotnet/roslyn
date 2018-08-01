@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Snippets
+Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
@@ -208,13 +209,14 @@ End Class
         <WorkItem(543497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEnterOnSoftSelection1() As Task
+            ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
             Using state = TestState.CreateVisualBasicTestState(
                               <document>
-                                Class Program
-                                    Shared Sub Main(args As String())
-                                        Program.$$
-                                    End Sub
-                                End Class
+Class Program
+    Shared Sub Main(args As String())
+        Program.$$
+    End Sub
+End Class
                               </document>)
 
                 state.SendInvokeCompletionList()
@@ -472,13 +474,14 @@ End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigateOutOfItemChangeSpan() As Task
+            ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
             Using state = TestState.CreateVisualBasicTestState(
                               <document>
-                                Class Program
-                                    Shared Sub Main(args As String())
-                                        Program$$
-                                    End Sub
-                                End Class
+Class Program
+    Shared Sub Main(args As String())
+        Program$$
+    End Sub
+End Class
                               </document>)
 
                 Await state.AssertNoCompletionSession()
@@ -1805,7 +1808,7 @@ End Module</Document>)
         Public Async Function CommitOnEnter() As Task
             Dim expected = <Document>Module M
     Sub Main()
-        Main
+        Main()
 
     End Sub
 End Module</Document>.Value.Replace(vbLf, vbCrLf)
@@ -2142,7 +2145,7 @@ End Class
                 Await state.WaitForAsynchronousOperationsAsync()
                 ' Should only have one item called 'Double' and it should have a keyword glyph
                 Dim doubleItem = state.CurrentCompletionPresenterSession.CompletionItems.Single(Function(c) c.DisplayText = "Double")
-                Assert.True(doubleItem.Tags.Contains(CompletionTags.Keyword))
+                Assert.True(doubleItem.Tags.Contains(WellKnownTags.Keyword))
             End Using
         End Function
 
@@ -2163,8 +2166,8 @@ End Class
                 ' We should have gotten the item corresponding to [Double] and the item for the Double keyword
                 Dim doubleItems = state.CurrentCompletionPresenterSession.CompletionItems.Where(Function(c) c.DisplayText = "Double")
                 Assert.Equal(2, doubleItems.Count())
-                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(CompletionTags.Keyword)))
-                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(CompletionTags.Class) AndAlso c.Tags.Contains(CompletionTags.Internal)))
+                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(WellKnownTags.Keyword)))
+                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(WellKnownTags.Class) AndAlso c.Tags.Contains(WellKnownTags.Internal)))
             End Using
         End Function
 

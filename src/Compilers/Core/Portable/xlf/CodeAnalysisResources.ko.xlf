@@ -2,6 +2,28 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">{0}' 분석기에서 다음 예외를 throw했습니다.
+'{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">지정한 작업 블록이 현재 분석 컨텍스트에 속하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">지정한 작업에 null이 아닌 부모가 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">지정한 작업에 null 의미 체계 모델이 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">출력 종류가 지원되지 않습니다.</target>
@@ -467,13 +489,6 @@
         <target state="translated">분석기 '{0}'에서 '{2}' 메시지와 함께 '{1}' 형식의 예외를 throw했습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">{0}' 분석기에서 다음 예외를 throw했습니다.
-'{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
         <target state="translated">분석기 드라이버 오류</target>
@@ -498,7 +513,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">변경 내용의 순서를 지정해야 하고 겹쳐서는 안 됩니다.</target>
+        <target state="translated">변경 내용은 겹치지 않아야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -828,9 +843,9 @@
         <target state="translated">경고: 다음 예외 때문에 멀티 코어 JIT를 사용할 수 없습니다. {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerDiagnosticIdReported">
-        <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="translated">보고된 진단에 ID '{0}'이(가) 있습니다. 이 ID는 컴파일러만 보고할 수 있습니다.</target>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="translated">'Flow-Analysis' 기능을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
     </body>

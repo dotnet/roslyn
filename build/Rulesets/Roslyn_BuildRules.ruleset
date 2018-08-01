@@ -153,4 +153,15 @@
     <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
 collection.
   </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
+    <!-- https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md -->
+    <Rule Id="VSSDK001" Action="Warning" /> <!-- Derive from AsyncPackage -->
+    <Rule Id="VSSDK003" Action="Warning" /> <!-- Support async tool windows -->
+  </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
+    <Rule Id="VSTHRD001" Action="None" /> <!-- Suppress JTF specific rules  -->
+    <Rule Id="VSTHRD002" Action="None" /> <!-- Suppress JTF specific rules  -->
+    <Rule Id="VSTHRD110" Action="None" /> <!-- Allow fire-and-forget methods to exist  -->
+    <Rule Id="VSTHRD200" Action="None" /> <!-- Allow async methods that do not end in async  -->
+  </Rules>
 </RuleSet>

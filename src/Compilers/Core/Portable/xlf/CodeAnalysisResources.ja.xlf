@@ -2,6 +2,28 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">アナライザー '{0}'が、次の例をスローしました:
+'{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">指定した操作ブロックが現在の分析コンテストに属していません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">指定した操作の親が null 以外です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">指定した操作のセマンティック モデルが null です。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">出力の種類がサポートされていません。</target>
@@ -467,13 +489,6 @@
         <target state="translated">アナライザー '{0}' が型 '{1}' の例外をメッセージ '{2}' 付きでスローしました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">アナライザー '{0}'が、次の例をスローしました:
-'{1}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
         <target state="translated">アナライザー ドライバー エラー</target>
@@ -493,12 +508,12 @@
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>
-        <target state="translated">PE イメージには、管理されたメタデータが含まれていません。</target>
+        <target state="translated">PE イメージには、マネージド メタデータが含まれていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">変更は順序付けする必要があり、重複は許可されません。</target>
+        <target state="translated">変更が重なっていてはなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -573,7 +588,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">追跡するノードは、ルートの子孫ではありません。</target>
+        <target state="translated">追跡する Node、ルートの子孫ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">
@@ -740,7 +755,7 @@
       </trans-unit>
       <trans-unit id="TupleElementNameCountMismatch">
         <source>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</source>
-        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルの基数と一致する必要があります。</target>
+        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルのカーディナリティと一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNameEmpty">
@@ -750,7 +765,7 @@
       </trans-unit>
       <trans-unit id="TupleElementLocationCountMismatch">
         <source>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</source>
-        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルの基数と一致する必要があります。</target>
+        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルのカーディナリティと一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="TuplesNeedAtLeastTwoElements">
@@ -828,9 +843,9 @@
         <target state="translated">警告: 次の例外によりマルチコア JIT を有効にできませんでした: {0}。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerDiagnosticIdReported">
-        <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="translated">報告された診断の ID は '{0}' です。これはコンパイラのみが報告するべきものです。</target>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="translated">'フロー分析' 機能が無効になっています。</target>
         <note />
       </trans-unit>
     </body>

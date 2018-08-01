@@ -65,7 +65,7 @@ namespace BuildBoss
                 @"Exes\Vbc\net46",
                 @"Exes\Csi\net46",
                 @"Exes\VBCSCompiler\net46",
-                @"Dlls\MSBuildTask\net46");
+                @"Dlls\Microsoft.Build.Tasks.CodeAnalysis\net46");
             if (!allGood)
             {
                 return false;
@@ -302,9 +302,14 @@ namespace BuildBoss
         /// </summary>
         private bool VerifySwrFile(TextWriter textWriter, List<string> dllFileNames)
         {
-            var nativeDlls = new[] { "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll" };
+            var excludedDlls = new[]
+            {
+                "Microsoft.DiaSymReader.Native.amd64.dll",      // native
+                "Microsoft.DiaSymReader.Native.x86.dll",        // native
+            };
+
             var map = dllFileNames
-                .Where(x => !nativeDlls.Contains(x, PathComparer))
+                .Where(x => !excludedDlls.Contains(x, PathComparer))
                 .ToDictionary(
                     keySelector: x => x,
                     elementSelector: _ => false,
@@ -325,7 +330,7 @@ namespace BuildBoss
             }
 
             var allGood = true;
-            var regex = new Regex(@"^\s*file source=(.*) vs.file.*$", RegexOptions.IgnoreCase);
+            var regex = new Regex(@"^\s*file source=([^ ]*).*$", RegexOptions.IgnoreCase);
             foreach (var line in allLines)
             {
                 var match = regex.Match(line);

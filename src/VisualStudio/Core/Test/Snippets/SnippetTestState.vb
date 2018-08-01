@@ -9,11 +9,13 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
+Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
@@ -28,8 +30,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Friend NotInheritable Class SnippetTestState
         Inherits AbstractCommandHandlerTestState
 
-        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
-            MyBase.New(workspaceElement, extraParts:=CreatePartCatalog(extraParts), workspaceKind:=workspaceKind)
+        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), excludedTypes As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
+            ' Remove the default completion presenters to prevent them from conflicting with the test one
+            ' that we are adding.
+            MyBase.New(workspaceElement,
+                       extraParts:=CreatePartCatalog(extraParts),
+                       workspaceKind:=workspaceKind,
+                       excludedTypes:={GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession))}.Concat(If(excludedTypes, {})).ToList())
 
             Workspace.Options = Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)
 
@@ -52,6 +59,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             SnippetExpansionClient = New MockSnippetExpansionClient(startActiveSession)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
+        End Sub
+
+        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
+            Me.New(workspaceElement, languageName, startActiveSession, extraParts, excludedTypes:=Enumerable.Empty(Of Type), workspaceKind)
         End Sub
 
         Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
@@ -85,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                                    </Project>
                                </Workspace>
 
-            Return New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts)
+            Return New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts, excludedTypes:=New List(Of Type) From {GetType(CommitConnectionListener)})
         End Function
 
         Public Shared Function CreateSubmissionTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState

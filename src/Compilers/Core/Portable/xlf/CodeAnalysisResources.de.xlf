@@ -2,6 +2,28 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">Das Analysetool "{0}" hat die folgende Ausnahme ausgelöst:
+"{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">Der angegebene Operationsblock gehört nicht zum aktuellen Analysekontext.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">Die angegebene Operation weist ein übergeordnetes Element ungleich NULL auf.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">Die angegebene Operation weist ein NULL-Semantikmodell auf.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">Ausgabetyp wird nicht unterstützt.</target>
@@ -467,13 +489,6 @@
         <target state="translated">Die Analyse "{0}" hat eine Ausnahme vom Typ "{1}" mit der Meldung "{2}" ausgelöst.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">Das Analysetool "{0}" hat die folgende Ausnahme ausgelöst:
-"{1}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
         <target state="translated">Fehler des Analysetreibers.</target>
@@ -498,7 +513,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Die Änderungen müssen sortiert sein und dürfen sich nicht überschneiden.</target>
+        <target state="translated">Die Änderungen dürfen sich nicht überschneiden.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -828,9 +843,9 @@
         <target state="translated">Warnung: Multi-Core-JIT konnte aufgrund einer Ausnahme nicht aktiviert werden: {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerDiagnosticIdReported">
-        <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="translated">Die gemeldete Diagnose weist die ID {0} auf, die nur von einem Compiler gemeldet werden sollte.</target>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="translated">Das Feature "Flow-Analysis" ist deaktiviert.</target>
         <note />
       </trans-unit>
     </body>

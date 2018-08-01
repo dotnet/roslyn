@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             bool updateController = true)
         {
             AssertIsForeground();
+
             Contract.ThrowIfTrue(_stopCancellationToken.IsCancellationRequested, "should not chain tasks after we've been cancelled");
 
             // Mark that an async operation has begun.  This way tests know to wait until the
@@ -128,10 +130,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // background task complete when its result has finally been displayed on the UI.
             var asyncToken = _controller.BeginAsyncOperation();
 
+#pragma warning disable VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
             // Create the task that will actually run the transformation step.
             var nextTask = _lastTask.SafeContinueWithFromAsync(
                 t => transformModelAsync(t.Result, _stopCancellationToken),
                 _stopCancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, _taskScheduler);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
 
             // The next task is now the last task in the chain.
             _lastTask = nextTask;
