@@ -318,6 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Consider setting treatUnconstrainedTypeParameterAsNullable during initial binding, and removing this method.
         private static TypeSymbolWithAnnotations GetAdjustedType(TypeSymbolWithAnnotations initialType)
         {
             // If the initial type was an unconstrained type parameter, we want to treat it as nullable, overriding

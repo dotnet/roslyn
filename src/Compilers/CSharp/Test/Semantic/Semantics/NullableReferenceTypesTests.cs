@@ -35808,8 +35808,8 @@ class B
 @"class C1<T1>
 {
     static object? NullableObject() => null;
-    static T1 F1() => default;
-    static T1 F2() => default(T1);
+    static T1 F1() => default; // warn: return type T1 may be non-null
+    static T1 F2() => default(T1); // warn: return type T1 may be non-null
     static void F4()
     {
         T1 t1 = (T1)NullableObject();
@@ -35892,10 +35892,10 @@ class A
                 //     static T5 F2() => default(T5); // warn: return type T5 may be non-null
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T5)").WithLocation(46, 23),
                 // (4,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //     static T1 F1() => default;
+                //     static T1 F1() => default; // warn: return type T1 may be non-null
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(4, 23),
                 // (5,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //     static T1 F2() => default(T1);
+                //     static T1 F2() => default(T1); // warn: return type T1 may be non-null
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T1)").WithLocation(5, 23),
                 // (49,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T5 t5 = (T5)NullableObject(); // warn: T5 may be non-null
