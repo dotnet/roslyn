@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
-            Contract.Requires(delay >= 0);
+            Debug.Assert(delay >= 0);
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
-            Contract.Requires(delay >= 0);
+            Debug.Assert(delay >= 0);
 
             if (cancellationToken.IsCancellationRequested)
             {

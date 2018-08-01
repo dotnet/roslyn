@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -86,13 +88,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Deep Clone given IOperation
-        /// </summary>
-        internal T CloneOperation<T>(T operation) where T : IOperation => (T)CloneOperationCore(operation);
-
-        internal abstract IOperation CloneOperationCore(IOperation operation);
 
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
@@ -278,6 +273,15 @@ namespace Microsoft.CodeAnalysis
         /// Otherwise, returns null.
         /// </summary>
         protected abstract SemanticModel ParentModelCore
+        {
+            get;
+        }
+
+        /// <summary>
+        /// If this is a non-speculative member semantic model, then returns the containing semantic model for the entire tree.
+        /// Otherwise, returns this instance of the semantic model.
+        /// </summary>
+        internal abstract SemanticModel ContainingModelOrSelf
         {
             get;
         }

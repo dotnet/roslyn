@@ -122,5 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return property.Type.GenerateTypeSyntax();
             }
         }
+
+        public static TypeSyntax StripRefIfNeeded(this TypeSyntax type)
+            => type is RefTypeSyntax refType ? refType.Type : type;
     }
 }

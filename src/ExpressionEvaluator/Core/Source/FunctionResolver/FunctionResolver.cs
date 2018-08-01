@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     module.RuntimeInstance,
                     module,
                     new DkmClrMethodId(Token: token, Version: (uint)version),
-                    NativeOffset: 0,
+                    NativeOffset: uint.MaxValue,
                     ILOffset: (uint)ilOffset,
                     CPUInstruction: null);
                 // Use async overload of OnFunctionResolved to avoid deadlock.

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
-            Contract.Requires(oldNode.Kind() == newNode.Kind());
+            Debug.Assert(oldNode.Kind() == newNode.Kind());
 
             var model = oldSemanticModel;
 
@@ -231,6 +232,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node is AwaitExpressionSyntax awaitExpression)
+            {
+                var info = semanticModel.GetAwaitExpressionInfo(awaitExpression);
+                return info.GetAwaiterMethod;
+            }
+
+            return null;
+        }
+
         public ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node)
         {
             if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
@@ -267,13 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 FlattenDeconstructionMethods(nested, builder);
             }
-        }
-
-        public bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation)
-        {
-            return fromSymbol != null &&
-                toSymbol != null &&
-                ((CSharpCompilation)compilation).ClassifyConversion(fromSymbol, toSymbol).IsImplicit;
         }
 
         public bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)

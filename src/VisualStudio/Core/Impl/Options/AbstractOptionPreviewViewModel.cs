@@ -224,26 +224,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         protected void AddParenthesesOption(
             string language, OptionSet optionSet,
             PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
-            string title, string[] examples, bool isIgnoreOption)
+            string title, string[] examples, bool defaultAddForClarity)
         {
             var preferences = new List<ParenthesesPreference>();
             var codeStylePreferences = new List<CodeStylePreference>();
 
-            if (isIgnoreOption)
-            {
-                preferences.Add(ParenthesesPreference.Ignore);
-                codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Ignore, isChecked: false));
-            }
-            else 
-            {
-                preferences.Add(ParenthesesPreference.AlwaysForClarity);
-                codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Always_for_clarity, isChecked: false));
-            }
+            preferences.Add(ParenthesesPreference.AlwaysForClarity);
+            codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Always_for_clarity, isChecked: defaultAddForClarity));
 
             preferences.Add(ParenthesesPreference.NeverIfUnnecessary);
             codeStylePreferences.Add(new CodeStylePreference(
                 ServicesVSResources.Never_if_unnecessary,
-                isChecked: false));
+                isChecked: !defaultAddForClarity));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ParenthesesPreference>(
                 languageOption, language, title, preferences.ToArray(),

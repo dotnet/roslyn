@@ -68,15 +68,16 @@
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
-    <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.dll" target="lib\netstandard1.3" />
-    <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
-    <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.pdb*" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis\Microsoft.CodeAnalysis.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis\Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis\Microsoft.CodeAnalysis.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
 
     <!-- Satellite assemblies -->
-    <file src="Dlls\CodeAnalysis\**\Microsoft.CodeAnalysis.resources.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis\**\Microsoft.CodeAnalysis.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

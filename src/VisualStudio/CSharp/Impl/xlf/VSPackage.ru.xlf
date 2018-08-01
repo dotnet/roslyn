@@ -38,8 +38,8 @@
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
-        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
-        <target state="translated">Автоматическое форматирование оператора после точки с запятой; Автоматическое форматирование блока после фигурной скобки; Автоматическое форматирование при вставке</target>
+        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
+        <target state="needs-review-translation">Автоматическое форматирование оператора после точки с запятой; Автоматическое форматирование блока после фигурной скобки; Автоматическое форматирование при вставке</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

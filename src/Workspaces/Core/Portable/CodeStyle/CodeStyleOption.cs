@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.None);
+        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.Silent);
 
         private const int SerializationVersion = 1;
 
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", GetTypeNameForSerialization()),
                 new XAttribute(nameof(Value), GetValueForSerialization()),
-                new XAttribute(nameof(DiagnosticSeverity), Notification.Value));
+                new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
         private object GetValueForSerialization()
         {
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             switch (severity)
             {
                 case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.None;
+                    notificationOption = NotificationOption.Silent;
                     break;
                 case DiagnosticSeverity.Info:
                     notificationOption = NotificationOption.Suggestion;

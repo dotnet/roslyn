@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (!variableDeclaration.Type.IsVar)
+            if (!variableDeclaration.Type.StripRefIfNeeded().IsVar)
             {
                 // If the type is not 'var', this analyze has no work to do
                 return false;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (!forEachStatement.Type.IsVar)
+            if (!forEachStatement.Type.StripRefIfNeeded().IsVar)
             {
                 // If the type is not 'var', this analyze has no work to do
                 return false;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // If it is currently not var, explicit typing exists, return. 
             // this also takes care of cases where var is mapped to a named type via an alias or a class declaration.
-            if (!typeName.IsTypeInferred(semanticModel))
+            if (!typeName.StripRefIfNeeded().IsTypeInferred(semanticModel))
             {
                 return false;
             }
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // cases :
             //        var anon = new { Num = 1 };
             //        var enumerableOfAnons = from prod in products select new { prod.Color, prod.Price };
-            var declaredType = semanticModel.GetTypeInfo(typeName, cancellationToken).Type;
+            var declaredType = semanticModel.GetTypeInfo(typeName.StripRefIfNeeded(), cancellationToken).Type;
             if (declaredType.ContainsAnonymousType())
             {
                 return false;

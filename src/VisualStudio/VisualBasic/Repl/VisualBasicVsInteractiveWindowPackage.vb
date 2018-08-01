@@ -10,7 +10,7 @@ Imports LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
     <Guid(LanguageServiceGuids.VisualBasicReplPackageIdString)>
-    <PackageRegistration(UseManagedResourcesOnly:=True)>
+    <PackageRegistration(UseManagedResourcesOnly:=True, AllowsBackgroundLoading:=True)>
     <ProvideMenuResource("Menus.ctmenu", 17)>
     <ProvideInteractiveWindow(
         VisualBasicVsInteractiveWindowPackage.IdString,
@@ -21,11 +21,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
         Inherits VsInteractiveWindowPackage(Of VisualBasicVsInteractiveWindowProvider)
 
         Friend Const IdString As String = "0A6D502E-93F7-4FCC-90D9-D5020BD54D69"
-        Friend Shared ReadOnly Id As New Guid(IdString)
+        Friend Shared ReadOnly IdGuid As New Guid(IdString)
 
         Protected Overrides ReadOnly Property ToolWindowId As Guid
             Get
-                Return Id
+                Return IdGuid
             End Get
         End Property
 
@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
         Protected Overrides Sub InitializeMenuCommands(menuCommandService As OleMenuCommandService)
             Dim openInteractiveCommand = New MenuCommand(
                 handler:=Sub(sender, args) Me.InteractiveWindowProvider.Open(instanceId:=0, focus:=True),
-                command:=New CommandID(VisualBasicInteractiveCommands.InteractiveCommandSetId, VisualBasicInteractiveCommands.InteractiveToolWindow))
+                command:=New CommandID(ID.InteractiveCommands.VisualBasicInteractiveCommandSetId, ID.InteractiveCommands.InteractiveToolWindow))
 
             menuCommandService.AddCommand(openInteractiveCommand)
         End Sub
