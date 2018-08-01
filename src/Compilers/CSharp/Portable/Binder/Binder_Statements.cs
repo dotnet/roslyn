@@ -604,7 +604,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            
             bool isConst = node.IsConst;
             var typeSyntax = node.Declaration.Type.SkipRef(out _);
             bool isVar;
@@ -627,15 +626,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
+                var kind = isConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
                 var variableList = node.Declaration.Variables;
                 int variableCount = variableList.Count;
-
-                if (isConst)
+                if (variableCount == 1)
                 {
-                    kind = LocalDeclarationKind.Constant;
+                    return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node);
                 }
-                if (variableCount > 1)
+                else
                 {
                     BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
                     int i = 0;
@@ -644,10 +642,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclarationSyntax, typeSyntax, declType, alias, diagnostics);
                     }
                     return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
-                }
-                else
-                {
-                    return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node);
                 }
             }
         }
@@ -701,8 +695,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// IDisposable conversion.
         /// </summary>
         /// <param name="exprType">Type of the expression over which to iterate</param>
+        /// <param name="syntaxNode">The syntax node for this expression or declaration.</param>
         /// <param name="diagnostics">Populated with warnings if there are near misses</param>
-        /// <returns>True if a matching method is found with correct return type.</returns>
+        /// <returns>The method symbol of the DisposeMethod if one is found, otherwise null.</returns>
         internal MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             LookupResult lookupResult = LookupResult.GetInstance();
@@ -904,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            declTypeOpt,
                                            aliasOpt,
                                            diagnostics,
-                                           associatedSyntaxNode,);
+                                           associatedSyntaxNode);
         }
 
         protected BoundLocalDeclaration BindVariableDeclaration(
@@ -2417,7 +2412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < count; i++)
             {
                 var variableDeclarator = variables[i];
-                var declaration = BindVariableDeclaration(localKind, isVar, variableDeclarator, typeSyntax, declType, alias, diagnostics, disposeMethod: disposeMethod, iDisposableConversion: iDisposableConversion);
+                var declaration = BindVariableDeclaration(localKind, isVar, variableDeclarator, typeSyntax, declType, alias, diagnostics);
 
                 declarationArray[i] = declaration;
             }

@@ -2470,6 +2470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(BoundKind.UsingLocalDeclarations, syntax, localDeclarations, hasErrors || localDeclarations.HasErrors())
         {
 
+            Debug.Assert(iDisposableConversion != null, "Field 'iDisposableConversion' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.DisposeMethodOpt = disposeMethodOpt;
