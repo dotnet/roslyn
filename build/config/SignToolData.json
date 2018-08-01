@@ -108,11 +108,6 @@
       "certificate": "MicrosoftSHA2",
       "strongName": null,
       "values": [
-        "Dlls\\Roslyn.Services.Test.Utilities\\Roslyn.Services.Test.Utilities.dll",
-        "Dlls\\Roslyn.Test.Utilities\\net46\\Roslyn.Test.Utilities.dll",
-        "Dlls\\Microsoft.VisualStudio.IntegrationTest.Utilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
-        "Dlls\\Microsoft.VisualStudio.IntegrationTest.IntegrationService\\Microsoft.VisualStudio.IntegrationTest.IntegrationService.dll",
-        "Vsix\\Microsoft.VisualStudio.IntegrationTest.Setup\\Microsoft.VisualStudio.IntegrationTest.Setup.dll"
       ]
     },
     {
@@ -272,6 +267,13 @@
     "System.Composition.1.0.31.nupkg",
     "System.Reflection.Metadata.1.0.21.nupkg",
     "Microsoft.CodeAnalysis.VisualBasic.1.0.1.nupkg",
-    "NuGet.CommandLine.2.8.5.nupkg"
+    "NuGet.CommandLine.2.8.5.nupkg",
+    
+    "Dlls\\Roslyn.Services.Test.Utilities\\Roslyn.Services.Test.Utilities.dll",
+    "Dlls\\Roslyn.Test.Utilities\\net46\\Roslyn.Test.Utilities.dll",
+    "Dlls\\Microsoft.VisualStudio.IntegrationTest.Utilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
+    "Dlls\\Microsoft.VisualStudio.IntegrationTest.IntegrationService\\Microsoft.VisualStudio.IntegrationTest.IntegrationService.dll",
+    "Vsix\\Microsoft.VisualStudio.IntegrationTest.Setup\\Microsoft.VisualStudio.IntegrationTest.Setup.dll",
+    "Nuget\\*\\Microsoft.VisualStudio.IntegrationTest.Utilities.*.nupkg"
   ]
 }
