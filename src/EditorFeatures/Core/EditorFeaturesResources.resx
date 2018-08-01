@@ -821,6 +821,9 @@ Do you want to proceed?</value>
   <data name="Applying_changes" xml:space="preserve">
     <value>Applying changes</value>
   </data>
+  <data name="String_Escape_Character" xml:space="preserve">
+    <value>String - Escape Character</value>
+  </data>
   <data name="Change_configuration" xml:space="preserve">
     <value>Change configuration</value>
   </data>

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// #define dark_theme
+
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Media;
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
         #region String - Verbatim
+
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.VerbatimStringLiteral)]
         [Name(ClassificationTypeNames.VerbatimStringLiteral)]
@@ -59,6 +62,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Colors.Maroon;
             }
         }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StringEscapeCharacter)]
+        [Name(ClassificationTypeNames.StringEscapeCharacter)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class StringEscapeFormatDefinition : ClassificationFormatDefinition
+        {
+            private StringEscapeFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.String_Escape_Character;
+                // this.ForegroundColor = Color.FromRgb(215, 186, 125);
+                this.ForegroundColor = Color.FromRgb(255, 0, 0);
+                // this.IsBold = true;
+            }
+        }
+
         #endregion
 
         #region User Types - Classes

@@ -640,6 +640,5 @@ End Operator"
 
             Await TestInClassAsync(code)
         End Function
-
     End Class
 End Namespace

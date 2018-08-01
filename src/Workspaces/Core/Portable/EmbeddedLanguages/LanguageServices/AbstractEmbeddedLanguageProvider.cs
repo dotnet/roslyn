@@ -23,7 +23,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
-            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>();
+            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>(
+                new FallbackEmbeddedLanguage(
+                    this, stringLiteralToken, interpolatedTextToken,
+                    syntaxFacts, semanticFacts, virtualCharService));
         }
 
         public ImmutableArray<IEmbeddedLanguage> GetEmbeddedLanguages()
