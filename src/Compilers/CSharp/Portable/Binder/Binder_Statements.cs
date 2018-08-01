@@ -604,9 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var variableList = node.Declaration.Variables;
-            int variableCount = variableList.Count;
-
+            
             bool isConst = node.IsConst;
             var typeSyntax = node.Declaration.Type.SkipRef(out _);
             bool isVar;
@@ -630,6 +628,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
+                var variableList = node.Declaration.Variables;
+                int variableCount = variableList.Count;
+
                 if (isConst)
                 {
                     kind = LocalDeclarationKind.Constant;
@@ -891,9 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol declTypeOpt,
             AliasSymbol aliasOpt,
             DiagnosticBag diagnostics,
-            CSharpSyntaxNode associatedSyntaxNode = null,
-            MethodSymbol disposeMethod = default, 
-            Conversion iDisposableConversion = default)
+            CSharpSyntaxNode associatedSyntaxNode = null)
         {
             Debug.Assert(declarator != null);
 
@@ -905,9 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            declTypeOpt,
                                            aliasOpt,
                                            diagnostics,
-                                           associatedSyntaxNode,
-                                           disposeMethod,
-                                           iDisposableConversion);
+                                           associatedSyntaxNode,);
         }
 
         protected BoundLocalDeclaration BindVariableDeclaration(
@@ -919,14 +916,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol declTypeOpt,
             AliasSymbol aliasOpt,
             DiagnosticBag diagnostics,
-            CSharpSyntaxNode associatedSyntaxNode = null,
-            MethodSymbol disposeMethod = default,
-            Conversion iDisposableConversion = default)
+            CSharpSyntaxNode associatedSyntaxNode = null)
         {
             Debug.Assert(declarator != null);
             Debug.Assert((object)declTypeOpt != null || isVar);
             Debug.Assert(typeSyntax != null);
-            Debug.Assert(!(disposeMethod != default && iDisposableConversion != default));
 
             var localDiagnostics = DiagnosticBag.GetInstance();
             // if we are not given desired syntax, we use declarator
@@ -2385,8 +2379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindForParts(diagnostics, originalBinder);
         }
 
-        internal BoundStatement BindForOrUsingOrFixedDeclarations(VariableDeclarationSyntax nodeOpt, LocalDeclarationKind localKind, DiagnosticBag diagnostics, out ImmutableArray<BoundLocalDeclaration> declarations,
-                                                                  Conversion iDisposableConversion = default, MethodSymbol disposeMethod = default)
+        internal BoundStatement BindForOrUsingOrFixedDeclarations(VariableDeclarationSyntax nodeOpt, LocalDeclarationKind localKind, DiagnosticBag diagnostics, out ImmutableArray<BoundLocalDeclaration> declarations)
         {
             if (nodeOpt == null)
             {

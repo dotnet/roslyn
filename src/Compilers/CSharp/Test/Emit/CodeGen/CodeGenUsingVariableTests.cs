@@ -455,5 +455,208 @@ This object has been disposed by IDisposable.Dispose().";
   IL_0018:  ret
 }");
         }
+
+        [Fact]
+        public void MultipleUsingVarEmitTest()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    public void Dispose() { }
+}
+class C2
+{
+    public static void Main()                                                                                                           
+    {
+        using C1 o1 = new C1(), o2 = new C1();
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C2.Main", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (C1 V_0, //o1
+                C1 V_1) //o2
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  newobj     ""C1..ctor()""
+    IL_000b:  stloc.1
+    .try
+    {
+      IL_000c:  leave.s    IL_0022
+    }
+    finally
+    {
+      IL_000e:  ldloc.1
+      IL_000f:  brfalse.s  IL_0017
+      IL_0011:  ldloc.1
+      IL_0012:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0017:  endfinally
+    }
+  }
+  finally
+  {
+    IL_0018:  ldloc.0
+    IL_0019:  brfalse.s  IL_0021
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0021:  endfinally
+  }
+  IL_0022:  ret
+}");
+        }
+
+        [Fact]
+        public void MultipleUsingVarPrecedingCodeEmitTest()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    private string name;
+    public C1(string name)
+    {
+        this.name = name;
+        Console.WriteLine(""Object "" + name + "" has been created."");
+    }
+    public void M() { } 
+    public void Dispose()
+    {
+        Console.WriteLine(""Object "" + name + "" has been disposed."");
+    }
+}
+class C2
+{
+    public static void Main()                                                                                                           
+    {
+        C1 o0 = new C1(""first"");
+        o0.M();
+        using C1 o1 = new C1(""second""), o2 = new C1(""third"");
+    }
+}";
+            var output = @"Object first has been created.
+Object second has been created.
+Object third has been created.
+Object third has been disposed.
+Object second has been disposed.";
+            CompileAndVerify(source, expectedOutput: output).VerifyIL("C2.Main", @"
+{
+  // Code size       60 (0x3c)
+  .maxstack  1
+  .locals init (C1 V_0, //o1
+                C1 V_1) //o2
+  IL_0000:  ldstr      ""first""
+  IL_0005:  newobj     ""C1..ctor(string)""
+  IL_000a:  callvirt   ""void C1.M()""
+  IL_000f:  ldstr      ""second""
+  IL_0014:  newobj     ""C1..ctor(string)""
+  IL_0019:  stloc.0
+  .try
+  {
+    IL_001a:  ldstr      ""third""
+    IL_001f:  newobj     ""C1..ctor(string)""
+    IL_0024:  stloc.1
+    .try
+    {
+      IL_0025:  leave.s    IL_003b
+    }
+    finally
+    {
+      IL_0027:  ldloc.1
+      IL_0028:  brfalse.s  IL_0030
+      IL_002a:  ldloc.1
+      IL_002b:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0030:  endfinally
+    }
+  }
+  finally
+  {
+    IL_0031:  ldloc.0
+    IL_0032:  brfalse.s  IL_003a
+    IL_0034:  ldloc.0
+    IL_0035:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_003a:  endfinally
+  }
+  IL_003b:  ret
+}");
+        }
+
+        [Fact]
+        public void MultipleUsingVarFollowingCodeEmitTest()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    private string name;
+    public C1(string name)
+    {
+        this.name = name;
+        Console.WriteLine(""Object "" + name + "" has been created."");
+    }
+    public void M() { } 
+    public void Dispose()
+    {
+        Console.WriteLine(""Object "" + name + "" has been disposed."");
+    }
+}
+class C2
+{
+    public static void Main()                                                                                                           
+    {
+        using C1 o1 = new C1(""first""), o2 = new C1(""second"");
+        C1 o0 = new C1(""third"");
+        o0.M();
+    }
+}";
+            var output = @"Object first has been created.
+Object second has been created.
+Object third has been created.
+Object second has been disposed.
+Object first has been disposed.";
+            CompileAndVerify(source, expectedOutput: output).VerifyIL("C2.Main", @"
+{
+  // Code size       60 (0x3c)
+  .maxstack  1
+  .locals init (C1 V_0, //o1
+                C1 V_1) //o2
+  IL_0000:  ldstr      ""first""
+  IL_0005:  newobj     ""C1..ctor(string)""
+  IL_000a:  stloc.0
+  .try
+  {
+    IL_000b:  ldstr      ""second""
+    IL_0010:  newobj     ""C1..ctor(string)""
+    IL_0015:  stloc.1
+    .try
+    {
+      IL_0016:  ldstr      ""third""
+      IL_001b:  newobj     ""C1..ctor(string)""
+      IL_0020:  callvirt   ""void C1.M()""
+      IL_0025:  leave.s    IL_003b
+    }
+    finally
+    {
+      IL_0027:  ldloc.1
+      IL_0028:  brfalse.s  IL_0030
+      IL_002a:  ldloc.1
+      IL_002b:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0030:  endfinally
+    }
+  }
+  finally
+  {
+    IL_0031:  ldloc.0
+    IL_0032:  brfalse.s  IL_003a
+    IL_0034:  ldloc.0
+    IL_0035:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_003a:  endfinally
+  }
+  IL_003b:  ret
+}");
+        }
     }
 }
