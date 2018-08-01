@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool Equals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
         {
-            if (ReferenceEquals(this, other))
+            if (this.IsSameAs(other))
             {
                 return true;
             }

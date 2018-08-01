@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyType.IsNull)
+                if (!_lazyType.IsNull)
                 {
                     return _lazyType.DefaultType.IsPointerType();
                 }
