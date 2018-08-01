@@ -43,7 +43,7 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAfterDot() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -80,7 +80,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInObjectCreationExpression() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[

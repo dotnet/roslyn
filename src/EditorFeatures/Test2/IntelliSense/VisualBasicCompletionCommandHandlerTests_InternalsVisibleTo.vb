@@ -276,7 +276,7 @@ Imports System.Reflection
         Public Async Function AssertCompletionListHasItems_IfNamespaceIsFollowing() As Task
             Await AssertCompletionListHasItems("
             <Assembly: InternalsVisibleTo(""$$
-            Namespace A             
+            Namespace A
                 Public Class A
                 End Class
             End Namespace", True)
@@ -481,7 +481,7 @@ Namespace A
 		End Sub
 		Public Const AssemblyName1 As String = "ClassLibrary1"
 	End Class
-End Namespace                            
+End Namespace
                             </Document>
                         </MetadataReferenceFromSource>
                         <Document FilePath="A.vb"><![CDATA[

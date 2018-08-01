@@ -8,9 +8,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
@@ -31,6 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
 
+        // The completion API is disabled by default.
+        private bool _completionAPIEnabled = false;
+
+        // We will set this flag to true when we will set the value above from a feature flag.
+        private bool _completionAPIEnabledSet = false;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AsyncCompletionService(
@@ -49,14 +57,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _autoBraceCompletionCharSet = new Dictionary<IContentType, ImmutableHashSet<char>>();
+
+            AssertIsForeground();
         }
 
         public bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller)
         {
             AssertIsForeground();
 
-            // check whether this feature is on.
-            if (!subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
+            if (!_completionAPIEnabledSet)
+            {
+                TrySetCompletionAPIFlag(subjectBuffer);
+            }
+
+            // check whether the feature flag (async completion API) is not set and this feature is on.
+            if (_completionAPIEnabled || !subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
             {
                 controller = null;
                 return false;
@@ -80,6 +95,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 autobraceCompletionCharSet);
 
             return true;
+        }
+
+        private void TrySetCompletionAPIFlag(ITextBuffer subjectBuffer)
+        {
+            if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+            {
+                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                _completionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI);
+                _completionAPIEnabledSet = true;
+            }
         }
 
         private ImmutableHashSet<char> GetAllAutoBraceCompletionChars(IContentType bufferContentType)

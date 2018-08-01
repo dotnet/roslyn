@@ -33,10 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.UnitTests.TestOptionsServiceFactory),
                 typeof(Implementation.Classification.ClassificationTypeFormatDefinitions), // to include EditorFeatures.Wpf
                 typeof(DefaultSymbolMappingService),
-                typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),
                 typeof(TestExportJoinableTaskContext), // Needed by editor components, but not actually exported anywhere else
-                typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
+                // typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
             };
 
             return types//.Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(InternalSolutionCrawlerOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))
@@ -74,7 +73,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(BasicUndo.IBasicUndoHistory).Assembly,
 
                 // Microsoft.VisualStudio.Language.StandardClassification.dll:
-                typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly
+                typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly,
+
+                // Microsoft.VisualStudio.Language
+                typeof(Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.IAsyncCompletionBroker).Assembly,
+
+                // Microsoft.VisualStudio.CoreUtility
+                typeof(Microsoft.VisualStudio.Utilities.IFeatureServiceFactory).Assembly,
+
+                // Microsoft.VisualStudio.Text.Internal
+                typeof(Microsoft.VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly,
             };
 
             return assemblies;
