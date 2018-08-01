@@ -41,6 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// <summary>
             /// Set the fields of the builder.
             /// </summary>
+            /// <remarks>
+            /// This method guarantees: fields will be set once; exactly one caller is
+            /// returned true; and IsNull will return true until all fields are initialized.
+            /// This method does not guarantee that all fields will be set by the same
+            /// caller. Instead, the expectation is that all callers will attempt to initialize
+            /// the builder with equivalent TypeSymbolWithAnnotations instances where
+            /// different fields of the builder may be assigned from different instances.
+            /// </remarks>
             internal bool InterlockedInitialize(TypeSymbolWithAnnotations type)
             {
                 if ((object)_defaultType != null)
