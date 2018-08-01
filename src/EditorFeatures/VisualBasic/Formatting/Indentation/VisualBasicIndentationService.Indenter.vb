@@ -41,8 +41,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                         Return GetIndentationOfLine(previousLine)
                     End If
 
-                    If trivia.Kind = SyntaxKind.LineContinuationTrivia OrElse trivia.Kind = SyntaxKind.CommentTrivia Then
+                    If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
                         Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
+                    End If
+
+                    If trivia.Kind = SyntaxKind.CommentTrivia Then ' Two cases comment or _ followed by comment
+                        Dim FirstTrivia As SyntaxTrivia = Tree.GetRoot(CancellationToken).FindTrivia(token.Span.End + 1)
+                        If FirstTrivia.Kind = SyntaxKind.LineContinuationTrivia Then
+                            Return GetIndentationBasedOnToken(GetTokenOnLeft(FirstTrivia), FirstTrivia)
+                        Else
+                            ' This is we have just a comment
+                            Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
+                        End If
                     End If
 
                     ' if we are at invalid token (skipped token) at the end of statement, treat it like we are after line continuation
