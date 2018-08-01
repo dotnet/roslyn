@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = inferredReturnType.Type;
             if (returnType.IsNull)
             {
-                returnType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesUnusedContext.Instance, LambdaSymbol.InferenceFailureReturnType);
+                returnType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesFalseContext.Instance, LambdaSymbol.InferenceFailureReturnType);
             }
             lambdaSymbol.SetInferredReturnType(inferredReturnType.RefKind, returnType);
 
