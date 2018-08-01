@@ -2051,8 +2051,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = InferMethodTypeArguments((BoundCall)node, method, GetArgumentsForMethodTypeInference(arguments, results));
                     parameters = method.Parameters;
                 }
-                var syntax = node.Syntax;
-                CheckMethodConstraints((syntax as InvocationExpressionSyntax)?.Expression ?? syntax, method);
+                if (!method.IsDefinition)
+                {
+                    var syntax = node.Syntax;
+                    CheckMethodConstraints((syntax as InvocationExpressionSyntax)?.Expression ?? syntax, method);
+                }
             }
 
             // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?

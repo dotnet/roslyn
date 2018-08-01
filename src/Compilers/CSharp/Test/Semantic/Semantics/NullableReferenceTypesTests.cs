@@ -36920,11 +36920,9 @@ class B4<T> : A<T?, T?>, I<T?, T?>
 {
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Should report `T?` does not satisfy `where T : class`.
-            comp.VerifyDiagnostics(
-                // (15,7): warning CS8627: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'I<T, U>'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
-                // class B2<T> : A<T, T?>, I<T, T?>
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B2").WithArguments("I<T, U>", "T", "U", "T?").WithLocation(15, 7));
+            // PROTOTYPE(NullableReferenceTypes): Should report warnings that `T?`
+            // does not satisfy `where T : class` constraint or `where U : T` constraint.
+            comp.VerifyDiagnostics();
         }
 
         // `class C<T> where T : class, T?` from metadata.
