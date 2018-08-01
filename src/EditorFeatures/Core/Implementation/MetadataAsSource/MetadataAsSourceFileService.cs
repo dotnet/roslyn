@@ -7,12 +7,14 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.CSharp.Transforms;
+using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -20,7 +22,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Mono.Cecil;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
@@ -224,10 +225,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             }
 
             // Load the assembly.
-            var assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyLocation, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
+            // TODO: Use a different PEFile overload that allows us to reuse the PEReader or Stream already created by Roslyn.
+            var pefile = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
 
             // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(assemblyDefinition.MainModule, new DecompilerSettings());
+            var decompiler = new CSharpDecompiler(pefile, new RoslynAssemblyResolver(compilation), new DecompilerSettings());
             // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
             // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
             decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
@@ -238,8 +240,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             // Add header to match output of metadata-only view.
             // (This also makes debugging easier, because you can see which assembly was decompiled inside VS.)
-            var header = $"#region {FeaturesResources.Assembly} {assemblyDefinition.FullName}" + Environment.NewLine
-                + $"// {assemblyDefinition.MainModule.FileName}" + Environment.NewLine
+            var header = $"#region {FeaturesResources.Assembly} {pefile.FullName}" + Environment.NewLine
+                + $"// {assemblyLocation}" + Environment.NewLine
                 + $"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}" + Environment.NewLine
                 + "#endregion" + Environment.NewLine;
 
@@ -257,12 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 this.parentCompilation = parentCompilation;
             }
 
-            public AssemblyDefinition Resolve(AssemblyNameReference name)
-            {
-                return Resolve(name, new ReaderParameters());
-            }
-
-            public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+            public PEFile Resolve(IAssemblyReference name)
             {
                 foreach (var assembly in parentCompilation.GetReferencedAssemblySymbols())
                 {
@@ -282,15 +279,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
                     // reference assemblies should be fine here...
                     var reference = parentCompilation.GetMetadataReference(assembly);
-                    return AssemblyDefinition.ReadAssembly(reference.Display);
+                    // TODO: Use a different PEFile overload that allows us to reuse the PEReader or Stream already created by Roslyn.
+                    return new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
                 }
 
                 // not found
                 return null;
             }
 
-            public void Dispose()
+            public PEFile ResolveModule(PEFile mainModule, string moduleName)
             {
+                string baseDirectory = Path.GetDirectoryName(mainModule.FileName);
+                string moduleFileName = Path.Combine(baseDirectory, moduleName);
+                if (!File.Exists(moduleFileName))
+                    return null;
+                return new PEFile(moduleFileName, PEStreamOptions.PrefetchMetadata);
             }
         }
 
