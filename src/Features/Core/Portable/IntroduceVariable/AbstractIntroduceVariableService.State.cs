@@ -200,6 +200,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     // We are pointing in the trailing whitespace trivia of a token, we shouldn't include that token
                     startToken = startToken.GetNextToken();
                     var newStart = startToken.Span.Start;
+
+                    if (textSpan.End < newStart)
+                    {
+                        // Additional trivia exists between 'textSpan' and the start of the next token, so the two are not considered adjacent
+                        return null;
+                    }
+
                     textSpan = TextSpan.FromBounds(newStart, textSpan.End);
                 }
 
