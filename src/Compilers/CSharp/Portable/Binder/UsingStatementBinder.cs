@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!(expressionType is null))
                     {
-                        disposeMethod = TryFindDisposePatternMethod(expressionType, diagnostics);
+                        disposeMethod = TryFindDisposePatternMethod(expressionType, expressionSyntax, diagnostics);
                     }
                     if (disposeMethod is null)
                     {
@@ -99,39 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-
-                ImmutableArray<BoundLocalDeclaration> declarations;
-                originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
-
-                Debug.Assert(!declarations.IsEmpty);
-
-                declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
-
-                TypeSymbol declType = declarations[0].DeclaredType.Type;
-
-                if (declType.IsDynamic())
-                {
-                    iDisposableConversion = Conversion.ImplicitDynamic;
-                }
-                else
-                {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
-                    diagnostics.Add(declarationSyntax, useSiteDiagnostics);
-
-                    if (!iDisposableConversion.IsImplicit)
-                    {
-                        disposeMethod = TryFindDisposePatternMethod(declType, diagnostics);
-                        if (disposeMethod is null)
-                        {
-                            if (!declType.IsErrorType())
-                            {
-                                Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
-                            }
-                            hasErrors = true;
-                        }
-                    }
-                }
+                var declarations = BindUsingVariableDeclaration(originalBinder, diagnostics, hasErrors, declarationSyntax, declarationSyntax, out iDisposableConversion, out disposeMethod);
+                declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations, hasErrors);
             }
 
             BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
@@ -146,30 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundBody,
                 disposeMethod,
                 hasErrors);
-        }
-
-        /// <summary>
-        /// Checks for a Dispose method on exprType in the case that there is no explicit
-        /// IDisposable conversion.
-        /// </summary>
-        /// <param name="exprType">Type of the expression over which to iterate</param>
-        /// <param name="diagnostics">Populated with warnings if there are near misses</param>
-        /// <returns>True if a matching method is found with correct return type.</returns>
-        private MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, DiagnosticBag diagnostics)
-        {
-            LookupResult lookupResult = LookupResult.GetInstance();
-            SyntaxNode syntax = _syntax.Expression != null ? (SyntaxNode)_syntax.Expression : (SyntaxNode)_syntax.Declaration;
-            MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.DisposeMethodName, lookupResult, syntax, warningsOnly: true, diagnostics, _syntax.SyntaxTree, MessageID.IDS_Disposable);
-            lookupResult.Free();
-
-            if (disposeMethod?.ReturnsVoid == false)
-            {
-                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntax.Location, exprType, MessageID.IDS_Disposable.Localize(), disposeMethod);
-                disposeMethod = null;
-            }
-
-            return disposeMethod;
-        }
+        }        
         
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {

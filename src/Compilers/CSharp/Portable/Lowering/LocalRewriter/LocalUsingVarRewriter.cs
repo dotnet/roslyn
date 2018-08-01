@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -19,12 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
             for (int i = 0; i < statements.Length; i++)
             {
-                if (statements[i] is BoundLocalDeclaration localDeclaration)
+                if (statements[i] is BoundUsingLocalDeclarations localDeclaration)
                 {
-                    if (localDeclaration.LocalSymbol.IsUsing)
-                    {
-                        return LowerBoundLocalDeclarationUsingVar(node, statements);
-                    }
+                    return LowerBoundLocalDeclarationUsingVar(node, statements);
                 }
                 
             }
@@ -44,8 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < itemCount; i++)
             {
-                if (reversedStatements[i] is BoundLocalDeclaration localDeclaration && !(reversedStatements[i] is BoundReturnStatement) && SwitchBinder.ContainsUsingVariable(reversedStatements[i]))
+                if (reversedStatements[i] is BoundUsingLocalDeclarations localDeclaration && SwitchBinder.ContainsUsingVariable(reversedStatements[i]))
                 {
+                    Debug.Assert(!(localDeclaration.IDisposableConversion != Conversion.NoConversion && localDeclaration.DisposeMethodOpt != default));
+
                     var followingStatements = GetFollowingStatements(statements, itemCount - 1 - i);
                     firstUsingIndex = i;
 
@@ -64,12 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundUsingStatement boundUsing = new BoundUsingStatement(
                         syntax: localDeclaration.Syntax,
                         locals: ImmutableArray<LocalSymbol>.Empty,
-                        declarationsOpt: new BoundMultipleLocalDeclarations(
-                            localDeclaration.Syntax,
-                            ImmutableArray.Create(localDeclaration)),
+                        declarationsOpt: localDeclaration,
                         expressionOpt: null,
-                        iDisposableConversion: Conversion.Identity,
-                        disposeMethodOpt: null,
+                        iDisposableConversion: localDeclaration.IDisposableConversion,
+                        disposeMethodOpt: localDeclaration.DisposeMethodOpt,
                         body: innerBlock
                         );
                     reversedUsingStatements.Add(boundUsing);

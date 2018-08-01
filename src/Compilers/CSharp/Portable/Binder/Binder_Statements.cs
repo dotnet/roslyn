@@ -611,37 +611,107 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             TypeSymbol declType = BindVariableType(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
 
-            // UNDONE: "possible expression" feature for IDE
-
-            LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
-            if (isConst)
+            if (node.UsingKeyword != default)
             {
-                kind = LocalDeclarationKind.Constant;
-            }
-            else if (node.UsingKeyword != default)
-            {
-                kind = LocalDeclarationKind.UsingVariable;
-            }
-
-            var variableList = node.Declaration.Variables;
-            int variableCount = variableList.Count;
-
-            if (variableCount == 1)
-            {
-                return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node);
+                Conversion iDisposableConversion;
+                MethodSymbol disposeMethod;
+                var declarations = BindUsingVariableDeclaration(
+                                                    this,
+                                                    diagnostics,
+                                                    diagnostics.HasAnyErrors(),
+                                                    node,
+                                                    node.Declaration,
+                                                    out iDisposableConversion,
+                                                    out disposeMethod);
+                return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
             }
             else
             {
-                BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
-
-                int i = 0;
-                foreach (var variableDeclaratorSyntax in variableList)
+                var kind = isConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+                var variableList = node.Declaration.Variables;
+                int variableCount = variableList.Count;
+                if (variableCount == 1)
                 {
-                    boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclaratorSyntax, typeSyntax, declType, alias, diagnostics);
+                    return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node);
                 }
-
-                return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
+                else
+                {
+                    BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
+                    int i = 0;
+                    foreach (var variableDeclarationSyntax in variableList)
+                    {
+                        boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclarationSyntax, typeSyntax, declType, alias, diagnostics);
+                    }
+                    return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
+                }
             }
+        }
+
+        internal ImmutableArray<BoundLocalDeclaration> BindUsingVariableDeclaration(Binder originalBinder,
+                                                                             DiagnosticBag diagnostics,
+                                                                             bool hasErrors,
+                                                                             SyntaxNode node,
+                                                                             VariableDeclarationSyntax declarationSyntax,
+                                                                             out Conversion iDisposableConversion,
+                                                                             out MethodSymbol disposeMethod)
+        {
+            iDisposableConversion = Conversion.NoConversion;
+            disposeMethod = null;
+            ImmutableArray<BoundLocalDeclaration> declarations;
+
+            originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
+            Debug.Assert(!declarations.IsEmpty);
+
+            TypeSymbol declType = declarations[0].DeclaredType.Type;
+
+            if (declType.IsDynamic())
+            {
+                iDisposableConversion = Conversion.ImplicitDynamic;
+            }
+            else
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
+                diagnostics.Add(declarationSyntax, useSiteDiagnostics);
+
+                if (!iDisposableConversion.IsImplicit)
+                {
+                    disposeMethod = TryFindDisposePatternMethod(declType, declarationSyntax, diagnostics);
+                    if (disposeMethod is null)
+                    {
+                        if (!declType.IsErrorType())
+                        {
+                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                        }
+                        hasErrors = true;
+                    }
+                }
+            }
+            return declarations;
+        }
+
+        /// <summary>
+        /// Checks for a Dispose method on exprType and returns if found.
+        /// </summary>
+        /// <param name="exprType">Type of the expression over which to iterate</param>
+        /// <param name="syntaxNode">The syntax node for this expression or declaration.</param>
+        /// <param name="diagnostics">Populated with warnings if there are near misses</param>
+        /// <returns>The method symbol of the DisposeMethod if one is found, otherwise null.</returns>
+        internal MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            LookupResult lookupResult = LookupResult.GetInstance();
+            
+            MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.DisposeMethodName, lookupResult, syntaxNode, warningsOnly: true, diagnostics, syntaxNode.SyntaxTree, MessageID.IDS_Disposable);
+            lookupResult.Free();
+
+            if (disposeMethod?.ReturnsVoid == false)
+            {
+                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, exprType, MessageID.IDS_Disposable.Localize(), disposeMethod);
+                disposeMethod = null;
+            }
+
+            return disposeMethod;
         }
 
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)

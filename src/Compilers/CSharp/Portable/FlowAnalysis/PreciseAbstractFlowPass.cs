@@ -1831,6 +1831,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
+        {
+            return VisitMultipleLocalDeclarations(node);
+        }
+
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
         {
             // while (node.Condition) { node.Body; node.ContinueLabel: } node.BreakLabel:
