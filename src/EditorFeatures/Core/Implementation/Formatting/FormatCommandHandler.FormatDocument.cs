@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -23,21 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
     internal partial class FormatCommandHandler : ForegroundThreadAffinitizedObject
     {
+        private const string s_experimentName = "CleanupOn";
+
         public VSCommanding.CommandState GetCommandState(FormatDocumentCommandArgs args)
         {
             return GetCommandState(args.SubjectBuffer);
         }
 
-        private void ShowGoldBarForCodeCleanupConfigurationIfNeeded(Document document)
+        private void ShowGoldBarForCodeCleanupConfiguration(Document document, bool performAdditionalCodeCleanupDuringFormatting)
         {
             AssertIsForeground();
             Logger.Log(FunctionId.CodeCleanupInfobar_BarDisplayed, KeyValueLogMessage.NoProperty);
 
             var workspace = document.Project.Solution.Workspace;
 
-            // if info bar was shown before, no need to show it again
-            if (workspace.Options.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language) ||
-                workspace.Options.GetOption(CodeCleanupOptions.CodeCleanupInfoBarShown, document.Project.Language))
+            // if info bar was shown already in same VS session, no need to show it again
+            if (workspace.Options.GetOption(CodeCleanupOptions.CodeCleanupInfoBarShown, document.Project.Language))
             {
                 return;
             }
@@ -50,9 +50,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var optionPageService = document.GetLanguageService<IOptionPageService>();
             var infoBarService = document.Project.Solution.Workspace.Services.GetRequiredService<IInfoBarService>();
 
+            // wording for the Code Cleanup infobar will be different depending on if the feature is enabled
+            var infoBarMessage = performAdditionalCodeCleanupDuringFormatting
+                ? EditorFeaturesResources.Format_document_performed_additional_cleanup
+                : EditorFeaturesResources.Code_cleanup_is_not_configured;
+
+            var configButtonText = performAdditionalCodeCleanupDuringFormatting
+                ? EditorFeaturesResources.Change_configuration
+                : EditorFeaturesResources.Configure_it_now;
+
             infoBarService.ShowInfoBarInGlobalView(
-                EditorFeaturesResources.Code_cleanup_is_not_configured,
-                new InfoBarUI(EditorFeaturesResources.Configure_it_now,
+                infoBarMessage,
+                new InfoBarUI(configButtonText,
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
@@ -92,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 c =>
                 {
                     var docOptions = document.GetOptionsAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
-
                     using (Logger.LogBlock(FunctionId.FormatDocument, CodeCleanupLogMessage.Create(docOptions), c.CancellationToken))
                     using (var transaction = new CaretPreservingEditTransaction(
                         EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
@@ -104,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         }
                         else
                         {
-                            CodeCleanupOrFormat(args, document, c.ProgressTracker, c.CancellationToken);
+                            CodeCleanupOrFormat(args, document, codeCleanupService, c.ProgressTracker, c.CancellationToken);
                         }
 
                         transaction.Complete();
@@ -115,13 +123,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private void CodeCleanupOrFormat(
-            FormatDocumentCommandArgs args, Document document,
+            FormatDocumentCommandArgs args, Document document, ICodeCleanupService codeCleanupService,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+            var workspace = document.Project.Solution.Workspace;
+            var isFeatureTurnedOnThroughABTest = TurnOnCodeCleanupForGroupBIfInABTest(document, workspace);
+            var performAdditionalCodeCleanupDuringFormatting = workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language);
 
-            var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            if (docOptions.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting))
+            // if feature is turned on through AB test, we need to show the Gold bar even if they set NeverShowCodeCleanupInfoBarAgain == true before
+            if (isFeatureTurnedOnThroughABTest ||
+                !workspace.Options.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language))
+            {
+                // Show different gold bar text depends on PerformAdditionalCodeCleanupDuringFormatting value
+                ShowGoldBarForCodeCleanupConfiguration(document, performAdditionalCodeCleanupDuringFormatting);
+            }
+
+            if (performAdditionalCodeCleanupDuringFormatting)
             {
                 // Start with a single progress item, which is the one to actually apply
                 // the changes.
@@ -140,11 +157,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 }
 
                 progressTracker.ItemCompleted();
-                return;
+            }
+            else
+            {
+                Format(args.TextView, document, selectionOpt: null, cancellationToken);
+            }
+        }
+
+        private static bool TurnOnCodeCleanupForGroupBIfInABTest(Document document, Workspace workspace)
+        {
+            // If the feature is OFF and the feature options have not yet been Enabled to their assigned flight, do so now
+            // Do not reset the options if we already set it for them once, so options won't get reset if user manually disabled it already after it is enabled by the flight
+            if (!workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language)
+                && !workspace.Options.GetOption(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment))
+            {
+                var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+
+                if (experimentationService != null
+                    && experimentationService.IsExperimentEnabled(s_experimentName))
+                {
+                    workspace.Options = workspace.Options.WithChangedOption(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment, true)
+                                                         .WithChangedOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language, true);
+                    return true;
+                }
             }
 
-            ShowGoldBarForCodeCleanupConfigurationIfNeeded(document);
-            Format(args.TextView, document, selectionOpt: null, cancellationToken);
+            return false;
         }
 
         private async Task<ImmutableArray<TextChange>> GetCodeCleanupAndFormatChangesAsync(
