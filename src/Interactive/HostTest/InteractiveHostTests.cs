@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private SynchronizedStringWriter _synchronizedErrorOutput;
         private int[] _outputReadPosition = new int[] { 0, 0 };
 
-        private readonly DesktopInteractiveHost _host;
+        private readonly InteractiveHost _host;
 
         private static readonly string s_fxDir = FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory());
         private static readonly string s_homeDir = FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
@@ -45,11 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             RedirectOutput();
 
             _host.ResetAsync(new InteractiveHostOptions(initializationFile: null, culture: CultureInfo.InvariantCulture)).Wait();
-
-            var remoteService = _host.TryGetService();
-            Assert.NotNull(remoteService);
-
-            _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir).Wait();
+            _host.SetPathsAsync(ImmutableArray.Create(s_fxDir), ImmutableArray.Create(s_homeDir), s_homeDir).Wait();
 
             // assert and remove logo:
             var output = SplitLines(ReadOutputToEnd());
@@ -69,9 +65,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             try
             {
-                Process process = _host.TryGetProcess();
+                var process = _host.TryGetProcess();
 
-                DisposeInteractiveHostProcess(_host);
+                DisposeInteractiveHost(_host);
 
                 // the process should be terminated 
                 if (process != null && !process.HasExited)
@@ -113,11 +109,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             return task.Result.Success;
         }
 
-        private bool IsShadowCopy(string path)
-        {
-            return _host.TryGetService().IsShadowCopy(path);
-        }
-
         public string ReadErrorOutputToEnd()
         {
             return ReadOutputToEnd(isError: true);
@@ -145,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var mark = markPrefix + Guid.NewGuid().ToString();
 
             // writes mark to the STDOUT/STDERR pipe in the remote process:
-            _host.TryGetService().RemoteConsoleWrite(Encoding.UTF8.GetBytes(mark), isError);
+            _host.RemoteConsoleWrite(Encoding.UTF8.GetBytes(mark), isError);
 
             while (true)
             {
@@ -180,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             return new CompiledFile { Path = file.Path, Image = image };
         }
 
-        #endregion
+#endregion
 
         [Fact]
         public void OutputRedirection()
@@ -326,13 +317,10 @@ while(true) {}
 
             Assert.True(mayTerminate.WaitOne());
 
-            var service = _host.TryGetService();
-            Assert.NotNull(service);
-
             var process = _host.TryGetProcess();
             Assert.NotNull(process);
 
-            service.EmulateClientExit();
+            _host.EmulateClientExit();
 
             // the process should terminate with exit code 0:
             process.WaitForExit();
@@ -449,7 +437,7 @@ WriteLine(5);
             var mayTerminate = new ManualResetEvent(false);
             _host.ErrorOutputReceived += (_, __) => mayTerminate.Set();
 
-            _host.TryGetService().HookMaliciousAssemblyResolve();
+            _host.HookMaliciousAssemblyResolve();
             var executeTask = _host.AddReferenceAsync("nonexistingassembly" + Guid.NewGuid());
 
             Assert.True(mayTerminate.WaitOne());
@@ -554,7 +542,11 @@ WriteLine(5);
             Assert.Equal("C { }", ReadOutputToEnd().Trim());
             Assert.True(result);
         }
+
 #if TODO
+        private bool IsShadowCopy(string path) 
+            => _host.TryGetService().IsShadowCopy(path);
+
         /// <summary>
         /// Tests that a dependency is correctly resolved and loaded at runtime.
         /// A depends on B, which depends on C. When CallB is jitted B is loaded. When CallC is jitted C is loaded.

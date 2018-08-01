@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -22,10 +24,8 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// <remarks>
     /// Handles spawning of the host process and communication between the local callers and the remote session.
     /// </remarks>
-    internal sealed partial class DesktopInteractiveHost
+    internal sealed partial class DesktopInteractiveHost : InteractiveHost
     {
-        internal const bool DefaultIs64Bit = true;
-
         private readonly Type _replServiceProviderType;
         private readonly string _initialWorkingDirectory;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly object _outputGuard;
         private readonly object _errorOutputGuard;
 
-        internal event Action<bool> ProcessStarting;
+        public override event Action<bool> ProcessStarting;
 
         public DesktopInteractiveHost(
             Type replServiceProviderType,
@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         #region Test hooks
 
-        internal event Action<char[], int> OutputReceived;
-        internal event Action<char[], int> ErrorOutputReceived;
+        public override event Action<char[], int> OutputReceived;
+        public override event Action<char[], int> ErrorOutputReceived;
 
-        internal Process TryGetProcess()
+        public override Process TryGetProcess()
         {
             InitializedRemoteService initializedService;
             var lazyRemoteService = _lazyRemoteService;
@@ -85,16 +85,25 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
-        internal event Action<Process> InteractiveHostProcessCreated;
+        public override event Action<Process> InteractiveHostProcessCreated;
 
         internal IpcServerChannel _ServerChannel
         {
             get { return _serverChannel; }
         }
 
+        public override void RemoteConsoleWrite(byte[] data, bool isError)
+            => TryGetService().RemoteConsoleWrite(data, isError);
+
+        public override void EmulateClientExit()
+            => TryGetService().EmulateClientExit();
+
+        public override void HookMaliciousAssemblyResolve()
+            => TryGetService().HookMaliciousAssemblyResolve();
+
         #endregion
 
-        public static string GetPath(bool is64bit)
+        internal static string GetPath(bool is64bit)
             => Path.Combine(Path.GetDirectoryName(typeof(DesktopInteractiveHost).Assembly.Location), "InteractiveHost" + (is64bit ? "64" : "32") + ".exe");
 
         private static string GenerateUniqueChannelLocalName()
@@ -233,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         }
 
         // Dispose may be called anytime.
-        public void Dispose()
+        public override void Dispose()
         {
             DisposeChannel();
             SetOutput(TextWriter.Null);
@@ -260,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
-        public void SetOutput(TextWriter value)
+        public override void SetOutput(TextWriter value)
         {
             if (value == null)
             {
@@ -274,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
-        public void SetErrorOutput(TextWriter value)
+        public override void SetErrorOutput(TextWriter value)
         {
             if (value == null)
             {
@@ -420,14 +429,14 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         #region Operations
 
-        public InteractiveHostOptions OptionsOpt 
+        public override InteractiveHostOptions OptionsOpt 
             => _lazyRemoteService?.Options;
 
         /// <summary>
         /// Restarts and reinitializes the host process (or starts a new one if it is not running yet).
         /// </summary>
         /// <param name="options">The options to initialize the new process with.</param>
-        public async Task<InteractiveExecutionResult> ResetAsync(InteractiveHostOptions options)
+        public override async Task<InteractiveExecutionResult> ResetAsync(InteractiveHostOptions options)
         {
             Debug.Assert(options != null);
 
@@ -464,7 +473,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// This method is thread safe but operations are sent to the remote process
         /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
-        public Task<InteractiveExecutionResult> ExecuteAsync(string code)
+        public override Task<InteractiveExecutionResult> ExecuteAsync(string code)
         {
             Debug.Assert(code != null);
             return Async<RemoteExecutionResult, InteractiveExecutionResult>((service, operation) => service.ExecuteAsync(operation, code), r => r.ToInteractiveOperationResult());
@@ -479,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// This method is thread safe but operations are sent to the remote process
         /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
-        public Task<InteractiveExecutionResult> ExecuteFileAsync(string path)
+        public override Task<InteractiveExecutionResult> ExecuteFileAsync(string path)
         {
             if (path == null)
             {
@@ -497,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// This method is thread safe but operations are sent to the remote process
         /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
-        public Task<bool> AddReferenceAsync(string reference)
+        public override Task<bool> AddReferenceAsync(string reference)
         {
             Debug.Assert(reference != null);
             return Async<bool, bool>((service, operation) => service.AddReferenceAsync(operation, reference), r => r);
@@ -506,13 +515,15 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public Task<InteractiveExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public override Task<InteractiveExecutionResult> SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string baseDirectory)
         {
             Debug.Assert(referenceSearchPaths != null);
             Debug.Assert(sourceSearchPaths != null);
             Debug.Assert(baseDirectory != null);
 
-            return Async<RemoteExecutionResult, InteractiveExecutionResult>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory), r => r.ToInteractiveOperationResult());
+            return Async<RemoteExecutionResult, InteractiveExecutionResult>(
+                (service, operation) => service.SetPathsAsync(operation, referenceSearchPaths.ToArray(), sourceSearchPaths.ToArray(), baseDirectory), 
+                r => r.ToInteractiveOperationResult());
         }
 
         #endregion

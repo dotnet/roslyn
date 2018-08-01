@@ -21,13 +21,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private static readonly FieldInfo s_ipcServerChannelListenerThread = typeof(IpcServerChannel).GetField("_listenerThread", BindingFlags.NonPublic | BindingFlags.Instance);
 
-        internal static void DisposeInteractiveHostProcess(DesktopInteractiveHost process)
+        internal static void DisposeInteractiveHost(InteractiveHost host)
         {
-            IpcServerChannel serverChannel = process._ServerChannel;
-            process.Dispose();
+            var desktopHost = host as DesktopInteractiveHost;
+            if (desktopHost != null)
+            {
+                var serverChannel = desktopHost._ServerChannel;
+                desktopHost.Dispose();
 
-            var listenerThread = (Thread)s_ipcServerChannelListenerThread.GetValue(serverChannel);
-            listenerThread.Join();
+                var listenerThread = (Thread)s_ipcServerChannelListenerThread.GetValue(serverChannel);
+                listenerThread.Join();
+            }
+            else
+            {
+                host.Dispose();
+            }
         }
     }
 }
