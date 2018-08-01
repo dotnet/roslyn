@@ -35812,7 +35812,7 @@ class B
     static T1 F2() => default(T1); // warn: return type T1 may be non-null
     static void F4()
     {
-        T1 t1 = (T1)NullableObject();
+        T1 t1 = (T1)NullableObject(); // warn: T1 may be non-null
     }
 }
 class C2<T2> where T2 : class
@@ -35863,6 +35863,7 @@ class A
 {
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): should warn for T1 t = (T1)NullableObject();
             comp.VerifyDiagnostics(
                 // (14,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static T2 F1() => default; // warn: return type T2 may be non-null
@@ -36154,16 +36155,55 @@ class A
     static U F18<T, U>(T t) where U : class, T => (U)t;
     static U F19<T, U>(T t) where U : struct, T => (U)t;
     static U F20<T, U>(T t) where U : T, new() => (U)t;
+    static U F21<T, U>(T t) => (U)(object)t;
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): There should be a warning for F17
+
             comp.VerifyDiagnostics(
                 // (20,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //     static U F18<T, U>(T t) where U : class, T => (U)t;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)t").WithLocation(20, 51),
-                // prototype(NullableReferenceTypes): Should this be a warning, as there was already a nested warning about converting t to U?
+                // PROTOTYPE(NullableReferenceTypes): Should this be a warning, as there was already a nested warning about converting t to U?
                 // (20,51): warning CS8603: Possible null reference return.
                 //     static U F18<T, U>(T t) where U : class, T => (U)t;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(U)t").WithLocation(20, 51));
+        }
+
+        [Fact]
+        public void TypeParameter_Return_01()
+        {
+            var source =
+@"
+class C
+{
+    static U F1<T, U>(T t) => (U)(object)t; // 1 and 2
+    static U F2<T, U>(T t) where U : class => (U)(object)t; // 3, 4 and 5
+    static U F3<T, U>(T t) where U : struct => (U)(object)t; // 5
+    static U F4<T, U>(T t) where T : class => (U)(object)t;
+    static U F5<T, U>(T t) where T : struct => (U)(object)t;
+}";
+
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Errors are different than expected.
+            comp.VerifyDiagnostics(
+                // (4,34): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     static U F1<T, U>(T t) => (U)(object)t;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t").WithLocation(4, 34),
+                // (5,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     static U F2<T, U>(T t) where U : class => (U)(object)t;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t").WithLocation(5, 50),
+                // (5,47): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     static U F2<T, U>(T t) where U : class => (U)(object)t;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)(object)t").WithLocation(5, 47),
+                // (5,47): warning CS8603: Possible null reference return.
+                //     static U F2<T, U>(T t) where U : class => (U)(object)t;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(U)(object)t").WithLocation(5, 47),
+                // (6,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     static U F3<T, U>(T t) where U : struct => (U)(object)t;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t").WithLocation(6, 51)
+            );
         }
 
         // PROTOTYPE(NullableReferenceTypes): Are there interesting cases where nullable and

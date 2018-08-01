@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // PROTOTYPE(NullableReferenceTypes): [Obsolete("Use explicit NonNullTypes context")]
-        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType, bool treatUnconstrainedGenericsAsNullable = false)
+        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType, bool treatUnconstrainedTypeParameterAsNullable = false)
         {
-            return Create(typeSymbol, isNullableIfReferenceType, treatUnconstrainedGenericsAsNullable, ImmutableArray<CustomModifier>.Empty);
+            return Create(typeSymbol, isNullableIfReferenceType, treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier>.Empty);
         }
 
         // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in

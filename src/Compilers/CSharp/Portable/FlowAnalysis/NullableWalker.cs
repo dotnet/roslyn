@@ -2650,7 +2650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool? isNullable = !this.State[slot];
                 if (isNullable != type.IsNullable)
                 {
-                    return TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable, treatUnconstrainedGenericsAsNullable: true);
+                    return TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable, treatUnconstrainedTypeParameterAsNullable: true);
                 }
             }
             return type;
@@ -3076,7 +3076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType, treatUnconstrainedGenericsAsNullable: true);
+            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType, treatUnconstrainedTypeParameterAsNullable: true);
         }
 
         private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundNode node, TypeSymbol targetType, TypeSymbolWithAnnotations operandType)
@@ -3780,7 +3780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitDefaultExpression(node);
             _resultType = (object)node.Type == null ?
                 null :
-                TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: true, treatUnconstrainedGenericsAsNullable: true);
+                TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: true, treatUnconstrainedTypeParameterAsNullable: true);
             return result;
         }
 
