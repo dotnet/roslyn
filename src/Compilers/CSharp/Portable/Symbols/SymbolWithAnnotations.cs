@@ -280,6 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (_defaultType is null)
+                {
+                    return null;
+                }
                 if (IsAnnotated)
                 {
                     return true;
@@ -311,13 +315,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (_defaultType is null)
+                {
+                    return null;
+                }
                 if (IsAnnotated)
                 {
                     return true;
                 }
-
                 // A null NonNullTypes (ie. no attribute) means the same as NonNullTypes(false).
-                return NonNullTypesContext.NonNullTypes == true ? false : (bool?)null;
+                if (NonNullTypesContext.NonNullTypes == true)
+                {
+                    return false;
+                }
+                return null;
             }
         }
 
