@@ -35833,7 +35833,7 @@ class C3<T3> where T3 : new()
     static T3 F3() => new T3();
     static void F4()
     {
-        T3 t = (T3)NullableObject();
+        T3 t = (T3)NullableObject(); // warn: return type T4 may be non-null
     }
 }
 class C4<T4> where T4 : I
@@ -35843,7 +35843,7 @@ class C4<T4> where T4 : I
     static T4 F2() => default(T4); // warn: return type T4 may be non-null
     static void F4()
     {
-        T4 t4 = (T4)NullableObject();
+        T4 t4 = (T4)NullableObject(); // warn: return type T4 may be non-null
     }
 }
 class C5<T5> where T5 : A
@@ -35863,7 +35863,7 @@ class A
 {
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): should warn for T1 t = (T1)NullableObject();
+            // PROTOTYPE(NullableReferenceTypes): missing warnings
             comp.VerifyDiagnostics(
                 // (14,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static T2 F1() => default; // warn: return type T2 may be non-null
