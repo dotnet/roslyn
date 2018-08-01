@@ -24111,7 +24111,19 @@ class C
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)FS() != (object)default").WithArguments("true", "S", "object").WithLocation(33, 13),
                 // (34,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'object'
                 //         b = (object)null != (object)FS();
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)null != (object)FS()").WithArguments("true", "S", "object").WithLocation(34, 13));
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)null != (object)FS()").WithArguments("true", "S", "object").WithLocation(34, 13),
+                // (56,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(s7, null);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(s7, null)").WithArguments("false", "S", "object").WithLocation(56, 13),
+                // (57,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(null, s7);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(null, s7)").WithArguments("false", "S", "object").WithLocation(57, 13),
+                // (58,14): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = !ReferenceEquals(s7, null);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(s7, null)").WithArguments("false", "S", "object").WithLocation(58, 14),
+                // (59,14): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = !ReferenceEquals(null, s7);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(null, s7)").WithArguments("false", "S", "object").WithLocation(59, 14));
         }
 
         [Fact]
@@ -24154,7 +24166,10 @@ class C
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "(object)t3 == null").WithArguments("false", "T3", "object").WithLocation(21, 13),
                 // (22,13): warning CS8073: The result of the expression is always 'true' since a value of type 'T3' is never equal to 'null' of type 'object'
                 //         b = default != (object)t3;
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default != (object)t3").WithArguments("true", "T3", "object").WithLocation(22, 13));
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default != (object)t3").WithArguments("true", "T3", "object").WithLocation(22, 13),
+                // (23,13): warning CS8073: The result of the expression is always 'false' since a value of type 'T3' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(t3, null);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(t3, null)").WithArguments("false", "T3", "object").WithLocation(23, 13));
         }
 
         [Fact]
@@ -24446,6 +24461,74 @@ class C
                 // (65,13): warning CS8073: The result of the expression is always 'true' since a value of type 'S8' is never equal to 'null' of type 'object'
                 //         b = null != (object)s8;
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != (object)s8").WithArguments("true", "S8", "object").WithLocation(65, 13));
+        }
+
+        [Fact]
+        public void ValueTypeReferenceEquals()
+        {
+            var source =
+@"struct S { }
+class C
+{
+    static void F(S x, S y)
+    {
+        bool b;
+        b = ReferenceEquals(default(S), null);
+        b = ReferenceEquals(null, default(S));
+        b = ReferenceEquals(default(S), default(S));
+        b = ReferenceEquals((object)default(S), null);
+        b = ReferenceEquals(x, null);
+        b = ReferenceEquals(null, x);
+        b = ReferenceEquals(x, x);
+        b = ReferenceEquals(x, y);
+        b = ReferenceEquals((object)x, null);
+        b = ReferenceEquals(null, (object)x);
+        b = ReferenceEquals((object)x, (object)x);
+        b = ReferenceEquals((object)x, (object)y);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(default(S), null);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(default(S), null)").WithArguments("false", "S", "object").WithLocation(7, 13),
+                // (8,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(null, default(S));
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(null, default(S))").WithArguments("false", "S", "object").WithLocation(8, 13),
+                // (9,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(default(S), default(S));
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(default(S), default(S))").WithArguments("false", "S", "object").WithLocation(9, 13),
+                // (10,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals((object)default(S), null);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals((object)default(S), null)").WithArguments("false", "S", "object").WithLocation(10, 13),
+                // (11,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(x, null);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(x, null)").WithArguments("false", "S", "object").WithLocation(11, 13),
+                // (12,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(null, x);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(null, x)").WithArguments("false", "S", "object").WithLocation(12, 13),
+                // (13,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(x, x);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(x, x)").WithArguments("false", "S", "object").WithLocation(13, 13),
+                // (14,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(x, y);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(x, y)").WithArguments("false", "S", "object").WithLocation(14, 13),
+                // (15,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals((object)x, null);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals((object)x, null)").WithArguments("false", "S", "object").WithLocation(15, 13),
+                // (16,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals(null, (object)x);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals(null, (object)x)").WithArguments("false", "S", "object").WithLocation(16, 13),
+                // (17,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals((object)x, (object)x);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals((object)x, (object)x)").WithArguments("false", "S", "object").WithLocation(17, 13),
+                // (18,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'object'
+                //         b = ReferenceEquals((object)x, (object)y);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "ReferenceEquals((object)x, (object)y)").WithArguments("false", "S", "object").WithLocation(18, 13));
         }
     }
 }

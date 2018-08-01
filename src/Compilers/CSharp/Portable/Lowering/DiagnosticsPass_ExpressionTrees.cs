@@ -178,6 +178,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckArguments(argumentRefKindsOpt, arguments, method);
 
+            // TODO: Use WellKnownMembers.
+            if (_compilation.FeatureStrictEnabled &&
+                method.Name == "ReferenceEquals" &&
+                method.ToDisplayString() == "object.ReferenceEquals(object, object)")
+            {
+                foreach (var arg in arguments)
+                {
+                    if (arg.IsBoxedValueType(out TypeSymbol valueType))
+                    {
+                        // TODO: Use distinct warning.
+                        Error(ErrorCode.WRN_NubExprIsConstBool2, node, "false", valueType, _compilation.GetSpecialType(SpecialType.System_Object));
+                        break;
+                    }
+                }
+            }
+
             if (_inExpressionLambda)
             {
                 if (method.CallsAreOmitted(node.SyntaxTree))
