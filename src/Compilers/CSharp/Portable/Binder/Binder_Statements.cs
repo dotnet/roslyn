@@ -604,8 +604,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            bool isConst = node.IsConst;
             var typeSyntax = node.Declaration.Type.SkipRef(out _);
+            bool isConst = node.IsConst;
+
             bool isVar;
             AliasSymbol alias;
             TypeSymbol declType = BindVariableType(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
@@ -691,8 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Checks for a Dispose method on exprType in the case that there is no explicit
-        /// IDisposable conversion.
+        /// Checks for a Dispose method on exprType and returns if found.
         /// </summary>
         /// <param name="exprType">Type of the expression over which to iterate</param>
         /// <param name="syntaxNode">The syntax node for this expression or declaration.</param>

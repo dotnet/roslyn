@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (reversedStatements[i] is BoundUsingLocalDeclarations localDeclaration && SwitchBinder.ContainsUsingVariable(reversedStatements[i]))
                 {
-                    Debug.Assert(!(localDeclaration.IDisposableConversion.Value != default && localDeclaration.DisposeMethodOpt != default));
+                    Debug.Assert(!(localDeclaration.IDisposableConversion == Conversion.NoConversion && localDeclaration.DisposeMethodOpt != default));
 
                     var followingStatements = GetFollowingStatements(statements, itemCount - 1 - i);
                     firstUsingIndex = i;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locals: ImmutableArray<LocalSymbol>.Empty,
                         declarationsOpt: localDeclaration,
                         expressionOpt: null,
-                        iDisposableConversion: localDeclaration.IDisposableConversion.Value,
+                        iDisposableConversion: localDeclaration.IDisposableConversion,
                         disposeMethodOpt: localDeclaration.DisposeMethodOpt,
                         body: innerBlock
                         );

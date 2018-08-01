@@ -738,7 +738,7 @@
 
   <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarations">
     <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="Allow"/>
-    <Field Name="IDisposableConversion" Type="Conversion?"/>
+    <Field Name="IDisposableConversion" Type="Conversion"/>
   </Node>
 
   <!-- 

@@ -2466,11 +2466,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUsingLocalDeclarations : BoundMultipleLocalDeclarations
     {
-        public BoundUsingLocalDeclarations(SyntaxNode syntax, MethodSymbol disposeMethodOpt, Conversion? iDisposableConversion, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
+        public BoundUsingLocalDeclarations(SyntaxNode syntax, MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
             : base(BoundKind.UsingLocalDeclarations, syntax, localDeclarations, hasErrors || localDeclarations.HasErrors())
         {
 
-            Debug.Assert(iDisposableConversion != null, "Field 'iDisposableConversion' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.DisposeMethodOpt = disposeMethodOpt;
@@ -2480,14 +2479,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public MethodSymbol DisposeMethodOpt { get; }
 
-        public Conversion? IDisposableConversion { get; }
+        public Conversion IDisposableConversion { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitUsingLocalDeclarations(this);
         }
 
-        public BoundUsingLocalDeclarations Update(MethodSymbol disposeMethodOpt, Conversion? iDisposableConversion, ImmutableArray<BoundLocalDeclaration> localDeclarations)
+        public BoundUsingLocalDeclarations Update(MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, ImmutableArray<BoundLocalDeclaration> localDeclarations)
         {
             if (disposeMethodOpt != this.DisposeMethodOpt || iDisposableConversion != this.IDisposableConversion || localDeclarations != this.LocalDeclarations)
             {
