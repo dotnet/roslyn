@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         // Forces xUnit to load dependent assemblies before we launch InteractiveHost.exe process.
         private static readonly Type[] s_testDependencies = new[]
         {
-            typeof(InteractiveHost),
+            typeof(DesktopInteractiveHost),
             typeof(CSharpCompilation)
         };
 
         private static readonly FieldInfo s_ipcServerChannelListenerThread = typeof(IpcServerChannel).GetField("_listenerThread", BindingFlags.NonPublic | BindingFlags.Instance);
 
-        internal static void DisposeInteractiveHostProcess(InteractiveHost process)
+        internal static void DisposeInteractiveHostProcess(DesktopInteractiveHost process)
         {
             IpcServerChannel serverChannel = process._ServerChannel;
             process.Dispose();

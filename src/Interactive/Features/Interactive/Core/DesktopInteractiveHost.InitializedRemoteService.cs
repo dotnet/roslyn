@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal partial class InteractiveHost
+    internal partial class DesktopInteractiveHost
     {
         private struct InitializedRemoteService
         {

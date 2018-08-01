@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    internal partial class InteractiveHost
+    internal partial class DesktopInteractiveHost
     {
         /// <summary>
         /// A remote singleton server-activated object that lives in the interactive host process and controls it.

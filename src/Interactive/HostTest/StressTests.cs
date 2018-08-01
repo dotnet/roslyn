@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     public sealed class StressTests : AbstractInteractiveHostTests
     {
-        private readonly List<InteractiveHost> _processes = new List<InteractiveHost>();
+        private readonly List<DesktopInteractiveHost> _processes = new List<DesktopInteractiveHost>();
         private readonly List<Thread> _threads = new List<Thread>();
 
         public override void Dispose()
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        private InteractiveHost CreateProcess()
+        private DesktopInteractiveHost CreateProcess()
         {
-            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1);
+            var p = new DesktopInteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1);
             _processes.Add(p);
             return p;
         }

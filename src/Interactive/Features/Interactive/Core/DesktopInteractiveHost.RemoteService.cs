@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal partial class InteractiveHost
+    internal partial class DesktopInteractiveHost
     {
         internal sealed class RemoteService
         {
@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
-            private InteractiveHost _host;              // nulled on dispose
+            private DesktopInteractiveHost _host;              // nulled on dispose
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
-            internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
+            internal RemoteService(DesktopInteractiveHost host, Process process, int processId, Service service)
             {
                 Debug.Assert(host != null);
                 Debug.Assert(process != null);

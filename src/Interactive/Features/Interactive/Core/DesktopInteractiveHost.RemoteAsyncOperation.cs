@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal partial class InteractiveHost
+    internal partial class DesktopInteractiveHost
     {
         internal class RemoteAsyncOperation<TResult> : MarshalByRefObject
         {

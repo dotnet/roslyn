@@ -9,18 +9,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal partial class InteractiveHost
+    internal partial class DesktopInteractiveHost
     {
         private sealed class LazyRemoteService
         {
             public readonly AsyncLazy<InitializedRemoteService> InitializedService;
             public readonly CancellationTokenSource CancellationSource;
             public readonly InteractiveHostOptions Options;
-            public readonly InteractiveHost Host;
+            public readonly DesktopInteractiveHost Host;
             public readonly bool SkipInitialization;
             public readonly int InstanceId;
 
-            public LazyRemoteService(InteractiveHost host, InteractiveHostOptions options, int instanceId, bool skipInitialization)
+            public LazyRemoteService(DesktopInteractiveHost host, InteractiveHostOptions options, int instanceId, bool skipInitialization)
             {
                 InitializedService = new AsyncLazy<InitializedRemoteService>(TryStartAndInitializeProcessAsync, cacheResult: true);
                 CancellationSource = new CancellationTokenSource();

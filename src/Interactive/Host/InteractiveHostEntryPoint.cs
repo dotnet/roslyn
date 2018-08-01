@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             try
             {
-                InteractiveHost.Service.RunServer(args);
+                DesktopInteractiveHost.Service.RunServer(args);
                 return 0;
             }
             catch (Exception e)

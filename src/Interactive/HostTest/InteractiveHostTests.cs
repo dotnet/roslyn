@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private SynchronizedStringWriter _synchronizedErrorOutput;
         private int[] _outputReadPosition = new int[] { 0, 0 };
 
-        private readonly InteractiveHost _host;
+        private readonly DesktopInteractiveHost _host;
 
         private static readonly string s_fxDir = FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory());
         private static readonly string s_homeDir = FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
 
         public InteractiveHostTests()
         {
-            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1);
+            _host = new DesktopInteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1);
 
             RedirectOutput();
 

@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal partial class InteractiveHost
+    internal partial class DesktopInteractiveHost
     {
         /// <summary>
         /// Specialize <see cref="PortableExecutableReference"/> with path being the original path of the copy.

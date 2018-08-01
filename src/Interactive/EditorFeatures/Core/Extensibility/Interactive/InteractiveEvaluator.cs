@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         // full path or null
         private readonly string _responseFilePath;
 
-        private readonly InteractiveHost _interactiveHost;
+        private readonly DesktopInteractiveHost _interactiveHost;
 
         private readonly string _initialWorkingDirectory;
         private string _initialScriptFileOpt;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _metadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, _initialWorkingDirectory);
             _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, _initialWorkingDirectory);
 
-            _interactiveHost = new InteractiveHost(replType, initialWorkingDirectory);
+            _interactiveHost = new DesktopInteractiveHost(replType, initialWorkingDirectory);
             _interactiveHost.ProcessStarting += ProcessStarting;
         }
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         /// <summary>
-        /// Invoked by <see cref="InteractiveHost"/> when a new process is being started.
+        /// Invoked by <see cref="DesktopInteractiveHost"/> when a new process is being started.
         /// </summary>
         private void ProcessStarting(bool initialize)
         {
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             => new InteractiveHostOptions(
                  initializationFile: initialize ? _responseFilePath : null,
                  culture: CultureInfo.CurrentUICulture,
-                 is64Bit: is64bit ?? _interactiveHost.OptionsOpt?.Is64Bit ?? InteractiveHost.DefaultIs64Bit);
+                 is64Bit: is64bit ?? _interactiveHost.OptionsOpt?.Is64Bit ?? DesktopInteractiveHost.DefaultIs64Bit);
 
         private async Task<ExecutionResult> ResetAsyncWorker(InteractiveHostOptions options)
         {

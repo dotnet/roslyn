@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// <remarks>
     /// Handles spawning of the host process and communication between the local callers and the remote session.
     /// </remarks>
-    internal sealed partial class InteractiveHost : MarshalByRefObject
+    internal sealed partial class DesktopInteractiveHost : MarshalByRefObject
     {
         internal const bool DefaultIs64Bit = true;
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal event Action<bool> ProcessStarting;
 
-        public InteractiveHost(
+        public DesktopInteractiveHost(
             Type replServiceProviderType,
             string workingDirectory,
             int millisecondsTimeout = 5000)
@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.Interactive
         #endregion
 
         public static string GetPath(bool is64bit)
-            => Path.Combine(Path.GetDirectoryName(typeof(InteractiveHost).Assembly.Location), "InteractiveHost" + (is64bit ? "64" : "32") + ".exe");
+            => Path.Combine(Path.GetDirectoryName(typeof(DesktopInteractiveHost).Assembly.Location), "InteractiveHost" + (is64bit ? "64" : "32") + ".exe");
 
         private static string GenerateUniqueChannelLocalName()
         {
-            return typeof(InteractiveHost).FullName + Guid.NewGuid();
+            return typeof(DesktopInteractiveHost).FullName + Guid.NewGuid();
         }
 
         public override object InitializeLifetimeService()
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             return alive;
         }
 
-        ~InteractiveHost()
+        ~DesktopInteractiveHost()
         {
             DisposeRemoteService(disposing: false);
         }
@@ -429,6 +429,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         public InteractiveHostOptions OptionsOpt 
             => _lazyRemoteService?.Options;
+
+        InteractiveHostOptions IInteractiveHost.OptionsOpt => throw new NotImplementedException();
+
+        bool IInteractiveHost.Is64Bit => throw new NotImplementedException();
 
         /// <summary>
         /// Restarts and reinitializes the host process (or starts a new one if it is not running yet).
