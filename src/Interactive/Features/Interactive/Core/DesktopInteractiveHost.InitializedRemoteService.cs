@@ -7,9 +7,9 @@ namespace Microsoft.CodeAnalysis.Interactive
         private struct InitializedRemoteService
         {
             public readonly RemoteService ServiceOpt;
-            public readonly RemoteExecutionResult InitializationResult;
+            public readonly InteractiveExecutionResult InitializationResult;
 
-            public InitializedRemoteService(RemoteService service, RemoteExecutionResult initializationResult)
+            public InitializedRemoteService(RemoteService service, InteractiveExecutionResult initializationResult)
             {
                 ServiceOpt = service;
                 InitializationResult = initializationResult;

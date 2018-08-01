@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// <remarks>
     /// Handles spawning of the host process and communication between the local callers and the remote session.
     /// </remarks>
-    internal sealed partial class DesktopInteractiveHost : MarshalByRefObject
+    internal sealed partial class DesktopInteractiveHost
     {
         internal const bool DefaultIs64Bit = true;
 
@@ -98,14 +98,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             => Path.Combine(Path.GetDirectoryName(typeof(DesktopInteractiveHost).Assembly.Location), "InteractiveHost" + (is64bit ? "64" : "32") + ".exe");
 
         private static string GenerateUniqueChannelLocalName()
-        {
-            return typeof(DesktopInteractiveHost).FullName + Guid.NewGuid();
-        }
-
-        public override object InitializeLifetimeService()
-        {
-            return null;
-        }
+            => typeof(DesktopInteractiveHost).FullName + Guid.NewGuid();
 
         private RemoteService TryStartProcess(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
         {
@@ -392,20 +385,20 @@ namespace Microsoft.CodeAnalysis.Interactive
                 throw ExceptionUtilities.Unreachable;
             }
 
-            return default(InitializedRemoteService);
+            return default;
         }
 
-        private async Task<TResult> Async<TResult>(Action<Service, RemoteAsyncOperation<TResult>> action)
+        private async Task<TResult> Async<TRemoteOperationResult, TResult>(Action<Service, RemoteAsyncOperation<TRemoteOperationResult>> action, Func<TRemoteOperationResult, TResult> resultConverter)
         {
             try
             {
                 var initializedService = await TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).ConfigureAwait(false);
                 if (initializedService.ServiceOpt == null)
                 {
-                    return default(TResult);
+                    return default;
                 }
 
-                return await new RemoteAsyncOperation<TResult>(initializedService.ServiceOpt).AsyncExecute(action).ConfigureAwait(false);
+                return resultConverter(await new RemoteAsyncOperation<TRemoteOperationResult>(initializedService.ServiceOpt).AsyncExecute(action).ConfigureAwait(false));
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -413,11 +406,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
-        private static async Task<TResult> Async<TResult>(RemoteService remoteService, Action<Service, RemoteAsyncOperation<TResult>> action)
+        private static async Task<TResult> Async<TRemoteOperationResult, TResult>(RemoteService remoteService, Action<Service, RemoteAsyncOperation<TRemoteOperationResult>> action, Func<TRemoteOperationResult, TResult> resultConverter)
         {
             try
             {
-                return await new RemoteAsyncOperation<TResult>(remoteService).AsyncExecute(action).ConfigureAwait(false);
+                return resultConverter(await new RemoteAsyncOperation<TRemoteOperationResult>(remoteService).AsyncExecute(action).ConfigureAwait(false));
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -430,15 +423,11 @@ namespace Microsoft.CodeAnalysis.Interactive
         public InteractiveHostOptions OptionsOpt 
             => _lazyRemoteService?.Options;
 
-        InteractiveHostOptions IInteractiveHost.OptionsOpt => throw new NotImplementedException();
-
-        bool IInteractiveHost.Is64Bit => throw new NotImplementedException();
-
         /// <summary>
         /// Restarts and reinitializes the host process (or starts a new one if it is not running yet).
         /// </summary>
         /// <param name="options">The options to initialize the new process with.</param>
-        public async Task<RemoteExecutionResult> ResetAsync(InteractiveHostOptions options)
+        public async Task<InteractiveExecutionResult> ResetAsync(InteractiveHostOptions options)
         {
             Debug.Assert(options != null);
 
@@ -475,10 +464,10 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// This method is thread safe but operations are sent to the remote process
         /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
-        public Task<RemoteExecutionResult> ExecuteAsync(string code)
+        public Task<InteractiveExecutionResult> ExecuteAsync(string code)
         {
             Debug.Assert(code != null);
-            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteAsync(operation, code));
+            return Async<RemoteExecutionResult, InteractiveExecutionResult>((service, operation) => service.ExecuteAsync(operation, code), r => r.ToInteractiveOperationResult());
         }
 
         /// <summary>
@@ -490,14 +479,14 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// This method is thread safe but operations are sent to the remote process
         /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
-        public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
+        public Task<InteractiveExecutionResult> ExecuteFileAsync(string path)
         {
             if (path == null)
             {
                 throw new ArgumentNullException(nameof(path));
             }
 
-            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFileAsync(operation, path));
+            return Async<RemoteExecutionResult, InteractiveExecutionResult>((service, operation) => service.ExecuteFileAsync(operation, path), r => r.ToInteractiveOperationResult());
         }
 
         /// <summary>
@@ -511,19 +500,19 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<bool> AddReferenceAsync(string reference)
         {
             Debug.Assert(reference != null);
-            return Async<bool>((service, operation) => service.AddReferenceAsync(operation, reference));
+            return Async<bool, bool>((service, operation) => service.AddReferenceAsync(operation, reference), r => r);
         }
 
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public Task<InteractiveExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
         {
             Debug.Assert(referenceSearchPaths != null);
             Debug.Assert(sourceSearchPaths != null);
             Debug.Assert(baseDirectory != null);
 
-            return Async<RemoteExecutionResult>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
+            return Async<RemoteExecutionResult, InteractiveExecutionResult>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory), r => r.ToInteractiveOperationResult());
         }
 
         #endregion

@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     internal partial class DesktopInteractiveHost
     {
+        /// <summary>
+        /// Provides access to the remote <see cref="Service"/> object and managed the process it lives in.
+        /// </summary>
         internal sealed class RemoteService
         {
             public readonly Process Process;
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
-            private DesktopInteractiveHost _host;              // nulled on dispose
+            private DesktopInteractiveHost _host;       // nulled on dispose
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
             internal RemoteService(DesktopInteractiveHost host, Process process, int processId, Service service)

@@ -1,42 +1,38 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    [Serializable]
-    internal readonly struct RemoteExecutionResult
+    internal readonly struct InteractiveExecutionResult
     {
         public readonly bool Success;
 
         /// <summary>
         /// New value of source search paths after execution, or null if not changed since the last execution.
         /// </summary>
-        public readonly string[] ChangedSourcePaths;
+        public readonly ImmutableArray<string> ChangedSourcePaths;
 
         /// <summary>
         /// New value of reference search paths after execution, or null if not changed since the last execution.
         /// </summary>
-        public readonly string[] ChangedReferencePaths;
+        public readonly ImmutableArray<string> ChangedReferencePaths;
 
         /// <summary>
         /// New value of working directory in the remote process after execution, or null if not changed since the last execution.
         /// </summary>
         public readonly string ChangedWorkingDirectory;
 
-        public RemoteExecutionResult(
+        public InteractiveExecutionResult(
             bool success,
-            string[] changedSourcePaths,
-            string[] changedReferencePaths,
-            string changedWorkingDirectory)
+            ImmutableArray<string> changedSourcePaths = default,
+            ImmutableArray<string> changedReferencePaths = default,
+            string changedWorkingDirectory = null)
         {
             Success = success;
             ChangedSourcePaths = changedSourcePaths;
             ChangedReferencePaths = changedReferencePaths;
             ChangedWorkingDirectory = changedWorkingDirectory;
         }
-
-        public InteractiveExecutionResult ToInteractiveOperationResult()
-            => new InteractiveExecutionResult(Success, ChangedSourcePaths.AsImmutableOrNull(), ChangedReferencePaths.AsImmutableOrNull(), ChangedWorkingDirectory);
     }
 }

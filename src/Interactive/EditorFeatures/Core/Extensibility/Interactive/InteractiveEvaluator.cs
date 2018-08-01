@@ -545,9 +545,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #region Paths, Resolvers
 
-        private void UpdateResolvers(RemoteExecutionResult result)
+        private void UpdateResolvers(InteractiveExecutionResult result)
         {
-            UpdateResolvers(result.ChangedReferencePaths.AsImmutableOrNull(), result.ChangedSourcePaths.AsImmutableOrNull(), result.ChangedWorkingDirectory);
+            UpdateResolvers(result.ChangedReferencePaths, result.ChangedSourcePaths, result.ChangedWorkingDirectory);
         }
 
         private void UpdateResolvers(ImmutableArray<string> changedReferenceSearchPaths, ImmutableArray<string> changedSourceSearchPaths, string changedWorkingDirectory)

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     if (SkipInitialization)
                     {
-                        return new InitializedRemoteService(remoteService, new RemoteExecutionResult(success: true));
+                        return new InitializedRemoteService(remoteService, new InteractiveExecutionResult(success: true));
                     }
 
                     bool initializing = true;
@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                     });
 
                     // try to execute initialization script:
-                    var initializationResult = await Async<RemoteExecutionResult>(remoteService, (service, operation) =>
+                    var initializationResult = await Async<RemoteExecutionResult, InteractiveExecutionResult>(remoteService, (service, operation) =>
                     {
                         service.InitializeContextAsync(operation, Options.InitializationFile, isRestarting: InstanceId > 1);
-                    }).ConfigureAwait(false);
+                    }, r => r.ToInteractiveOperationResult()).ConfigureAwait(false);
 
                     initializing = false;
 

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        private DesktopInteractiveHost CreateProcess()
+        private DesktopInteractiveHost CreateInteractiveHost()
         {
             var p = new DesktopInteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1);
             _processes.Add(p);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private void TestKillAfter(int milliseconds)
         {
-            var p = CreateProcess();
+            var p = CreateInteractiveHost();
 
             p.InteractiveHostProcessCreated += new Action<Process>(proc =>
             {
