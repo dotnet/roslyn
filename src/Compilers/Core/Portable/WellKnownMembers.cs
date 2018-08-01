@@ -3423,8 +3423,8 @@ namespace Microsoft.CodeAnalysis
                 "Ceiling",                                  // System_Math__CeilingDouble
                 "Floor",                                    // System_Math__FloorDouble
                 "Truncate",                                 // System_Math__TruncateDouble
-                "get_Item",                                 // System_Runtime_CompilerServices_ITuple__Index
-                "get_Length",                               // System_Runtime_CompilerServices_ITuple__Length
+                "get_Item",                                 // System_Runtime_CompilerServices_ITuple__get_Item
+                "get_Length",                               // System_Runtime_CompilerServices_ITuple__get_Length
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

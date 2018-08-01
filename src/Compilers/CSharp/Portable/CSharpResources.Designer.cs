@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Element names are not permitted when patttern-matching via &apos;System.Runtime.CompilerServices.ITuple&apos;..
+        ///   Looks up a localized string similar to Element names are not permitted when pattern-matching via &apos;System.Runtime.CompilerServices.ITuple&apos;..
         /// </summary>
         internal static string ERR_ArgumentNameInITuplePattern {
             get {

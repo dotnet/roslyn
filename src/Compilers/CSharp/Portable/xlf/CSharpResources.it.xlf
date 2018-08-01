@@ -3,8 +3,8 @@
   <file datatype="xml" source-language="en" target-language="it" original="../CSharpResources.resx">
     <body>
       <trans-unit id="ERR_ArgumentNameInITuplePattern">
-        <source>Element names are not permitted when patttern-matching via 'System.Runtime.CompilerServices.ITuple'.</source>
-        <target state="new">Element names are not permitted when patttern-matching via 'System.Runtime.CompilerServices.ITuple'.</target>
+        <source>Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.</source>
+        <target state="new">Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">

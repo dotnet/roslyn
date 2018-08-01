@@ -48,6 +48,8 @@ public class C : ITuple
         Console.WriteLine(t is (3, 4, 5)); // TRUE
         Console.WriteLine(t is (3, 0, 5)); // false
         Console.WriteLine(t is (3, 4, 5, 6)); // false
+        Console.WriteLine(new object() is (3, 4, 5)); // false
+        Console.WriteLine((null as object) is (3, 4, 5)); // false
     }
 }
 ";
@@ -56,6 +58,8 @@ public class C : ITuple
             var expectedOutput =
 @"False
 True
+False
+False
 False
 False";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -98,8 +102,8 @@ namespace System.Runtime.CompilerServices
 {
     public class ITuple
     {
-        int Length => 3;
-        object this[int index] => index + 3;
+        public int Length => 3;
+        public object this[int index] => index + 3;
     }
 }
 public class C : System.Runtime.CompilerServices.ITuple
@@ -384,6 +388,93 @@ False";
         }
 
         [Fact]
+        public void ITuple_10()
+        {
+            // - should match when input type extends ITuple and has no Deconstruct (type parameter)
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+public class C : ITuple
+{
+    int ITuple.Length => 3;
+    object ITuple.this[int i] => i + 3;
+    public static void Main()
+    {
+        M(new C());
+    }
+    public static void M<T>(T t) where T: ITuple
+    {
+        Console.WriteLine(t is (3, 4)); // false
+        Console.WriteLine(t is (3, 4, 5)); // TRUE
+        Console.WriteLine(t is (3, 0, 5)); // false
+        Console.WriteLine(t is (3, 4, 5, 6)); // false
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False
+True
+False
+False";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void ITuple_11()
+        {
+            // - should not match when input type is an unconstrained type parameter
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+public class C : ITuple
+{
+    int ITuple.Length => 3;
+    object ITuple.this[int i] => i + 3;
+    public static void Main()
+    {
+        M(new C());
+    }
+    public static void M<T>(T t)
+    {
+        Console.WriteLine(t is (3, 4)); // false
+        Console.WriteLine(t is (3, 4, 5)); // TRUE
+        Console.WriteLine(t is (3, 0, 5)); // false
+        Console.WriteLine(t is (3, 4, 5, 6)); // false
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,32): error CS1061: 'T' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+                //         Console.WriteLine(t is (3, 4)); // false
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4)").WithArguments("T", "Deconstruct").WithLocation(13, 32),
+                // (13,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 2 out parameters and a void return type.
+                //         Console.WriteLine(t is (3, 4)); // false
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("T", "2").WithLocation(13, 32),
+                // (14,32): error CS1061: 'T' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("T", "Deconstruct").WithLocation(14, 32),
+                // (14,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
+                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("T", "3").WithLocation(14, 32),
+                // (15,32): error CS1061: 'T' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+                //         Console.WriteLine(t is (3, 0, 5)); // false
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 0, 5)").WithArguments("T", "Deconstruct").WithLocation(15, 32),
+                // (15,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
+                //         Console.WriteLine(t is (3, 0, 5)); // false
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("T", "3").WithLocation(15, 32),
+                // (16,32): error CS1061: 'T' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5, 6)").WithArguments("T", "Deconstruct").WithLocation(16, 32),
+                // (16,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 4 out parameters and a void return type.
+                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("T", "4").WithLocation(16, 32)
+                );
+        }
+
+        [Fact]
         public void ITuple_06()
         {
             // - should not match when input type extends ITuple and has Deconstruct (type parameter)
@@ -438,7 +529,7 @@ public class C : ITuple
         }
 
         [Fact]
-        public void ITuple_06b()
+        public void ITuple_12()
         {
             // - should not match when input type extends ITuple and has Deconstruct (type parameter)
             var source =

@@ -548,9 +548,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             var deconstruction = node.DeconstructionPatternClause;
             var patterns = ArrayBuilder<BoundSubpattern>.GetInstance(deconstruction.Subpatterns.Count);
-            for (int i = 0; i < deconstruction.Subpatterns.Count; i++)
+            foreach (var subpatternSyntax in deconstruction.Subpatterns)
             {
-                var subpatternSyntax = deconstruction.Subpatterns[i];
                 TypeSymbol elementType = objectType;
                 if (subpatternSyntax.NameColon != null)
                 {
@@ -587,6 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, declType, elementTypes.Length, node.Subpatterns.Count);
                     hasErrors = true;
                 }
+
                 for (int i = 0; i < node.Subpatterns.Count; i++)
                 {
                     var subpatternSyntax = node.Subpatterns[i];
@@ -605,52 +605,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BindPattern(subpatternSyntax.Pattern, elementType, isError, diagnostics));
                     patterns.Add(boundSubpattern);
                 }
-
-                return patterns.ToImmutableAndFree();
             }
-
-            // It is not a tuple type or ITuple. Seek an appropriate Deconstruct method.
-            var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
-            BoundExpression deconstruct = MakeDeconstructInvocationExpression(
-                node.Subpatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
-            deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
-            if (deconstructMethod is null)
+            else
             {
-                hasErrors = true;
-            }
-
-            int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0;
-            for (int i = 0; i < node.Subpatterns.Count; i++)
-            {
-                var subPattern = node.Subpatterns[i];
-                bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
-                TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
-                ParameterSymbol parameter = null;
-                if (subPattern.NameColon != null && !isError)
+                // It is not a tuple type or ITuple. Seek an appropriate Deconstruct method.
+                var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
+                BoundExpression deconstruct = MakeDeconstructInvocationExpression(
+                    node.Subpatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
+                deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
+                if (deconstructMethod is null)
                 {
-                    // Check that the given name is the same as the corresponding parameter of the method.
-                    string name = subPattern.NameColon.Name.Identifier.ValueText;
-                    int parameterIndex = i + skippedExtensionParameters;
-                    if (parameterIndex < deconstructMethod.ParameterCount)
+                    hasErrors = true;
+                }
+
+                int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0;
+                for (int i = 0; i < node.Subpatterns.Count; i++)
+                {
+                    var subPattern = node.Subpatterns[i];
+                    bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
+                    TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
+                    ParameterSymbol parameter = null;
+                    if (subPattern.NameColon != null && !isError)
                     {
-                        parameter = deconstructMethod.Parameters[parameterIndex];
-                        string parameterName = parameter.Name;
-                        if (name != parameterName)
+                        // Check that the given name is the same as the corresponding parameter of the method.
+                        string name = subPattern.NameColon.Name.Identifier.ValueText;
+                        int parameterIndex = i + skippedExtensionParameters;
+                        if (parameterIndex < deconstructMethod.ParameterCount)
                         {
-                            diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
+                            parameter = deconstructMethod.Parameters[parameterIndex];
+                            string parameterName = parameter.Name;
+                            if (name != parameterName)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(deconstructMethod is ErrorMethodSymbol);
                         }
                     }
-                    else
-                    {
-                        Debug.Assert(deconstructMethod is ErrorMethodSymbol);
-                    }
+
+                    var boundSubpattern = new BoundSubpattern(
+                        subPattern,
+                        parameter,
+                        BindPattern(subPattern.Pattern, elementType, isError, diagnostics)
+                        );
+                    patterns.Add(boundSubpattern);
                 }
-                var boundSubpattern = new BoundSubpattern(
-                    subPattern,
-                    parameter,
-                    BindPattern(subPattern.Pattern, elementType, isError, diagnostics)
-                    );
-                patterns.Add(boundSubpattern);
             }
 
             return patterns.ToImmutableAndFree();

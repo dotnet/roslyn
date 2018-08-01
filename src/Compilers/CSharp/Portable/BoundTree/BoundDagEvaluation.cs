@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundDagIndexEvaluation
     {
-        public override bool Equals(object obj) => obj is BoundDagIndexEvaluation other && this.Equals(other);
-        public override bool Equals(BoundDagEvaluation obj) => obj is BoundDagIndexEvaluation other && this.Equals(other);
         public override int GetHashCode() => base.GetHashCode() ^ this.Index;
-        public bool Equals(BoundDagIndexEvaluation other)
+        public override bool Equals(BoundDagEvaluation obj)
         {
-            return base.Equals(other) && this.Index == other.Index;
+            return base.Equals(obj) &&
+                // base.Equals checks the kind field, so the following cast is safe
+                this.Index == ((BoundDagIndexEvaluation)obj).Index;
         }
     }
 }
