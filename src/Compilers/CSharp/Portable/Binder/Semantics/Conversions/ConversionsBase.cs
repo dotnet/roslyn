@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability, ConversionsBase otherNullabilityOpt)
         {
             Debug.Assert((object)corLibrary != null);
-            Debug.Assert(otherNullabilityOpt == null || includeNullability == !otherNullabilityOpt.IncludeNullability);
+            Debug.Assert(otherNullabilityOpt == null || includeNullability != otherNullabilityOpt.IncludeNullability);
             Debug.Assert(otherNullabilityOpt == null || currentRecursionDepth == otherNullabilityOpt.currentRecursionDepth);
 
             this.corLibrary = corLibrary;

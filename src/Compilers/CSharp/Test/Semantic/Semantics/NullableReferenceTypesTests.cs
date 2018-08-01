@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NullableReferenceTypesTests : CSharpTestBase
     {
+        // PROTOTYPE(NullableReferenceTypes): Move attribute definitions to base class.
+
         private const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -33938,9 +33940,9 @@ public class B
     static T F<T, U>(T t, U u) where U : T => t;
     static void G(C? x, C y)
     {
-        F(x, x).ToString();
-        F(x, y).ToString();
-        F(y, x).ToString();
+        F(x, x).ToString(); // warning: may be null
+        F(x, y).ToString(); // warning may be null
+        F(y, x).ToString(); // warning: x does not satisfy U constraint
         F(y, y).ToString();
     }
 }";
@@ -33949,13 +33951,13 @@ public class B
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, x).ToString();
+                //         F(x, x).ToString(); // warning: may be null
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, x)").WithLocation(6, 9),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, y).ToString();
+                //         F(x, y).ToString(); // warning may be null
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, y)").WithLocation(7, 9),
                 // (8,9): warning CS8631: The type 'C?' cannot be used as type parameter 'U' in the generic type or method 'C.F<T, U>(T, U)'. Nullability of type argument 'C?' doesn't match constraint type 'C'.
-                //         F(y, x).ToString();
+                //         F(y, x).ToString(); // warning: x does not satisfy U constraint
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "F").WithArguments("C.F<T, U>(T, U)", "C", "U", "C?").WithLocation(8, 9));
         }
 
