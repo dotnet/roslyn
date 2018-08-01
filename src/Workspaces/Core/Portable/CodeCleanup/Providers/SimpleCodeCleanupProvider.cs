@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Func<Document, ImmutableArray<TextSpan>, CancellationToken, Task<Document>> documentDelegatee = null,
             Func<SyntaxNode, ImmutableArray<TextSpan>, Workspace, CancellationToken, SyntaxNode> syntaxDelegatee = null)
         {
-            Contract.Requires(documentDelegatee != null || syntaxDelegatee != null);
+            Debug.Assert(documentDelegatee != null || syntaxDelegatee != null);
 
             this.Name = name;
             _documentDelegatee = documentDelegatee;

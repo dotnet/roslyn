@@ -803,7 +803,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             var originalText = document.GetTextSynchronously(CancellationToken.None);
-            Contract.Requires(object.ReferenceEquals(originalText, snapshot.AsText()));
+            Debug.Assert(object.ReferenceEquals(originalText, snapshot.AsText()));
 
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
