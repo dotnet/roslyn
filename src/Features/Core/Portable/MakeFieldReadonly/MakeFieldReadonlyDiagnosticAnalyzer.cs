@@ -5,9 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
@@ -38,61 +36,69 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 var fieldStateMap = new ConcurrentDictionary<IFieldSymbol, (bool isCandidate, bool written)>();
 
                 // We register following actions in the compilation:
-                // 1. A symbol action for field symbols to ensure the field state is initialized for every field in the compilation.
-                // 2. An operation action for field references to detect if a candidate field is written outside constructor and field initializer, and update field state accordingly.
-                // 3. A symbol start/end action for named types to report diagnostics for candidate fields that were not written outside constructor and field initializer.
+                // 1. A symbol action for field symbols to ensure the field state is initialized for every field in
+                //    the compilation.
+                // 2. An operation action for field references to detect if a candidate field is written outside
+                //    constructor and field initializer, and update field state accordingly.
+                // 3. A symbol start/end action for named types to report diagnostics for candidate fields that were
+                //    not written outside constructor and field initializer.
 
-                compilationStartContext.RegisterSymbolAction(symbolContext =>
-                {
-                    _ = TryGetOrInitializeFieldState((IFieldSymbol)symbolContext.Symbol, symbolContext.Options, symbolContext.CancellationToken);
-                }, SymbolKind.Field);
+                compilationStartContext.RegisterSymbolAction(AnalyzeFieldSymbol, SymbolKind.Field);
 
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
-                    symbolStartContext.RegisterOperationAction(operationContext =>
-                    {
-                        var fieldReference = (IFieldReferenceOperation)operationContext.Operation;
-                        (bool isCandidate, bool written) = TryGetOrInitializeFieldState(fieldReference.Field, operationContext.Options, operationContext.CancellationToken);
-
-                        // Ignore fields that are not candidates or have already been written outside the constructor/field initializer.
-                        if (!isCandidate || written)
-                        {
-                            return;
-                        }
-
-                        // Check if this is a field write outside constructor and field initializer, and update field state accordingly.
-                        if (IsFieldWrite(fieldReference, operationContext.ContainingSymbol))
-                        {
-                            UpdateFieldStateOnWrite(fieldReference.Field);
-                        }
-                    }, OperationKind.FieldReference);
-
-                    symbolStartContext.RegisterSymbolEndAction(symbolEndContext =>
-                    {
-                        // Report diagnostics for candidate fields that are not written outside constructor and field initializer.
-                        foreach (var kvp in fieldStateMap)
-                        {
-                            IFieldSymbol field = kvp.Key;
-                            (bool isCandidate, bool written) = kvp.Value;
-                            if (isCandidate && !written)
-                            {
-                                var option = GetCodeStyleOption(field, symbolEndContext.Options, symbolEndContext.CancellationToken);
-                                var diagnostic = DiagnosticHelper.Create(
-                                    Descriptor,
-                                    field.Locations[0],
-                                    option.Notification.Severity,
-                                    additionalLocations: null,
-                                    properties: null);
-                                symbolEndContext.ReportDiagnostic(diagnostic);
-                            }
-                        }
-                    });
+                    symbolStartContext.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
+                    symbolStartContext.RegisterSymbolEndAction(OnSymbolEnd);
                 }, SymbolKind.NamedType);
 
                 return;
 
                 // Local functions.
-                bool isCandidateField(IFieldSymbol symbol) =>
+                void AnalyzeFieldSymbol(SymbolAnalysisContext symbolContext)
+                {
+                    _ = TryGetOrInitializeFieldState((IFieldSymbol)symbolContext.Symbol, symbolContext.Options, symbolContext.CancellationToken);
+                }
+
+                void AnalyzeOperation(OperationAnalysisContext operationContext)
+                {
+                    var fieldReference = (IFieldReferenceOperation)operationContext.Operation;
+                    (bool isCandidate, bool written) = TryGetOrInitializeFieldState(fieldReference.Field, operationContext.Options, operationContext.CancellationToken);
+
+                    // Ignore fields that are not candidates or have already been written outside the constructor/field initializer.
+                    if (!isCandidate || written)
+                    {
+                        return;
+                    }
+
+                    // Check if this is a field write outside constructor and field initializer, and update field state accordingly.
+                    if (IsFieldWrite(fieldReference, operationContext.ContainingSymbol))
+                    {
+                        UpdateFieldStateOnWrite(fieldReference.Field);
+                    }
+                }
+
+                void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
+                {
+                    // Report diagnostics for candidate fields that are not written outside constructor and field initializer.
+                    foreach (var kvp in fieldStateMap)
+                    {
+                        IFieldSymbol field = kvp.Key;
+                        (bool isCandidate, bool written) = kvp.Value;
+                        if (isCandidate && !written)
+                        {
+                            var option = GetCodeStyleOption(field, symbolEndContext.Options, symbolEndContext.CancellationToken);
+                            var diagnostic = DiagnosticHelper.Create(
+                                Descriptor,
+                                field.Locations[0],
+                                option.Notification.Severity,
+                                additionalLocations: null,
+                                properties: null);
+                            symbolEndContext.ReportDiagnostic(diagnostic);
+                        }
+                    }
+                }
+
+                bool IsCandidateField(IFieldSymbol symbol) =>
                         symbol.DeclaredAccessibility == Accessibility.Private &&
                         !symbol.IsReadOnly &&
                         !symbol.IsConst &&
@@ -103,7 +109,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // Method to update the field state for a candidate field written outside constructor and field initializer.
                 void UpdateFieldStateOnWrite(IFieldSymbol field)
                 {
-                    Debug.Assert(isCandidateField(field));
+                    Debug.Assert(IsCandidateField(field));
                     Debug.Assert(fieldStateMap.ContainsKey(field));
 
                     fieldStateMap[field] = (isCandidate: true, written: true);
@@ -112,27 +118,34 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // Method to get or initialize the field state.
                 (bool isCandidate, bool written) TryGetOrInitializeFieldState(IFieldSymbol fieldSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
                 {
-                    return fieldStateMap.GetOrAdd(fieldSymbol, valueFactory: InitializeFieldState);
-
-                    // Method to initialize the field state.
-                    (bool isCandidate, bool written) InitializeFieldState(IFieldSymbol field)
+                    if (fieldStateMap.TryGetValue(fieldSymbol, out var result))
                     {
-                        if (!isCandidateField(field))
-                        {
-                            return default;
-                        }
-
-                        var option = GetCodeStyleOption(field, options, cancellationToken);
-                        if (option == null || !option.Value)
-                        {
-                            return default;
-                        }
-
-                        return (isCandidate: true, written: false);
+                        return result;
                     }
+
+                    result = ComputeInitialFieldState(fieldSymbol, options, cancellationToken);
+                    return fieldStateMap.GetOrAdd(fieldSymbol, result);
+                }
+
+                // Method to compute the initial field state.
+                (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
+                {
+                    if (!IsCandidateField(field))
+                    {
+                        return default;
+                    }
+
+                    var option = GetCodeStyleOption(field, options, cancellationToken);
+                    if (option == null || !option.Value)
+                    {
+                        return default;
+                    }
+
+                    return (isCandidate: true, written: false);
                 }
             });
         }
+
 
         private static CodeStyleOption<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
         {
