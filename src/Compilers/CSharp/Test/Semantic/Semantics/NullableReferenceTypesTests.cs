@@ -4041,12 +4041,11 @@ class B2 : A
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): syntax-based detection of NonNullTypes is temporary")]
+        [Fact]
         public void Overriding_Methods()
         {
             var source = @"
 using System.Runtime.CompilerServices;
-[module: NonNullTypes(true)]
 public abstract class A
 {
     [NonNullTypes(false)]
@@ -4083,11 +4082,17 @@ public class B2 : A
             var compilation = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
+                // (7,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //     [return: NonNullTypes(false)]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 14),
+                // (8,55): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //     public abstract System.Action<string> Oblivious2([NonNullTypes(false)] System.Action<string> x);
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(8, 55),
                 // (17,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4
+                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // PROTOTYPE(NullableReferenceTypes): Should not warn
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "Oblivious2").WithLocation(17, 44),
                 // (17,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4
+                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // PROTOTYPE(NullableReferenceTypes): Should not warn
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "Oblivious2").WithArguments("x").WithLocation(17, 44),
                 // (18,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override System.Action<string?> M3(System.Action<string?> x) => throw null; // warn 5 and 6
@@ -4106,7 +4111,19 @@ public class B2 : A
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M5").WithLocation(20, 44),
                 // (20,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
                 //     public override System.Action<string?> M5(System.Action<string?> x) => throw null; // warn 9 and 10
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("x").WithLocation(20, 44)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("x").WithLocation(20, 44),
+                // (30,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //     [return: NonNullTypes(false)]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(30, 14),
+                // (31,47): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //     public override System.Action<string> M4([NonNullTypes(false)] System.Action<string> x) => throw null;
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(31, 47),
+                // (25,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //     [return: NonNullTypes(false)]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(25, 14),
+                // (26,55): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //     public override System.Action<string> Oblivious1([NonNullTypes(false)] System.Action<string> x) => throw null;
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(26, 55)
                 );
 
             var b1 = compilation.GetTypeByMetadataName("B1");
@@ -4179,12 +4196,11 @@ public class Class<T> : Base<T> where T : class
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): hits an assertion in AsObliviousReferenceType")]
+        [Fact]
         public void Overriding_Properties_WithNullableTypeArgument_WithStructConstraint()
         {
             var source = @"
 using System.Runtime.CompilerServices;
-[module: NonNullTypes(true)]
 public class List<T> { }
 public class Base<T> where T : struct
 {
@@ -4200,12 +4216,11 @@ public class Class<T> : Base<T> where T : struct
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): hits an assertion in CopyTypeCustomModifiers")]
+        [Fact]
         public void Overriding_Indexer()
         {
             var source = @"
 using System.Runtime.CompilerServices;
-[module: NonNullTypes(true)]
 public class List<T> { }
 public class Base
 {
@@ -4222,7 +4237,13 @@ public class Class2 : Base
 }
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (15,92): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //     public override List<string[]> this[[NonNullTypes(false)] List<string[]> x] { [return: NonNullTypes(false)] get => throw null; set => throw null; }
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(15, 92),
+                // (15,42): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //     public override List<string[]> this[[NonNullTypes(false)] List<string[]> x] { [return: NonNullTypes(false)] get => throw null; set => throw null; }
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(15, 42));
         }
 
         [Fact]
@@ -4585,7 +4606,7 @@ class B2 : A2
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): hits assertion in AsObliviousReferenceType")]
+        [Fact]
         public void Overriding_22()
         {
             var source =
@@ -12047,7 +12068,7 @@ class CL1
                 );
         }
 
-        [Fact(Skip = "Unexpected warning")]
+        [Fact]
         public void ConditionalBranching_08()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -12074,8 +12095,12 @@ class CL1
     public bool P2 { get { return true;} }
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-
+            // PROTOTYPE(NullableReferenceTypes): Not tracking state of x?.P == expr
+            // unless expr is `null`. See https://github.com/dotnet/roslyn/issues/26624.
             c.VerifyDiagnostics(
+                // (12,20): warning CS8602: Possible dereference of a null reference.
+                //             return x1.P2;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(12, 20)
                 );
         }
 
