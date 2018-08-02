@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (elementNames[i] == "")
                     {
-                        throw new ArgumentException(CodeAnalysisResources.TupleElementNameEmpty, $"{nameof(elementNames)}[{i}]");
+                        //throw new ArgumentException(CodeAnalysisResources.TupleElementNameEmpty, $"{nameof(elementNames)}[{i}]");
                     }
                 }
 

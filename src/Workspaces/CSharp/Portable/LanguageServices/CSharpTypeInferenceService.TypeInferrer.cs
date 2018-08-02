@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (expr.IsKind(SyntaxKind.IdentifierName))
                         {
-                            elementNamesBuilder.Add(((IdentifierNameSyntax)expr).Identifier.ValueText);
+                            elementNamesBuilder.Add(((TypeSyntax)expr).IsVar ? "" : ((IdentifierNameSyntax)expr).Identifier.ValueText);
                             elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
                         }
                         else
