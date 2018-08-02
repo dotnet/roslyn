@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool canDigThroughNullable = false)
         {
             return VisitType(
-                typeWithAnnotationsOpt: null,
+                typeWithAnnotationsOpt: default,
                 typeOpt: type,
                 typeWithAnnotationsPredicateOpt: null,
                 typePredicateOpt: predicate,
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             T arg,
             bool canDigThroughNullable = false)
         {
-            Debug.Assert((typeWithAnnotationsOpt is null) != (typeOpt is null));
+            Debug.Assert(typeWithAnnotationsOpt.IsNull != (typeOpt is null));
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             while (true)
             {
-                TypeSymbol current = typeOpt ?? typeWithAnnotationsOpt?.TypeSymbol;
+                TypeSymbol current = typeOpt ?? typeWithAnnotationsOpt.TypeSymbol;
                 bool isNestedNamedType = false;
 
                 // Visit containing types from outer-most to inner-most.
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(null, containingType, typeWithAnnotationsPredicateOpt, typePredicateOpt, arg, canDigThroughNullable);
+                                var result = VisitType(default, containingType, typeWithAnnotationsPredicateOpt, typePredicateOpt, arg, canDigThroughNullable);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if ((object)typeWithAnnotationsOpt != null && typeWithAnnotationsPredicateOpt != null)
+                if (!typeWithAnnotationsOpt.IsNull && typeWithAnnotationsPredicateOpt != null)
                 {
                     if (typeWithAnnotationsPredicateOpt(typeWithAnnotationsOpt, arg, isNestedNamedType))
                     {
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // Let's try to avoid early resolution of nullable types
                             var result = VisitType(
-                                typeWithAnnotationsOpt: canDigThroughNullable ? null : typeArg,
+                                typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
                                 typeOpt: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
                                 typeWithAnnotationsPredicateOpt,
                                 typePredicateOpt,
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Let's try to avoid early resolution of nullable types
-                typeWithAnnotationsOpt = canDigThroughNullable ? null : next;
+                typeWithAnnotationsOpt = canDigThroughNullable ? default : next;
                 typeOpt = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
             }
         }

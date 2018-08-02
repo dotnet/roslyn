@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns></returns>
         public MethodSymbol Construct(ImmutableArray<TypeSymbol> typeArguments)
         {
-            return Construct(typeArguments.SelectAsArray(a => (object)a == null ? null : TypeSymbolWithAnnotations.Create(a)));
+            return Construct(typeArguments.SelectAsArray(a => TypeSymbolWithAnnotations.Create(a)));
         }
 
         internal MethodSymbol Construct(ImmutableArray<TypeSymbolWithAnnotations> typeArguments)

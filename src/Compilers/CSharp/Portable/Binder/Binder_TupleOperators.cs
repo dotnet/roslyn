@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // placeholder bound nodes with the proper types are sufficient to bind the element-wise binary operators
             TypeSymbol tupleType = expr.Type.StrippedType();
             ImmutableArray<BoundExpression> placeholders = tupleType.TupleElementTypes
-                .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t?.TypeSymbol), expr.Syntax);
+                .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t.TypeSymbol), expr.Syntax);
 
             return (placeholders, tupleType.TupleElementNames);
         }

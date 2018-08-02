@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
 
             // Tracking narrowest safe-to-escape scope by default, the proper val escape will be set when doing full binding of the foreach statement
-            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, this.LocalScopeDepth, inferredType?.TypeSymbol ?? CreateErrorType("var"));
+            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, this.LocalScopeDepth, inferredType.TypeSymbol ?? CreateErrorType("var"));
 
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
@@ -226,11 +226,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (isVar)
                         {
-                            declType = inferredType ?? TypeSymbolWithAnnotations.Create(CreateErrorType("var"), isNullableIfReferenceType: null);
+                            declType = inferredType.IsNull ? TypeSymbolWithAnnotations.Create(CreateErrorType("var"), isNullableIfReferenceType: null) : inferredType;
                         }
                         else
                         {
-                            Debug.Assert((object)declType != null);
+                            Debug.Assert(!declType.IsNull);
                         }
 
                         iterationVariableType = declType.TypeSymbol;
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ForEachVariableStatement:
                     {
                         var node = (ForEachVariableStatementSyntax)_syntax;
-                        iterationVariableType = inferredType?.TypeSymbol ?? CreateErrorType("var");
+                        iterationVariableType = inferredType.TypeSymbol ?? CreateErrorType("var");
 
                         var variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!gotInfo)
             {
-                inferredType = null;
+                inferredType = default;
             }
             else if (collectionExpr.HasDynamicType())
             {

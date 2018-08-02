@@ -23011,7 +23011,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
             Assert.Equal("x", x.Identifier.ToString());
-            var xSymbol = (model.GetDeclaredSymbol(x) as LocalSymbol)?.Type;
+            var xSymbol = ((LocalSymbol)model.GetDeclaredSymbol(x)).Type;
             Assert.Equal("(System.Int32 a, System.Int32 b)", xSymbol.ToTestDisplayString());
         }
 

@@ -1305,7 +1305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var name = local.Name;
                 if ((name != null) && (GeneratedNames.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField))
                 {
-                    if (displayClassTypes.Add(local.Type?.TypeSymbol))
+                    var localType = local.Type.TypeSymbol;
+                    if ((object)localType != null && displayClassTypes.Add(localType))
                     {
                         var instance = new DisplayClassInstanceFromLocal((EELocalSymbol)local);
                         displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
