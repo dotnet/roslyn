@@ -1,4 +1,4 @@
-Imports System.IO.Packaging
+﻿Imports System.IO.Packaging
 Imports System.IO
 Imports System.Threading
 Imports Newtonsoft.Json
@@ -574,10 +574,6 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\Roslyn.VisualStudio.Setup\System.Composition.Hosting.dll")
         add("Vsix\Roslyn.VisualStudio.Setup\System.Composition.TypedParts.dll")
         add("Vsix\Roslyn.VisualStudio.Setup\System.Threading.Tasks.Extensions.dll")
-        add("Vsix\Roslyn.VisualStudio.Setup\Mono.Cecil.dll")
-        add("Vsix\Roslyn.VisualStudio.Setup\Mono.Cecil.Mdb.dll")
-        add("Vsix\Roslyn.VisualStudio.Setup\Mono.Cecil.Pdb.dll")
-        add("Vsix\Roslyn.VisualStudio.Setup\Mono.Cecil.Rocks.dll")
         add("Vsix\Roslyn.VisualStudio.Setup\ICSharpCode.Decompiler.dll")
         add("Dlls\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\Microsoft.CodeAnalysis.VisualBasic.ResultProvider\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig")
