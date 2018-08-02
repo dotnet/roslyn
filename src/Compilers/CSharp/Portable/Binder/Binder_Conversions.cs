@@ -136,60 +136,85 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression CreateImplicitNewConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             var node = (ObjectCreationExpressionSyntax)source.Syntax;
-            var arguments = ((UnboundObjectCreationExpression)source).AnalyzedArguments;
 
             TypeSymbol type = destination.StrippedType();
             BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer != null
                 ? BindInitializerExpression(syntax: node.Initializer, type: type, typeSyntax: syntax, diagnostics)
                 : null;
 
-            if (ReportBadTargetType(syntax, type, diagnostics))
+            var arguments = AnalyzedArguments.GetInstance();
+            try
             {
-                return MakeBadExpressionForObjectCreation(node, destination, boundInitializerOpt, arguments);
-            }
+                var unboundObjectCreation = (UnboundObjectCreationExpression)source;
 
-            BoundExpression result;
-            switch (type.TypeKind)
+                // PROTOTYPE(target-typed-new): Reconstruct AnalyzedArguments to avoid binding twice
+                arguments.Arguments.AddRange(unboundObjectCreation.Arguments);
+                if (!unboundObjectCreation.ArgumentRefKindsOpt.IsDefault)
+                {
+                    arguments.RefKinds.AddRange(unboundObjectCreation.ArgumentRefKindsOpt);
+                }
+
+                if (!unboundObjectCreation.ArgumentNamesOpt.IsDefault)
+                {
+                    arguments.Names.AddRange(unboundObjectCreation.ArgumentNamesOpt);
+                }
+
+                if (ReportBadTargetType(syntax, type, diagnostics))
+                {
+                    return MakeBadExpressionForObjectCreation(node, destination, boundInitializerOpt, arguments);
+                }
+
+                BoundExpression result;
+                switch (type.TypeKind)
+                {
+                    case TypeKind.Struct:
+                    case TypeKind.Class:
+                        result = BindClassCreationExpression(
+                            node,
+                            typeName: type.Name,
+                            typeNode: node,
+                            type: (NamedTypeSymbol)type,
+                            arguments,
+                            diagnostics,
+                            boundInitializerOpt,
+                            forTargetTypedNew: true);
+                        break;
+
+                    case TypeKind.TypeParameter:
+                        result = BindTypeParameterCreationExpression(
+                            node,
+                            typeParameter: (TypeParameterSymbol)type,
+                            arguments,
+                            boundInitializerOpt,
+                            diagnostics);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.Kind);
+                }
+
+                if (destination.IsNullableType())
+                {
+                    // We manually create an ImplicitNullable conversion
+                    // if the destination is nullable, in which case we
+                    // target the underlying type e.g. `S? x = new();`
+                    // is actually identical to `S? x = new S();`.
+                    result = new BoundConversion(
+                        syntax,
+                        result,
+                        conversion: new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying),
+                        @checked: false,
+                        explicitCastInCode: isCast,
+                        constantValueOpt: null, // A "target-typed new" would never produce a constant.
+                        type: destination);
+                }
+
+                return result;
+            }
+            finally
             {
-                case TypeKind.Struct:
-                case TypeKind.Class:
-                    result = BindClassCreationExpression(
-                        node,
-                        typeName: type.Name,
-                        typeNode: node,
-                        type: (NamedTypeSymbol)type,
-                        arguments,
-                        diagnostics,
-                        boundInitializerOpt,
-                        forTargetTypedNew: true);
-                    break;
-
-                case TypeKind.TypeParameter:
-                    result = BindTypeParameterCreationExpression(
-                        node,
-                        typeParameter: (TypeParameterSymbol)type,
-                        arguments,
-                        boundInitializerOpt,
-                        diagnostics);
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(type.Kind);
+                arguments.Free();
             }
-
-            if (destination.IsNullableType())
-            {
-                result = new BoundConversion(
-                    syntax,
-                    result,
-                    conversion: new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying),
-                    @checked: false,
-                    explicitCastInCode: isCast,
-                    constantValueOpt: null, // A "target-typed new" would never produce a constant.
-                    type: destination);
-            }
-
-            return result;
         }
 
         private bool ReportBadTargetType(SyntaxNode syntax, TypeSymbol type, DiagnosticBag diagnostics)
@@ -220,8 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.TypeParameter:
                     return false;
 
-                default:
+                case TypeKind.Error:
                     return true;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
             }
         }
 

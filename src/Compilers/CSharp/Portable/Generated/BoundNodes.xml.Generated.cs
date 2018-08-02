@@ -4691,37 +4691,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class UnboundObjectCreationExpression : BoundExpression
     {
-        public UnboundObjectCreationExpression(SyntaxNode syntax, AnalyzedArguments analyzedArguments, bool hasErrors)
-            : base(BoundKind.UnboundObjectCreationExpression, syntax, null, hasErrors)
+        public UnboundObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool hasErrors = false)
+            : base(BoundKind.UnboundObjectCreationExpression, syntax, null, hasErrors || arguments.HasErrors())
         {
 
-            Debug.Assert(analyzedArguments != null, "Field 'analyzedArguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.AnalyzedArguments = analyzedArguments;
-        }
-
-        public UnboundObjectCreationExpression(SyntaxNode syntax, AnalyzedArguments analyzedArguments)
-            : base(BoundKind.UnboundObjectCreationExpression, syntax, null)
-        {
-
-            Debug.Assert(analyzedArguments != null, "Field 'analyzedArguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-            this.AnalyzedArguments = analyzedArguments;
+            this.Arguments = arguments;
+            this.ArgumentNamesOpt = argumentNamesOpt;
+            this.ArgumentRefKindsOpt = argumentRefKindsOpt;
         }
 
 
-        public AnalyzedArguments AnalyzedArguments { get; }
+        public ImmutableArray<BoundExpression> Arguments { get; }
+
+        public ImmutableArray<IdentifierNameSyntax> ArgumentNamesOpt { get; }
+
+        public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitUnboundObjectCreationExpression(this);
         }
 
-        public UnboundObjectCreationExpression Update(AnalyzedArguments analyzedArguments)
+        public UnboundObjectCreationExpression Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt)
         {
-            if (analyzedArguments != this.AnalyzedArguments)
+            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt)
             {
-                var result = new UnboundObjectCreationExpression(this.Syntax, analyzedArguments, this.HasErrors);
+                var result = new UnboundObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8558,6 +8555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
         {
+            this.VisitList(node.Arguments);
             return null;
         }
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
@@ -9440,8 +9438,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
         {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.AnalyzedArguments);
+            return node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt);
         }
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
@@ -10882,7 +10881,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("unboundObjectCreationExpression", null, new TreeDumperNode[]
             {
-                new TreeDumperNode("analyzedArguments", node.AnalyzedArguments, null),
+                new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+                new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
+                new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

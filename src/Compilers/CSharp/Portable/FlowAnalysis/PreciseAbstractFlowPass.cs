@@ -2331,10 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
         {
             // The presence of this node suggests an error was detected in an earlier phase.
-            VisitArguments(
-                node.AnalyzedArguments.Arguments.ToImmutable(),
-                node.AnalyzedArguments.RefKinds.ToImmutable(),
-                method: null);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method: null);
             return null;
         }
 

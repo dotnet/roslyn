@@ -3557,10 +3557,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)node.Type == null)
             {
-                var arguments = new AnalyzedArguments();
-                BindArgumentsAndNames(node.ArgumentList, diagnostics, arguments, allowArglist: true);
-
-                return new UnboundObjectCreationExpression(node, arguments);
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+                var result = new UnboundObjectCreationExpression(
+                    node,
+                    analyzedArguments.Arguments.ToImmutable(),
+                    analyzedArguments.Names.ToImmutableOrNull(),
+                    analyzedArguments.RefKinds.ToImmutableOrNull());
+                analyzedArguments.Free();
+                return result;
             }
 
             var type = BindType(node.Type, diagnostics);
