@@ -11,13 +11,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup>
-    <Compile Include="..\..\Workspaces\Remote\Core\Services\AssetService.cs" Link="RemoteHost\AssetService.cs" />
-    <Compile Include="..\..\Workspaces\Remote\Core\Services\AssetSource.cs" Link="AssetSource.cs" />
-    <Compile Include="..\..\Workspaces\Remote\Core\Services\AssetStorage.cs" Link="RemoteHost\AssetStorage.cs" />
-    <Compile Include="..\..\Workspaces\Remote\Core\Services\ChecksumSynchronizer.cs" Link="RemoteHost\ChecksumSynchronizer.cs" />
-    <Compile Include="..\..\Workspaces\Remote\Core\Services\SolutionCreator.cs" Link="RemoteHost\SolutionCreator.cs" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj" />
@@ -25,6 +18,7 @@
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
     <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
-namespace Roslyn.Hosting.Diagnostics.RemoteHost
+namespace Microsoft.CodeAnalysis.Remote.Shared
 {
     internal class PackageAssetSource : AssetSource
     {

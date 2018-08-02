@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 
-namespace Roslyn.Hosting.Diagnostics.RemoteHost
+namespace Microsoft.CodeAnalysis.Remote.Shared
 {
     internal static class Extensions
     {
