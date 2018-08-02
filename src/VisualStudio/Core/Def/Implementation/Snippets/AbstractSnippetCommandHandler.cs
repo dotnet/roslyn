@@ -51,6 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return false;
         }
 
+        protected virtual Func<char, bool> GetIsIdentifierPartCharacterFunction(Document document)
+        {
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            return syntaxFactsService.IsIdentifierPartCharacter;
+        }
+
         public bool ExecuteCommand(TabKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
@@ -246,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var currentText = subjectBuffer.AsTextContainer().CurrentText;
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var isIdentifierPartCharacter = GetIsIdentifierPartCharacterFunction(document);
 
             var endPositionInSubjectBuffer = textView.GetCaretPoint(subjectBuffer);
             if (endPositionInSubjectBuffer == null)
@@ -261,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             while (startPosition > 0)
             {
                 char c = currentText[startPosition - 1];
-                if (!syntaxFactsService.IsIdentifierPartCharacter(c) && c != '#' && c != '~')
+                if (!isIdentifierPartCharacter(c) && c != '#' && c != '~')
                 {
                     break;
                 }
