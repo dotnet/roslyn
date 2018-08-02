@@ -11,13 +11,25 @@
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Roslyn version -->
+    <VersionPrefix>2.11.0</VersionPrefix>
+    <PreReleaseVersionLabel>beta1</PreReleaseVersionLabel>
+    <SemanticVersioningV1>true</SemanticVersioningV1>
+
+    <!-- 
+      By default the assembly version in official builds is "$(VersionPrefix).0".
+      When building servicing set AssemblyVersion to fixed value to avoid updating binding redirects.
+    -->
+    <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
+  </PropertyGroup>
+
   <Import Project="RepoToolset\ProjectLayout.props" />
   <Import Project="RepoToolset\DefaultVersions.props"/>
   <Import Project="RepoToolset\ProjectDefaults.props" />
   <Import Project="RepoToolset\StrongName.props" />
-
+  <Import Project="RepoToolset\VisualStudio.props"/>
   <Import Project="Tools.props" />
-  <Import Project="Versions.props" />
 
   <PropertyGroup>
     <JenkinsBuild>false</JenkinsBuild>

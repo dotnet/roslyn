@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     _editorSessionOpt.Recalculate();
 
                     // Now let the editor know what the currently selected item is.
-                    Contract.Requires(_signatureMap.ContainsKey(selectedItem));
+                    Debug.Assert(_signatureMap.ContainsKey(selectedItem));
                     Contract.ThrowIfNull(_signatureMap);
 
                     var defaultValue = _signatureMap.GetValueOrDefault(_selectedItem);

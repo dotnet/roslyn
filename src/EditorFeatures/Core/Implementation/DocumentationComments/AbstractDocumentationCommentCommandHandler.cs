@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var lines = GetDocumentationCommentStubLines(targetMember);
-            Contract.Assume(lines.Count > 2);
+            Debug.Assert(lines.Count > 2);
 
             var newLine = options.GetOption(FormattingOptions.NewLine);
             AddLineBreaks(text, lines, newLine);
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var lines = GetDocumentationCommentStubLines(targetMember);
-            Contract.Assume(lines.Count > 2);
+            Debug.Assert(lines.Count > 2);
 
             var newLine = options.GetOption(FormattingOptions.NewLine);
             AddLineBreaks(text, lines, newLine);
@@ -411,17 +411,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             var startPosition = targetMember.GetFirstToken().SpanStart;
             var line = text.Lines.GetLineFromPosition(startPosition);
-            Contract.Assume(!line.IsEmptyOrWhitespace());
+            Debug.Assert(!line.IsEmptyOrWhitespace());
 
             var lines = GetDocumentationCommentStubLines(targetMember);
-            Contract.Assume(lines.Count > 2);
+            Debug.Assert(lines.Count > 2);
 
             var newLine = options.GetOption(FormattingOptions.NewLine);
             AddLineBreaks(text, lines, newLine);
 
             // Add indents
             var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
-            Contract.Assume(line.Start + lineOffset == startPosition);
+            Debug.Assert(line.Start + lineOffset == startPosition);
 
             var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
             for (int i = 1; i < lines.Count; i++)

@@ -62,7 +62,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If extraCompletionProviders IsNot Nothing Then
                 Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
-                completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
+                If completionService IsNot Nothing Then
+                    completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
+                End If
             End If
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()

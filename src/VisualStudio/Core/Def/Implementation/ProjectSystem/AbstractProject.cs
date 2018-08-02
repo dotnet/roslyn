@@ -506,7 +506,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static string GetAssemblyNameFromPath(string outputPath)
         {
-            Contract.Requires(outputPath != null);
+            Debug.Assert(outputPath != null);
 
             // dev11 sometimes gives us output path w/o extension, so removing extension becomes problematic
             if (outputPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||

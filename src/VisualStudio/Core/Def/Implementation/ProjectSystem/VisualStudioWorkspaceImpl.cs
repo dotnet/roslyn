@@ -560,15 +560,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (IsWebsite(project))
             {
-                AddDocumentToFolder(hostProject, project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument);
+                AddDocumentToFolder(hostProject, project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
             }
             else if (folders.Any())
             {
-                AddDocumentToFolder(hostProject, project, info.Id, folders, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument);
+                AddDocumentToFolder(hostProject, project, info.Id, folders, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
             }
             else
             {
-                AddDocumentToProject(hostProject, project, info.Id, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument);
+                AddDocumentToProject(hostProject, project, info.Id, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
             }
 
             var undoManager = TryGetUndoManager();
@@ -650,7 +650,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filePath = null,
             bool isAdditionalDocument = false)
         {
-            if (!project.TryGetFullPath(out var folderPath))
+            string folderPath = null;
+            if (filePath == null && !project.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
@@ -671,7 +672,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             bool isAdditionalDocument = false)
         {
             var folder = project.FindOrCreateFolder(folders);
-            if (!folder.TryGetFullPath(out var folderPath))
+
+            string folderPath = null;
+            if (filePath == null && !folder.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
