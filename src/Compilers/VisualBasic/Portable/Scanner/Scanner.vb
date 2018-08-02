@@ -603,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 tList.Add(MakeLineContinuationTrivia(GetText(1)))
             End If
 
-            If atNewLine Then
+            If atNewLine AndAlso CanGet() Then
                 Dim newLine = SkipLineBreak(ch, 0)
                 Here = GetWhitespaceLength(newLine)
                 Dim spaces = Here - newLine
