@@ -225,11 +225,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             }
 
             // Load the assembly.
-            // TODO: Use a different PEFile overload that allows us to reuse the PEReader or Stream already created by Roslyn.
+            // TODO: Use a different PEFile ctor overload that allows us to reuse the PEReader or Stream already created by Roslyn.
             var pefile = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
 
             // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(pefile, new RoslynAssemblyResolver(compilation), new DecompilerSettings());
+            // TODO: Use language version currently used by the project.
+            var settings = new DecompilerSettings(LanguageVersion.Latest);
+            var decompiler = new CSharpDecompiler(pefile, new RoslynAssemblyResolver(compilation), settings);
             // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
             // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
             decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
@@ -287,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
                     // reference assemblies should be fine here, we only need the metadata of references.
                     var reference = parentCompilation.GetMetadataReference(assembly);
-                    // TODO: Use a different PEFile overload that allows us to reuse the PEReader or Stream already created by Roslyn.
+                    // TODO: Use a different PEFile ctor overload that allows us to reuse the PEReader or Stream already created by Roslyn.
                     return new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
                 }
 
