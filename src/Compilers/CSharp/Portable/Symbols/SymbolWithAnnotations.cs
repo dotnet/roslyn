@@ -654,17 +654,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = result.WithTypeAndModifiers(newTypeSymbol, result.CustomModifiers);
             }
 
-            if (!result.IsValueType)
-            {
-                if (isAnnotated)
-                {
-                    result = result.AsNullableReferenceType();
-                }
-                else
-                {
-                    result = result.AsNotNullableReferenceType();
-                }
-            }
+            result = isAnnotated ?
+                result.AsNullableReferenceType() :
+                result.AsNotNullableReferenceType();
 
             result = result.WithNonNullTypesContext(nonNullTypesContext);
             return true;

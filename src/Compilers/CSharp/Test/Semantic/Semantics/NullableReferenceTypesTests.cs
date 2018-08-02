@@ -37718,5 +37718,29 @@ class B : A
                 //             n = base.F.Length;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "base.F").WithLocation(21, 17));
         }
+
+        [WorkItem(29041, "https://github.com/dotnet/roslyn/issues/29041")]
+        [Fact]
+        public void ConstraintCycleFromMetadata()
+        {
+            var source0 =
+@"using System;
+public class A<T> where T : IEquatable<T>
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class B
+{
+    static void Main()
+    {
+        new A<string>();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+        }
     }
 }
