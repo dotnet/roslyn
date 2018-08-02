@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class ConversionGroup
     {
-        internal ConversionGroup(Conversion conversion, TypeSymbolWithAnnotations explicitType = null)
+        internal ConversionGroup(Conversion conversion, TypeSymbolWithAnnotations explicitType = default)
         {
             Conversion = conversion;
             ExplicitType = explicitType;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True if the conversion is an explicit conversion.
         /// </summary>
-        internal bool IsExplicitConversion => (object)ExplicitType != null;
+        internal bool IsExplicitConversion => !ExplicitType.IsNull;
 
         /// <summary>
         /// The conversion (from Conversions.ClassifyConversionFromExpression for
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal string GetDebuggerDisplay()
         {
             var str = $"#{_id} {Conversion}";
-            if ((object)ExplicitType != null)
+            if (!ExplicitType.IsNull)
             {
                 str += $" ({ExplicitType})";
             }

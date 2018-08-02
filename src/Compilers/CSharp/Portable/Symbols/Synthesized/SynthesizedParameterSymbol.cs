@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name = "")
         {
-            Debug.Assert((object)type != null);
+            Debug.Assert(!type.IsNull);
             Debug.Assert(name != null);
             Debug.Assert(ordinal >= 0);
 

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeMap _inputMap;
         private readonly MethodSymbol _constructedFrom;
 
-        private TypeSymbolWithAnnotations _lazyReturnType;
+        private TypeSymbolWithAnnotations.Builder _lazyReturnType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
@@ -230,14 +230,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var returnType = _lazyReturnType;
-                if ((object)returnType != null)
+                if (_lazyReturnType.IsNull)
                 {
-                    return returnType;
+                    var returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnType);
+                    _lazyReturnType.InterlockedInitialize(returnType);
                 }
-
-                returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnType);
-                return Interlocked.CompareExchange(ref _lazyReturnType, returnType, null) ?? returnType;
+                return _lazyReturnType.ToType();
             }
         }
 

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations elementType,
             NamedTypeSymbol array)
         {
-            Debug.Assert((object)elementType != null);
+            Debug.Assert(!elementType.IsNull);
             Debug.Assert((object)array != null);
 
             _elementType = elementType;
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false; 
             }
 
-            if ((object)oldElementType == newElementType)
+            if (oldElementType.IsSameAs(newElementType))
             {
                 result = this;
             }
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations oldElementType = ElementType;
             TypeSymbolWithAnnotations newElementType = oldElementType.SetUnknownNullabilityForReferenceTypes();
 
-            if ((object)oldElementType == newElementType)
+            if (oldElementType.IsSameAs(newElementType))
             {
                 return this;
             }

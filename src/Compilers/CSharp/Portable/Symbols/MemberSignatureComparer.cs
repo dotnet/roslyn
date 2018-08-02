@@ -514,7 +514,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_considerReturnType && member.GetMemberArity() == 0 && 
                     (_typeComparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0) // If it is generic, then type argument might be in return type.
                 {
-                    hash = Hash.Combine(member.GetTypeOrReturnType(), hash);
+                    // PROTOTYPE(NullableReferenceTypes): TypeSymbolWithAnnotations.GetHashCode()
+                    // throws ExceptionUtilities.Unreachable.
+                    hash = Hash.Combine(member.GetTypeOrReturnType().GetHashCode(), hash);
                 }
 
                 // CONSIDER: modify hash for constraints?

@@ -3645,7 +3645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useSiteDiagnostics: ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
-                if ((object)bestType == null)
+                if (bestType.IsNull)
                 {
                     // CONSIDER: Dev10 suppresses ERR_InvalidQM unless the following is true for both trueType and falseType
                     // (!T->type->IsErrorType() || T->type->AsErrorType()->HasTypeParent() || T->type->AsErrorType()->HasNSParent())

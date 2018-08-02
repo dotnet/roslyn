@@ -624,12 +624,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool ContainsNullableReferenceTypes()
         {
-            return TypeSymbolWithAnnotations.ContainsNullableReferenceTypes(typeWithAnnotationsOpt: null, typeOpt: this);
+            return TypeSymbolWithAnnotations.ContainsNullableReferenceTypes(typeWithAnnotationsOpt: default, typeOpt: this);
         }
 
         internal bool ContainsAnnotatedUnconstrainedTypeParameter()
         {
-            return TypeSymbolWithAnnotations.ContainsAnnotatedUnconstrainedTypeParameter(typeWithAnnotationsOpt: null, typeOpt: this);
+            return TypeSymbolWithAnnotations.ContainsAnnotatedUnconstrainedTypeParameter(typeWithAnnotationsOpt: default, typeOpt: this);
         }
 
         internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);

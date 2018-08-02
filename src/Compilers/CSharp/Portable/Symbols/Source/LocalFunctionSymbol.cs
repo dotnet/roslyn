@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         
         internal void ComputeReturnType()
         {
-            if ((object)_lazyReturnType != null)
+            if (!_lazyReturnType.IsNull)
             {
                 return;
             }
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if ((object)_lazyReturnType != null)
+                if (!_lazyReturnType.IsNull)
                 {
                     diagnostics.Free();
                     return;
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool ReturnsVoid => ReturnType?.SpecialType == SpecialType.System_Void;
+        public override bool ReturnsVoid => ReturnType.SpecialType == SpecialType.System_Void;
 
         public override int Arity => TypeParameters.Length;
 
