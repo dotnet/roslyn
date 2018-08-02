@@ -1014,6 +1014,52 @@ class Program
         }
 
         [Fact]
+        public void TestOverloadResolution5()
+        {
+            var comp = CreateCompilation(@"
+class A
+{
+    public A(int i) {}
+}
+class B : A
+{
+    public B(int i) : base(i) {}
+}
+
+class Program
+{
+    static void M(A a, int i) {}
+    static void M(B a, object i) {}
+
+    public static void Main()
+    {
+        M(new(), 1);
+    }
+}
+", options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(A, int)' and 'Program.M(B, object)'
+                //         M(new(), 1);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(A, int)", "Program.M(B, object)").WithLocation(18, 9));
+        }
+
+        [Fact]
+        public void TestAssignmnet()
+        {
+            var comp = CreateCompilation(@"
+class Program
+{
+    public static void Main()
+    {
+        new() = 5;
+    }
+}
+", options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         new() = 5;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new()").WithLocation(6, 9));
+        }
+
+        [Fact]
         public void TestNullableType1()
         {
             var comp = CreateCompilation(@"
@@ -1066,15 +1112,16 @@ struct S
     public static void Main()
     {
         new(a) { x };
+        new() { x };
     }
 }
 ", options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (6,13): error CS0103: The name 'a' does not exist in the current context
                 //         new(a) { x };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 13),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                //         new(a) { x };
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "new(a) { x }").WithLocation(6, 9)
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         new() { x };
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "new() { x }").WithLocation(7, 9)
                 );
         }
     }

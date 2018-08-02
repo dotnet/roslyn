@@ -188,10 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(valueKind == BindValueKind.RefOrOut);
                     return expr;
 
-                case BoundKind.UnboundObjectCreationExpression:
-                    Debug.Assert(valueKind == BindValueKind.RValue);
-                    return expr;
-
                 case BoundKind.DiscardExpression:
                     Debug.Assert(valueKind == BindValueKind.Assignable || valueKind == BindValueKind.RefOrOut || diagnostics.HasAnyResolvedErrors());
                     return expr;
