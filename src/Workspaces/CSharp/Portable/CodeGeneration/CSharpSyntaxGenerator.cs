@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
 
+        internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
+            => SyntaxFactory.SeparatedList<TElement>(list);
+
         public static readonly SyntaxGenerator Instance = new CSharpSyntaxGenerator();
 
         #region Declarations
@@ -2697,6 +2700,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((DestructorDeclarationSyntax)declaration).WithParameterList(list);
                 case SyntaxKind.IndexerDeclaration:
                     return ((IndexerDeclarationSyntax)declaration).WithParameterList(list);
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 case SyntaxKind.SimpleLambdaExpression:
@@ -3563,14 +3568,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)
-        {
-            return SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
-        }
+            => SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
+
+        internal override SyntaxNode YieldReturnStatement(SyntaxNode expressionOpt = null)
+            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expressionOpt);
 
         public override SyntaxNode ThrowStatement(SyntaxNode expressionOpt = null)
-        {
-            return SyntaxFactory.ThrowStatement((ExpressionSyntax)expressionOpt);
-        }
+            => SyntaxFactory.ThrowStatement((ExpressionSyntax)expressionOpt);
 
         public override SyntaxNode ThrowExpression(SyntaxNode expression)
         {
@@ -3926,15 +3930,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode IdentifierName(string identifier)
-        {
-            return identifier.ToIdentifierName();
-        }
+            => identifier.ToIdentifierName();
 
         public override SyntaxNode GenericName(string identifier, IEnumerable<SyntaxNode> typeArguments)
-        {
-            return SyntaxFactory.GenericName(identifier.ToIdentifierToken(),
+            => GenericName(identifier.ToIdentifierToken(), typeArguments);
+
+        internal override SyntaxNode GenericName(SyntaxToken identifier, IEnumerable<SyntaxNode> typeArguments)
+            => SyntaxFactory.GenericName(identifier,
                 SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
-        }
 
         public override SyntaxNode WithTypeArguments(SyntaxNode expression, IEnumerable<SyntaxNode> typeArguments)
         {
@@ -3967,9 +3970,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right)
-        {
-            return SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
-        }
+            => SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
+
+        internal override SyntaxNode GlobalAliasedName(SyntaxNode name)
+            => SyntaxFactory.AliasQualifiedName(
+                SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                (SimpleNameSyntax)name);
 
         public override SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
             => namespaceOrTypeSymbol.GenerateNameSyntax();
@@ -4206,14 +4212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal override SyntaxNode IdentifierName(SyntaxToken identifier)
-        {
-            return SyntaxFactory.IdentifierName(identifier);
-        }
+            => SyntaxFactory.IdentifierName(identifier);
 
-        internal override SyntaxToken Identifier(string identifier)
-        {
-            return SyntaxFactory.Identifier(identifier);
-        }
+        internal override SyntaxToken Identifier(string identifier) 
+            => SyntaxFactory.Identifier(identifier);
 
         internal override SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression)
         {

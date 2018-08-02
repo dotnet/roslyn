@@ -9,7 +9,7 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>$(RoslynCrossPlatformRuntimeIdentifiers)</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Nonshipping>true</Nonshipping>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -17,15 +17,15 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Compilers\Core\MSBuildTask\MSBuildTask.csproj" />
-    <ProjectReference Include="..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\src\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\src\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\src\Compilers\CSharp\csc\csc.csproj" />
-    <ProjectReference Include="..\..\src\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\src\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\src\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\src\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\src\Compilers\VisualBasic\vbc\vbc.csproj" />
     <ProjectReference Include="..\..\src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" />
     <ProjectReference Include="..\..\src\Interactive\csi\csi.csproj" />
-    <ProjectReference Include="..\..\src\Scripting\Core\Scripting.csproj" />
-    <ProjectReference Include="..\..\src\Scripting\CSharp\CSharpScripting.csproj" />
+    <ProjectReference Include="..\..\src\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
+    <ProjectReference Include="..\..\src\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
   </ItemGroup>
 </Project>

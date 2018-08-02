@@ -319,6 +319,7 @@ End Class"
     Sub M()
         Dim x = 1
         Dim {|Rename:v|} As Boolean = x = 1
+
         While v
         End While
     End Sub
@@ -1020,6 +1021,7 @@ Module Program
         If True Then
             Dim {|Rename:p|} As Object = Sub()
                               End Sub
+
             q = p
         End If
     End Sub
@@ -2125,6 +2127,7 @@ Module Program
     Sub Main()
         Dim {|Rename:p|} = Sub()
                 End Sub
+
         Dim x = Function() p
     End Sub
 End Module
@@ -2319,6 +2322,7 @@ Module Program
         Dim s = ""Text""
         Dim x = 42
         Dim {|Rename:length|} As Integer = s.Length
+
         If (length.CompareTo(x) > 0 AndAlso
             length.CompareTo(x) > 0) Then
         End If
@@ -2745,6 +2749,7 @@ end class",
     sub Method(span as MySpan)
         dim pos as integer = span.Start
         Dim {|Rename:start1|} As Integer = span.Start
+
         while pos < start1
             dim start as integer = pos
         end while
@@ -3038,6 +3043,78 @@ Class C
 End Class
 "
             Await TestInRegularAndScriptAsync(code, expected)
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1[||], 2)
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 1
+
+    sub Goo()
+        Bar(V, 2)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1, 2[||])
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 2
+
+    sub Goo()
+        Bar(1, V)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression3() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1, (2[||]))
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 2
+
+    sub Goo()
+        Bar(1, V)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression4() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1, Bar(2[||]))
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 2
+
+    sub Goo()
+        Bar(1, Bar(V))
+    end sub
+end class")
         End Function
     End Class
 End Namespace

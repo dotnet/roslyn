@@ -8041,13 +8041,13 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Les itérateurs ne peuvent pas avoir de variables locales par référence</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Les itérateurs ne peuvent pas avoir de variables locales par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">Les méthodes async ne peuvent pas avoir de variables locales par référence</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">Les méthodes async ne peuvent pas avoir de variables locales par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

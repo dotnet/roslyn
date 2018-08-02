@@ -8041,13 +8041,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Итераторы не могут иметь локальных переменных по ссылке</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Итераторы не могут иметь локальных переменных по ссылке</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">Асинхронные методы не могут иметь локальных переменных по ссылке</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">Асинхронные методы не могут иметь локальных переменных по ссылке</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

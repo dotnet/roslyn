@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
 
+        bool IsAwaitExpression(SyntaxNode node);
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
@@ -102,8 +103,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsConditionalAnd(SyntaxNode node);
         bool IsConditionalOr(SyntaxNode node);
 
+        bool IsTupleExpression(SyntaxNode node);
+        void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
+            out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
+
+        bool IsTupleType(SyntaxNode node);
+
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
         SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
+
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);

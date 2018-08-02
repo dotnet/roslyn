@@ -2,14 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
+        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
+        <target state="new">Apply all C# formatting rules (indentation, wrapping, spacing)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document_settings">
+        <source>Format Document Settings (Experiment) </source>
+        <target state="new">Format Document Settings (Experiment) </target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="new">In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
+        <source>Perform additional code cleanup during formatting</source>
+        <target state="new">Perform additional code cleanup during formatting</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="new">Sort usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -675,11 +705,6 @@
       <trans-unit id="Fade_out_unused_usings">
         <source>Fade out unused usings</source>
         <target state="translated">Applica dissolvenza a direttive using non usate</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_is_null_over_ReferenceEquals">
-        <source>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</source>
-        <target state="translated">Preferisci 'is null' a 'object.ReferenceEquals(..., null)'</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">

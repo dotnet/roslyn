@@ -25,6 +25,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.EndOfLine(text)
         End Function
 
+        Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(list As SyntaxNodeOrTokenList) As SeparatedSyntaxList(Of TElement)
+            Return SyntaxFactory.SeparatedList(Of TElement)(list)
+        End Function
+
 #Region "Expressions and Statements"
 
         Public Overrides Function AddEventHandler([event] As SyntaxNode, handler As SyntaxNode) As SyntaxNode
@@ -151,8 +155,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overloads Overrides Function GenericName(identifier As String, typeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return GenericName(identifier.ToIdentifierToken(), typeArguments)
+        End Function
+
+        Friend Overrides Function GenericName(identifier As SyntaxToken, typeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.GenericName(
-                identifier.ToIdentifierToken,
+                identifier,
                 SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SeparatedList(typeArguments.Cast(Of TypeSyntax)()))).WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
@@ -317,6 +325,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.QualifiedName(DirectCast(left, NameSyntax), DirectCast(right, SimpleNameSyntax))
         End Function
 
+        Friend Overrides Function GlobalAliasedName(name As SyntaxNode) As SyntaxNode
+            Return QualifiedName(SyntaxFactory.GlobalName(), name)
+        End Function
+
         Public Overrides Function ReferenceEqualsExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.IsExpression(Parenthesize(left), Parenthesize(right))
         End Function
@@ -327,6 +339,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ReturnStatement(Optional expressionOpt As SyntaxNode = Nothing) As SyntaxNode
             Return SyntaxFactory.ReturnStatement(DirectCast(expressionOpt, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function YieldReturnStatement(expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.YieldStatement(DirectCast(expression, ExpressionSyntax))
         End Function
 
         Public Overrides Function ThisExpression() As SyntaxNode
@@ -4140,6 +4156,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
 #End Region
-
     End Class
 End Namespace

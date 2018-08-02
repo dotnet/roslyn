@@ -3290,5 +3290,55 @@ public class C
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "P").WithArguments("C.P.get").WithLocation(18, 28)
                 );
         }
+
+        [Fact]
+        [WorkItem(27831, "https://github.com/dotnet/roslyn/issues/27831")]
+        public void AwaitWithInParameter_ArgModifier()
+        {
+            CreateCompilation(@"
+using System.Threading.Tasks;
+class Foo
+{
+    async Task A(string s, Task<int> task)
+    {
+        C(in s, await task);
+    }
+
+    void C(in object obj, int length) {}
+}").VerifyDiagnostics(
+                // (7,14): error CS1503: Argument 1: cannot convert from 'in string' to 'in object'
+                //         C(in s, await task);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s").WithArguments("1", "in string", "in object").WithLocation(7, 14));
+        }
+
+        [Fact]
+        [WorkItem(27831, "https://github.com/dotnet/roslyn/issues/27831")]
+        public void AwaitWithInParameter_NoArgModifier()
+        {
+            CompileAndVerify(@"
+using System;
+using System.Threading.Tasks;
+class Foo
+{
+    static async Task Main()
+    {
+        await A(""test"", Task.FromResult(4));
+    }
+    
+    static async Task A(string s, Task<int> task)
+    {
+        B(s, await task);
+    }
+
+    static void B(in object obj, int v)
+    {
+        Console.WriteLine(obj);
+        Console.WriteLine(v);
+    }
+}", expectedOutput: @"
+test
+4
+");
+        }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -536,7 +537,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 string memberName,
                 ISymbol baseMember)
             {
-                Contract.Requires(memberName == baseMember.Name);
+                Debug.Assert(memberName == baseMember.Name);
 
                 if (member.Kind == SymbolKind.Method && baseMember.Kind == SymbolKind.Method)
                 {
