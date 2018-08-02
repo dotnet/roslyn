@@ -44,6 +44,36 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return builder.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IPropertySymbol renamedProperty, bool trimOptionalParameters)
+        {
+            var potentiallyConfictingProperties =
+                renamedProperty.ContainingType.GetMembers(renamedProperty.Name)
+                                            .OfType<IPropertySymbol>()
+                                            .Where(m => !m.Equals(renamedProperty) && m.Parameters.Count() == renamedProperty.Parameters.Count());
+
+            var signatureToConflictingMember = new Dictionary<ImmutableArray<ITypeSymbol>, IPropertySymbol>(ConflictingSignatureComparer.Instance);
+
+            foreach (var property in potentiallyConfictingProperties)
+            {
+                foreach (var signature in GetAllSignatures(property, trimOptionalParameters))
+                {
+                    signatureToConflictingMember[signature] = property;
+                }
+            }
+
+            var builder = ArrayBuilder<Location>.GetInstance();
+
+            foreach (var signature in GetAllSignatures(renamedProperty, trimOptionalParameters))
+            {
+                if (signatureToConflictingMember.TryGetValue(signature, out var conflictingSymbol))
+                {
+                    builder.AddRange(conflictingSymbol.Locations);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         private sealed class ConflictingSignatureComparer : IEqualityComparer<ImmutableArray<ITypeSymbol>>
         {
             public static readonly ConflictingSignatureComparer Instance = new ConflictingSignatureComparer();
@@ -57,9 +87,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             public int GetHashCode(ImmutableArray<ITypeSymbol> obj)
             {
-                // This is a very simple GetHashCode implementation. Doing something "fancier" here  
-                // isn't really worth it, since to compute a proper hash we'd end up walking all the  
-                // ITypeSymbols anyways.  
+                // This is a very simple GetHashCode implementation. Doing something "fancier" here
+                // isn't really worth it, since to compute a proper hash we'd end up walking all the
+                // ITypeSymbols anyways.
                 return obj.Length;
             }
         }
@@ -74,6 +104,29 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 signatureBuilder.Add(method.ReturnType);
             }
+
+            foreach (var parameter in method.Parameters)
+            {
+                // In VB, a method effectively creates multiple signatures which are produced by
+                // chopping off each of the optional parameters on the end, last to first, per 4.1.1 of
+                // the spec.
+                if (trimOptionalParameters && parameter.IsOptional)
+                {
+                    resultBuilder.Add(signatureBuilder.ToImmutable());
+                }
+
+                signatureBuilder.Add(parameter.Type);
+            }
+
+            resultBuilder.Add(signatureBuilder.ToImmutableAndFree());
+            return resultBuilder.ToImmutableAndFree();
+        }
+
+        private static ImmutableArray<ImmutableArray<ITypeSymbol>> GetAllSignatures(IPropertySymbol method, bool trimOptionalParameters)
+        {
+            var resultBuilder = ArrayBuilder<ImmutableArray<ITypeSymbol>>.GetInstance();
+
+            var signatureBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
 
             foreach (var parameter in method.Parameters)
             {

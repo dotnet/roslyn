@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <param name="originalText">The original name of the identifier.</param>
         /// <param name="replacementText">The new name of the identifier</param>
         /// <param name="optionSet">The option for rename</param>
-        /// <param name="hasConflict">Called after renaming references.  Can be used by callers to 
+        /// <param name="hasConflict">Called after renaming references.  Can be used by callers to
         /// indicate if the new symbols that the reference binds to should be considered to be ok or
         /// are in conflict.  'true' means they are conflicts.  'false' means they are not conflicts.
         /// 'null' means that the default conflict check should be used.</param>
@@ -185,10 +185,24 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     var otherThingsNamedTheSame = renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name)
                                                            .Where(s => !s.Equals(renamedSymbol) &&
-                                                                       string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal) &&
-                                                                       (s.Kind != SymbolKind.Method || renamedSymbol.Kind != SymbolKind.Method));
+                                                                       string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
-                    AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
+                    // excluded Method or Property(only for VB) here, as they may have the same name but different parameters
+                    IEnumerable<ISymbol> otherThingsNamedTheSameExcludeMethodAndParameterizedProperty;
+                    if (renamedSymbol.Language == LanguageNames.VisualBasic)
+                    {
+                        // Only VB allows Parameterized Properties
+                        otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
+                            .Where(s=> (s.Kind != SymbolKind.Method && s.Kind != SymbolKind.Property) ||
+                            (renamedSymbol.Kind != SymbolKind.Method && renamedSymbol.Kind != SymbolKind.Property));
+                    }
+                    else
+                    {
+                        otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
+                            .Where(s => s.Kind != SymbolKind.Method || renamedSymbol.Kind != SymbolKind.Method);
+                    }
+
+                    AddConflictingSymbolLocations(otherThingsNamedTheSameExcludeMethodAndParameterizedProperty, conflictResolution, reverseMappedLocations);
                 }
 
 
