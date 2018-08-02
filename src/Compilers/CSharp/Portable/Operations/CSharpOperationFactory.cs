@@ -253,6 +253,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateMethodBodyOperation((BoundNonConstructorMethodBody)boundNode);
                 case BoundKind.DiscardExpression:
                     return CreateDiscardExpressionOperation((BoundDiscardExpression)boundNode);
+                case BoundKind.NullCoalescingAssignmentOperator:
+                    return CreateBoundNullCoalescingAssignmentOperatorOperation((BoundNullCoalescingAssignmentOperator)boundNode);
 
                 default:
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
@@ -1290,6 +1292,19 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return new LazyCoalesceExpression(expression, whenNull, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundNullCoalescingAssignmentOperatorOperation(BoundNullCoalescingAssignmentOperator boundNode)
+        {
+            Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundNode.LeftOperand));
+            Lazy<IOperation> whenNull = new Lazy<IOperation>(() => Create(boundNode.RightOperand));
+            bool isChecked = boundNode.IsChecked;
+            SyntaxNode syntax = boundNode.Syntax;
+            ITypeSymbol type = boundNode.Type;
+            Optional<object> constantValue = ConvertToOptional(boundNode.ConstantValue);
+            bool isImplicit = boundNode.WasCompilerGenerated;
+
+            return new LazyCoalesceAssignmentOperation(target, whenNull, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IAwaitOperation CreateBoundAwaitExpressionOperation(BoundAwaitExpression boundAwaitExpression)

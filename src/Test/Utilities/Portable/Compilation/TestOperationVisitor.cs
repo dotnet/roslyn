@@ -702,6 +702,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var valueConversion = operation.ValueConversion;
         }
 
+        public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+        {
+            Assert.Equal(OperationKind.CoalesceAssignment, operation.Kind);
+            AssertEx.Equal(new[] { operation.Target, operation.WhenNull }, operation.Children);
+            var isChecked = operation.IsChecked;
+        }
+
         public override void VisitIsType(IIsTypeOperation operation)
         {
             Assert.Equal(OperationKind.IsType, operation.Kind);
