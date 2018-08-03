@@ -2412,6 +2412,7 @@ public class C {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestThis_DontOfferToFixTheConstructorWithTheDiagnosticOnIt()
         {
+            // error CS1729: 'C' does not contain a constructor that takes 1 arguments
             var code =
 @"
 public class C {
@@ -2453,7 +2454,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestBase_Fix_IfACandidateIsAvailable()
         {
-            // error CS1729: 'C' does not contain a constructor that takes 2 arguments
+            // error CS1729: 'B' does not contain a constructor that takes 1 arguments
             var code =
 @"
 public class B
