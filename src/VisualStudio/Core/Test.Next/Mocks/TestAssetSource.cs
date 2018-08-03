@@ -10,12 +10,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
     internal class TestAssetSource : SimpleAssetSource
     {
         public TestAssetSource(AssetStorage assetStorage) :
-            base(assetStorage, new Dictionary<Checksum, object>())
+            this(assetStorage, new Dictionary<Checksum, object>())
         {
         }
 
         public TestAssetSource(AssetStorage assetStorage, Checksum checksum, object data) :
-            base(assetStorage, new Dictionary<Checksum, object>() { { checksum, data } })
+            this(assetStorage, new Dictionary<Checksum, object>() { { checksum, data } })
+        {
+        }
+
+        public TestAssetSource(AssetStorage assetStorage, Dictionary<Checksum, object> map) :
+            base(assetStorage, map)
         {
         }
     }
