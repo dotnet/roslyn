@@ -104,8 +104,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" Key="$(TypeScriptKey)" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.CodeSense.Roslyn" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Roslyn.Services.Editor.TypeScript.UnitTests" Key="$(TypeScriptKey)" />
