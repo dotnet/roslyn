@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -764,6 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.TypeArgumentsNoUseSiteDiagnostics,
                 currentCompilation,
                 diagnosticsBuilder,
+                warningsBuilderOpt: conversions.IncludeNullability ? diagnosticsBuilder : null,
                 ref useSiteDiagnosticsBuilder);
         }
 
@@ -772,6 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConversionsBase conversions,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
+            ArrayBuilder<TypeParameterDiagnosticInfo> warningsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
             BitVector skipParameters = default(BitVector))
         {
@@ -783,6 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 method.TypeArguments,
                 currentCompilation,
                 diagnosticsBuilder,
+                warningsBuilderOpt,
                 ref useSiteDiagnosticsBuilder,
                 skipParameters);
         }
@@ -797,6 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="typeArguments">Containing symbol type arguments.</param>
         /// <param name="currentCompilation">Improves error message detail.</param>
         /// <param name="diagnosticsBuilder">Diagnostics.</param>
+        /// <param name="warningsBuilderOpt">Nullability warnings.</param>
         /// <param name="skipParameters">Parameters to skip.</param>
         /// <param name="useSiteDiagnosticsBuilder"/>
         /// <param name="ignoreTypeConstraintsDependentOnTypeParametersOpt">If an original form of a type constraint 
@@ -810,12 +814,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
+            ArrayBuilder<TypeParameterDiagnosticInfo> warningsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
             BitVector skipParameters = default(BitVector),
             HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt = null)
         {
             Debug.Assert(typeParameters.Length == typeArguments.Length);
             Debug.Assert(typeParameters.Length > 0);
+            Debug.Assert(warningsBuilderOpt == null || conversions.IncludeNullability);
 
             int n = typeParameters.Length;
             bool succeeded = true;
@@ -830,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeArgument = typeArguments[i];
                 var typeParameter = typeParameters[i];
 
-                if (!CheckConstraints(containingSymbol, conversions, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder,
+                if (!CheckConstraints(containingSymbol, conversions, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, warningsBuilderOpt, ref useSiteDiagnosticsBuilder,
                                       ignoreTypeConstraintsDependentOnTypeParametersOpt))
                 {
                     succeeded = false;
@@ -849,6 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations typeArgument,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
+            ArrayBuilder<TypeParameterDiagnosticInfo> warningsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
             HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt)
         {
@@ -911,8 +918,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var constraintType in constraintTypes)
             {
-                if (SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics))
+                if (SatisfiesConstraintType(conversions.WithNullability(false), typeArgument, constraintType, ref useSiteDiagnostics))
                 {
+                    if (warningsBuilderOpt != null)
+                    {
+                        Debug.Assert(conversions.IncludeNullability);
+                        if (!SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics))
+                        {
+                            var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
+                            warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
+                        }
+                    }
                     continue;
                 }
 
@@ -1003,7 +1019,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // "An identity conversion (6.1.1).
             // An implicit reference conversion (6.1.6). ..."
-            if (conversions.HasIdentityOrImplicitReferenceConversion(typeArgument.TypeSymbol, constraintType.TypeSymbol, ref useSiteDiagnostics))
+
+            // When nullability is considered, top-level nullability must be implicitly convertible.
+            if ((!conversions.IncludeNullability || ConversionsBase.HasTopLevelNullabilityImplicitConversion(typeArgument, constraintType)) &&
+                conversions.HasIdentityOrImplicitReferenceConversion(typeArgument.TypeSymbol, constraintType.TypeSymbol, ref useSiteDiagnostics))
             {
                 return true;
             }
@@ -1125,6 +1144,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(IsValidEncompassedByArgument(a));
             Debug.Assert(IsValidEncompassedByArgument(b));
+
+            // IncludeNullability should not be used when calculating EffectiveBaseType or EffectiveInterfaceSet.
+            Debug.Assert(!conversions.IncludeNullability);
 
             return conversions.HasIdentityOrImplicitReferenceConversion(a, b, ref useSiteDiagnostics) || conversions.HasBoxingConversion(a, b, ref useSiteDiagnostics);
         }
