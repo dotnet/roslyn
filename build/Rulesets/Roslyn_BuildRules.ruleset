@@ -47,6 +47,7 @@
     <Rule Id="CA1812" Action="None" /> <!-- disabled as we create many internal types via reflection-based mechanisms -->
     <Rule Id="CA1814" Action="None" /> <!-- prefer jagged arrays to multidimensional: a silly piece of advice -->
     <Rule Id="CA1815" Action="None" />
+    <Rule Id="CA1820" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/29038: Enable CA1820 (Test for empty strings using string length) -->
     <Rule Id="CA1821" Action="Warning" />
     <Rule Id="CA1822" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25132: Enable rule CA1822 (Mark members as static) on Roslyn.sln -->
     <Rule Id="CA1823" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/20404: Enable rule CA1823 (remove unused field) once we have a fixer for it -->

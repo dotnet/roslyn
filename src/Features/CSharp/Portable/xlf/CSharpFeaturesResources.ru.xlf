@@ -697,6 +697,11 @@
         <target state="translated">Инвертировать оператор if</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_method">
+        <source>Convert to method</source>
+        <target state="new">Convert to method</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
