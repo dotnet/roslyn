@@ -76,8 +76,6 @@
   <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true' AND '$(DotNetBuildFromSource)' != 'true'">
       <Error Text="Toolset packages have not been restored, run Restore.cmd before building. Expected '$(RoslynToolsetPropsFilePath)' to exist."
              Condition="!Exists('$(RoslynToolsetPropsFilePath)')" />
-      <Error Text="Analyzer packages have not been restored, run Restore.cmd before building. File not found: '$(RoslynDiagnosticsPropsFilePath)'"
-             Condition="!Exists('$(RoslynDiagnosticsPropsFilePath)')" />
   </Target>
 
   <Target Name="CheckBootstrapState"
@@ -127,6 +125,17 @@
       MSBuildMinimumDisplayVersion="MSBuild 15.7"
       />
   </Target> 
+
+  <Target Name="DisableAnalyzers"
+          BeforeTargets="CoreCompile"
+          Condition="'$(UseRoslynAnalyzers)' == 'false'">
+    <!--
+      Disable analyzers via an MSBuild property settable on the command line.
+    -->
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" />
+    </ItemGroup>
+  </Target>
 
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 
