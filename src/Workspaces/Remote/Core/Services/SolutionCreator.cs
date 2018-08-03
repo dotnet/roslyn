@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -630,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            Contract.Requires(false, "checksum not same");
+            Debug.Assert(false, "checksum not same");
 
             var map = solution.GetAssetMap();
             await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -81,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             get
             {
-                Contract.Assert(_accessListMap.ContainsKey(SelectedAccessibilityString), "The Accessibility Key String not present");
+                Debug.Assert(_accessListMap.ContainsKey(SelectedAccessibilityString), "The Accessibility Key String not present");
                 return _accessListMap[SelectedAccessibilityString];
             }
         }
@@ -132,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             get
             {
-                Contract.Assert(_typeKindMap.ContainsKey(SelectedTypeKindString), "The TypeKind Key String not present");
+                Debug.Assert(_typeKindMap.ContainsKey(SelectedTypeKindString), "The TypeKind Key String not present");
                 return _typeKindMap[SelectedTypeKindString];
             }
         }
@@ -165,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             }
             else
             {
-                Contract.Assert(languageName == LanguageNames.VisualBasic, "Currently only C# and VB are supported");
+                Debug.Assert(languageName == LanguageNames.VisualBasic, "Currently only C# and VB are supported");
                 _visualBasicAccessList.Add(key);
             }
 
@@ -198,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         private void PopulateTypeKind()
         {
-            Contract.Assert(_generateTypeDialogOptions.TypeKindOptions != TypeKindOptions.None);
+            Debug.Assert(_generateTypeDialogOptions.TypeKindOptions != TypeKindOptions.None);
 
             if (TypeKindOptionsHelper.IsClass(_generateTypeDialogOptions.TypeKindOptions))
             {
@@ -439,7 +440,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                         // 3 in the list represent the Public. 1-based array.
                         this.AccessSelectIndex = this.AccessList.IndexOf("public") == -1 ?
                             this.AccessList.IndexOf("Public") : this.AccessList.IndexOf("public");
-                        Contract.Assert(this.AccessSelectIndex != -1);
+                        Debug.Assert(this.AccessSelectIndex != -1);
                         this.IsAccessListEnabled = false;
                     }
                     else
