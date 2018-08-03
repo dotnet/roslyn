@@ -709,7 +709,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
 #pragma warning restore CS0809
         {
-            throw ExceptionUtilities.Unreachable;
+            if (_defaultType is null)
+            {
+                return 0;
+            }
+            return Hash.Combine(_defaultType.GetHashCode(), IsAnnotated.GetHashCode());
         }
 
 #pragma warning disable CS0809

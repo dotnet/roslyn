@@ -38103,6 +38103,38 @@ class B : A
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "base.F").WithLocation(21, 17));
         }
 
+        [WorkItem(29049, "https://github.com/dotnet/roslyn/issues/29049")]
+        [Fact]
+        public void ConstraintFromMetadata()
+        {
+            var source0 =
+@"using System;
+public class A<T> where T : IEquatable<string> { }";
+            var source =
+@"class B
+{
+    static void Main()
+    {
+        object o = new A<string?>(); // warning
+    }
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
+            var ref0 = comp0.EmitToImageReference();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            var diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (5,26): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string>'.
+                //         object o = new A<string?>(); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A<T>", "System.IEquatable<string>", "T", "string?").WithLocation(5, 26));
+            // Diagnostics must support GetHashCode() and Equals(), to allow removing
+            // duplicates (see CommonCompiler.ReportErrors.)
+            foreach (var diagnostic in diagnostics)
+            {
+                diagnostic.GetHashCode();
+                Assert.True(diagnostic.Equals(diagnostic));
+            }
+        }
+
         [WorkItem(29041, "https://github.com/dotnet/roslyn/issues/29041")]
         [WorkItem(29048, "https://github.com/dotnet/roslyn/issues/29048")]
         [Fact]

@@ -17,6 +17,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+        private const string NonNullTypesFalse = "[module: System.Runtime.CompilerServices.NonNullTypes(false)]";
         private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
 
         [Fact]
@@ -487,8 +488,58 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericType_NonNullTypes()
+        {
+            var source =
+@"#pragma warning disable 0169
+class A<T>
+{
+    T F1; // warning: uninitialized
+    A() { }
+}
+class B<T> where T : class
+{
+    T F2; // warning: uninitialized
+    T? F3;
+    B() { }
+}
+class C<T> where T : struct
+{
+    T F4;
+    T? F5;
+    C() { }
+}";
+
+            // [NonNullTypes(true)]
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,5): warning CS8618: Non-nullable field 'F2' is uninitialized.
+                //     B() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "B").WithArguments("field", "F2").WithLocation(11, 5),
+                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                //     A() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5));
+
+            // [NonNullTypes(false)]
+            comp = CreateCompilation(new[] { source, NonNullTypesFalse, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should not report any warnings.
+            comp.VerifyDiagnostics(
+                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                //     A() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5));
+
+            // [NonNullTypes] missing
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should not report any warnings.
+            comp.VerifyDiagnostics(
+                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                //     A() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Test `where T : unmanaged`.
