@@ -48,8 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         {
             if (node is ConstructorInitializerSyntax constructorInitializer)
             {
-                var diagnostic = context.Diagnostics.First();
-                var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
                 var document = context.Document;
                 var cancellationToken = context.CancellationToken;
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -75,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
                         }
 
                         var arguments = constructorInitializer.ArgumentList.Arguments;
+                        var argumentOpt = TryGetRelevantArgument(initialNode, node, context.Diagnostics.First());
 
                         var insertionData = GetArgumentInsertPositionForMethodCandidates(
                             argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);

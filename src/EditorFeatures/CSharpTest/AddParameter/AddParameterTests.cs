@@ -2408,7 +2408,7 @@ public class C {
             await TestMissingAsync(code);
         }
 
-
+        [WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestThis_DontOfferToFixTheConstructorWithTheDiagnosticOnIt()
         {
@@ -2422,6 +2422,7 @@ public class C {
             await TestMissingAsync(code);
         }
 
+        [WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestThis_Fix_IfACandidateIsAvailable()
         {
@@ -2448,6 +2449,7 @@ class C
             await TestActionCountAsync(code, 1);
         }
 
+        [WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestBase_Fix_IfACandidateIsAvailable()
         {
