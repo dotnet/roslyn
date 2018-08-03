@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             protected bool HasPreprocessorCharacter(TextLine currentLine)
             {
                 var text = currentLine.ToString();
-                Contract.Requires(!string.IsNullOrWhiteSpace(text));
+                Debug.Assert(!string.IsNullOrWhiteSpace(text));
 
                 var trimmedText = text.Trim();
 

@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var priority = GetSuggestedActionSetPriority(group.Key);
 
                         // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
-                        Contract.Requires(diag.Item1.HasTextSpan);
+                        Debug.Assert(diag.Item1.HasTextSpan);
                         var category = GetFixCategory(diag.Item1.Severity);
                         sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diag.Item1.TextSpan.ToSpan()));
                     }
