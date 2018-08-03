@@ -135,33 +135,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CreateImplicitNewConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
-            var node = (ObjectCreationExpressionSyntax)source.Syntax;
+            var node = (UnboundObjectCreationExpression)source;
 
             TypeSymbol type = destination.StrippedType();
-            BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer != null
-                ? BindInitializerExpression(syntax: node.Initializer, type: type, typeSyntax: syntax, diagnostics)
+            BoundObjectInitializerExpressionBase boundInitializerOpt = node.InitializerOpt != null
+                ? BindInitializerExpression(syntax: node.InitializerOpt, type: type, typeSyntax: node.Syntax, diagnostics)
                 : null;
 
             var arguments = AnalyzedArguments.GetInstance();
             try
             {
-                var unboundObjectCreation = (UnboundObjectCreationExpression)source;
-
-                // PROTOTYPE(target-typed-new): Reconstruct AnalyzedArguments to avoid binding twice
-                arguments.Arguments.AddRange(unboundObjectCreation.Arguments);
-                if (!unboundObjectCreation.ArgumentRefKindsOpt.IsDefault)
+                arguments.Arguments.AddRange(node.Arguments);
+                if (!node.ArgumentRefKindsOpt.IsDefault)
                 {
-                    arguments.RefKinds.AddRange(unboundObjectCreation.ArgumentRefKindsOpt);
+                    arguments.RefKinds.AddRange(node.ArgumentRefKindsOpt);
                 }
 
-                if (!unboundObjectCreation.ArgumentNamesOpt.IsDefault)
+                if (!node.ArgumentNamesOpt.IsDefault)
                 {
-                    arguments.Names.AddRange(unboundObjectCreation.ArgumentNamesOpt);
+                    arguments.Names.AddRange(node.ArgumentNamesOpt);
                 }
 
                 if (ReportBadTargetType(syntax, type, diagnostics))
                 {
-                    return MakeBadExpressionForObjectCreation(node, destination, boundInitializerOpt, arguments);
+                    return MakeBadExpressionForObjectCreation(node.Syntax, destination, boundInitializerOpt, arguments);
                 }
 
                 BoundExpression result;
@@ -170,9 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.Struct:
                     case TypeKind.Class:
                         result = BindClassCreationExpression(
-                            node,
+                            node.Syntax,
                             typeName: type.Name,
-                            typeNode: node,
+                            typeNode: node.Syntax,
                             type: (NamedTypeSymbol)type,
                             arguments,
                             diagnostics,
@@ -182,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case TypeKind.TypeParameter:
                         result = BindTypeParameterCreationExpression(
-                            node,
+                            node.Syntax,
                             typeParameter: (TypeParameterSymbol)type,
                             arguments,
                             boundInitializerOpt,

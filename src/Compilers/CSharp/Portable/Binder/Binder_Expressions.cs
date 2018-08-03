@@ -3563,7 +3563,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node,
                     analyzedArguments.Arguments.ToImmutable(),
                     analyzedArguments.Names.ToImmutableOrNull(),
-                    analyzedArguments.RefKinds.ToImmutableOrNull());
+                    analyzedArguments.RefKinds.ToImmutableOrNull(),
+                    node.Initializer);
                 analyzedArguments.Free();
                 return result;
             }
@@ -3821,7 +3822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, TypeSymbol type, BoundExpression boundInitializerOpt, AnalyzedArguments analyzedArguments)
+        private BoundExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, BoundExpression boundInitializerOpt, AnalyzedArguments analyzedArguments)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
             children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
@@ -4566,16 +4567,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected BoundExpression BindClassCreationExpression(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             string typeName,
-            CSharpSyntaxNode typeNode,
+            SyntaxNode typeNode,
             NamedTypeSymbol type,
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics,
             BoundObjectInitializerExpressionBase boundInitializerOpt = null,
             bool forTargetTypedNew = false)
         {
-
             BoundExpression result = null;
             bool hasErrors = type.IsErrorType();
             if (type.IsAbstract)
@@ -4903,7 +4903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindTypeParameterCreationExpression(ObjectCreationExpressionSyntax node, TypeParameterSymbol typeParameter, AnalyzedArguments analyzedArguments, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindTypeParameterCreationExpression(SyntaxNode node, TypeParameterSymbol typeParameter, AnalyzedArguments analyzedArguments, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
         {
             if (!typeParameter.IsInstantiable())
             {

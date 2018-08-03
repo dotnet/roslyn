@@ -1299,6 +1299,7 @@
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;IdentifierNameSyntax&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="InitializerOpt" Type="InitializerExpressionSyntax" Null="allow"/>
   </Node>
 
   <!-- 

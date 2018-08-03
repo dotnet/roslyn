@@ -4691,7 +4691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class UnboundObjectCreationExpression : BoundExpression
     {
-        public UnboundObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool hasErrors = false)
+        public UnboundObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax initializerOpt, bool hasErrors = false)
             : base(BoundKind.UnboundObjectCreationExpression, syntax, null, hasErrors || arguments.HasErrors())
         {
 
@@ -4700,6 +4700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Arguments = arguments;
             this.ArgumentNamesOpt = argumentNamesOpt;
             this.ArgumentRefKindsOpt = argumentRefKindsOpt;
+            this.InitializerOpt = initializerOpt;
         }
 
 
@@ -4709,16 +4710,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
 
+        public InitializerExpressionSyntax InitializerOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitUnboundObjectCreationExpression(this);
         }
 
-        public UnboundObjectCreationExpression Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt)
+        public UnboundObjectCreationExpression Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax initializerOpt)
         {
-            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt)
+            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerOpt != this.InitializerOpt)
             {
-                var result = new UnboundObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, this.HasErrors);
+                var result = new UnboundObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerOpt, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9440,7 +9443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt);
+            return node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt);
         }
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
@@ -10884,6 +10887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
                 new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
                 new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
+                new TreeDumperNode("initializerOpt", node.InitializerOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
