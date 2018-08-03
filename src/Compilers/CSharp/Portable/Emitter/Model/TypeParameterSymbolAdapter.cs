@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 yield return type.GetTypeRefWithAttributes(
                                                             moduleBeingBuilt,
-                                                            this.DeclaringCompilation,
+                                                            this,
                                                             typeRef);
             }
 

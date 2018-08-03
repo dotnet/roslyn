@@ -134,6 +134,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+        private const string NonNullTypesFalse = "[module: System.Runtime.CompilerServices.NonNullTypes(false)]";
         private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
 
         [Fact]
@@ -38103,27 +38104,86 @@ class B : A
         }
 
         [WorkItem(29041, "https://github.com/dotnet/roslyn/issues/29041")]
+        [WorkItem(29048, "https://github.com/dotnet/roslyn/issues/29048")]
         [Fact]
-        public void ConstraintCycleFromMetadata()
+        public void ConstraintCyclesFromMetadata()
         {
             var source0 =
 @"using System;
-public class A<T> where T : IEquatable<T>
-{
-}";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
-            var ref0 = comp0.EmitToImageReference();
-
+public class A0<T> where T : IEquatable<T> { }
+public class A1<T> where T : class, IEquatable<T> { }
+public class A2<T> where T : class, IEquatable<T?> { }
+public class A3<T> where T : struct, IEquatable<T> { }
+public class A4<T> where T : struct, IEquatable<T?> { }
+public class A5<T> where T : IEquatable<string?> { }
+public class A6<T> where T : IEquatable<int?> { }";
             var source =
 @"class B
 {
     static void Main()
     {
-        new A<string>();
+        new A0<string?>();
+        new A0<string>();
+        new A2<string?>();
+        new A2<string>(); // warning
+        new A5<string?>();
+        new A5<string>(); // warning
     }
 }";
+            // No [NullNullTypes]
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
+            var ref0 = comp0.EmitToImageReference();
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            // PROTOTYPE(NullableReferenceTypes): Should report a warning for A2<string>().
+            comp.VerifyDiagnostics(
+                // (9,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A5<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
+                //         new A5<string?>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A5<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(9, 16));
+            verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
+            verifyTypeParameterConstraint("A3", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A4", "System.IEquatable<T?>");
+            verifyTypeParameterConstraint("A5", "System.IEquatable<System.String?>");
+            verifyTypeParameterConstraint("A6", "System.IEquatable<System.Int32?>");
+
+            // [NullNullTypes(false)]
+            comp0 = CreateCompilation(new[] { source0, NonNullTypesFalse, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            ref0 = comp0.EmitToImageReference();
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            // PROTOTYPE(NullableReferenceTypes): Should report same warnings as other two cases.
             comp.VerifyDiagnostics();
+            verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
+            verifyTypeParameterConstraint("A3", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A4", "System.IEquatable<T?>");
+            verifyTypeParameterConstraint("A5", "System.IEquatable<System.String?>");
+            verifyTypeParameterConstraint("A6", "System.IEquatable<System.Int32?>");
+
+            // [NullNullTypes(true)]
+            comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            ref0 = comp0.EmitToImageReference();
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            // PROTOTYPE(NullableReferenceTypes): Should report a warning for A2<string>().
+            comp.VerifyDiagnostics(
+                // (9,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A5<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
+                //         new A5<string?>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A5<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(9, 16));
+            verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
+            verifyTypeParameterConstraint("A3", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A4", "System.IEquatable<T?>");
+            verifyTypeParameterConstraint("A5", "System.IEquatable<System.String?>");
+            verifyTypeParameterConstraint("A6", "System.IEquatable<System.Int32?>");
+
+            void verifyTypeParameterConstraint(string typeName, string expected)
+            {
+                var type = comp.GetMember<NamedTypeSymbol>(typeName);
+                var constraintType = type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
+                Assert.Equal(expected, constraintType.ToTestDisplayString());
+            }
         }
     }
 }

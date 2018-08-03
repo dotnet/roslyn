@@ -1600,13 +1600,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
             this TypeSymbolWithAnnotations type,
             Microsoft.CodeAnalysis.CSharp.Emit.PEModuleBuilder moduleBuilder,
-            CSharpCompilation declaringCompilation,
+            Symbol declaringSymbol,
             Cci.ITypeReference typeRef)
         {
             var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
             if (type.TypeSymbol.ContainsTupleNames())
             {
-                SynthesizedAttributeData attr = declaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol);
+                SynthesizedAttributeData attr = declaringSymbol.DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol);
                 if (attr != null)
                 {
                     builder.Add(attr);
@@ -1615,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // PROTOTYPE(NullableReferenceTypes): type.ReportAnnotatedUnconstrainedTypeParameterIfAny()
             if (type.ContainsNullableReferenceTypes())
             {
-                SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(type.TypeSymbol, type);
+                SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
                 if (attr != null)
                 {
                     builder.Add(attr);
