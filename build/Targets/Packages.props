@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <!-- RoslynDiagnosticsNugetPackageVersion is used by several individual analyzer references below -->
+    <RoslynDiagnosticsNugetPackageVersion>2.6.2-beta2-63202-01</RoslynDiagnosticsNugetPackageVersion>
+
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <CommandLineParserVersion>2.0.273-beta</CommandLineParserVersion>
     <EnvDTEVersion>8.0.1</EnvDTEVersion>
@@ -14,7 +17,7 @@
     <dotnetxunitVersion>2.3.1</dotnetxunitVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
-    <ICSharpCodeDecompilerVersion>3.1.0.3652</ICSharpCodeDecompilerVersion>
+    <ICSharpCodeDecompilerVersion>4.0.0.4285-beta1</ICSharpCodeDecompilerVersion>
     <LibGit2SharpVersion>0.22.0</LibGit2SharpVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
@@ -26,7 +29,7 @@
     <MicrosoftBuildLocatorVersion>1.0.13</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.1.0-preview-000458-02</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000458-02</MicrosoftBuildTasksCoreVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>2.6.1</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisBuildTasksVersion>2.0.0-rc2-61102-09</MicrosoftCodeAnalysisBuildTasksVersion>
     <MicrosoftCodeAnalysisCommonVersion>1.0.1</MicrosoftCodeAnalysisCommonVersion>
     <MicrosoftCodeAnalysisCSharpVersion>1.0.1</MicrosoftCodeAnalysisCSharpVersion>
@@ -37,6 +40,7 @@
     <MicrosoftCodeAnalysisVisualBasicVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonVersion>1.0.1</MicrosoftCodeAnalysisWorkspacesCommonVersion>
+    <MicrosoftCodeQualityAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeQualityAnalyzersVersion>
     <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
@@ -57,7 +61,7 @@
     <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/373 -->
     <MicrosoftNETTestSdkVersion>15.6.0-dev</MicrosoftNETTestSdkVersion>
     <MicrosoftNetCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNetCompilersVersion>
-    <MicrosoftNetRoslynDiagnosticsVersion>2.6.1-beta1-62824-01</MicrosoftNetRoslynDiagnosticsVersion>
+    <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
@@ -154,6 +158,7 @@
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesOptimizationDataVersion>2.7.0-beta3-62526-01-2</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.4.0-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
     <RoslynToolsMSBuildVersion>0.5.0-alpha</RoslynToolsMSBuildVersion>

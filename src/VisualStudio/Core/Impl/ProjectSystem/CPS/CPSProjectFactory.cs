@@ -127,6 +127,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 case LanguageNames.VisualBasic:
                     shell.LoadPackage(Guids.VisualBasicPackageId, out unused);
                     break;
+                case LanguageNames.FSharp:
+                    shell.LoadPackage(Guids.FSharpPackageId, out unused);
+                    break;
                 default:
                     // by default, load roslyn package for things like typescript and etc
                     shell.LoadPackage(Guids.RoslynPackageId, out unused);
