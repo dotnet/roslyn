@@ -2,11 +2,15 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddParameter
 {
@@ -39,5 +43,50 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
 
         protected override ImmutableArray<string> CannotConvertDiagnosticIds
             => GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds;
+
+        protected override async Task<bool> HandleLanguageSpecificNodesAsync(SyntaxNode initialNode, SyntaxNode node, CodeFixContext context)
+        {
+            if (node is ConstructorInitializerSyntax constructorInitializer)
+            {
+                var diagnostic = context.Diagnostics.First();
+                var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
+                var document = context.Document;
+                var cancellationToken = context.CancellationToken;
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+                var constructorDeclaration = constructorInitializer.Parent;
+                if (semanticModel.GetDeclaredSymbol(constructorDeclaration, cancellationToken) is IMethodSymbol constructorSymbol)
+                {
+                    var type = constructorSymbol.ContainingType;
+                    if (constructorInitializer.IsKind(SyntaxKind.BaseConstructorInitializer))
+                    {
+                        // Search for fixable constructors in the base class.
+                        type = type?.BaseType;
+                    }
+
+                    if (type != null && type.IsFromSource())
+                    {
+                        var methodCandidates = type.InstanceConstructors;
+                        if (constructorInitializer.IsKind(SyntaxKind.ThisConstructorInitializer))
+                        {
+                            // Exclude the constructor with the diagnostic from the list of candidates
+                            methodCandidates = methodCandidates.Remove(constructorSymbol);
+                        }
+
+                        var arguments = constructorInitializer.ArgumentList.Arguments;
+
+                        var insertionData = GetArgumentInsertPositionForMethodCandidates(
+                            argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
+
+                        RegisterFixForMethodOverloads(context, arguments, insertionData);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
     }
 }

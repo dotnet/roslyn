@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
         protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
         protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
+        protected virtual Task<bool> HandleLanguageSpecificNodesAsync(SyntaxNode initialNode, SyntaxNode node, CodeFixContext context)
+            => Task.FromResult(false);
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -62,6 +65,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     await HandleInvocationExpressionAsync(context, invocationExpression, argumentOpt).ConfigureAwait(false);
                     return;
                 }
+                else if (await HandleLanguageSpecificNodesAsync(initialNode, node, context).ConfigureAwait(false))
+                {
+                    return;
+                }
             }
         }
 
@@ -70,7 +77,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         /// There are some exceptions to this rule. Returning null indicates that the fixer needs
         /// to find the relevant argument by itself.
         /// </summary>
-        private TArgumentSyntax TryGetRelevantArgument(
+        protected TArgumentSyntax TryGetRelevantArgument(
             SyntaxNode initialNode, SyntaxNode node, Diagnostic diagnostic)
         {
             if (this.TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
@@ -143,7 +150,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             RegisterFixForMethodOverloads(context, arguments, insertionData);
         }
 
-        private ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
+        protected ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
             TArgumentSyntax argumentOpt,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
@@ -189,7 +196,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
-        private void RegisterFixForMethodOverloads(
+        protected void RegisterFixForMethodOverloads(
             CodeFixContext context,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)

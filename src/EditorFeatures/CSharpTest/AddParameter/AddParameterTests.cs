@@ -2407,5 +2407,73 @@ public class C {
 }";
             await TestMissingAsync(code);
         }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestThis_DontOfferToFixTheConstructorWithTheDiagnosticOnIt()
+        {
+            var code =
+@"
+public class C {
+    
+    public C(): [|this|](1)
+    { }
+}";
+            await TestMissingAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestThis_Fix_IfACandidateIsAvailable()
+        {
+            // error CS1729: 'C' does not contain a constructor that takes 2 arguments
+            var code =
+@"
+class C 
+{
+    public C(int i) { }
+    
+    public C(): [|this|](1, 1)
+    { }
+}";
+            var fix0 =
+@"
+class C 
+{
+    public C(int i, int v) { }
+    
+    public C(): this(1, 1)
+    { }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestActionCountAsync(code, 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestBase_Fix_IfACandidateIsAvailable()
+        {
+            // error CS1729: 'C' does not contain a constructor that takes 2 arguments
+            var code =
+@"
+public class B
+{
+    B() { }
+}
+public class C : B
+{
+    public C(int i) : [|base|](i) { }
+}";
+            var fix0 =
+@"
+public class B
+{
+    B(int i) { }
+}
+public class C : B
+{
+    public C(int i) : base(i) { }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestActionCountAsync(code, 1);
+        }
     }
 }
