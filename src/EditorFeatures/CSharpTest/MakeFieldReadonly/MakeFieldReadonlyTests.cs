@@ -427,6 +427,36 @@ $@"class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldInNestedTypeAssignedInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    class NestedType
+    {
+        private int [|_goo|];
+
+        public NestedType()
+        {
+            _goo = 0;
+        }
+    }
+}",
+@"class MyClass
+{
+    class NestedType
+    {
+        private readonly int _goo;
+
+        public NestedType()
+        {
+            _goo = 0;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task VariableAssignedToFieldInMethod()
         {
             await TestInRegularAndScriptAsync(

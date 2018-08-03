@@ -80,20 +80,23 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
                 {
                     // Report diagnostics for candidate fields that are not written outside constructor and field initializer.
-                    foreach (var kvp in fieldStateMap)
+                    var members = ((INamedTypeSymbol)symbolEndContext.Symbol).GetMembers();
+                    foreach (var member in members)
                     {
-                        IFieldSymbol field = kvp.Key;
-                        (bool isCandidate, bool written) = kvp.Value;
-                        if (isCandidate && !written)
+                        if (member is IFieldSymbol field && !field.IsImplicitlyDeclared)
                         {
-                            var option = GetCodeStyleOption(field, symbolEndContext.Options, symbolEndContext.CancellationToken);
-                            var diagnostic = DiagnosticHelper.Create(
-                                Descriptor,
-                                field.Locations[0],
-                                option.Notification.Severity,
-                                additionalLocations: null,
-                                properties: null);
-                            symbolEndContext.ReportDiagnostic(diagnostic);
+                            (bool isCandidate, bool written) = fieldStateMap[field];
+                            if (isCandidate && !written)
+                            {
+                                var option = GetCodeStyleOption(field, symbolEndContext.Options, symbolEndContext.CancellationToken);
+                                var diagnostic = DiagnosticHelper.Create(
+                                    Descriptor,
+                                    field.Locations[0],
+                                    option.Notification.Severity,
+                                    additionalLocations: null,
+                                    properties: null);
+                                symbolEndContext.ReportDiagnostic(diagnostic);
+                            }
                         }
                     }
                 }
