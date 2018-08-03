@@ -38105,27 +38105,25 @@ class B : A
 
         [WorkItem(29049, "https://github.com/dotnet/roslyn/issues/29049")]
         [Fact]
-        public void ConstraintFromMetadata()
+        public void TypeSymbolWithAnnotations_GetHashCode()
         {
-            var source0 =
-@"using System;
-public class A<T> where T : IEquatable<string> { }";
             var source =
-@"class B
+@"interface I<T> { }
+class A : I<A> { }
+class B<T> where T : I<A?> { }
+class Program
 {
     static void Main()
     {
-        object o = new A<string?>(); // warning
+        new B<A>();
     }
 }";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
-            var ref0 = comp0.EmitToImageReference();
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             var diagnostics = comp.GetDiagnostics();
             diagnostics.Verify(
-                // (5,26): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string>'.
-                //         object o = new A<string?>(); // warning
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A<T>", "System.IEquatable<string>", "T", "string?").WithLocation(5, 26));
+                // (8,15): warning CS8631: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A' doesn't match constraint type 'I<A?>'.
+                //         new B<A>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A").WithArguments("B<T>", "I<A?>", "T", "A").WithLocation(8, 15));
             // Diagnostics must support GetHashCode() and Equals(), to allow removing
             // duplicates (see CommonCompiler.ReportErrors.)
             foreach (var diagnostic in diagnostics)
@@ -38154,7 +38152,7 @@ public class A6<T> where T : IEquatable<int?> { }";
 {
     static void Main()
     {
-        new A0<string?>();
+        new A0<string?>(); // warning
         new A0<string>();
         new A2<string?>();
         new A2<string>(); // warning
@@ -38166,7 +38164,7 @@ public class A6<T> where T : IEquatable<int?> { }";
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
             var ref0 = comp0.EmitToImageReference();
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a warning for A2<string>().
+            // PROTOTYPE(NullableReferenceTypes): Should report a warning for A0<string?>() and A2<string>().
             comp.VerifyDiagnostics(
                 // (9,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A5<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
                 //         new A5<string?>();
@@ -38197,7 +38195,7 @@ public class A6<T> where T : IEquatable<int?> { }";
             comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a warning for A2<string>().
+            // PROTOTYPE(NullableReferenceTypes): Should report a warning for A0<string?>() and A2<string>().
             comp.VerifyDiagnostics(
                 // (9,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A5<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
                 //         new A5<string?>();

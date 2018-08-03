@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var type = TypeSymbolWithAnnotations.Create(@interface, isNullableIfReferenceType: null);
                 yield return type.GetTypeRefWithAttributes(
                     moduleBeingBuilt,
-                    this,
+                    declaringSymbol: this,
                     typeRef);
             }
         }
