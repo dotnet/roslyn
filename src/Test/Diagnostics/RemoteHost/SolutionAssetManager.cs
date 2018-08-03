@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
@@ -66,7 +67,7 @@ namespace Roslyn.Hosting.Diagnostics.RemoteHost
                     // in service hub, cancellation means simply closed stream
                     var @object = serializer.Deserialize<object>(kind, reader, cancellationToken);
 
-                    Contract.Requires(itemChecksum == serializer.CreateChecksum(@object, cancellationToken));
+                    Debug.Assert(itemChecksum == serializer.CreateChecksum(@object, cancellationToken));
 
                     map.Add(itemChecksum, @object);
                 }
@@ -129,7 +130,7 @@ namespace Roslyn.Hosting.Diagnostics.RemoteHost
                         itemChecksum.WriteTo(writer);
 
                         var remotableData = scope.GetRemotableData(kv.Key, cancellationToken);
-                        Contract.Requires(itemChecksum == remotableData.Checksum);
+                        Debug.Assert(itemChecksum == remotableData.Checksum);
 
                         // save kind
                         writer.WriteInt32((int)remotableData.Kind);
@@ -160,7 +161,7 @@ namespace Roslyn.Hosting.Diagnostics.RemoteHost
                     var value = serializerService.Deserialize<object>(remotableData.Kind, reader, cancellationToken);
                     var checksum = serializerService.CreateChecksum(value, cancellationToken);
 
-                    Contract.Requires(checksum == remotableData.Checksum);
+                    Debug.Assert(checksum == remotableData.Checksum);
                 }
             }
         }

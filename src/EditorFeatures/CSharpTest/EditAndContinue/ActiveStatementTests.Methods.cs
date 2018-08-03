@@ -435,6 +435,58 @@ class C
 
         #endregion
 
+        #region Constuctors
+
+        [Fact]
+        public void Constructor_ExpressionBodyToBlockBody1()
+        {
+            var src1 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+            var src2 = "class C { int x; <AS:0>C()</AS:0> { x = 1; } }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_BlockBodyToExpressionBody1()
+        {
+            var src1 = "class C { int x; C() <AS:0>{</AS:0> x = 1; } }";
+            var src2 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_BlockBodyToExpressionBody2()
+        {
+            var src1 = "class C { int x; <AS:0>C()</AS:0> { x = 1; } }";
+            var src2 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_BlockBodyToExpressionBody3()
+        {
+            var src1 = "class C { int x; C() : <AS:0>base()</AS:0> { x = 1; } }";
+            var src2 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        #endregion
+
         #region Properties
 
         [Fact]

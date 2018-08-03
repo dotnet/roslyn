@@ -204,13 +204,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         #region Parentheses options
 
-        private static CodeStyleOption<ParenthesesPreference> IgnorePreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.Suggestion);
+        private static readonly CodeStyleOption<ParenthesesPreference> IgnorePreference =
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.None);
 
-        private static CodeStyleOption<ParenthesesPreference> RequireForPrecedenceClarityPreference =
+        private static readonly CodeStyleOption<ParenthesesPreference> RequireForPrecedenceClarityPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.Suggestion);
 
-        private static CodeStyleOption<ParenthesesPreference> RemoveIfUnnecessaryPreference =
+        private static readonly CodeStyleOption<ParenthesesPreference> RemoveIfUnnecessaryPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Suggestion);
 
         private static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()

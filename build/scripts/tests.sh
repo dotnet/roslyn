@@ -24,8 +24,8 @@ if [[ "${runtime}" == "dotnet" ]]; then
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
     file_list=(
-        "${unittest_dir}/CSharpCompilerSymbolTest/net46/Roslyn.Compilers.CSharp.Symbol.UnitTests.dll"
-        "${unittest_dir}/CSharpCompilerSyntaxTest/net46/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll"
+        "${unittest_dir}/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests/net46/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll"
+        "${unittest_dir}/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests/net46/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.dll"
         )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
@@ -69,7 +69,12 @@ do
     echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
-        if [[ "${file_name[@]}" == *'Roslyn.Compilers.CSharp.Emit.UnitTests.dll' ]]
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll' ]] || \
+           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests.dll' ]] || \
+           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.dll' ]] || \
+           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll' ]] || \
+           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] || \
+           [[ "${file_name[@]}" == *'Roslyn.Compilers.VisualBasic.IOperation.UnitTests.dll' ]] 
         then
             echo "Skipping ${file_name[@]}"
             continue

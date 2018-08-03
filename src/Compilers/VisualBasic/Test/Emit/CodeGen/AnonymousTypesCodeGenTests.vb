@@ -807,7 +807,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly))>
         Public Sub TestAnonymousTypeWithOptionInferOn()
             CompileAndVerify(
 <compilation>

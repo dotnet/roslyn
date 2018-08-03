@@ -25,6 +25,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Function Tests
 
+        [Fact, WorkItem(26464, "https://github.com/dotnet/roslyn/issues/26464")]
+        public void TestNullInAssemblyVersionAttribute()
+        {
+            var source = @"
+[assembly: System.Reflection.AssemblyVersionAttribute(null)]
+class Program
+{
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true));
+            comp.VerifyDiagnostics(
+                // (2,55): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // [assembly: System.Reflection.AssemblyVersionAttribute(null)]
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithLocation(2, 55)
+                );
+        }
+
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
         public void TestQuickAttributeChecker()
@@ -1547,7 +1563,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source, references: new[] { SystemCoreRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,13): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
                 //     [field: System.Runtime.CompilerServices.DynamicAttribute()]

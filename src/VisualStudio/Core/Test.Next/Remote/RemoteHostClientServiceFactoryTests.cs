@@ -245,7 +245,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 Event.WaitOne();
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -264,13 +264,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
         {
-            public Task LogExceptionAsync(string exception, string text) => SpecializedTasks.EmptyTask;
-            public Task LogInfoAsync(string text) => SpecializedTasks.EmptyTask;
+            public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
+            public Task LogInfoAsync(string text) => Task.CompletedTask;
 
-            public Task OnDownloadFullDatabaseStartedAsync(string title) => SpecializedTasks.EmptyTask;
-            public Task OnDownloadFullDatabaseSucceededAsync() => SpecializedTasks.EmptyTask;
-            public Task OnDownloadFullDatabaseCanceledAsync() => SpecializedTasks.EmptyTask;
-            public Task OnDownloadFullDatabaseFailedAsync(string message) => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseStartedAsync(string title) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseSucceededAsync() => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseCanceledAsync() => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseFailedAsync(string message) => Task.CompletedTask;
         }
     }
 }

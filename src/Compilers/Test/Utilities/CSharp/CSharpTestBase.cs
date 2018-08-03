@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Metadata.Tools;
@@ -239,10 +241,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify);
         }
 
-        protected override CompilationOptions CompilationOptionsReleaseDll
-        {
-            get { return TestOptions.ReleaseDll; }
-        }
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Dictionary<string, byte[]> expectedBlobs, bool isField = true) =>
+            CompileAndVerifyFieldMarshal(
+                source,
+                (s, _) =>
+                {
+                    Assert.True(expectedBlobs.ContainsKey(s), "Expecting marshalling blob for " + (isField ? "field " : "parameter ") + s);
+                    return expectedBlobs[s];
+                },
+                isField);
+
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
+            CompileAndVerifyFieldMarshalCommon(
+                CreateCompilationWithMscorlib40(source),
+                getExpectedBlob,
+                isField);
 
         #region SyntaxTree Factories
 
@@ -303,9 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpCompilation CreateCompilationWithIL(
             CSharpTestSource source,
             string ilSource,
+            TargetFramework targetFramework = TargetFramework.Standard,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            bool appendDefaultHeader = true) => CreateCompilationWithILAndMscorlib40(source, ilSource, TargetFramework.Standard, references, options, appendDefaultHeader);
+            bool appendDefaultHeader = true) => CreateCompilationWithILAndMscorlib40(source, ilSource, targetFramework, references, options, appendDefaultHeader);
 
         public static CSharpCompilation CreateCompilationWithILAndMscorlib40(
             CSharpTestSource source,
@@ -517,22 +531,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
             }
-        }
-
-        protected override Compilation GetCompilationForEmit(
-            IEnumerable<string> source,
-            IEnumerable<MetadataReference> references,
-            CompilationOptions options,
-            ParseOptions parseOptions)
-        {
-            var single = new[] { MscorlibRef };
-            references = references != null ? single.Concat(references) : single;
-            return CreateEmptyCompilation(
-                source.ToArray(),
-                references: (IEnumerable<MetadataReference>)references,
-                options: (CSharpCompilationOptions)options,
-                parseOptions: (CSharpParseOptions)parseOptions,
-                assemblyName: GetUniqueName());
         }
 
         /// <summary>
@@ -1004,7 +1002,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return (null, null);
             }
 
-            return (model.GetOperation(syntaxNode), syntaxNode);
+            var operation = model.GetOperation(syntaxNode);
+            if (operation != null)
+            {
+                Assert.Same(model, operation.SemanticModel);
+            }
+            return (operation, syntaxNode);
         }
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)
@@ -1040,6 +1043,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             additionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
         }
 
+        protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)
+            where TSyntaxNode : SyntaxNode
+        {
+            var tree = compilation.SyntaxTrees[0];
+            SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph);
+        }
+
+        protected static void VerifyFlowGraph(CSharpCompilation compilation, SyntaxNode syntaxNode, string expectedFlowGraph)
+        {
+            var model = compilation.GetSemanticModel(syntaxNode.SyntaxTree);
+            ControlFlowGraph graph = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph);
+        }
+
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(
             string testSrc,
             string expectedOperationTree,
@@ -1062,6 +1080,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
             actualDiagnostics.Verify(expectedDiagnostics);
             VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree, additionalOperationTreeVerifier);
+        }
+
+        protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
+            CSharpCompilation compilation,
+            string expectedFlowGraph,
+            DiagnosticDescription[] expectedDiagnostics)
+            where TSyntaxNode : SyntaxNode
+        {
+            var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
+            actualDiagnostics.Verify(expectedDiagnostics);
+            VerifyFlowGraphForTest<TSyntaxNode>(compilation, expectedFlowGraph);
         }
 
         protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
@@ -1103,6 +1132,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }
 
+        protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
+            string testSrc,
+            string expectedFlowGraph,
+            DiagnosticDescription[] expectedDiagnostics,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            MetadataReference[] references = null,
+            bool useLatestFrameworkReferences = false)
+            where TSyntaxNode : SyntaxNode
+        {
+            VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
+                testSrc,
+                expectedFlowGraph,
+                expectedDiagnostics,
+                targetFramework: useLatestFrameworkReferences ? TargetFramework.Mscorlib46Extended : TargetFramework.Standard,
+                compilationOptions,
+                parseOptions,
+                references);
+        }
+
+        protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
+            string testSrc,
+            string expectedFlowGraph,
+            DiagnosticDescription[] expectedDiagnostics,
+            TargetFramework targetFramework,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            MetadataReference[] references = null)
+            where TSyntaxNode : SyntaxNode
+        {
+            parseOptions = parseOptions?.WithFlowAnalysisFeature() ?? TestOptions.RegularWithFlowAnalysisFeature;
+            var compilation = CreateCompilation(
+                new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
+                references,
+                options: compilationOptions ?? TestOptions.ReleaseDll,
+                targetFramework: targetFramework);
+            VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedFlowGraph, expectedDiagnostics);
+        }
+
         protected static MetadataReference VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc,
             string ilSource,
             string expectedOperationTree,
@@ -1126,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateEmptyCompilation(
-                spanSource,
+                SpanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.UnsafeReleaseDll);
 
@@ -1144,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            var textWitSpan = new string[] { text, spanSource };
+            var textWitSpan = new string[] { text, SpanSource };
             var comp = CreateEmptyCompilation(
                 textWitSpan,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
@@ -1154,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return comp;
         }
 
-        private static string spanSource = @"
+        protected static readonly string SpanSource = @"
 namespace System
     {
         public readonly ref struct Span<T>

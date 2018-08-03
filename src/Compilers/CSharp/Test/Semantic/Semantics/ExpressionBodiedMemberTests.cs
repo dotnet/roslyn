@@ -438,7 +438,7 @@ class Program
 }
 ");
             comp.VerifyDiagnostics(
-                // (4,25): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (4,25): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     private void M() => (new object());
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(4, 25));
         }

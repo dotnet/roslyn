@@ -39,7 +39,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             this.BitmapResourceID = 301;
             this.BitmapIndex = 1;
 
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
             var componentModel = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
+
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
 
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,

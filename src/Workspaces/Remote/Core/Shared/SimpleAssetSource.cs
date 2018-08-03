@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Shared
 {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
 
             foreach (var checksum in checksums)
             {
-                Contract.Requires(_map.TryGetValue(checksum, out var data));
+                Debug.Assert(_map.TryGetValue(checksum, out var data));
 
                 list.Add(ValueTuple.Create(checksum, data));
             }

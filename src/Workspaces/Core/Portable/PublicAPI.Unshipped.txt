@@ -1,3 +1,5 @@
+Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.CodeAnalysis.ReportDiagnostic
+Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.set -> void
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
 const Microsoft.CodeAnalysis.WorkspaceKind.MSBuild = "MSBuildWorkspace" -> string
@@ -9,4 +11,9 @@ Microsoft.CodeAnalysis.FileTextLoader.Path.get -> string
 Microsoft.CodeAnalysis.ProjectChanges.GetChangedDocuments(bool onlyGetDocumentsWithTextChanges) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
 Microsoft.CodeAnalysis.Workspace.OnOutputRefFilePathChanged(Microsoft.CodeAnalysis.ProjectId projectId, string outputFilePath) -> void
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
+static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Silent -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Text.SourceText

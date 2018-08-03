@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -228,8 +229,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                             ISymbol owningSymbol,
                                                             Compilation compilation,
                                                             AnalyzerOptions options,
+                                                            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
                                                             CancellationToken cancellationToken)
-            : base(operationBlocks, owningSymbol, compilation, options, cancellationToken)
+            : base(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;

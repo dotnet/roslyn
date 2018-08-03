@@ -229,10 +229,54 @@ commitPullList.each { isPr ->
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.DevEx.Open')
+      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.Open')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
+  }
+}
+
+// Loc status check
+commitPullList.each { isPr ->
+  // Add the check for PR builds, and dev15.8.x/dev15.8.x-vs-deps builds.
+  if (isPr
+      || branchName == "dev15.8.x"
+      || branchName == "dev15.8.x-vs-deps") {
+    def jobName = Utilities.getFullJobName(projectName, "windows_loc_status", isPr)
+    def myJob = job(jobName) {
+      description('Check for untranslated resources')
+      steps {
+        batchFile(""".\\build\\scripts\\check-loc-status.cmd""")
+      }
+    }
+
+    // Run it automatically on CI builds but only when requested on PR builds.
+    def triggerPhraseOnly = isPr
+    def triggerPhraseExtra = "loc"
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+  }
+}
+
+// Loc change check
+commitPullList.each { isPr ->
+  // This job blocks PRs with loc changes, so only activate it for PR builds of
+  // release branches after a loc freeze.
+  if (isPr
+      && (branchName == "dev15.8.x"
+          || branchName == "dev15.8.x-vs-deps")) {
+    def jobName = Utilities.getFullJobName(projectName, "windows_loc_changes", isPr)
+    def myJob = job(jobName) {
+        description('Validate that a PR contains no localization changes')
+        steps {
+            batchFile(""".\\build\\scripts\\check-for-loc-changes.cmd -base origin/${branchName} -head %GIT_COMMIT%""")
+        }
+    }
+
+    def triggerPhraseOnly = false
+    def triggerPhraseExtra = "loc changes"
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }
 

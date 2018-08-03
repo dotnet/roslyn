@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     var document = item.Document;
                     if (navigationService.CanNavigateToPosition(workspace, document.Id, item.SourceSpan.Start))
                     {
-                        var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                        var text = document.GetTextSynchronously(cancellationToken);
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
                         yield return new ExternalFilePeekableItem(
                             new FileLinePositionSpan(document.FilePath, linePositionSpan),

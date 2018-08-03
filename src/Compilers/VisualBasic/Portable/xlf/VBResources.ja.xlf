@@ -8534,7 +8534,7 @@
                                   コンパイラが出力するソース パス名のマッピングを
                                   指定します。
 /platform:&lt;string&gt;                このコードを実行できるプラットフォームは 
-                                  x86、x64、Itanium、arm、
+                                  x86、x64、Itanium、arm、arm64、
                                   AnyCPU32BitPreferred、anycpu (既定) でなければなりません。
 /preferreduilang                  出力用の言語名を指定します。
 /sdkpath:&lt;path&gt;                   .NET Framework SDK ディレクトリ (mscorlib.dll)

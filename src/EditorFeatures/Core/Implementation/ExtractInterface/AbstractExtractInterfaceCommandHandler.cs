@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 {
     internal abstract class AbstractExtractInterfaceCommandHandler : VSCommanding.ICommandHandler<ExtractInterfaceCommandArgs>
     {
-        public string DisplayName => EditorFeaturesResources.Extract_Interface_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
         public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
         {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             // We are about to show a modal UI dialog so we should take over the command execution
             // wait context. That means the command system won't attempt to show its own wait dialog 
             // and also will take it into consideration when measuring command handling duration.
-            context.WaitContext.TakeOwnership();
+            context.OperationContext.TakeOwnership();
             var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
             var result = extractInterfaceService.ExtractInterface(
                 document,

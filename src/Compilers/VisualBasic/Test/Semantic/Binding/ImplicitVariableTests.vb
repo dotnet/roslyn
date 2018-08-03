@@ -54,7 +54,7 @@ Hello, world
 
         <WorkItem(547017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547017")>
         <WorkItem(547018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547018")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub SimpleImplicitDeclaration2()
             Dim compilation = CompileAndVerify(
 <compilation>
