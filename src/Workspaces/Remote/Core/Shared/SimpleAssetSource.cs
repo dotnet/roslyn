@@ -4,18 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Shared
 {
-    internal class PackageAssetSource : AssetSource
+    /// <summary>
+    /// provide asset from given map at the creation
+    /// </summary>
+    internal class SimpleAssetSource : AssetSource
     {
         private readonly IReadOnlyDictionary<Checksum, object> _map;
 
-        public PackageAssetSource(AssetStorage assetStorage, IReadOnlyDictionary<Checksum, object> map) :
+        public SimpleAssetSource(AssetStorage assetStorage, IReadOnlyDictionary<Checksum, object> map) :
             base(assetStorage)
         {
             _map = map;
