@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             internal Snapshot(VisualStudioMetadataReferenceManager provider, MetadataReferenceProperties properties, string fullPath, FileChangeTracker fileChangeTrackerOpt)
                 : base(properties, fullPath)
             {
-                Contract.Requires(Properties.Kind == MetadataImageKind.Assembly);
+                Debug.Assert(Properties.Kind == MetadataImageKind.Assembly);
                 _provider = provider;
                 _fileChangeTrackerOpt = fileChangeTrackerOpt;
 
