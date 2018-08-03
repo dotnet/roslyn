@@ -36,6 +36,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="..\..\Core\Portable\NonNullTypesAttribute.cs">
+      <Link>NonNullTypesAttribute.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="BoundTree\BoundNodes.xml" />
