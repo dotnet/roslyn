@@ -29,9 +29,13 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
 
             foreach (var checksum in checksums)
             {
-                Debug.Assert(_map.TryGetValue(checksum, out var data));
+                if (_map.TryGetValue(checksum, out var data))
+                {
+                    list.Add(ValueTuple.Create(checksum, data));
+                    continue;
+                }
 
-                list.Add(ValueTuple.Create(checksum, data));
+                Debug.Fail("How?");
             }
 
             return Task.FromResult<IList<(Checksum, object)>>(list);
