@@ -35,9 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _gate = new object();
 
             _fullPath = fullPath;
-            _tracker = new FileChangeTracker(fileChangeService, fullPath);
-            _tracker.UpdatedOnDisk += OnUpdatedOnDisk;
-            _tracker.StartFileChangeListeningAsync();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _projectId = projectId;
             _workspace = workspace;
@@ -45,6 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _language = language;
 
             _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
+
+            _tracker = new FileChangeTracker(fileChangeService, fullPath);
+            _tracker.UpdatedOnDisk += OnUpdatedOnDisk;
+            _tracker.StartFileChangeListeningAsync();
         }
 
         public string FullPath
@@ -54,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public bool HasLoadErrors
         {
-            get { return _analyzerLoadErrors.Length > 0; }
+            get { return !_analyzerLoadErrors.IsEmpty; }
         }
 
         public AnalyzerReference GetReference()
@@ -102,20 +103,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Reset()
         {
-            if (_analyzerReference is AnalyzerFileReference analyzerFileReference)
+            ResetReferenceAndErrors(out var analyzerReference, out var analyzerLoadErrors);
+
+            if (analyzerReference is AnalyzerFileReference analyzerFileReference)
             {
                 analyzerFileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
 
-                if (_analyzerLoadErrors.Length > 0)
+                if (!analyzerLoadErrors.IsEmpty)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(_projectId, this);
                 }
 
                 _hostDiagnosticUpdateSource.ClearAnalyzerReferenceDiagnostics(analyzerFileReference, _language, _projectId);
             }
+        }
 
+        private void ResetReferenceAndErrors(out AnalyzerReference analyzerReference, out ImmutableArray<DiagnosticData> analyzerLoadErrors)
+        {
             lock (_gate)
             {
+                analyzerLoadErrors = _analyzerLoadErrors;
+                analyzerReference = _analyzerReference;
+
                 _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
                 _analyzerReference = null;
             }
