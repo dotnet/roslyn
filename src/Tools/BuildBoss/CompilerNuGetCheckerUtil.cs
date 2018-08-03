@@ -171,7 +171,9 @@ namespace BuildBoss
                         PathComparer.Equals("EnvDTE.dll", item) ||
                         PathComparer.Equals("Microsoft.Composition", item) ||
                         PathComparer.Equals("System.Threading.Tasks.Dataflow.dll", item) ||
-                        PathComparer.Equals("System.Runtime.InteropServices.RuntimeInformation.dll", item))
+                        PathComparer.Equals("System.Runtime.InteropServices.RuntimeInformation.dll", item) ||
+                        PathComparer.Equals("Newtonsoft.Json.dll", item) ||
+                        PathComparer.Equals("StreamJsonRpc.dll", item))
                     {
                         continue;
                     }
