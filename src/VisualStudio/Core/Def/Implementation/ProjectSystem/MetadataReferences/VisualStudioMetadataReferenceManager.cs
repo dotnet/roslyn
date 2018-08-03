@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            Contract.Requires(pImage != IntPtr.Zero, "Base address should not be zero if GetFileFlatMapping call succeeded.");
+            Debug.Assert(pImage != IntPtr.Zero, "Base address should not be zero if GetFileFlatMapping call succeeded.");
 
             var metadata = ModuleMetadata.CreateFromImage(pImage, (int)length);
             s_lifetimeMap.Add(metadata, info);
