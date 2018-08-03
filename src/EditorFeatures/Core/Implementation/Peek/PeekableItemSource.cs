@@ -65,13 +65,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
                 if (!document.SupportsSemanticModel)
                 {
-                    // For documents without semantic models, just try to use the goto-def service
-                    // as a reasonable place to peek at.
-                    var goToDefinitionService = document.GetLanguageService<IGoToDefinitionService>();
-                    var navigableItems = goToDefinitionService.FindDefinitionsAsync(document, triggerPoint.Value.Position, cancellationToken)
-                                                              .WaitAndGetResult(cancellationToken);
+                    var peekDefinitionService = document.GetLanguageService<IPeekDefinitionService>();
+                    if (peekDefinitionService != null)
+                    {
+                        results = peekDefinitionService.GetDefinitionPeekItems(document, triggerPoint.Value.Position, cancellationToken);
+                    }
+                    else
+                    {
+                        // For documents without semantic models, just try to use the goto-def service
+                        // as a reasonable place to peek at.
+                        var goToDefinitionService = document.GetLanguageService<IGoToDefinitionService>();
+                        var navigableItems = goToDefinitionService.FindDefinitionsAsync(document, triggerPoint.Value.Position, cancellationToken)
+                                                                  .WaitAndGetResult(cancellationToken);
 
-                    results = GetPeekableItemsForNavigableItems(navigableItems, document.Project, _peekResultFactory, cancellationToken);
+                        results = GetPeekableItemsForNavigableItems(navigableItems, document.Project, _peekResultFactory, cancellationToken);
+                    }
                 }
                 else
                 {
