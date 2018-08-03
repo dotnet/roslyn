@@ -386,6 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Conversions,
                 this.Compilation,
                 diagnosticsBuilder,
+                warningsBuilderOpt: null,
                 ref useSiteDiagnosticsBuilder);
 
             if (!constraintsSatisfied)

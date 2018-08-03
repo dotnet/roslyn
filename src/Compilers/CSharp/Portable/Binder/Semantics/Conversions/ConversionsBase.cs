@@ -20,14 +20,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly bool IncludeNullability;
 
-        protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability)
+        /// <summary>
+        /// An optional clone of this instance with distinct IncludeNullability.
+        /// Used to avoid unnecessary allocations when calling WithNullability() repeatedly.
+        /// </summary>
+        private ConversionsBase _lazyOtherNullability;
+
+        protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability, ConversionsBase otherNullabilityOpt)
         {
             Debug.Assert((object)corLibrary != null);
+            Debug.Assert(otherNullabilityOpt == null || includeNullability != otherNullabilityOpt.IncludeNullability);
+            Debug.Assert(otherNullabilityOpt == null || currentRecursionDepth == otherNullabilityOpt.currentRecursionDepth);
 
             this.corLibrary = corLibrary;
             this.currentRecursionDepth = currentRecursionDepth;
             IncludeNullability = includeNullability;
+            _lazyOtherNullability = otherNullabilityOpt;
         }
+
+        /// <summary>
+        /// Returns this instance if includeNullability is correct, and returns a
+        /// cached clone of this instance with distinct includeNullability otherwise.
+        /// </summary>
+        internal ConversionsBase WithNullability(bool includeNullability)
+        {
+            if (IncludeNullability == includeNullability)
+            {
+                return this;
+            }
+            if (_lazyOtherNullability == null)
+            {
+                _lazyOtherNullability = WithNullabilityCore(includeNullability);
+            }
+            Debug.Assert(_lazyOtherNullability.IncludeNullability == includeNullability);
+            Debug.Assert(_lazyOtherNullability._lazyOtherNullability == this);
+            return _lazyOtherNullability;
+        }
+
+        protected abstract ConversionsBase WithNullabilityCore(bool includeNullability);
 
         public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
