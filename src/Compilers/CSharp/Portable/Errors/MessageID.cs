@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
 
-        IDS_FeatureVerbatimInterpolatedStrings = MessageBase + 12745,
+        IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# 8.0 features.
-                case MessageID.IDS_FeatureVerbatimInterpolatedStrings:
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalText = originalToken.ValueText; // this is actually the source text
             Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
-            var isVerbatimInterpolated = originalText.Length > 2 && originalText[0] == '@'; // @S
-            var isVerbatim = isVerbatimInterpolated || (originalText.Length > 2 &&  originalText[1] == '@');
+            var isAltInterpolatedVerbatim = originalText.Length > 2 && originalText[0] == '@'; // @S
+            var isVerbatim = isAltInterpolatedVerbatim || (originalText.Length > 2 &&  originalText[1] == '@');
 
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
@@ -81,16 +81,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ? SyntaxKind.InterpolatedVerbatimStringStartToken // $@ or @$
                     : SyntaxKind.InterpolatedStringStartToken; // $
 
-            var openQuoteText = isVerbatimInterpolated
+            var openQuoteText = isAltInterpolatedVerbatim
                 ? "@$\""
                 : isVerbatim
                     ?  "$@\""
                     : "$\"";
             var openQuote = SyntaxFactory.Token(originalToken.GetLeadingTrivia(), openQuoteKind, openQuoteText, openQuoteText, trailing: null);
 
-            if (isVerbatimInterpolated)
+            if (isAltInterpolatedVerbatim)
             {
-                openQuote = CheckFeatureAvailability(openQuote, MessageID.IDS_FeatureVerbatimInterpolatedStrings);
+                openQuote = CheckFeatureAvailability(openQuote, MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
             }
 
             // Make a token for the close quote " (even if it was missing)

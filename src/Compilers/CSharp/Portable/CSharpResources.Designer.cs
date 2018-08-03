@@ -287,6 +287,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To use &apos;@$&apos; instead of &apos;$@&apos; for an interpolated verbatim string, please use language version {0} or greater..
+        /// </summary>
+        internal static string ERR_AltInterpolatedVerbatimStringsNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_AltInterpolatedVerbatimStringsNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands of type &apos;{1}&apos; and &apos;{2}&apos;.
         /// </summary>
         internal static string ERR_AmbigBinaryOps {
@@ -10097,15 +10106,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To use &apos;@$&apos; instead of &apos;$@&quot; for a verbatim interpolated string, please use language version {0} or greater..
-        /// </summary>
-        internal static string ERR_VerbatimInterpolatedStringsNotAvailable {
-            get {
-                return ResourceManager.GetString("ERR_VerbatimInterpolatedStringsNotAvailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: virtual or abstract members cannot be private.
         /// </summary>
         internal static string ERR_VirtualPrivate {
@@ -10409,6 +10409,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_DirectoryHasInvalidPath {
             get {
                 return ResourceManager.GetString("IDS_DirectoryHasInvalidPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to alternative interpolated verbatim strings.
+        /// </summary>
+        internal static string IDS_FeatureAltInterpolatedVerbatimStrings {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAltInterpolatedVerbatimStrings", resourceCulture);
             }
         }
         
@@ -11039,15 +11048,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureUsingStatic {
             get {
                 return ResourceManager.GetString("IDS_FeatureUsingStatic", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to verbatim interpolated strings.
-        /// </summary>
-        internal static string IDS_FeatureVerbatimInterpolatedStrings {
-            get {
-                return ResourceManager.GetString("IDS_FeatureVerbatimInterpolatedStrings", resourceCulture);
             }
         }
         

@@ -1063,10 +1063,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         ? node
                         : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
 
-                case MessageID.IDS_FeatureVerbatimInterpolatedStrings:
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                     return availableVersion >= requiredVersion
                         ? node
-                        : this.AddError(node, ErrorCode.ERR_VerbatimInterpolatedStringsNotAvailable,
+                        : this.AddError(node, ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable,
                             new CSharpRequiredLanguageVersion(requiredVersion));
             }
 
