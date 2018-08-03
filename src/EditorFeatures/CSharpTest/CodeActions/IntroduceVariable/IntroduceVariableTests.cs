@@ -5720,5 +5720,30 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(27949, "https://github.com/dotnet/roslyn/issues/27949")]
+        public async Task TestWhitespaceSpanInAssignment()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    int x = [| |] 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(28665, "https://github.com/dotnet/roslyn/issues/28665")]
+        public async Task TestWhitespaceSpanInAttribute()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    [Example( [| |] )]
+    public void Foo()
+    {
+    }
+}");
+        }
     }
 }
