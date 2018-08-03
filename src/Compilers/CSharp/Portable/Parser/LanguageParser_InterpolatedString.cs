@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalText = originalToken.ValueText; // this is actually the source text
             Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
-            var isAltInterpolatedVerbatim = originalText.Length > 2 && originalText[0] == '@'; // @S
+            var isAltInterpolatedVerbatim = originalText.Length > 2 && originalText[0] == '@'; // @$
             var isVerbatim = isAltInterpolatedVerbatim || (originalText.Length > 2 &&  originalText[1] == '@');
 
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
