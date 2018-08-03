@@ -23,17 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IAnalyzerAssemblyLoader _loader;
         private readonly string _language;
 
-        private readonly object _gate;
-
-        private AnalyzerReference _analyzerReference;
-        private ImmutableArray<DiagnosticData> _analyzerLoadErrors;
-
-        public event EventHandler UpdatedOnDisk;
+        // these 2 are mutable states that must be guarded under the _gate.
+        private readonly object _gate = new object();
+        private AnalyzerReference _analyzerReference = null;
+        private ImmutableArray<DiagnosticData> _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
 
         public VisualStudioAnalyzer(string fullPath, IVsFileChangeEx fileChangeService, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, Workspace workspace, IAnalyzerAssemblyLoader loader, string language)
         {
-            _gate = new object();
-
             _fullPath = fullPath;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _projectId = projectId;
@@ -41,12 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _loader = loader;
             _language = language;
 
-            _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
-
             _tracker = new FileChangeTracker(fileChangeService, fullPath);
             _tracker.UpdatedOnDisk += OnUpdatedOnDisk;
             _tracker.StartFileChangeListeningAsync();
         }
+
+        public event EventHandler UpdatedOnDisk;
 
         public string FullPath
         {
@@ -103,27 +99,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Reset()
         {
-            ResetReferenceAndErrors(out var analyzerReference, out var analyzerLoadErrors);
+            ResetReferenceAndErrors(out var reference, out var loadErrors);
 
-            if (analyzerReference is AnalyzerFileReference analyzerFileReference)
+            if (reference is AnalyzerFileReference fileReference)
             {
-                analyzerFileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
+                fileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
 
-                if (!analyzerLoadErrors.IsEmpty)
+                if (!loadErrors.IsEmpty)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(_projectId, this);
                 }
 
-                _hostDiagnosticUpdateSource.ClearAnalyzerReferenceDiagnostics(analyzerFileReference, _language, _projectId);
+                _hostDiagnosticUpdateSource.ClearAnalyzerReferenceDiagnostics(fileReference, _language, _projectId);
             }
         }
 
-        private void ResetReferenceAndErrors(out AnalyzerReference analyzerReference, out ImmutableArray<DiagnosticData> analyzerLoadErrors)
+        private void ResetReferenceAndErrors(out AnalyzerReference reference, out ImmutableArray<DiagnosticData> loadErrors)
         {
             lock (_gate)
             {
-                analyzerLoadErrors = _analyzerLoadErrors;
-                analyzerReference = _analyzerReference;
+                loadErrors = _analyzerLoadErrors;
+                reference = _analyzerReference;
 
                 _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
                 _analyzerReference = null;
