@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken);
         Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken);
-        Checksum CreateChecksum(SourceText sourceText, CancellationToken cancellationToken);
 
         void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken);
         void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken);

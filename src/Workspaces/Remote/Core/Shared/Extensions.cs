@@ -5,13 +5,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Remote.Shared
 {
     internal static class Extensions
     {
+        /// <summary>
+        /// create checksum to correspoing object map from solution
+        /// this map should contain every parts of solution that can be used to re-create the solution back
+        /// </summary>
         public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
         {
             var map = new Dictionary<Checksum, object>();
@@ -20,6 +23,10 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
             return map;
         }
 
+        /// <summary>
+        /// create checksum to correspoing object map from project
+        /// this map should contain every parts of project that can be used to re-create the project back
+        /// </summary>
         public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Project project, CancellationToken cancellationToken)
         {
             var map = new Dictionary<Checksum, object>();

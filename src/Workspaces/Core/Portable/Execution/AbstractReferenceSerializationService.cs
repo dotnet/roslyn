@@ -15,8 +15,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -31,11 +29,11 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
 
-        private readonly ITemporaryStorageService2 _storageService;
+        private readonly ITemporaryStorageService _storageService;
         private readonly IDocumentationProviderService _documentationService;
 
         protected AbstractReferenceSerializationService(
-            ITemporaryStorageService2 storageService,
+            ITemporaryStorageService storageService,
             IDocumentationProviderService documentationService)
         {
             _storageService = storageService;
@@ -76,17 +74,6 @@ namespace Microsoft.CodeAnalysis.Execution
 
         protected abstract string GetAnalyzerAssemblyPath(AnalyzerFileReference reference);
         protected abstract AnalyzerReference GetAnalyzerReference(string displayPath, string assemblyPath);
-
-        public virtual Checksum CreateChecksum(SourceText sourceText, CancellationToken cancellationToken)
-        {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream))
-            {
-                sourceText.WriteTo(writer, cancellationToken);
-
-                return Checksum.Create(stream);
-            }
-        }
 
         public Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {
@@ -590,11 +577,14 @@ namespace Microsoft.CodeAnalysis.Execution
 
             if (kind == SerializationKinds.MemoryMapFile)
             {
+                var service2 = _storageService as ITemporaryStorageService2;
+                Contract.ThrowIfNull(service2);
+
                 var name = reader.ReadString();
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                storage = _storageService.AttachTemporaryStreamStorage(name, offset, size, cancellationToken);
+                storage = service2.AttachTemporaryStreamStorage(name, offset, size, cancellationToken);
                 length = size;
 
                 return;

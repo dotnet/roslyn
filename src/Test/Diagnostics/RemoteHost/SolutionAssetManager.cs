@@ -73,7 +73,7 @@ namespace Roslyn.Hosting.Diagnostics.RemoteHost
             }
 
             var assetSource = new PackageAssetSource(AssetStorage.Default, map);
-            var assetService = new AssetService(AssetStorage.Default, serializer);
+            var assetService = new AssetService(scopeId: 0, AssetStorage.Default, serializer);
 
             var solutionCreator = new SolutionCreator(assetService, _solution, cancellationToken);
 
