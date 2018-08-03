@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -492,6 +493,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
+        [WorkItem(29041, "https://github.com/dotnet/roslyn/issues/29041")]
         [Fact]
         public void GenericType_NonNullTypes()
         {
@@ -528,6 +530,7 @@ class C<T> where T : struct
             // [NonNullTypes(false)]
             comp = CreateCompilation(new[] { source, NonNullTypesFalse, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should not report any warnings.
+            // See https://github.com/dotnet/roslyn/issues/29065.
             comp.VerifyDiagnostics(
                 // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
                 //     A() { }
@@ -536,6 +539,7 @@ class C<T> where T : struct
             // [NonNullTypes] missing
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should not report any warnings.
+            // See https://github.com/dotnet/roslyn/issues/29065.
             comp.VerifyDiagnostics(
                 // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
                 //     A() { }
