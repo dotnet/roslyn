@@ -31,8 +31,6 @@ Microsoft.CodeAnalysis.Operations.ITupleBinaryOperation.OperatorKind.get -> Micr
 Microsoft.CodeAnalysis.Operations.ITupleBinaryOperation.RightOperand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ITupleOperation.NaturalType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Platform.Arm64 = 6 -> Microsoft.CodeAnalysis.Platform
-System.Runtime.CompilerServices.NonNullTypesAttribute
-System.Runtime.CompilerServices.NonNullTypesAttribute.NonNullTypesAttribute(bool b = true) -> void
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.CapturedInside.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.CapturedOutside.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DeconstructMethodName = "Deconstruct" -> string
