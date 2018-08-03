@@ -38125,7 +38125,7 @@ class Program
                 //         new B<A>();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A").WithArguments("B<T>", "I<A?>", "T", "A").WithLocation(8, 15));
             // Diagnostics must support GetHashCode() and Equals(), to allow removing
-            // duplicates (see CommonCompiler.ReportErrors.)
+            // duplicates (see CommonCompiler.ReportErrors).
             foreach (var diagnostic in diagnostics)
             {
                 diagnostic.GetHashCode();
