@@ -2650,7 +2650,8 @@ oneMoreTime:
 
                             EvalStackFrame frame = PushStackFrame();
 
-                            IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(coalesce, whenNull);
+                            IOperation convertedTestExpression =
+                                NullCheckAndConvertCoalesceValue(coalesce.Value, ((BaseCoalesceExpression)coalesce).ConvertibleValueConversion, coalesce.Type, whenNull);
 
                             convertedTestExpression = Operation.SetParentOperation(convertedTestExpression, null);
                             dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
@@ -2717,12 +2718,11 @@ oneMoreTime:
         /// Returns converted test expression.
         /// Caller is responsible for spilling the stack and pushing a stack frame before calling this helper.
         /// </summary>
-        private IOperation NullCheckAndConvertCoalesceValue(ICoalesceOperation operation, BasicBlockBuilder whenNull)
+        private IOperation NullCheckAndConvertCoalesceValue(IOperation operationValue, IConvertibleConversion coalesceConversion, ITypeSymbol coalesceType, BasicBlockBuilder whenNull)
         {
             Debug.Assert(_evalStack.Last().frameOpt != null);
             Debug.Assert(_startSpillingAt >= _evalStack.Count - 1);
 
-            IOperation operationValue = operation.Value;
             SyntaxNode valueSyntax = operationValue.Syntax;
             ITypeSymbol valueTypeOpt = operationValue.Type;
 
@@ -2737,7 +2737,8 @@ oneMoreTime:
                        RegularBranch(whenNull));
             _currentBasicBlock = null;
 
-            CommonConversion testConversion = operation.ValueConversion;
+            CommonConversion testConversion = coalesceConversion?.ToCommonConversion() ??
+                                              new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, isImplicit: true, null);
             IOperation capturedValue = OperationCloner.CloneOperation(testExpression);
             IOperation convertedTestExpression = null;
 
@@ -2746,7 +2747,7 @@ oneMoreTime:
                 IOperation possiblyUnwrappedValue;
 
                 if (ITypeSymbolHelpers.IsNullableType(valueTypeOpt) &&
-                    (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(operation.Type)))
+                    (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(coalesceType)))
                 {
                     possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue);
                 }
@@ -2763,8 +2764,8 @@ oneMoreTime:
                     }
                     else
                     {
-                        convertedTestExpression = new ConversionOperation(possiblyUnwrappedValue, ((BaseCoalesceExpression)operation).ConvertibleValueConversion,
-                                                                          isTryCast: false, isChecked: false, semanticModel: null, valueSyntax, operation.Type,
+                        convertedTestExpression = new ConversionOperation(possiblyUnwrappedValue, coalesceConversion, isTryCast: false,
+                                                                          isChecked: false, semanticModel: null, valueSyntax, coalesceType,
                                                                           constantValue: default, isImplicit: true);
                     }
                 }
@@ -2772,7 +2773,7 @@ oneMoreTime:
 
             if (convertedTestExpression == null)
             {
-                convertedTestExpression = MakeInvalidOperation(operation.Type, capturedValue);
+                convertedTestExpression = MakeInvalidOperation(coalesceType, capturedValue);
             }
 
             return convertedTestExpression;
@@ -2790,7 +2791,8 @@ oneMoreTime:
             EvalStackFrame frame = PushStackFrame();
 
             var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
-            IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(operation, whenNull);
+            IOperation convertedTestExpression =
+                NullCheckAndConvertCoalesceValue(operation.Value, ((BaseCoalesceExpression)operation).ConvertibleValueConversion, operation.Type, whenNull);
 
             IOperation result;
             var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -2833,6 +2835,53 @@ oneMoreTime:
             AppendNewBlock(afterCoalesce);
 
             return result;
+        }
+
+        public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, int? captureIdForResult)
+        {
+            SpillEvalStack();
+
+            RegionBuilder resultCaptureRegion = _currentRegion;
+
+            EvalStackFrame frame = PushStackFrame();
+
+            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
+            IOperation testExpression = NullCheckAndConvertCoalesceValue(operation.Target, coalesceConversion: null, operation.Type, whenNull);
+
+            // Coalesce can have conversions on the left side, but coalesce assignment should not.
+            Debug.Assert(testExpression.Kind != OperationKind.Conversion);
+
+            var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
+
+            int resultCaptureId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
+
+            AddStatement(new FlowCapture(resultCaptureId, operation.Target.Syntax, testExpression));
+
+            LinkBlocks(CurrentBasicBlock, afterCoalesce);
+            _currentBasicBlock = null;
+
+            AppendNewBlock(whenNull);
+
+            // The return of Visit(operation.WhenNull) can be a flow capture that wasn't used in the non-null branch. We want to create a
+            // region around it to ensure that the scope of the flow capture is as narrow as possible. If there was no flow capture, region
+            // packing will take care of removing the empty region.
+            var whenNullRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, isStackSpillRegion: true);
+            EnterRegion(whenNullRegion);
+
+            IOperation whenNullValue = Visit(operation.WhenNull);
+            IOperation nullAssignment = new SimpleAssignmentExpression(OperationCloner.CloneOperation(testExpression), isRef: false, whenNullValue, semanticModel: null,
+                                                                       operation.Syntax, operation.Type, constantValue: operation.ConstantValue, isImplicit: true);
+
+            AddStatement(new FlowCapture(resultCaptureId, operation.Syntax, nullAssignment));
+
+            LeaveRegionsUpTo(whenNullRegion);
+
+            PopStackFrame(frame);
+
+            LeaveRegionsUpTo(resultCaptureRegion);
+            AppendNewBlock(afterCoalesce);
+
+            return GetCaptureReference(resultCaptureId, operation);
         }
 
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
