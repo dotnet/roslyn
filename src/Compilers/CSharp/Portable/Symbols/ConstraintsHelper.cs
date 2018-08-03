@@ -925,7 +925,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(conversions.IncludeNullability);
                         if (!SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics))
                         {
-                            warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument)));
+                            var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
+                            warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
                         }
                     }
                     continue;
@@ -1018,6 +1019,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // "An identity conversion (6.1.1).
             // An implicit reference conversion (6.1.6). ..."
+
+            // When nullability is considered, top-level nullability must be implicitly convertible.
             if ((!conversions.IncludeNullability || ConversionsBase.HasTopLevelNullabilityImplicitConversion(typeArgument, constraintType)) &&
                 conversions.HasIdentityOrImplicitReferenceConversion(typeArgument.TypeSymbol, constraintType.TypeSymbol, ref useSiteDiagnostics))
             {

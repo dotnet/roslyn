@@ -37823,6 +37823,35 @@ class D
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(32, 8));
         }
 
+        [Fact]
+        public void Constraint_TypeParameterConstraint()
+        {
+            var source0 =
+@"public class A1<T, U>
+    where T : class
+    where U : class, T
+{
+}
+public class A2<T, U>
+    where T : class
+    where U : class, T?
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"using System.Runtime.CompilerServices;
+class B1<T> where T : A1<T, T?> { }
+class B2<T> where T : A2<T?, T> { }
+[NonNullTypes] class B3<T> where T : A1<T, T?> { }
+[NonNullTypes] class B4<T> where T : A2<T?, T> { }";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report warnings for each.
+            comp.VerifyDiagnostics();
+        }
+
         // Boxing conversion.
         [Fact]
         public void Constraint_BoxingConversion()

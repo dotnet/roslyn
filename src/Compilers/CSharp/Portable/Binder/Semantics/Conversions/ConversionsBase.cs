@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly bool IncludeNullability;
 
+        /// <summary>
+        /// An optional clone of this instance with distinct IncludeNullability.
+        /// Used to avoid unnecessary allocations when calling WithNullability() repeatedly.
+        /// </summary>
         private ConversionsBase _lazyOtherNullability;
 
         protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability, ConversionsBase otherNullabilityOpt)
@@ -34,6 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lazyOtherNullability = otherNullabilityOpt;
         }
 
+        /// <summary>
+        /// Returns this instance if includeNullability is correct, and returns a
+        /// cached clone of this instance with distinct includeNullability otherwise.
+        /// </summary>
         internal ConversionsBase WithNullability(bool includeNullability)
         {
             if (IncludeNullability == includeNullability)
