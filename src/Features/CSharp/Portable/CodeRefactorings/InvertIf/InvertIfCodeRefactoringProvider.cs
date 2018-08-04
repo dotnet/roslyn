@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 ? SyntaxFactory.Block(newIfNodeStatement)
                 : newIfNodeStatement;
 
-            oldIfStatement = oldIfStatement.WithCondition((ExpressionSyntax)(Negate(oldIfStatement.Condition, generator, syntaxFacts, model, cancellationToken)))
+            oldIfStatement = oldIfStatement.WithCondition((ExpressionSyntax)generator.Negate(oldIfStatement.Condition, model, cancellationToken))
                 .WithStatement(newIfStatment)
                 .WithElse(newElseStatement);
 
