@@ -9,10 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (expr.IsKind(SyntaxKind.IdentifierName))
                         {
-                            elementNamesBuilder.Add(((IdentifierNameSyntax)expr).Identifier.ValueText == "" ? null : ((IdentifierNameSyntax)expr).Identifier.ValueText);
+                            elementNamesBuilder.Add(IsNullOrWhitespace(((IdentifierNameSyntax)expr).Identifier.ValueText) ? null : ((IdentifierNameSyntax)expr).Identifier.ValueText);
                             elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
                         }
                         else
@@ -2115,6 +2115,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementTypesBuilder.Free();
                     elementNamesBuilder.Free();
                 }
+            }
+
+            private bool IsNullOrWhitespace(string text)
+            {
+
+                if (text == null)
+                {
+                    return true;
+                }
+
+                for (var i = 0; i < text.Length; i++)
+                {
+                    if (!SyntaxFacts.IsWhitespace(text[i]) || !SyntaxFacts.IsNewLine(text[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             private void AddTypeAndName(
