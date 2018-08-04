@@ -2092,7 +2092,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (expr.IsKind(SyntaxKind.IdentifierName))
                         {
-                            elementNamesBuilder.Add(IsNullOrWhitespace(((IdentifierNameSyntax)expr).Identifier.ValueText) ? null : ((IdentifierNameSyntax)expr).Identifier.ValueText);
+                            elementNamesBuilder.Add(IsNullOrWhitespace(((IdentifierNameSyntax)expr).Identifier.ValueText) ? 
+                                null : 
+                                ((IdentifierNameSyntax)expr).Identifier.ValueText);
                             elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
                         }
                         else
