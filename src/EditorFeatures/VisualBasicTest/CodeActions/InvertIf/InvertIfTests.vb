@@ -689,7 +689,7 @@ End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestKeepExplicitLineContinuationTriviaCommentsAfterLineContinuationMethod() As Task
+        Public Async Function TestKeepExplicitLineContinuationTrivianMethodCommentsAfterLineContinuation() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
