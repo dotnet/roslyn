@@ -254,6 +254,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateLazyNullableType(compilation, this);
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Consider replacing AsNullableReferenceType()
+        // and AsNotNullableReferenceType() with a single WithIsAnnotated(bool).
+
         /// <summary>
         /// Adjust types in signatures coming from metadata.
         /// </summary>
@@ -654,17 +657,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = result.WithTypeAndModifiers(newTypeSymbol, result.CustomModifiers);
             }
 
-            if (!result.IsValueType)
-            {
-                if (isAnnotated)
-                {
-                    result = result.AsNullableReferenceType();
-                }
-                else
-                {
-                    result = result.AsNotNullableReferenceType();
-                }
-            }
+            result = isAnnotated ?
+                result.AsNullableReferenceType() :
+                result.AsNotNullableReferenceType();
 
             result = result.WithNonNullTypesContext(nonNullTypesContext);
             return true;
@@ -717,7 +712,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
 #pragma warning restore CS0809
         {
-            throw ExceptionUtilities.Unreachable;
+            if (IsNull)
+            {
+                return 0;
+            }
+            return Hash.Combine(TypeSymbol.GetHashCode(), IsAnnotated.GetHashCode());
         }
 
 #pragma warning disable CS0809
