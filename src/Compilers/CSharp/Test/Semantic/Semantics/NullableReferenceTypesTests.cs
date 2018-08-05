@@ -37800,6 +37800,62 @@ class B4 : A<string?>
         }
 
         [Fact]
+        public void Constraint_LocalFunction()
+        {
+            var source = @"
+class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(true)]
+    void M1()
+    {
+        local(new C(), new C(), null);
+        void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+    }
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    void M2()
+    {
+        local(new C(), new C(), null);
+        void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+    }
+    void M3()
+    {
+        local(new C(), new C(), null);
+        void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (14,45): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 45),
+                // (14,74): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 74),
+                // (19,45): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 45),
+                // (19,74): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 74)
+                );
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var localSyntaxes = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>();
+
+            verifyLocalFunction(localSyntaxes.ElementAt(0), "C.M1.local", new[] { "C!" });
+            verifyLocalFunction(localSyntaxes.ElementAt(1), "C.M2.local", new[] { "C" });
+            verifyLocalFunction(localSyntaxes.ElementAt(2), "C.M3.local", new[] { "C" });
+
+            void verifyLocalFunction(LocalFunctionStatementSyntax localSyntax, string expectedName, string[] expectedConstraintTypes)
+            {
+                var localSymbol = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntax);
+                var constraintTypes = localSymbol.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics;
+                AssertEx.Equal(expectedConstraintTypes, constraintTypes.SelectAsArray(t => t.ToTestDisplayString(true)));
+            }
+        }
+
+        [Fact]
         public void Constraint_Oblivious_01()
         {
             var source0 =

@@ -407,6 +407,16 @@
         <target state="new">The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
+        <source>The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.</source>
+        <target state="new">The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
+        <source>The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.</source>
+        <target state="new">The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContext_Title">
         <source>The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.</source>
         <target state="new">The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.</target>
