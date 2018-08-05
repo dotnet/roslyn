@@ -38,8 +38,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
         protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
         protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
-        protected virtual Task<bool> HandleLanguageSpecificNodesAsync(SyntaxNode initialNode, SyntaxNode node, CodeFixContext context)
-            => Task.FromResult(false);
+        protected virtual RegisterFixData<TArgumentSyntax> GetDataForFix_LanguageSpecificExpression(
+            Document document,
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
+            => null;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -50,23 +55,22 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var initialNode = root.FindNode(diagnostic.Location.SourceSpan);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             for (var node = initialNode; node != null; node = node.Parent)
             {
-                if (node is TObjectCreationExpressionSyntax objectCreation)
+                var fixData =
+                    GetDataForFix_InvocationExpressionAsync(document, semanticModel, syntaxFacts, node, cancellationToken) ??
+                    GetDataForFix_ObjectCreationExpressionAsync(document, semanticModel, syntaxFacts, node, cancellationToken) ??
+                    GetDataForFix_LanguageSpecificExpression(document, semanticModel, syntaxFacts, node, cancellationToken);
+
+                if (fixData != null)
                 {
                     var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
-                    await HandleObjectCreationExpressionAsync(context, objectCreation, argumentOpt).ConfigureAwait(false);
-                    return;
-                }
-                else if (node is TInvocationExpressionSyntax invocationExpression)
-                {
-                    var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
-                    await HandleInvocationExpressionAsync(context, invocationExpression, argumentOpt).ConfigureAwait(false);
-                    return;
-                }
-                else if (await HandleLanguageSpecificNodesAsync(initialNode, node, context).ConfigureAwait(false))
-                {
+                    var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(
+                        argumentOpt, semanticModel, syntaxFacts, fixData.Arguments, fixData.MethodCandidates);
+                    RegisterFixForMethodOverloads(context, fixData.Arguments, argumentInsertPositionInMethodCandidates);
                     return;
                 }
             }
@@ -94,60 +98,60 @@ namespace Microsoft.CodeAnalysis.AddParameter
                               .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
         }
 
-        private async Task HandleInvocationExpressionAsync(
-            CodeFixContext context, TInvocationExpressionSyntax invocationExpression, TArgumentSyntax argumentOpt)
+        private static RegisterFixData<TArgumentSyntax> GetDataForFix_InvocationExpressionAsync(
+            Document document,
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (node is TInvocationExpressionSyntax invocationExpression)
+            {
+                var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
+                var candidates = semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IMethodSymbol>().ToImmutableArray();
+                var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+                return new RegisterFixData<TArgumentSyntax>(arguments, candidates);
+            }
 
-            var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-            var candidates = semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IMethodSymbol>().ToImmutableArray();
-
-            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
-            var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(
-                argumentOpt, semanticModel, syntaxFacts, arguments, candidates);
-            RegisterFixForMethodOverloads(context, arguments, argumentInsertPositionInMethodCandidates);
+            return null;
         }
 
-        private async Task HandleObjectCreationExpressionAsync(
-            CodeFixContext context,
-            TObjectCreationExpressionSyntax objectCreation,
-            TArgumentSyntax argumentOpt)
+        private static RegisterFixData<TArgumentSyntax> GetDataForFix_ObjectCreationExpressionAsync(
+            Document document,
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            // Not supported if this is "new { ... }" (as there are no parameters at all.
-            var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
-            if (typeNode == null)
+            if (node is TObjectCreationExpressionSyntax objectCreation)
             {
-                return;
+
+                // Not supported if this is "new { ... }" (as there are no parameters at all.
+                var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
+                if (typeNode == null)
+                {
+                    return null;
+                }
+
+                // If we can't figure out the type being created, or the type isn't in source,
+                // then there's nothing we can do.
+                if (!(semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() is INamedTypeSymbol type))
+                {
+                    return null;
+                }
+
+                if (!type.IsNonImplicitAndFromSource())
+                {
+                    return null;
+                }
+
+                var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
+                var methodCandidates = type.InstanceConstructors;
+
+                return new RegisterFixData<TArgumentSyntax>(arguments, methodCandidates);
             }
 
-            // If we can't figure out the type being created, or the type isn't in source,
-            // then there's nothing we can do.
-            var type = semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() as INamedTypeSymbol;
-            if (type == null)
-            {
-                return;
-            }
-
-            if (!type.IsNonImplicitAndFromSource())
-            {
-                return;
-            }
-
-            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
-            var methodCandidates = type.InstanceConstructors;
-
-            var insertionData = GetArgumentInsertPositionForMethodCandidates(
-                argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
-
-            RegisterFixForMethodOverloads(context, arguments, insertionData);
+            return null;
         }
 
         protected ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(

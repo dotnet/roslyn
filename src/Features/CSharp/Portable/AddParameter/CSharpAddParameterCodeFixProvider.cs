@@ -2,8 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
@@ -44,15 +43,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         protected override ImmutableArray<string> CannotConvertDiagnosticIds
             => GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds;
 
-        protected override async Task<bool> HandleLanguageSpecificNodesAsync(SyntaxNode initialNode, SyntaxNode node, CodeFixContext context)
+        protected override RegisterFixData<ArgumentSyntax> GetDataForFix_LanguageSpecificExpression(
+            Document document,
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
             if (node is ConstructorInitializerSyntax constructorInitializer)
             {
-                var document = context.Document;
-                var cancellationToken = context.CancellationToken;
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
                 var constructorDeclaration = constructorInitializer.Parent;
                 if (semanticModel.GetDeclaredSymbol(constructorDeclaration, cancellationToken) is IMethodSymbol constructorSymbol)
                 {
@@ -73,19 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
                         }
 
                         var arguments = constructorInitializer.ArgumentList.Arguments;
-                        var argumentOpt = TryGetRelevantArgument(initialNode, node, context.Diagnostics.First());
-
-                        var insertionData = GetArgumentInsertPositionForMethodCandidates(
-                            argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
-
-                        RegisterFixForMethodOverloads(context, arguments, insertionData);
+                        return new RegisterFixData<ArgumentSyntax>(arguments, methodCandidates);
                     }
                 }
-
-                return true;
             }
 
-            return false;
+            return null;
         }
     }
 }
