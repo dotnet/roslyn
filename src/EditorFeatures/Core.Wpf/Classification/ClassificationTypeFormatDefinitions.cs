@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// #define dark_theme
+#define dark_theme
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
 
+#if dark_theme
+        private static readonly Color s_stringEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
+#else
+        private static readonly Color s_stringEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
+#endif
+
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StringEscapeCharacter)]
         [Name(ClassificationTypeNames.StringEscapeCharacter)]
@@ -75,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private StringEscapeFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Escape_Character;
-                // this.ForegroundColor = Color.FromRgb(215, 186, 125);
-                this.ForegroundColor = Color.FromRgb(255, 0, 0);
+                this.ForegroundColor = s_stringEscapeColor;
+                // this.ForegroundColor = Color.FromRgb(255, 0, 0);
                 // this.IsBold = true;
             }
         }
