@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         /// There are some exceptions to this rule. Returning null indicates that the fixer needs
         /// to find the relevant argument by itself.
         /// </summary>
-        protected TArgumentSyntax TryGetRelevantArgument(
+        private TArgumentSyntax TryGetRelevantArgument(
             SyntaxNode initialNode, SyntaxNode node, Diagnostic diagnostic)
         {
             if (this.TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        protected ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
+        private static ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
             TArgumentSyntax argumentOpt,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
@@ -197,10 +197,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return methodsAndArgumentToAdd.ToImmutableAndFree();
         }
 
-        private int NonParamsParameterCount(IMethodSymbol method)
+        private static int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
-        protected void RegisterFixForMethodOverloads(
+        private void RegisterFixForMethodOverloads(
             CodeFixContext context,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
                         miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private TArgumentSyntax DetermineFirstArgumentToAdd(
+        private static TArgumentSyntax DetermineFirstArgumentToAdd(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             StringComparer comparer,
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        private bool TypeInfoMatchesWithParamsExpansion(
+        private static bool TypeInfoMatchesWithParamsExpansion(
             TypeInfo argumentTypeInfo, IParameterSymbol parameter,
             bool isNullLiteral, bool isDefaultLiteral)
         {
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        private bool TypeInfoMatchesType(
+        private static bool TypeInfoMatchesType(
             TypeInfo argumentTypeInfo, ITypeSymbol type,
             bool isNullLiteral, bool isDefaultLiteral)
         {
