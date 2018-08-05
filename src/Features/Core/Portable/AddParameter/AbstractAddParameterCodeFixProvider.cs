@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             for (var node = initialNode; node != null; node = node.Parent)
             {
                 var fixData =
-                    GetDataForFix_InvocationExpressionAsync(document, semanticModel, syntaxFacts, node, cancellationToken) ??
-                    GetDataForFix_ObjectCreationExpressionAsync(document, semanticModel, syntaxFacts, node, cancellationToken) ??
+                    GetDataForFix_InvocationExpression(document, semanticModel, syntaxFacts, node, cancellationToken) ??
+                    GetDataForFix_ObjectCreationExpression(document, semanticModel, syntaxFacts, node, cancellationToken) ??
                     GetDataForFix_LanguageSpecificExpression(document, semanticModel, syntaxFacts, node, cancellationToken);
 
                 if (fixData != null)
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                               .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
         }
 
-        private static RegisterFixData<TArgumentSyntax> GetDataForFix_InvocationExpressionAsync(
+        private static RegisterFixData<TArgumentSyntax> GetDataForFix_InvocationExpression(
             Document document,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        private static RegisterFixData<TArgumentSyntax> GetDataForFix_ObjectCreationExpressionAsync(
+        private static RegisterFixData<TArgumentSyntax> GetDataForFix_ObjectCreationExpression(
             Document document,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
