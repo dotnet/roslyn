@@ -1819,7 +1819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return type.IsNull ?
                     expr :
-                    new BoundValuePlaceholder(expr.Syntax, type.IsNullable, type.TypeSymbol);
+                    new BoundExpressionWithNullability(expr.Syntax, expr, type.IsNullable, type.TypeSymbol);
             }
 
             (BoundExpression, TypeSymbolWithAnnotations) visitConditionalOperand(LocalState state, BoundExpression operand)
@@ -2533,9 +2533,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                 {
                     // 'out var' doesn't contribute to inference
-                    return new BoundValuePlaceholder(argument.Syntax, isNullable: null, type: null);
+                    return new BoundExpressionWithNullability(argument.Syntax, argument, isNullable: null, type: null);
                 }
-                return new BoundValuePlaceholder(argument.Syntax, argumentType.IsNullable, argumentType.TypeSymbol);
+                return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.IsNullable, argumentType.TypeSymbol);
             }
         }
 

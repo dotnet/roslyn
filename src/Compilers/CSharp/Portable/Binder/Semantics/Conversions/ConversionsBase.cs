@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(sourceExpression != null);
             Debug.Assert((object)destination != null);
 
+            if (sourceExpression.Kind == BoundKind.ExpressionWithNullability)
+            {
+                sourceExpression = ((BoundExpressionWithNullability)sourceExpression).Expression;
+            }
+
             var sourceType = sourceExpression.Type;
 
             //PERF: identity conversion is by far the most common implicit conversion, check for that first

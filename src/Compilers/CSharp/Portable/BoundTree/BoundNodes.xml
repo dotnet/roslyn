@@ -1733,9 +1733,10 @@
     <Field Name="Initializer" Type="BoundExpressionStatement" Null="allow"/>
   </Node>
 
-  <!-- Special node, used only during nullability flow analysis -->
-  <!-- PROTOTYPE(NullableReferenceTypes): Derive from BoundValuePlaceholderBase and give specific name. -->
-  <Node Name="BoundValuePlaceholder" Base="BoundExpression">
+  <!-- Node only used during nullability flow analysis to represent an expression with an updated nullability -->
+  <!-- PROTOTYPE(NullableReferenceTypes): Derive from BoundValuePlaceholderBase. -->
+  <Node Name="BoundExpressionWithNullability" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/> <!-- We use null Type for placeholders representing out vars -->
     <Field Name="IsNullable" Type="bool?" Null="allow"/>
   </Node>

@@ -188,6 +188,47 @@ class C
                 );
         }
 
+        [Fact, WorkItem(26812, "https://github.com/dotnet/roslyn/issues/26812")]
+        public void DoubleAssignment()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using static System.Console;
+class C
+{
+    static void Main()
+    {
+        string? x;
+        x = x = """";
+        WriteLine(x.Length);
+        string? y;
+        x = y = """";
+        WriteLine(x.Length);
+        WriteLine(y.Length);
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(26746, "https://github.com/dotnet/roslyn/issues/26746")]
+        public void TernaryWithConversionFromExpression()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C 
+{
+    public void M() 
+    {
+        uint a = 0;
+        uint x = true ? a : 1;
+        uint y = true ? 1 : a;
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
         [Fact]
         public void NullableAttribute_NotRequiredCSharp7_01()
         {
@@ -28894,20 +28935,23 @@ class C<T>
         var a1 = new[] { x, y }; // 1
         var a2 = new[] { x!, y }; // 2
         var a3 = new[] { x, y! }; // 3
-        var a4 = new[] { x!, y! };
+        var a4 = new[] { x!, y! }; // 4
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): There should be a ErrorCode.WRN_NoBestNullabilityArrayElements warning on (2)
-            // since InferBestType fails.
-
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,29): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         var a1 = new[] { x, y }; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(6, 29),
+                // (7,30): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                //         var a2 = new[] { x!, y }; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(7, 30),
                 // (8,29): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         var a3 = new[] { x, y! }; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(8, 29)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(8, 29),
+                // (9,30): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                //         var a4 = new[] { x!, y! }; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(9, 30)
                 );
         }
 
@@ -29176,11 +29220,11 @@ class C
     static void F(B<object?> b1, B<object> b2)
     {
         A<object> a1;
-        a1 = b1;
-        a1 = b1!;
+        a1 = b1; // 1
+        a1 = b1!; // 2
         A<object?> a2;
-        a2 = b2;
-        a2 = b2!;
+        a2 = b2; // 3
+        a2 = b2!; // 4
     }
 }";
             var comp = CreateCompilation(
@@ -29188,11 +29232,18 @@ class C
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,14): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'A<object>'.
-                //         a1 = b1;
+                //         a1 = b1; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("A<object?>", "A<object>").WithLocation(11, 14),
+                // (12,14): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'A<object>'.
+                //         a1 = b1!; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1!").WithArguments("A<object?>", "A<object>").WithLocation(12, 14),
                 // (14,14): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
-                //         a2 = b2;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("A<object>", "A<object?>").WithLocation(14, 14));
+                //         a2 = b2; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("A<object>", "A<object?>").WithLocation(14, 14),
+                // (15,14): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
+                //         a2 = b2!; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2!").WithArguments("A<object>", "A<object?>").WithLocation(15, 14)
+                );
         }
 
         [Fact]
