@@ -20,13 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodSymbol = methodSymbol;
         }
 
-        internal override Symbol ContainingMemberOrLambda
-        {
-            get
-            {
-                return _methodSymbol;
-            }
-        }
+        internal override Symbol ContainingMemberOrLambda => _methodSymbol;
+
+        protected override bool InExecutableBinder => false;
 
         protected override MultiDictionary<string, TypeParameterSymbol> TypeParameterMap
         {

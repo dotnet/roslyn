@@ -37809,34 +37809,43 @@ class C
     void M1()
     {
         local(new C(), new C(), new C(), null);
-        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T? { }
+        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+        {
+            T? x = t;
+            x!.ToString();
+        }
     }
     [System.Runtime.CompilerServices.NonNullTypes(false)]
     void M2()
     {
         local(new C(), new C(), new C(), null);
-        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T? { }
+        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+        {
+            T? x = t; // warn 1
+            x!.ToString();
+        }
     }
     void M3()
     {
         local(new C(), new C(), new C(), null);
-        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T? { }
+        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+        {
+            T? x = t; // warn 2
+            x!.ToString(); // warn 3
+        }
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (14,45): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
-                //         void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 45),
-                // (14,74): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
-                //         void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 74),
-                // (19,45): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
-                //         void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 45),
-                // (19,74): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
-                //         void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 74)
+                // (20,14): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //             T? x = t; // warn 1
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 14),
+                // (29,14): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //             T? x = t; // warn 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(29, 14),
+                // (30,13): warning CS8629: The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.
+                //             x!.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "x!").WithLocation(30, 13)
                 );
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
