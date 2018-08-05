@@ -670,6 +670,8 @@ namespace NS
         public async Task RenameTrackingOnReference_Attribute()
         {
             var code = @"
+using System;
+
 class [|Custom|]$$Attribute : Attribute
 {
 }
@@ -679,6 +681,8 @@ class [|Custom|]$$Attribute : Attribute
                 state.EditorOperations.InsertText("s");
                 await state.AssertTag("CustomAttribute", "CustomsAttribute", invokeAction: true);
                 var expectedCode = @"
+using System;
+
 class CustomsAttribute : Attribute
 {
 }
