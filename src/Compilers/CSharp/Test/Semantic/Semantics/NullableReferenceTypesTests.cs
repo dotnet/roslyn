@@ -37808,19 +37808,19 @@ class C
     [System.Runtime.CompilerServices.NonNullTypes(true)]
     void M1()
     {
-        local(new C(), new C(), null);
-        void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+        local(new C(), new C(), new C(), null);
+        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T? { }
     }
     [System.Runtime.CompilerServices.NonNullTypes(false)]
     void M2()
     {
-        local(new C(), new C(), null);
-        void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+        local(new C(), new C(), new C(), null);
+        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T? { }
     }
     void M3()
     {
-        local(new C(), new C(), null);
-        void local<T, T2>(T t, T2 t2, string? s) where T : C where T2 : C? { }
+        local(new C(), new C(), new C(), null);
+        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T? { }
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
