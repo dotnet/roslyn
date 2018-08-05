@@ -20,29 +20,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override ImportChain ImportChain
-            => null;
+        {
+            get
+            {
+                return null;
+            }
+        }
 
         /// <summary>
         /// Get <see cref="QuickAttributeChecker"/> that can be used to quickly
         /// check for certain attribute applications in context of this binder.
         /// </summary>
         internal override QuickAttributeChecker QuickAttributeChecker
-            => QuickAttributeChecker.Predefined;
+        {
+            get
+            {
+                return QuickAttributeChecker.Predefined;
+            }
+        }
 
         internal override Imports GetImports(ConsList<Symbol> basesBeingResolved)
-            => Imports.Empty;
+        {
+            return Imports.Empty;
+        }
 
         protected override SourceLocalSymbol LookupLocal(SyntaxToken nameToken)
-            => null;
+        {
+            return null;
+        }
 
         protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
-            => null;
+        {
+            return null;
+        }
 
-        internal override uint LocalScopeDepth
-            => Binder.ExternalScope;
+        internal override uint LocalScopeDepth => Binder.ExternalScope;
 
-        protected override bool InExecutableBinder
-            => false;
+        protected override bool InExecutableBinder => false;
 
         internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
         {

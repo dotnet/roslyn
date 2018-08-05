@@ -42,13 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override Symbol ContainingMemberOrLambda
-            => _memberSymbol ?? Next.ContainingMemberOrLambda;
-
-        internal Symbol MemberSymbol
-            => _memberSymbol;
+        {
+            get { return _memberSymbol ?? Next.ContainingMemberOrLambda; }
+        }
 
         protected override bool InExecutableBinder
             => true;
+
+        internal Symbol MemberSymbol { get { return _memberSymbol; } }
 
         internal override Binder GetBinder(SyntaxNode node)
         {

@@ -161,7 +161,7 @@ class C
         }
 
         [Fact]
-        public void TestSuppressionWithoutNonNullTypes()
+        public void SuppressionWithoutNonNullTypes()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -189,7 +189,7 @@ class C
         }
 
         [Fact]
-        public void TestAnnotationWithoutNonNullTypes()
+        public void AnnotationWithoutNonNullTypes()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
