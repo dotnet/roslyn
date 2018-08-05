@@ -82,52 +82,30 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRename()
         {
             var markup = @"
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-[|My|]
-class Program
+class [|Custom|]$$Attribute : Attribute
 {
-    static void Main(string[] args)
-    {
-         Console.WriteLine(""Hello World!"");
-    }
-    private class |My|Attribute : Attribute
-    {
-    }
-}";
-            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
-            {
-                SetUpEditor(markup);
-                InlineRenameDialog.Invoke();
+}
+";
+            SetUpEditor(markup);
+            InlineRenameDialog.Invoke();
 
-                MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-                var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
-                AssertEx.SetEqual(renameSpans, tags);
+            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            AssertEx.SetEqual(renameSpans, tags);
 
-                VisualStudio.Editor.SendKeys(VirtualKey.T, VirtualKey.E, VirtualKey.S, VirtualKey.T, VirtualKey.Enter);
-                VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudio.Editor.SendKeys("Customs", VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-[TEST]
-class Program
+class CustomsAttribute : Attribute
 {
-    static void Main(string[] args)
-    {
-         Console.WriteLine(""Hello World!"");
-    }
-    private class TESTAttribute : Attribute
-    {
-    }
 }");
-                telemetry.VerifyFired("vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore");
-            }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]

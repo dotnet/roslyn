@@ -666,19 +666,20 @@ namespace NS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public async Task RenameTrackingOnReference_Attribute()
         {
             var code = @"
-class My$$Attribute : Attribute
+class [|Custom|]$$Attribute : Attribute
 {
 }
 ";
             using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
             {
                 state.EditorOperations.InsertText("s");
-                await state.AssertTag("MyAttribute", "MysAttribute", invokeAction: true);
+                await state.AssertTag("CustomAttribute", "CustomsAttribute", invokeAction: true);
                 var expectedCode = @"
-class MysAttribute : Attribute
+class CustomsAttribute : Attribute
 {
 }
 ";
