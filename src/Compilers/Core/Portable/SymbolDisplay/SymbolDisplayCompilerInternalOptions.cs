@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis
         IncludeNonNullableTypeModifier = 1 << 6,
 
         /// <summary>
+        /// Append '_' to non-nullable reference types.
+        /// </summary>
+        IncludeUnannotatedTypeModifier = 1 << 7,
+
+        /// <summary>
         /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
         /// </summary>
         UseValueTuple = 1 << 7,
