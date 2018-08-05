@@ -4133,6 +4133,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
+            var unwrappedValue = SkipReferenceConversions(value);
+            if (unwrappedValue.Kind == BoundKind.SuppressNullableWarningExpression)
+            {
+                return false;
+            }
             ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
             return true;
         }

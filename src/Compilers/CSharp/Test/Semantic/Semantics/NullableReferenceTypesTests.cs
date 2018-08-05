@@ -232,6 +232,22 @@ class C
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "G").WithLocation(13, 32));
         }
 
+        [Fact, WorkItem(26739, "https://github.com/dotnet/roslyn/issues/26618")]
+        public void SuppressionOnNullConvertedToConstrainedTypeParameterType()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+public class C
+{
+    public T M<T>() where T : C
+    {
+        return null!;
+    }
+}
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
         [Fact]
         public void MissingInt()
         {
