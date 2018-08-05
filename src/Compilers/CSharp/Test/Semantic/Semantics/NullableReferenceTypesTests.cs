@@ -257,49 +257,37 @@ class C
         public void AnnotationWithoutNonNullTypes_GenericType()
         {
             CSharpCompilation c = CreateCompilation(@"
-public class C<T>
+public class C<T> where T : class
 {
     public T? M(T? x1)
     {
-        T? y1 = x1; // warn 1
+        T? y1 = x1; // warn
         return y1;
-    }
-}
-public class D<T> where T : class
-{
-    public T? M(T? x2)
-    {
-        T? y2 = x2; // warn 2
-        return y2;
     }
 }
 public class E<T> where T : struct
 {
-    public T? M(T? x3)
+    public T? M(T? x2)
     {
-        T? y3 = x3;
-        return y3;
+        T? y2 = x2;
+        return y2;
     }
 }
 ", parseOptions: TestOptions.Regular8);
 
             // PROTOTYPE(NullableReferenceTypes): we need to warn on misuse of annotation every place a type could appear (not just in executable code)
             c.VerifyDiagnostics(
-                // (14,10): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
-                //         T? y2 = x2; // warn 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 10),
-                // (6,10): warning CS8628: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
-                //         T? y1 = x1; // warn 1
+                // (6,10): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         T? y1 = x1; // warn
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 10)
                 );
 
             var client = @"
 class Client
 {
-    void M(C<string> c, D<string> d)
+    void M(C<string> c)
     {
         c.M("""").ToString();
-        d.M("""").ToString();
     }
 }
 ";
@@ -307,10 +295,7 @@ class Client
             comp2.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         c.M("").ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"c.M("""")").WithLocation(6, 9),
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         d.M("").ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"d.M("""")").WithLocation(7, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"c.M("""")").WithLocation(6, 9)
                 );
         }
 
@@ -38387,9 +38372,19 @@ public class A6<T> where T : IEquatable<int?> { }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
             // PROTOTYPE(NullableReferenceTypes): Should report a warning for A0<string?>() and A2<string>().
             comp.VerifyDiagnostics(
+                // (5,22): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A0<string?>(); // warning
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
+                // (7,22): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A2<string?>();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 22),
+                // (9,22): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A5<string?>();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22),
                 // (9,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A5<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
                 //         new A5<string?>();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A5<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(9, 16));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A5<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(9, 16)
+                );
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
@@ -38403,7 +38398,17 @@ public class A6<T> where T : IEquatable<int?> { }";
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
             // PROTOTYPE(NullableReferenceTypes): Should report same warnings as other two cases.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,22): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A0<string?>(); // warning
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
+                // (7,22): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A2<string?>();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 22),
+                // (9,22): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A5<string?>();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22)
+                );
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
@@ -38418,9 +38423,19 @@ public class A6<T> where T : IEquatable<int?> { }";
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
             // PROTOTYPE(NullableReferenceTypes): Should report a warning for A0<string?>() and A2<string>().
             comp.VerifyDiagnostics(
+                // (5,22): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A0<string?>(); // warning
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
+                // (7,22): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A2<string?>();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 22),
+                // (9,22): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A5<string?>();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22),
                 // (9,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A5<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
                 //         new A5<string?>();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A5<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(9, 16));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A5<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(9, 16)
+                );
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
