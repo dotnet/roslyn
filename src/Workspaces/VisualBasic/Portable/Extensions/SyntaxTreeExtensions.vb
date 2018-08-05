@@ -116,7 +116,7 @@ recurse:
                 Return True
             End If
 
-            ' If it is a numeric literal, all checks are done and we're okay. 
+            ' If it is a numeric literal, all checks are done and we're okay.
             If token.IsKind(SyntaxKind.IntegerLiteralToken, SyntaxKind.DecimalLiteralToken,
                             SyntaxKind.DateLiteralToken, SyntaxKind.FloatingLiteralToken) Then
                 Return False
@@ -256,7 +256,7 @@ recurse:
         Public Function GetMembersInSpan(root As SyntaxNode,
                                          textSpan As TextSpan) As ImmutableArray(Of StatementSyntax)
 
-            Dim token = root.FindToken(textSpan.Start)
+            Dim token = root.FindTokenOnRightOfPosition(textSpan.Start)
             Dim firstMember = token.GetAncestors(Of StatementSyntax).
                                     Where(Function(s) TypeOf s.Parent Is TypeBlockSyntax).
                                     FirstOrDefault()
