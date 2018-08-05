@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
             => GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds;
 
         protected override RegisterFixData<ArgumentSyntax> GetDataForFix_LanguageSpecificExpression(
-            Document document,
             SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {

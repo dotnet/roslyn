@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
         protected virtual RegisterFixData<TArgumentSyntax> GetDataForFix_LanguageSpecificExpression(
-            Document document,
             SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
             SyntaxNode node,
             CancellationToken cancellationToken)
             => null;
@@ -61,9 +59,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
             for (var node = initialNode; node != null; node = node.Parent)
             {
                 var fixData =
-                    GetDataForFix_InvocationExpression(document, semanticModel, syntaxFacts, node, cancellationToken) ??
-                    GetDataForFix_ObjectCreationExpression(document, semanticModel, syntaxFacts, node, cancellationToken) ??
-                    GetDataForFix_LanguageSpecificExpression(document, semanticModel, syntaxFacts, node, cancellationToken);
+                    GetDataForFix_InvocationExpression(semanticModel, syntaxFacts, node, cancellationToken) ??
+                    GetDataForFix_ObjectCreationExpression(semanticModel, syntaxFacts, node, cancellationToken) ??
+                    GetDataForFix_LanguageSpecificExpression(semanticModel, node, cancellationToken);
 
                 if (fixData != null)
                 {
@@ -99,7 +97,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static RegisterFixData<TArgumentSyntax> GetDataForFix_InvocationExpression(
-            Document document,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode node,
@@ -117,7 +114,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static RegisterFixData<TArgumentSyntax> GetDataForFix_ObjectCreationExpression(
-            Document document,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode node,
