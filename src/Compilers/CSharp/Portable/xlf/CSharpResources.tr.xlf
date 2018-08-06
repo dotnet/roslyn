@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
+        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</source>
+        <target state="new">To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
@@ -10,6 +15,11 @@
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="new">An out variable cannot be declared as a ref local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
+        <source>alternative interpolated verbatim strings</source>
+        <target state="new">alternative interpolated verbatim strings</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
