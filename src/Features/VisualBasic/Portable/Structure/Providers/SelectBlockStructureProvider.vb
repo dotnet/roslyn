@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class SelectBlockStructureProvider
-        Inherits BlockStructureProvider(Of SelectBlockSyntax, SelectStatementSyntax, CaseBlockSyntax, CaseBlockSyntax, EndBlockStatementSyntax)
+        Inherits InternalStructureBlockStructureProvider(Of SelectBlockSyntax, SelectStatementSyntax, CaseBlockSyntax, CaseBlockSyntax, EndBlockStatementSyntax)
 
         Friend Sub New(IncludeAdditionalInternalSpans As Boolean)
             MyBase.New(IncludeAdditionalInternalSpans)

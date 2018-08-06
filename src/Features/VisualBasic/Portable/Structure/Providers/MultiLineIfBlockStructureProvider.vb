@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class MultiLineIfBlockStructureProvider
-        Inherits BlockStructureProvider(Of MultiLineIfBlockSyntax, IfStatementSyntax, ElseIfBlockSyntax, ElseBlockSyntax, EndBlockStatementSyntax)
+        Inherits InternalStructureBlockStructureProvider(Of MultiLineIfBlockSyntax, IfStatementSyntax, ElseIfBlockSyntax, ElseBlockSyntax, EndBlockStatementSyntax)
 
         Friend Sub New(IncludeAdditionalInternalSpans As Boolean)
             MyBase.New(IncludeAdditionalInternalSpans)

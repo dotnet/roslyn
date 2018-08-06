@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class TryBlockStructureProvider
-        Inherits BlockStructureProvider(Of TryBlockSyntax, TryStatementSyntax, CatchBlockSyntax, FinallyBlockSyntax, EndBlockStatementSyntax)
+        Inherits InternalStructureBlockStructureProvider(Of TryBlockSyntax, TryStatementSyntax, CatchBlockSyntax, FinallyBlockSyntax, EndBlockStatementSyntax)
 
         Friend Sub New(IncludeAdditionalInternalSpans As Boolean)
             MyBase.New(IncludeAdditionalInternalSpans)

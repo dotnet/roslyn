@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
-    Friend MustInherit Class BlockStructureProvider(Of TBlock As SyntaxNode, THeaderStatement As SyntaxNode, TInnerBlock As SyntaxNode, TPreEndBlock As SyntaxNode, TEndOfBlockStatement As SyntaxNode)
+    Friend MustInherit Class InternalStructureBlockStructureProvider(Of TBlock As SyntaxNode, THeaderStatement As SyntaxNode, TInnerBlock As SyntaxNode, TPreEndBlock As SyntaxNode, TEndOfBlockStatement As SyntaxNode)
         Inherits AbstractSyntaxNodeStructureProvider(Of TBlock)
 
         Public ReadOnly IncludeAdditionalInternalStructuralOutlinings As Boolean
