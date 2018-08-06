@@ -66,17 +66,17 @@ function Copy-InsertionItems() {
         $items += "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.Resources.$($language).vsmand"
         $items += "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.Resources.$($language).json"
 
-        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.$($langauge).vsix"
-        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.$($langauge).vsmand"
-        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.$($langauge).json"
+        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.$($language).vsix"
+        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.$($language).vsmand"
+        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.$($language).json"
 
-        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.Resources.$($langauge).vsix"
-        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.Resources.$($langauge).vsmand"
-        $items += "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.Resources.$($langauge).json"
+        $items += "Vsix\Roslyn.VisualStudio.InteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.Resources.$($language).vsix"
+        $items += "Vsix\Roslyn.VisualStudio.InteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.Resources.$($language).vsmand"
+        $items += "Vsix\Roslyn.VisualStudio.InteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.Resources.$($language).json"
 
-        $items += "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.$($langauge).vsix"
-        $items += "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.$($langauge).vsmand"
-        $items += "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.$($langauge).json"
+        $items += "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.$($language).vsix"
+        $items += "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.$($language).vsmand"
+        $items += "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.$($language).json"
     }
 
     foreach ($item in $items) { 
