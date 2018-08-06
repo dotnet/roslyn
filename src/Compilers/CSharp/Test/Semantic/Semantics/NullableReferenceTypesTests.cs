@@ -36323,7 +36323,7 @@ class C
         CopyOut(u, out var x2);
         x2.ToString(); // 2
 
-        CopyOut(u, out var x3);
+        CopyOut(u, out U x3);
         x3.ToString(); // 3
 
         if (u == null) throw null;
