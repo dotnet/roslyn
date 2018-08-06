@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (AssociatedSymbol ?? ContainingType)?.NonNullTypes;
+                return (AssociatedSymbol ?? ContainingSymbol)?.NonNullTypes;
             }
         }
 

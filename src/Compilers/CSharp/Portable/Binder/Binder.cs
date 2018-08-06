@@ -329,6 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _next.GetImports(basesBeingResolved);
         }
 
+        protected virtual bool InExecutableBinder
+            => _next.InExecutableBinder;
+
         /// <summary>
         /// The type containing the binding context
         /// </summary>

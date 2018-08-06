@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override uint LocalScopeDepth => Binder.TopLevelScope;
 
+        protected override bool InExecutableBinder => true;
+
         internal override Symbol ContainingMemberOrLambda
         {
             get

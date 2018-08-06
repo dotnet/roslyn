@@ -385,7 +385,7 @@ namespace System.Runtime.CompilerServices
         P2 = new object?[] { o };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
