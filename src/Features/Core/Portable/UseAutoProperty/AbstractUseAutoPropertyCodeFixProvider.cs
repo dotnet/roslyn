@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 }
             }
 
-            var syntaxRemoveOptions = SyntaxGenerator.DefaultRemoveOptions;
+            var syntaxRemoveOptions = CreateSyntaxRemoveOptions(nodeToRemove);
             if (fieldDocument == propertyDocument)
             {
                 // Same file.  Have to do this in a slightly complicated fashion.
@@ -217,6 +217,19 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 return updatedSolution;
             }
+        }
+
+        private SyntaxRemoveOptions CreateSyntaxRemoveOptions(SyntaxNode nodeToRemove)
+        {
+            var syntaxRemoveOptions = SyntaxGenerator.DefaultRemoveOptions;
+            var hasDirective = nodeToRemove.GetLeadingTrivia().Any(t => t.IsDirective);
+
+            if (hasDirective)
+            {
+                syntaxRemoveOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
+            }
+
+            return syntaxRemoveOptions;
         }
 
         private bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
