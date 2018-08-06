@@ -1,0 +1,85 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+using Xunit;
+
+namespace Test.Utilities.CodeMetrics
+{
+    public abstract class CodeMetricsTestBase
+    {
+        private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        private static readonly MetadataReference s_systemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
+        private static readonly CompilationOptions s_CSharpDefaultOptions = new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CompilationOptions s_visualBasicDefaultOptions = new Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+        internal static string DefaultFilePathPrefix = "Test";
+        internal static string CSharpDefaultFileExt = "cs";
+        internal static string VisualBasicDefaultExt = "vb";
+        internal static string CSharpDefaultFilePath = DefaultFilePathPrefix + 0 + "." + CSharpDefaultFileExt;
+        internal static string VisualBasicDefaultFilePath = DefaultFilePathPrefix + 0 + "." + VisualBasicDefaultExt;
+        internal static string TestProjectName = "TestProject";
+
+        protected abstract string GetMetricsDataString(Compilation compilation);
+
+        protected Project CreateProject(string source, string language = LanguageNames.CSharp)
+        {
+            return CreateProject(new[] { source }, language);
+        }
+
+        protected Project CreateProject(string[] sources, string language = LanguageNames.CSharp)
+        {
+            string fileNamePrefix = DefaultFilePathPrefix;
+            string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
+            var options = language == LanguageNames.CSharp ? s_CSharpDefaultOptions : s_visualBasicDefaultOptions;
+
+            var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
+
+            var solution = new AdhocWorkspace().CurrentSolution
+                .AddProject(projectId, TestProjectName, TestProjectName, language)
+                .WithProjectCompilationOptions(projectId, options)
+                .AddMetadataReference(projectId, s_corlibReference)
+                .AddMetadataReference(projectId, s_systemCoreReference);
+
+            int count = 0;
+            foreach (var source in sources)
+            {
+                var newFileName = fileNamePrefix + count + "." + fileExt;
+                var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
+                solution = solution.AddDocument(documentId, newFileName, SourceText.From(source));
+                count++;
+            }
+
+            return solution.GetProject(projectId);
+        }
+
+        protected void VerifyCSharp(string source, string expectedMetricsText, bool expectDiagnostics = false)
+            => Verify(new[] { source }, expectedMetricsText, expectDiagnostics, LanguageNames.CSharp);
+
+        protected void VerifyCSharp(string[] sources, string expectedMetricsText, bool expectDiagnostics = false)
+            => Verify(sources, expectedMetricsText, expectDiagnostics, LanguageNames.CSharp);
+
+        protected void VerifyBasic(string source, string expectedMetricsText, bool expectDiagnostics = false)
+            => Verify(new[] { source }, expectedMetricsText, expectDiagnostics, LanguageNames.VisualBasic);
+
+        protected void VerifyBasic(string[] sources, string expectedMetricsText, bool expectDiagnostics = false)
+            => Verify(sources, expectedMetricsText, expectDiagnostics, LanguageNames.VisualBasic);
+
+        private void Verify(string[] sources, string expectedMetricsText, bool expectDiagnostics, string language)
+        {
+            var project = CreateProject(sources, language);
+            var compilation = project.GetCompilationAsync(CancellationToken.None).Result;
+            var diagnostics = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Warning || d.Severity == DiagnosticSeverity.Error);
+            Assert.Equal(expectDiagnostics, diagnostics.Count() != 0);
+
+            var actualMetricsText = GetMetricsDataString(compilation).Trim();
+            expectedMetricsText = expectedMetricsText.Trim();
+            if (actualMetricsText != expectedMetricsText)
+            {
+                Assert.False(false, $"Expected:\r\n{0}\r\n\r\nActual:\r\n{1}");
+            }
+        }
+    }
+}
