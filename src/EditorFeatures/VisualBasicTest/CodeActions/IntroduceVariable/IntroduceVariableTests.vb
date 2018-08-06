@@ -1390,6 +1390,20 @@ Module Program
 End Module")
         End Function
 
+
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestNotOnAttribute1CommentsAfterLineContinuation() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Explicit Off
+Module Program
+    <Runtime.CompilerServices.[|Extension|]()> _ ' Test
+    Function Extension(ByVal x As Integer) As Integer
+        Return x
+    End Function
+End Module")
+        End Function
+
         <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNotOnAttribute2() As Task
@@ -1403,12 +1417,14 @@ Module Program
 End Module")
         End Function
 
+
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
-        Public Async Function TestNotOnAttribute2CommentAfterLineContinuation() As Task
+        Public Async Function TestNotOnAttribute2CommentsAfterLineContinuation() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Explicit Off
 Module Program
-    <Runtime.CompilerServices.[|Extension()|]> _ 'Test
+    <Runtime.CompilerServices.[|Extension()|]> _ ' Test
     Function Extension(ByVal x As Integer) As Integer
         Return x
     End Function
