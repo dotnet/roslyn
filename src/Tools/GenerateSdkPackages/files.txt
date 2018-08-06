@@ -1,6 +1,3 @@
-Microsoft.VisualStudio.Debugger.Engine.dll
-Microsoft.VisualStudio.Debugger.Metadata.dll
-Microsoft.VisualStudio.Debugger.UI.Interfaces.dll
 Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll
 Microsoft.Internal.Performance.CodeMarkers.DesignTime.dll
 Progression\Microsoft.VisualStudio.Progression.CodeSchema.dll
