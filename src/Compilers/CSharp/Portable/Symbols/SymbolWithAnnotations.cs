@@ -209,12 +209,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((!isAnnotated && typeSymbol is TypeParameterSymbol) ||
                 (isAnnotated && typeSymbol.IsReferenceType && !typeSymbol.IsNullableType()))
             {
-                // T (leave unannotated)
                 // string? (leave annotated)
                 Debug.Assert(!typeSymbol.IsNullableType());
             }
             else
             {
+                // PROTOTYPE(NullableReferenceTypes): Investigate whether we can bind unconstrained type
+                // parameters as annotated during initial binding without causing cycles.
+
+                // Initial binding leaves unconstrained type parameters unannotated, NullableWalker will
+                // set treatUnconstrainedTypeParametersAsNullable where appropriate
+                // T (leave unannotated when treatUnconstrainedTypeParamersAsNullable is false)
+                // T (add annotation when treatUnconstrainedTypeParameterAsNullable is true)
                 // T? where T : class (leave annotated)
                 // string, int (leave unannotated)
                 // int?, T? where T : struct (add annotation)

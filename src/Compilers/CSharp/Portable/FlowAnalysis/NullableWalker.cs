@@ -163,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Investigate remaining IsReferenceType usage for replacement by !IsValueType if necessary.
+
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return true;
@@ -319,10 +321,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // PROTOTYPE(NullableReferenceTypes): Consider setting treatUnconstrainedTypeParameterAsNullable during initial binding, and removing this method.
-        private static TypeSymbolWithAnnotations GetAdjustedType(TypeSymbolWithAnnotations? initialType)
+        /// <summary>
+        /// Adjust the given type, treating unconstrained type parameters as nullable if in the appropriate context. This overrides the current state
+        /// of type parameter.
+        /// </summary>
+        private static TypeSymbolWithAnnotations UnconstrainedTypeParametersAsNullable(TypeSymbolWithAnnotations? initialType)
         {
-            // If the initial type was an unconstrained type parameter, we want to treat it as nullable, overriding
-            // the annotated state.
             if (initialType is null || initialType.Value.IsNull)
             {
                 return default;
@@ -776,15 +780,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < n; i++)
             {
                 var parameter = methodParameters[i];
-                var parameterType = signatureParameters[i].Type;
-                _variableTypes[parameter] = GetAdjustedType(parameterType);
+                var parameterType = UnconstrainedTypeParametersAsNullable(signatureParameters[i].Type);
                 EnterParameter(parameter, parameterType);
             }
         }
 
         private void EnterParameter(ParameterSymbol parameter, TypeSymbolWithAnnotations parameterType)
         {
+            _variableTypes[parameter] = parameterType;
             int slot = GetOrCreateSlot(parameter);
+
             Debug.Assert(!IsConditionalState);
             if (slot > 0 && parameter.RefKind != RefKind.Out)
             {
@@ -928,13 +933,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var method = (MethodSymbol)_member;
             var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnType;
-            returnType = GetAdjustedType(returnType);
+            returnType = UnconstrainedTypeParametersAsNullable(returnType);
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
             return method.IsGenericTaskReturningAsync(compilation) ?
                 ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single() :
                 returnType;
         }
 
+        // Consider making these local functions.
         private static bool IsNullable(TypeSymbolWithAnnotations typeOpt)
         {
             return !typeOpt.IsNull && typeOpt.IsNullable == true;
@@ -986,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (initializer, conversion) = RemoveConversion(initializer, includeExplicitConversions: false);
 
             TypeSymbolWithAnnotations valueType = VisitRvalueWithResult(initializer);
-            TypeSymbolWithAnnotations type = GetAdjustedType(local.Type);
+            TypeSymbolWithAnnotations type = UnconstrainedTypeParametersAsNullable(local.Type);
 
             if (node.DeclaredType.InferredType)
             {
@@ -1895,7 +1901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                _resultType = GetAdjustedType(method.ReturnType);
+                _resultType = UnconstrainedTypeParametersAsNullable(method.ReturnType);
             }
 
             return null;
@@ -2777,7 +2783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(operand);
             TypeSymbolWithAnnotations operandType = _resultType;
-            TypeSymbolWithAnnotations explicitType = GetAdjustedType(node.ConversionGroupOpt?.ExplicitType);
+            TypeSymbolWithAnnotations explicitType = UnconstrainedTypeParametersAsNullable(node.ConversionGroupOpt?.ExplicitType);
             bool fromExplicitCast = !explicitType.IsNull;
             TypeSymbolWithAnnotations resultType = ApplyConversion(node, operand, conversion, explicitType.TypeSymbol ?? node.Type, operandType, checkConversion: !fromExplicitCast, fromExplicitCast: fromExplicitCast, out bool _);
 
@@ -3480,13 +3486,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _variableTypes.TryGetValue(local, out TypeSymbolWithAnnotations type) ?
                 type :
                 local.Type;
+                //UnconstrainedTypeParametersAsNullable(local.Type);
         }
 
         private TypeSymbolWithAnnotations GetDeclaredParameterResult(ParameterSymbol parameter)
         {
             return _variableTypes.TryGetValue(parameter, out TypeSymbolWithAnnotations type) ?
                 type :
-                GetAdjustedType(parameter.Type);
+                UnconstrainedTypeParametersAsNullable(parameter.Type);
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
