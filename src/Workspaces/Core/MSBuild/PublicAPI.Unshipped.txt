@@ -1,0 +1,43 @@
+Microsoft.CodeAnalysis.Host.Mef.MSBuildMefHostServices
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.AssociateFileExtensionWithLanguage(string projectFileExtension, string language) -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadMetadataForReferencedProjects.get -> bool
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadMetadataForReferencedProjects.set -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadProjectInfoAsync(string projectFilePath, Microsoft.CodeAnalysis.MSBuild.ProjectMap projectMap = null, System.IProgress<Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress> progress = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ProjectInfo>>
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadSolutionInfoAsync(string solutionFilePath, System.IProgress<Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress> progress = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.SolutionInfo>
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.MSBuildProjectLoader(Microsoft.CodeAnalysis.Workspace workspace, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null) -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.SkipUnrecognizedProjects.get -> bool
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.SkipUnrecognizedProjects.set -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.AssociateFileExtensionWithLanguage(string projectFileExtension, string language) -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.CloseSolution() -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Diagnostics.get -> System.Collections.Immutable.ImmutableList<Microsoft.CodeAnalysis.WorkspaceDiagnostic>
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.LoadMetadataForReferencedProjects.get -> bool
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.LoadMetadataForReferencedProjects.set -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.OpenProjectAsync(string projectFilePath, System.IProgress<Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress> progress = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.OpenSolutionAsync(string solutionFilePath, System.IProgress<Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress> progress = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.get -> bool
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.set -> void
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadOperation
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadOperation.Build = 1 -> Microsoft.CodeAnalysis.MSBuild.ProjectLoadOperation
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadOperation.Evaluate = 0 -> Microsoft.CodeAnalysis.MSBuild.ProjectLoadOperation
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadOperation.Resolve = 2 -> Microsoft.CodeAnalysis.MSBuild.ProjectLoadOperation
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress.ElapsedTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress.FilePath.get -> string
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress.Operation.get -> Microsoft.CodeAnalysis.MSBuild.ProjectLoadOperation
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress.TargetFramework.get -> string
+Microsoft.CodeAnalysis.MSBuild.ProjectMap
+Microsoft.CodeAnalysis.MSBuild.ProjectMap.Add(Microsoft.CodeAnalysis.Project project) -> void
+override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.CanApplyChange(Microsoft.CodeAnalysis.ApplyChangesKind feature) -> bool
+override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.TryApplyChanges(Microsoft.CodeAnalysis.Solution newSolution) -> bool
+static Microsoft.CodeAnalysis.Host.Mef.MSBuildMefHostServices.DefaultAssemblies.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Assembly>
+static Microsoft.CodeAnalysis.Host.Mef.MSBuildMefHostServices.DefaultServices.get -> Microsoft.CodeAnalysis.Host.Mef.MefHostServices
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create() -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.ProjectMap.Create() -> Microsoft.CodeAnalysis.MSBuild.ProjectMap
+static Microsoft.CodeAnalysis.MSBuild.ProjectMap.Create(Microsoft.CodeAnalysis.Solution solution) -> Microsoft.CodeAnalysis.MSBuild.ProjectMap

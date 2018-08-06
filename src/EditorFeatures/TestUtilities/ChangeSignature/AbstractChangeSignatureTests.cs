@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -37,11 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     optionsService.IsCancelled = isCancelled;
                     optionsService.UpdatedSignature = updatedSignature;
 
-                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, testOptions);
-                    await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions,
-                        conflictSpans: ImmutableArray<Text.TextSpan>.Empty,
-                        renameSpans: ImmutableArray<Text.TextSpan>.Empty,
-                        warningSpans: ImmutableArray<Text.TextSpan>.Empty, ignoreTrivia: true);
+                    var refactoring = await GetCodeRefactoringAsync(workspace, testOptions);
+                    await TestActionAsync(workspace, expectedCode, refactoring.Actions[index],
+                        conflictSpans: ImmutableArray<TextSpan>.Empty,
+                        renameSpans: ImmutableArray<TextSpan>.Empty,
+                        warningSpans: ImmutableArray<TextSpan>.Empty, 
+                        navigationSpans: ImmutableArray<TextSpan>.Empty,
+                        parameters: default);
                 }
             }
             else

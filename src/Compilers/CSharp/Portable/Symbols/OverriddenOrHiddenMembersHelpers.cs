@@ -750,8 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         // NOTE: We're actually being more precise than Dev10 - we consider the fact that the runtime will also distinguish
                         // on the basis of return type.  For example, consider the following signatures:
-                        //      int Foo(ref int x)
-                        //      long Foo(out int x)
+                        //      int Goo(ref int x)
+                        //      long Goo(out int x)
                         // Dev10 will warn that these methods are runtime ambiguous, even though they aren't really (because they are
                         // distinguished by their return types).
                         if (MemberSignatureComparer.RuntimeSignatureComparer.Equals(otherMember, representativeMember))

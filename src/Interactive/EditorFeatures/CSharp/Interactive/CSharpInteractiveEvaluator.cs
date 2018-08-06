@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 commands,
                 (responseFileDirectory != null) ? Path.Combine(responseFileDirectory, InteractiveResponseFile) : null,
                 initialWorkingDirectory,
-                typeof(InteractiveHostEntryPoint).Assembly.Location,
                 typeof(CSharpReplServiceProvider))
         {
         }
@@ -60,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 usings: imports,
                 sourceReferenceResolver: sourceReferenceResolver,
                 metadataReferenceResolver: metadataReferenceResolver,
-                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
+                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
+                ).WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes);
         }
 
         public override bool CanExecuteCode(string text)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
         protected override CommandLineParser CommandLineParser
         {
-            get { return CSharpCommandLineParser.ScriptRunner; }
+            get { return CSharpCommandLineParser.Script; }
         }
     }
 }

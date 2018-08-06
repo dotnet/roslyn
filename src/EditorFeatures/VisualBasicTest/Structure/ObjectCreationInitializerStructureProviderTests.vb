@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
 Class C
     Sub M()
         dim d = {|hintspan:new Dictionary(of integer, string){|textspan: $$From {
-            { 1, ""foo"" }
+            { 1, ""goo"" }
         }|}|}
     End Sub
 End Class

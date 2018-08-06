@@ -693,7 +693,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -773,7 +773,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -847,7 +847,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -886,18 +886,18 @@ End Interface
 Class C
     Implements IA(Of Integer), IB
 
-    Sub Foo(ByVal x As Action(Of Integer))
+    Sub Goo(ByVal x As Action(Of Integer))
         System.Console.WriteLine(1)
         x(1)
     End Sub
 
-    Sub Foo(ByVal x As Action(Of String))
+    Sub Goo(ByVal x As Action(Of String))
         System.Console.WriteLine(2)
         x("2")
     End Sub
 
     Sub Baz()
-        Foo(AddressOf Bar)
+        Goo(AddressOf Bar)
     End Sub
 End Class
 

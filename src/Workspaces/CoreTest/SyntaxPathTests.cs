@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Hi"));
 
             var path = new SyntaxPath(node);
-            Assert.False(path.TryResolve(SyntaxFactory.ParseExpression("Foo()"), out SyntaxNode recovered));
+            Assert.False(path.TryResolve(SyntaxFactory.ParseExpression("Goo()"), out SyntaxNode recovered));
         }
 
         [Fact]
         public void RecoverChild()
         {
-            var node = SyntaxFactory.ParseExpression("Foo()");
+            var node = SyntaxFactory.ParseExpression("Goo()");
             var child = ((InvocationExpressionSyntax)node).ArgumentList;
             var path = new SyntaxPath(child);
             Assert.True(path.TryResolve(node, out SyntaxNode recovered));
@@ -46,27 +46,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void FailChildCount()
         {
-            var root = SyntaxFactory.ParseExpression("Foo(a, b)");
+            var root = SyntaxFactory.ParseExpression("Goo(a, b)");
             var path = new SyntaxPath(((InvocationExpressionSyntax)root).ArgumentList.Arguments.Last());
 
-            var root2 = SyntaxFactory.ParseExpression("Foo(a)");
+            var root2 = SyntaxFactory.ParseExpression("Goo(a)");
             Assert.False(path.TryResolve(root2, out SyntaxNode recovered));
         }
 
         [Fact]
         public void FailChildType()
         {
-            var root = SyntaxFactory.ParseExpression("Foo(a)");
+            var root = SyntaxFactory.ParseExpression("Goo(a)");
             var path = new SyntaxPath(((InvocationExpressionSyntax)root).ArgumentList.Arguments.First().Expression);
 
-            var root2 = SyntaxFactory.ParseExpression("Foo(3)");
+            var root2 = SyntaxFactory.ParseExpression("Goo(3)");
             Assert.False(path.TryResolve(root2, out SyntaxNode recovered));
         }
 
         [Fact]
         public void RecoverGeneric()
         {
-            var root = SyntaxFactory.ParseExpression("Foo()");
+            var root = SyntaxFactory.ParseExpression("Goo()");
             var node = ((InvocationExpressionSyntax)root).ArgumentList;
             var path = new SyntaxPath(node);
             Assert.True(path.TryResolve(root, out ArgumentListSyntax recovered));
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var path1 = new SyntaxPath(class1);
             var path2 = new SyntaxPath(class2);
 
-            tree = WithReplaceFirst(tree, "C {", "C : Foo {");
+            tree = WithReplaceFirst(tree, "C {", "C : Goo {");
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out SyntaxNode n1));
             Assert.True(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode n2));
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text =
 @"namespace N {
     class C {
-      void Foo();
+      void Goo();
     }
     class D {
     }
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var path1 = new SyntaxPath(class1);
             var path2 = new SyntaxPath(class2);
 
-            tree = WithReplaceFirst(WithReplaceFirst(tree, "class", "/* foo */ class"), "struct", "/* bar */ struct");
+            tree = WithReplaceFirst(WithReplaceFirst(tree, "class", "/* goo */ class"), "struct", "/* bar */ struct");
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out SyntaxNode n1));
             Assert.True(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode n2));
 

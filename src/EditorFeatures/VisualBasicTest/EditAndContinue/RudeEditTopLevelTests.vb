@@ -449,8 +449,8 @@ Imports System.Diagnostics
 
         <Fact>
         Public Sub InterfaceModifiersUpdate2()
-            Dim src1 = "Public Interface C : Sub Foo() : End Interface"
-            Dim src2 = "Interface C : Sub Foo() : End Interface"
+            Dim src1 = "Public Interface C : Sub Goo() : End Interface"
+            Dim src2 = "Interface C : Sub Goo() : End Interface"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
@@ -462,8 +462,8 @@ Imports System.Diagnostics
 
         <Fact>
         Public Sub InterfaceModifiersUpdate3()
-            Dim src1 = "Interface C : Sub Foo() : End Interface"
-            Dim src2 = "Partial Interface C : Sub Foo() : End Interface"
+            Dim src1 = "Interface C : Sub Goo() : End Interface"
+            Dim src2 = "Partial Interface C : Sub Goo() : End Interface"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
@@ -587,12 +587,12 @@ Imports System.Diagnostics
 
         <Fact>
         Public Sub BaseInterfaceUpdate2()
-            Dim src1 = "Class C : Implements IFoo, IBar : End Class"
-            Dim src2 = "Class C : Implements IFoo : End Class"
+            Dim src1 = "Class C : Implements IGoo, IBar : End Class"
+            Dim src2 = "Class C : Implements IGoo : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Class C : Implements IFoo, IBar : End Class]@0 -> [Class C : Implements IFoo : End Class]@0")
+                "Update [Class C : Implements IGoo, IBar : End Class]@0 -> [Class C : Implements IGoo : End Class]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", FeaturesResources.class_))
@@ -600,12 +600,12 @@ Imports System.Diagnostics
 
         <Fact>
         Public Sub BaseInterfaceUpdate3()
-            Dim src1 = "Class C : Implements IFoo : Implements IBar : End Class"
-            Dim src2 = "Class C : Implements IBar : Implements IFoo : End Class"
+            Dim src1 = "Class C : Implements IGoo : Implements IBar : End Class"
+            Dim src2 = "Class C : Implements IBar : Implements IGoo : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Class C : Implements IFoo : Implements IBar : End Class]@0 -> [Class C : Implements IBar : Implements IFoo : End Class]@0")
+                "Update [Class C : Implements IGoo : Implements IBar : End Class]@0 -> [Class C : Implements IBar : Implements IGoo : End Class]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", FeaturesResources.class_))
@@ -1472,18 +1472,18 @@ End Class
 
         <Fact>
         Public Sub NestedClass_MethodDeleteInsert()
-            Dim src1 = "Public Class C" & vbLf & "Public Sub foo() : End Sub : End Class"
-            Dim src2 = "Public Class C : Private Class D" & vbLf & "Public Sub foo() : End Sub : End Class : End Class"
+            Dim src1 = "Public Class C" & vbLf & "Public Sub goo() : End Sub : End Class"
+            Dim src2 = "Public Class C : Private Class D" & vbLf & "Public Sub goo() : End Sub : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Private Class D" & vbLf & "Public Sub foo() : End Sub : End Class]@17",
+                "Insert [Private Class D" & vbLf & "Public Sub goo() : End Sub : End Class]@17",
                 "Insert [Private Class D]@17",
-                "Insert [Public Sub foo() : End Sub]@33",
-                "Insert [Public Sub foo()]@33",
+                "Insert [Public Sub goo() : End Sub]@33",
+                "Insert [Public Sub goo()]@33",
                 "Insert [()]@47",
-                "Delete [Public Sub foo() : End Sub]@15",
-                "Delete [Public Sub foo()]@15",
+                "Delete [Public Sub goo() : End Sub]@15",
+                "Delete [Public Sub goo()]@15",
                 "Delete [()]@29")
 
             edits.VerifyRudeDiagnostics(
@@ -1609,37 +1609,37 @@ End Class
 
         <Fact>
         Public Sub MethodUpdate2()
-            Dim src1 As String = "Class C" & vbLf & "Sub Foo() : End Sub : End Class"
-            Dim src2 As String = "Class C" & vbLf & "Function Foo() : End Function : End Class"
+            Dim src1 As String = "Class C" & vbLf & "Sub Goo() : End Sub : End Class"
+            Dim src2 As String = "Class C" & vbLf & "Function Goo() : End Function : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Foo() : End Sub]@8 -> [Function Foo() : End Function]@8",
-                "Update [Sub Foo()]@8 -> [Function Foo()]@8")
+                "Update [Sub Goo() : End Sub]@8 -> [Function Goo() : End Function]@8",
+                "Update [Sub Goo()]@8 -> [Function Goo()]@8")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodKindUpdate, "Function Foo()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.MethodKindUpdate, "Function Goo()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub InterfaceMethodUpdate1()
-            Dim src1 As String = "Interface I" & vbLf & "Sub Foo() : End Interface"
-            Dim src2 As String = "Interface I" & vbLf & "Function Foo() : End Interface"
+            Dim src1 As String = "Interface I" & vbLf & "Sub Goo() : End Interface"
+            Dim src2 As String = "Interface I" & vbLf & "Function Goo() : End Interface"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Foo()]@12 -> [Function Foo()]@12")
+                "Update [Sub Goo()]@12 -> [Function Goo()]@12")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodKindUpdate, "Function Foo()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.MethodKindUpdate, "Function Goo()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub InterfaceMethodUpdate2()
-            Dim src1 As String = "Interface I" & vbLf & "Sub Foo() : End Interface"
-            Dim src2 As String = "Interface I" & vbLf & "Sub Foo(a As Boolean) : End Interface"
+            Dim src1 As String = "Interface I" & vbLf & "Sub Goo() : End Interface"
+            Dim src2 As String = "Interface I" & vbLf & "Sub Goo(a As Boolean) : End Interface"
 
             Dim edits = GetTopEdits(src1, src2)
 
@@ -1649,14 +1649,14 @@ End Class
 
         <Fact>
         Public Sub MethodDelete()
-            Dim src1 As String = "Class C" & vbLf & "Sub foo() : End Sub : End Class"
+            Dim src1 As String = "Class C" & vbLf & "Sub goo() : End Sub : End Class"
             Dim src2 As String = "Class C : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [Sub foo() : End Sub]@8",
-                "Delete [Sub foo()]@8",
+                "Delete [Sub goo() : End Sub]@8",
+                "Delete [Sub goo()]@8",
                 "Delete [()]@15")
 
             edits.VerifyRudeDiagnostics(
@@ -1665,7 +1665,7 @@ End Class
 
         <Fact>
         Public Sub InterfaceMethodDelete()
-            Dim src1 As String = "Interface C" & vbLf & "Sub Foo() : End Interface"
+            Dim src1 As String = "Interface C" & vbLf & "Sub Goo() : End Interface"
             Dim src2 As String = "Interface C : End Interface"
 
             Dim edits = GetTopEdits(src1, src2)
@@ -1676,14 +1676,14 @@ End Class
 
         <Fact>
         Public Sub MethodDelete_WithParameters()
-            Dim src1 As String = "Class C" & vbLf & "Sub foo(a As Integer) : End Sub : End Class"
+            Dim src1 As String = "Class C" & vbLf & "Sub goo(a As Integer) : End Sub : End Class"
             Dim src2 As String = "Class C : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [Sub foo(a As Integer) : End Sub]@8",
-                "Delete [Sub foo(a As Integer)]@8",
+                "Delete [Sub goo(a As Integer) : End Sub]@8",
+                "Delete [Sub goo(a As Integer)]@8",
                 "Delete [(a As Integer)]@15",
                 "Delete [a As Integer]@16",
                 "Delete [a]@16",
@@ -1695,14 +1695,14 @@ End Class
 
         <Fact>
         Public Sub MethodDelete_WithAttribute()
-            Dim src1 As String = "Class C : " & vbLf & "<Obsolete> Sub foo(a As Integer) : End Sub : End Class"
+            Dim src1 As String = "Class C : " & vbLf & "<Obsolete> Sub goo(a As Integer) : End Sub : End Class"
             Dim src2 As String = "Class C : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<Obsolete> Sub foo(a As Integer) : End Sub]@11",
-                "Delete [<Obsolete> Sub foo(a As Integer)]@11",
+                "Delete [<Obsolete> Sub goo(a As Integer) : End Sub]@11",
+                "Delete [<Obsolete> Sub goo(a As Integer)]@11",
                 "Delete [<Obsolete>]@11",
                 "Delete [Obsolete]@12",
                 "Delete [(a As Integer)]@29",
@@ -1870,13 +1870,13 @@ End Class
 
         <Fact>
         Public Sub Method_Rename()
-            Dim src1 = "Class C : " & vbLf & "Sub Foo : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "Sub Goo : End Sub : End Class"
             Dim src2 = "Class C : " & vbLf & "Sub Bar : End Sub : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Foo]@11 -> [Sub Bar]@11")
+                "Update [Sub Goo]@11 -> [Sub Bar]@11")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "Sub Bar", FeaturesResources.method))
@@ -1884,13 +1884,13 @@ End Class
 
         <Fact>
         Public Sub InterfaceMethod_Rename()
-            Dim src1 = "Interface C : " & vbLf & "Sub Foo : End Interface"
+            Dim src1 = "Interface C : " & vbLf & "Sub Goo : End Interface"
             Dim src2 = "Interface C : " & vbLf & "Sub Bar : End Interface"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Foo]@15 -> [Sub Bar]@15")
+                "Update [Sub Goo]@15 -> [Sub Bar]@15")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "Sub Bar", FeaturesResources.method))
@@ -2155,43 +2155,43 @@ End Class
 
         <Fact>
         Public Sub MethodUpdate_ImplementsDelete()
-            Dim src1 = "Class C : Implements I, J : " & vbLf & "Sub Foo Implements I.Foo : End Sub : " & vbLf & "Sub JFoo Implements J.Foo : End Sub : End Class"
-            Dim src2 = "Class C : Implements I, J : " & vbLf & "Sub Foo : End Sub : " & vbLf & "Sub JFoo Implements J.Foo : End Sub : End Class"
+            Dim src1 = "Class C : Implements I, J : " & vbLf & "Sub Goo Implements I.Goo : End Sub : " & vbLf & "Sub JGoo Implements J.Goo : End Sub : End Class"
+            Dim src2 = "Class C : Implements I, J : " & vbLf & "Sub Goo : End Sub : " & vbLf & "Sub JGoo Implements J.Goo : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Foo Implements I.Foo]@29 -> [Sub Foo]@29")
+                "Update [Sub Goo Implements I.Goo]@29 -> [Sub Goo]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Foo", FeaturesResources.method))
+                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Goo", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_ImplementsInsert()
-            Dim src1 = "Class C : Implements I, J : " & vbLf & "Sub Foo : End Sub : " & vbLf & "Sub JFoo Implements J.Foo : End Sub : End Class"
-            Dim src2 = "Class C : Implements I, J : " & vbLf & "Sub Foo Implements I.Foo : End Sub : " & vbLf & "Sub JFoo Implements J.Foo : End Sub : End Class"
+            Dim src1 = "Class C : Implements I, J : " & vbLf & "Sub Goo : End Sub : " & vbLf & "Sub JGoo Implements J.Goo : End Sub : End Class"
+            Dim src2 = "Class C : Implements I, J : " & vbLf & "Sub Goo Implements I.Goo : End Sub : " & vbLf & "Sub JGoo Implements J.Goo : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Foo]@29 -> [Sub Foo Implements I.Foo]@29")
+                "Update [Sub Goo]@29 -> [Sub Goo Implements I.Goo]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Foo", FeaturesResources.method))
+                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Goo", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_ImplementsUpdate()
-            Dim src1 = "Class C : Implements I, J : " & vbLf & "Sub IFoo Implements I.Foo : End Sub : " & vbLf & "Sub JFoo Implements J.Foo : End Sub : End Class"
-            Dim src2 = "Class C : Implements I, J : " & vbLf & "Sub IFoo Implements J.Foo : End Sub : " & vbLf & "Sub JFoo Implements I.Foo : End Sub : End Class"
+            Dim src1 = "Class C : Implements I, J : " & vbLf & "Sub IGoo Implements I.Goo : End Sub : " & vbLf & "Sub JGoo Implements J.Goo : End Sub : End Class"
+            Dim src2 = "Class C : Implements I, J : " & vbLf & "Sub IGoo Implements J.Goo : End Sub : " & vbLf & "Sub JGoo Implements I.Goo : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub IFoo Implements I.Foo]@29 -> [Sub IFoo Implements J.Foo]@29",
-                "Update [Sub JFoo Implements J.Foo]@68 -> [Sub JFoo Implements I.Foo]@68")
+                "Update [Sub IGoo Implements I.Goo]@29 -> [Sub IGoo Implements J.Goo]@29",
+                "Update [Sub JGoo Implements J.Goo]@68 -> [Sub JGoo Implements I.Goo]@68")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub IFoo", FeaturesResources.method),
-                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub JFoo", FeaturesResources.method))
+                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub IGoo", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub JGoo", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -2302,8 +2302,8 @@ End Class
 
         <Fact>
         Public Sub MethodUpdate_Query()
-            Dim src1 = "Class C" & vbLf & "Sub M()" & vbLf & "F(1, From foo In bar Select baz) : End Sub : End Class"
-            Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, From foo In bar Select baz) : End Sub : End Class"
+            Dim src1 = "Class C" & vbLf & "Sub M()" & vbLf & "F(1, From goo In bar Select baz) : End Sub : End Class"
+            Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, From goo In bar Select baz) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics()
@@ -2413,16 +2413,16 @@ End Class
         <Fact>
         Public Sub MethodInsert_Handles_Clause()
             Dim src1 = "Class C : Event E1 As Action" & vbLf & "End Class"
-            Dim src2 = "Class C : Event E1 As Action" & vbLf & "Private Sub Foo() Handles Me.E1 : End Sub : End Class"
+            Dim src2 = "Class C : Event E1 As Action" & vbLf & "Private Sub Goo() Handles Me.E1 : End Sub : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [Private Sub Foo() Handles Me.E1 : End Sub]@29",
-                "Insert [Private Sub Foo() Handles Me.E1]@29",
+                "Insert [Private Sub Goo() Handles Me.E1 : End Sub]@29",
+                "Insert [Private Sub Goo() Handles Me.E1]@29",
                 "Insert [()]@44")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertHandlesClause, "Private Sub Foo()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.InsertHandlesClause, "Private Sub Goo()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3221,64 +3221,64 @@ End Class
 #Region "Declare"
         <Fact>
         Public Sub Declare_Update1()
-            Dim src1 As String = "Class C : Declare Ansi Function Foo Lib ""Bar"" () As Integer : End Class"
-            Dim src2 As String = "Class C : Declare Ansi Function Foo Lib ""Baz"" () As Integer : End Class"
+            Dim src1 As String = "Class C : Declare Ansi Function Goo Lib ""Bar"" () As Integer : End Class"
+            Dim src2 As String = "Class C : Declare Ansi Function Goo Lib ""Baz"" () As Integer : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Update [Declare Ansi Function Foo Lib ""Bar"" () As Integer]@10 -> [Declare Ansi Function Foo Lib ""Baz"" () As Integer]@10")
+                "Update [Declare Ansi Function Goo Lib ""Bar"" () As Integer]@10 -> [Declare Ansi Function Goo Lib ""Baz"" () As Integer]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeclareLibraryUpdate, "Declare Ansi Function Foo Lib ""Baz"" ()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.DeclareLibraryUpdate, "Declare Ansi Function Goo Lib ""Baz"" ()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub Declare_Update2()
-            Dim src1 As String = "Class C : Declare Ansi Function Foo Lib ""Bar"" () As Integer : End Class"
-            Dim src2 As String = "Class C : Declare Unicode Function Foo Lib ""Bar"" () As Integer : End Class"
+            Dim src1 As String = "Class C : Declare Ansi Function Goo Lib ""Bar"" () As Integer : End Class"
+            Dim src2 As String = "Class C : Declare Unicode Function Goo Lib ""Bar"" () As Integer : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Update [Declare Ansi Function Foo Lib ""Bar"" () As Integer]@10 -> [Declare Unicode Function Foo Lib ""Bar"" () As Integer]@10")
+                "Update [Declare Ansi Function Goo Lib ""Bar"" () As Integer]@10 -> [Declare Unicode Function Goo Lib ""Bar"" () As Integer]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Declare Unicode Function Foo Lib ""Bar"" ()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Declare Unicode Function Goo Lib ""Bar"" ()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub Declare_Update3()
-            Dim src1 As String = "Class C : Declare Ansi Function Foo Lib ""Bar"" () As Integer : End Class"
-            Dim src2 As String = "Class C : Declare Ansi Function Foo Lib ""Bar"" Alias ""Al"" () As Integer : End Class"
+            Dim src1 As String = "Class C : Declare Ansi Function Goo Lib ""Bar"" () As Integer : End Class"
+            Dim src2 As String = "Class C : Declare Ansi Function Goo Lib ""Bar"" Alias ""Al"" () As Integer : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Update [Declare Ansi Function Foo Lib ""Bar"" () As Integer]@10 -> [Declare Ansi Function Foo Lib ""Bar"" Alias ""Al"" () As Integer]@10")
+                "Update [Declare Ansi Function Goo Lib ""Bar"" () As Integer]@10 -> [Declare Ansi Function Goo Lib ""Bar"" Alias ""Al"" () As Integer]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeclareAliasUpdate, "Declare Ansi Function Foo Lib ""Bar"" Alias ""Al"" ()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.DeclareAliasUpdate, "Declare Ansi Function Goo Lib ""Bar"" Alias ""Al"" ()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub Declare_Update4()
-            Dim src1 As String = "Class C : Declare Ansi Function Foo Lib ""Bar"" Alias ""A1"" () As Integer : End Class"
-            Dim src2 As String = "Class C : Declare Ansi Function Foo Lib ""Bar"" Alias ""A2"" () As Integer : End Class"
+            Dim src1 As String = "Class C : Declare Ansi Function Goo Lib ""Bar"" Alias ""A1"" () As Integer : End Class"
+            Dim src2 As String = "Class C : Declare Ansi Function Goo Lib ""Bar"" Alias ""A2"" () As Integer : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Update [Declare Ansi Function Foo Lib ""Bar"" Alias ""A1"" () As Integer]@10 -> [Declare Ansi Function Foo Lib ""Bar"" Alias ""A2"" () As Integer]@10")
+                "Update [Declare Ansi Function Goo Lib ""Bar"" Alias ""A1"" () As Integer]@10 -> [Declare Ansi Function Goo Lib ""Bar"" Alias ""A2"" () As Integer]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeclareAliasUpdate, "Declare Ansi Function Foo Lib ""Bar"" Alias ""A2"" ()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.DeclareAliasUpdate, "Declare Ansi Function Goo Lib ""Bar"" Alias ""A2"" ()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub Declare_Delete()
-            Dim src1 As String = "Class C : Declare Ansi Function Foo Lib ""Bar"" () As Integer : End Class"
+            Dim src1 As String = "Class C : Declare Ansi Function Goo Lib ""Bar"" () As Integer : End Class"
             Dim src2 As String = "Class C : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Delete [Declare Ansi Function Foo Lib ""Bar"" () As Integer]@10",
+                "Delete [Declare Ansi Function Goo Lib ""Bar"" () As Integer]@10",
                 "Delete [()]@46",
                 "Delete [As Integer]@49")
 
@@ -3289,31 +3289,31 @@ End Class
         <Fact>
         Public Sub Declare_Insert1()
             Dim src1 As String = "Class C : End Class"
-            Dim src2 As String = "Class C : Declare Ansi Function Foo Lib ""Bar"" () As Integer : End Class"
+            Dim src2 As String = "Class C : Declare Ansi Function Goo Lib ""Bar"" () As Integer : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [Declare Ansi Function Foo Lib ""Bar"" () As Integer]@10",
+                "Insert [Declare Ansi Function Goo Lib ""Bar"" () As Integer]@10",
                 "Insert [()]@46",
                 "Insert [As Integer]@49")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Function Foo Lib ""Bar"" ()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Insert, "Declare Ansi Function Goo Lib ""Bar"" ()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub Declare_Insert2()
             Dim src1 As String = "Class C : End Class"
-            Dim src2 As String = "Class C : Private Declare Ansi Function Foo Lib ""Bar"" () As Integer : End Class"
+            Dim src2 As String = "Class C : Private Declare Ansi Function Goo Lib ""Bar"" () As Integer : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [Private Declare Ansi Function Foo Lib ""Bar"" () As Integer]@10",
+                "Insert [Private Declare Ansi Function Goo Lib ""Bar"" () As Integer]@10",
                 "Insert [()]@54",
                 "Insert [As Integer]@57")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Private Declare Ansi Function Foo Lib ""Bar"" ()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Insert, "Private Declare Ansi Function Goo Lib ""Bar"" ()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -5153,8 +5153,8 @@ End Class
 
         <Fact>
         Public Sub FieldUpdate_Query()
-            Dim src1 = "Class C : Dim a = F(1, From foo In bar Select baz) : End Class"
-            Dim src2 = "Class C : Dim a = F(2, From foo In bar Select baz) : End Class"
+            Dim src1 = "Class C : Dim a = F(1, From goo In bar Select baz) : End Class"
+            Dim src2 = "Class C : Dim a = F(2, From goo In bar Select baz) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics()
@@ -5162,8 +5162,8 @@ End Class
 
         <Fact>
         Public Sub PropertyUpdate_Query()
-            Dim src1 = "Class C : Property a = F(1, From foo In bar Select baz) : End Class"
-            Dim src2 = "Class C : Property a = F(2, From foo In bar Select baz) : End Class"
+            Dim src1 = "Class C : Property a = F(1, From goo In bar Select baz) : End Class"
+            Dim src2 = "Class C : Property a = F(2, From goo In bar Select baz) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics()

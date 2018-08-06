@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             // FAR on the Delegate type and use those results to find Invoke calls
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

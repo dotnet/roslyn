@@ -10,13 +10,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
         Public Async Function TestReorderMethodParameters_InvokeBeforeMethodName() As Task
             Dim markup = <Text><![CDATA[
 Class C
-    Public Sub $$Foo(x As Integer, y As String)
+    Public Sub $$Goo(x As Integer, y As String)
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1, 0}
             Dim updatedCode = <Text><![CDATA[
 Class C
-    Public Sub Foo(y As String, x As Integer)
+    Public Sub Goo(y As String, x As Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -29,13 +29,13 @@ End Class]]></Text>.NormalizedValue()
         Public Async Function TestReorderMethodParameters_InvokeInParameterList() As Task
             Dim markup = <Text><![CDATA[
 Class C
-    Public Sub Foo(x As Integer, $$y As String)
+    Public Sub Goo(x As Integer, $$y As String)
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1, 0}
             Dim updatedCode = <Text><![CDATA[
 Class C
-    Public Sub Foo(y As String, x As Integer)
+    Public Sub Goo(y As String, x As Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -46,13 +46,13 @@ End Class]]></Text>.NormalizedValue()
         Public Async Function TestReorderMethodParameters_InvokeAfterParameterList() As Task
             Dim markup = <Text><![CDATA[
 Class C
-    Public Sub Foo(x As Integer, y As String)$$
+    Public Sub Goo(x As Integer, y As String)$$
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1, 0}
             Dim updatedCode = <Text><![CDATA[
 Class C
-    Public Sub Foo(y As String, x As Integer)
+    Public Sub Goo(y As String, x As Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -63,13 +63,13 @@ End Class]]></Text>.NormalizedValue()
         Public Async Function TestReorderMethodParameters_InvokeBeforeMethodDeclaration() As Task
             Dim markup = <Text><![CDATA[
 Class C
-    $$Public Sub Foo(x As Integer, y As String)
+    $$Public Sub Goo(x As Integer, y As String)
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1, 0}
             Dim updatedCode = <Text><![CDATA[
 Class C
-    Public Sub Foo(y As String, x As Integer)
+    Public Sub Goo(y As String, x As Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -462,7 +462,7 @@ Class C
         End Set
     End Property
 
-    Sub Foo()
+    Sub Goo()
         Dim c = New C()
         Dim x = $$c(1, 2)
     End Sub
@@ -478,7 +478,7 @@ Class C
         End Set
     End Property
 
-    Sub Foo()
+    Sub Goo()
         Dim c = New C()
         Dim x = c(2, 1)
     End Sub
@@ -499,7 +499,7 @@ Class C
         End Set
     End Property
 
-    Sub Foo()
+    Sub Goo()
         Dim c = New C()
         Dim x = c(1, 2$$)
     End Sub
@@ -515,7 +515,7 @@ Class C
         End Set
     End Property
 
-    Sub Foo()
+    Sub Goo()
         Dim c = New C()
         Dim x = c(2, 1)
     End Sub
@@ -586,13 +586,13 @@ End Class]]></Text>.NormalizedValue()
         Public Async Function ReorderIndexerParameters_CodeRefactoring_InMethodDeclaration() As Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C
-    Sub Foo(x As Integer[||], y As Integer)
+    Sub Goo(x As Integer[||], y As Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1, 0}
             Dim updatedCode = <Text><![CDATA[
 Class C
-    Sub Foo(y As Integer, x As Integer)
+    Sub Goo(y As Integer, x As Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -603,7 +603,7 @@ End Class]]></Text>.NormalizedValue()
         Public Async Function ReorderIndexerParameters_CodeRefactoring_NotInMethodBody() As Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C
-    Sub Foo(x As Integer, y As Integer)
+    Sub Goo(x As Integer, y As Integer)
         [||]
     End Sub
 End Class]]></Text>.NormalizedValue()
@@ -615,15 +615,15 @@ End Class]]></Text>.NormalizedValue()
         Public Async Function ReorderIndexerParameters_CodeRefactoring_InCallSite_ViaCommand() As Task
             Dim markup = <Text><![CDATA[
 Class C
-    Sub Foo(x As Integer, y As Integer)
-        Foo($$1, 2)
+    Sub Goo(x As Integer, y As Integer)
+        Goo($$1, 2)
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1, 0}
             Dim updatedCode = <Text><![CDATA[
 Class C
-    Sub Foo(y As Integer, x As Integer)
-        Foo(2, 1)
+    Sub Goo(y As Integer, x As Integer)
+        Goo(2, 1)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -636,8 +636,8 @@ End Class]]></Text>.NormalizedValue()
         Public Async Function ReorderIndexerParameters_CodeRefactoring_InCallSite_ViaCodeAction() As Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C
-    Sub Foo(x As Integer, y As Integer)
-        Foo([||]1, 2)
+    Sub Goo(x As Integer, y As Integer)
+        Goo([||]1, 2)
     End Sub
 End Class]]></Text>.NormalizedValue()
 

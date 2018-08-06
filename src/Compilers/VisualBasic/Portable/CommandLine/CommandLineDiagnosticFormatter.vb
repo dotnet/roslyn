@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 End If
 
-                ' Builds tailing spaces up to the end of this line
+                ' Builds trailing spaces up to the end of this line
                 For position = Math.Min(sourceSpanEnd, line.End) To line.End - 1
                     If (text(position) = vbTab) Then
                         ' normalize tabs with 4 spaces

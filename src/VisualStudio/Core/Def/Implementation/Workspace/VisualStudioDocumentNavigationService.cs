@@ -26,6 +26,8 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed class VisualStudioDocumentNavigationService : ForegroundThreadAffinitizedObject, IDocumentNavigationService
     {
         private readonly IServiceProvider _serviceProvider;
@@ -50,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
             if (boundedTextSpan != textSpan)
@@ -82,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
 
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
@@ -99,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
             if (boundedPosition != position)
@@ -136,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var textBuffer = text.Container.GetTextBuffer();
 
             var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
@@ -178,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var textBuffer = text.Container.GetTextBuffer();
 
             var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
@@ -208,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var textBuffer = text.Container.GetTextBuffer();
 
             var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);

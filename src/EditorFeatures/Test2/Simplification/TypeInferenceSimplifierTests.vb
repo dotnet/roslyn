@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                     Class B
                         Inherits C
-                        Public Shared Funtion Foo() As Integer
+                        Public Shared Funtion Goo() As Integer
                         End Function
                     End Class
                     Module Program
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                             Dim {|SimplifyParent:arri() As Double = {1,2}|}
                             Dim {|SimplifyParent:x As IEnumerable(Of C) = New List(Of B)|}
                             Dim {|SimplifyParent:obj As C = New B()|}
-                            Dim {|SimplifyParent:ret as Double = B.Foo()|}
+                            Dim {|SimplifyParent:ret as Double = B.Goo()|}
                             Const {|SimplifyParent:con As Double = 1|}
                         End Sub
                     End Module
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                     Class B
                         Inherits C
-                        Public Shared Funtion Foo() As Integer
+                        Public Shared Funtion Goo() As Integer
                         End Function
                     End Class
                     Module Program
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                             Dim arri() As Double = {1,2}
                             Dim x As IEnumerable(Of C) = New List(Of B)
                             Dim obj As C = New B()
-                            Dim ret as Double = B.Foo()
+                            Dim ret as Double = B.Goo()
                             Const con As Double = 1
                         End Sub
                     End Module
@@ -269,13 +269,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     Imports I = System.Int32
                     Module Program
                         Public Dim {|SimplifyParent:x As Integer = 5|}
-                        Function Foo() As Integer
+                        Function Goo() As Integer
                         End Function
                         Sub Main(args As String())
                             Dim {|SimplifyParent:A As Integer = 5|}
                             Dim {|SimplifyParent:M() As String = New String(){}|}, {|SimplifyParent:N() As String|}
                             Dim {|SimplifyParent:B(,) As Integer = {{1,2},{2,3}}|}
-                            Dim {|SimplifyParent:ret As Integer = Foo()|}
+                            Dim {|SimplifyParent:ret As Integer = Goo()|}
                             Const {|SimplifyParent:con As Integer = 1|}
                             Dim {|SimplifyParent:in As I = 1|}
                         End Sub
@@ -290,13 +290,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     Imports I = System.Int32
                     Module Program
                         Public Dim x = 5
-                        Function Foo() As Integer
+                        Function Goo() As Integer
                         End Function
                         Sub Main(args As String())
                             Dim A = 5
                             Dim M = New String(){}, N() As String
                             Dim B = {{1,2},{2,3}}
-                            Dim ret = Foo()
+                            Dim ret = Goo()
                             Const con = 1
                             Dim in = 1
                         End Sub
@@ -422,21 +422,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                 <Document><![CDATA[
 interface I
 {
-    void Foo<T>(T x);
+    void Goo<T>(T x);
 }
 class C : I
 {
-    public void Foo<T>(T x) { }
+    public void Goo<T>(T x) { }
 }
 class D : C
 {
-    public void Foo(int x)
+    public void Goo(int x)
     {
 
     }
     public void Sub()
     {
-        {|SimplifyParent:base.Foo<int>(1)|};
+        {|SimplifyParent:base.Goo<int>(1)|};
     }
 }
 ]]>
@@ -448,21 +448,21 @@ class D : C
               <text><![CDATA[
 interface I
 {
-    void Foo<T>(T x);
+    void Goo<T>(T x);
 }
 class C : I
 {
-    public void Foo<T>(T x) { }
+    public void Goo<T>(T x) { }
 }
 class D : C
 {
-    public void Foo(int x)
+    public void Goo(int x)
     {
 
     }
     public void Sub()
     {
-        base.Foo(1);
+        base.Goo(1);
     }
 }]]>
               </text>
@@ -479,7 +479,7 @@ class D : C
             <Project Language="Visual Basic" CommonReferences="true">
                 <Document><![CDATA[
 Class C
-    Public Sub Foo(Of T)(ByRef x As T)
+    Public Sub Goo(Of T)(ByRef x As T)
 
     End Sub
 End Class
@@ -487,12 +487,12 @@ End Class
 Class D
     Inherits C
 
-    Public Sub Foo(ByRef x As Integer)
+    Public Sub Goo(ByRef x As Integer)
 
     End Sub
     Public Sub Test()
         Dim x As String
-        {|SimplifyParent:MyBase.Foo(Of String)(x)|}
+        {|SimplifyParent:MyBase.Goo(Of String)(x)|}
     End Sub
 End Class
 ]]>
@@ -503,7 +503,7 @@ End Class
             Dim expected =
               <text><![CDATA[
 Class C
-    Public Sub Foo(Of T)(ByRef x As T)
+    Public Sub Goo(Of T)(ByRef x As T)
 
     End Sub
 End Class
@@ -511,12 +511,12 @@ End Class
 Class D
     Inherits C
 
-    Public Sub Foo(ByRef x As Integer)
+    Public Sub Goo(ByRef x As Integer)
 
     End Sub
     Public Sub Test()
         Dim x As String
-        MyBase.Foo(x)
+        MyBase.Goo(x)
     End Sub
 End Class
 ]]>

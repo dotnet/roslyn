@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed class GraphNavigatorExtension : ForegroundThreadAffinitizedObject, IGraphNavigateToItem
     {
         private readonly Workspace _workspace;
@@ -26,9 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public void NavigateTo(GraphObject graphObject)
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 var sourceLocation = graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation);
                 if (sourceLocation.FileName == null)
@@ -96,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 if (symbol != null &&
                     !(symbol is ITypeSymbol) &&
                     !symbol.IsConstructor() &&
-                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project.Solution, CancellationToken.None))
+                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project, CancellationToken.None))
                 {
                     return;
                 }
@@ -123,9 +124,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public int GetRank(GraphObject graphObject)
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 var sourceLocation = graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation);
                 var projectId = graphNode.GetValue<ProjectId>(RoslynGraphProperties.ContextProjectId);

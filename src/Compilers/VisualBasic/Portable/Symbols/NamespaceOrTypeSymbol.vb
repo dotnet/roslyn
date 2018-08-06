@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         If method.MayBeReducibleExtensionMethod Then
                             haveSeenExtensionMethod = True
 
-                            If AddExtensionMethodLookupSymbolsInfoViabilityCheck(method, options, originalBinder) Then
+                            If AddExtensionMethodLookupSymbolsInfoViabilityCheck(method, options, nameSet, originalBinder) Then
                                 nameSet.AddSymbol(member, member.Name, member.GetArity())
 
                                 ' Move to the next name.
@@ -239,9 +239,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable Function AddExtensionMethodLookupSymbolsInfoViabilityCheck(
             method As MethodSymbol,
             options As LookupOptions,
+            nameSet As LookupSymbolsInfo,
             originalBinder As Binder
         ) As Boolean
-            Return originalBinder.CanAddLookupSymbolInfo(method, options, accessThroughType:=method.ContainingType)
+            Return originalBinder.CanAddLookupSymbolInfo(method, options, nameSet, accessThroughType:=method.ContainingType)
         End Function
 
         ''' <summary> 

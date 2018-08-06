@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -93,35 +92,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         private const string DataIdColumnName = "DataId";
         private const string DataColumnName = "Data";
 
-        static SQLitePersistentStorage()
-        {
-            // Attempt to load the correct version of e_sqlite.dll.  That way when we call
-            // into SQLitePCL.Batteries_V2.Init it will be able to find it.
-            //
-            // Only do this on Windows when we can safely do the LoadLibrary call to this
-            // direct dll.  On other platforms, it is the responsibility of the host to ensure
-            // that the necessary sqlite library has already been loaded such that SQLitePCL.Batteries_V2
-            // will be able to call into it.
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                var myFolder = Path.GetDirectoryName(
-                    typeof(SQLitePersistentStorage).Assembly.Location);
-
-                var is64 = IntPtr.Size == 8;
-                var subfolder = is64 ? "x64" : "x86";
-
-                LoadLibrary(Path.Combine(myFolder, subfolder, "e_sqlite3.dll"));
-            }
-
-            // Necessary to initialize SQLitePCL.
-            SQLitePCL.Batteries_V2.Init();
-        }
-
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr LoadLibrary(string dllToLoad);
-
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
+        private readonly IDisposable _dbOwnershipLock;
         private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
@@ -141,15 +114,16 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly Stack<SqlConnection> _connectionsPool = new Stack<SqlConnection>();
 
         public SQLitePersistentStorage(
-            IOptionService optionService,
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
-            Action<AbstractPersistentStorage> disposer,
+            IDisposable dbOwnershipLock,
             IPersistentStorageFaultInjector faultInjectorOpt)
-            : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
+            : base(workingFolderPath, solutionFilePath, databaseFile)
         {
+            _dbOwnershipLock = dbOwnershipLock;
             _faultInjectorOpt = faultInjectorOpt;
+
             _solutionAccessor = new SolutionAccessor(this);
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
@@ -186,7 +160,22 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        public override void Close()
+        public override void Dispose()
+        {
+            // Flush all pending writes so that all data our features wanted written
+            // are definitely persisted to the DB.
+            try
+            {
+                CloseWorker();
+            }
+            finally
+            {
+                // let the lock go
+                _dbOwnershipLock.Dispose();
+            }
+        }
+
+        private void CloseWorker()
         {
             // Flush all pending writes so that all data our features wanted written
             // are definitely persisted to the DB.
@@ -214,15 +203,36 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
+        /// <summary>
+        /// Gets a <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
+        /// </summary>
+        /// <remarks>
+        /// Database connections have a large amount of overhead, and should be returned to the pool when they are no
+        /// longer in use. In particular, make sure to avoid letting a connection lease cross an <see langword="await"/>
+        /// boundary, as it will prevent code in the asynchronous operation from using the existing connection.
+        /// </remarks>
         private PooledConnection GetPooledConnection()
             => new PooledConnection(this, GetConnection());
 
-        public override void Initialize(Solution solution)
+        public void Initialize(Solution solution)
         {
             // Create a connection to the DB and ensure it has tables for the types we care about. 
             using (var pooledConnection = GetPooledConnection())
             {
                 var connection = pooledConnection.Connection;
+
+                // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
+                // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
+                // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
+                connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
+
+                // Set "synchronous" mode to "normal" instead of default "full" to reduce the amount of buffer flushing syscalls,
+                // significantly reducing both the blocked time and the amount of context switches.
+                // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and 
+                // https://www.sqlite.org/wal.html#performance_considerations) is unlikely to significantly affect durability,
+                // while significantly increasing performance, because buffer flushing is done for each checkpoint, instead of each
+                // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
+                connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
 
                 // First, create all our tables
                 connection.ExecuteCommand(
@@ -251,12 +261,16 @@ $@"create table if not exists ""{DocumentDataTableName}"" (
     ""{DataColumnName}"" blob)");
 
                 // Also get the known set of string-to-id mappings we already have in the DB.
-                FetchStringTable(connection);
+                // Do this in one batch if possible.
+                var fetched = TryFetchStringTable(connection);
+
+                // If we weren't able to retrieve the entire string table in one batch,
+                // attempt to retrieve it for each 
+                var fetchStringTable = !fetched;
 
                 // Try to bulk populate all the IDs we'll need for strings/projects/documents.
                 // Bulk population is much faster than trying to do everything individually.
-                // Note: we don't need to fetch the string table as we did it right above this.
-                BulkPopulateIds(connection, solution, fetchStringTable: false);
+                BulkPopulateIds(connection, solution, fetchStringTable);
             }
         }
     }

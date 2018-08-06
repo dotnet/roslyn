@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -26,37 +27,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> _completionPresenter;
-        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AsyncCompletionService(
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
-            : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService,
-                  ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                  asyncListeners, autoBraceCompletionChars)
-        {
-        }
-
-        public AsyncCompletionService(
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IInlineRenameService inlineRenameService,
-            IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> completionPresenter,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
             _inlineRenameService = inlineRenameService;
-            _completionPresenter = completionPresenter;
-            _asyncListeners = asyncListeners;
+            _completionPresenter = ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault();
+            _listener = listenerProvider.GetListener(FeatureAttribute.CompletionSet);
+
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _autoBraceCompletionCharSet = new Dictionary<IContentType, ImmutableHashSet<char>>();
         }
@@ -85,8 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer.ContentType);
             controller = Controller.GetInstance(
                 textView, subjectBuffer,
-                _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter, 
-                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.CompletionSet),
+                _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter,
+                _listener,
                 autobraceCompletionCharSet);
 
             return true;

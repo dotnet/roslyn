@@ -57,7 +57,7 @@ namespace X
 			Driver.CompletedSignal.Set();
 		}
 
-        static  partial void Foo();
+        static  partial void Goo();
         static  partial void Bar();
 	}
 

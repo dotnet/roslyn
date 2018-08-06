@@ -26,7 +26,7 @@ Class C
         Dim o As I = Nothing
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 {source},
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())

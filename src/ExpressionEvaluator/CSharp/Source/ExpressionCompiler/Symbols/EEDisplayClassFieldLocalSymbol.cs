@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }

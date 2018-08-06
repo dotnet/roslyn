@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertNumericLiteral;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             0b1, 0x2
         };
     }
-}", index: (int)Refactoring.ChangeBase2, ignoreTrivia: false);
+}", index: (int)Refactoring.ChangeBase2);
         }
 
         [WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")]

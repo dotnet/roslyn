@@ -51,9 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Workspace workspace,
             CancellationToken cancellationToken)
         {
-            var syntaxTree = semanticModel.SyntaxTree;
-            var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
-            var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+            var token = await GetTokenAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
 
             if (token != default &&
                 token.Span.IntersectsWith(position))
@@ -62,6 +60,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return TokenSemanticInfo.Empty;
+        }
+
+        private static Task<SyntaxToken> GetTokenAtPositionAsync(
+            SemanticModel semanticModel,
+            int position,
+            Workspace workspace,
+            CancellationToken cancellationToken)
+        {
+            var syntaxTree = semanticModel.SyntaxTree;
+            var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
+
+            return syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
         }
 
         public static async Task<ISymbol> FindSymbolAtPositionAsync(
@@ -154,7 +164,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
-            if (project != null)
+            if (project != null && project.SupportsCompilation)
             {
                 var symbolId = symbol.GetSymbolKey();
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -169,10 +179,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return SymbolAndProjectId.Create(result.CandidateSymbols.FirstOrDefault(InSource), project.Id);
                 }
             }
-            else
-            {
-                return default;
-            }
+
+            return default;
         }
 
         private static bool InSource(ISymbol symbol)

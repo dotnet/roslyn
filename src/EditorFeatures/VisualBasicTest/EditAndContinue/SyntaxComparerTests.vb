@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
+    <[UseExportProvider]>
     Public Class SyntaxComparerTests
         Inherits BasicTestBase
 

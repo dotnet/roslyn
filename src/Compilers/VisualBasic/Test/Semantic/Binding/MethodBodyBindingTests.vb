@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub MethodBodyBindingTest()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Compilation">
         <file name="q.vb">
 Namespace N1
@@ -45,7 +45,7 @@ Namespace N
                     dim a as double
                 end while
             else
-                Dim y As String = "foo"
+                Dim y As String = "goo"
             end if
             Return Nothing
         End Function
@@ -78,7 +78,8 @@ End Namespace
             Dim meth2 = DirectCast(classC.GetMembers("meth2").Single(), SourceMethodSymbol)
 
             Dim meth1Context As MethodBodyBinder = DirectCast(BinderBuilder.CreateBinderForMethodBody(DirectCast(meth1.ContainingModule, SourceModuleSymbol), meth1.SyntaxTree, meth1), MethodBodyBinder)
-            Dim meth1Binding = MethodBodySemanticModel.Create(meth1Context)
+            Dim model = DirectCast(compilation.GetSemanticModel(meth1Context.SyntaxTree), SyntaxTreeSemanticModel)
+            Dim meth1Binding = MethodBodySemanticModel.Create(model, meth1Context)
             Assert.Same(meth1Context, meth1Binding.RootBinder.ContainingBinder) ' Strip off SemanticModelBinder
 
             ' Make sure parameters, type parameters, and imports are correct.
@@ -103,7 +104,8 @@ End Namespace
             Assert.Equal(classQ1, lr.SingleSymbol)
 
             Dim meth2Context As MethodBodyBinder = DirectCast(BinderBuilder.CreateBinderForMethodBody(DirectCast(meth2.ContainingModule, SourceModuleSymbol), meth2.SyntaxTree, meth2), MethodBodyBinder)
-            Dim meth2Binding = MethodBodySemanticModel.Create(meth2Context)
+            model = DirectCast(compilation.GetSemanticModel(meth2Context.SyntaxTree), SyntaxTreeSemanticModel)
+            Dim meth2Binding = MethodBodySemanticModel.Create(model, meth2Context)
             Assert.Same(meth2Context, meth2Binding.RootBinder.ContainingBinder) ' Strip off SemanticModelBinder
 
             ' Make sure parameters, and imports are correct.
@@ -149,19 +151,19 @@ End Namespace
 Module M
 
   Sub Main()
-    Foo()
+    Goo()
   End Sub
 
-  Sub Foo()
-    Dim foo as Integer
-    Foo = 4273
-    System.Console.WriteLine(Foo)
+  Sub Goo()
+    Dim goo as Integer
+    Goo = 4273
+    System.Console.WriteLine(Goo)
   End Sub
 End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 4273
@@ -173,7 +175,7 @@ End Module
         Public Sub AssertPassMultipleArgumentsWithByRef()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Compilation">
         <file name="AssertArgs.vb">
 Imports System
@@ -218,7 +220,7 @@ End Namespace
         Public Sub AssertInvalidArrayInitializer()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Compilation">
         <file name="AssertAry.vb">
 Imports System
@@ -259,7 +261,7 @@ BC30987: '{' expected.
         Public Sub Bug4745()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Bug4745">
         <file name="Bug4745.vb">
 Module M1
@@ -285,7 +287,7 @@ Shared x As Integer = 10
         Public Sub Bug4118()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Bug4118">
         <file name="A.vb">
  Module CondComp0080mod
@@ -304,7 +306,7 @@ End Module
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub BindCatchStatementLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BindCatchStatementLocal">
         <file name="try.vb">
 Imports System
@@ -346,7 +348,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub BindCatchStatementNonLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="BindCatchStatementNonLocal">
         <file name="catch.vb">
 Imports System
@@ -401,7 +403,7 @@ End Module
         <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -467,7 +469,7 @@ BC30110: 'Integer' is a structure type and cannot be used as an expression.
         <WorkItem(529206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
         <Fact>
         Public Sub IntrinsicAliases_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithoutReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilation(
     <compilation name="Bug529206">
         <file name="a.vb">
 Class Module1
@@ -499,7 +501,7 @@ BC30456: 'Integer' is not a member of 'System'.
         <WorkItem(529206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
         <Fact>
         Public Sub IntrinsicAliases_3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module Module1
@@ -526,7 +528,7 @@ End Module
         <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -565,7 +567,7 @@ end namespace
         <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -601,7 +603,7 @@ BC30561: 'Int32' is ambiguous, imported from the namespaces or types 'System, X'
         <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_6()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -642,7 +644,7 @@ BC30456: 'Parse' is not a member of '[Integer]'.
         <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_7()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -661,7 +663,7 @@ End Class
         </file>
     </compilation>,
     {
-CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 namespace System
@@ -689,7 +691,7 @@ BC30560: 'Int32' is ambiguous in the namespace 'System'.
         <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_8()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System

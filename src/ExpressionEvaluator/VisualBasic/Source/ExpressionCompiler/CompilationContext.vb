@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _currentFrame As MethodSymbol
         Private ReadOnly _locals As ImmutableArray(Of LocalSymbol)
         Private ReadOnly _displayClassVariables As ImmutableDictionary(Of String, DisplayClassVariable)
-        Private ReadOnly _hoistedParameterNames As ImmutableHashSet(Of String)
+        Private ReadOnly _sourceMethodParametersInOrder As ImmutableArray(Of String)
         Private ReadOnly _localsForBinding As ImmutableArray(Of LocalSymbol)
         Private ReadOnly _methodNotType As Boolean
         Private ReadOnly _voidType As NamedTypeSymbol
@@ -44,6 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Sub New(
             compilation As VisualBasicCompilation,
             currentFrame As MethodSymbol,
+            currentSourceMethod As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocalSlots As ImmutableSortedSet(Of Integer),
             methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol),
@@ -95,8 +96,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             If _methodNotType Then
                 _locals = locals
+                _sourceMethodParametersInOrder = GetSourceMethodParametersInOrder(currentFrame, currentSourceMethod)
                 Dim displayClassVariableNamesInOrder As ImmutableArray(Of String) = Nothing
-                GetDisplayClassVariables(currentFrame, locals, inScopeHoistedLocalSlots, displayClassVariableNamesInOrder, _displayClassVariables, _hoistedParameterNames)
+                GetDisplayClassVariables(
+                    currentFrame,
+                    currentSourceMethod,
+                    locals,
+                    inScopeHoistedLocalSlots,
+                    _sourceMethodParametersInOrder,
+                    displayClassVariableNamesInOrder,
+                    _displayClassVariables)
                 Debug.Assert(displayClassVariableNamesInOrder.Length = _displayClassVariables.Count)
                 _localsForBinding = GetLocalsForBinding(locals, displayClassVariableNamesInOrder, _displayClassVariables)
             Else
@@ -233,6 +242,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                                 Dim methodName = GetNextMethodName(methodBuilder)
                                 Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
                                 Dim local = PlaceholderLocalSymbol.Create(typeNameDecoder, _currentFrame, [alias])
+                                ' Skip pseudo-variables with errors.
+                                If local.GetUseSiteErrorInfo()?.Severity = DiagnosticSeverity.Error Then
+                                    Continue For
+                                End If
                                 Dim aliasMethod = Me.CreateMethod(
                                     container,
                                     methodName,
@@ -257,38 +270,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
                     End If
 
-                    ' Hoisted method parameters (represented as locals in the EE).
-                    If Not _hoistedParameterNames.IsEmpty Then
-                        Dim localIndex As Integer = 0
+                    Dim itemsAdded = PooledHashSet(Of String).GetInstance()
 
-                        For Each local In _localsForBinding
-                            ' Since we are showing hoisted method parameters first, the parameters may appear out of order
-                            ' in the Locals window if only some of the parameters are hoisted.  This is consistent with the
-                            ' behavior of the old EE.
-                            If _hoistedParameterNames.Contains(local.Name) Then
-                                AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local))
-                            End If
-
-                            localIndex += 1
-                        Next
-                    End If
-
-                    ' Method parameters (except those that have been hoisted).
+                    ' Method parameters
                     Dim parameterIndex = If(m.IsShared, 0, 1)
                     For Each parameter In m.Parameters
                         Dim parameterName As String = parameter.Name
-                        If Not _hoistedParameterNames.Contains(parameterName) AndAlso GeneratedNames.GetKind(parameterName) = GeneratedNameKind.None Then
+                        If GeneratedNames.GetKind(parameterName) = GeneratedNameKind.None Then
                             AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex)
+                            itemsAdded.Add(parameterName)
                         End If
 
                         parameterIndex += 1
                     Next
 
+                    ' In case of iterator Or async state machine, the 'm' method has no parameters
+                    ' but the source method can have parameters to iterate over.
+                    If itemsAdded.Count = 0 AndAlso _sourceMethodParametersInOrder.Length <> 0 Then
+                        Dim localsDictionary = PooledDictionary(Of String, (LocalSymbol, Integer)).GetInstance()
+                        Dim localIndex = 0
+                        For Each local In _localsForBinding
+                            localsDictionary.Add(local.Name, (local, localIndex))
+                            localIndex += 1
+                        Next
+
+                        For Each argumentName In _sourceMethodParametersInOrder
+
+                            Dim localSymbolAndIndex As (LocalSymbol, Integer) = Nothing
+                            If localsDictionary.TryGetValue(argumentName, localSymbolAndIndex) Then
+                                itemsAdded.Add(argumentName)
+                                Dim local = localSymbolAndIndex.Item1
+                                AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localSymbolAndIndex.Item2, GetLocalResultFlags(local))
+                            End If
+                        Next
+
+                        localsDictionary.Free()
+                    End If
+
                     If Not argumentsOnly Then
                         ' Locals.
                         Dim localIndex As Integer = 0
                         For Each local In _localsForBinding
-                            If Not _hoistedParameterNames.Contains(local.Name) Then
+                            If Not itemsAdded.Contains(local.Name) Then
                                 AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local))
                             End If
 
@@ -309,6 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
                     End If
 
+                    itemsAdded.Free()
                     Return methodBuilder.ToImmutableAndFree()
                 End Function)
 
@@ -991,6 +1015,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return builder.ToImmutableAndFree()
         End Function
 
+        Private Shared Function GetSourceMethodParametersInOrder(
+            method As MethodSymbol,
+            sourceMethod As MethodSymbol) As ImmutableArray(Of String)
+
+            Dim containingType = method.ContainingType
+            Dim isIteratorOrAsyncMethod = containingType.IsClosureOrStateMachineType() AndAlso containingType.IsStateMachineType()
+
+            Dim parameterNamesInOrder = ArrayBuilder(Of String).GetInstance()
+
+            ' For version before .NET 4.5, we cannot find the sourceMethod properly:
+            ' The source method coincides with the original method in the case.
+            ' Here, we have to get parameters from the containingType.
+            ' This does not guarantee the proper order of parameters.
+            If isIteratorOrAsyncMethod AndAlso method = sourceMethod Then
+                Debug.Assert(containingType.IsClosureOrStateMachineType())
+
+                For Each member In containingType.GetMembers
+                    ' All iterator and async state machine fields in VB have mangled names.
+                    ' The ones beginning with "$VB$Local_" are the hoisted parameters.
+                    If member.Kind <> SymbolKind.Field Then
+                        Continue For
+                    End If
+
+                    Dim field = DirectCast(member, FieldSymbol)
+                    Dim fieldName = field.Name
+                    Dim parameterName As String = Nothing
+                    If GeneratedNames.TryParseHoistedUserVariableName(fieldName, parameterName) Then
+                        parameterNamesInOrder.Add(parameterName)
+                    End If
+                Next
+            Else
+                If sourceMethod <> Nothing Then
+                    For Each parameter In sourceMethod.Parameters
+                        parameterNamesInOrder.Add(parameter.Name)
+                    Next
+                End If
+            End If
+
+            Return parameterNamesInOrder.ToImmutableAndFree()
+        End Function
+
         ''' <summary>
         ''' Return a mapping of captured variables (parameters, locals, and "Me") to locals.
         ''' The mapping is needed to expose the original local identifiers (those from source)
@@ -998,104 +1063,87 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </summary>
         Private Shared Sub GetDisplayClassVariables(
             method As MethodSymbol,
+            sourceMethod As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocalSlots As ImmutableSortedSet(Of Integer),
+            sourceMethodParametersInOrder As ImmutableArray(Of String),
             <Out> ByRef displayClassVariableNamesInOrder As ImmutableArray(Of String),
-            <Out> ByRef displayClassVariables As ImmutableDictionary(Of String, DisplayClassVariable),
-            <Out> ByRef hoistedParameterNames As ImmutableHashSet(Of String))
+            <Out> ByRef displayClassVariables As ImmutableDictionary(Of String, DisplayClassVariable))
 
-            ' Calculated the shortest paths from locals to instances of display classes.
+            ' Calculate the shortest paths from locals to instances of display classes.
             ' There should not be two instances of the same display class immediately
             ' within any particular method.
-            Dim displayClassTypes = PooledHashSet(Of NamedTypeSymbol).GetInstance()
             Dim displayClassInstances = ArrayBuilder(Of DisplayClassInstanceAndFields).GetInstance()
-
-            ' Add any display class instances from locals (these will contain any hoisted locals).
-            For Each local As LocalSymbol In locals
-                Dim localName = local.Name
-                If localName IsNot Nothing AndAlso IsDisplayClassInstanceLocalName(localName) Then
-                    Dim instance As New DisplayClassInstanceFromLocal(DirectCast(local, EELocalSymbol))
-                    displayClassTypes.Add(instance.Type)
-                    displayClassInstances.Add(New DisplayClassInstanceAndFields(instance))
-                End If
-            Next
 
             For Each parameter As ParameterSymbol In method.Parameters
                 If GeneratedNames.GetKind(parameter.Name) = GeneratedNameKind.TransparentIdentifier Then
                     Dim instance As New DisplayClassInstanceFromParameter(parameter)
-                    displayClassTypes.Add(instance.Type)
                     displayClassInstances.Add(New DisplayClassInstanceAndFields(instance))
                 End If
             Next
 
-            Dim containingType = method.ContainingType
-            Dim isIteratorOrAsyncMethod = False
-            If containingType.IsClosureOrStateMachineType() Then
+            If method.ContainingType.IsClosureOrStateMachineType() Then
                 If Not method.IsShared Then
                     ' Add "Me" display class instance.
                     Dim instance As New DisplayClassInstanceFromParameter(method.MeParameter)
-                    displayClassTypes.Add(instance.Type)
                     displayClassInstances.Add(New DisplayClassInstanceAndFields(instance))
                 End If
-
-                isIteratorOrAsyncMethod = containingType.IsStateMachineType()
             End If
 
-            If displayClassInstances.Any() Then
-                ' Find any additional display class instances breadth first.
-                Dim depth = 0
-                While GetDisplayClassInstances(displayClassTypes, displayClassInstances, depth) > 0
-                    depth += 1
-                End While
+            Dim displayClassTypes = PooledHashSet(Of TypeSymbol).GetInstance()
+            For Each instance In displayClassInstances
+                displayClassTypes.Add(instance.Instance.Type)
+            Next
 
+            ' Find any additional display class instances.
+            GetAdditionalDisplayClassInstances(displayClassTypes, displayClassInstances, startIndex:=0)
+
+            ' Add any display class instances from locals (these will contain any hoisted locals).
+            ' Locals are only added after finding all display class instances reachable from
+            ' parameters because locals may be null (temporary locals in async state machine
+            ' for instance) so we prefer parameters to locals.
+            Dim startIndex = displayClassInstances.Count
+            For Each local As LocalSymbol In locals
+                Dim localName = local.Name
+                If localName IsNot Nothing AndAlso IsDisplayClassInstanceLocalName(localName) Then
+                    If displayClassTypes.Add(local.Type) Then
+                        Dim instance As New DisplayClassInstanceFromLocal(DirectCast(local, EELocalSymbol))
+                        displayClassInstances.Add(New DisplayClassInstanceAndFields(instance))
+                    End If
+                End If
+            Next
+            GetAdditionalDisplayClassInstances(displayClassTypes, displayClassInstances, startIndex)
+
+            displayClassTypes.Free()
+
+            If displayClassInstances.Any() Then
                 ' The locals are the set of all fields from the display classes.
                 Dim displayClassVariableNamesInOrderBuilder = ArrayBuilder(Of String).GetInstance()
                 Dim displayClassVariablesBuilder = PooledDictionary(Of String, DisplayClassVariable).GetInstance()
 
                 Dim parameterNames = PooledHashSet(Of String).GetInstance()
-                If isIteratorOrAsyncMethod Then
-                    Debug.Assert(containingType.IsClosureOrStateMachineType())
+                For Each p In sourceMethodParametersInOrder
+                    parameterNames.Add(p)
+                Next
 
-                    For Each field In containingType.GetMembers.OfType(Of FieldSymbol)()
-                        ' All iterator and async state machine fields in VB have mangled names.
-                        ' The ones beginning with "$VB$Local_" are the hoisted parameters.
-                        Dim fieldName = field.Name
-                        Dim parameterName As String = Nothing
-                        If GeneratedNames.TryParseHoistedUserVariableName(fieldName, parameterName) Then
-                            parameterNames.Add(parameterName)
-                        End If
-                    Next
-                Else
-                    For Each parameter In method.Parameters
-                        parameterNames.Add(parameter.Name)
-                    Next
-                End If
-
-                Dim pooledHoistedParameterNames = PooledHashSet(Of String).GetInstance()
                 For Each instance In displayClassInstances
                     GetDisplayClassVariables(
                         displayClassVariableNamesInOrderBuilder,
                         displayClassVariablesBuilder,
                         parameterNames,
                         inScopeHoistedLocalSlots,
-                        instance,
-                        pooledHoistedParameterNames)
+                        instance)
                 Next
-
-                hoistedParameterNames = pooledHoistedParameterNames.ToImmutableHashSet()
-                pooledHoistedParameterNames.Free()
-                parameterNames.Free()
 
                 displayClassVariableNamesInOrder = displayClassVariableNamesInOrderBuilder.ToImmutableAndFree()
                 displayClassVariables = displayClassVariablesBuilder.ToImmutableDictionary()
                 displayClassVariablesBuilder.Free()
+                parameterNames.Free()
             Else
-                hoistedParameterNames = ImmutableHashSet(Of String).Empty
                 displayClassVariableNamesInOrder = ImmutableArray(Of String).Empty
                 displayClassVariables = ImmutableDictionary(Of String, DisplayClassVariable).Empty
             End If
 
-            displayClassTypes.Free()
             displayClassInstances.Free()
         End Sub
 
@@ -1153,38 +1201,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 DkmClrCompilationResultFlags.None)
         End Function
 
-        ''' <summary>
-        ''' Return the set of display class instances that can be reached from the given local.
-        ''' A particular display class may be reachable from multiple locals.  In those cases,
-        ''' the instance from the shortest path (fewest intermediate fields) is returned.
-        ''' </summary>
-        Private Shared Function GetDisplayClassInstances(
-            displayClassTypes As HashSet(Of NamedTypeSymbol),
+        Private Shared Sub GetAdditionalDisplayClassInstances(
+            displayClassTypes As HashSet(Of TypeSymbol),
             displayClassInstances As ArrayBuilder(Of DisplayClassInstanceAndFields),
-            depth As Integer) As Integer
+            startIndex As Integer)
 
-            Debug.Assert(displayClassInstances.All(Function(p) p.Depth <= depth))
+            ' Find any additional display class instances breadth first.
+            Dim i = startIndex
+            While i < displayClassInstances.Count()
+                GetDisplayClassInstances(displayClassTypes, displayClassInstances, displayClassInstances(i))
+                i += 1
+            End While
+        End Sub
 
-            Dim atDepth = ArrayBuilder(Of DisplayClassInstanceAndFields).GetInstance()
-            atDepth.AddRange(displayClassInstances.Where(Function(p) p.Depth = depth))
-            Debug.Assert(atDepth.Count > 0)
-
-            Dim n = 0
-            For Each instance In atDepth
-                n += GetDisplayClassInstances(displayClassTypes, displayClassInstances, instance)
-            Next
-
-            atDepth.Free()
-            Return n
-        End Function
-
-        Private Shared Function GetDisplayClassInstances(
-            displayClassTypes As HashSet(Of NamedTypeSymbol),
+        Private Shared Sub GetDisplayClassInstances(
+            displayClassTypes As HashSet(Of TypeSymbol),
             displayClassInstances As ArrayBuilder(Of DisplayClassInstanceAndFields),
-            instance As DisplayClassInstanceAndFields) As Integer
+            instance As DisplayClassInstanceAndFields)
 
             ' Display class instance.  The display class fields are variables.
-            Dim n = 0
             For Each member In instance.Type.GetMembers()
                 If member.Kind <> SymbolKind.Field Then
                     Continue For
@@ -1196,23 +1231,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     IsTransparentIdentifierField(field) Then
                     Debug.Assert(Not field.IsShared)
                     ' A local that is itself a display class instance.
-                    If displayClassTypes.Add(DirectCast(fieldType, NamedTypeSymbol)) Then
+                    If displayClassTypes.Add(fieldType) Then
                         Dim other = instance.FromField(field)
                         displayClassInstances.Add(other)
-                        n += 1
                     End If
                 End If
             Next
-            Return n
-        End Function
+        End Sub
 
         Private Shared Sub GetDisplayClassVariables(
             displayClassVariableNamesInOrder As ArrayBuilder(Of String),
             displayClassVariablesBuilder As Dictionary(Of String, DisplayClassVariable),
             parameterNames As HashSet(Of String),
             inScopeHoistedLocalSlots As ImmutableSortedSet(Of Integer),
-            instance As DisplayClassInstanceAndFields,
-            hoistedParameterNames As HashSet(Of String))
+            instance As DisplayClassInstanceAndFields)
 
             ' Display class instance.  The display class fields are variables.
             For Each member In instance.Type.GetMembers()
@@ -1258,7 +1290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     variableName = fieldName ' As in C#, we retain the mangled name.  It shouldn't be used, other than as a dictionary key.
                 ElseIf fieldName.StartsWith(StringConstants.LambdaCacheFieldPrefix, StringComparison.Ordinal) Then
                     Continue For
-                ElseIf GeneratedNames.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier
+                ElseIf GeneratedNames.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier Then
                     ' A transparent identifier (field) in an anonymous type synthesized for a transparent identifier.
                     Debug.Assert(Not field.IsShared)
                     Continue For
@@ -1273,24 +1305,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                 If variableKind = DisplayClassVariableKind.Local AndAlso parameterNames.Contains(variableName) Then
                     variableKind = DisplayClassVariableKind.Parameter
-                    hoistedParameterNames.Add(variableName)
                 End If
 
                 If displayClassVariablesBuilder.ContainsKey(variableName) Then
                     ' Only expecting duplicates for async state machine
                     ' fields (that should be at the top-level).
                     Debug.Assert(displayClassVariablesBuilder(variableName).DisplayClassFields.Count() = 1)
-                    Debug.Assert(instance.Fields.Count() >= 1) ' greater depth
-                    ' There are two ways names could collide:
-                    '   1) hoisted state machine locals in different scopes
-                    '   2) hoisted state machine parameters that are also captured by lambdas
-                    ' The former should be impossible since we dropped out-of-scope hoisted
-                    ' locals above.  We assert that we are seeing the latter.
-                    Debug.Assert((variableKind = DisplayClassVariableKind.Parameter) OrElse
+
+                    If Not instance.Fields.Any() Then
+                        ' Prefer parameters over locals.
+                        Debug.Assert(TypeOf instance.Instance Is DisplayClassInstance)
+                    Else
+                        Debug.Assert(instance.Fields.Count() >= 1) ' greater depth
+                        ' There are two ways names could collide:
+                        '   1) hoisted state machine locals in different scopes
+                        '   2) hoisted state machine parameters that are also captured by lambdas
+                        ' The former should be impossible since we dropped out-of-scope hoisted
+                        ' locals above.  We assert that we are seeing the latter.
+                        Debug.Assert((variableKind = DisplayClassVariableKind.Parameter) OrElse
                         (variableKind = DisplayClassVariableKind.Me))
 
-                    If variableKind = DisplayClassVariableKind.Parameter AndAlso GeneratedNames.GetKind(instance.Type.Name) = GeneratedNameKind.LambdaDisplayClass Then
-                        displayClassVariablesBuilder(variableName) = instance.ToVariable(variableName, variableKind, field)
+                        If variableKind = DisplayClassVariableKind.Parameter AndAlso GeneratedNames.GetKind(instance.Type.Name) = GeneratedNameKind.LambdaDisplayClass Then
+                            displayClassVariablesBuilder(variableName) = instance.ToVariable(variableName, variableKind, field)
+                        End If
                     End If
 
                 Else
@@ -1361,7 +1398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     If IsViableSourceMethod(candidateMethod, desiredMethodName, desiredTypeParameters, sourceMethodMustBeInstance) Then
                         Return If(desiredTypeParameters.Length = 0,
                             candidateMethod,
-                            candidateMethod.Construct(candidateSubstitutedSourceType.TypeArguments))
+                            candidateMethod.Construct(candidateSubstitutedSourceType.TypeArgumentsNoUseSiteDiagnostics))
                     End If
                 Next
 
@@ -1433,6 +1470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return True
         End Function
 
+        <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
         Private Structure DisplayClassInstanceAndFields
             Friend ReadOnly Instance As DisplayClassInstance
             Friend ReadOnly Fields As ConsList(Of FieldSymbol)
@@ -1448,9 +1486,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Me.Fields = fields
             End Sub
 
-            Friend ReadOnly Property Type As NamedTypeSymbol
+            Friend ReadOnly Property Type As TypeSymbol
                 Get
-                    Return If(Me.Fields.Any(), DirectCast(Me.Fields.Head.Type, NamedTypeSymbol), Me.Instance.Type)
+                    Return If(Me.Fields.Any(), Me.Fields.Head.Type, Me.Instance.Type)
                 End Get
             End Property
 
@@ -1468,6 +1506,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Friend Function ToVariable(name As String, kind As DisplayClassVariableKind, field As FieldSymbol) As DisplayClassVariable
                 Return New DisplayClassVariable(name, kind, Me.Instance, Me.Fields.Prepend(field))
+            End Function
+
+            Private Function GetDebuggerDisplay() As String
+                Return Instance.GetDebuggerDisplay(Fields)
             End Function
         End Structure
     End Class

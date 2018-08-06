@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var workspace = new AdhocWorkspace(hostServices);
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
-            var serializer = new Serializer(workspace);
+            var serializer = workspace.Services.GetService<ISerializerService>();
             var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
 
             var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, new CodeStyleOption<bool>(false, NotificationOption.Error))
                                                  .WithChangedOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.Warning))
                                                  .WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion))
-                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.None));
+                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.Silent));
 
             await VerifyOptionSetsAsync(workspace, LanguageNames.CSharp).ConfigureAwait(false);
             await VerifyOptionSetsAsync(workspace, LanguageNames.VisualBasic).ConfigureAwait(false);
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task Missing_Metadata_Serailization_Test()
         {
             var workspace = new AdhocWorkspace();
-            var serializer = new Serializer(workspace);
+            var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new MissingMetadataReference();
 
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task Missing_Analyzer_Serailization_Test()
         {
             var workspace = new AdhocWorkspace();
-            var serializer = new Serializer(workspace);
+            var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
 
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
 
             var workspace = new AdhocWorkspace(hostServices);
-            var serializer = new Serializer(workspace);
+            var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
 
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var tempRoot = new TempRoot())
             {
                 var workspace = new AdhocWorkspace();
-                var serializer = new Serializer(workspace);
+                var serializer = workspace.Services.GetService<ISerializerService>();
 
                 // actually shadow copy content
                 var location = typeof(object).Assembly.Location;
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
 
                 var workspace = new AdhocWorkspace(hostServices);
-                var serializer = new Serializer(workspace);
+                var serializer = workspace.Services.GetService<ISerializerService>();
 
                 // actually shadow copy content
                 var location = typeof(object).Assembly.Location;
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task EmptyAssetChecksumTest()
         {
             var document = new AdhocWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
-            var serializer = new Serializer(document.Project.Solution);
+            var serializer = document.Project.Solution.Workspace.Services.GetService<ISerializerService>();
 
             var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
@@ -511,18 +511,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // portable layer doesn't support xml doc comments
             // this depends on which layer supports IDocumentationProviderService
             var xmlDocComment = await GetXmlDocumentAsync(MefHostServices.Create(MefHostServices.DefaultAssemblies));
-            Assert.True(string.IsNullOrEmpty(xmlDocComment));
-        }
-
-        [Fact]
-        public async Task TestMetadataXmlDocComment_Desktop()
-        {
-            // desktop layer supports xml doc comments
-            // this depends on which layer supports IDocumentationProviderService
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            var xmlDocComment = await GetXmlDocumentAsync(hostServices);
             Assert.False(string.IsNullOrEmpty(xmlDocComment));
         }
 
@@ -533,7 +521,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
 
             var workspace = new AdhocWorkspace(hostServices);
-            var serializer = new Serializer(workspace);
+            var serializer = workspace.Services.GetService<ISerializerService>();
 
             // test with right serializable encoding
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
@@ -619,7 +607,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
         {
             var assetBuilder = new CustomAssetBuilder(workspace);
-            var serializer = new Serializer(workspace);
+            var serializer = workspace.Services.GetService<ISerializerService>();
 
             var asset = assetBuilder.Build(workspace.Options, language, CancellationToken.None);
 
@@ -729,7 +717,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
         }
 
-        private static async Task<RemotableData> CloneAssetAsync(Serializer serializer, RemotableData asset)
+        private static async Task<RemotableData> CloneAssetAsync(ISerializerService serializer, RemotableData asset)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))

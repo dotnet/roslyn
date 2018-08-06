@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
         {
             var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-            var lastStatement = methodDeclaration.Body.Statements.Last();
-            return lastStatement.GetLocation().SourceSpan.End;
+            return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
         }
 
         protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             token = targetToken;
 
-            modifiers = default(DeclarationModifiers);
+            modifiers = default;
 
             if (targetToken.IsKind(SyntaxKind.VoidKeyword, SyntaxKind.PartialKeyword) ||
                 (targetToken.Kind() == SyntaxKind.IdentifierToken && targetToken.HasMatchingText(SyntaxKind.PartialKeyword)))
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (token.IsKind(SyntaxKind.ExternKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword))
                 {
-                    modifiers = default(DeclarationModifiers);
+                    modifiers = default;
                     return false;
                 }
 

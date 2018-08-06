@@ -116,10 +116,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var totalSymbols = await base.GetPerContextSymbols(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var info in totalSymbols)
             {
-                var bestSymbols = info.Item3.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
+                var bestSymbols = info.symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
                 if (bestSymbols.Any())
                 {
-                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, info.Item2.SemanticModel, cancellationToken).ConfigureAwait(false);
+                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, info.syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
                 }
             }
 

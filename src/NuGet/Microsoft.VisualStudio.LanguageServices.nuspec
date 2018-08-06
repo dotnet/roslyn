@@ -4,11 +4,17 @@
     <id>Microsoft.VisualStudio.LanguageServices</id>
     <summary>
       .NET Compiler Platform ("Roslyn") support for Visual Studio.
-      
-Supported Platforms:
-- .NET Framework 4.6
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      .NET Compiler Platform ("Roslyn") support for Visual Studio.
+      
+      Supported Platforms:
+      - .NET Framework 4.6
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis" version="[$version$]" />
     </dependencies>
@@ -17,14 +23,17 @@ Supported Platforms:
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlNonRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
-    <file src="Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.dll" target="lib\net46" />
-    <file src="Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.xml" target="lib\net46" />
+    <!-- Include PDB unless embedded into DLL -->
+    <file src="Dlls\Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.dll" target="lib\net46" />
+    <file src="Dlls\Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.xml" target="lib\net46" />
+    <file src="Dlls\Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

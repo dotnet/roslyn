@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static MemberDeclarationSyntax GenerateEventFieldDeclaration(
             IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(@event,
                     SyntaxFactory.EventFieldDeclaration(
                         AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), options),
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(@event.ExplicitInterfaceImplementations);
 
-            return AddCleanupAnnotationsTo(SyntaxFactory.EventDeclaration(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(SyntaxFactory.EventDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), options),
                 modifiers: GenerateModifiers(@event, destination, options),
                 type: @event.Type.GenerateTypeSyntax(),

@@ -69,12 +69,12 @@ public class C
 public class C
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Declaration"")]
-    public void Foo() {}
-    public void Foo1() {}
+    public void Goo() {}
+    public void Goo1() {}
 }
 ",
-                new[] { new WarningOnNamePrefixDeclarationAnalyzer("Foo") },
-                Diagnostic("Declaration", "Foo1"));
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("Goo") },
+                Diagnostic("Declaration", "Goo1"));
         }
 
         #endregion
@@ -257,7 +257,7 @@ public class E
 public class C
 {
     // before method
-    public void Foo() // after method declaration
+    public void Goo() // after method declaration
     {
         // inside method
     }
@@ -276,7 +276,7 @@ public class C
 ' before class
 Public Class C
     ' before sub
-    Public Sub Foo() ' after sub statement
+    Public Sub Goo() ' after sub statement
         ' inside sub
     End Sub
 End Class
@@ -290,12 +290,12 @@ End Class
         {
             await VerifyCSharpAsync(@"
 // before module attributes
-[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope=""Member"" Target=""C.Foo():System.Void"")]
+[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope=""Member"" Target=""C.Goo():System.Void"")]
 // before class
 public class C
 {
     // before method
-    public void Foo() // after method declaration
+    public void Goo() // after method declaration
     {
         // inside method
     }
@@ -313,11 +313,11 @@ public class C
         {
             await VerifyBasicAsync(@"
 ' before module attributes
-<Module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope:=""Member"", Target:=""C.Foo():System.Void"")>
+<Module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope:=""Member"", Target:=""C.Goo():System.Void"")>
 ' before class
 Public Class C
     ' before sub
-    Public Sub Foo() ' after sub statement
+    Public Sub Goo() ' after sub statement
         ' inside sub
     End Sub
 End Class
@@ -1024,9 +1024,9 @@ public class C
 public class C
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CodeBody"")]
-    void Foo()
+    void Goo()
     {
-        Foo();
+        Goo();
     }
 }
 ",
@@ -1040,8 +1040,8 @@ public class C
                 @"
 Public Class C
     <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CodeBody"")>
-    Sub Foo()
-        Foo()
+    Sub Goo()
+        Goo()
     End Sub
 End Class
 ",

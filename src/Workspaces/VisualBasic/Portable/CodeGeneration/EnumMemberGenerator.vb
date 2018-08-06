@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim member = SyntaxFactory.EnumMemberDeclaration(enumMember.Name.ToIdentifierToken()) _
                                .WithInitializer(If(value Is Nothing, Nothing, SyntaxFactory.EqualsValue(value:=value)))
 
-            Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(member, enumMember, options))
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(member, enumMember, options))
         End Function
 
         Private Function CreateEnumMemberValue(destinationOpt As EnumBlockSyntax, enumMember As IFieldSymbol) As ExpressionSyntax

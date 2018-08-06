@@ -1100,7 +1100,7 @@ End Class
             Dim source = <Text>
 Public Class C1
     Protected WithEvents w As C1 = Me
-    Sub Foo()
+    Sub Goo()
         Me.$$
     End Sub
 End Class
@@ -1307,11 +1307,11 @@ End Class
             Dim test = <Text>
 Class C
     Sub M()
-        Foo: Dim i As Integer
+        Goo: Dim i As Integer
         Goto $$"
 </Text>.Value
 
-            Await VerifyItemExistsAsync(test, "Foo")
+            Await VerifyItemExistsAsync(test, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1319,11 +1319,11 @@ Class C
             Dim test = <Text>
 Class C
     Sub M()
-        Foo: Dim i As Integer
-        Goto Foo $$"
+        Goo: Dim i As Integer
+        Goto Goo $$"
 </Text>.Value
 
-            Await VerifyItemIsAbsentAsync(test, "Foo")
+            Await VerifyItemIsAbsentAsync(test, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1511,7 +1511,7 @@ End Class
         Public Async Function TestNothingAfterBadImplementsClause() As Task
             Dim test = <Text>
 Module Module1
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module
 
@@ -1519,7 +1519,7 @@ Class SomeClass
     Sub DoStuff() Implements Module1.$$
                        </Text>
 
-            Await VerifyItemIsAbsentAsync(test.Value, "Foo")
+            Await VerifyItemIsAbsentAsync(test.Value, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1769,7 +1769,7 @@ Class D
 End Class
 
 Class Bar
-    MustInherit Class Foo
+    MustInherit Class Goo
         Class SomethingAttribute
             Inherits Attribute
  
@@ -1802,7 +1802,7 @@ Class D
 End Class
 
 Class Bar
-    MustInherit Class Foo
+    MustInherit Class Goo
         Class SomethingAttribute
             Inherits Attribute
  
@@ -1817,7 +1817,7 @@ Class Bar
 End Class
 ]]></Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "Foo")
+            Await VerifyItemExistsAsync(markup, "Goo")
             Await VerifyItemIsAbsentAsync(markup, "C1")
         End Function
 
@@ -1827,7 +1827,7 @@ End Class
             Dim markup = <Text><![CDATA[
 Imports System
 
-<Bar.Foo.$$
+<Bar.Goo.$$
 Class C
 End Class
 
@@ -1835,7 +1835,7 @@ Class D
 End Class
 
 Class Bar
-    MustInherit Class Foo
+    MustInherit Class Goo
         Class SomethingAttribute
             Inherits Attribute
  
@@ -1852,6 +1852,142 @@ End Class
 
             Await VerifyItemExistsAsync(markup, "Something")
             Await VerifyItemIsAbsentAsync(markup, "C2")
+        End Function
+
+        <WorkItem(25589, "https://github.com/dotnet/roslyn/issues/25589")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute1() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Namespace1")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute2() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<Namespace1.$$>
+]]></Text>.Value
+
+            Await VerifyItemIsAbsentAsync(markup, "Namespace2")
+            Await VerifyItemExistsAsync(markup, "Namespace3")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute3() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<Namespace1.Namespace3.$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Namespace4")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute4() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<Namespace1.Namespace3.Namespace4.$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Custom")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute_NamespaceAlias() As Task
+            Dim markup = <Text><![CDATA[
+Imports Namespace1Alias = Namespace1
+Imports Namespace2Alias = Namespace1.Namespace2
+Imports Namespace3Alias = Namespace1.Namespace3
+Imports Namespace4Alias = Namespace1.Namespace3.Namespace4
+
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Namespace1Alias")
+            Await VerifyItemIsAbsentAsync(markup, "Namespace2Alias")
+            Await VerifyItemExistsAsync(markup, "Namespace3Alias")
+            Await VerifyItemExistsAsync(markup, "Namespace4Alias")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithoutNestedAttribute() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class NonAttribute
+            Inherits System.NonAttribute
+        End Class
+    End Namespace
+End Namespace
+
+<$$>
+]]></Text>.Value
+
+            Await VerifyItemIsAbsentAsync(markup, "Namespace1")
         End Function
 
         <WorkItem(542737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542737")>
@@ -2233,10 +2369,10 @@ Module Program
 <Text>
 Module Program
     Sub Main(args As String())
-        Dim f1 As New Foo2($$
+        Dim f1 As New Goo2($$
     End Sub
 
-    Delegate Sub Foo2()
+    Delegate Sub Goo2()
 
     Function Bar2() As Object
         Return Nothing
@@ -2244,7 +2380,7 @@ Module Program
 End Module
 </Text>.Value
 
-            Await VerifyItemIsAbsentAsync(markup, "Foo2")
+            Await VerifyItemIsAbsentAsync(markup, "Goo2")
             Await VerifyItemIsAbsentAsync(markup, "Bar2")
         End Function
 
@@ -2255,10 +2391,10 @@ End Module
 <Text>
 Module Program
     Sub Main(args As String())
-        Dim f1 = New Foo2($$
+        Dim f1 = New Goo2($$
     End Sub
 
-    Delegate Sub Foo2()
+    Delegate Sub Goo2()
 
     Function Bar2() As Object
         Return Nothing
@@ -2266,7 +2402,7 @@ Module Program
 End Module
 </Text>.Value
 
-            Await VerifyItemIsAbsentAsync(markup, "Foo2")
+            Await VerifyItemIsAbsentAsync(markup, "Goo2")
             Await VerifyItemIsAbsentAsync(markup, "Bar2")
         End Function
 
@@ -2323,7 +2459,7 @@ End Class
         Public Async Function TestAfterMyBaseDot2() As Task
             Dim markup = <Text>
 Public Class Base
-    Protected Sub Foo()
+    Protected Sub Goo()
         Console.WriteLine("test")
     End Sub
 End Class
@@ -2337,7 +2473,7 @@ Public Class Inherited
 End Class
 </Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "Foo")
+            Await VerifyItemExistsAsync(markup, "Goo")
             Await VerifyItemIsAbsentAsync(markup, "Bar")
         End Function
 
@@ -2564,10 +2700,10 @@ End Module
         <WorkItem(539450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")> <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestKeywordEscaping3() As Task
             Dim markup = <Text>
-Namespace Foo
+Namespace Goo
     Module [Structure]
         Sub M()
-            Dim x as Foo.$$
+            Dim x as Goo.$$
         End Sub
     End Module
 End Namespace
@@ -2644,7 +2780,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestReadOnlyPropertiesPresentOnRightSideInObjectInitializer() As Task
             Dim text = <a>Class C
-    Public Property Foo As Integer
+    Public Property Goo As Integer
     Public ReadOnly Property Bar As Integer
         Get
             Return 0
@@ -2652,11 +2788,11 @@ End Class
     End Property
 
     Sub M()
-        Dim c As New C With { .Foo = .$$
+        Dim c As New C With { .Goo = .$$
     End Sub
 End Class</a>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
             Await VerifyItemExistsAsync(text, "Bar")
         End Function
 
@@ -2669,11 +2805,11 @@ Option Explicit Off
 Class C
     Sub M()
         $$
-        Dim foo = 3
+        Dim goo = 3
     End Sub
 End Class</Text>.Value
 
-            Await VerifyItemIsAbsentAsync(text, "foo")
+            Await VerifyItemIsAbsentAsync(text, "goo")
         End Function
 
         <Fact>
@@ -2685,11 +2821,11 @@ Option Explicit On
 Class C
     Sub M()
         $$
-        Dim foo = 3
+        Dim goo = 3
     End Sub
 End Class</Text>.Value
 
-            Await VerifyItemIsAbsentAsync(text, "foo")
+            Await VerifyItemIsAbsentAsync(text, "goo")
         End Function
 
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
@@ -2702,30 +2838,30 @@ Option Explicit Off
 Class C
     Function M() as Integer
         $$
-        Return foo
+        Return goo
     End Sub
 End Class</Text>.Value
 
-            Await VerifyItemExistsAsync(text, "foo")
+            Await VerifyItemExistsAsync(text, "goo")
         End Function
 
         <Fact>
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLocalVariableInItsDeclaration() As Task
-            ' "Dim foo As Integer = foo" is legal code while "Dim foo = foo" is not, but
+            ' "Dim goo As Integer = goo" is legal code while "Dim goo = goo" is not, but
             ' offer the local name on the right in either case because in the second
-            ' case there's an error stating that foo needs to be explicitly typed and
+            ' case there's an error stating that goo needs to be explicitly typed and
             ' the user can then add the As clause. This mimics the behavior of 
             ' "var x = x = 0" in C#.
             Dim text = <Text>
 Class C
     Sub M()
-        Dim foo = $$
+        Dim goo = $$
     End Sub
 End Class</Text>.Value
 
-            Await VerifyItemExistsAsync(text, "foo")
+            Await VerifyItemExistsAsync(text, "goo")
         End Function
 
         <Fact>
@@ -2735,7 +2871,7 @@ End Class</Text>.Value
             Dim text = <Text>
 Class C
     Sub M()
-        Dim foo = 4, bar = $$, baz = 5
+        Dim goo = 4, bar = $$, baz = 5
     End Sub
 End Class</Text>.Value
 
@@ -2749,7 +2885,7 @@ End Class</Text>.Value
             Dim text = <Text>
 Class C
     Sub M()
-        Dim foo = $$, bar = 5
+        Dim goo = $$, bar = 5
     End Sub
 End Class</Text>.Value
 
@@ -2763,11 +2899,11 @@ End Class</Text>.Value
             Dim text = <Text>
 Class C
     Sub M()
-        Dim foo = 5, bar = $$
+        Dim goo = 5, bar = $$
     End Sub
 End Class</Text>.Value
 
-            Await VerifyItemExistsAsync(text, "foo")
+            Await VerifyItemExistsAsync(text, "goo")
         End Function
 
         <Fact>
@@ -2777,12 +2913,12 @@ End Class</Text>.Value
             Dim text = <Text>
 Class C
     Sub M()
-        Dim foo(10, 20) As Integer
+        Dim goo(10, 20) As Integer
         ReDim $$
     End Sub
 End Class</Text>.Value
 
-            Await VerifyItemExistsAsync(text, "foo")
+            Await VerifyItemExistsAsync(text, "goo")
         End Function
 
         <Fact>
@@ -2792,12 +2928,12 @@ End Class</Text>.Value
             Dim text = <Text>
 Class C
     Sub M()
-        Dim foo(10, 20) As Integer
+        Dim goo(10, 20) As Integer
         ReDim Preserve $$
     End Sub
 End Class</Text>.Value
 
-            Await VerifyItemExistsAsync(text, "foo")
+            Await VerifyItemExistsAsync(text, "goo")
         End Function
 
         <Fact>
@@ -2805,7 +2941,7 @@ End Class</Text>.Value
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoNamespaceDeclarationIntellisense() As Task
             Dim text = <Text>
-Namespace Foo.$$
+Namespace Goo.$$
 Class C
 End Class</Text>.Value
 
@@ -2838,18 +2974,18 @@ Class C
     ''' &lt;summary&gt;
     ''' Doc Comment!
     ''' &lt;/summary&gt;
-    Async Function Foo() As Task
+    Async Function Goo() As Task
         Me.$$
         End Function
 End Class</Code>.Value
 
             Dim description =
-$"<{VBFeaturesResources.Awaitable}> Function C.Foo() As Task
+$"<{VBFeaturesResources.Awaitable}> Function C.Goo() As Task
 Doc Comment!
 {WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Foo()"
+  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Goo()"
 
-            Await VerifyItemWithMscorlib45Async(code, "Foo", description, LanguageNames.VisualBasic)
+            Await VerifyItemWithMscorlib45Async(code, "Goo", description, LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(550760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550760")>
@@ -2859,7 +2995,7 @@ Doc Comment!
 <Code>
 Imports System.Threading.Tasks
 Class SomeClass
-    Public Async Sub foo()
+    Public Async Sub goo()
         Await $$
     End Sub
  
@@ -2879,12 +3015,12 @@ End Class</Code>.Value
 Imports System
 Class SomeClass
     &lt;Obsolete&gt;
-    Public Sub Foo()
+    Public Sub Goo()
         $$
     End Sub
 End Class</Code>.Value
 
-            Await VerifyItemExistsAsync(code, "Foo", $"({VBFeaturesResources.Deprecated}) Sub SomeClass.Foo()")
+            Await VerifyItemExistsAsync(code, "Goo", $"({VBFeaturesResources.Deprecated}) Sub SomeClass.Goo()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -2892,7 +3028,7 @@ End Class</Code>.Value
             Dim code =
 <Code>
 Class SomeClass
-    Iterator Function Foo() As Integer
+    Iterator Function Goo() As Integer
         Dim x As Integer
         Yield $$
     End Function
@@ -2908,10 +3044,10 @@ End Class
             Dim code =
 <Code>
 Module Program
-    Dim foo As RegistryKey
+    Dim goo As RegistryKey
 
     Sub Main(args() As String)
-        foo.$$
+        goo.$$
     End Sub
 End Module
 </Code>.Value
@@ -3034,13 +3170,13 @@ Dim bbb = $$
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M
-        Foo.$$
+        Goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     Public Shared Sub Bar() 
     End Sub
@@ -3064,13 +3200,13 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Foo.$$
+        Goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     Public Shared Sub Bar() 
     End Sub
@@ -3093,13 +3229,13 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
    Sub M()
-        Foo.$$
+        Goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
     Public Shared Sub Bar() 
     End Sub
@@ -3133,13 +3269,13 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Foo.$$
+        Goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     Public Shared Sub Bar() 
     End Sub
@@ -3167,13 +3303,13 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Foo.$$
+        Goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     Public Shared Sub Bar() 
     End Sub
@@ -3201,13 +3337,13 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Foo.$$
+        Goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     Public Shared Sub Bar() 
     End Sub
@@ -3243,13 +3379,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 Public Class B
-    Public Overridable Sub Foo(original As Integer) 
+    Public Overridable Sub Goo(original As Integer) 
     End Sub
 End Class
 
 Public Class D
     Inherits B
-    Public Overrides Sub Foo(derived As Integer) 
+    Public Overrides Sub Goo(derived As Integer) 
     End Sub
 End Class
 ]]></Text>.Value
@@ -3257,7 +3393,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3280,7 +3416,7 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
 Public Class C
-    Public Sub Foo() 
+    Public Sub Goo() 
     End Sub
 End Class
 ]]></Text>.Value
@@ -3288,7 +3424,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3311,13 +3447,13 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
 Public Class B
-    Public Sub Foo() 
+    Public Sub Goo() 
     End Sub
 End Class
 
 Public Class D
     Inherits B
-    Public Overloads Sub Foo(x As Integer)
+    Public Overloads Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></Text>.Value
@@ -3325,7 +3461,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=2,
                 expectedSymbolsMetadataReference:=2,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3348,13 +3484,13 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
 Public Class B
-    Public Sub Foo() 
+    Public Sub Goo() 
     End Sub
 End Class
 
 Public Class D
     Inherits B
-    Public Sub Foo(x As Integer)
+    Public Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></Text>.Value
@@ -3362,7 +3498,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3385,7 +3521,7 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class B
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo() 
+    Public Sub Goo() 
     End Sub
 End Class
 ]]></Text>.Value
@@ -3393,7 +3529,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3415,10 +3551,10 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T)
-    Public Sub Foo(t As T)  
+    Public Sub Goo(t As T)  
     End Sub
 
-    Public Sub Foo(i as Integer)  
+    Public Sub Goo(i as Integer)  
     End Sub
 End Class
 ]]></Text>.Value
@@ -3426,7 +3562,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=2,
                 expectedSymbolsMetadataReference:=2,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3449,10 +3585,10 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T)
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(t as T)  
+    Public Sub Goo(t as T)  
     End Sub
 
-    Public Sub Foo(i as Integer)  
+    Public Sub Goo(i as Integer)  
     End Sub
 End Class
 ]]></Text>.Value
@@ -3460,7 +3596,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=2,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3482,11 +3618,11 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T)
-    Public Sub Foo(t As T)  
+    Public Sub Goo(t As T)  
     End Sub
 
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(i As Integer)  
+    Public Sub Goo(i As Integer)  
     End Sub
 End Class
 ]]></Text>.Value
@@ -3494,7 +3630,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=2,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3517,11 +3653,11 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T)
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(t As T)  
+    Public Sub Goo(t As T)  
     End Sub
 
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(i As Integer)  
+    Public Sub Goo(i As Integer)  
     End Sub
 End Class
 ]]></Text>.Value
@@ -3529,7 +3665,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=2,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3551,10 +3687,10 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T, U)
-    Public Sub Foo(t As T)
+    Public Sub Goo(t As T)
     End Sub
   
-    Public Sub Foo(u As U)
+    Public Sub Goo(u As U)
     End Sub
 End Class
 ]]></Text>.Value
@@ -3562,7 +3698,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=2,
                 expectedSymbolsMetadataReference:=2,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3585,10 +3721,10 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T, U)
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(t As T)
+    Public Sub Goo(t As T)
     End Sub
   
-    Public Sub Foo(u As U)  
+    Public Sub Goo(u As U)  
     End Sub
 End Class
 ]]></Text>.Value
@@ -3596,7 +3732,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=2,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3619,11 +3755,11 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T, U)
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(t As T)
+    Public Sub Goo(t As T)
     End Sub
   
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(u As U)  
+    Public Sub Goo(u As U)  
     End Sub
 End Class
 ]]></Text>.Value
@@ -3631,7 +3767,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=2,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3645,14 +3781,14 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Dim foo As Foo
-        foo.$$
+        Dim goo As Goo
+        goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     Public bar As Integer
 End Class
@@ -3675,14 +3811,14 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Dim foo As Foo
-        foo.$$
+        Dim goo As Goo
+        goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     Public bar As Integer
 End Class
@@ -3704,14 +3840,14 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Dim foo As Foo
-        foo.$$
+        Dim goo As Goo
+        goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
     Public bar As Integer
 End Class
@@ -3744,14 +3880,14 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Dim foo As Foo
-        foo.$$
+        Dim goo As Goo
+        goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     Public Property Bar As Integer
         Get
@@ -3779,14 +3915,14 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Dim foo As Foo
-        foo.$$
+        Dim goo As Goo
+        goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     Public Property Bar As Integer
         <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
         Get
@@ -3815,14 +3951,14 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Dim foo As Foo
-        foo.$$
+        Dim goo As Goo
+        goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     Public Property Bar As Integer
         Get
@@ -3850,14 +3986,14 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Dim foo As Foo
-        foo.$$
+        Dim goo As Goo
+        goo.$$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
     Public Property Bar As Integer
         Get
@@ -3902,7 +4038,7 @@ End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     Public Sub New()
     End Sub
@@ -3911,7 +4047,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3931,7 +4067,7 @@ End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     Public Sub New()
     End Sub
@@ -3940,7 +4076,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3960,7 +4096,7 @@ End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
     Public Sub New()
     End Sub
@@ -3969,7 +4105,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -3979,7 +4115,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4000,7 +4136,7 @@ End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     Public Sub New()
     End Sub
@@ -4012,7 +4148,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4032,7 +4168,7 @@ End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     Public Sub New()
     End Sub
@@ -4045,7 +4181,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4252,13 +4388,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4277,13 +4413,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4333,13 +4469,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)>
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4358,13 +4494,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)>
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4414,13 +4550,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)>
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4430,7 +4566,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4450,13 +4586,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)>
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4466,7 +4602,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4526,7 +4662,7 @@ End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     Inherits Bar
 End Class
 
@@ -4537,7 +4673,7 @@ End Class
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4558,13 +4694,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
-Public Structure Foo
+Public Structure Goo
 End Structure
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4585,14 +4721,14 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)>
-Public Structure Foo
+Public Structure Goo
 End Structure
 ]]></Text>.Value
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4613,14 +4749,14 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)>
-Public Structure Foo
+Public Structure Goo
 End Structure
 ]]></Text>.Value
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4630,7 +4766,7 @@ End Structure
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4652,14 +4788,14 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
-Public Enum Foo
+Public Enum Goo
     A
 End Enum
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4680,14 +4816,14 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)>
-Public Enum Foo
+Public Enum Goo
     A
 End Enum
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4708,14 +4844,14 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)>
-Public Enum Foo
+Public Enum Goo
     A
 End Enum
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4725,7 +4861,7 @@ End Enum
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4747,13 +4883,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
-Public Interface Foo
+Public Interface Goo
 End Interface
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4772,13 +4908,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
-Public Interface Foo
+Public Interface Goo
 End Interface
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4799,13 +4935,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)>
-Public Interface Foo
+Public Interface Goo
 End Interface
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4824,13 +4960,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)>
-Public Interface Foo
+Public Interface Goo
 End Interface
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4851,13 +4987,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)>
-Public Interface Foo
+Public Interface Goo
 End Interface
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4867,7 +5003,7 @@ End Interface
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4887,13 +5023,13 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)>
-Public Interface Foo
+Public Interface Goo
 End Interface
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4903,7 +5039,7 @@ End Interface
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4924,14 +5060,14 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-public class Foo
+public class Goo
 {
 }
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -4952,14 +5088,14 @@ End Class
 
             Dim referencedCode = <Text><![CDATA[
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-public class Foo
+public class Goo
 {
 }
 ]]></Text>.Value
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
-                item:="Foo",
+                item:="Goo",
                 expectedSymbolsSameSolution:=0,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
@@ -5004,7 +5140,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestImplements_AfterImplements() As Task
             Const markup = "
-Public Interface IFoo
+Public Interface IGoo
 End Interface
 
 Class C
@@ -5012,15 +5148,15 @@ Class C
 End Class
 "
 
-            Await VerifyItemExistsAsync(markup, "IFoo")
+            Await VerifyItemExistsAsync(markup, "IGoo")
         End Function
 
         <WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestImplements_AliasedInterfaceAfterImplements() As Task
             Const markup = "
-Imports IAlias = IFoo
-Public Interface IFoo
+Imports IAlias = IGoo
+Public Interface IGoo
 End Interface
 
 Class C
@@ -5037,7 +5173,7 @@ End Class
             Const markup = "
 Imports AliasedNS = NS1
 Namespace NS1
-    Public Interface IFoo
+    Public Interface IGoo
     End Interface
 
     Class C
@@ -5104,14 +5240,14 @@ End Namespace
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestImplements_AfterImplementsComma() As Task
             Const markup = "
-Public Interface IFoo
+Public Interface IGoo
 End Interface
 
 Public Interface IBar
 End interface
 
 Class C
-    Implements IFoo, $$
+    Implements IGoo, $$
 End Class
 "
 
@@ -5166,7 +5302,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestImplements_GenericInterface() As Task
             Const markup = "
-Public Interface IFoo(Of T)
+Public Interface IGoo(Of T)
 
 End Interface
 
@@ -5175,19 +5311,19 @@ Public Class bar
 End Class
 "
 
-            Await VerifyItemExistsAsync(markup, "IFoo(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(markup, "IGoo(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(546610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546610")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestImplements_IncompleteClassDeclaration() As Task
             Const markup = "
-Public Interface IFoo
+Public Interface IGoo
 End Interface
 Public Interface IBar
 End interface
 Class C
-    Implements IFoo,$$
+    Implements IGoo,$$
 "
 
             Await VerifyItemExistsAsync(markup, "IBar")
@@ -5309,7 +5445,7 @@ End Class
         Public Async Function TestImplements_NamespaceContainingInterface() As Task
             Const markup = "
 Namespace N
-    Interface IFoo
+    Interface IGoo
     End Interface
 End Namespace
 Class C
@@ -5330,7 +5466,7 @@ End Interface
 Class TestClass
 End Class
 
-Interface IFoo
+Interface IGoo
     Inherits $$
 "
 
@@ -5370,7 +5506,7 @@ End Interface
 Class TestClass
 End Class
 
-Interface IFoo
+Interface IGoo
     Implements $$
 "
 
@@ -5512,12 +5648,12 @@ Class Program
 End Class
 Module Extensions
     <Extension>
-    Sub Foo(program As Program)
+    Sub Goo(program As Program)
     End Sub
 End Module
 ]]></Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "Foo")
+            Await VerifyItemExistsAsync(markup, "Goo")
         End Function
 
         <WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
@@ -5533,12 +5669,12 @@ Class Program
 End Class
 Module Extensions
     <Extension>
-    Sub Foo(program As Program)
+    Sub Goo(program As Program)
     End Sub
 End Module
 ]]></Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "Foo")
+            Await VerifyItemExistsAsync(markup, "Goo")
         End Function
 
         <WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
@@ -5582,7 +5718,7 @@ End Class
                                  <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class C
     Dim x as integer
-    sub foo()
+    sub goo()
         $$
     end sub
 end class]]>
@@ -5599,13 +5735,13 @@ end class]]>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAvailableInOneLinkedFile() As Task
             Dim markup = <Workspace>
-                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="FOO=True">
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="GOO=True">
                                  <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class C
-#If FOO Then
+#If GOO Then
     Dim x as integer
 #End If
-            Sub foo()
+            Sub goo()
         $$
     End Sub
         End Class]]>
@@ -5679,12 +5815,12 @@ Imports System
 Class C
 End Class
 
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 End Class
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
         <WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")>
@@ -5692,20 +5828,20 @@ End Class
         Public Async Function TestDescriptionInAliasedType() As Task
             Dim text =
 <code><![CDATA[
-Imports IAlias = IFoo
+Imports IAlias = IGoo
 Class C
     Dim x as IA$$
 End Class
 
 ''' <summary>
-''' summary for interface IFoo
+''' summary for interface IGoo
 ''' </summary>
-Interface IFoo
+Interface IGoo
     Sub Bar()
 End Interface
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "IAlias", expectedDescriptionOrNull:="Interface IFoo" + vbCrLf + "summary for interface IFoo")
+            Await VerifyItemExistsAsync(text, "IAlias", expectedDescriptionOrNull:="Interface IGoo" + vbCrLf + "summary for interface IGoo")
         End Function
 
         <WorkItem(842049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842049")>
@@ -5760,7 +5896,7 @@ Module M
     Dim c As X.C
     Dim d As X.D
     
-    Sub Foo()
+    Sub Goo()
         X.$$
     End Sub
 End Module
@@ -6137,7 +6273,7 @@ End Namespace
             Dim text =
 <code><![CDATA[
 Class Await
-    Sub Foo()
+    Sub Goo()
         Dim x = new [Awa$$]
     End Sub
 End Class]]></code>.Value
@@ -6145,7 +6281,7 @@ End Class]]></code>.Value
             Dim expected =
 <code><![CDATA[
 Class Await
-    Sub Foo()
+    Sub Goo()
         Dim x = new [Await]
     End Sub
 End Class]]></code>.Value
@@ -6159,7 +6295,7 @@ End Class]]></code>.Value
             Dim text =
 <code><![CDATA[
 Class [Class]
-    Sub Foo()
+    Sub Goo()
         Dim x = new [Cla$$]
     End Sub
 End Class]]></code>.Value
@@ -6167,7 +6303,7 @@ End Class]]></code>.Value
             Dim expected =
 <code><![CDATA[
 Class [Class]
-    Sub Foo()
+    Sub Goo()
         Dim x = new [Class]
     End Sub
 End Class]]></code>.Value
@@ -6180,7 +6316,7 @@ End Class]]></code>.Value
             Dim text =
 <code><![CDATA[
 Class [Class]
-    Sub Foo()
+    Sub Goo()
         Dim x = new Object()
         x?.$$
     End Sub
@@ -6194,7 +6330,7 @@ End Class]]></code>.Value
             Dim text =
 <code><![CDATA[
 Class [Class]
-    Sub Foo()
+    Sub Goo()
         Dim x = new Object()
         x?.ToString()?.$$
     End Sub
@@ -6228,7 +6364,7 @@ End Class
             Dim text =
 <code><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x as Integer? = Nothing
         x?.$$
     End Sub
@@ -6318,7 +6454,7 @@ End Class
             Dim text =
 <code><![CDATA[
 Module Program
-    Sub Foo(Of T)(x As T)
+    Sub Goo(Of T)(x As T)
         x?.$$
     End Sub
 End Module
@@ -6355,7 +6491,7 @@ Class C
         Dim s = NameOf($$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6363,7 +6499,7 @@ Class C
 End Class
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6375,7 +6511,7 @@ Class C
         Dim s = NameOf($$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6395,7 +6531,7 @@ Class C
         Dim s = NameOf($$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6403,7 +6539,7 @@ Class C
 End Class
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6415,7 +6551,7 @@ Class C
         Dim s = NameOf($$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6435,7 +6571,7 @@ Class C
         Dim s = NameOf(C.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6443,7 +6579,7 @@ Class C
 End Class
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6455,7 +6591,7 @@ Class C
         Dim s = NameOf(C.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6475,7 +6611,7 @@ Class C
         Dim s = NameOf(C.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6483,7 +6619,7 @@ Class C
 End Class
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6495,7 +6631,7 @@ Class C
         Dim s = NameOf(C.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6515,7 +6651,7 @@ Class C
         Dim s = NameOf(Me.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6523,7 +6659,7 @@ Class C
 End Class
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6535,7 +6671,7 @@ Class C
         Dim s = NameOf(Me.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6555,7 +6691,7 @@ Class C
         Dim s = NameOf(MyClass.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6563,7 +6699,7 @@ Class C
 End Class
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6575,7 +6711,7 @@ Class C
         Dim s = NameOf(MyClass.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6595,7 +6731,7 @@ Class C
         Dim s = NameOf(MyBase.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6603,7 +6739,7 @@ Class C
 End Class
 ]]></code>.Value
 
-            Await VerifyItemIsAbsentAsync(text, "Foo")
+            Await VerifyItemIsAbsentAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6615,7 +6751,7 @@ Class C
         Dim s = NameOf(MyBase.$$
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6631,7 +6767,7 @@ End Class
             Dim text =
 <code><![CDATA[
 Class C
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6647,7 +6783,7 @@ Class D
 End Class
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6655,7 +6791,7 @@ End Class
             Dim text =
 <code><![CDATA[
 Class C
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 
     Sub Bar()
@@ -6982,7 +7118,7 @@ Class Instance
 End Class
 
 Class Program
-    Sub Foo()
+    Sub Goo()
         Instance.$$
     End Sub
 End Class
@@ -7002,7 +7138,7 @@ Class Instance
 End Class
 
 Class Program
-    Sub Foo()
+    Sub Goo()
         Dim x = new Instance()
         x.$$
     End Sub
@@ -7022,7 +7158,7 @@ Enum E
 End Enum
 
 Class Program
-    Sub Foo()
+    Sub Goo()
         E.$$
     End Sub
 End Class
@@ -7041,7 +7177,7 @@ Enum E
 End Enum
 
 Class Program
-    Sub Foo()
+    Sub Goo()
         Dim x = E.A
         x.$$
     End Sub
@@ -7062,7 +7198,7 @@ Class C
 #if TWO Then
     Public Property x as Integer
 #endif
-    Sub foo()
+    Sub goo()
         x$$
     End Sub
 End Class]]>
@@ -7073,7 +7209,7 @@ End Class]]>
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Dim expectedDescription = $"(field) C.x As Integer"
+            Dim expectedDescription = $"({ FeaturesResources.field }) C.x As Integer"
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
         End Function
 
@@ -7089,7 +7225,7 @@ Class C
 #if ONE Then
     Public Property x as Integer
 #endif
-    Sub foo()
+    Sub goo()
         x$$
     End Sub
 End Class]]>
@@ -7652,7 +7788,7 @@ Namespace Global.WindowsApplication1
     Public Class Form1
         Inherits System.Windows.Forms.Form
 
- Private Sub Foo()
+ Private Sub Goo()
         Form2.$$
     End Sub
     End Class
@@ -7671,6 +7807,21 @@ End Namespace
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing)
             End Using
 
+        End Function
+
+        <WorkItem(22002, "https://github.com/dotnet/roslyn/issues/22002")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotCrashInTupleAlias() As Task
+            Dim text =
+<code><![CDATA[
+Imports Boom = System.Collections.Generic.List(Of ($$) '<---put caret between brackets.
+
+Public Module Module1
+  Public Sub Main()
+  End Sub
+End Module
+]]></code>.Value
+            Await VerifyItemExistsAsync(text, "System")
         End Function
     End Class
 End Namespace

@@ -179,6 +179,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
+        Public Sub TextForEscapedStringLiterals_01()
+            Dim literal = SyntaxFactory.Literal(ChrW(&H2028) & "x") ' U+2028 is a line separator
+            Assert.Equal("ChrW(8232) & ""x""", literal.Text)
+            literal = SyntaxFactory.Literal(ChrW(&HDBFF)) ' U+DBFF is a unicode surrogate
+            Assert.Equal("ChrW(56319)", literal.Text)
+        End Sub
+
+        <Fact>
+        Public Sub TextForEscapedStringLiterals_02()
+            ' Well-ordered surrogate characters
+            Dim footBall = "🏈"
+            Assert.Equal(footBall, ObjectDisplay.FormatPrimitive(footBall, ObjectDisplayOptions.None))
+            Assert.Equal("""" & footBall & """", ObjectDisplay.FormatPrimitive(footBall, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbers))
+            Assert.Equal("""" & footBall & """", ObjectDisplay.FormatPrimitive(footBall, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters))
+
+            ' Misordered surrogate characters
+            Dim trash = ChrW(&HDFC8) & ChrW(&HD83C)
+            Assert.Equal(trash, ObjectDisplay.FormatPrimitive(trash, ObjectDisplayOptions.None))
+            Assert.Equal("ChrW(&HDFC8) & ChrW(&HD83C)", ObjectDisplay.FormatPrimitive(trash, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbers))
+            Assert.Equal("ChrW(57288) & ChrW(55356)", ObjectDisplay.FormatPrimitive(trash, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters))
+
+        End Sub
+
+        <Fact>
         Public Sub Strings_QuotesAndEscaping()
             Assert.Equal(QuoteAndEscapingCombinations("a"), {"a", """a""", """a"""})
             Assert.Equal(QuoteAndEscapingCombinations(vbTab), {vbTab, """" & vbTab & """", "vbTab"})

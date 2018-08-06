@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -29,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // The container of a substituted named type symbol is typically a named type or a namespace. 
         // However, in some error-recovery scenarios it might be some other container. For example,
-        // consider "int Foo = 123; Foo<string> x = null;" What is the type of x? We construct an error
-        // type symbol of arity one associated with local variable symbol Foo; when we construct
+        // consider "int Goo = 123; Goo<string> x = null;" What is the type of x? We construct an error
+        // type symbol of arity one associated with local variable symbol Goo; when we construct
         // that error type symbol with <string>, the resulting substituted named type symbol has
         // the same containing symbol as the local: it is contained in the method.
         private readonly Symbol _newContainer;
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(originalDefinition)
         {
             Debug.Assert(originalDefinition.IsDefinition);
+            Debug.Assert(!originalDefinition.IsErrorType());
             _newContainer = newContainer;
             _inputMap = map;
             _unbound = unbound;
@@ -360,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             throw ExceptionUtilities.Unreachable;
         }

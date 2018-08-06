@@ -3,6 +3,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
+        <[UseExportProvider]>
         Public Class MethodNameGeneration
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -183,7 +184,7 @@ End Class</text>
                 Dim code = <text>Imports System.Linq
 
 Module Program
-    Sub Foo()
+    Sub Goo()
         Dim x = From [char] In ""
                 Select [|[char]|] ' Extract method
     End Sub
@@ -192,7 +193,7 @@ End Module</text>
                 Dim expected = <text>Imports System.Linq
 
 Module Program
-    Sub Foo()
+    Sub Goo()
         Dim x = From [char] In ""
                 Select GetChar([char]) ' Extract method
     End Sub

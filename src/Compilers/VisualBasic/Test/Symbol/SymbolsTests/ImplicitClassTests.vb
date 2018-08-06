@@ -18,11 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact, WorkItem(6040, "https://github.com/dotnet/roslyn/issues/6040")>
         Public Sub ImplicitClassSymbol()
-            Dim c = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file>
 Namespace N
-    Sub Foo
+    Sub Goo
     End Sub
 End Namespace
     </file>
@@ -40,7 +40,7 @@ End Namespace
             Assert.False(implicitClass.IsSubmissionClass)
             Assert.False(implicitClass.IsScriptClass)
 
-            Dim c2 = CreateCompilationWithMscorlib45({}, {c.ToMetadataReference()})
+            Dim c2 = CreateCompilationWithMscorlib45(source:=Nothing, {c.ToMetadataReference()})
 
             n = DirectCast(c2.GlobalNamespace.GetMembers("N").Single(), NamespaceSymbol)
             implicitClass = DirectCast(n.GetMembers().Single(), NamedTypeSymbol)
@@ -51,10 +51,10 @@ End Namespace
 
         <Fact>
         Public Sub ScriptClassSymbol()
-            Dim c = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file>
-Sub Foo
+Sub Goo
 End Sub
     </file>
 </compilation>, parseOptions:=TestOptions.Script)

@@ -19,28 +19,87 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             _featureOptionName = featureOptionName;
 
-            var panel = new StackPanel();
-            this.AddOptions(panel);
+            // options
+            var optionsPanel = new StackPanel();
+            this.AddOptions(optionsPanel);
 
-            var viewer = new ScrollViewer();
-            viewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-            viewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+            // scroll
+            var viewer = new ScrollViewer()
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
 
+            viewer.Content = optionsPanel;
+
+            // search 
+            var searchBox = new TextBox() { MinWidth = 200, HorizontalAlignment = HorizontalAlignment.Stretch };
+
+            var searchButton = new Button() { Content = "Search" };
+            searchButton.Click += (o, a) =>
+            {
+                foreach (var item in optionsPanel.Children.OfType<CheckBox>())
+                {
+                    var title = item.Content as string;
+                    if (title == null)
+                    {
+                        continue;
+                    }
+
+                    // pattern not match
+                    if (title.IndexOf(searchBox.Text, StringComparison.OrdinalIgnoreCase) < 0)
+                    {
+                        // hide it
+                        item.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        item.Visibility = Visibility.Visible;
+                    }
+                }
+            };
+
+            var clearButton = new Button() { Content = "Clear" };
+            clearButton.Click += (o, a) => optionsPanel.Children.OfType<CheckBox>().Do(c => c.Visibility = Visibility.Visible);
+
+            var searchPanel = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal,
+                Margin = new Thickness(5),
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+
+            searchPanel.Children.Add(searchBox);
+            searchPanel.Children.Add(searchButton);
+            searchPanel.Children.Add(clearButton);
+
+            // button
             var checkAllButton = new Button() { Content = "Check All" };
-            checkAllButton.Click += (o, a) => panel.Children.OfType<CheckBox>().Do(c => c.IsChecked = true);
+            checkAllButton.Click += (o, a) => optionsPanel.Children.OfType<CheckBox>().Where(c => c.Visibility == Visibility.Visible).Do(c => c.IsChecked = true);
 
             var uncheckAllButton = new Button() { Content = "Uncheck All" };
-            uncheckAllButton.Click += (o, a) => panel.Children.OfType<CheckBox>().Do(c => c.IsChecked = false);
+            uncheckAllButton.Click += (o, a) => optionsPanel.Children.OfType<CheckBox>().Where(c => c.Visibility == Visibility.Visible).Do(c => c.IsChecked = false);
 
-            var selectionPanel = new StackPanel();
+            var selectionPanel = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal,
+                Margin = new Thickness(5),
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+
             selectionPanel.Children.Add(checkAllButton);
             selectionPanel.Children.Add(uncheckAllButton);
 
-            panel.Children.Add(selectionPanel);
+            // main panel
+            var mainPanel = new DockPanel() { HorizontalAlignment = HorizontalAlignment.Stretch };
+            mainPanel.Children.Add(searchPanel);
+            mainPanel.Children.Add(selectionPanel);
+            mainPanel.Children.Add(viewer);
 
-            viewer.Content = panel;
+            DockPanel.SetDock(searchPanel, Dock.Top);
+            DockPanel.SetDock(selectionPanel, Dock.Bottom);
 
-            this.Content = viewer;
+            this.Content = mainPanel;
         }
 
         protected virtual void AddOptions(Panel panel)

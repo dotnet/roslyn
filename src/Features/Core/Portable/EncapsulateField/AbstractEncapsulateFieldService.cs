@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         private async Task<Result> SingleEncapsulateFieldResultAsync(Document document, TextSpan span, int index, bool updateReferences, CancellationToken cancellationToken)
         {
             var fields = (await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
-            Contract.Requires(fields.Length > index);
+            Debug.Assert(fields.Length > index);
 
             var field = fields[index];
             var result = await EncapsulateFieldAsync(field, document, updateReferences, cancellationToken).ConfigureAwait(false);
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var failedFieldSymbols = new List<IFieldSymbol>();
 
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
-            Contract.Requires(fields.Any());
+            Debug.Assert(fields.Any());
 
             // For now, build up the multiple field case by encapsulating one at a time.
             Result result = null;
@@ -306,7 +307,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.IsUnsafe()),
                 type: field.Type,
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: propertyName,
                 parameters: ImmutableArray<IParameterSymbol>.Empty,

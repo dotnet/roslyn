@@ -36,9 +36,9 @@ class C {
         private const string SwitchCasePreview = @"
 class MyClass
 {
-    int Method(int foo){
+    int Method(int goo){
 //[
-        switch (foo){
+        switch (goo){
         case 2:
             break;
         }
@@ -49,9 +49,9 @@ class MyClass
         private const string SwitchCaseWhenBlockPreview = @"
 class MyClass
 {
-    int Method(int foo){
+    int Method(int goo){
 //[
-        switch (foo){
+        switch (goo){
         case 2:
             {
                 break;
@@ -64,7 +64,7 @@ class MyClass
         private const string GotoLabelPreview = @"
 class MyClass
 {
-    int Method(int foo){
+    int Method(int goo){
 //[
     MyLabel:
         goto MyLabel;

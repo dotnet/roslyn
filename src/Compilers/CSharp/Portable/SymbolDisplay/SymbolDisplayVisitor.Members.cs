@@ -64,6 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     AddRefIfRequired();
                 }
+                else if (symbol.ReturnsByRefReadonly)
+                {
+                    AddRefReadonlyIfRequired();
+                }
 
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
 
@@ -236,6 +240,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (symbol.ReturnsByRef)
                             {
                                 AddRefIfRequired();
+                            }
+                            else if (symbol.ReturnsByRefReadonly)
+                            {
+                                AddRefReadonlyIfRequired();
                             }
 
                             AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
@@ -464,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                AddRefKindIfRequired(symbol.RefKind);
+                AddParameterRefKindIfRequired(symbol.RefKind);
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
                 if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
@@ -484,7 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeName)
             {
-                builder.Add(CreatePart(SymbolDisplayPartKind.ParameterName, symbol, symbol.Name));
+                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
+                builder.Add(CreatePart(kind, symbol, symbol.Name));
 
                 if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
                     symbol.HasExplicitDefaultValue &&
@@ -555,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeModifiers) &&
                 (containingType == null ||
-                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol))))
+                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) && !IsLocalFunction(symbol))))
             {
                 var isConst = symbol is IFieldSymbol && ((IFieldSymbol)symbol).IsConst;
                 if (symbol.IsStatic && !isConst)
@@ -709,7 +718,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddRefKindIfRequired(RefKind refKind)
+        private void AddRefReadonlyIfRequired()
+        {
+            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
+            {
+                AddKeyword(SyntaxKind.RefKeyword);
+                AddSpace();
+                AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                AddSpace();
+            }
+        }
+
+        private void AddParameterRefKindIfRequired(RefKind refKind)
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
@@ -721,6 +741,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case RefKind.Ref:
                         AddKeyword(SyntaxKind.RefKeyword);
+                        AddSpace();
+                        break;
+                    case RefKind.In:
+                        AddKeyword(SyntaxKind.InKeyword);
                         AddSpace();
                         break;
                 }

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         /// <summary>
         /// Adds an aliased switch, used for ResGen:
-        ///      /reference:Foo=System.Xml.dll
+        ///      /reference:Goo=System.Xml.dll
         /// </summary>
         internal void AppendSwitchAliased(string switchName, string alias, string parameter)
         {

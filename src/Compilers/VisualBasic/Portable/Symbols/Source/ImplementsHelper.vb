@@ -554,15 +554,15 @@ DoneWithErrorReporting:
                 ' (not a derived interface), since this is the metadata rule from Partition II, section 12.2.
                 '
                 ' Consider:
-                '     Interface IFoo ' from metadata
-                '         Sub Foo()
+                '     Interface IGoo ' from metadata
+                '         Sub Goo()
                 '     Class A ' from metadata
-                '         Public Sub Foo()
-                '     Class B: Inherits A: Implements IFoo ' from metadata
+                '         Public Sub Goo()
+                '     Class B: Inherits A: Implements IGoo ' from metadata
                 '     Class C: Inherits B ' from metadata
-                '         Public Shadows Sub Foo()
-                '     Class D: Inherits C: Implements IFoo  ' from source
-                ' In this case, A.Foo is the correct implementation of IFoo.Foo within D.
+                '         Public Shadows Sub Goo()
+                '     Class D: Inherits C: Implements IGoo  ' from source
+                ' In this case, A.Goo is the correct implementation of IGoo.Goo within D.
 
                 ' NOTE: Ideally, we'd like to distinguish between the "current" compilation and other assemblies 
                 ' (including other compilations), rather than source and metadata, but there are two reasons that

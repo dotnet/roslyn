@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Indicates if this was not an exact reference to a location, but was instead a possible
         /// location that was found through error tolerance.  For example, a call to a method like
-        /// "Foo()" could show up as an error tolerance location to a method "Foo(int i)" if no
-        /// actual "Foo()" method existed.
+        /// "Goo()" could show up as an error tolerance location to a method "Goo(int i)" if no
+        /// actual "Goo()" method existed.
         /// </summary>
         public bool IsCandidateLocation => this.CandidateReason != CandidateReason.None;
 

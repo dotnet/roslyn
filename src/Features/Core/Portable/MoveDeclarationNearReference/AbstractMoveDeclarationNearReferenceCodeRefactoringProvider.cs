@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         protected abstract bool IsMeaningfulBlock(SyntaxNode node);
+        protected abstract bool CanMoveToBlock(ILocalSymbol localSymbol, SyntaxNode currentBlock, SyntaxNode destinationBlock);
         protected abstract SyntaxNode GetVariableDeclaratorSymbolNode(TVariableDeclaratorSyntax variableDeclarator);
         protected abstract bool IsValidVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
         protected abstract SyntaxToken GetIdentifierOfVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
@@ -54,6 +55,11 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
             var state = await State.GenerateAsync((TService)this, document, statement, cancellationToken).ConfigureAwait(false);
             if (state == null)
+            {
+                return;
+            }
+
+            if (!CanMoveToBlock(state.LocalSymbol, state.OutermostBlock, state.InnermostBlock))
             {
                 return;
             }

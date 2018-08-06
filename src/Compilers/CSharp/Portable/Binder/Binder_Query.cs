@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (state.clauses.IsEmpty() && state.selectOrGroup.Kind() == SyntaxKind.SelectClause)
             {
-                var select = state.selectOrGroup as SelectClauseSyntax;
+                var select = (SelectClauseSyntax)state.selectOrGroup;
                 BoundCall invocation;
                 if (join.Into == null)
                 {
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = this.GetDeclaredLocalsForScope(expression);
             if (locals.Any())
             {
-                diagnostics.Add(ErrorCode.ERR_ExpressionVariableInQueryClause, locals[0].Locations[0]);
+                CheckFeatureAvailability(expression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics, locals[0].Locations[0]);
             }
 
             return this.CreateBlockFromExpression(expression, locals, RefKind.None, result, expression, diagnostics);

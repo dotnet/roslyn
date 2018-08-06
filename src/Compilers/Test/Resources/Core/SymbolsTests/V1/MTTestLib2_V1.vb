@@ -4,7 +4,7 @@
 ' vbc /t:module /out:MTTestModule2.netmodule MTTestLib2_V1.vb /r:MTTestLib1.Dll
 
 Public Class Class4
-    Function Foo() As Class1
+    Function Goo() As Class1
         Return Nothing
     End Function
 

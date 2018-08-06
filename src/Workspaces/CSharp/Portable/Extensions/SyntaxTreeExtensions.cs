@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.VolatileKeyword:
                     case SyntaxKind.UnsafeKeyword:
                     case SyntaxKind.AsyncKeyword:
+                    case SyntaxKind.RefKeyword:
                         result.Add(token.Kind());
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;
@@ -517,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
             this SyntaxNode root, TextSpan textSpan)
         {
-            var token = root.FindToken(textSpan.Start);
+            var token = root.FindTokenOnRightOfPosition(textSpan.Start);
             var firstMember = token.GetAncestors<MemberDeclarationSyntax>().FirstOrDefault();
             if (firstMember != null)
             {
@@ -631,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // ~~~~~~~~~<a,b,...
                             // but we need to know the simple name that precedes the <
                             // it could be
-                            // ~~~~~~foo<a,b,...
+                            // ~~~~~~goo<a,b,...
                             if (token.Kind() == SyntaxKind.IdentifierToken)
                             {
                                 // okay now check whether it is actually partially written

@@ -374,8 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)other != null)
                     {
-                        if (nts is SourceNamedTypeSymbol && other is SourceNamedTypeSymbol &&
-                            (nts as SourceNamedTypeSymbol).IsPartial && (other as SourceNamedTypeSymbol).IsPartial)
+                        if ((nts as SourceNamedTypeSymbol)?.IsPartial == true && (other as SourceNamedTypeSymbol)?.IsPartial == true)
                         {
                             diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations[0], symbol);
                         }
@@ -391,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         //types declared at the namespace level may only have declared accessibility of public or internal (Section 3.5.1)
                         Accessibility declaredAccessibility = nts.DeclaredAccessibility;
-                        if ((declaredAccessibility & (Accessibility.Public | Accessibility.Internal)) != declaredAccessibility)
+                        if (declaredAccessibility != Accessibility.Public && declaredAccessibility != Accessibility.Internal)
                         {
                             diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.Locations[0]);
                         }
@@ -464,11 +463,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Check if any namespace declaration block intersects with the given tree/span.
-            foreach (var syntaxRef in this.DeclaringSyntaxReferences)
+            foreach (var declaration in _mergedDeclaration.Declarations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (syntaxRef.SyntaxTree != tree)
+                var declarationSyntaxRef = declaration.SyntaxReference;
+                if (declarationSyntaxRef.SyntaxTree != tree)
                 {
                     continue;
                 }
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var syntax = syntaxRef.GetSyntax(cancellationToken);
+                var syntax = NamespaceDeclarationSyntaxReference.GetSyntax(declarationSyntaxRef, cancellationToken);
                 if (syntax.FullSpan.IntersectsWith(definedWithinSpan.Value))
                 {
                     return true;

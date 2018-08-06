@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             public bool IsStatic { get; protected set; }
             public bool IsContainedInUnsafeType { get; protected set; }
 
-            // Just the name of the method.  i.e. "Foo" in "X.Foo" or "X.Foo()"
+            // Just the name of the method.  i.e. "Goo" in "X.Goo" or "X.Goo()"
             public SyntaxToken IdentifierToken { get; protected set; }
             public TSimpleNameSyntax SimpleNameOpt { get; protected set; }
 
-            // The entire expression containing the name, not including the invocation.  i.e. "X.Foo"
-            // in "X.Foo()".
+            // The entire expression containing the name, not including the invocation.  i.e. "X.Goo"
+            // in "X.Goo()".
             public TExpressionSyntax SimpleNameOrMemberAccessExpression { get; protected set; }
             public TInvocationExpressionSyntax InvocationExpressionOpt { get; protected set; }
             public bool IsInConditionalAccessExpression { get; protected set; }

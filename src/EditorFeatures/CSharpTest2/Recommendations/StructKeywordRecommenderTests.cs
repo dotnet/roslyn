@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -65,7 +65,7 @@ $$");
         public async Task TestAfterExtern()
         {
             await VerifyKeywordAsync(
-@"extern alias Foo;
+@"extern alias Goo;
 $$");
         }
 
@@ -73,7 +73,7 @@ $$");
         public async Task TestAfterUsing()
         {
             await VerifyKeywordAsync(
-@"using Foo;
+@"using Goo;
 $$");
         }
 
@@ -97,7 +97,7 @@ $$");
         public async Task TestAfterDelegateDeclaration()
         {
             await VerifyKeywordAsync(
-@"delegate void Foo();
+@"delegate void Goo();
 $$");
         }
 
@@ -106,7 +106,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -133,7 +133,63 @@ $$");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"$$
-using Foo;");
+using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterReadonly()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRef()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefReadonly()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterPublicRefReadonly()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"public ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterReadonlyRef()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"readonly ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterInternalReadonlyRef()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"internal readonly ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterReadonlyInMethod()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"class C { void M() { readonly $$ } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterRefInMethod()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"class C { void M() { ref $$ } }");
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -141,14 +197,14 @@ using Foo;");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
             await VerifyKeywordAsync(
-@"[assembly: foo]
+@"[assembly: goo]
 $$");
         }
 
@@ -156,7 +212,7 @@ $$");
         public async Task TestAfterRootAttribute()
         {
             await VerifyKeywordAsync(
-@"[foo]
+@"[goo]
 $$");
         }
 
@@ -165,7 +221,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  [foo]
+  [goo]
   $$");
         }
 

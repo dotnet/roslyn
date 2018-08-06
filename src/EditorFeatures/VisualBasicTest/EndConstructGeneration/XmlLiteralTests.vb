@@ -2,6 +2,7 @@
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class XmlLiteralTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterXmlStartElement()
@@ -347,15 +348,15 @@ End Class",
             VerifyStatementEndConstructApplied(
                 before:="Class C1
     Sub M1()
-        Dim x = <foo></foo>
+        Dim x = <goo></goo>
     End Sub
 End Class",
                 beforeCaret:={2, 21},
                 after:="Class C1
     Sub M1()
-        Dim x = <foo>
+        Dim x = <goo>
 
-                </foo>
+                </goo>
     End Sub
 End Class",
                 afterCaret:={3, -1})

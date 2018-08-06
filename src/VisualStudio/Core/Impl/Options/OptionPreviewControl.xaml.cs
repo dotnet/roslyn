@@ -46,20 +46,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void Options_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listView = (AutomationDelegatingListView)sender;
-            var checkbox = listView.SelectedItem as CheckBoxOptionViewModel;
-            if (checkbox != null)
+            if (listView.SelectedItem is CheckBoxOptionViewModel checkbox)
             {
                 ViewModel.UpdatePreview(checkbox.GetPreview());
             }
 
-            var radioButton = listView.SelectedItem as AbstractRadioButtonViewModel;
-            if (radioButton != null)
+            if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
             {
                 ViewModel.UpdatePreview(radioButton.Preview);
             }
 
-            var checkBoxWithCombo = listView.SelectedItem as CheckBoxWithComboOptionViewModel;
-            if (checkBoxWithCombo != null)
+            if (listView.SelectedItem is CheckBoxWithComboOptionViewModel checkBoxWithCombo)
             {
                 ViewModel.UpdatePreview(checkBoxWithCombo.GetPreview());
             }
@@ -70,22 +67,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
             {
                 var listView = (AutomationDelegatingListView)sender;
-                var checkBox = listView.SelectedItem as CheckBoxOptionViewModel;
-                if (checkBox != null)
+                if (listView.SelectedItem is CheckBoxOptionViewModel checkBox)
                 {
                     checkBox.IsChecked = !checkBox.IsChecked;
                     e.Handled = true;
                 }
 
-                var radioButton = listView.SelectedItem as AbstractRadioButtonViewModel;
-                if (radioButton != null)
+                if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
                 {
                     radioButton.IsChecked = true;
                     e.Handled = true;
                 }
 
-                var checkBoxWithCombo = listView.SelectedItem as CheckBoxWithComboOptionViewModel;
-                if (checkBoxWithCombo != null)
+                if (listView.SelectedItem is CheckBoxWithComboOptionViewModel checkBoxWithCombo)
                 {
                     checkBoxWithCombo.IsChecked = !checkBoxWithCombo.IsChecked;
                     e.Handled = true;

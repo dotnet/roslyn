@@ -35,7 +35,7 @@ Public Class ParserRegressionTests : Inherits BasicTestBase
     <Fact>
     Public Sub VB000103_minimal()
         Dim text = <![CDATA[
-        Public foo = Sub( Console.WriteLine()
+        Public goo = Sub( Console.WriteLine()
     Public Get ) 
         ]]>.Value
         VisualBasicSyntaxTree.ParseText(text)
@@ -45,7 +45,7 @@ Public Class ParserRegressionTests : Inherits BasicTestBase
     <Fact>
     Public Sub VB000103_related()
         Dim text = <![CDATA[
-        Public foo = Sub( Console.WriteLine()
+        Public goo = Sub( Console.WriteLine()
     Public Set ) 
         ]]>.Value
         VisualBasicSyntaxTree.ParseText(text)
@@ -167,7 +167,7 @@ If %>  (  [Nothing] .LoopingMethod <> 0) then Property
     <WorkItem(540028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540028")>
     <Fact>
     Public Sub VB001874()
-        Dim text = <![CDATA[   Function MyClass  Foo(ByVal  [Preserve]  As  [Protected]  /=  For  T [CStr] ) :  As  Enum 
+        Dim text = <![CDATA[   Function MyClass  Goo(ByVal  [Preserve]  As  [Protected]  /=  For  T [CStr] ) :  As  Enum 
      Call  Function
      MustInherit   Enum 
 
@@ -189,7 +189,7 @@ If %>  (  [Nothing] .LoopingMethod <> 0) then Property
     <Fact>
     Public Sub VB003108()
         Dim text = <![CDATA[Function RunTests </ ) As Integer Char 
-If (  [Continue] .FooExtension /= "Scenario 13_2", 13)  <[CDATA[   [End]  & "test2") then Event 
+If (  [Continue] .GooExtension /= "Scenario 13_2", 13)  <[CDATA[   [End]  & "test2") then Event 
 ]]>.Value
         VisualBasicSyntaxTree.ParseText(text)
     End Sub
@@ -582,7 +582,7 @@ If ( s20.p <> "A") then Catch
     Public Sub VB087373()
         Dim text = <![CDATA[ Function RunTests </  <<=  As  False 
 	 Try   [Erase] 
-If [NotInheritable]  ( [Type]  ModuleEx. [Finally] FooExtension [Operator] ("Scenario 13_1" </  <> +=   RaiseEvent  & [In]  "test" [IsNot]  +=  then
+If [NotInheritable]  ( [Type]  ModuleEx. [Finally] GooExtension [Operator] ("Scenario 13_1" </  <> +=   RaiseEvent  & [In]  "test" [IsNot]  +=  then
 	 Where   Sub 
 	 Else   Finally 
 ]]>.Value
@@ -718,7 +718,7 @@ If  {  Nullable( Group )  )  0 &   If
             If  Me  a  IsNot 
              If   Function 
  EndIf   Like   [Mod] (Of Double  In Throw  T) " ( [ExternalSource] ByVal  [Declare]  As [By]   [ParamArray]  * 
-    Function Foo( <<  As [CShort]  T
+    Function Goo( <<  As [CShort]  T
 Public Class  [Continue] (Of T As  Unicode ) : Implements IVariance2( Await  T [Join] ) Default 
 Module Lambdas
      With   [Compare]   >=  Function( [UInteger]   Binary  Integer :  As Integer   ElseIf 

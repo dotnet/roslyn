@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
-    public sealed class StressTests : AbstractInteractiveHostTests, IDisposable
+    public sealed class StressTests : AbstractInteractiveHostTests
     {
         private readonly List<InteractiveHost> _processes = new List<InteractiveHost>();
         private readonly List<Thread> _threads = new List<Thread>();
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private InteractiveHost CreateProcess()
         {
-            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), GetInteractiveHostPath(), ".", millisecondsTimeout: 1);
+            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1);
             _processes.Add(p);
             return p;
         }

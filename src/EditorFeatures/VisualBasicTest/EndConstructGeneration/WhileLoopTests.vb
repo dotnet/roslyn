@@ -2,18 +2,19 @@
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class WhileLoopTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ApplyAfterWithStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-Sub foo()
+Sub goo()
 While variable
 End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-Sub foo()
+Sub goo()
 While variable
 
 End While
@@ -26,7 +27,7 @@ End Class",
         Public Sub DontApplyForMatchedWith()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-Sub foo()
+Sub goo()
 While variable
 End While
 End Sub

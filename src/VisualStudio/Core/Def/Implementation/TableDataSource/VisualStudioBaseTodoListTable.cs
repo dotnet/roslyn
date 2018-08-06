@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -18,6 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class VisualStudioBaseTodoListTable : AbstractTable
     {
         private static readonly string[] s_columns = new string[]
@@ -173,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                Contract.Requires(e.DocumentId != null);
+                Debug.Assert(e.DocumentId != null);
 
                 if (e.TodoItems.Length == 0)
                 {

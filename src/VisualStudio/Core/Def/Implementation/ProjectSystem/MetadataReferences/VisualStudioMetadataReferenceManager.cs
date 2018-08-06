@@ -72,8 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // check existing metadata
             if (_metadataCache.TryGetSource(key, out var source))
             {
-                var metadata = source as RecoverableMetadataValueSource;
-                if (metadata != null)
+                if (source is RecoverableMetadataValueSource metadata)
                 {
                     return metadata.GetStorages();
                 }
@@ -84,12 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
         {
-            return new VisualStudioMetadataReference.Snapshot(this, properties, filePath);
+            return new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
         }
 
-        public VisualStudioMetadataReference CreateMetadataReference(IVisualStudioHostProject hostProject, string filePath, MetadataReferenceProperties properties)
+        public VisualStudioMetadataReference CreateMetadataReference(string filePath, MetadataReferenceProperties properties)
         {
-            return new VisualStudioMetadataReference(this, hostProject, filePath, properties);
+            return new VisualStudioMetadataReference(this, filePath, properties);
         }
 
         public void ClearCache()
@@ -255,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            Contract.Requires(pImage != IntPtr.Zero, "Base address should not be zero if GetFileFlatMapping call succeeded.");
+            Debug.Assert(pImage != IntPtr.Zero, "Base address should not be zero if GetFileFlatMapping call succeeded.");
 
             var metadata = ModuleMetadata.CreateFromImage(pImage, (int)length);
             s_lifetimeMap.Add(metadata, info);

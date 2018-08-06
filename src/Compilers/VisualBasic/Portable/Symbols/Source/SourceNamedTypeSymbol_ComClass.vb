@@ -784,7 +784,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return SpecializedCollections.EmptyEnumerable(Of FieldSymbol)()
                 End Function
 
-                Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+                Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+                    Get
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
+
+                Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
                     Get
                         Throw ExceptionUtilities.Unreachable
                     End Get
@@ -906,7 +912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides ReadOnly Property IsSerializable As Boolean
+                Public Overrides ReadOnly Property IsSerializable As Boolean
                     Get
                         Return False
                     End Get

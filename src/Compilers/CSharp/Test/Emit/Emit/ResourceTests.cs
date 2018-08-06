@@ -35,7 +35,7 @@ public class Maine
     }
 }
 ";
-            var c1 = CreateStandardCompilation(source, assemblyName: "Win32VerNoAttrs", options: TestOptions.ReleaseExe);
+            var c1 = CreateCompilation(source, assemblyName: "Win32VerNoAttrs", options: TestOptions.ReleaseExe);
             var exe = Temp.CreateFile();
 
             using (FileStream output = exe.Open())
@@ -125,7 +125,7 @@ class C
 {
 }
 ";
-            var c1 = CreateStandardCompilation(source, assemblyName: "Win32WithCoff", options: TestOptions.ReleaseDll);
+            var c1 = CreateCompilation(source, assemblyName: "Win32WithCoff", options: TestOptions.ReleaseDll);
             var exe = Temp.CreateFile();
 
             using (FileStream output = exe.Open())
@@ -201,7 +201,7 @@ class C
         [Fact]
         public void FaultyResourceDataProvider()
         {
-            var c1 = CreateStandardCompilation("");
+            var c1 = CreateCompilation("");
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
@@ -228,16 +228,16 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void CS1508_DuplicateMainfestResourceIdentifier()
+        public void CS1508_DuplicateManifestResourceIdentifier()
         {
-            var c1 = CreateStandardCompilation("");
+            var c1 = CreateCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true),
-                    new ResourceDescription("A", "y.foo", dataProvider, true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true),
+                    new ResourceDescription("A", "y.goo", dataProvider, true)
                 });
 
             result.Diagnostics.Verify(
@@ -248,9 +248,9 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void CS1508_DuplicateMainfestResourceIdentifier_EmbeddedResource()
+        public void CS1508_DuplicateManifestResourceIdentifier_EmbeddedResource()
         {
-            var c1 = CreateStandardCompilation("");
+            var c1 = CreateCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
@@ -269,8 +269,8 @@ class C
             result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true, isEmbedded: true, checkArgs: true),
-                    new ResourceDescription("A", "x.foo", dataProvider, true, isEmbedded: false, checkArgs: true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true, isEmbedded: true, checkArgs: true),
+                    new ResourceDescription("A", "x.goo", dataProvider, true, isEmbedded: false, checkArgs: true)
                 });
 
             result.Diagnostics.Verify(
@@ -281,29 +281,29 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void CS7041_DuplicateMainfestResourceFileName()
+        public void CS7041_DuplicateManifestResourceFileName()
         {
-            var c1 = CSharpCompilation.Create("foo", references: new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            var c1 = CSharpCompilation.Create("goo", references: new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true),
-                    new ResourceDescription("B", "x.foo", dataProvider, true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true),
+                    new ResourceDescription("B", "x.goo", dataProvider, true)
                 });
 
             result.Diagnostics.Verify(
-                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.foo' is specified more than once in this assembly
-                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.foo")
+                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.goo' is specified more than once in this assembly
+                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.goo")
             );
         }
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void NoDuplicateMainfestResourceFileNameDiagnosticForEmbeddedResources()
+        public void NoDuplicateManifestResourceFileNameDiagnosticForEmbeddedResources()
         {
-            var c1 = CreateStandardCompilation("");
+            var c1 = CreateCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
@@ -319,8 +319,8 @@ class C
             result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true, isEmbedded: true, checkArgs: true),
-                    new ResourceDescription("B", "x.foo", dataProvider, true, isEmbedded: false, checkArgs: true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true, isEmbedded: true, checkArgs: true),
+                    new ResourceDescription("B", "x.goo", dataProvider, true, isEmbedded: false, checkArgs: true)
                 });
 
             result.Diagnostics.Verify();
@@ -328,36 +328,36 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501"), WorkItem(546297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546297")]
         [Fact]
-        public void CS1508_CS7041_DuplicateMainfestResourceDiagnostics()
+        public void CS1508_CS7041_DuplicateManifestResourceDiagnostics()
         {
-            var c1 = CreateStandardCompilation("");
+            var c1 = CreateCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true),
-                    new ResourceDescription("A", "x.foo", dataProvider, true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true),
+                    new ResourceDescription("A", "x.goo", dataProvider, true)
                 });
 
             result.Diagnostics.Verify(
                 // error CS1508: Resource identifier 'A' has already been used in this assembly
                 Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("A"),
-                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.foo' is specified more than once in this assembly
-                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.foo")
+                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.goo' is specified more than once in this assembly
+                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.goo")
             );
 
             result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true),
-                    new ResourceDescription("B", "x.foo", dataProvider, true),
-                    new ResourceDescription("B", "y.foo", dataProvider, true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true),
+                    new ResourceDescription("B", "x.goo", dataProvider, true),
+                    new ResourceDescription("B", "y.goo", dataProvider, true)
                 });
 
             result.Diagnostics.Verify(
-                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.foo' is specified more than once in this assembly
-                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.foo"),
+                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.goo' is specified more than once in this assembly
+                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.goo"),
                 // error CS1508: Resource identifier 'B' has already been used in this assembly
                 Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("B")
             );
@@ -365,7 +365,7 @@ class C
             result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "foo.dll", dataProvider, true),
+                    new ResourceDescription("A", "goo.dll", dataProvider, true),
                 });
 
             //make sure there's no problem when the name of the primary module conflicts with a file name of an added resource.
@@ -373,7 +373,7 @@ class C
 
             var netModule1 = TestReferences.SymbolsTests.netModule.netModule1;
 
-            c1 = CreateStandardCompilation("", references: new[] { netModule1 });
+            c1 = CreateCompilation("", references: new[] { netModule1 });
 
             result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
@@ -388,15 +388,15 @@ class C
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AddManagedResource()
         {
             string source = @"public class C { static public void Main() {} }";
 
             // Do not name the compilation, a unique guid is used as a name by default. It prevents conflicts with other assemblies loaded via Assembly.ReflectionOnlyLoad.
-            var c1 = CreateStandardCompilation(source);
+            var c1 = CreateCompilation(source);
 
-            var resourceFileName = "RoslynResourceFile.foo";
+            var resourceFileName = "RoslynResourceFile.goo";
             var output = new MemoryStream();
 
             const string r1Name = "some.dotted.NAME";
@@ -433,8 +433,7 @@ class C
             c1 = null;
         }
 
-        [Fact]
-
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AddResourceToModule()
         {
             bool metadataOnly = false;
@@ -450,7 +449,7 @@ class C
                 new[] { MscorlibRef },
                 TestOptions.ReleaseModule);
 
-            var resourceFileName = "RoslynResourceFile.foo";
+            var resourceFileName = "RoslynResourceFile.goo";
             var output = new MemoryStream();
 
             const string r1Name = "some.dotted.NAME";
@@ -507,7 +506,7 @@ class C
             Assert.Equal(ManifestResourceAttributes.Public, mod1.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
 
                 {
-                    var c2 = CreateStandardCompilation(sourceTree, new[] { ref_mod1 }, TestOptions.ReleaseDll);
+                    var c2 = CreateCompilation(sourceTree, new[] { ref_mod1 }, TestOptions.ReleaseDll);
                     var output2 = new MemoryStream();
                     var result2 = c2.Emit(output2);
 
@@ -555,7 +554,7 @@ class C
             var ref_mod2 = ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()).GetReference();
 
                 {
-                    var c3 = CreateStandardCompilation(sourceTree, new[] { ref_mod2 }, TestOptions.ReleaseDll);
+                    var c3 = CreateCompilation(sourceTree, new[] { ref_mod2 }, TestOptions.ReleaseDll);
                     var output3 = new MemoryStream();
                     var result3 = c3.Emit(output3);
 
@@ -613,7 +612,7 @@ class C
             Assert.Equal(ManifestResourceAttributes.Private, mod3.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
 
                 {
-                    var c4 = CreateStandardCompilation(sourceTree, new[] { ref_mod3 }, TestOptions.ReleaseDll);
+                    var c4 = CreateCompilation(sourceTree, new[] { ref_mod3 }, TestOptions.ReleaseDll);
                     var output4 = new MemoryStream();
                     var result4 = c4.Emit(output4, manifestResources:
                         new ResourceDescription[]
@@ -656,7 +655,7 @@ class C
             }
 
                 {
-                    var c5 = CreateStandardCompilation(sourceTree, new[] { ref_mod1, ref_mod3 }, TestOptions.ReleaseDll);
+                    var c5 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod3 }, TestOptions.ReleaseDll);
                     var output5 = new MemoryStream();
                     var result5 = emit(c5, output5, null);
 
@@ -700,7 +699,7 @@ class C
             }
 
                 {
-                    var c6 = CreateStandardCompilation(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseDll);
+                    var c6 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseDll);
                     var output6 = new MemoryStream();
                     var result6 = emit(c6, output6, null);
 
@@ -738,7 +737,7 @@ class C
                         );
                 }
 
-                    c6 = CreateStandardCompilation(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseModule);
+                    c6 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseModule);
 
                 result6 = emit(c6, output6,
                     new ResourceDescription[]
@@ -761,7 +760,7 @@ public class Maine
     }
 }
 ";
-            var c1 = CreateStandardCompilation(source);
+            var c1 = CreateCompilation(source);
 
             var output = new MemoryStream();
 
@@ -788,7 +787,7 @@ public class Maine
     }
 }
 ";
-            var c1 = CreateStandardCompilation(source);
+            var c1 = CreateCompilation(source);
 
             var output = new MemoryStream();
 
@@ -825,7 +824,7 @@ public class Maine
     }
 }
 ";
-            var c1 = CreateStandardCompilation(source, assemblyName: "Win32VerAttrs", options: TestOptions.ReleaseExe);
+            var c1 = CreateCompilation(source, assemblyName: "Win32VerAttrs", options: TestOptions.ReleaseExe);
             var exeFile = Temp.CreateFile();
 
             using (FileStream output = exeFile.Open())
@@ -889,7 +888,7 @@ public class Maine
                 length: 6, // Lie about the length (> backingStream.Length)
                 getPosition: () => backingStream.Position);
 
-            var c1 = CreateStandardCompilation("");
+            var c1 = CreateCompilation("");
 
             using (new EnsureEnglishUICulture())
             {

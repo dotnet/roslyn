@@ -4,7 +4,9 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -71,14 +73,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
                 }
-            }
-        }
-
-        internal static void VerifyIOperationFeatureFlag(bool isIOperationFeatureEnabled)
-        {
-            if (!isIOperationFeatureEnabled)
-            {
-                throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
             }
         }
 
@@ -155,6 +149,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw new ArgumentNullException(nameof(valueProvider));
             }
+        }
+
+        internal static ControlFlowGraph GetControlFlowGraph(IOperation operation, Func<IOperation, ControlFlowGraph> getControlFlowGraphOpt, CancellationToken cancellationToken)
+        {
+            IOperation rootOperation = operation.GetRootOperation();
+            return getControlFlowGraphOpt != null ?
+                getControlFlowGraphOpt(rootOperation) :
+                ControlFlowGraph.CreateCore(rootOperation, nameof(rootOperation), cancellationToken);
         }
     }
 }

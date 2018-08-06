@@ -1407,7 +1407,7 @@ void Method() {
         {
             var content = @"class C 
 {
-            void Foo()//method
+            void Goo()//method
 {
     int x;//variable
 double y;
@@ -1417,7 +1417,7 @@ double y;
 
             var expected = @"class C
 {
-    void Foo()//method
+    void Goo()//method
     {
         int x;//variable
         double y;
@@ -1434,7 +1434,7 @@ double y;
         {
             var content = @"public class Class1
 {
-    void Foo()
+    void Goo()
     {
 /**/int x;
     }
@@ -1442,7 +1442,7 @@ double y;
 
             var expected = @"public class Class1
 {
-    void Foo()
+    void Goo()
     {
         /**/
         int x;
@@ -1457,7 +1457,7 @@ double y;
         {
             var content = @"public class Class1
 {
-    void Foo()
+    void Goo()
     {
         //      
         // 
@@ -1472,7 +1472,7 @@ double y;
         {
             var content = @"public class Class1
 {
-    void Foo()
+    void Goo()
     {
         //      
             
@@ -1483,7 +1483,7 @@ double y;
 
             var expected = @"public class Class1
 {
-    void Foo()
+    void Goo()
     {
         //      
 
@@ -1499,7 +1499,7 @@ double y;
         {
             var content = @"public class Class1
 {
-    void Foo()
+    void Goo()
     {
         int			/**/ i = 10;
     }
@@ -1507,7 +1507,7 @@ double y;
 
             var code = @"public class Class1
 {
-    void Foo()
+    void Goo()
     {
         int         /**/ i = 10;
     }

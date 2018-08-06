@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UpgradeProject;
 using Roslyn.Utilities;
 
@@ -28,26 +23,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         private const string CS8306 = nameof(CS8306); // error CS8306: ... Please use language version 7.1 or greater to access a un-named element by its inferred name.
         private const string CS8314 = nameof(CS8314); // error CS9003: An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.
         private const string CS8320 = nameof(CS8320); // error CS8320: Feature is not available in C# 7.2. Please use language version X or greater.
+        private const string CS1738 = nameof(CS1738); // error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+        private const string CS8370 = nameof(CS8370); // error CS8370: Feature is not available in C# 7.3. Please use language version X or greater.
+        private const string CS8371 = nameof(CS8371); // warning CS8371: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059, CS8107, CS8302, CS8306, CS8314, CS8320);
+            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059, CS8107, CS8302, CS8306, CS8314, CS8320, CS1738, CS8370, CS8371);
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;
 
-        public override ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics)
+        public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
         {
-            var required = RequiredVersion(diagnostics);
-            var builder = ArrayBuilder<string>.GetInstance(1);
-
-            var generic = required <= LanguageVersion.Default.MapSpecifiedToEffectiveVersion()
-               ? LanguageVersion.Default // for all versions prior to current Default
-               : LanguageVersion.Latest; // for more recent versions
-
-            builder.Add(generic.ToDisplayString());
-            builder.Add(required.ToDisplayString()); // also suggest the specific required version
-
-            return builder.ToImmutableAndFree();
+            return RequiredVersion(diagnostics).ToDisplayString();
         }
 
         private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
@@ -56,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out string requiredVersion) &&
-                    requiredVersion.TryParse(out var required))
+                    LanguageVersionFacts.TryParse(requiredVersion, out var required))
                 {
                     max = max > required ? max : required;
                 }
@@ -70,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             var parseOptions = (CSharpParseOptions)project.ParseOptions;
             if (IsUpgrade(parseOptions, newVersion))
             {
-                Contract.ThrowIfFalse(newVersion.TryParse(out var parsedNewVersion));
+                Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
                 return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(parsedNewVersion));
             }
             else
@@ -83,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         public override bool IsUpgrade(ParseOptions projectOptions, string newVersion)
         {
             var parseOptions = (CSharpParseOptions)projectOptions;
-            Contract.ThrowIfFalse(newVersion.TryParse(out var parsedNewVersion));
+            Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
 
             // treat equivalent versions (one generic and one specific) to be a valid upgrade
             return parsedNewVersion.MapSpecifiedToEffectiveVersion() >= parseOptions.LanguageVersion &&

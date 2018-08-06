@@ -51,6 +51,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ContainingNamespaceOrType As NamespaceOrTypeSymbol
             Get
                 Return _substitutedSourceMethod.ContainingNamespaceOrType
@@ -91,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' UNDONE: additional filtering based on options?
             If (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly Or LookupOptions.MustNotBeLocalOrParameter)) = 0 Then
                 For Each symbol In _nameToSymbolMap.Values
-                    If originalBinder.CanAddLookupSymbolInfo(symbol, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(symbol, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(symbol, symbol.Name, 0)
                     End If
                 Next

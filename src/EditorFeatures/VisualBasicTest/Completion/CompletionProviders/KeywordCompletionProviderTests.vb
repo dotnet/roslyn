@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Public Sub IsTextualTriggerCharacterTest()
             TestCommonIsTextualTriggerCharacter()
 
-            VerifyTextualTriggerCharacter("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
+            VerifyTextualTriggerCharacter("goo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -99,15 +99,15 @@ End Class
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function TestUnionOfKeywordsFromBothFiles() As Task
             Dim markup = <Workspace>
-                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true">
+                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO=true">
                                  <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class C
             Dim x As Integer
-#if FOO then
-    sub foo()
+#if GOO then
+    sub goo()
 #End If
         $$
-#If FOO Then
+#If GOO Then
     end sub
 
 #End If

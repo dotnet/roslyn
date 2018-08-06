@@ -1,436 +1,434 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-#if false
-namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public class ExpressionGenerationTests : AbstractCodeGenerationTests
     {
-        [WpfFact]
+        [Fact]
         public void TestFalseExpression()
         {
-            TestExpression(
-                f => f.CreateFalseExpression(),
+            Test(
+                f => f.FalseLiteralExpression(),
                 cs: "false",
                 vb: "False");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestTrueExpression()
         {
-            TestExpression(
-                f => f.CreateTrueExpression(),
+            Test(
+                f => f.TrueLiteralExpression(),
                 cs: "true",
                 vb: "True");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestNullExpression()
         {
-            TestExpression(
-                f => f.CreateNullExpression(),
+            Test(
+                f => f.NullLiteralExpression(),
                 cs: "null",
                 vb: "Nothing");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestThisExpression()
         {
-            TestExpression(
-                f => f.CreateThisExpression(),
+            Test(
+                f => f.ThisExpression(),
                 cs: "this",
                 vb: "Me");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestBaseExpression()
         {
-            TestExpression(
-                f => f.CreateBaseExpression(),
+            Test(
+                f => f.BaseExpression(),
                 cs: "base",
                 vb: "MyBase");
         }
 
-        [WpfFact]
-        public void TestInt32ConstantExpression0()
+        [Fact]
+        public void TestInt32LiteralExpression0()
         {
-            TestExpression(
-                f => f.CreateConstantExpression(0),
+            Test(
+                f => f.LiteralExpression(0),
                 cs: "0",
                 vb: "0");
         }
 
-        [WpfFact]
-        public void TestInt32ConstantExpression1()
+        [Fact]
+        public void TestInt32LiteralExpression1()
         {
-            TestExpression(
-                f => f.CreateConstantExpression(1),
+            Test(
+                f => f.LiteralExpression(1),
                 cs: "1",
                 vb: "1");
         }
 
-        [WpfFact]
-        public void TestInt64ConstantExpression0()
+        [Fact]
+        public void TestInt64LiteralExpression0()
         {
-            TestExpression(
-                f => f.CreateConstantExpression(0L),
+            Test(
+                f => f.LiteralExpression(0L),
                 cs: "0L",
-                vb: "0&");
+                vb: "0L");
         }
 
-        [WpfFact]
-        public void TestInt64ConstantExpression1()
+        [Fact]
+        public void TestInt64LiteralExpression1()
         {
-            TestExpression(
-                f => f.CreateConstantExpression(1L),
+            Test(
+                f => f.LiteralExpression(1L),
                 cs: "1L",
-                vb: "1&");
+                vb: "1L");
         }
 
-        [WpfFact]
-        public void TestSingleConstantExpression0()
+        [Fact]
+        public void TestSingleLiteralExpression0()
         {
-            TestExpression(
-                f => f.CreateConstantExpression(0.0f),
+            Test(
+                f => f.LiteralExpression(0.0f),
                 cs: "0F",
-                vb: "0!");
+                vb: "0F");
         }
 
-        [WpfFact]
-        public void TestSingleConstantExpression1()
+        [Fact]
+        public void TestSingleLiteralExpression1()
         {
-            TestExpression(
-                f => f.CreateConstantExpression(0.5F),
+            Test(
+                f => f.LiteralExpression(0.5F),
                 cs: "0.5F",
-                vb: "0.5!");
+                vb: "0.5F");
         }
 
-        [WpfFact]
-        public void TestDoubleConstantExpression0()
+        [Fact]
+        public void TestDoubleLiteralExpression0()
         {
-            TestExpression(
-                f => f.CreateConstantExpression(0.0d),
-                cs: "0",
-                vb: "0");
+            Test(
+                f => f.LiteralExpression(0.0d),
+                cs: "0D",
+                vb: "0R");
         }
 
-        [WpfFact]
-        public void TestDoubleConstantExpression1()
+        [Fact]
+        public void TestDoubleLiteralExpression1()
         {
-            TestExpression(
-                f => f.CreateConstantExpression(0.5D),
-                cs: "0.5",
-                vb: "0.5");
+            Test(
+                f => f.LiteralExpression(0.5D),
+                cs: "0.5D",
+                vb: "0.5R");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestAddExpression1()
         {
-            TestExpression(
-                f => f.CreateAddExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateConstantExpression(2)),
+            Test(
+                f => f.AddExpression(
+                    f.LiteralExpression(1),
+                    f.LiteralExpression(2)),
                 cs: "1 + 2",
                 vb: "1 + 2");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestAddExpression2()
         {
-            TestExpression(
-                f => f.CreateAddExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateAddExpression(
-                        f.CreateConstantExpression(2),
-                        f.CreateConstantExpression(3))),
+            Test(
+                f => f.AddExpression(
+                    f.LiteralExpression(1),
+                    f.AddExpression(
+                        f.LiteralExpression(2),
+                        f.LiteralExpression(3))),
                 cs: "1 + 2 + 3",
                 vb: "1 + 2 + 3");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestAddExpression3()
         {
-            TestExpression(
-                f => f.CreateAddExpression(
-                    f.CreateAddExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateConstantExpression(3)),
+            Test(
+                f => f.AddExpression(
+                    f.AddExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.LiteralExpression(3)),
                 cs: "1 + 2 + 3",
                 vb: "1 + 2 + 3");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMultiplyExpression1()
         {
-            TestExpression(
-                f => f.CreateMultiplyExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateConstantExpression(2)),
+            Test(
+                f => f.MultiplyExpression(
+                    f.LiteralExpression(1),
+                    f.LiteralExpression(2)),
                 cs: "1 * 2",
                 vb: "1 * 2");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMultiplyExpression2()
         {
-            TestExpression(
-                f => f.CreateMultiplyExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateMultiplyExpression(
-                        f.CreateConstantExpression(2),
-                        f.CreateConstantExpression(3))),
+            Test(
+                f => f.MultiplyExpression(
+                    f.LiteralExpression(1),
+                    f.MultiplyExpression(
+                        f.LiteralExpression(2),
+                        f.LiteralExpression(3))),
                 cs: "1 * 2 * 3",
                 vb: "1 * 2 * 3");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMultiplyExpression3()
         {
-            TestExpression(
-                f => f.CreateMultiplyExpression(
-                    f.CreateMultiplyExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateConstantExpression(3)),
+            Test(
+                f => f.MultiplyExpression(
+                    f.MultiplyExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.LiteralExpression(3)),
                 cs: "1 * 2 * 3",
                 vb: "1 * 2 * 3");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestBinaryAndExpression1()
         {
-            TestExpression(
-                f => f.CreateBinaryAndExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateConstantExpression(2)),
+            Test(
+                f => f.BitwiseAndExpression(
+                    f.LiteralExpression(1),
+                    f.LiteralExpression(2)),
                 cs: "1 & 2",
                 vb: "1 And 2");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestBinaryOrExpression1()
         {
-            TestExpression(
-                f => f.CreateBinaryOrExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateConstantExpression(2)),
+            Test(
+                f => f.BitwiseOrExpression(
+                    f.LiteralExpression(1),
+                    f.LiteralExpression(2)),
                 cs: "1 | 2",
                 vb: "1 Or 2");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestLogicalAndExpression1()
         {
-            TestExpression(
-                f => f.CreateLogicalAndExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateConstantExpression(2)),
+            Test(
+                f => f.LogicalAndExpression(
+                    f.LiteralExpression(1),
+                    f.LiteralExpression(2)),
                 cs: "1 && 2",
                 vb: "1 AndAlso 2");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestLogicalOrExpression1()
         {
-            TestExpression(
-                f => f.CreateLogicalOrExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateConstantExpression(2)),
+            Test(
+                f => f.LogicalOrExpression(
+                    f.LiteralExpression(1),
+                    f.LiteralExpression(2)),
                 cs: "1 || 2",
                 vb: "1 OrElse 2");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestMemberAccess1()
         {
-            TestExpression(
-                f => f.CreateMemberAccessExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateIdentifierName("M")),
+            Test(
+                f => f.MemberAccessExpression(
+                    f.IdentifierName("E"),
+                    f.IdentifierName("M")),
                 cs: "E.M",
                 vb: "E.M");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestConditionalExpression1()
         {
-            TestExpression(
-                f => f.CreateConditionalExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateIdentifierName("T"),
-                    f.CreateIdentifierName("F")),
+            Test(
+                f => f.ConditionalExpression(
+                    f.IdentifierName("E"),
+                    f.IdentifierName("T"),
+                    f.IdentifierName("F")),
                 cs: "E ? T : F",
                 vb: "If(E, T, F)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestInvocation1()
         {
-            TestExpression(
-                f => f.CreateInvocationExpression(
-                    f.CreateIdentifierName("E")),
+            Test(
+                f => f.InvocationExpression(
+                    f.IdentifierName("E")),
                 cs: "E()",
                 vb: "E()");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestInvocation2()
         {
-            TestExpression(
-                f => f.CreateInvocationExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateArgument(f.CreateIdentifierName("a"))),
+            Test(
+                f => f.InvocationExpression(
+                    f.IdentifierName("E"),
+                    f.Argument(f.IdentifierName("a"))),
                 cs: "E(a)",
                 vb: "E(a)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestInvocation3()
         {
-            TestExpression(
-                f => f.CreateInvocationExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateArgument("n", RefKind.None, f.CreateIdentifierName("a"))),
+            Test(
+                f => f.InvocationExpression(
+                    f.IdentifierName("E"),
+                    f.Argument("n", RefKind.None, f.IdentifierName("a"))),
                 cs: "E(n: a)",
                 vb: "E(n:=a)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestInvocation4()
         {
-            TestExpression(
-                f => f.CreateInvocationExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateArgument(null, RefKind.Out, f.CreateIdentifierName("a")),
-                    f.CreateArgument(null, RefKind.Ref, f.CreateIdentifierName("b"))),
+            Test(
+                f => f.InvocationExpression(
+                    f.IdentifierName("E"),
+                    f.Argument(null, RefKind.Out, f.IdentifierName("a")),
+                    f.Argument(null, RefKind.Ref, f.IdentifierName("b"))),
                 cs: "E(out a, ref b)",
                 vb: "E(a, b)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestInvocation5()
         {
-            TestExpression(
-                f => f.CreateInvocationExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateArgument("n1", RefKind.Out, f.CreateIdentifierName("a")),
-                    f.CreateArgument("n2", RefKind.Ref, f.CreateIdentifierName("b"))),
+            Test(
+                f => f.InvocationExpression(
+                    f.IdentifierName("E"),
+                    f.Argument("n1", RefKind.Out, f.IdentifierName("a")),
+                    f.Argument("n2", RefKind.Ref, f.IdentifierName("b"))),
                 cs: "E(n1: out a, n2: ref b)",
                 vb: "E(n1:=a, n2:=b)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestElementAccess1()
         {
-            TestExpression(
-                f => f.CreateElementAccessExpression(
-                    f.CreateIdentifierName("E")),
+            Test(
+                f => f.ElementAccessExpression(
+                    f.IdentifierName("E")),
                 cs: "E[]",
                 vb: "E()");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestElementAccess2()
         {
-            TestExpression(
-                f => f.CreateElementAccessExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateArgument(f.CreateIdentifierName("a"))),
+            Test(
+                f => f.ElementAccessExpression(
+                    f.IdentifierName("E"),
+                    f.Argument(f.IdentifierName("a"))),
                 cs: "E[a]",
                 vb: "E(a)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestElementAccess3()
         {
-            TestExpression(
-                f => f.CreateElementAccessExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateArgument("n", RefKind.None, f.CreateIdentifierName("a"))),
+            Test(
+                f => f.ElementAccessExpression(
+                    f.IdentifierName("E"),
+                    f.Argument("n", RefKind.None, f.IdentifierName("a"))),
                 cs: "E[n: a]",
                 vb: "E(n:=a)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestElementAccess4()
         {
-            TestExpression(
-                f => f.CreateElementAccessExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateArgument(null, RefKind.Out, f.CreateIdentifierName("a")),
-                    f.CreateArgument(null, RefKind.Ref, f.CreateIdentifierName("b"))),
+            Test(
+                f => f.ElementAccessExpression(
+                    f.IdentifierName("E"),
+                    f.Argument(null, RefKind.Out, f.IdentifierName("a")),
+                    f.Argument(null, RefKind.Ref, f.IdentifierName("b"))),
                 cs: "E[out a, ref b]",
                 vb: "E(a, b)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestElementAccess5()
         {
-            TestExpression(
-                f => f.CreateElementAccessExpression(
-                    f.CreateIdentifierName("E"),
-                    f.CreateArgument("n1", RefKind.Out, f.CreateIdentifierName("a")),
-                    f.CreateArgument("n2", RefKind.Ref, f.CreateIdentifierName("b"))),
+            Test(
+                f => f.ElementAccessExpression(
+                    f.IdentifierName("E"),
+                    f.Argument("n1", RefKind.Out, f.IdentifierName("a")),
+                    f.Argument("n2", RefKind.Ref, f.IdentifierName("b"))),
                 cs: "E[n1: out a, n2: ref b]",
                 vb: "E(n1:=a, n2:=b)");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestIsExpression()
         {
-            TestExpression(
-                f => f.CreateIsExpression(
-                    f.CreateIdentifierName("a"),
+            Test(
+                f => f.IsTypeExpression(
+                    f.IdentifierName("a"),
                     CreateClass("SomeType")),
                 cs: "a is SomeType",
                 vb: "TypeOf a Is SomeType");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestAsExpression()
         {
-            TestExpression(
-                f => f.CreateAsExpression(
-                    f.CreateIdentifierName("a"),
+            Test(
+                f => f.TryCastExpression(
+                    f.IdentifierName("a"),
                     CreateClass("SomeType")),
                 cs: "a as SomeType",
                 vb: "TryCast(a, SomeType)");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestNotExpression()
         {
-            TestExpression(
-                f => f.CreateLogicalNotExpression(
-                    f.CreateIdentifierName("a")),
+            Test(
+                f => f.LogicalNotExpression(
+                    f.IdentifierName("a")),
                 cs: "!a",
                 vb: "Not a");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestCastExpression()
         {
-            TestExpression(
-                f => f.CreateCastExpression(
+            Test(
+                f => f.CastExpression(
                     CreateClass("SomeType"),
-                    f.CreateIdentifierName("a")),
+                    f.IdentifierName("a")),
                 cs: "(SomeType)a",
                 vb: "DirectCast(a, SomeType)");
         }
 
-        [WpfFact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestNegateExpression()
         {
-            TestExpression(
-                f => f.CreateNegateExpression(
-                    f.CreateIdentifierName("a")),
+            Test(
+                f => f.NegateExpression(
+                    f.IdentifierName("a")),
                 cs: "-a",
                 vb: "-a");
         }
     }
 }
-#endif

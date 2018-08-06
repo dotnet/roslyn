@@ -146,14 +146,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Call(
                                 F.Field(F.This(), _builderField),
                                 _asyncMethodBuilderMemberCollection.SetStateMachine,
-                                new BoundExpression[] { F.Parameter(F.CurrentMethod.Parameters[0]) })),
+                                new BoundExpression[] { F.Parameter(F.CurrentFunction.Parameters[0]) })),
                         F.Return()));
             }
 
             // Constructor
             if (stateMachineType.TypeKind == TypeKind.Class)
             {
-                F.CurrentMethod = stateMachineType.Constructor;
+                F.CurrentFunction = stateMachineType.Constructor;
                 F.CloseMethod(F.Block(ImmutableArray.Create(F.BaseInitialization(), F.Return())));
             }
         }
@@ -205,11 +205,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType))));
 
             // local.$builder.Start(ref local) -- binding to the method AsyncTaskMethodBuilder<typeArgs>.Start()
+            var startMethod = methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType);
+            if (methodScopeAsyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
+            {
+                startMethod.CheckConstraints(F.Compilation.Conversions, F.Syntax, F.Compilation, diagnostics);
+            }
             bodyBuilder.Add(
                 F.ExpressionStatement(
                     F.Call(
                         F.Local(builderVariable),
-                        methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType),
+                        startMethod,
                         ImmutableArray.Create<BoundExpression>(F.Local(stateMachineVariable)))));
 
             bodyBuilder.Add(method.IsVoidReturningAsync()

@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return _noopRule;
                 }
 
-                var textContainer = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Container;
+                var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
                 var buffer = textContainer.TryGetTextBuffer() as IProjectionBuffer;
                 if (buffer == null)
                 {

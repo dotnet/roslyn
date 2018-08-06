@@ -16,7 +16,7 @@ Option Explicit Off
 Imports System
 <Assembly: CLSCompliant(False)> 
 
-Namespace Foo.Bar
+Namespace Goo.Bar
     Public Class Class1
         Dim x As Integer
         Public Function f(ByVal a As Boolean) As Integer
@@ -58,7 +58,7 @@ End Namespace
 Option Explicit Off
 Imports System
 <Assembly: CLSCompliant(False)>
-Namespace Foo.Bar
+Namespace Goo.Bar
 Public Class Class1
 Dim x As Integer
 Public Function f(ByVal a As Boolean) As Integer

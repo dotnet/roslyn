@@ -46,7 +46,7 @@ Module Program
   Sub Main(args As String())
   End Sub
 #ExternalSource ("Default.aspx", 3)[|
-            Sub     Foo (   )   
+            Sub     Goo (   )   
             End Sub 
 |]#End ExternalSource
 End Module</Code>
@@ -59,7 +59,7 @@ Module Program
   Sub Main(args As String())
   End Sub
 #ExternalSource ("Default.aspx", 3)
-    Sub Foo()
+    Sub Goo()
     End Sub
 #End ExternalSource
 End Module</Code>

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public ConstructorDocumentationCommentTests()
         {
-            _compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"namespace Acme
+            _compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"namespace Acme
 {
 	class Widget: IProcess
 	{

@@ -3,7 +3,7 @@
 'vbc /t:module /vbruntime- Mod3.vb
 
 Public Class Class3
-Sub Foo()
+Sub Goo()
 Dim x = {1,2}
 Dim y = x.Count()
 End Sub

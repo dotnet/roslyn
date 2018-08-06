@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestMissingMetadataSymbol()
-            Dim missingAssemblyName = New AssemblyIdentity("foo")
+            Dim missingAssemblyName = New AssemblyIdentity("goo")
             Dim assem As AssemblySymbol = New MockAssemblySymbol("banana")
             Dim [module] = New MissingModuleSymbol(assem, -1)
             Dim container As NamedTypeSymbol = New MockNamedTypeSymbol("TestClass", Enumerable.Empty(Of Symbol), TypeKind.Class)
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("Elvis", mms1.NamespaceName)
             Assert.Equal("Lives", mms1.Name)
             Assert.Equal("Elvis.Lives(Of ,)[missing]", mms1.ToTestDisplayString())
-            Assert.Equal("foo", mms1.ContainingAssembly.Identity.Name)
+            Assert.Equal("goo", mms1.ContainingAssembly.Identity.Name)
 
             Dim mms2 = New MissingMetadataTypeSymbol.TopLevel([module], "Elvis.Is", "Cool", 0, True)
             Assert.Equal(0, mms2.Arity)
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestNamespaceExtent()
-            Dim assem1 As AssemblySymbol = New MockAssemblySymbol("foo")
+            Dim assem1 As AssemblySymbol = New MockAssemblySymbol("goo")
 
             Dim ne1 As NamespaceExtent = New NamespaceExtent(assem1)
             Assert.Equal(ne1.Kind, NamespaceKind.Assembly)

@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // (and is closer to what the compiler actually does when displaying error messages)
                 _argumentsAsStrings = _arguments.Select(o =>
                 {
-                    var embedded = o as DiagnosticInfo;
-                    if (embedded != null)
+                    if (o is DiagnosticInfo embedded)
                     {
                         return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
                     }

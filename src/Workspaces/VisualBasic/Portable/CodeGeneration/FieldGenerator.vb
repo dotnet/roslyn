@@ -78,7 +78,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
             End If
 
-            Dim initializer = GenerateEqualsValue(field)
+            Dim initializerNode = TryCast(CodeGenerationFieldInfo.GetInitializer(field), ExpressionSyntax)
+            Dim initializer = If(initializerNode IsNot Nothing, SyntaxFactory.EqualsValue(initializerNode), GenerateEqualsValue(field))
 
             Dim fieldDeclaration =
                 SyntaxFactory.FieldDeclaration(
@@ -90,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             SyntaxFactory.SimpleAsClause(field.Type.GenerateTypeSyntax()),
                             initializer)))
 
-            Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(EnsureLastElasticTrivia(fieldDeclaration), field, options))
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(EnsureLastElasticTrivia(fieldDeclaration), field, options))
         End Function
 
         Private Function GenerateEqualsValue(field As IFieldSymbol) As EqualsValueSyntax

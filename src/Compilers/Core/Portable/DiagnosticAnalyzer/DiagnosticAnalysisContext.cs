@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -139,22 +141,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
-        internal virtual void RegisterOperationBlockStartActionInternal(Action<OperationBlockStartAnalysisContext> action)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary> 
         /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
         /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
         /// </summary> 
         /// <param name="action">Action to be executed for an operation block.</param> 
         public virtual void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal virtual void RegisterOperationBlockActionInternal(Action<OperationBlockAnalysisContext> action)
         {
             throw new NotImplementedException();
         }
@@ -171,11 +163,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
         }
 
-        internal void RegisterOperationActionParamsArrayInternal(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
-        {
-            this.RegisterOperationActionImmutableArrayInternal(action, operationKinds.AsImmutableOrEmpty());
-        }
-
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
         /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
@@ -184,11 +171,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
         public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal virtual void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             throw new NotImplementedException();
         }
@@ -383,22 +365,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
-        internal virtual void RegisterOperationBlockStartActionInternal(Action<OperationBlockStartAnalysisContext> action)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary> 
         /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
         /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
         /// </summary> 
         /// <param name="action">Action to be executed for an operation block.</param> 
         public virtual void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal virtual void RegisterOperationBlockActionInternal(Action<OperationBlockAnalysisContext> action)
         {
             throw new NotImplementedException();
         }
@@ -445,11 +417,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
         }
 
-        internal void RegisterOperationActionParamsArrayInternal(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
-        {
-            this.RegisterOperationActionImmutableArrayInternal(action, operationKinds.AsImmutableOrEmpty());
-        }
-
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
         /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
@@ -458,11 +425,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
         public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal virtual void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             throw new NotImplementedException();
         }
@@ -894,20 +856,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ISymbol _owningSymbol;
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
+        private readonly Func<IOperation, ControlFlowGraph> _getControlFlowGraphOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Method body and/or expressions subject to analysis.
+        /// One or more operation blocks that are the subject of the analysis.
+        /// This includes all blocks associated with the <see cref="OwningSymbol"/>,
+        /// such as method body, field/property/constructor/parameter initializer(s), attributes, etc.
         /// </summary>
+        /// <remarks>Note that the operation blocks are not in any specific order.</remarks>
         public ImmutableArray<IOperation> OperationBlocks => _operationBlocks;
 
         /// <summary>
-        /// <see cref="ISymbol"/> for which the code block provides a definition or value.
+        /// <see cref="ISymbol"/> for which the <see cref="OperationBlocks"/> provides a definition or value.
         /// </summary>
         public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
-        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="OperationBlocks"/>.
         /// </summary>
         public Compilation Compilation => _compilation;
 
@@ -921,12 +887,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        protected OperationBlockStartAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected OperationBlockStartAnalysisContext(
+            ImmutableArray<IOperation> operationBlocks,
+            ISymbol owningSymbol,
+            Compilation compilation,
+            AnalyzerOptions options,
+            CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
             _owningSymbol = owningSymbol;
             _compilation = compilation;
             _options = options;
+            _cancellationToken = cancellationToken;
+            _getControlFlowGraphOpt = null;
+        }
+
+        internal OperationBlockStartAnalysisContext(
+            ImmutableArray<IOperation> operationBlocks,
+            ISymbol owningSymbol,
+            Compilation compilation,
+            AnalyzerOptions options,
+            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+            CancellationToken cancellationToken)
+        {
+            _operationBlocks = operationBlocks;
+            _owningSymbol = owningSymbol;
+            _compilation = compilation;
+            _options = options;
+            _getControlFlowGraphOpt = getControlFlowGraph;
             _cancellationToken = cancellationToken;
         }
 
@@ -957,6 +945,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
         public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for a given <paramref name="operationBlock"/> from this analysis context's <see cref="OperationBlocks"/>.
+        /// </summary>
+        /// <param name="operationBlock">Operation block.</param>
+        public ControlFlowGraph GetControlFlowGraph(IOperation operationBlock)
+        {
+            if (operationBlock == null)
+            {
+                throw new ArgumentNullException(nameof(operationBlock));
+            }
+
+            if (!OperationBlocks.Contains(operationBlock))
+            {
+                throw new ArgumentException(CodeAnalysisResources.InvalidOperationBlockForAnalysisContext, nameof(operationBlock));
+            }
+
+            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraphOpt, _cancellationToken);
+        }
     }
 
     /// <summary>
@@ -971,20 +978,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly Func<IOperation, ControlFlowGraph> _getControlFlowGraphOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Code block that is the subject of the analysis.
+        /// One or more operation blocks that are the subject of the analysis.
+        /// This includes all blocks associated with the <see cref="OwningSymbol"/>,
+        /// such as method body, field/property/constructor/parameter initializer(s), attributes, etc.
         /// </summary>
+        /// <remarks>Note that the operation blocks are not in any specific order.</remarks>
         public ImmutableArray<IOperation> OperationBlocks => _operationBlocks;
 
         /// <summary>
-        /// <see cref="ISymbol"/> for which the code block provides a definition or value.
+        /// <see cref="ISymbol"/> for which the <see cref="OperationBlocks"/> provides a definition or value.
         /// </summary>
         public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
-        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="OperationBlocks"/>.
         /// </summary>
         public Compilation Compilation => _compilation;
 
@@ -998,7 +1009,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        public OperationBlockAnalysisContext(
+            ImmutableArray<IOperation> operationBlocks,
+            ISymbol owningSymbol,
+            Compilation compilation,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
             _owningSymbol = owningSymbol;
@@ -1006,6 +1024,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            _cancellationToken = cancellationToken;
+            _getControlFlowGraphOpt = null;
+        }
+
+        internal OperationBlockAnalysisContext(
+            ImmutableArray<IOperation> operationBlocks,
+            ISymbol owningSymbol,
+            Compilation compilation,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+            CancellationToken cancellationToken)
+        {
+            _operationBlocks = operationBlocks;
+            _owningSymbol = owningSymbol;
+            _compilation = compilation;
+            _options = options;
+            _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
+            _getControlFlowGraphOpt = getControlFlowGraph;
             _cancellationToken = cancellationToken;
         }
 
@@ -1020,6 +1059,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _reportDiagnostic(diagnostic);
             }
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for a given <paramref name="operationBlock"/> from this analysis context's <see cref="OperationBlocks"/>.
+        /// </summary>
+        /// <param name="operationBlock">Operation block.</param>
+        public ControlFlowGraph GetControlFlowGraph(IOperation operationBlock)
+        {
+            if (operationBlock == null)
+            {
+                throw new ArgumentNullException(nameof(operationBlock));
+            }
+
+            if (!OperationBlocks.Contains(operationBlock))
+            {
+                throw new ArgumentException(CodeAnalysisResources.InvalidOperationBlockForAnalysisContext, nameof(operationBlock));
+            }
+
+            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraphOpt, _cancellationToken);
         }
     }
 
@@ -1173,6 +1231,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly Func<IOperation, ControlFlowGraph> _getControlFlowGraphOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1200,7 +1259,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        public OperationAnalysisContext(IOperation operation, ISymbol containingSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        public OperationAnalysisContext(
+            IOperation operation,
+            ISymbol containingSymbol,
+            Compilation compilation,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CancellationToken cancellationToken)
         {
             _operation = operation;
             _containingSymbol = containingSymbol;
@@ -1208,6 +1274,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            _cancellationToken = cancellationToken;
+            _getControlFlowGraphOpt = null;
+        }
+
+        internal OperationAnalysisContext(
+            IOperation operation,
+            ISymbol containingSymbol,
+            Compilation compilation,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+            CancellationToken cancellationToken)
+        {
+            _operation = operation;
+            _containingSymbol = containingSymbol;
+            _compilation = compilation;
+            _options = options;
+            _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
+            _getControlFlowGraphOpt = getControlFlowGraph;
             _cancellationToken = cancellationToken;
         }
 
@@ -1223,5 +1310,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
+
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for the operation block containing the <see cref="Operation"/>.
+        /// </summary>
+        public ControlFlowGraph GetControlFlowGraph() => DiagnosticAnalysisContextHelpers.GetControlFlowGraph(Operation, _getControlFlowGraphOpt, _cancellationToken);
     }
 }

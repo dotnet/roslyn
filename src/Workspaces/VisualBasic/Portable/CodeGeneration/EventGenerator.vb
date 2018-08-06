@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim declaration = GenerateEventDeclarationWorker([event], destination, options)
 
-            Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, [event], options))
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, [event], options))
         End Function
 
         Private Function GenerateEventDeclarationWorker([event] As IEventSymbol,

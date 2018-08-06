@@ -35,14 +35,14 @@ namespace AppCS
         ModVBClass AppField02 = default(ModVBClass);
         ModVBClass.ModVBInnerEnum this[ModVBClass.ModVBInnerEnum p] { get { return p; } }
 
-        public NS.Module.CS01.CS02.ModClassImplImp<ModVBStruct.ModVBInnerStruct.ModVBInnerIFoo> Use()
+        public NS.Module.CS01.CS02.ModClassImplImp<ModVBStruct.ModVBInnerStruct.ModVBInnerIGoo> Use()
         {
             // x-modules
-            NS.Module.CS01.CS02.ModClassImplImp<ModVBStruct.ModVBInnerStruct.ModVBInnerIFoo> v = null;
+            NS.Module.CS01.CS02.ModClassImplImp<ModVBStruct.ModVBInnerStruct.ModVBInnerIGoo> v = null;
             if (null != AppField02)
             {
-                v = default(NS.Module.CS01.CS02.ModClassImplImp<ModVBStruct.ModVBInnerStruct.ModVBInnerIFoo>);
-                ModVBStruct.ModVBInnerStruct.ModVBInnerIFoo refVal = null;
+                v = default(NS.Module.CS01.CS02.ModClassImplImp<ModVBStruct.ModVBInnerStruct.ModVBInnerIGoo>);
+                ModVBStruct.ModVBInnerStruct.ModVBInnerIGoo refVal = null;
                 v.M01(ref refVal);
             }
             return v;
@@ -54,30 +54,30 @@ namespace AppCS
 {
     public interface IContraVar<in CT> where CT: class
     {
-        CT ContraFooProp { set; }
+        CT ContraGooProp { set; }
     }
     public interface ICoVar<out CO>
     {
-        CO CoFooMethod();
+        CO CoGooMethod();
     }
     interface INormal<T> 
     { 
-        T NormalFoo(T t);
+        T NormalGoo(T t);
     }
 
     internal class ContraInClass<CT1> : IContraVar<CT1> where CT1 : class
     {
-        public CT1 ContraFooProp { set { } }
+        public CT1 ContraGooProp { set { } }
     }
 
     internal class CoOutClass<CO1> : ICoVar<CO1> where CO1 : new()
     {
-        public CO1 CoFooMethod() { return new CO1(); }
+        public CO1 CoGooMethod() { return new CO1(); }
     }
 
     internal class NormalClass<T1> : INormal<T1>
     {
-        public T1 NormalFoo(T1 t) { return default(T1); }
+        public T1 NormalGoo(T1 t) { return default(T1); }
     }
 
     class Animal { }
@@ -90,11 +90,11 @@ namespace AppCS
             IContraVar<Tiger> v1 = new ContraInClass<Animal>();
             CoOutClass<Tiger> v2 = new CoOutClass<Tiger>();
             ICoVar<Animal> v3 = v2;
-            var x = v2.CoFooMethod();
+            var x = v2.CoGooMethod();
 
             INormal<Animal> vv1 = new NormalClass<Animal>();
             INormal<Tiger> vv2 = new NormalClass<Tiger>();
-            vv1.NormalFoo(new Animal());
+            vv1.NormalGoo(new Animal());
             return 0;
         }
     }

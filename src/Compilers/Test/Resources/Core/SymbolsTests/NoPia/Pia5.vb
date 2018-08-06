@@ -11,7 +11,7 @@ Imports System.Runtime.InteropServices
 
 <ComImport(), Guid("27e3e649-994b-4f58-b3c6-f8089a5f2c05"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)> _
 Public Interface I5
-    Function Foo() As List(Of I6)
+    Function Goo() As List(Of I6)
 End Interface
 
 <ComImport(), Guid("27e3e649-994b-4f58-b3c6-f8089a5f2c06"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)> _

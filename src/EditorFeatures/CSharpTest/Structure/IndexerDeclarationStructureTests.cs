@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -35,7 +35,7 @@ class C
             const string code = @"
 class C
 {
-    {|span1:// Foo
+    {|span1:// Goo
     // Bar|}
     {|hint2:$$public string this[int index]{|textspan2:
     {
@@ -44,7 +44,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("span1", "// Goo ...", autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
@@ -54,13 +54,13 @@ class C
             const string code = @"
 class C
 {
-    {|span:// Foo
+    {|span:// Goo
     // Bar|}
     $$public string this[int index] => 0;
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "// Foo ...", autoCollapse: true));
+                Region("span", "// Goo ...", autoCollapse: true));
         }
     }
 }

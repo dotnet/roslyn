@@ -26,7 +26,8 @@ Class C
         Dim z = [||]If (x Is Nothing, y, x)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -46,7 +47,8 @@ Class C
         Dim z = [||]If(x IsNot Nothing, x, y)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -66,7 +68,8 @@ Class C
         Dim z = [||]If(Nothing Is x, y, x)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -86,7 +89,8 @@ Class C
         Dim z = [||]If(Nothing IsNot x, x, y)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -106,7 +110,8 @@ Class C
         Dim z = [||]If (x.ToString() is Nothing, y, x.ToString())
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -126,7 +131,8 @@ Class C
         Dim z = [||]If ((x Is Nothing), y, x)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -146,7 +152,8 @@ Class C
         Dim z = [||]If ((x) Is Nothing, y, x)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -166,7 +173,8 @@ Class C
         Dim z = [||]If (x Is Nothing, y, (x))
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -186,7 +194,8 @@ Class C
         Dim z = [||]If (x Is Nothing, (y), x)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -207,7 +216,8 @@ Class C
         Dim z2 = If(x IsNot Nothing, x, y)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string)
@@ -228,7 +238,8 @@ Class C
         dim w = {|FixAllInDocument:If|} (x isnot Nothing, x, If(y isnot Nothing, y, z))
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as string, y as string, z as string)
@@ -256,7 +267,7 @@ Imports System.Linq.Expressions
 
 Class C
     Sub M(x as string, y as string)
-        dim e as Expression(of Func(of string)) = function() {|Warning:If (x, y)|}
+        dim e as Expression(of Func(of string)) = function() {|Warning:If(x, y)|}
     End Sub
 End Class")
         End Function

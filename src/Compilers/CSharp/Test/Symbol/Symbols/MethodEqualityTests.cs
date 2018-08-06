@@ -26,7 +26,7 @@ class Class2
     void Method1() { }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var class1 = global.GetTypeMembers("Class1").Single();
@@ -73,7 +73,7 @@ class Derived2 : Base<int>
 {
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = global.GetTypeMembers("Base").Single();
@@ -81,12 +81,12 @@ class Derived2 : Base<int>
             var baseClassMethod2 = (MethodSymbol)baseClass.GetMembers("Method").Last();
 
             var derivedClass1 = global.GetTypeMembers("Derived1").Single();
-            var substitutedBaseClass = derivedClass1.BaseType;
+            var substitutedBaseClass = derivedClass1.BaseType();
             var substitutedBaseClassMethod1 = (MethodSymbol)substitutedBaseClass.GetMembers("Method").First();
             var substitutedBaseClassMethod2 = (MethodSymbol)substitutedBaseClass.GetMembers("Method").Last();
 
             var derivedClass2 = global.GetTypeMembers("Derived2").Single();
-            var constructedBaseClass = derivedClass2.BaseType;
+            var constructedBaseClass = derivedClass2.BaseType();
             var constructedBaseClassMethod1 = (MethodSymbol)constructedBaseClass.GetMembers("Method").First();
             var constructedBaseClassMethod2 = (MethodSymbol)constructedBaseClass.GetMembers("Method").Last();
 
@@ -133,7 +133,7 @@ class Derived2 : Base<int>
 {
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = global.GetTypeMembers("Base").Single();
@@ -141,12 +141,12 @@ class Derived2 : Base<int>
             var baseClassMethod2 = (MethodSymbol)baseClass.GetMembers("Method").Last();
 
             var derivedClass1 = global.GetTypeMembers("Derived1").Single();
-            var substitutedBaseClass = derivedClass1.BaseType;
+            var substitutedBaseClass = derivedClass1.BaseType();
             var substitutedBaseClassMethod1 = (MethodSymbol)substitutedBaseClass.GetMembers("Method").First();
             var substitutedBaseClassMethod2 = (MethodSymbol)substitutedBaseClass.GetMembers("Method").Last();
 
             var derivedClass2 = global.GetTypeMembers("Derived2").Single();
-            var constructedBaseClass = derivedClass2.BaseType;
+            var constructedBaseClass = derivedClass2.BaseType();
             var constructedBaseClassMethod1 = (MethodSymbol)constructedBaseClass.GetMembers("Method").First();
             var constructedBaseClassMethod2 = (MethodSymbol)constructedBaseClass.GetMembers("Method").Last();
 
@@ -192,7 +192,7 @@ class Class
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetTypeMembers("Class").Single();

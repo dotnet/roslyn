@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var nameToken = nameSyntax.GetNameToken();
 
-            var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: true, cancellationToken: cancellationToken);
+            var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: true, cancellationToken);
             var firstSymbol = symbols.FirstOrDefault();
 
             var typeSymbol = firstSymbol != null && firstSymbol.Kind == SymbolKind.Alias
@@ -90,5 +90,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return true;
         }
+
+        public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
+        {
+            if (method.ReturnsByRef)
+            {
+                return method.ReturnType.GenerateRefTypeSyntax();
+            }
+            else if (method.ReturnsByRefReadonly)
+            {
+                return method.ReturnType.GenerateRefReadOnlyTypeSyntax();
+            }
+            else
+            {
+                return method.ReturnType.GenerateTypeSyntax();
+            }
+        }
+
+        public static TypeSyntax GenerateTypeSyntax(this IPropertySymbol property)
+        {
+            if (property.ReturnsByRef)
+            {
+                return property.Type.GenerateRefTypeSyntax();
+            }
+            else if (property.ReturnsByRefReadonly)
+            {
+                return property.Type.GenerateRefReadOnlyTypeSyntax();
+            }
+            else
+            {
+                return property.Type.GenerateTypeSyntax();
+            }
+        }
+
+        public static TypeSyntax StripRefIfNeeded(this TypeSyntax type)
+            => type is RefTypeSyntax refType ? refType.Type : type;
     }
 }

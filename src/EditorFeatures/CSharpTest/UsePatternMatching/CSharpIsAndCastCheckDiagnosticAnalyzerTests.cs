@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -243,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(17126, "https://github.com/dotnet/roslyn/issues/17126")]
@@ -310,7 +311,7 @@ namespace N {
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -532,6 +533,26 @@ class C
         if (value is bool?)
         {
             [|bool?|] tmp = (bool?)value;
+        }
+
+        return null;
+    }
+}");
+        }
+
+        [WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingWithDynamic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public object Convert(object value)
+    {
+        if (value is dynamic)
+        {
+            [|dynamic|] tmp = (dynamic)value;
         }
 
         return null;

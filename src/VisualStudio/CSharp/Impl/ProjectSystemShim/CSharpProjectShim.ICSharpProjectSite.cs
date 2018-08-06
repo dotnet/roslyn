@@ -127,8 +127,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // completely loaded. If you plan on using this, be careful!
         }
 
-        public abstract int CreateCodeModel(object parent, out EnvDTE.CodeModel codeModel);
-        public abstract int CreateFileCodeModel(string fileName, object parent, out EnvDTE.FileCodeModel ppFileCodeModel);
+        public int CreateCodeModel(object parent, out EnvDTE.CodeModel codeModel)
+        {
+            codeModel = ProjectCodeModel.GetOrCreateRootCodeModel((EnvDTE.Project)parent);
+            return VSConstants.S_OK;
+        }
+
+        public int CreateFileCodeModel(string fileName, object parent, out EnvDTE.FileCodeModel ppFileCodeModel)
+        {
+            ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, parent);
+            return VSConstants.S_OK;
+        }
 
         public void OnModuleAdded(string filename)
         {

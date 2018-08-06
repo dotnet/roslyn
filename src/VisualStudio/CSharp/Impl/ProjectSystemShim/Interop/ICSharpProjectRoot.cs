@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Inter
         string BuildPerConfigCacheFileName();
 
         // Configure the given compiler and input set objects based on all current
-        // settings of the project, including configuration (debug/retail/foo, etc.)
+        // settings of the project, including configuration (debug/retail/goo, etc.)
         void ConfigureCompiler(
             [MarshalAs(UnmanagedType.Interface)] ICSCompiler compiler,
             [MarshalAs(UnmanagedType.Interface)] ICSInputSet inputSet,

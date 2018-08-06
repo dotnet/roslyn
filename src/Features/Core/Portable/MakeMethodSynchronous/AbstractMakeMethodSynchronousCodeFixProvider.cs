@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixNodeAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private const string AsyncSuffix = "Async";
@@ -119,9 +119,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             if (methodDeclaration != null)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration) as IMethodSymbol;
 
-                if (methodSymbol != null)
+                if (semanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol)
                 {
                     var references = await SymbolFinder.FindRenamableReferencesAsync(
                         new SymbolAndProjectId(methodSymbol, document.Project.Id),

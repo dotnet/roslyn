@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -110,13 +111,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // method, even if its containing type doesn't state that it implements the
                     // interface.  For example:
                     //
-                    //  interface IFoo { void Foo(); }
+                    //  interface IGoo { void Goo(); }
                     //
-                    //  class Base { public void Foo(); }
+                    //  class Base { public void Goo(); }
                     //
-                    //  class Derived : Base, IFoo { }
+                    //  class Derived : Base, IGoo { }
                     //
-                    // In this case, Base.Foo *does* implement IFoo.Foo in the context of the type
+                    // In this case, Base.Goo *does* implement IGoo.Goo in the context of the type
                     // Derived.
                     var containingType = symbolAndProjectId.WithSymbol(
                         symbol.ContainingType.OriginalDefinition);
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // compilation from definition project must already exist.
             if (!definitionProject.TryGetCompilation(out definingCompilation))
             {
-                Contract.Requires(false, "How can compilation not exist?");
+                Debug.Assert(false, "How can compilation not exist?");
                 return false;
             }
 

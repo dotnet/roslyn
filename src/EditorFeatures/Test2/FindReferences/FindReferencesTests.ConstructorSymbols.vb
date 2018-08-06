@@ -394,14 +394,14 @@ class Program
         <Document>
         namespace N
         {
-            class FooAttribute : System.Attribute
+            class GooAttribute : System.Attribute
             {
-                public {|Definition:$$FooAttribute|}() { }
+                public {|Definition:$$GooAttribute|}() { }
             }
         }
         </Document>
         <Document>
-        using M = N.FooAttribute;
+        using M = N.GooAttribute;
 
         [[|M|]()]
         [[|M|]]
@@ -422,14 +422,14 @@ class Program
         <Document>
         namespace N
         {
-            class FooAttribute : System.Attribute
+            class GooAttribute : System.Attribute
             {
-                public {|Definition:$$FooAttribute|}() { }
+                public {|Definition:$$GooAttribute|}() { }
             }
         }
         </Document>
         <Document>
-        using MAttribute = N.FooAttribute;
+        using MAttribute = N.GooAttribute;
 
         [[|M|]()]
         [[|M|]]
@@ -647,12 +647,12 @@ class Program
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-using FooAttribute = System.[|ObsoleteAttribute|];
+using GooAttribute = System.[|ObsoleteAttribute|];
  
-[$$[|Foo|]]
-[[|Foo|]()]
-[[|FooAttribute|]]
-[[|FooAttribute|]()]
+[$$[|Goo|]]
+[[|Goo|]()]
+[[|GooAttribute|]]
+[[|GooAttribute|]()]
 class C { }
         </Document>
     </Project>
@@ -668,12 +668,12 @@ class C { }
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-using FooAttribute = System.$$[|ObsoleteAttribute|];
+using GooAttribute = System.$$[|ObsoleteAttribute|];
  
-[Foo]
-[Foo()]
-[FooAttribute]
-[FooAttribute()]
+[Goo]
+[Goo()]
+[GooAttribute]
+[GooAttribute()]
 class C { }
         </Document>
     </Project>
@@ -784,6 +784,31 @@ class Program
     static void Main(string[] args)
     {
         A a = new A();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(25655, "https://github.com/dotnet/roslyn/issues/25655")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNoCompilationProjectReferencingCSharp() As Task
+            Dim input =
+<Workspace>
+    <Project Language="NoCompilation" CommonReferences="false">
+        <ProjectReference>CSharpProject</ProjectReference>
+        <Document>
+            // a no-compilation document
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+        <Document>
+public class A
+{
+    public {|Definition:$$A|}()
+    {
     }
 }
         </Document>

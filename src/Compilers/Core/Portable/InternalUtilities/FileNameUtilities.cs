@@ -33,8 +33,8 @@ namespace Roslyn.Utilities
         /// Returns the offset in <paramref name="path"/> where the dot that starts an extension is, or -1 if the path doesn't have an extension.
         /// </summary>
         /// <remarks>
-        /// Returns 0 for path ".foo".
-        /// Returns -1 for path "foo.".
+        /// Returns 0 for path ".goo".
+        /// Returns -1 for path "goo.".
         /// </remarks>
         private static int IndexOfExtension(string path)
         {
@@ -90,8 +90,8 @@ namespace Roslyn.Utilities
         /// Removes extension from path.
         /// </summary>
         /// <remarks>
-        /// Returns "foo" for path "foo.".
-        /// Returns "foo.." for path "foo...".
+        /// Returns "goo" for path "goo.".
+        /// Returns "goo.." for path "goo...".
         /// </remarks>
         private static string RemoveExtension(string path)
         {

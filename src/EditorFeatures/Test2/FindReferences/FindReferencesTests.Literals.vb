@@ -168,11 +168,11 @@ class C
 {
     void M()
     {
-        var i = [|$$"foo"|];
-        var i = [|"foo"|];
-        var i = [|@"foo"|];
+        var i = [|$$"goo"|];
+        var i = [|"goo"|];
+        var i = [|@"goo"|];
         var i = "fo";
-        var i = "fooo";
+        var i = "gooo";
         var i = 'f';
         var i = 00;
         var i = 0x0;
@@ -188,10 +188,10 @@ class C
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 class C
-    dim i = [|"foo"|]
-    dim i = [|"foo"|]
+    dim i = [|"goo"|]
+    dim i = [|"goo"|]
     dim i = "fo"
-    dim i = "fooo"
+    dim i = "gooo"
 end class
         </Document>
     </Project>
@@ -211,10 +211,10 @@ class C
 {
     void M()
     {
-        var i = [|$$"foo\nbar"|];
-        var i = @"foo
+        var i = [|$$"goo\nbar"|];
+        var i = @"goo
 bar";
-        var i = "foo\r\nbar";
+        var i = "goo\r\nbar";
     }
 }
         </Document>
@@ -222,9 +222,9 @@ bar";
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 class C
-    dim i = "foo
+    dim i = "goo
 bar"
-    dim i = "foobar"
+    dim i = "goobar"
 end class
         </Document>
     </Project>
@@ -244,10 +244,10 @@ class C
 {
     void M()
     {
-        var i = [|$$"foo\r\nbar"|];
-        var i = [|@"foo
+        var i = [|$$"goo\r\nbar"|];
+        var i = [|@"goo
 bar"|];
-        var i = "foo\nbar";
+        var i = "goo\nbar";
     }
 }
         </Document>
@@ -255,9 +255,9 @@ bar"|];
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 class C
-    dim i = [|"foo
+    dim i = [|"goo
 bar"|]
-    dim i = "foobar"
+    dim i = "goobar"
 end class
         </Document>
     </Project>

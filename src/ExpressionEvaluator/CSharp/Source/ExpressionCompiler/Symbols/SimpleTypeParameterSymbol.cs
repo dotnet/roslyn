@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get { return false; }
+        }
+
         public override VarianceKind Variance
         {
             get { return VarianceKind.None; }

@@ -189,20 +189,20 @@ End Class
 
         Dim tree1 = ParseFile(text1)
         Assert.NotNull(tree1)
-        Dim decl1 = DeclarationTreeBuilder.ForTree(tree1, {"Foo", "Bar"}.AsImmutableOrNull(), TestOptions.ReleaseDll.ScriptClassName, isSubmission:=False)
+        Dim decl1 = DeclarationTreeBuilder.ForTree(tree1, {"Goo", "Bar"}.AsImmutableOrNull(), TestOptions.ReleaseDll.ScriptClassName, isSubmission:=False)
 
         Assert.Equal(DeclarationKind.Namespace, decl1.Kind)
         Assert.NotNull(decl1)
         Assert.Equal("", decl1.Name)
         Assert.Equal(1, decl1.Children.Length())
 
-        Dim foo = decl1.Children.Single()
-        Assert.NotNull(foo)
-        Assert.Equal(DeclarationKind.Namespace, foo.Kind)
-        Assert.Equal("Foo", foo.Name)
-        Assert.Equal(1, foo.Children.Length())
+        Dim goo = decl1.Children.Single()
+        Assert.NotNull(goo)
+        Assert.Equal(DeclarationKind.Namespace, goo.Kind)
+        Assert.Equal("Goo", goo.Name)
+        Assert.Equal(1, goo.Children.Length())
 
-        Dim bar = foo.Children.Single()
+        Dim bar = goo.Children.Single()
         Assert.NotNull(bar)
         Assert.Equal(DeclarationKind.Namespace, bar.Kind)
         Assert.Equal("Bar", bar.Name)

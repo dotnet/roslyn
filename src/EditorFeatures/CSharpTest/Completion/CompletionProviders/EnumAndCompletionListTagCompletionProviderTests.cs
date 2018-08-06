@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -50,20 +51,20 @@ class Program
 {
     public void M()
     {
-        Foo d = $$
+        Goo d = $$
     }
 }
 ";
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-public enum Foo
+public enum Goo
 {
     Member
 }";
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Foo",
+                item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
@@ -80,20 +81,20 @@ class Program
 {
     public void M()
     {
-        Foo d = $$
+        Goo d = $$
     }
 }
 ";
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-public enum Foo
+public enum Goo
 {
     Member
 }";
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Foo",
+                item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
@@ -110,20 +111,20 @@ class Program
 {
     public void M()
     {
-        Foo d = $$
+        Goo d = $$
     }
 }
 ";
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
-public enum Foo
+public enum Goo
 {
     Member
 }";
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Foo",
+                item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
@@ -133,7 +134,7 @@ public enum Foo
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Foo",
+                item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
@@ -214,7 +215,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -237,7 +238,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -260,7 +261,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -283,7 +284,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -308,7 +309,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -333,7 +334,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -389,13 +390,13 @@ using D = System.Globalization.DigitShapes;
 
 class Program
 {
-    private void Foo(System.Globalization.DigitShapes shape)
+    private void Goo(System.Globalization.DigitShapes shape)
     {
     }
 
     static void Main(string[] args)
     {
-        Foo($$
+        Goo($$
     }
 }
 }
@@ -415,9 +416,9 @@ enum E
 
 class C
 {
-    void foo(E first, E second) 
+    void goo(E first, E second) 
     {
-        foo(first: E.a, $$
+        goo(first: E.a, $$
     }
 }
 ";

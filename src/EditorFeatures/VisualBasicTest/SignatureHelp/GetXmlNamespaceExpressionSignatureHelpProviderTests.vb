@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         Public Async Function TestInvocationForGetType() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = GetXmlNamespace($$
     End Sub
 End Class

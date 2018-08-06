@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     ? service.AddMembers(declaration, innermostNamespace.GetMembers(), options, cancellationToken)
                     : declaration;
 
-            return AddCleanupAnnotationsTo(declaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
         }
 
         public static SyntaxNode UpdateCompilationUnitOrNamespaceDeclaration(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             declaration = RemoveAllMembers(declaration);
             declaration = service.AddMembers(declaration, newMembers, options, cancellationToken);
-            return AddCleanupAnnotationsTo(declaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
         }
 
         private static SyntaxNode GenerateNamespaceDeclarationWorker(

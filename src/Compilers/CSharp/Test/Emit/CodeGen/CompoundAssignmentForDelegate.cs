@@ -82,12 +82,12 @@ class C
     static void Main(string[] args)
     {
         abc p = new abc();
-        boo foo = null;
-        foo += p.bar;
-        foo += new boo(p.bar);
-        foo();
-        foo -= p.bar;
-        foo -= new boo(p.bar);
+        boo goo = null;
+        goo += p.bar;
+        goo += new boo(p.bar);
+        goo();
+        goo -= p.bar;
+        goo -= new boo(p.bar);
     }
 }
 ";
@@ -107,11 +107,11 @@ class C
 {
     static void Main(string[] args)
     {
-        boo foo = null;
-        foo += (boo)null;
-        foo -= (boo)null;
-        foo += null;
-        foo -= null;
+        boo goo = null;
+        goo += (boo)null;
+        goo -= (boo)null;
+        goo += null;
+        goo -= null;
     }
 }
 ";
@@ -155,15 +155,15 @@ class C
     static void Main(string[] args)
     {
         abc p = new abc();
-        boo foo = null;
-        boo foo1 = new boo(abc.far);
-        foo += foo1; // Same type
-        foo();
-        foo -= foo1; // Same type
+        boo goo = null;
+        boo goo1 = new boo(abc.far);
+        goo += goo1; // Same type
+        goo();
+        goo -= goo1; // Same type
         boo[] arrfoo = { p.bar, abc.far };
-        foo += (boo)Delegate.Combine(arrfoo);	// OK
-        foo += (boo)Delegate.Combine(foo, foo1);  	// OK
-        foo();
+        goo += (boo)Delegate.Combine(arrfoo);	// OK
+        goo += (boo)Delegate.Combine(goo, goo1);  	// OK
+        goo();
     }
 }
 ";
@@ -187,14 +187,14 @@ class C
 {
     static void Main()
     {
-        boo foo = null;
-        foo += delegate (int x)
+        boo goo = null;
+        goo += delegate (int x)
         {
             System.Console.WriteLine(x);
         };
-        foo(10);
-        Delegate[] del = foo.GetInvocationList();
-        foo -= (boo)del[0];
+        goo(10);
+        Delegate[] del = goo.GetInvocationList();
+        goo -= (boo)del[0];
     }
 }
 ";
@@ -243,14 +243,14 @@ class C
 {
     static void Main()
     {
-        boo foo = null;
-        foo += (x) =>
+        boo goo = null;
+        goo += (x) =>
         {
             System.Console.WriteLine(x);
         };
-        foo(""Hello"");
-        Delegate[] del = foo.GetInvocationList();
-        foo -= (boo)del[0];
+        goo(""Hello"");
+        Delegate[] del = goo.GetInvocationList();
+        goo -= (boo)del[0];
     }
 }
 ";
@@ -302,13 +302,13 @@ class C
     static public void far(int x) { Console.WriteLine(""far:{0}"", x); }
     static void Main(string[] args)
     {
-        boo foo = far;
-        foo += (x) =>
+        boo goo = far;
+        goo += (x) =>
             System.Console.WriteLine(""lambda:{0}"", x);
-        foo(10);
-        Delegate[] del = foo.GetInvocationList();
-        foo -= (boo)del[0];
-        foo(20);
+        goo(10);
+        Delegate[] del = goo.GetInvocationList();
+        goo -= (boo)del[0];
+        goo(20);
     }
 }
 ";
@@ -331,15 +331,15 @@ class C
     static public void far(int x) { Console.WriteLine(""far:{0}"", x); }
     static void Main(string[] args)
     {
-        boo foo = far;
-        foo += delegate(int x)
+        boo goo = far;
+        goo += delegate(int x)
         {
             System.Console.WriteLine(""Anonymous:{0}"", x);
         };
-        foo(10);
-        Delegate[] del = foo.GetInvocationList();
-        foo -= (boo)del[0];
-        foo(20);
+        goo(10);
+        Delegate[] del = goo.GetInvocationList();
+        goo -= (boo)del[0];
+        goo(20);
     }
 }
 ";
@@ -362,19 +362,19 @@ class C
     static public void far(int x) { Console.WriteLine(""far:{0}"", x); }
     static void Main(string[] args)
     {
-        boo foo = far;
-        foo += x =>
+        boo goo = far;
+        goo += x =>
         {
             System.Console.WriteLine(""Lambda:{0}"", x);
         };
-        foo += delegate(int x)
+        goo += delegate(int x)
         {
             System.Console.WriteLine(""Anonymous:{0}"", x);
         };
-        foo(10);
-        Delegate[] del = foo.GetInvocationList();
-        foo -= (boo)del[0];
-        foo(20);
+        goo(10);
+        Delegate[] del = goo.GetInvocationList();
+        goo -= (boo)del[0];
+        goo(20);
     }
 }
 ";
@@ -485,15 +485,15 @@ class C
     static void Main(string[] args)
     {
         abc p = new abc();
-        boo foo = new boo(p.bar);
-        foo();
-        foo -= p.bar;
-        foo = new boo(abc.far);
-        foo();
-        foo -= abc.far;
-        foo += p.bar;
-        foo += abc.far;
-        foo();
+        boo goo = new boo(p.bar);
+        goo();
+        goo -= p.bar;
+        goo = new boo(abc.far);
+        goo();
+        goo -= abc.far;
+        goo += p.bar;
+        goo += abc.far;
+        goo();
     }
 }
 ";
@@ -515,7 +515,7 @@ public class abc
 {
     public void bar() { System.Console.WriteLine(""bar""); }
     static public void far() { System.Console.WriteLine(""far""); }
-    public boo foo = null;
+    public boo goo = null;
 }
 
 class C
@@ -523,12 +523,12 @@ class C
     static void Main(string[] args)
     {
         abc p = new abc();
-        p.foo = null;
-        p.foo += abc.far;
-        p.foo += p.bar;
-        p.foo();
-        p.foo -= abc.far;
-        p.foo -= p.bar;
+        p.goo = null;
+        p.goo += abc.far;
+        p.goo += p.bar;
+        p.goo();
+        p.goo -= abc.far;
+        p.goo -= p.bar;
     }
 }
 ";
@@ -556,15 +556,15 @@ class C
     static void Main(string[] args)
     {
         abc p = new abc();
-        boo foo = null;
-        foo += loo() ? new boo(p.bar) : new boo(abc.far);
-        foo();
-        foo -= loo() ? new boo(p.bar) : new boo(abc.far);
+        boo goo = null;
+        goo += loo() ? new boo(p.bar) : new boo(abc.far);
+        goo();
+        goo -= loo() ? new boo(p.bar) : new boo(abc.far);
         boo left = null;
         boo right = null;
-        foo = !loo() ? left += new boo(abc.far) : right += new boo(p.bar);
-        foo();
-        foo = !loo() ? left -= new boo(abc.far) : right -= new boo(p.bar);
+        goo = !loo() ? left += new boo(abc.far) : right += new boo(p.bar);
+        goo();
+        goo = !loo() ? left -= new boo(abc.far) : right -= new boo(p.bar);
     }
 
     private static bool loo()
@@ -596,11 +596,11 @@ class C
     }
     static void Main(string[] args)
     {
-        boo foo = null;
-        foo += new boo(C.Hello);
+        boo goo = null;
+        goo += new boo(C.Hello);
         int i = 1;
         float ff = 0;
-        foo(out i, 5.5, ref ff, ""a string"", 'C', 0.555m, new C(), 3, 16);
+        goo(out i, 5.5, ref ff, ""a string"", 'C', 0.555m, new C(), 3, 16);
     }
 }
 ";
@@ -631,9 +631,9 @@ class C
     static void Main(string[] args)
     {
         abc p = new abc();
-        boo foo = null;
-        foo += new boo(p.bar);
-        foo();
+        boo goo = null;
+        goo += new boo(p.bar);
+        goo();
     }
 }
 ";
@@ -710,7 +710,7 @@ Derived
             CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
-        // delegate-in-a-generic-class (C<t>.foo(…)) += methodgroup-in-a-generic-class (C<T>.bar(…))
+        // delegate-in-a-generic-class (C<t>.goo(…)) += methodgroup-in-a-generic-class (C<T>.bar(…))
         [Fact]
         public void CompAssignOperatorForGenericClass()
         {
@@ -722,18 +722,18 @@ class C<T>
     public void bar(short x) { System.Console.WriteLine(""bar""); }
     public static void far(T x) { System.Console.WriteLine(""far""); }
     public static void par<U>(U x) { System.Console.WriteLine(""par""); }
-    public static boo foo = null;
+    public static boo goo = null;
 }
 class D
 {
     static void Main(string[] args)
     {
         C<long> p = new C<long>();
-        C<long>.foo += p.bar;
-        C<short>.foo += C<short>.far;
-        C<long>.foo += C<long>.par<short>;
-        C<long>.foo(short.MaxValue);
-        C<short>.foo(short.MaxValue);
+        C<long>.goo += p.bar;
+        C<short>.goo += C<short>.far;
+        C<long>.goo += C<long>.par<short>;
+        C<long>.goo(short.MaxValue);
+        C<short>.goo(short.MaxValue);
     }
 }
 ";
@@ -769,15 +769,15 @@ public class DerivedClass : BaseClass
     }
     static void Main(string[] args)
     {
-        MyBaseDelegate foo = null;
-        foo += BaseClass.DelegatedMethod;
-        foo += DerivedClass.DelegatedMethod;
-        foo(new BaseClass());
-        foo(new DerivedClass());
-        MyDerivedDelegate foo1 = null;
-        //foo1 += BaseClass.DelegatedMethod;
-        foo1 += DerivedClass.DelegatedMethod;
-        foo1(new DerivedClass());
+        MyBaseDelegate goo = null;
+        goo += BaseClass.DelegatedMethod;
+        goo += DerivedClass.DelegatedMethod;
+        goo(new BaseClass());
+        goo(new DerivedClass());
+        MyDerivedDelegate goo1 = null;
+        //goo1 += BaseClass.DelegatedMethod;
+        goo1 += DerivedClass.DelegatedMethod;
+        goo1(new DerivedClass());
     }
 }
 ";
@@ -824,16 +824,16 @@ public class DerivedClass : BaseClass
     }
     static void Main(string[] args)
     {
-        MyDelegate<BaseClass> foo = null;
-        foo += BaseClass.DelegatedMethod;
-        foo += DerivedClass.DelegatedMethod;
-        foo(new BaseClass());
-        foo(new DerivedClass());
-        MyDelegate<DerivedClass> foo1 = null;
-        foo1 += BaseClass.DelegatedMethod;
-        foo1 += DerivedClass.DelegatedMethod;
-        //foo1(new BaseClass());
-        foo1(new DerivedClass());
+        MyDelegate<BaseClass> goo = null;
+        goo += BaseClass.DelegatedMethod;
+        goo += DerivedClass.DelegatedMethod;
+        goo(new BaseClass());
+        goo(new DerivedClass());
+        MyDelegate<DerivedClass> goo1 = null;
+        goo1 += BaseClass.DelegatedMethod;
+        goo1 += DerivedClass.DelegatedMethod;
+        //goo1(new BaseClass());
+        goo1(new DerivedClass());
     }
 }
 ";
@@ -878,21 +878,21 @@ public class DerivedClass : BaseClass
 
     static void Main(string[] args)
     {
-        MyDelegate<BaseClass> foo = null;
-        foo += BaseClass.DelegatedMethod;
-        foo += DerivedClass.DelegatedMethod;
-        foo(new BaseClass());
-        foo(new DerivedClass());
-        MyDelegate<DerivedClass> foo1 = null;
-        foo1 += BaseClass.DelegatedMethod;
-        foo1 += DerivedClass.DelegatedMethod;
-        //foo1(new BaseClass());
-        foo1(new DerivedClass());
-        MyDelegate<double> foo2 = null;
-        foo2 += BaseClass.DelegatedMethod<double>;
-        foo2 += BaseClass.DelegatedMethod;
-        foo2 += DerivedClass.DelegatedMethod;
-        foo2(2);
+        MyDelegate<BaseClass> goo = null;
+        goo += BaseClass.DelegatedMethod;
+        goo += DerivedClass.DelegatedMethod;
+        goo(new BaseClass());
+        goo(new DerivedClass());
+        MyDelegate<DerivedClass> goo1 = null;
+        goo1 += BaseClass.DelegatedMethod;
+        goo1 += DerivedClass.DelegatedMethod;
+        //goo1(new BaseClass());
+        goo1(new DerivedClass());
+        MyDelegate<double> goo2 = null;
+        goo2 += BaseClass.DelegatedMethod<double>;
+        goo2 += BaseClass.DelegatedMethod;
+        goo2 += DerivedClass.DelegatedMethod;
+        goo2(2);
     }
 }
 ";
@@ -941,15 +941,15 @@ public class DerivedClass : BaseClass
 
     static void Main(string[] args)
     {
-        MyDelegate foo = null;
-        foo += BaseClass.DelegatedMethod<double>;
-        foo += BaseClass.DelegatedMethod;
-        foo += DerivedClass.DelegatedMethod;
-        MyDelegate foo1 = null;
-        foo1 += foo;
-        foo += foo1;
-        foo(1);
-        foo1(1);
+        MyDelegate goo = null;
+        goo += BaseClass.DelegatedMethod<double>;
+        goo += BaseClass.DelegatedMethod;
+        goo += DerivedClass.DelegatedMethod;
+        MyDelegate goo1 = null;
+        goo1 += goo;
+        goo += goo1;
+        goo(1);
+        goo1(1);
     }
 }
 ";

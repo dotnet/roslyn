@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed partial class LegacyDiagnosticItem : BaseDiagnosticItem
     {
         private readonly AnalyzerItem _analyzerItem;

@@ -184,11 +184,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
             End Function
 
             Private Iterator Function ConvertDocCommentToRegularComment(structuredTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of SyntaxTrivia)
-                Dim xmlFragment = DocumentationCommentUtilities.ExtractXMLFragment(structuredTrivia.ToFullString())
+                Dim xmlFragment = DocumentationCommentUtilities.ExtractXMLFragment(structuredTrivia.ToFullString(), "'''")
 
                 Dim docComment = DocumentationComment.FromXmlFragment(xmlFragment)
 
-                Dim commentLines = AbstractMetadataAsSourceService.DocCommentFormatter.Format(Me._formattingService, docComment)
+                Dim commentLines = DocCommentFormatter.Format(Me._formattingService, docComment)
 
                 For Each line In commentLines
                     If Not String.IsNullOrWhiteSpace(line) Then

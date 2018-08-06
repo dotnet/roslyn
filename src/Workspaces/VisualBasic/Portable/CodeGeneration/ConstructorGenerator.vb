@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                       statements:=GenerateStatements(constructor),
                       endSubStatement:=SyntaxFactory.EndSubStatement()))
 
-            Return AddAnnotationsTo(constructor, AddCleanupAnnotationsTo(
+            Return AddAnnotationsTo(constructor, AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options)))
         End Function
 

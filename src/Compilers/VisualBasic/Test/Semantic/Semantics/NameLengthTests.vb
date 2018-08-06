@@ -309,28 +309,28 @@ BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in m
 Imports System.Runtime.InteropServices
 
 Class C1
-    <DllImport("foo.dll", EntryPoint:="Short1")>
+    <DllImport("goo.dll", EntryPoint:="Short1")>
     Shared Sub {0}()  ' Name is fine, entrypoint is fine.
     End Sub
-    <DllImport("foo.dll", EntryPoint:="Short2")>
+    <DllImport("goo.dll", EntryPoint:="Short2")>
     Shared Sub {0}1() ' Name is too Long, entrypoint is fine.
     End Sub
 End Class
 
 Class C2
-    <DllImport("foo.dll", EntryPoint:="{0}")>
+    <DllImport("goo.dll", EntryPoint:="{0}")>
     Shared Sub Short1()   ' Name is fine, entrypoint is fine.
     End Sub
-    <DllImport("foo.dll", EntryPoint:="{0}1")>
+    <DllImport("goo.dll", EntryPoint:="{0}1")>
     Shared Sub Short2()   ' Name is fine, entrypoint is too Long.
     End Sub
 End Class
 
 Class C3
-    <DllImport("foo.dll")>
+    <DllImport("goo.dll")>
     Shared Sub {0}()  ' Name is fine, entrypoint is unspecified.
     End Sub
-    <DllImport("foo.dll")>
+    <DllImport("goo.dll")>
     Shared Sub {0}1() ' Name is too Long, entrypoint is unspecified.
     End Sub
 End Class
@@ -444,7 +444,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, s_longLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, options:=TestOptions.DebugDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40({source}, {}, options:=TestOptions.DebugDll)
             Dim _longSquiggle_ As New String("~"c, s_longLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
@@ -467,7 +467,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, s_longLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, options:=TestOptions.DebugDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40({source}, {}, options:=TestOptions.DebugDll)
             Dim _longSquiggle_ As New String("~"c, s_longLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
@@ -546,7 +546,7 @@ BC37220: Name '<%= s_longSymbolName %>3' exceeds the maximum length allowed in m
         End Function
 
         Private Function CreateCompilationWithMscorlib(source As String) As VisualBasicCompilation
-            Return CompilationUtils.CreateCompilationWithMscorlib({source}, {}, TestOptions.ReleaseDll)
+            Return CompilationUtils.CreateCompilationWithMscorlib40({source}, {}, TestOptions.ReleaseDll)
         End Function
 
         Private Function CreateCompilationWithMscorlib45(source As String) As VisualBasicCompilation

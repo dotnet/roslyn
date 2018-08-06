@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         None = 0,
 
         /// <summary>
-        /// ".ctor" instead of "Foo"
+        /// ".ctor" instead of "Goo"
         /// </summary>
         UseMetadataMethodNames = 1 << 0,
 

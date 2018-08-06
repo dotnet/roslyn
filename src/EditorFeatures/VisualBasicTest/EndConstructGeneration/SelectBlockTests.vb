@@ -2,19 +2,20 @@
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class SelectBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterSelectKeyword()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-Sub foo()
-Select foo
+Sub goo()
+Select goo
 End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-Sub foo()
-Select foo
+Sub goo()
+Select goo
     Case 
 End Select
 End Sub
@@ -26,14 +27,14 @@ End Class",
         Public Sub TestApplyAfterSelectCaseKeyword()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-Sub foo()
-Select Case foo
+Sub goo()
+Select Case goo
 End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-Sub foo()
-Select Case foo
+Sub goo()
+Select Case goo
     Case 
 End Select
 End Sub

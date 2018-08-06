@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -28,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"class Class
 {
     System.Collections.IDictionary Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -48,14 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"class Class
 {
     System.Collections.Generic.IDictionary Method()
     {
-        Foo();
+        Goo();
     }
 }",
 index: 1);
@@ -69,14 +70,14 @@ index: 1);
 {
     [|List|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"class Class
 {
     System.Collections.Generic.List Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -89,14 +90,14 @@ index: 1);
 {
     [|List<int>|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"class Class
 {
     System.Collections.Generic.List<int> Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -109,7 +110,7 @@ index: 1);
 {
     [|List<int>|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 "System.Collections.Generic.List");
@@ -123,7 +124,7 @@ index: 1);
 {
     [|List<int, string>|] Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -172,14 +173,14 @@ class C
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         [|List<int>|] a = new List<int>();
     }
 }",
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         System.Collections.Generic.List<int> a = new List<int>();
     }
@@ -214,7 +215,7 @@ class Class
 {
     [|List<int>|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System;
@@ -223,7 +224,7 @@ class Class
 {
     System.Collections.Generic.List<int> Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -238,7 +239,7 @@ class Class
     {
         [|List<int>|] Method()
         {
-            Foo();
+            Goo();
         }
     }
 }",
@@ -248,7 +249,7 @@ class Class
     {
         System.Collections.Generic.List<int> Method()
         {
-            Foo();
+            Goo();
         }
     }
 }");
@@ -266,7 +267,7 @@ class Class
     {
         [|List<int>|] Method()
         {
-            Foo();
+            Goo();
         }
     }
 }",
@@ -278,7 +279,7 @@ class Class
     {
         System.Collections.Generic.List<int> Method()
         {
-            Foo();
+            Goo();
         }
     }
 }");
@@ -294,7 +295,7 @@ class Class
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 count: 1);
@@ -306,7 +307,7 @@ class Class
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections.Generic;
@@ -315,7 +316,7 @@ class Class
 {
     System.Collections.IDictionary Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -330,7 +331,7 @@ class Class
 {
     [|String|] Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -345,7 +346,7 @@ class Class
 {
     [|List<int>|] Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -356,7 +357,7 @@ class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         var a = [|Colors|].Red;
     }
@@ -373,7 +374,7 @@ namespace A
 }",
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         var a = A.Colors.Red;
     }
@@ -420,23 +421,23 @@ namespace A
         public async Task TestOnImplementedInterface()
         {
             await TestInRegularAndScriptAsync(
-@"class Class : [|IFoo|]
+@"class Class : [|IGoo|]
 {
 }
 
 namespace A
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }",
-@"class Class : A.IFoo
+@"class Class : A.IGoo
 {
 }
 
 namespace A
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }");
@@ -446,7 +447,7 @@ namespace A
         public async Task TestAllInBaseList()
         {
             await TestInRegularAndScriptAsync(
-@"class Class : [|IFoo|], Class2
+@"class Class : [|IGoo|], Class2
 {
 }
 
@@ -459,11 +460,11 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }",
-@"class Class : B.IFoo, Class2
+@"class Class : B.IGoo, Class2
 {
 }
 
@@ -476,13 +477,13 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }");
 
             await TestInRegularAndScriptAsync(
-@"class Class : B.IFoo, [|Class2|]
+@"class Class : B.IGoo, [|Class2|]
 {
 }
 
@@ -495,11 +496,11 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }",
-@"class Class : B.IFoo, A.Class2
+@"class Class : B.IGoo, A.Class2
 {
 }
 
@@ -512,7 +513,7 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }");
@@ -553,7 +554,7 @@ class Class
             await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -570,7 +571,7 @@ class Foo
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         List<int> l;
         l = new [|List<int>|]();
@@ -578,7 +579,7 @@ class Foo
 }",
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         List<int> l;
         l = new System.Collections.Generic.List<int>();
@@ -762,9 +763,8 @@ namespace B
         public async Task TestSimpleNameWithLeadingTrivia()
         {
             await TestInRegularAndScriptAsync(
-@"class Class { void Test() { /*foo*/[|Int32|] i; } }",
-@"class Class { void Test() { /*foo*/System.Int32 i; } }",
-ignoreTrivia: false);
+@"class Class { void Test() { /*goo*/[|Int32|] i; } }",
+@"class Class { void Test() { /*goo*/System.Int32 i; } }");
         }
 
         [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
@@ -772,9 +772,8 @@ ignoreTrivia: false);
         public async Task TestGenericNameWithLeadingTrivia()
         {
             await TestInRegularAndScriptAsync(
-@"class Class { void Test() { /*foo*/[|List<int>|] l; } }",
-@"class Class { void Test() { /*foo*/System.Collections.Generic.List<int> l; } }",
-ignoreTrivia: false);
+@"class Class { void Test() { /*goo*/[|List<int>|] l; } }",
+@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }");
         }
 
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
@@ -803,6 +802,35 @@ class Test
 class Test
 {
     Program.Inner i;
+}");
+        }
+
+        [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestFullyQualifyUnboundIdentifier3()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public [|Inner|] Name
+}",
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public Program.Inner Name
 }");
         }
 
@@ -972,7 +1000,7 @@ class C
         public async Task TestMissingOnAliasName()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using [|GIBBERISH|] = Foo.GIBBERISH;
+@"using [|GIBBERISH|] = Goo.GIBBERISH;
 
 class Program
 {
@@ -982,7 +1010,7 @@ class Program
     }
 }
 
-namespace Foo
+namespace Goo
 {
     public class GIBBERISH
     {
@@ -1028,7 +1056,7 @@ class Program
 
             await TestInRegularAndScriptAsync(
 input,
-@"[assembly: System.Runtime.InteropServices.Guid(""9ed54f84-a89d-4fcd-a854-44251e925f09"")]");
+@"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
         [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
@@ -1286,14 +1314,14 @@ namespace n2
 {
     ([|IDictionary|], string) Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"class Class
 {
     (System.Collections.IDictionary, string) Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -1306,14 +1334,14 @@ namespace n2
 {
     ([|IDictionary|] a, string) Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"class Class
 {
     (System.Collections.IDictionary a, string) Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }

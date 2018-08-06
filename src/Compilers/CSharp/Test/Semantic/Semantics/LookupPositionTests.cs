@@ -1460,12 +1460,40 @@ label1:
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));
             var symbols = model.LookupLabels(source.ToString().IndexOf("label1;", StringComparison.Ordinal));
             Assert.True(symbols.IsEmpty);
+        }
+
+        [Fact]
+        public void GotoLabelShouldNotHaveColon()
+        {
+            var source = @"
+class Program
+{
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case int i:
+                goto HERE;
+            default:
+@default:
+label1:
+                break;
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var symbols = model.LookupLabels(source.ToString().IndexOf("HERE", StringComparison.Ordinal));
+            AssertEx.SetEqual(new[] { "default", "case int i:", "label1" }, symbols.Select(s => s.ToTestDisplayString()));
         }
 
         [WorkItem(586815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]
@@ -1625,7 +1653,7 @@ class Derived : Base<int>
             var text = textBuilder.ToString();
 
             var parseOptions = TestOptions.RegularWithDocumentationComments;
-            var compilation = CreateStandardCompilation(text, parseOptions: parseOptions);
+            var compilation = CreateCompilationWithMscorlib40(text, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             return compilation.GetSemanticModel(tree);
         }

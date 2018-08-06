@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new ULongKeywordRecommender(),
                 new UncheckedKeywordRecommender(),
                 new UndefKeywordRecommender(),
+                new UnmanagedKeywordRecommender(),
                 new UnsafeKeywordRecommender(),
                 new UShortKeywordRecommender(),
                 new UsingKeywordRecommender(),

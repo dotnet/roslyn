@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
-            var globalStatement = memberNode as GlobalStatementSyntax;
-            if (globalStatement != null)
+            if (memberNode is GlobalStatementSyntax globalStatement)
             {
                 // check whether we are extracting whole global statement out
                 if (this.OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))

@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new TextChange(new TextSpan(0, 5), "Halo")
             };
 
-            Assert.Throws<ArgumentException>(() => text.WithChanges(changes));
+            var newText = text.WithChanges(changes);
+            Assert.Equal("Halo Universe", newText.ToString());
         }
 
         [Fact]
@@ -138,8 +139,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new TextChange(new TextSpan(6, 0), "Super ")
             };
 
-            // this causes overlap
-            Assert.Throws<ArgumentException>(() => text.WithChanges(changes));
+            var newText = text.WithChanges(changes);
+            Assert.Equal("Hello Super Vurld", newText.ToString());
         }
 
         [Fact]
@@ -576,7 +577,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestLargeTextWriterDoesNotResuseSmallChunks()
+        public void TestLargeTextWriterDoesNotReuseSmallChunks()
         {
             var text = SourceText.From("small preamble");
             var chunk1 = "this is the large text".ToArray();

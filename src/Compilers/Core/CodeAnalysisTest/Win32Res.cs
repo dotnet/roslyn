@@ -9,12 +9,13 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class Win32ResTests
     {
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BasicResources2()
         {
             //confirm that we can read resources produced by RC.EXE. 
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(3, list.Count);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BasicResourcesWithStringTypes()
         {
             //confirm that we can read resources produced by RC.EXE. 
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private IEnumerable<Microsoft.Cci.IWin32Resource> BuildResources()
         {
-            yield return new Win32Resource(null, 0, 0, -1, "foo", 1, null);//4
+            yield return new Win32Resource(null, 0, 0, -1, "goo", 1, null);//4
             yield return new Win32Resource(null, 0, 0, -1, "b", -1, "a");//0
             yield return new Win32Resource(null, 0, 0, 1, null, 1, null);//5
             yield return new Win32Resource(null, 0, 0, -1, "b", 2, null);//6
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             yield return new Win32Resource(null, 0, 0, 1, null, -1, "A");//2
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void EnsureResourceSorting()
         {
             //confirm that we sort the resources in the order required by the serialization format.
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("B", elem.Name);
             elem = resources[4];
             Assert.Equal(1, elem.TypeId);
-            Assert.Equal("foo", elem.Name);
+            Assert.Equal("goo", elem.Name);
             elem = resources[5];
             Assert.Equal(1, elem.TypeId);
             Assert.Equal(1, elem.Id);
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("b", elem.Name);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BasicResources()
         {
             System.IO.MemoryStream strm = new System.IO.MemoryStream();

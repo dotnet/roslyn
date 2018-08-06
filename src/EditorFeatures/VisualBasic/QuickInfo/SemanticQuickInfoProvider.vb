@@ -1,10 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition
+Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Intellisense.QuickInfo
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -17,16 +18,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
     <ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Semantic, LanguageNames.VisualBasic)>
     Friend Class SemanticQuickInfoProvider
         Inherits AbstractSemanticQuickInfoProvider
-
-        <ImportingConstructor>
-        Public Sub New(projectionBufferFactoryService As IProjectionBufferFactoryService,
-                       editorOptionsFactoryService As IEditorOptionsFactoryService,
-                       textEditorFactoryService As ITextEditorFactoryService,
-                       glyphService As IGlyphService,
-                       typeMap As ClassificationTypeMap)
-            MyBase.New(projectionBufferFactoryService, editorOptionsFactoryService,
-                       textEditorFactoryService, glyphService, typeMap)
-        End Sub
 
         Protected Overrides Async Function BuildContentAsync(document As Document,
                                                   token As SyntaxToken,
@@ -102,6 +93,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
             Return Await MyBase.BuildContentAsync(document, token, cancellationToken).ConfigureAwait(False)
         End Function
 
+        ''' <summary>
+        ''' If the token is a 'Sub' or 'Function' in a lambda, returns the syntax for the whole lambda
+        ''' </summary>
+        Protected Overrides Function GetBindableNodeForTokenIndicatingLambda(token As SyntaxToken, <Out> ByRef found As SyntaxNode) As Boolean
+            If token.IsKind(SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword) AndAlso token.Parent.IsKind(SyntaxKind.SubLambdaHeader, SyntaxKind.FunctionLambdaHeader) Then
+                found = token.Parent.Parent
+                Return True
+            End If
+
+            found = Nothing
+            Return False
+        End Function
+
         Private Overloads Async Function BuildContentAsync(document As Document,
                                                 token As SyntaxToken,
                                                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
@@ -111,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
                 Return Nothing
             End If
 
-            Dim semantics = Await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(False)
+            Dim semantics = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim types = declarators.SelectMany(Function(d) d.Names).Select(
                 Function(n)
@@ -151,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
 
             builder.AddRange(documentation.PrefixParts)
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(expression, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim position = expression.SpanStart
 
@@ -165,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
 
                 If typeNameToBind IsNot Nothing Then
                     ' We'll try to bind the type name 
-                    Dim typeInfo = SemanticModel.GetTypeInfo(typeNameToBind, cancellationToken)
+                    Dim typeInfo = semanticModel.GetTypeInfo(typeNameToBind, cancellationToken)
 
                     If typeInfo.Type IsNot Nothing Then
                         builder.AddRange(typeInfo.Type.ToMinimalDisplayParts(semanticModel, position))

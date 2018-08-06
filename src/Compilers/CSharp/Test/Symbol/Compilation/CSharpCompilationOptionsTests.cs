@@ -67,13 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ShadowInvariants()
         {
             TestHiddenProperty((old, value) => old.WithOutputKind(value), opt => opt.OutputKind, OutputKind.DynamicallyLinkedLibrary);
-            TestHiddenProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "foo.dll");
-            TestHiddenProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Foo.Bar");
+            TestHiddenProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "goo.dll");
+            TestHiddenProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Goo.Bar");
             TestHiddenProperty((old, value) => old.WithScriptClassName(value), opt => opt.ScriptClassName, "<Script>");
             TestHiddenProperty((old, value) => old.WithOptimizationLevel(value), opt => opt.OptimizationLevel, OptimizationLevel.Release);
             TestHiddenProperty((old, value) => old.WithOverflowChecks(value), opt => opt.CheckOverflow, true);
-            TestHiddenProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
-            TestHiddenProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
+            TestHiddenProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "goo");
+            TestHiddenProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "goo");
             TestHiddenProperty((old, value) => old.WithCryptoPublicKey(value), opt => opt.CryptoPublicKey, ImmutableArray.Create<byte>(0, 1, 2, 3));
             TestHiddenProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
             TestHiddenProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
@@ -103,15 +103,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Invariants()
         {
             TestProperty((old, value) => old.WithOutputKind(value), opt => opt.OutputKind, OutputKind.DynamicallyLinkedLibrary);
-            TestProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "foo.dll");
-            TestProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Foo.Bar");
+            TestProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "goo.dll");
+            TestProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Goo.Bar");
             TestProperty((old, value) => old.WithScriptClassName(value), opt => opt.ScriptClassName, "<Script>");
             TestProperty((old, value) => old.WithUsings(value), opt => opt.Usings, ImmutableArray.Create("A", "B"));
             TestProperty((old, value) => old.WithOptimizationLevel(value), opt => opt.OptimizationLevel, OptimizationLevel.Release);
             TestProperty((old, value) => old.WithOverflowChecks(value), opt => opt.CheckOverflow, true);
             TestProperty((old, value) => old.WithAllowUnsafe(value), opt => opt.AllowUnsafe, true);
-            TestProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
-            TestProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
+            TestProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "goo");
+            TestProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "goo");
             TestProperty((old, value) => old.WithCryptoPublicKey(value), opt => opt.CryptoPublicKey, ImmutableArray.Create<byte>(0, 1, 2, 3));
             TestProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
             TestProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
@@ -143,18 +143,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'ScriptClassName' value: 'null'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "null"));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("blah\0goo").VerifyErrors(
+                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0goo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("").VerifyErrors(
                 // error CS7088: Invalid 'ScriptClassName' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", ""));
 
             Assert.Equal(0, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName(null).Errors.Length);
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'MainTypeName' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("blah\0goo").VerifyErrors(
+                // error CS7088: Invalid 'MainTypeName' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0goo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("").VerifyErrors(
                 // error CS7088: Invalid 'MainTypeName' value: ''.
@@ -212,9 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'Usings' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new string[] { "blah\0foo" }).VerifyErrors(
-                // error CS7088: Invalid 'Usings' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new string[] { "blah\0goo" }).VerifyErrors(
+                // error CS7088: Invalid 'Usings' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0goo"));
         }
 
         [Fact]
@@ -288,24 +288,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'Usings' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { "blah\0foo" }).VerifyErrors(
-                // error CS7088: Invalid 'Usings' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { "blah\0goo" }).VerifyErrors(
+                // error CS7088: Invalid 'Usings' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0goo"));
 
             Assert.Equal("Script", new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: null).ScriptClassName);
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "blah\0goo").VerifyErrors(
+                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0goo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "").VerifyErrors(
                 // error CS7088: Invalid 'ScriptClassName' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", ""));
 
             Assert.Equal(0, new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: null).Errors.Length);
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'MainTypeName' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "blah\0goo").VerifyErrors(
+                // error CS7088: Invalid 'MainTypeName' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0goo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "").VerifyErrors(
                 // error CS7088: Invalid 'MainTypeName' value: ''.

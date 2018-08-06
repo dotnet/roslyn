@@ -4,10 +4,14 @@
     <id>Microsoft.CodeAnalysis.CSharp</id>
     <summary>
       .NET Compiler Platform ("Roslyn") support for C#, Microsoft.CodeAnalysis.CSharp.dll.
+    </summary>
+    <description>
+      .NET Compiler Platform ("Roslyn") support for C#, Microsoft.CodeAnalysis.CSharp.dll.
 
       More details at https://aka.ms/roslyn-packages
-    </summary>
-    <description>$commitPathMessage$</description>
+
+      $commitPathMessage$
+    </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
     </dependencies>
@@ -16,15 +20,21 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
-    <file src="Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.dll" target="lib\netstandard1.3" />
-    <file src="Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.xml" target="lib\netstandard1.3" />
+    <!-- Include PDB unless embedded into DLL -->
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp\Microsoft.CodeAnalysis.CSharp.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp\Microsoft.CodeAnalysis.CSharp.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp\Microsoft.CodeAnalysis.CSharp.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\Microsoft.CodeAnalysis.CSharp\**\Microsoft.CodeAnalysis.CSharp.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

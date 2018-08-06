@@ -46,7 +46,7 @@ End If</MethodBody>, "Else")
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SingleLineIfElseAfterInvocationTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then System.Console.Write("Foo") |</MethodBody>, "Else")
+            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then System.Console.Write("Goo") |</MethodBody>, "Else")
         End Function
 
         <Fact>
@@ -82,7 +82,7 @@ End If</MethodBody>, "Else")
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SingleLineIfElseAfterEraseTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Erase foo, quux |</MethodBody>, "Else")
+            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Erase goo, quux |</MethodBody>, "Else")
         End Function
 
         <Fact>
@@ -100,7 +100,7 @@ End If</MethodBody>, "Else")
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SingleLineIfElseAfterGoToTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then GoTo foo |</MethodBody>, "Else")
+            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then GoTo goo |</MethodBody>, "Else")
         End Function
 
         <Fact>
@@ -132,7 +132,7 @@ End If</MethodBody>, "Else")
         Public Async Function SingleLineIfElseAfterReturnExpressionInPropertyGetTest() As Task
             Await VerifyRecommendationsContainAsync(
                 <ClassDeclaration>
-                    ReadOnly Property Foo As Integer
+                    ReadOnly Property Goo As Integer
                         Get
                             If True Then Return |
                 </ClassDeclaration>, "Else")
@@ -141,8 +141,8 @@ End If</MethodBody>, "Else")
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SingleLineIfElseAfterReturnExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Foo as String 
-                If True Then Return foo |</ClassDeclaration>, "Else")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Goo as String 
+                If True Then Return goo |</ClassDeclaration>, "Else")
         End Function
 
         <Fact>
@@ -157,7 +157,7 @@ End If</MethodBody>, "Else")
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SingleLineIfElseAfterThrowExpressionTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Try
-            If True Then Throw foo |
+            If True Then Throw goo |
             Catch</MethodBody>, "Else")
         End Function
 
@@ -176,7 +176,7 @@ End If</MethodBody>, "Else")
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SingleLineIfElseAfterColonSeparatedStatementsTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Console.WriteLine("foo") : Console.WriteLine("bar")  |</MethodBody>, "Else")
+            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Console.WriteLine("goo") : Console.WriteLine("bar")  |</MethodBody>, "Else")
         End Function
 
         <Fact>

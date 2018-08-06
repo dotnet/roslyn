@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterFromTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Foo From |</ClassDeclaration>, "From")
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Goo From |</ClassDeclaration>, "From")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterWith2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Foo With |</ClassDeclaration>, "From")
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Goo With |</ClassDeclaration>, "From")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -170,11 +170,11 @@ Imports System.Linq
  
 Module Program
     Sub Main(args As String())
-        Dim y = New Foo() |
+        Dim y = New Goo() |
     End Sub
 End Module
  
-Class Foo
+Class Goo
 End Class
                        </File>
 
@@ -238,7 +238,7 @@ Public Class DerivedSupportsAdd
 End Class
 
 Class Program
-    Sub Foo()
+    Sub Goo()
         Dim x = New DerivedSupportsAdd |
     End Sub
 End Class
@@ -271,7 +271,7 @@ Public Class DerivedSupportsAdd
 End Class
 
 Class Program
-    Sub Foo()
+    Sub Goo()
         Dim x = New DerivedSupportsAdd |
     End Sub
 End Class
@@ -302,7 +302,7 @@ End Class
 Public Class DerivedSupportsAdd
     Inherits SupportsAdd
 
-    Sub Foo()
+    Sub Goo()
         Dim x = New DerivedSupportsAdd |
     End Sub
 End Class</File>

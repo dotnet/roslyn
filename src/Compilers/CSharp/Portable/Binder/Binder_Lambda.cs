@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
                     parameterSyntaxList = paren.ParameterList.Parameters;
-                    CheckParanthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
+                    CheckParenthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
                     isAsync = (paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
@@ -125,30 +125,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type = BindType(typeSyntax, diagnostics);
                         foreach (var modifier in p.Modifiers)
                         {
-                            SyntaxKind modifierKind = modifier.Kind();
-                            if (modifierKind == SyntaxKind.ThisKeyword)
+                            switch (modifier.Kind())
                             {
-                                Error(diagnostics, ErrorCode.ERR_ThisInBadContext, modifier);
-                                break;
-                            }
-                            else if (modifierKind == SyntaxKind.RefKeyword)
-                            {
-                                refKind = RefKind.Ref;
-                                allValue = false;
-                                break;
-                            }
-                            else if (modifierKind == SyntaxKind.OutKeyword)
-                            {
-                                refKind = RefKind.Out;
-                                allValue = false;
-                                break;
-                            }
-                            else if (modifierKind == SyntaxKind.ParamsKeyword)
-                            {
-                                // This was a parse error in the native compiler; 
-                                // it is a semantic analysis error in Roslyn. See comments to
-                                // changeset 1674 for details.
-                                Error(diagnostics, ErrorCode.ERR_IllegalParams, p);
+                                case SyntaxKind.RefKeyword:
+                                    refKind = RefKind.Ref;
+                                    allValue = false;
+                                    break;
+
+                                case SyntaxKind.OutKeyword:
+                                    refKind = RefKind.Out;
+                                    allValue = false;
+                                    break;
+
+                                case SyntaxKind.InKeyword:
+                                    refKind = RefKind.In;
+                                    allValue = false;
+                                    break;
+
+                                case SyntaxKind.ParamsKeyword:
+                                    // This was a parse error in the native compiler; 
+                                    // it is a semantic analysis error in Roslyn. See comments to
+                                    // changeset 1674 for details.
+                                    Error(diagnostics, ErrorCode.ERR_IllegalParams, p);
+                                    break;
+
+                                case SyntaxKind.ThisKeyword:
+                                    Error(diagnostics, ErrorCode.ERR_ThisInBadContext, modifier);
+                                    break;
                             }
                         }
                     }
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Tuple.Create(refKinds, types, names, isAsync);
         }
 
-        private void CheckParanthesizedLambdaParameters(
+        private void CheckParenthesizedLambdaParameters(
             SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, DiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)

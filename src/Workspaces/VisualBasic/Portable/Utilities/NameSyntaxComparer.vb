@@ -64,14 +64,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 If (value <> 0) Then
                     Return value
                 End If
-                ' Foo goes before Foo(of T)
+                ' Goo goes before Goo(of T)
                 Return -1
             ElseIf TypeOf x Is GenericNameSyntax AndAlso TypeOf y Is IdentifierNameSyntax Then
                 Dim value = _tokenComparer.Compare(x.GetFirstToken(), y.GetFirstToken())
                 If (value <> 0) Then
                     Return value
                 End If
-                ' Foo(of T) goes after Foo
+                ' Goo(of T) goes after Goo
                 Return 1
             End If
 

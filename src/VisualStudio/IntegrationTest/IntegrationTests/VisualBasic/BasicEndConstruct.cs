@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -18,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void EndConstruct()
         {
             SetUpEditor(@"
@@ -39,7 +40,7 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void IntelliSenseCompletedWhile()
         {
             SetUpEditor(@"
@@ -60,7 +61,7 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void InterfaceToClassFixup()
         {
             SetUpEditor(@"
@@ -74,12 +75,12 @@ Class C
 End Class");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void CaseInsensitveSubToFunction()
         {
             SetUpEditor(@"
 Class C
-    Public Sub$$ Foo()
+    Public Sub$$ Goo()
     End Sub
 End Class");
 
@@ -87,7 +88,7 @@ End Class");
             VisualStudio.Editor.SendKeys("fu", VirtualKey.Tab);
             VisualStudio.Editor.Verify.TextContains(@"
 Class C
-    Public Function Foo()
+    Public Function Goo()
     End Function
 End Class");
         }

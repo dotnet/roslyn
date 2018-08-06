@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(541500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541500")>
         <Fact()>
         Public Sub TestModuleNamespaceClassNesting()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="TestModuleNamespaceClassNesting">
     <file name="a.vb">
 Module
@@ -41,7 +41,7 @@ Module
 
         <Fact(), WorkItem(543532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543532")>
         Public Sub GetSymbolInfoForImplicitDeclaredControlVariable()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -83,7 +83,7 @@ End Module
 
         <Fact()>
         Public Sub GetSymbolInfoForVarianceConversion()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -123,7 +123,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub GetSymbolInfoForVarianceConversionWithStaticLocals()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -162,7 +162,7 @@ End Module
 
         <Fact(), WorkItem(542861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542861"), WorkItem(529673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529673")>
         Public Sub GetSymbolInfoForAccessorParameters()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -220,7 +220,7 @@ End Class
                            End Class
                        </code>.Value
             Dim tree = Parse(text)
-            Dim comp = CreateCompilationWithMscorlib({tree})
+            Dim comp = CreateCompilationWithMscorlib40({tree})
 
             Dim model1 = comp.GetSemanticModel(tree)
             Dim model2 = comp.GetSemanticModel(tree)
@@ -240,7 +240,7 @@ End Class
 
         <Fact()>
         Public Sub BindExpression()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Imports System   
@@ -287,7 +287,7 @@ End Module
 
         <Fact()>
         Public Sub BindExpressionWithErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Option Strict On
@@ -295,7 +295,7 @@ Imports System
 
 Class B
     Public f1 as Integer
-    Public Sub foo(x as Object)
+    Public Sub goo(x as Object)
     End Sub
 End Class
 
@@ -344,7 +344,7 @@ End Class
 
         <Fact()>
         Public Sub BindAsExpressionVsBindAsType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Option Strict On
@@ -383,7 +383,7 @@ End Class
 
         <Fact>
         Public Sub BindSpeculativeAttribute()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Option Strict On
@@ -397,7 +397,7 @@ Class C
     Class E
     End Class
 
-    Sub Foo(Of O)()
+    Sub Goo(Of O)()
     End Sub
 
     &lt;Serializable&gt; Private i As Integer
@@ -446,7 +446,7 @@ End Class    </file>
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
             Assert.Equal("Sub C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString())
 
-            Dim position3 = CompilationUtils.FindPositionFromText(tree, "Sub Foo")
+            Dim position3 = CompilationUtils.FindPositionFromText(tree, "Sub Goo")
             Dim attr6 = ParseAttributeSyntax("<O(""hello"")>")
             symbolInfo = semanticModel.GetSpeculativeSymbolInfo(position2, attr6)
             Assert.NotNull(symbolInfo.Symbol)
@@ -467,7 +467,7 @@ End Class    </file>
         <WorkItem(92898, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=92898")>
         <WorkItem(755801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755801")>
         Public Sub GetSpeculativeSymbolInfoForQualifiedNameInCref()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb"><![CDATA[
 Class C
@@ -516,7 +516,7 @@ End Class]]>
         <WorkItem(96477, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=96477")>
         <WorkItem(1015560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015560")>
         Public Sub GetSpeculativeSymbolInfoForGenericNameInCref()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb"><![CDATA[Imports System.Collections.Generic
 Module Program
@@ -564,7 +564,7 @@ End Module]]>
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForExpression_ConstantInfo()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Imports System   
@@ -625,7 +625,7 @@ End Class
         <Fact>
         <WorkItem(680657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/680657")>
         Public Sub TestGetSpeculativeSemanticModelInFieldInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -640,7 +640,7 @@ End Class
         <Fact>
         <WorkItem(680657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/680657")>
         Public Sub TestGetSpeculativeSemanticModelInPropertyInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -677,7 +677,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelInEnumMemberDecl()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Enum E
@@ -691,7 +691,7 @@ End Enum
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelInDefaultParameterValue()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -729,7 +729,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForStatement()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -791,7 +791,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForStatement_DeclaredLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -847,7 +847,7 @@ End Class
         <WorkItem(97599, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=97599")>
         <WorkItem(1019361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019361")>
         Public Sub TestGetSpeculativeSemanticModelForStatement_DeclaredLocal_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports N
@@ -908,7 +908,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForStatement_DeclaredLabel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -943,7 +943,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForStatement_GetDeclaredLambdaParameterSymbol()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -979,7 +979,7 @@ End Class
 
         <Fact, WorkItem(1084086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084086")>
         Public Sub TestGetSpeculativeSemanticModelForStatement_InEmptyMethodBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1013,7 +1013,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForRangeArgument_InField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
  Module Program
@@ -1050,7 +1050,7 @@ End Module
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForRangeArgument_InLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
  Module Program
@@ -1089,7 +1089,7 @@ End Module
 
         <Fact()>
         Public Sub TestArgumentsToGetSpeculativeSemanticModelAPI()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb"><![CDATA[
 Class C
@@ -1132,7 +1132,7 @@ End Class]]>
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelOnSpeculativeSemanticModel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb"><![CDATA[
 Class C
@@ -1180,7 +1180,7 @@ End Class]]>
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForAttribute()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Option Strict On
@@ -1194,7 +1194,7 @@ Class C
     Class E
     End Class
 
-    Sub Foo(Of O)()
+    Sub Goo(Of O)()
     End Sub
 
     &lt;Serializable&gt; Private i As Integer
@@ -1284,7 +1284,7 @@ End Class    </file>
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
             Assert.Equal("Sub C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString())
 
-            Dim position3 = CompilationUtils.FindPositionFromText(tree, "Sub Foo")
+            Dim position3 = CompilationUtils.FindPositionFromText(tree, "Sub Goo")
             Dim attr6 = ParseAttributeSyntax("<O(""hello"")>")
 
             success = parentModel.TryGetSpeculativeSemanticModel(position2, attr6, speculativeModel)
@@ -1347,7 +1347,7 @@ End Class    </file>
 
         <Fact()>
         Public Sub TestGetSymbolInfoOnSpeculativeModel()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1355,14 +1355,14 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Class A
-    Public Function Foo() As String
-        Return "Foo"
+    Public Function Goo() As String
+        Return "Goo"
     End Function
 End Class
 
 Module Program
     Public Sub Main(a As A)
-        Dim x = a.Foo()
+        Dim x = a.Goo()
     End Sub
 End Module
     ]]></file>
@@ -1370,9 +1370,9 @@ End Module
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
-            Dim position As Integer = CompilationUtils.FindPositionFromText(tree, "x = a.Foo()")
+            Dim position As Integer = CompilationUtils.FindPositionFromText(tree, "x = a.Goo()")
             Dim localDecl = tree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax)().Single()
-            Dim parsedInvocation = SyntaxFactory.ParseExpression("a.Foo()")
+            Dim parsedInvocation = SyntaxFactory.ParseExpression("a.Goo()")
             Dim newLocalDecl = DirectCast(localDecl.ReplaceNode(localDecl.Declarators(0).Initializer.Value, parsedInvocation), LocalDeclarationStatementSyntax)
             Dim newInitializer = DirectCast(newLocalDecl.Declarators(0).Initializer.Value, InvocationExpressionSyntax)
 
@@ -1384,12 +1384,12 @@ End Module
             Dim memberAccess = DirectCast(newInitializer.Expression, MemberAccessExpressionSyntax)
             Dim symbolInfo = speculativeModel.GetSymbolInfo(memberAccess.Name)
             Assert.NotNull(symbolInfo.Symbol)
-            Assert.Equal("Foo", symbolInfo.Symbol.Name)
+            Assert.Equal("Goo", symbolInfo.Symbol.Name)
         End Sub
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForMethodBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1456,7 +1456,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForPropertyAccessorBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1499,7 +1499,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForEventAccessorBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1548,7 +1548,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForMethodBody_DeclaredLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1627,7 +1627,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForMethodBody_DeclaredLabel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1663,7 +1663,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForMethodBody_GetDeclaredLambdaParameterSymbol()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1741,7 +1741,7 @@ End Class
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InGlobalImports()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports System.Runtime
@@ -1761,7 +1761,7 @@ Imports System.Runtime
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InGlobalAlias()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports A = System.Exception
@@ -1781,7 +1781,7 @@ Imports A = System.Exception
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InBaseList()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports N
@@ -1817,7 +1817,7 @@ End Namespace
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InMemberDeclaration()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class Program
@@ -1854,7 +1854,7 @@ End Class
         <WorkItem(120491, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=120491")>
         <WorkItem(745766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745766")>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InImplementsClauseForMember()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class Program
@@ -1906,7 +1906,7 @@ End Interface
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_AliasName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports A = System.ArgumentException
@@ -1939,7 +1939,7 @@ End Class
 
         <Fact, WorkItem(849360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849360")>
         Public Sub TestGetSpeculativeSemanticModelForLocalDeclaration_Incomplete_1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Module M
@@ -1947,7 +1947,7 @@ Module M
     Namespace A
         Class B
             Function S()
-                Dim c = Me.foo
+                Dim c = Me.goo
     </file>
 </compilation>)
 
@@ -1958,11 +1958,11 @@ Module M
             Dim typeBlockSyntax = DirectCast(namespaceBlock.Members(0), TypeBlockSyntax)
             Dim methodBlockSyntax = DirectCast(typeBlockSyntax.Members(0), MethodBlockSyntax)
             Dim statementSyntax = DirectCast(methodBlockSyntax.Statements(0), LocalDeclarationStatementSyntax)
-            Dim initializer = statementSyntax.DescendantNodes().Single(Function(n) n.ToString() = "Me.foo")
+            Dim initializer = statementSyntax.DescendantNodes().Single(Function(n) n.ToString() = "Me.goo")
             Dim position = statementSyntax.SpanStart
             Dim model = compilation.GetSemanticModel(tree)
 
-            Dim speculatedExpression = DirectCast(SyntaxFactory.ParseExpression("foo"), ExpressionSyntax)
+            Dim speculatedExpression = DirectCast(SyntaxFactory.ParseExpression("goo"), ExpressionSyntax)
             Dim speculatedStatement = statementSyntax.ReplaceNode(initializer, speculatedExpression)
 
             Dim speculativeModel As SemanticModel = Nothing
@@ -1973,7 +1973,7 @@ Module M
 
         <Fact, WorkItem(849360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849360")>
         Public Sub TestGetSpeculativeSemanticModelForLocalDeclaration_Incomplete_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Module M
@@ -1982,7 +1982,7 @@ Module M
         Namespace A
             Class B
                 Function S()
-                    Dim c = Me.foo
+                    Dim c = Me.goo
     </file>
 </compilation>)
 
@@ -1993,11 +1993,11 @@ Module M
             Dim typeBlockSyntax = DirectCast(namespaceBlock.Members(0), TypeBlockSyntax)
             Dim methodBlockSyntax = DirectCast(typeBlockSyntax.Members(0), MethodBlockSyntax)
             Dim statementSyntax = DirectCast(methodBlockSyntax.Statements(0), LocalDeclarationStatementSyntax)
-            Dim initializer = statementSyntax.DescendantNodes().Single(Function(n) n.ToString() = "Me.foo")
+            Dim initializer = statementSyntax.DescendantNodes().Single(Function(n) n.ToString() = "Me.goo")
             Dim position = statementSyntax.SpanStart
             Dim model = compilation.GetSemanticModel(tree)
 
-            Dim speculatedExpression = DirectCast(SyntaxFactory.ParseExpression("foo"), ExpressionSyntax)
+            Dim speculatedExpression = DirectCast(SyntaxFactory.ParseExpression("goo"), ExpressionSyntax)
             Dim speculatedStatement = statementSyntax.ReplaceNode(initializer, speculatedExpression)
 
             Dim speculativeModel As SemanticModel = Nothing
@@ -2033,7 +2033,7 @@ Module M
         ' public API to make sure we're mapping correctly to the external interface.
         <Fact()>
         Public Sub ClassifyConversion()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="ClassifyConversion">
     <file name="a.vb">
     Imports System
@@ -2090,6 +2090,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsIdentity)
+            Assert.True(compilation.HasImplicitConversion(listOfInt32_1, listOfInt32_2))
 
             ' Convert List(Of Integer) -> Integer : Should be no conversion
             conv = compilation.ClassifyConversion(listOfInt32_1, int32)
@@ -2097,6 +2098,7 @@ Module M
             Assert.False(conv.Exists)
             Assert.False(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
+            Assert.False(compilation.HasImplicitConversion(listOfInt32_1, int32))
 
             ' Convert String -> Integer: Should be narrowing string conversion
             conv = compilation.ClassifyConversion(str, int32)
@@ -2106,6 +2108,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsString)
             Assert.Equal("NarrowingString", conv.ToString())
+            Assert.False(compilation.HasImplicitConversion(str, int32))
 
             ' Convert Enum -> Integer: Should be  widening numeric conversion
             conv = compilation.ClassifyConversion(enumType, int32)
@@ -2115,6 +2118,7 @@ Module M
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsNumeric)
             Assert.Equal("WideningNumeric, InvolvesEnumTypeConversions", conv.ToString())
+            Assert.True(compilation.HasImplicitConversion(enumType, int32))
 
             ' Convert Enum -> String: Should be  narrowing string conversion
             conv = compilation.ClassifyConversion(enumType, str)
@@ -2123,6 +2127,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsString)
+            Assert.False(compilation.HasImplicitConversion(enumType, str))
 
             ' Convert Long -> Integer: Should be narrowing numeric conversion
             conv = compilation.ClassifyConversion(int64, int32)
@@ -2131,6 +2136,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsNumeric)
+            Assert.False(compilation.HasImplicitConversion(int64, int32))
 
             ' Convert Boolean -> Enum: Should be narrowing boolean conversion
             conv = compilation.ClassifyConversion(bool, enumType)
@@ -2140,6 +2146,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsBoolean)
             Assert.Equal("NarrowingBoolean, InvolvesEnumTypeConversions", conv.ToString())
+            Assert.False(compilation.HasImplicitConversion(bool, enumType))
 
             ' Convert List(Of Integer) -> Object: Should be widening reference conversion
             conv = compilation.ClassifyConversion(listOfInt32_1, objType)
@@ -2149,6 +2156,7 @@ Module M
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsReference)
             Assert.Equal("WideningReference", conv.ToString())
+            Assert.True(compilation.HasImplicitConversion(listOfInt32_1, objType))
 
             ' Convert Object -> List(Of Integer): Should be narrow reference conversion
             conv = compilation.ClassifyConversion(objType, listOfInt32_1)
@@ -2157,6 +2165,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsReference)
+            Assert.False(compilation.HasImplicitConversion(objType, listOfInt32_1))
 
             ' Convert AAA -> System.ICloneable: SHould be widening reference conversion
             conv = compilation.ClassifyConversion(classAAA, cloneableType)
@@ -2165,6 +2174,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsReference)
+            Assert.True(compilation.HasImplicitConversion(classAAA, cloneableType))
 
             ' Convert AAA() -> Object(): SHould be widening array conversion
             conv = compilation.ClassifyConversion(aaaArray, objArray)
@@ -2173,6 +2183,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsArray)
+            Assert.True(compilation.HasImplicitConversion(aaaArray, objArray))
 
             ' Convert Object() -> AAA(): SHould be narrowing array conversion
             conv = compilation.ClassifyConversion(objArray, aaaArray)
@@ -2182,6 +2193,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsArray)
             Assert.Equal("NarrowingArray", conv.ToString())
+            Assert.False(compilation.HasImplicitConversion(objArray, aaaArray))
 
             ' Convert Short -> Integer?: Should be widening nullable value type conversion
             conv = compilation.ClassifyConversion(int16, nullInt32)
@@ -2191,6 +2203,7 @@ Module M
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsNullableValueType)
             Assert.Equal("WideningNullable", conv.ToString())
+            Assert.True(compilation.HasImplicitConversion(int16, nullInt32))
 
             ' Convert Integer? -> Integer: Should be narrowing nullable value type conversion
             conv = compilation.ClassifyConversion(nullInt32, int32)
@@ -2199,6 +2212,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsNullableValueType)
+            Assert.False(compilation.HasImplicitConversion(nullInt32, int32))
 
             ' Convert T -> Object: Widening type parameter conversion
             conv = compilation.ClassifyConversion(typeParam, objType)
@@ -2207,6 +2221,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsTypeParameter)
+            Assert.True(compilation.HasImplicitConversion(typeParam, objType))
 
             ' Convert Object -> T : Narrowing type parameter conversion
             conv = compilation.ClassifyConversion(objType, typeParam)
@@ -2216,6 +2231,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsTypeParameter)
             Assert.Equal("NarrowingTypeParameter", conv.ToString())
+            Assert.False(compilation.HasImplicitConversion(objType, typeParam))
 
             ' Check equality, hash code.
             Dim conv2 = compilation.ClassifyConversion(objType, typeParam)
@@ -2240,7 +2256,7 @@ Module M
         ' public API to make sure we're mapping correctly to the external interface.
         <Fact()>
         Public Sub ClassifyConversionSemanticModel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="ClassifyConversionSemanticModel">
     <file name="a.vb">
     Imports System
@@ -2251,7 +2267,7 @@ Module M
     End Enum
 
     Class AAA
-        Public Sub Foo() 
+        Public Sub Goo() 
             anInt = 0
             anInt = 14
             anObj = Nothing
@@ -2369,7 +2385,7 @@ Module M
         <WorkItem(527766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527766")>
         <Fact()>
         Public Sub ClassifyConversionSemanticModel2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ClassifyConversionSemanticModel2">
     <file name="a.vb">
 Imports System
@@ -2497,7 +2513,7 @@ End Enum
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub ClassifyConversionSemanticModel2WithStaticLocals()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ClassifyConversionSemanticModel2">
     <file name="a.vb">
 Imports System
@@ -2624,7 +2640,7 @@ End Enum
         <WorkItem(541564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541564")>
         <Fact()>
         Public Sub ClassifyConversionForParameter()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ClassifyConversion">
     <file name="a.vb">
 Imports System
@@ -2684,7 +2700,7 @@ End Module
         <WorkItem(541577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541577")>
         <Fact()>
         Public Sub ClassifyConversionForPropAsBinaryOperand()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -2719,7 +2735,7 @@ End Module
 
         <Fact(), WorkItem(544251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544251")>
         Public Sub ClassifyConversionEnumExplicitOn()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -2756,7 +2772,7 @@ End Module
 
         <Fact(), WorkItem(544251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544251")>
         Public Sub ClassifyConversionEnumExplicitOff()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Explicit Off
@@ -2792,7 +2808,7 @@ End Module
 
         <Fact(), WorkItem(545101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545101")>
         Public Sub ClassifyConversionNarrowingNullableStrictOff()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -2847,11 +2863,11 @@ End Module
         <Fact()>
         Public Sub ClassifyConversionForArrayLiteral()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class Class1
-Sub Foo()
+Sub Goo()
 Dim a As Object = CType({1, 2, 3}, Integer())
 End Sub
 End Class
@@ -2886,52 +2902,59 @@ End Class
 
         <Fact()>
         Public Sub IsAccessible()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="IsAccessible">
     <file name="a.vb">
     Imports System
     Class A
         Public X As Integer 
         Protected Y As Integer
+        Private Protected Z As Integer
     End Class
     Class B
         Inherits A 
-        Sub Foo()
-            Console.WriteLine() ' in B.Foo
+        Sub Goo()
+            Console.WriteLine() ' in B.Goo
         End Sub
         ' in B class level
         Dim field as Integer
     End Class
     Class C
-        Sub Foo()
-            Console.WriteLine() ' in C.Foo
+        Sub Goo()
+            Console.WriteLine() ' in C.Goo
         End Sub
     End Class
     Namespace N  ' in N
     End Namespace
     </file>
-</compilation>)
+</compilation>,
+            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim positionInB As Integer = CompilationUtils.FindPositionFromText(tree, "in B class level")
-            Dim positionInBFoo As Integer = CompilationUtils.FindPositionFromText(tree, "in B.Foo")
-            Dim positionInCFoo As Integer = CompilationUtils.FindPositionFromText(tree, "in C.Foo")
+            Dim positionInBGoo As Integer = CompilationUtils.FindPositionFromText(tree, "in B.Goo")
+            Dim positionInCGoo As Integer = CompilationUtils.FindPositionFromText(tree, "in C.Goo")
             Dim positionInN As Integer = CompilationUtils.FindPositionFromText(tree, "in N")
 
             Dim globalNS = compilation.GlobalNamespace
             Dim classA = DirectCast(globalNS.GetMembers("A").Single(), NamedTypeSymbol)
             Dim fieldX = DirectCast(classA.GetMembers("X").Single(), FieldSymbol)
             Dim fieldY = DirectCast(classA.GetMembers("Y").Single(), FieldSymbol)
+            Dim fieldZ = DirectCast(classA.GetMembers("Z").Single(), FieldSymbol)
 
             Assert.True(semanticModel.IsAccessible(positionInN, fieldX))
             Assert.False(semanticModel.IsAccessible(positionInN, fieldY))
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldZ))
             Assert.True(semanticModel.IsAccessible(positionInB, fieldX))
             Assert.True(semanticModel.IsAccessible(positionInB, fieldY))
-            Assert.True(semanticModel.IsAccessible(positionInBFoo, fieldX))
-            Assert.True(semanticModel.IsAccessible(positionInBFoo, fieldY))
-            Assert.True(semanticModel.IsAccessible(positionInCFoo, fieldX))
-            Assert.False(semanticModel.IsAccessible(positionInCFoo, fieldY))
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldZ))
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldX))
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldY))
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldZ))
+            Assert.True(semanticModel.IsAccessible(positionInCGoo, fieldX))
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldY))
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldZ))
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
@@ -2939,7 +2962,7 @@ End Class
         <WorkItem(652109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652109")>
         <Fact()>
         Public Sub Bug652109()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="IsAccessible">
     <file name="a.vb">
         <![CDATA[
@@ -3055,7 +3078,7 @@ stem.Func`2[System.Int32,System.Int32]", z Function(d) d)
         <WorkItem(652026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652026")>
         <Fact()>
         Public Sub Bug652026()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="IsAccessible">
     <file name="a.vb">
         <![CDATA[
@@ -3524,179 +3547,179 @@ Val Sng As Single, ByVal C As Char, ByVal        Public Overloads Property olp14
         <WorkItem(652118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652118")>
         <Fact()>
         Public Sub Bug652118()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="IsAccessible">
     <file name="a.vb">
         <![CDATA[
-b "foo" (ByRef aa@,ByRef  aa@)                                
+b "goo" (ByRef aa@,ByRef  aa@)                                
 Declare Sub SUB29 Lio" (ByRef aa@,ByRef  aa&)                                
 Declare Sub SUB28 Lib "foyRef aa@,ByRef  aa!)                                
-Declare Sub SUB27 Lib "foo" (Baa@,ByRef  aa%)                                
-Declare Sub SUB26 Lib "foo" (ByRef yRef  aa$)                                
-Declare Sub SUB25 Lib "foo" (ByRef aa@,B           
+Declare Sub SUB27 Lib "goo" (Baa@,ByRef  aa%)                                
+Declare Sub SUB26 Lib "goo" (ByRef yRef  aa$)                                
+Declare Sub SUB25 Lib "goo" (ByRef aa@,B           
 ' currency with all datatypes aa&,ByRef  aa#)                                
-Declare Sub SUB24 Lib "foo" (ByRefByRef  aa@)                                
-Declare Sub SUB23 Lib "foo" (ByRef aa&,  aa&)                                    clare Sub SUB22 Lib "foo" (ByRef aa&,ByRef)                                     
-De Sub SUB21 Lib "foo" (ByRef aa&,ByRef  aa!                                 
-DeclareSUB20 Lib "foo" (ByRef aa&,ByRef  aa%)                                
-Declare Sub  Lib "foo" (ByRef aa&,ByRef  aa$)         long with all datatypes
+Declare Sub SUB24 Lib "goo" (ByRefByRef  aa@)                                
+Declare Sub SUB23 Lib "goo" (ByRef aa&,  aa&)                                    clare Sub SUB22 Lib "goo" (ByRef aa&,ByRef)                                     
+De Sub SUB21 Lib "goo" (ByRef aa&,ByRef  aa!                                 
+DeclareSUB20 Lib "goo" (ByRef aa&,ByRef  aa%)                                
+Declare Sub  Lib "goo" (ByRef aa&,ByRef  aa$)         long with all datatypes
 Declare Sub SUB19)                                     
-'  Sub SUB18 Lib "foo" (ByRef aa!,ByRef  aa#                                 
-DeclareSUB17 Lib "foo" (ByRef aa!,ByRef  aa@)                                
-Declare Sub  Lib "foo" (ByRef aa!,ByRef  aa&)                                
-Declare Sub SUB16"foo" (ByRef aa!,ByRef  aa!)                                
+'  Sub SUB18 Lib "goo" (ByRef aa!,ByRef  aa#                                 
+DeclareSUB17 Lib "goo" (ByRef aa!,ByRef  aa@)                                
+Declare Sub  Lib "goo" (ByRef aa!,ByRef  aa&)                                
+Declare Sub SUB16"goo" (ByRef aa!,ByRef  aa!)                                
 Declare Sub SUB15 Lib  (ByRef aa!,ByRef  aa%)                                
-Declare Sub SUB14 Lib "foo"ef aa!,ByRef  aa$)                        atatypes
-Declare Sub SUB13 Lib "foo" (ByR                     
+Declare Sub SUB14 Lib "goo"ef aa!,ByRef  aa$)                        atatypes
+Declare Sub SUB13 Lib "goo" (ByR                     
 ' single with all doo" (ByRef aa#,ByRef  aa#)                                
 Declare Sub SUB12 Lib "fByRef aa#,ByRef  aa@)                                
-Declare Sub SUB11 Lib "foo" (
+Declare Sub SUB11 Lib "goo" (
 a As String)
-        Declare Sub SUB46 LiB45 Lib "foo" (ByRef aa As Object, ByRef ape w/all datatypes
+        Declare Sub SUB46 LiB45 Lib "goo" (ByRef aa As Object, ByRef ape w/all datatypes
         Declare Sub SU                      
 
-' default datatynteger, ByRef aa As Object)               Single, ByRef aa As Decimal, ByRef aa As IAs String, ByRef aa As Short, ByRef aa As a As Object, ByRef aa As Double, ByRef aa       Declare Sub SUB44 Lib "foo" (ByRef a aa%, ByRef aa!, ByRef aa@, ByRef aa&)
-   aa As Object, ByRef aa#, ByRef aa$, ByRef        Declare Sub SUB43 Lib "foo" (ByRef                       
+' default datatynteger, ByRef aa As Object)               Single, ByRef aa As Decimal, ByRef aa As IAs String, ByRef aa As Short, ByRef aa As a As Object, ByRef aa As Double, ByRef aa       Declare Sub SUB44 Lib "goo" (ByRef a aa%, ByRef aa!, ByRef aa@, ByRef aa&)
+   aa As Object, ByRef aa#, ByRef aa$, ByRef        Declare Sub SUB43 Lib "goo" (ByRef                       
 ' all datatypes
-"foo" (ByRef aa$,ByRef  aa#)                                
+"goo" (ByRef aa$,ByRef  aa#)                                
 Declare Sub SUB42 Lib  (ByRef aa$,ByRef  aa@)                                
-Declare Sub SUB41 Lib "foo"ef aa$,ByRef  aa&)                                
-Declare Sub SUB40 Lib "foo" (ByR$,ByRef  aa!)                                
-Declare Sub SUB39 Lib "foo" (ByRef aaef  aa%)                                  Declare Sub SUB38 Lib "foo" (ByRef aa$,ByRa$)                                     
-re Sub SUB37 Lib "foo" (ByRef aa$,ByRef  a      
+Declare Sub SUB41 Lib "goo"ef aa$,ByRef  aa&)                                
+Declare Sub SUB40 Lib "goo" (ByR$,ByRef  aa!)                                
+Declare Sub SUB39 Lib "goo" (ByRef aaef  aa%)                                  Declare Sub SUB38 Lib "goo" (ByRef aa$,ByRa$)                                     
+re Sub SUB37 Lib "goo" (ByRef aa$,ByRef  a      
 ' string with all datatypes
 DeclaByRef  aa#)                                
-Declare Sub SUB36 Lib "foo" (ByRef aa%,  aa@)                                    clare Sub SUB35 Lib "foo" (ByRef aa%,ByRef)                                     
-De Sub SUB34 Lib "foo" (ByRef aa%,ByRef  aa&                                 
-DeclareSUB33 Lib "foo" (ByRef aa%,ByRef  aa!)                                
-Declare Sub  Lib "foo" (ByRef aa%,ByRef  aa%)                                
-Declare Sub SUB32"foo" (ByRef aa%,ByRef  aa$)              with all datatypes
+Declare Sub SUB36 Lib "goo" (ByRef aa%,  aa@)                                    clare Sub SUB35 Lib "goo" (ByRef aa%,ByRef)                                     
+De Sub SUB34 Lib "goo" (ByRef aa%,ByRef  aa&                                 
+DeclareSUB33 Lib "goo" (ByRef aa%,ByRef  aa!)                                
+Declare Sub  Lib "goo" (ByRef aa%,ByRef  aa%)                                
+Declare Sub SUB32"goo" (ByRef aa%,ByRef  aa$)              with all datatypes
 Declare Sub SUB31 Lib                               
-' integer 30 Lib "foo" (ByRef aa@,ByRef  aa#)                                
+' integer 30 Lib "goo" (ByRef aa@,ByRef  aa#)                                
 Declare Sub SUB
                                           oo" (ByRef aa!,ByRef  aa as Decimal)                      
 Declare Sub SUB61 Lib "fByRef  aa as integer)                      
-Declare Sub SUB60 Lib "foo" (ByRef aa!,ingle)                                     SUB59 Lib "foo" (ByRef aa!,ByRef  aa as s                             
+Declare Sub SUB60 Lib "goo" (ByRef aa!,ingle)                                     SUB59 Lib "goo" (ByRef aa!,ByRef  aa as s                             
 Declare Suboo" (ByRef aa!,ByRef  aa as short)                        
 Declare Sub SUB58 Lib "f,ByRef  aa as string)                     es
-Declare Sub SUB57 Lib "foo" (ByRef aa!               
+Declare Sub SUB57 Lib "goo" (ByRef aa!               
 ' single with all datatypByRef  aa as object)                      
-Declare Sub SUB50_2 Lib "foo" (ByRef aa#,ble)                                     
-UB56 Lib "foo" (ByRef aa#,ByRef  aa as dou                           
-Declare Sub S                                          foo" (ByRef aa#,ByRef  aa as Decimal)                      
+Declare Sub SUB50_2 Lib "goo" (ByRef aa#,ble)                                     
+UB56 Lib "goo" (ByRef aa#,ByRef  aa as dou                           
+Declare Sub S                                          goo" (ByRef aa#,ByRef  aa as Decimal)                      
 Declare Sub SUB55 Lib ",ByRef  aa as integer)                      
-Declare Sub SUB54 Lib "foo" (ByRef aa#single)                                   b SUB53 Lib "foo" (ByRef aa#,ByRef  aa as                               
+Declare Sub SUB54 Lib "goo" (ByRef aa#single)                                   b SUB53 Lib "goo" (ByRef aa#,ByRef  aa as                               
 Declare Sufoo" (ByRef aa#,ByRef  aa as short)                        
 Declare Sub SUB52 Lib "#,ByRef  aa as string)                    pes
-Declare Sub SUB51 Lib "foo" (ByRef aaef aa As Object)
-' double with all datatySUB50_1 Lib "foo" (ByRef aa As Object, ByR ByRef aa As Double)
-        Declare Sub e Sub SUB50 Lib "foo" (ByRef aa As Object,                          
-        DeclarAs Object, ByRef aa As Decimal)               Declare Sub SUB49 Lib "foo" (ByRef aa f aa As Object, ByRef aa As Integer)
+Declare Sub SUB51 Lib "goo" (ByRef aaef aa As Object)
+' double with all datatySUB50_1 Lib "goo" (ByRef aa As Object, ByR ByRef aa As Double)
+        Declare Sub e Sub SUB50 Lib "goo" (ByRef aa As Object,                          
+        DeclarAs Object, ByRef aa As Decimal)               Declare Sub SUB49 Lib "goo" (ByRef aa f aa As Object, ByRef aa As Integer)
     
-        Declare Sub SUB48 Lib "foo" (ByRe (ByRef aa As Object, ByRef aa As Single)
+        Declare Sub SUB48 Lib "goo" (ByRe (ByRef aa As Object, ByRef aa As Single)
 hort)
-        Declare Sub SUB47 Lib "foo"b "foo" (ByRef aa As Object, ByRef aa As S
+        Declare Sub SUB47 Lib "goo"b "goo" (ByRef aa As Object, ByRef aa As S
             
-' integer with all datatypesef  aa as object)                         clare Sub SUB50_5 Lib "foo" (ByRef aa@,ByR)                                     
-De4 Lib "foo" (ByRef aa@,ByRef  aa as double                        
+' integer with all datatypesef  aa as object)                         clare Sub SUB50_5 Lib "goo" (ByRef aa@,ByR)                                     
+De4 Lib "goo" (ByRef aa@,ByRef  aa as double                        
 Declare Sub SUB7                                          " (ByRef aa@,ByRef  aa as Decimal)                      
-Declare Sub SUB73 Lib "fooRef  aa as integer)                       
-Declare Sub SUB72 Lib "foo" (ByRef aa@,Bygle)                                     
-UB71 Lib "foo" (ByRef aa@,ByRef  aa as sin                           
+Declare Sub SUB73 Lib "gooRef  aa as integer)                       
+Declare Sub SUB72 Lib "goo" (ByRef aa@,Bygle)                                     
+UB71 Lib "goo" (ByRef aa@,ByRef  aa as sin                           
 Declare Sub S" (ByRef aa@,ByRef  aa as short)                        
-Declare Sub SUB70 Lib "fooyRef  aa as string)                       
-Declare Sub SUB69 Lib "foo" (ByRef aa@,B           
-' currency with all datatypesf  aa as object)                          lare Sub SUB50_4 Lib "foo" (ByRef aa&,ByRe                                     
-Dec Lib "foo" (ByRef aa&,ByRef  aa as double)                       
+Declare Sub SUB70 Lib "gooyRef  aa as string)                       
+Declare Sub SUB69 Lib "goo" (ByRef aa@,B           
+' currency with all datatypesf  aa as object)                          lare Sub SUB50_4 Lib "goo" (ByRef aa&,ByRe                                     
+Dec Lib "goo" (ByRef aa&,ByRef  aa as double)                       
 Declare Sub SUB68                                           (ByRef aa&,ByRef  aa as Decimal)                      
-Declare Sub SUB67 Lib "foo"ef  aa as integer)                        Declare Sub SUB66 Lib "foo" (ByRef aa&,ByRle)                                     
-B65 Lib "foo" (ByRef aa&,ByRef  aa as sing                          
+Declare Sub SUB67 Lib "goo"ef  aa as integer)                        Declare Sub SUB66 Lib "goo" (ByRef aa&,ByRle)                                     
+B65 Lib "goo" (ByRef aa&,ByRef  aa as sing                          
 Declare Sub SU (ByRef aa&,ByRef  aa as short)                        
-Declare Sub SUB64 Lib "foo"Ref  aa as string)                        
-Declare Sub SUB63 Lib "foo" (ByRef aa&,By              
+Declare Sub SUB64 Lib "goo"Ref  aa as string)                        
+Declare Sub SUB63 Lib "goo" (ByRef aa&,By              
 ' long with all datatypes
-yRef  aa as object)                       Declare Sub SUB50_3 Lib "foo" (ByRef aa!,Ble)                                     
-B62 Lib "foo" (ByRef aa!,ByRef  aa as doub                          
+yRef  aa as object)                       Declare Sub SUB50_3 Lib "goo" (ByRef aa!,Ble)                                     
+B62 Lib "goo" (ByRef aa!,ByRef  aa as doub                          
 Declare Sub SU
      
-Declare Sub SUB89 Lib "foo" (ByRef  as short)                                88 Lib "foo" (ByRef aa as double,ByRef  aa                         
+Declare Sub SUB89 Lib "goo" (ByRef  as short)                                88 Lib "goo" (ByRef aa as double,ByRef  aa                         
 Declare Sub SUBas double,ByRef  aa as string)            es
-Declare Sub SUB87 Lib "foo" (ByRef aa            
+Declare Sub SUB87 Lib "goo" (ByRef aa            
 
 
-' double with all datatypf  aa as object)                          lare Sub SUB50_7 Lib "foo" (ByRef aa$,ByRe                                     
-Dec Lib "foo" (ByRef aa$,ByRef  aa as double)                       
+' double with all datatypf  aa as object)                          lare Sub SUB50_7 Lib "goo" (ByRef aa$,ByRe                                     
+Dec Lib "goo" (ByRef aa$,ByRef  aa as double)                       
 Declare Sub SUB86                                           (ByRef aa$,ByRef  aa as Decimal)                      
-Declare Sub SUB85 Lib "foo"ef  aa as integer)                        Declare Sub SUB84 Lib "foo" (ByRef aa$,ByRle)                                     
-B83 Lib "foo" (ByRef aa$,ByRef  aa as sing                          
+Declare Sub SUB85 Lib "goo"ef  aa as integer)                        Declare Sub SUB84 Lib "goo" (ByRef aa$,ByRle)                                     
+B83 Lib "goo" (ByRef aa$,ByRef  aa as sing                          
 Declare Sub SU (ByRef aa$,ByRef  aa as short)                        
-Declare Sub SUB82 Lib "foo"Ref  aa as string)                        
-Declare Sub SUB81 Lib "foo" (ByRef aa$,By            
+Declare Sub SUB82 Lib "goo"Ref  aa as string)                        
+Declare Sub SUB81 Lib "goo" (ByRef aa$,By            
 ' string with all datatypes
-ef  aa as object)                         clare Sub SUB50_6 Lib "foo" (ByRef aa%,ByR)                                     
-De0 Lib "foo" (ByRef aa%,ByRef  aa as double                        
+ef  aa as object)                         clare Sub SUB50_6 Lib "goo" (ByRef aa%,ByR)                                     
+De0 Lib "goo" (ByRef aa%,ByRef  aa as double                        
 Declare Sub SUB8                                          " (ByRef aa%,ByRef  aa as Decimal)                      
-Declare Sub SUB79 Lib "fooRef  aa as integer)                       
-Declare Sub SUB78 Lib "foo" (ByRef aa%,Bygle)                                     
-UB77 Lib "foo" (ByRef aa%,ByRef  aa as sin                           
+Declare Sub SUB79 Lib "gooRef  aa as integer)                       
+Declare Sub SUB78 Lib "goo" (ByRef aa%,Bygle)                                     
+UB77 Lib "goo" (ByRef aa%,ByRef  aa as sin                           
 Declare Sub S" (ByRef aa%,ByRef  aa as short)                        
-Declare Sub SUB76 Lib "fooyRef  aa as string)                       
-Declare Sub SUB75 Lib "foo" (ByRef aa%,B
+Declare Sub SUB76 Lib "gooyRef  aa as string)                       
+Declare Sub SUB75 Lib "goo" (ByRef aa%,B
                           
 Declare Sub SU                                           aa as integer,ByRef  aa as Decimal)           
-Declare Sub SUB103 Lib "foo" (ByRefs integer)                                Lib "foo" (ByRef aa as integer,ByRef  aa a                     
-Declare Sub SUB102 teger,ByRef  aa as single)                clare Sub SUB101 Lib "foo" (ByRef aa as in)                                     
+Declare Sub SUB103 Lib "goo" (ByRefs integer)                                Lib "goo" (ByRef aa as integer,ByRef  aa a                     
+Declare Sub SUB102 teger,ByRef  aa as single)                clare Sub SUB101 Lib "goo" (ByRef aa as in)                                     
 Deo" (ByRef aa as integer,ByRef  aa as short              
-Declare Sub SUB100 Lib "foyRef  aa as string)                       Sub SUB99 Lib "foo" (ByRef aa as integer,B     
+Declare Sub SUB100 Lib "foyRef  aa as string)                       Sub SUB99 Lib "goo" (ByRef aa as integer,B     
 ' long with all datatypes
-Declare as double)                                8 Lib "foo" (ByRef aa as single,ByRef  aa                         
+Declare as double)                                8 Lib "goo" (ByRef aa as single,ByRef  aa                         
 Declare Sub SUB9                                          aa as single,ByRef  aa as Decimal)             
-Declare Sub SUB97 Lib "foo" (ByRef s integer)                                 Lib "foo" (ByRef aa as single,ByRef  aa a                       
+Declare Sub SUB97 Lib "goo" (ByRef s integer)                                 Lib "goo" (ByRef aa as single,ByRef  aa a                       
 Declare Sub SUB96 single,ByRef  aa as single)              
-Declare Sub SUB95 Lib "foo" (ByRef aa ashort)                                     b "foo" (ByRef aa as single,ByRef  aa as s                    
-Declare Sub SUB94 Lingle,ByRef  aa as string)                 eclare Sub SUB93 Lib "foo" (ByRef aa as si          
+Declare Sub SUB95 Lib "goo" (ByRef aa ashort)                                     b "goo" (ByRef aa as single,ByRef  aa as s                    
+Declare Sub SUB94 Lingle,ByRef  aa as string)                 eclare Sub SUB93 Lib "goo" (ByRef aa as si          
 ' single with all datatypes
-D  aa as double)                            SUB92 Lib "foo" (ByRef aa as double,ByRef                             
+D  aa as double)                            SUB92 Lib "goo" (ByRef aa as double,ByRef                             
 Declare Sub                                          yRef aa as double,ByRef  aa as Decimal)             
-Declare Sub SUB91 Lib "foo" (B aa as integer)                           SUB90 Lib "foo" (ByRef aa as double,ByRef                             
+Declare Sub SUB91 Lib "goo" (B aa as integer)                           SUB90 Lib "goo" (ByRef aa as double,ByRef                             
 Declare Sub aa as double,ByRef  aa as single)         
 with all datatypes
 Declare Sub SUB117 Lib                               
 ' string Ref aa as short,ByRef  aa as double)              
-Declare Sub SUB116 Lib "foo" (By                                          ef  aa as Decimal)                        ub SUB115 Lib "foo" (ByRef aa as short,ByR                               
+Declare Sub SUB116 Lib "goo" (By                                          ef  aa as Decimal)                        ub SUB115 Lib "goo" (ByRef aa as short,ByR                               
 Declare Sef aa as short,ByRef  aa as integer)             
-Declare Sub SUB114 Lib "foo" (ByRa as single)                              B113 Lib "foo" (ByRef aa as short,ByRef  a                          
+Declare Sub SUB114 Lib "goo" (ByRa as single)                              B113 Lib "goo" (ByRef aa as short,ByRef  a                          
 Declare Sub SUaa as short,ByRef  aa as short)               
-Declare Sub SUB112 Lib "foo" (ByRef s string)                                 1 Lib "foo" (ByRef aa as short,ByRef  aa aeger with all datatypes
+Declare Sub SUB112 Lib "goo" (ByRef s string)                                 1 Lib "goo" (ByRef aa as short,ByRef  aa aeger with all datatypes
 Declare Sub SUB11                                   
 ' intle)                                       oo" (ByRef aa as Decimal,ByRef  aa as doub               
-Declare Sub SUB110 Lib "f                                          mal,ByRef  aa as Decimal)                 are Sub SUB109 Lib "foo" (ByRef aa as Deci                                    
+Declare Sub SUB110 Lib "f                                          mal,ByRef  aa as Decimal)                 are Sub SUB109 Lib "goo" (ByRef aa as Deci                                    
 Declger)                                      oo" (ByRef aa as Decimal,ByRef  aa as inte               
-Declare Sub SUB108 Lib "f                                          imal,ByRef  aa as single)                 lare Sub SUB107 Lib "foo" (ByRef aa as Dec                                     
-Dechort)                                      "foo" (ByRef aa as Decimal,ByRef  aa as s                  
-Declare Sub SUB106 Lib                                          Decimal,ByRef  aa as string)              Declare Sub SUB105 Lib "foo" (ByRef aa as          
+Declare Sub SUB108 Lib "f                                          imal,ByRef  aa as single)                 lare Sub SUB107 Lib "goo" (ByRef aa as Dec                                     
+Dechort)                                      "goo" (ByRef aa as Decimal,ByRef  aa as s                  
+Declare Sub SUB106 Lib                                          Decimal,ByRef  aa as string)              Declare Sub SUB105 Lib "goo" (ByRef aa as          
 ' currency with all datatypes
- aa as double)                            B104 Lib "foo" (ByRef aa as integer,ByRef 
+ aa as double)                            B104 Lib "goo" (ByRef aa as integer,ByRef 
               
 End Namespace                                                                     
                     
 
-    End Module    eger, ByRef aa As Object)                 ngle, ByRef aa As Decimal, ByRef aa As Int String, ByRef aa As Short, ByRef aa As SiAs Object, ByRef aa As Double, ByRef aa As   Declare Sub SUB139 Lib "foo" (ByRef aa                               
+    End Module    eger, ByRef aa As Object)                 ngle, ByRef aa As Decimal, ByRef aa As Int String, ByRef aa As Short, ByRef aa As SiAs Object, ByRef aa As Double, ByRef aa As   Declare Sub SUB139 Lib "goo" (ByRef aa                               
  
 
      f aa as object,ByRef  aa as double)             
-Declare Sub SUB128 Lib "foo" (ByRe                                            aa as Decimal)                          SUB127 Lib "foo" (ByRef aa as object,ByRef                            
+Declare Sub SUB128 Lib "goo" (ByRe                                            aa as Decimal)                          SUB127 Lib "goo" (ByRef aa as object,ByRef                            
 Declare Sub a as object,ByRef  aa as integer)            
-Declare Sub SUB126 Lib "foo" (ByRef a single)                                  Lib "foo" (ByRef aa as object,ByRef  aa as                     
-Declare Sub SUB125 object,ByRef  aa as short)                Declare Sub SUB124 Lib "foo" (ByRef aa as ng)                                     
-foo" (ByRef aa as object,ByRef  aa as strith all datatypes
+Declare Sub SUB126 Lib "goo" (ByRef a single)                                  Lib "goo" (ByRef aa as object,ByRef  aa as                     
+Declare Sub SUB125 object,ByRef  aa as short)                Declare Sub SUB124 Lib "goo" (ByRef aa as ng)                                     
+goo" (ByRef aa as object,ByRef  aa as strith all datatypes
 Declare Sub SUB123 Lib "                                
 ' ANY wiRef aa as string,ByRef  aa as double)             
-Declare Sub SUB122 Lib "foo" (By                                          ef  aa as Decimal)                        b SUB121 Lib "foo" (ByRef aa as string,ByR                              
+Declare Sub SUB122 Lib "goo" (By                                          ef  aa as Decimal)                        b SUB121 Lib "goo" (ByRef aa as string,ByR                              
 Declare Su aa as string,ByRef  aa as integer)            
-Declare Sub SUB120 Lib "foo" (ByRefas single)                                9 Lib "foo" (ByRef aa as string,ByRef  aa                        
+Declare Sub SUB120 Lib "goo" (ByRefas single)                                9 Lib "goo" (ByRef aa as string,ByRef  aa                        
 Declare Sub SUB11s string,ByRef  aa as short)              
-Declare Sub SUB118 Lib "foo" (ByRef aa aring)                                      "foo" (ByRef aa as string,ByRef  aa as st
+Declare Sub SUB118 Lib "goo" (ByRef aa aring)                                      "goo" (ByRef aa as string,ByRef  aa as st
 ]]></file>
 </compilation>)
 
@@ -3710,7 +3733,7 @@ Declare Sub SUB118 Lib "foo" (ByRef aa aring)                                   
 
         <Fact>
         Public Sub Codecoverage_Additions()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Coverage">
     <file name="a.vb">
     Public Module M
@@ -3735,7 +3758,7 @@ End Module
             Assert.Equal(0, typeSymbolList.Count)
             Assert.Equal(GetType(TypeSymbol).MakeArrayType().FullName, typeSymbolList.GetType.ToString)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Coverage">
     <file name="a.vb">
 Public Module M
@@ -3744,16 +3767,16 @@ Public Module M
         End Select
     End Sub
 
-    Sub Foo1(Of t)(x As t)
+    Sub Goo1(Of t)(x As t)
     End Sub
 
-    Sub Foo2(Of t)(x As t)
+    Sub Goo2(Of t)(x As t)
     End Sub
 
-    Sub Foo3(Of t As New)(x As t)
+    Sub Goo3(Of t As New)(x As t)
     End Sub
 
-    Sub Foo4(Of t As New)(x As t)
+    Sub Goo4(Of t As New)(x As t)
     End Sub
 
     Function A(Of t)() As Integer
@@ -3764,16 +3787,16 @@ Public Module M
 End Module
 
 Class C1 
-    Sub Foo1(Of t)(x As t)
+    Sub Goo1(Of t)(x As t)
     End Sub
 
-    Sub Foo2(Of t)(x As t)
+    Sub Goo2(Of t)(x As t)
     End Sub
 
-    Sub Foo3(Of t As New)(x As t)
+    Sub Goo3(Of t As New)(x As t)
     End Sub
 
-    Sub Foo4(Of t As Structure)(x As t)
+    Sub Goo4(Of t As Structure)(x As t)
     End Sub
 
     Function A(Of t)() As t
@@ -3784,10 +3807,10 @@ Class C1
 End Class
 
 Class C2
-    Sub Foo1(Of t)(x As t)
+    Sub Goo1(Of t)(x As t)
     End Sub
 
-    Sub Foo3(Of t As New)(x As t)
+    Sub Goo3(Of t As New)(x As t)
     End Sub
 
     Function A(Of t)() As Integer
@@ -3814,26 +3837,26 @@ End Class
             Symbol.HaveSameSignatureAndConstraintsAndReturnType(methodMember1, methodMember2)
 
             Dim globalNS = compilation.GlobalNamespace
-            methodMember1 = CType(DirectCast(globalNS.GetMembers("M").Single(), NamedTypeSymbol).GetMember("Foo1"), MethodSymbol)
-            methodMember2 = CType(DirectCast(globalNS.GetMembers("M").Single(), NamedTypeSymbol).GetMember("Foo2"), MethodSymbol)
-            methodMember3 = CType(DirectCast(globalNS.GetMembers("C1").Single(), NamedTypeSymbol).GetMember("Foo1"), MethodSymbol)
+            methodMember1 = CType(DirectCast(globalNS.GetMembers("M").Single(), NamedTypeSymbol).GetMember("Goo1"), MethodSymbol)
+            methodMember2 = CType(DirectCast(globalNS.GetMembers("M").Single(), NamedTypeSymbol).GetMember("Goo2"), MethodSymbol)
+            methodMember3 = CType(DirectCast(globalNS.GetMembers("C1").Single(), NamedTypeSymbol).GetMember("Goo1"), MethodSymbol)
             Assert.False(Symbol.HaveSameSignature(methodMember1, methodMember2))
             Assert.True(Symbol.HaveSameSignature(methodMember1, methodMember1))
             Assert.True(Symbol.HaveSameSignature(methodMember1, methodMember3))
-            Assert.True(Symbol.HaveSameSignature(CType(DirectCast(globalNS.GetMembers("C2").Single(), NamedTypeSymbol).GetMember("Foo1"), MethodSymbol), methodMember3))
+            Assert.True(Symbol.HaveSameSignature(CType(DirectCast(globalNS.GetMembers("C2").Single(), NamedTypeSymbol).GetMember("Goo1"), MethodSymbol), methodMember3))
 
-            methodMember2 = CType(DirectCast(globalNS.GetMembers("C1").Single(), NamedTypeSymbol).GetMember("Foo3"), MethodSymbol)
-            methodMember3 = CType(DirectCast(globalNS.GetMembers("C2").Single(), NamedTypeSymbol).GetMember("Foo3"), MethodSymbol)
+            methodMember2 = CType(DirectCast(globalNS.GetMembers("C1").Single(), NamedTypeSymbol).GetMember("Goo3"), MethodSymbol)
+            methodMember3 = CType(DirectCast(globalNS.GetMembers("C2").Single(), NamedTypeSymbol).GetMember("Goo3"), MethodSymbol)
             Assert.False(Symbol.HaveSameSignatureAndConstraintsAndReturnType(methodMember1, methodMember2))
             Assert.True(Symbol.HaveSameSignatureAndConstraintsAndReturnType(methodMember2, methodMember2))
             Assert.True(Symbol.HaveSameSignatureAndConstraintsAndReturnType(methodMember2, methodMember3))
 
-            methodMember1 = CType(DirectCast(globalNS.GetMembers("C1").Single(), NamedTypeSymbol).GetMember("Foo3"), MethodSymbol)
-            methodMember2 = CType(DirectCast(globalNS.GetMembers("C2").Single(), NamedTypeSymbol).GetMember("Foo3"), MethodSymbol)
+            methodMember1 = CType(DirectCast(globalNS.GetMembers("C1").Single(), NamedTypeSymbol).GetMember("Goo3"), MethodSymbol)
+            methodMember2 = CType(DirectCast(globalNS.GetMembers("C2").Single(), NamedTypeSymbol).GetMember("Goo3"), MethodSymbol)
             Assert.True(Symbol.HaveSameSignatureAndConstraintsAndReturnType(methodMember1, methodMember2))
 
-            methodMember1 = CType(DirectCast(globalNS.GetMembers("M").Single(), NamedTypeSymbol).GetMember("Foo4"), MethodSymbol)
-            methodMember3 = CType(DirectCast(globalNS.GetMembers("C1").Single(), NamedTypeSymbol).GetMember("Foo4"), MethodSymbol)
+            methodMember1 = CType(DirectCast(globalNS.GetMembers("M").Single(), NamedTypeSymbol).GetMember("Goo4"), MethodSymbol)
+            methodMember3 = CType(DirectCast(globalNS.GetMembers("C1").Single(), NamedTypeSymbol).GetMember("Goo4"), MethodSymbol)
             Assert.False(Symbol.HaveSameSignatureAndConstraintsAndReturnType(methodMember1, methodMember3))
 
             methodMember1 = CType(DirectCast(globalNS.GetMembers("M").Single(), NamedTypeSymbol).GetMember("A"), MethodSymbol)
@@ -3862,7 +3885,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose))
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose))
             comp.AssertTheseDiagnostics(<expected><![CDATA[
 BC42306: XML comment tag 'param' is not permitted on a 'variable' language element.
     ''' <param name='X'/>
@@ -3888,7 +3911,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
 
         <Fact()>
         Public Sub ExpressionInQueryInXml()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation name="xmlAndQueries">
                     <file name="sam.vb"><![CDATA[
                         Class C
@@ -3900,7 +3923,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
     End Function
                            End Class
                     ]]></file>
-                </compilation>, additionalRefs:=XmlReferences)
+                </compilation>, references:=XmlReferences)
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "sam.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
@@ -3914,7 +3937,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
 
         <Fact()>
         Public Sub PropertyReturnValueVariable()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation name="xmlAndQueries">
                     <file name="sam.vb"><![CDATA[
 Imports System
@@ -3935,7 +3958,7 @@ Class Program
     End Property
 End Class
                     ]]></file>
-                </compilation>, additionalRefs:=XmlReferences)
+                </compilation>, references:=XmlReferences)
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "sam.vb").Single()
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -3994,7 +4017,7 @@ End Class
                     ]]></file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndReferences(source, {SystemCoreRef})
+            Dim comp = CreateCompilationWithMscorlib40AndReferences(source, {SystemCoreRef})
             comp.VerifyDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -4018,7 +4041,7 @@ End Class
 
         <Fact>
         Public Sub Test_SemanticLanguage_VB()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
             Imports System
@@ -4036,7 +4059,7 @@ End Class
 
         <Fact>
         Public Sub DiagnosticsInStages()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
             Class Test
@@ -4075,7 +4098,7 @@ End Class
                             ]]></file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithoutReferences(source)
+            Dim compilation = CreateEmptyCompilation(source)
             Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
 
             ' Ensuring that this doesn't throw
@@ -4096,7 +4119,7 @@ End Class
                             ]]></file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithoutReferences(source)
+            Dim compilation = CreateEmptyCompilation(source)
             Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
 
             ' Ensuring that this doesn't throw
@@ -4127,12 +4150,12 @@ BC30002: Type 'A' is not defined.
                             ~
 </expected>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
             Dim errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4147,12 +4170,12 @@ BC30002: Type 'A' is not defined.
               End Class
                             ]]></file>
                                              </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4170,12 +4193,12 @@ BC30002: Type 'A' is not defined.
                             ]]></file>
                                       </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4183,7 +4206,7 @@ BC30002: Type 'A' is not defined.
             'Global namespace as part of namespace specified but no match on root namespace
             Dim sourceWithGlobalAsStartOfNamespace = <compilation>
                                                          <file name="a.vb"><![CDATA[
-            Namespace Global.Foo
+            Namespace Global.Goo
               Class C
                 Sub S()
                   Dim _A As A   ' error BC30002: Type 'A' is not defined.
@@ -4194,12 +4217,12 @@ BC30002: Type 'A' is not defined.
                             ]]></file>
                                                      </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4207,7 +4230,7 @@ BC30002: Type 'A' is not defined.
             'namespace starting with a string Global but not specifically Global.
             Dim sourceWithANameStartingGlobal = <compilation>
                                                     <file name="a.vb"><![CDATA[
-            Namespace GlobalFoo
+            Namespace GlobalGoo
               Class C
                 Sub S()
                   Dim _A As A   ' error BC30002: Type 'A' is not defined.
@@ -4217,12 +4240,12 @@ BC30002: Type 'A' is not defined.
             End Namespace
                             ]]></file>
                                                 </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4261,12 +4284,12 @@ BC30002: Type 'A' is not defined.
                   Dim _A As A   ' error BC30002: Type 'A' is not defined.
                             ~
 </Expected>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
@@ -4293,12 +4316,12 @@ BC30002: Type 'A' is not defined.
             End Namespace
                             ]]></file>
                                                  </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
@@ -4306,7 +4329,7 @@ BC30002: Type 'A' is not defined.
             'Namespace starting Global.xxxx with xxxx matching the rootnamespace
             Dim sourceWithGlobalCombinedNamespace = <compilation>
                                                         <file name="a.vb"><![CDATA[
-            Namespace Global.Foo
+            Namespace Global.Goo
             Class C
                 Sub S()
                   Dim _A As A   ' error BC30002: Type 'A' is not defined.
@@ -4325,12 +4348,12 @@ BC30002: Type 'A' is not defined.
             End Namespace
                             ]]></file>
                                                     </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("Foo"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("Goo"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
@@ -4338,7 +4361,7 @@ BC30002: Type 'A' is not defined.
 
         <Fact>
         Public Sub PartialMethodImplementationDiagnostics()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Partial Class MyPartialClass
@@ -4370,7 +4393,7 @@ End Class
 
         <Fact, WorkItem(1146124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1146124")>
         Public Sub GetTypeInfoForXmlStringInCref()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GetSemanticInfo">
     <file name="a.vb"><![CDATA[
 Module Program
@@ -4396,7 +4419,7 @@ End Module
         <WorkItem(1104539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1104539")>
         <Fact()>
         Public Sub GetDiagnosticsWithRootNamespace()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -4447,7 +4470,7 @@ BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protec
 
         <Fact, WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
         Public Sub ConstantValueOfInterpolatedString()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GetSemanticInfo">
     <file name="a.vb"><![CDATA[
 Module Program

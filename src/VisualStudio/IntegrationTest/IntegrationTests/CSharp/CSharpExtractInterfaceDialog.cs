@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void VerifyCancellation()
         {
             SetUpEditor(@"class C$$
@@ -45,7 +46,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckFileName()
         {
             SetUpEditor(@"class C$$
@@ -67,7 +68,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.VerifyClosed();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void VerifySelectAndDeselectAllButtons()
         {
             SetUpEditor(@"class C$$
@@ -105,7 +106,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.VerifyClosed();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void OnlySelectedItemsAreGenerated()
         {
             SetUpEditor(@"class C$$

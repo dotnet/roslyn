@@ -197,7 +197,7 @@ End Module]]>.Value
     Public Sub IncParseDirInElse()
         Dim code As String = "Sub Sub1()" & vbCr &
 "If true Then" & vbCr &
-"foo("""")" & vbCr &
+"goo("""")" & vbCr &
 "Else" & vbCr & vbCr &
 "#If Not ULTRAVIOLET Then" & vbCr
 
@@ -255,7 +255,7 @@ End Module]]>.Value
     Public Sub IncParseExplicitOnGroupBy()
         Dim code As String = (<![CDATA[
 Option Explicit On
-Sub foo()
+Sub goo()
 Dim q2 = From x In col let y = x Group x, y By]]>).Value
 
         IncParseAndVerify(New IncParseNode With {
@@ -332,7 +332,7 @@ End Sub]]>).Value
     <Fact>
     Public Sub IncParsePPElse()
         Dim code As String = (<![CDATA[
-Function foo() As Boolean
+Function goo() As Boolean
 
 #Else
 
@@ -353,7 +353,7 @@ End Function
     <Fact>
     Public Sub IncParsePPElse1()
         Dim code As String = (<![CDATA[
-Function foo() As Boolean
+Function goo() As Boolean
 
 #Else
 
@@ -419,7 +419,7 @@ End Function
     <WorkItem(901680, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseLCFunctionCompoundAsn()
-        Dim code As String = (<![CDATA[Public Function foo() As String
+        Dim code As String = (<![CDATA[Public Function goo() As String
             For i As Integer = 0 To  1
                 total += y(i)
             Next
@@ -462,7 +462,7 @@ End Class]]>).Value
     <Fact>
     Public Sub ParseMergedForEachAndDecl()
         Dim code As String = (<![CDATA[#Region "abc"
-Function foo() As Boolean
+Function goo() As Boolean
 Dim roleName As Object
 For Each roleName In wbirFields
 Next roleName
@@ -483,7 +483,7 @@ End Function
         e1
         e2
 	End Enum
-    Public Function Foo(ByVal arg1 As e) As e
+    Public Function Goo(ByVal arg1 As e) As e
     End Function
 End Class]]>).Value
         IncParseAndVerify(New IncParseNode With {
@@ -496,7 +496,7 @@ End Class]]>).Value
     <WorkItem(903826, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseWrongSelectFollByIf()
-        Dim code As String = (<![CDATA[        Sub foo()
+        Dim code As String = (<![CDATA[        Sub goo()
                 Select Case lng
                     Case 44
                         int1 = 4
@@ -550,8 +550,8 @@ End Module
     Public Sub IncParsePropFollIncompleteLambda()
         Dim code As String = (<![CDATA[        Class c1
 
-            Public Function foo() As Object
-                Dim res = Function(x As Integer) c1.Foo(x)
+            Public Function goo() As Object
+                Dim res = Function(x As Integer) c1.Goo(x)
             End Function
 
             Default Public Property Prop(ByVal y As String) As Integer
@@ -571,7 +571,7 @@ End Module
     <WorkItem(904792, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseErroneousGroupByQuery()
-        Dim code As String = (<![CDATA[        Sub foo() 
+        Dim code As String = (<![CDATA[        Sub goo() 
                 Dim q2 = From i In str Group i By key1 = x
                 Dim q3 =From j In str Group By key = i 
         End Sub]]>).Value
@@ -585,7 +585,7 @@ End Module
     <WorkItem(904804, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseSetAfterIncompleteSub()
-        Dim code As String = (<![CDATA[Sub foo()
+        Dim code As String = (<![CDATA[Sub goo()
 End Sub
 Public WriteOnly Property bar() as short
 Set
@@ -603,7 +603,7 @@ End Property]]>).Value
     Public Sub IncParseEmbeddedIfsInsideCondCompile()
         Dim code As String = "Sub bar() " & vbCrLf &
 "#If true Then" & vbCrLf &
-    "if true Then foo()" & vbCrLf &
+    "if true Then goo()" & vbCrLf &
  "If Command() <" & vbCrLf
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -643,7 +643,7 @@ End Class]]>).Value
     <WorkItem(537172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537172")>
     <Fact>
     Public Sub IncParseInterfaceDeleteWithColon()
-        Dim code As String = (<![CDATA[Interface I : Sub Foo() : End Interface]]>).Value
+        Dim code As String = (<![CDATA[Interface I : Sub Goo() : End Interface]]>).Value
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -691,7 +691,7 @@ End Class]]>).Value
     <WorkItem(539053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539053")>
     <Fact>
     Public Sub IncParseAddSubValid()
-        Dim code As String = (<![CDATA[Class CFoo
+        Dim code As String = (<![CDATA[Class CGoo
     Public S()
         Dim x As Integer = 0
     End Sub
@@ -1150,7 +1150,7 @@ Module M
         <![CDATA[Class C
     Inherits Attribute
 ]]>.Value
-        Dim code1 As String = <![CDATA[    Property foo() A]]>.Value
+        Dim code1 As String = <![CDATA[    Property goo() A]]>.Value
 
         Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Dim oldIText = tree.GetText()
@@ -1391,7 +1391,7 @@ End Class
     Public Sub IteratorToNonIteratorMethod()
         Dim source = ToText(<![CDATA[
 Module Program
-    Iterator Function Foo() As IEnumerable
+    Iterator Function Goo() As IEnumerable
         Yield (1)
     End Function
 End Module
@@ -1411,7 +1411,7 @@ End Module
     Public Sub NonIteratorToIteratorMethod()
         Dim source = ToText(<![CDATA[
 Module Program
-    Function Foo() As IEnumerable
+    Function Goo() As IEnumerable
         Yield (1)
     End Function
 End Module
@@ -1431,7 +1431,7 @@ End Module
     Public Sub IteratorToNonIteratorMethodDecl()
         Dim source = ToText(<![CDATA[
 Module Program
-    Iterator Function Foo(Yield As Integer) As IEnumerable
+    Iterator Function Goo(Yield As Integer) As IEnumerable
         Yield (1)
     End Function
 End Module
@@ -1451,7 +1451,7 @@ End Module
     Public Sub NonIteratorToIteratorMethodDecl()
         Dim source = ToText(<![CDATA[
 Module Program
-    Function Foo(Yield As Integer) As IEnumerable
+    Function Goo(Yield As Integer) As IEnumerable
         Yield (1)
     End Function
 End Module
@@ -1843,7 +1843,7 @@ Option Explicit On
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Sub"
-        Dim TextToAdd As String = "Module Module1" & Environment.NewLine & "Sub Foo()" & Environment.NewLine
+        Dim TextToAdd As String = "Module Module1" & Environment.NewLine & "Sub Goo()" & Environment.NewLine
         Dim position = 0
         Dim newText = oldText.Replace(start:=position, length:=1, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
@@ -1862,7 +1862,7 @@ Imports Microsoft.Visualbasic
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Sub"
-        Dim TextToAdd As String = "Module Module1" & Environment.NewLine & "Sub Foo()" & Environment.NewLine
+        Dim TextToAdd As String = "Module Module1" & Environment.NewLine & "Sub Goo()" & Environment.NewLine
         Dim position = 0
         Dim newText = oldText.Replace(start:=position, length:=1, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
@@ -1879,8 +1879,8 @@ Module Module1
 
     End Sub
     Dim x = Nothing
-    Delegate Sub Foo()
-    Public Delegate Sub FooWithModifier()
+    Delegate Sub Goo()
+    Public Delegate Sub GooWithModifier()
 End Module
 
 ]]>)
@@ -1998,7 +1998,7 @@ End Module
 
 Namespace NS1
     Module Module1
-        Sub Foo()
+        Sub Goo()
 
         End Sub
         Dim x
@@ -2029,7 +2029,7 @@ End Namespace
 
 Namespace NS1
     Module Module1
-        Sub Foo()
+        Sub Goo()
 
         End Sub
         Dim x
@@ -2126,7 +2126,7 @@ Module Module1
 
     End Sub
 
-    Function Foo(i As Integer) As Integer
+    Function Goo(i As Integer) As Integer
         Dim y As Integer = i
         Select Case y
             Case 1
@@ -2147,7 +2147,7 @@ Module Module1
             y = y + 1
         End While
 
-        Using f As New Foo
+        Using f As New Goo
         End Using
 
         Dim Obj_C As New OtherClass
@@ -2182,7 +2182,7 @@ Module Module1
     End Function
 End Module
 
-Class Foo
+Class Goo
     Implements IDisposable
 
 #Region "IDisposable Support"
@@ -2291,7 +2291,7 @@ End Module
 Module Module1
     Sub Main()
     End Sub
-    Interface IFoo
+    Interface IGoo
     End Interface
     Dim _p
     Class C
@@ -2318,7 +2318,7 @@ Module Module1
     Sub Main()
 
     End Sub
-    Interface IFoo
+    Interface IGoo
 
     End Interface
 
@@ -2346,7 +2346,7 @@ End Module
     Public Sub IncrementalParsing_CaseBlockContext_TryLinkSyntaxCase()
         Dim source = ToText(<![CDATA[
 Module Module1
-    Sub Foo()
+    Sub Goo()
         Dim i As Integer
         Dim y As Integer
         Select Case i
@@ -2379,7 +2379,7 @@ End Module
     Public Sub IncrementalParsing_CatchContext_TryLinkSyntaxCatch()
         Dim source = ToText(<![CDATA[
 Module Module1
-    Sub Foo()
+    Sub Goo()
         Dim x1 As Integer = 1
         Try
             x1 = 2
@@ -2419,7 +2419,7 @@ Namespace NS1
 Module ModuleTemp 'Remove
 End Module
 Module Module1 'Remove
-    Sub Foo()
+    Sub Goo()
         Dim x1 As Integer = 1                
     End Sub
     Private _p As Integer = 0
@@ -2447,7 +2447,7 @@ End Namespace
 Module Module1
     Private _p As Integer = 0
 
-    Sub Foo()
+    Sub Goo()
         If x = 1 Then                
             _p=1
         elseIf x = 2 Then                

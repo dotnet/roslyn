@@ -31,7 +31,7 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Using foo As New MyDisposable()
+        Using goo As New MyDisposable()
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -46,7 +46,7 @@ Inside Using.
 {
   // Code size       29 (0x1d)
   .maxstack  1
-  .locals init (MyDisposable V_0) //foo
+  .locals init (MyDisposable V_0) //goo
   IL_0000:  newobj     "Sub MyDisposable..ctor()"
   IL_0005:  stloc.0
   .try
@@ -88,7 +88,7 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Using foo As New MyDisposable(), foo2 as New MyDisposable()
+        Using goo As New MyDisposable(), goo2 as New MyDisposable()
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -103,8 +103,8 @@ Inside Using.
 {
   // Code size       45 (0x2d)
   .maxstack  1
-  .locals init (MyDisposable V_0, //foo
-  MyDisposable V_1) //foo2
+  .locals init (MyDisposable V_0, //goo
+  MyDisposable V_1) //goo2
   IL_0000:  newobj     "Sub MyDisposable..ctor()"
   IL_0005:  stloc.0
   .try
@@ -159,7 +159,7 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Using foo, foo2 As New MyDisposable(), foo3, foo4 As New MyDisposable()
+        Using goo, goo2 As New MyDisposable(), goo3, goo4 As New MyDisposable()
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -174,10 +174,10 @@ Inside Using.
 {
   // Code size       77 (0x4d)
   .maxstack  1
-  .locals init (MyDisposable V_0, //foo
-  MyDisposable V_1, //foo2
-  MyDisposable V_2, //foo3
-  MyDisposable V_3) //foo4
+  .locals init (MyDisposable V_0, //goo
+  MyDisposable V_1, //goo2
+  MyDisposable V_2, //goo3
+  MyDisposable V_3) //goo4
   IL_0000:  newobj     "Sub MyDisposable..ctor()"
   IL_0005:  stloc.0
   .try
@@ -258,7 +258,7 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Using foo As MyDisposable = new MyDisposable(), foo2 as MyDisposable = New MyDisposable()
+        Using goo As MyDisposable = new MyDisposable(), goo2 as MyDisposable = New MyDisposable()
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -273,8 +273,8 @@ Inside Using.
 {
   // Code size       45 (0x2d)
   .maxstack  1
-  .locals init (MyDisposable V_0, //foo
-  MyDisposable V_1) //foo2
+  .locals init (MyDisposable V_0, //goo
+  MyDisposable V_1) //goo2
   IL_0000:  newobj     "Sub MyDisposable..ctor()"
   IL_0005:  stloc.0
   .try
@@ -494,7 +494,7 @@ Class C1
     End Property
 
     Public Sub DoStuff()
-        Using foo As IDisposable = ADisposable
+        Using goo As IDisposable = ADisposable
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -599,7 +599,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC30616: Variable 'local' hides a variable in an enclosing block.
         Using local as New MyDisposable()
@@ -636,11 +636,11 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Using foo = New MyDisposable()
+        Using goo = New MyDisposable()
             Console.WriteLine("Inside Using.")
         End Using
 
-        Using foo2 = New Integer()
+        Using goo2 = New Integer()
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -648,10 +648,10 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC36010: 'Using' operand of type 'Integer' must implement 'System.IDisposable'.
-        Using foo2 = New Integer()
+        Using goo2 = New Integer()
               ~~~~~~~~~~~~~~~~~~~~
                                            </expected>)
         End Sub
@@ -676,8 +676,8 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        foo = New MyDisposable() ' not type inference means this is an object
-        Using foo 
+        goo = New MyDisposable() ' not type inference means this is an object
+        Using goo 
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -685,10 +685,10 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
-        Using foo 
+        Using goo 
               ~~~
                                            </expected>)
         End Sub
@@ -721,7 +721,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC33101: Type 'MyDisposable' must be a value type or a type argument constrained to 'Structure' in order to be used with 'Nullable' or nullable modifier '?'.
         Using a?, b? as new MyDisposable()
@@ -752,7 +752,7 @@ Imports System
 Structure MyDisposable
     Implements IDisposable
 
-    Public Foo As Integer
+    Public Goo As Integer
 
     Public Sub Dispose() Implements IDisposable.Dispose
     End Sub
@@ -768,7 +768,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC42351: Local variable 'a' is read-only and its type is a structure. Invoking its members or passing it ByRef does not change its content and might lead to unexpected results. Consider declaring this variable outside of the 'Using' block.
         Using a, b as new MyDisposable()
@@ -795,7 +795,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC30201: Expression expected.
         Using 
@@ -838,7 +838,7 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Using foo = New MyDisposable("foo"), foo2 = foo.Other
+        Using goo = New MyDisposable("goo"), goo2 = goo.Other
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -850,7 +850,7 @@ End Class
                             expectedOutput:=<![CDATA[
 Inside Using.
 Disposing Other
-Disposing foo
+Disposing goo
 ]]>)
         End Sub
 
@@ -889,7 +889,7 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Using beforefoo = foo, foo = New MyDisposable("foo"), foo2 = foo.Other
+        Using beforefoo = goo, goo = New MyDisposable("goo"), goo2 = goo.Other
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -897,10 +897,10 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
-BC32000: Local variable 'foo' cannot be referred to before it is declared.
-        Using beforefoo = foo, foo = New MyDisposable("foo"), foo2 = foo.Other
+BC32000: Local variable 'goo' cannot be referred to before it is declared.
+        Using beforefoo = goo, goo = New MyDisposable("goo"), goo2 = goo.Other
                           ~~~
                                            </expected>)
         End Sub
@@ -918,7 +918,7 @@ Imports System
 
 Class C1
     Public Shared Sub Main()
-        Using foo As IDisposable = nothing
+        Using goo As IDisposable = nothing
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -933,7 +933,7 @@ Inside Using.
 {
   // Code size       25 (0x19)
   .maxstack  1
-  .locals init (System.IDisposable V_0) //foo
+  .locals init (System.IDisposable V_0) //goo
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try
@@ -957,7 +957,7 @@ Inside Using.
 
         <Fact()>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2_1()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb">
            Imports System
@@ -1012,7 +1012,7 @@ End Class
         ' Take the parameter as object
         <Fact()>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2_TypeParameter()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb">
             Class Gen(Of T)
@@ -1029,7 +1029,7 @@ End Class
         ' Using block must implement the IDisposable interface
         <Fact()>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2_Invalid()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb">
             Option Infer On
@@ -1056,7 +1056,7 @@ End Class
         ' Nullable type as resource
         <Fact()>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2_Invalid_Nullable()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb">
 Option Infer On
@@ -1087,7 +1087,7 @@ End Structure
         ' Using same named variables in different blocks
         <Fact()>
         Public Sub UsableScope()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="UsableScope">
         <file name="a.vb">
 Imports System            
@@ -1099,7 +1099,7 @@ Structure cls1
     Sub New(ByRef x As cls1)
         x = Me
     End Sub
-    Sub foo()
+    Sub goo()
         Do
             Dim x As New cls1
             Using x
@@ -1120,7 +1120,7 @@ Structure cls1
     End Sub
     Shared Sub Main()
         Dim x = New cls1()
-        x.foo()
+        x.goo()
     End Sub
 End Structure
         </file>
@@ -1152,9 +1152,9 @@ Class C1
         Using o1.GetBoxedInstance
         End Using
         Dim o2 As Object = New cls1
-        foo(o2)
+        goo(o2)
     End Sub
-    Sub foo(ByVal o As Object)
+    Sub goo(ByVal o As Object)
         Using o.GetBoxedInstance
         End Using
     End Sub
@@ -1166,7 +1166,7 @@ End Class
         ' The incorrect control flow (jumps outter to inner)
         <Fact()>
         Public Sub IncorrectJump()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="IncorrectJump">
         <file name="a.vb">
 Imports System
@@ -1197,13 +1197,13 @@ End Structure
         ' Assigning stuff to the Using variable
         <Fact()>
         Public Sub Assignment()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Assignment">
         <file name="a.vb">
 Imports System
 Module Program
     Dim mnObj As MyManagedClass
-    Sub FOO()
+    Sub GOO()
         Dim obj1 As New MyManagedClass
         Dim obj1a As New MyManagedClass
         Dim obj1b As MyManagedClass = obj1
@@ -1233,7 +1233,7 @@ End Structure
         ' Assigning stuff to the Using variable
         <Fact()>
         Public Sub Assignment_2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Assignment">
         <file name="a.vb">
 Imports System
@@ -1261,7 +1261,7 @@ End Structure
         <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Infer On
@@ -1306,7 +1306,7 @@ BC30203: Identifier expected.
         <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource_2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Infer On
@@ -1317,7 +1317,7 @@ Imports System.Collections.Generic
 Class Program
     Shared Sub Main()
         Dim objs = GetList()
-        Using x As MyManagedClass = (From y In objs Select y).First, foo3, foo4 = x
+        Using x As MyManagedClass = (From y In objs Select y).First, goo3, goo4 = x
         End Using
     End Sub
     Shared Function GetList() As List(Of MyManagedClass)
@@ -1335,16 +1335,16 @@ End Class
     </compilation>)
 
             VerifyDiagnostics(compilation1, Diagnostic(ERRID.ERR_ExpectedQueryableSource, "objs").WithArguments("System.Collections.Generic.List(Of MyManagedClass)"),
-            Diagnostic(ERRID.ERR_InitWithMultipleDeclarators, "foo3, foo4 = x"),
-            Diagnostic(ERRID.ERR_StrictDisallowImplicitObject, "foo3"),
-            Diagnostic(ERRID.ERR_UsingResourceVarNeedsInitializer, "foo3"),
-            Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "foo3").WithArguments("Object"))
+            Diagnostic(ERRID.ERR_InitWithMultipleDeclarators, "goo3, goo4 = x"),
+            Diagnostic(ERRID.ERR_StrictDisallowImplicitObject, "goo3"),
+            Diagnostic(ERRID.ERR_UsingResourceVarNeedsInitializer, "goo3"),
+            Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "goo3").WithArguments("Object"))
         End Sub
 
         <WorkItem(528963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528963")>
         <Fact()>
         Public Sub InitWithMultipleDeclarators()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="InitWithMultipleDeclarators">
         <file name="a.vb">
             Option Infer On
@@ -1355,7 +1355,7 @@ Imports System.Collections.Generic
 Class Program
     Shared Sub Main()
         Dim objs = GetList()
-        Using foo As MyManagedClass = New MyManagedClass(), foo3, foo4 As New MyManagedClass()
+        Using goo As MyManagedClass = New MyManagedClass(), goo3, goo4 As New MyManagedClass()
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -1379,7 +1379,7 @@ End Class
         <Fact()>
         Public Sub QueryInUsing()
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="QueryInUsing">
         <file name="a.vb">
 Option Infer On
@@ -1413,7 +1413,7 @@ Class Program
         <Fact()>
         Public Sub LambdaInUsing()
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="LambdaInUsing">
         <file name="a.vb">
 Option Infer On
@@ -1453,7 +1453,7 @@ End Class
         ' Anonymous types cannot appear in using
         <Fact()>
         Public Sub AnonymousInUsing()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="AnonymousInUsing">
         <file name="a.vb">
 Option Infer On
@@ -1473,7 +1473,7 @@ End Class
         <WorkItem(528974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528974")>
         <Fact()>
         Public Sub AnonymousDelegateInUsing()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
             <compilation name="AnonymousDelegateInUsing">
                 <file name="a.vb">
 Option Infer On
@@ -1481,7 +1481,7 @@ Option Strict On
 Imports System
 Delegate Function D1(Of T)(t As T) As T
 Class A1
-    Private Shared Sub Foo(Of T As IDisposable)(x As T)
+    Private Shared Sub Goo(Of T As IDisposable)(x As T)
         Dim local As T = x
         Using t1 As T = DirectCast(Function(tt As T) x, D1(Of T))(x) ' warning
         End Using
@@ -1499,7 +1499,7 @@ End Class
         <WorkItem(10570, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub UsingBeforeConstructCall()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UsingBeforeConstructCall">
     <file name="a.vb">
 Imports System        
@@ -1552,7 +1552,7 @@ Imports System
 Class Program
     Shared Sub Main()
         Dim x = 1
-        Using foo, foo2 As New MyManagedClass(x), foo3, foo4 As New MyManagedClass(x)
+        Using goo, goo2 As New MyManagedClass(x), goo3, goo4 As New MyManagedClass(x)
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -1573,7 +1573,7 @@ End Class
         <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource_3()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Infer On
@@ -1608,7 +1608,7 @@ End Class
         <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource_4()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Infer On
@@ -1619,7 +1619,7 @@ Imports System.Collections.Generic
 Class Program
     Shared Sub Main()
         Dim objs = GetList()
-        Using x As MyManagedClass = (From y In objs Select y).First, foo3, foo4 = x
+        Using x As MyManagedClass = (From y In objs Select y).First, goo3, goo4 = x
         End Using
     End Sub
     Shared Function GetList() As List(Of MyManagedClass)
@@ -1637,16 +1637,16 @@ End Class
     </compilation>)
 
             VerifyDiagnostics(compilation1, Diagnostic(ERRID.ERR_ExpectedQueryableSource, "objs").WithArguments("System.Collections.Generic.List(Of MyManagedClass)"),
-                                            Diagnostic(ERRID.ERR_InitWithMultipleDeclarators, "foo3, foo4 = x"),
-                                            Diagnostic(ERRID.ERR_StrictDisallowImplicitObject, "foo3"),
-                                            Diagnostic(ERRID.ERR_UsingResourceVarNeedsInitializer, "foo3"),
-                                            Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "foo3").WithArguments("Object"))
+                                            Diagnostic(ERRID.ERR_InitWithMultipleDeclarators, "goo3, goo4 = x"),
+                                            Diagnostic(ERRID.ERR_StrictDisallowImplicitObject, "goo3"),
+                                            Diagnostic(ERRID.ERR_UsingResourceVarNeedsInitializer, "goo3"),
+                                            Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "goo3").WithArguments("Object"))
         End Sub
 
         <WorkItem(529046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
         <Fact>
         Public Sub UsingOutOfMethod()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">
 Class m1
@@ -1661,7 +1661,7 @@ End Class
         <WorkItem(529046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
         <Fact>
         Public Sub UsingOutOfMethod_1()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">
     Using Nothing

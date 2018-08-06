@@ -17,6 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     /// </summary>
     internal interface ISolutionExplorerWorkspaceProvider
     {
-        Workspace GetWorkspace();
+        Microsoft.CodeAnalysis.Workspace GetWorkspace();
     }
 }

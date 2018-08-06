@@ -7,19 +7,11 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class BestTypeInferrer
+    internal static class BestTypeInferrer
     {
-        private readonly Conversions _conversions;
-
-        private BestTypeInferrer(Conversions conversions)
-        {
-            _conversions = conversions;
-        }
-
         public static TypeSymbol InferBestType(ImmutableArray<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var inferrer = new BestTypeInferrer(conversions);
-            return inferrer.GetBestType(types, ref useSiteDiagnostics);
+            return GetBestType(types, conversions, ref useSiteDiagnostics);
         }
 
         /// <remarks>
@@ -118,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InferBestType(candidateTypes.ToImmutableAndFree(), conversions, ref useSiteDiagnostics);
         }
 
-        private TypeSymbol GetBestType(ImmutableArray<TypeSymbol> types, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbol GetBestType(ImmutableArray<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // This code assumes that the types in the list are unique. 
 
@@ -148,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var better = Better(best, type, ref useSiteDiagnostics);
+                    var better = Better(best, type, conversions, ref useSiteDiagnostics);
 
                     if ((object)better == null)
                     {
@@ -172,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < bestIndex; i++)
             {
                 TypeSymbol type = types[i];
-                TypeSymbol better = Better(best, type, ref useSiteDiagnostics);
+                TypeSymbol better = Better(best, type, conversions, ref useSiteDiagnostics);
 
                 if (better != best)
                 {
@@ -186,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns the better type amongst the two, with some possible modifications (dynamic/object or tuple names).
         /// </summary>
-        private TypeSymbol Better(TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbol Better(TypeSymbol type1, TypeSymbol type2, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Anything is better than an error sym.
             if (type1.IsErrorType())
@@ -199,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type1;
             }
 
-            var t1tot2 = _conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Exists;
-            var t2tot1 = _conversions.ClassifyImplicitConversionFromType(type2, type1, ref useSiteDiagnostics).Exists;
+            var t1tot2 = conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Exists;
+            var t2tot1 = conversions.ClassifyImplicitConversionFromType(type2, type1, ref useSiteDiagnostics).Exists;
 
             if (t1tot2 && t2tot1)
             {
@@ -216,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
-                    return MethodTypeInferrer.MergeTupleNames(MethodTypeInferrer.MergeDynamic(type1, type2, _conversions.CorLibrary), type2);
+                    return MethodTypeInferrer.MergeTupleNames(MethodTypeInferrer.MergeDynamic(type1, type2, conversions.CorLibrary), type2);
                 }
 
                 return null;

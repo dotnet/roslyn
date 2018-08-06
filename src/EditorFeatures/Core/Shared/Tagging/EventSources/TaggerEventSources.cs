@@ -109,11 +109,5 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             return new ViewSpanChangedEventSource(textView, textChangeDelay, scrollChangeDelay);
         }
-
-        public static ITaggerEventSource OnEditorFormatMapChanged(
-            IEditorFormatMap editorFormatMap, TaggerDelay delay)
-        {
-            return new EditorFormatMapChangedEventSource(editorFormatMap, delay);
-        }
     }
 }

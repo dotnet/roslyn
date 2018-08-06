@@ -37,13 +37,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IParameterSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetParameterSymbolsMatchFunction(
                 symbol, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol.Name, document, symbolsMatch, cancellationToken);
+                symbol.Name, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
         private Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetParameterSymbolsMatchFunction(
@@ -254,8 +255,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
-            var containingMethod = parameter.ContainingSymbol as IMethodSymbol;
-            if (containingMethod != null)
+            if (parameter.ContainingSymbol is IMethodSymbol containingMethod)
             {
                 var containingType = containingMethod.ContainingType as INamedTypeSymbol;
                 if (containingType.IsDelegateType())

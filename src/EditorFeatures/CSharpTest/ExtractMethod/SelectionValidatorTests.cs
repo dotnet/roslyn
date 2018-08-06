@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         {
             var code = @"class A
 {
-    [{|b:Foo|}]
+    [{|b:Goo|}]
     A Method(A a)
     {
     }
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         {
             var code = @"class A
 {
-    [Foo({|b:A|}=1)]
+    [Goo({|b:A|}=1)]
     A Method(A a)
     {
     }
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         {
             var code = @"class A
 {
-    [Foo(A={|b:1|})]
+    [Goo(A={|b:1|})]
     A Method(A a)
     {
     }
@@ -746,7 +747,7 @@ class C
         {
             Console.Write(5);
         }
-        catch (Exception ex) if ({|b:ex.Message == ""foo""|})
+        catch (Exception ex) if ({|b:ex.Message == ""goo""|})
         {
             throw;
         }
@@ -788,7 +789,7 @@ class C
         {
             Console.Write(5);
         }
-        catch (Exception ex) if ({|b:ex.Message|} == ""foo"")
+        catch (Exception ex) if ({|b:ex.Message|} == ""goo"")
         {
             throw;
         }
@@ -808,7 +809,7 @@ class C
         {
             Console.Write(5);
         }
-        catch (Exception ex) if (ex.Message == {|b:""foo""|})
+        catch (Exception ex) if (ex.Message == {|b:""goo""|})
         {
             throw;
         }
@@ -884,9 +885,9 @@ class C
         {
             var code = @"class A
 {
-    int method(string foo)
+    int method(string goo)
     {
-        String bar = {|b:(String)foo|};
+        String bar = {|b:(String)goo|};
         return bar.Length;
     }
 }";
@@ -1496,7 +1497,7 @@ class C
         {
             var code = @"class C
 {
-    void Foo()
+    void Goo()
     {
         {|r:{|b:base|}.ToString();|}
     }
@@ -1513,7 +1514,7 @@ class C
  
 class A
 {
-    static void Foo(__arglist)
+    static void Goo(__arglist)
     {
         var argIterator = new ArgIterator(__arglist);
         var typedReference = argIterator.GetNextArg();

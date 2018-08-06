@@ -2,38 +2,42 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
+    using CompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+    using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+
     internal partial class Controller :
         AbstractController<Controller.Session, Model, ICompletionPresenterSession, ICompletionSession>,
-        ICommandHandler<TabKeyCommandArgs>,
-        ICommandHandler<ToggleCompletionModeCommandArgs>,
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InvokeCompletionListCommandArgs>,
-        ICommandHandler<CommitUniqueCompletionListItemCommandArgs>,
-        ICommandHandler<PageUpKeyCommandArgs>,
-        ICommandHandler<PageDownKeyCommandArgs>,
-        ICommandHandler<CutCommandArgs>,
-        ICommandHandler<PasteCommandArgs>,
-        ICommandHandler<BackspaceKeyCommandArgs>,
-        ICommandHandler<InsertSnippetCommandArgs>,
-        ICommandHandler<SurroundWithCommandArgs>,
-        ICommandHandler<AutomaticLineEnderCommandArgs>,
-        ICommandHandler<SaveCommandArgs>,
-        ICommandHandler<DeleteKeyCommandArgs>,
-        ICommandHandler<SelectAllCommandArgs>
+        IChainedCommandHandler<TabKeyCommandArgs>,
+        IChainedCommandHandler<ToggleCompletionModeCommandArgs>,
+        IChainedCommandHandler<TypeCharCommandArgs>,
+        IChainedCommandHandler<ReturnKeyCommandArgs>,
+        IChainedCommandHandler<InvokeCompletionListCommandArgs>,
+        IChainedCommandHandler<CommitUniqueCompletionListItemCommandArgs>,
+        IChainedCommandHandler<PageUpKeyCommandArgs>,
+        IChainedCommandHandler<PageDownKeyCommandArgs>,
+        IChainedCommandHandler<CutCommandArgs>,
+        IChainedCommandHandler<PasteCommandArgs>,
+        IChainedCommandHandler<BackspaceKeyCommandArgs>,
+        IChainedCommandHandler<InsertSnippetCommandArgs>,
+        IChainedCommandHandler<SurroundWithCommandArgs>,
+        IChainedCommandHandler<AutomaticLineEnderCommandArgs>,
+        IChainedCommandHandler<SaveCommandArgs>,
+        IChainedCommandHandler<DeleteKeyCommandArgs>,
+        IChainedCommandHandler<SelectAllCommandArgs>
     {
         private static readonly object s_controllerPropertyKey = new object();
 
@@ -235,6 +239,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
+
+        public string DisplayName => EditorFeaturesResources.Code_Completion;
 
         public void MakeMostRecentItem(string item)
         {

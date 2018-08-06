@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -14,10 +13,12 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Moq;
@@ -25,6 +26,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
+    [UseExportProvider]
     public class FormatterTestsBase
     {
         protected const string HtmlMarkup = @"<html>
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
 
             var commandHandler = new SmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
-            commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), () => { });
+            commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), () => { }, TestCommandExecutionContext.Create());
             var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
 
             int? actualIndentation;
@@ -156,10 +158,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                                                      It.IsAny<ITextSnapshot>()))
                 .Returns<SnapshotPoint, PointTrackingMode, PositionAffinity, ITextSnapshot>((p, m, a, s) =>
                 {
-                    var factory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()
-                                    as TestFormattingRuleFactoryServiceFactory.Factory;
 
-                    if (factory != null && factory.BaseIndentation != 0 && factory.TextSpan.Contains(p.Position))
+                    if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory factory && factory.BaseIndentation != 0 && factory.TextSpan.Contains(p.Position))
                     {
                         var line = p.GetContainingLine();
                         var projectedOffset = line.GetFirstNonWhitespaceOffset().Value - factory.BaseIndentation;

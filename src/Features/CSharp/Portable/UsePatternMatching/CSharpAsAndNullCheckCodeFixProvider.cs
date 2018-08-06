@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -42,48 +42,74 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 AddEdits(editor, diagnostic, cancellationToken);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
-        private void AddEdits(
-            SyntaxEditor editor, 
-            Diagnostic diagnostic, 
+        private static ExpressionSyntax GetCondition(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.WhileStatement:
+                    return ((WhileStatementSyntax)node).Condition;
+                case SyntaxKind.IfStatement:
+                    return ((IfStatementSyntax)node).Condition;
+                case SyntaxKind.ReturnStatement:
+                    return ((ReturnStatementSyntax)node).Expression;
+                case SyntaxKind.LocalDeclarationStatement:
+                    return ((LocalDeclarationStatementSyntax)node).Declaration.Variables[0].Initializer.Value;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
+            }
+        }
+
+        private static void AddEdits(
+            SyntaxEditor editor,
+            Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
             var localDeclarationLocation = diagnostic.AdditionalLocations[0];
-            var ifStatementLocation = diagnostic.AdditionalLocations[1];
+            var targetStatementLocation = diagnostic.AdditionalLocations[1];
             var conditionLocation = diagnostic.AdditionalLocations[2];
             var asExpressionLocation = diagnostic.AdditionalLocations[3];
 
             var localDeclaration = (LocalDeclarationStatementSyntax)localDeclarationLocation.FindNode(cancellationToken);
-            var ifStatement = (IfStatementSyntax)ifStatementLocation.FindNode(cancellationToken);
+            var targetStatement = (StatementSyntax)targetStatementLocation.FindNode(cancellationToken);
             var conditionPart = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
+            var newIdentifier = localDeclaration.Declaration.Variables[0].Identifier
+                .WithoutTrivia().WithTrailingTrivia(conditionPart.Right.GetTrailingTrivia());
 
-            var updatedConditionPart = SyntaxFactory.IsPatternExpression(
+            ExpressionSyntax updatedConditionPart = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
-                    SyntaxFactory.SingleVariableDesignation(
-                        localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
+                    SyntaxFactory.SingleVariableDesignation(newIdentifier)));
 
-            var finalCondition = ifStatement.Condition.ReplaceNode(conditionPart, updatedConditionPart);
+            // We should negate the is-expression if we have something like "x == null"
+            if (conditionPart.IsKind(SyntaxKind.EqualsExpression))
+            {
+                updatedConditionPart = SyntaxFactory.PrefixUnaryExpression(
+                    SyntaxKind.LogicalNotExpression,
+                    updatedConditionPart.Parenthesize());
+            }
+
+            var currentCondition = GetCondition(targetStatement);
+            var updatedCondition = currentCondition.ReplaceNode(conditionPart, updatedConditionPart);
 
             var block = (BlockSyntax)localDeclaration.Parent;
             var declarationIndex = block.Statements.IndexOf(localDeclaration);
 
             // Trivia on the local declaration will move to the next statement.
-            // use the callback form as the next statement may be the place where we're 
+            // use the callback form as the next statement may be the place where we're
             // inlining the declaration, and thus need to see the effects of that change.
             editor.ReplaceNode(
                 block.Statements[declarationIndex + 1],
                 (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
             editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
-            editor.ReplaceNode(ifStatement, (i, g) =>
+            editor.ReplaceNode(targetStatement, (currentStatement, g) =>
             {
-                var currentIf = (IfStatementSyntax)i;
-                var updatedIf = currentIf.ReplaceNode(currentIf.Condition, finalCondition);
-                return updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
+                var updatedStatement = currentStatement.ReplaceNode(GetCondition(currentStatement), updatedCondition);
+                return updatedStatement.WithAdditionalAnnotations(Formatter.Annotation);
             });
         }
 

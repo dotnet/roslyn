@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpScriptingResources.resx">
+    <body>
+      <trans-unit id="LogoLine1">
+        <source>Microsoft (R) Visual C# Interactive Compiler version {0}</source>
+        <target state="translated">Microsoft (R) Visual C# 互動編譯器 {0} 版</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LogoLine2">
+        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
+        <target state="translated">Copyright (C) Microsoft Corporation. 著作權所有，並保留一切權利。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InteractiveHelp">
+        <source>Usage: csi [option] ... [script-file.csx] [script-argument] ...
+
+Executes script-file.csx if specified, otherwise launches an interactive REPL (Read Eval Print Loop).
+
+Options:
+  /help                          Display this usage message (alternative form: /?)
+  /version                       Display the version and exit
+  /i                             Drop to REPL after executing the specified script.
+  /r:&lt;file&gt;                      Reference metadata from the specified assembly file (alternative form: /reference)
+  /r:&lt;file list&gt;                 Reference metadata from the specified assembly files (alternative form: /reference)
+  /lib:&lt;path list&gt;               List of directories where to look for libraries specified by #r directive. 
+                                 (alternative forms: /libPath /libPaths)
+  /u:&lt;namespace&gt;                 Define global namespace using (alternative forms: /using, /usings, /import, /imports)
+  @&lt;file&gt;                        Read response file for more options
+  --                             Indicates that the remaining arguments should not be treated as options.
+</source>
+        <target state="translated">使用方式: csi [option] ... [script-file.csx] [script-argument] ...
+
+若有指定則執行 script-file.csx，否則會啟動互動式 REPL (Read Eval Print Loop)
+
+選項:
+  /help                          顯示這則使用訊息 (替代形式: /?)
+  /version                       顯示版本並結束
+  /i                             在執行指定指令碼後，置放到 REPL。
+  /r:&lt;檔案&gt;                      從指定的組件檔參考中繼資料 (替代形式: /reference)
+  /r:&lt;檔案清單&gt;                 從指定的組件檔參考中繼資料 (替代形式: /reference)
+  /lib:&lt;路徑清單&gt;               目錄清單，用以從中尋找 #r 指示詞所指定的程式庫。 
+                                 (替代形式: /libPath /libPaths)
+  /u:&lt;命名空間&gt;                 定義全域命名空間的方式 (替代形式: /using、/usings、/import、/imports)
+  @&lt;檔案&gt;                        讀取回應檔以取得更多選項
+  --                             表示不應將剩餘引數視為選項。
+</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

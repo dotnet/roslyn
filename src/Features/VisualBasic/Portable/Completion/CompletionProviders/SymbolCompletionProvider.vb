@@ -88,10 +88,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             For importDirective = 0 To 1
                 For preselect = 0 To 1
                     For tuple = 0 To 1
-                        If importDirective = 1 AndAlso tuple = 1 Then
-                            Continue For
-                        End If
-
                         Dim context = ValueTuple.Create(importDirective = 1, preselect = 1, tuple = 1)
                         result(context) = MakeRule(importDirective, preselect, tuple)
                     Next

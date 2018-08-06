@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -83,6 +84,21 @@ namespace Microsoft.CodeAnalysis
 
                 default:
                     return null;
+            }
+        }
+
+        internal static HashAlgorithmName GetAlgorithmName(SourceHashAlgorithm algorithmId)
+        {
+            switch (algorithmId)
+            {
+                case SourceHashAlgorithm.Sha1:
+                    return HashAlgorithmName.SHA1;
+
+                case SourceHashAlgorithm.Sha256:
+                    return HashAlgorithmName.SHA256;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(algorithmId);
             }
         }
 
@@ -167,9 +183,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static ImmutableArray<byte> ComputeSha1(IEnumerable<Blob> bytes)
+        internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<Blob> bytes)
         {
-            using (var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
+            {
+                incrementalHash.AppendData(bytes);
+                return ImmutableArray.Create(incrementalHash.GetHashAndReset());
+            }
+        }
+
+        internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<ArraySegment<byte>> bytes)
+        {
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
             {
                 incrementalHash.AppendData(bytes);
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());

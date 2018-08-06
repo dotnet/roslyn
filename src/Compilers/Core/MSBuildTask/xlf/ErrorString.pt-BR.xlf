@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../ErrorString.resx">
+    <body>
+      <trans-unit id="Compiler_UnexpectedException">
+        <source>MSB3883: Unexpected exception: </source>
+        <target state="translated">MSB3883: Exceção inesperada: </target>
+        <note>{StrBegin="MSB3883: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
+        <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
+        <target state="translated">MSB3053: O alias do assembly "{1}" na referência "{0}" contém caracteres inválidos.</target>
+        <note>{StrBegin="MSB3053: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_InvalidParameter">
+        <source>MSB3051: The parameter to the compiler is invalid.  {0}</source>
+        <target state="translated">MSB3051: O parâmetro para o compilador é inválido. {0}</target>
+        <note>{StrBegin="MSB3051: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_InvalidParameterWarning">
+        <source>MSB3052: The parameter to the compiler is invalid, '{0}{1}' will be ignored.</source>
+        <target state="translated">MSB3052: O parâmetro para o compilador é inválido; "{0}{1}" será ignorado.</target>
+        <note>{StrBegin="MSB3052: "}</note>
+      </trans-unit>
+      <trans-unit id="General_CannotConvertStringToBool">
+        <source>The string "{0}" cannot be converted to a boolean (true/false) value.</source>
+        <target state="translated">A cadeia de caracteres "{0}" não pode ser convertida em um valor booliano (true/false).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_CouldNotSetHostObjectParameter">
+        <source>MSB3081: A problem occurred while trying to set the "{0}" parameter for the IDE's in-process compiler. {1}</source>
+        <target state="translated">MSB3081: Ocorreu um problema durante a tentativa de definir o parâmetro "{0}" para o compilador em processo do IDE. {1}</target>
+        <note>{StrBegin="MSB3081: "}</note>
+      </trans-unit>
+      <trans-unit id="General_DuplicateItemsNotSupported">
+        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
+        <target state="translated">MSB3105: O item "{0}" foi especificado mais de uma vez no parâmetro "{1}". O parâmetro "{1}" não dá suporte a itens duplicados.</target>
+        <note>{StrBegin="MSB3105: "}</note>
+      </trans-unit>
+      <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
+        <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
+        <target state="translated">MSB3083: O item "{0}" foi especificado mais de uma vez no parâmetro "{1}" e ambos os itens tinham o mesmo valor "{2}" para os metadados "{3}". O parâmetro "{1}" não dá suporte a itens duplicados, a menos que eles tenham valores diferentes para os metadados "{3}".</target>
+        <note>{StrBegin="MSB3083: "}</note>
+      </trans-unit>
+      <trans-unit id="General_ExpectedFileMissing">
+        <source>Expected file "{0}" does not exist.</source>
+        <target state="translated">O arquivo esperado "{0}" não existe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_SkippingCopy1">
+        <source>Reference assembly "{0}" already has latest information. Leaving it untouched.</source>
+        <target state="translated">O assembly de referência "{0}" já tem as informações mais recentes. Ele será mantido inalterado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_SourceNotRef1">
+        <source>Could not extract the MVID from "{0}". Are you sure it is a reference assembly?</source>
+        <target state="translated">Não foi possível extrair o MVID de "{0}". Tem certeza de que este é um assembly de referência?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_BadSource3">
+        <source>Failed to check the content hash of the source ref assembly '{0}': {1}
+{2}</source>
+        <target state="translated">Falha ao verificar o hash de conteúdo do assembly de referência de origem '{0}': {1}
+{2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_BadDestination1">
+        <source>Failed to check the content hash of the destination ref assembly '{0}'. It will be overwritten.</source>
+        <target state="translated">Falha ao verificar o hash de conteúdo do assembly de referência de destino '{0}'. Ele será substituído.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ToolFileNotFound">
+        <source>MSB3082: Task failed because "{0}" was not found.</source>
+        <target state="translated">MSB3082: a tarefa falhou porque "{0}" não foi encontrado.</target>
+        <note>{StrBegin="MSB3082: "}</note>
+      </trans-unit>
+      <trans-unit id="General_IncorrectHostObject">
+        <source>MSB3087: An incompatible host object was passed into the "{0}" task.  The host object for this task must implement the "{1}" interface.</source>
+        <target state="translated">MSB3087: Foi passado um objeto de host incompatível para a tarefa "{0}". O objeto de host desta tarefa deve implementar a interface "{1}".</target>
+        <note>{StrBegin="MSB3087: "}</note>
+      </trans-unit>
+      <trans-unit id="General_InvalidAttributeMetadata">
+        <source>Item "{0}" has attribute "{1}" with value "{2}" that could not be converted to "{3}".</source>
+        <target state="translated">O item "{0}" tem atributo "{1}" com valor "{2}" que não pôde ser convertido para "{3}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ParameterUnsupportedOnHostCompiler">
+        <source>The IDE's in-process compiler does not support the specified values for the "{0}" parameter.  Therefore, this task will fallback to using the command-line compiler.</source>
+        <target state="translated">O compilador em processo do IDE não dá suporte aos valores especificados para o parâmetro "{0}". Portanto, essa tarefa fará fallback para o uso do compilador linha de comando.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ReferenceDoesNotExist">
+        <source>MSB3104: The referenced assembly "{0}" was not found. If this assembly is produced by another one of your projects, please make sure to build that project before building this one.</source>
+        <target state="translated">MSB3104: O assembly usado como referência "{0}" não foi encontrado. Se esse assembly tiver sido produzido por um outro projeto, compile aquele projeto antes de compilar este.</target>
+        <note>{StrBegin="MSB3104: "}</note>
+      </trans-unit>
+      <trans-unit id="SharedCompilationFallback">
+        <source>Shared compilation failed; falling back to tool: {0}</source>
+        <target state="translated">Compilação compartilhada com falha; fazendo fallback para a ferramenta: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UsingSharedCompilation">
+        <source>Using shared compilation with compiler from directory: {0}</source>
+        <target state="translated">Usando compilação compartilhada com o compilador do diretório: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Vbc_EnumParameterHasInvalidValue">
+        <source>MSB3401: "{1}" is an invalid value for the "{0}" parameter.  The valid values are: {2}</source>
+        <target state="translated">MSB3401: "{1}" é um nome inválido para o parâmetro "{0}". Os valores válidos são: {2}</target>
+        <note>{StrBegin="MSB3401: "}</note>
+      </trans-unit>
+      <trans-unit id="Vbc_ParameterHasInvalidValue">
+        <source>"{1}" is an invalid value for the "{0}" parameter.</source>
+        <target state="translated">"{1}" é um valor inválido para o parâmetro "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Vbc_RenamePDB">
+        <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
+        <target state="translated">MSB3402: houve um erro na criação do arquivo pdb "{0}". {1}</target>
+        <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0} contém itens duplicados '{1}' com metadados conflitantes'{2}': '{3}' e '{4}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">{0} caminhos precisam ser terminados com uma barra ou uma barra invertida: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">{0} itens precisam incluir pelo menos um item de nível superior (não aninhado) quando {1} é verdadeiro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">Valor de {0} não encontrado em {1} itens ou o item correspondente não é uma raiz de origem de nível superior: '{2}'</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

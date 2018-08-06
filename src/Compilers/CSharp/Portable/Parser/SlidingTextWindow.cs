@@ -668,6 +668,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         return " ";
                     }
+                    if (_characterWindow[offset] == '\n')
+                    {
+                        return "\n";
+                    }
                     break;
 
                 case 2:

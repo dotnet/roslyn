@@ -14,8 +14,8 @@ Public Class MetadataFileReferenceCompilationTests
     <WorkItem(1037628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=1037628")>
     <Fact>
     Public Sub BC31011ERR_BadRefLib1()
-        Dim ref = MetadataReference.CreateFromImage({}, filePath:="Foo.dll")
-        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+        Dim ref = MetadataReference.CreateFromImage({}, filePath:="Goo.dll")
+        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BadRefLib1">
     <file name="a.vb">
 Class C1
@@ -24,7 +24,7 @@ End Class
 </compilation>)
         compilation1 = compilation1.AddReferences(ref)
         Dim expectedErrors1 = <errors>
-BC31519: 'Foo.dll' cannot be referenced because it is not a valid assembly.
+BC31519: 'Goo.dll' cannot be referenced because it is not a valid assembly.
                  </errors>
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub
@@ -32,8 +32,8 @@ BC31519: 'Foo.dll' cannot be referenced because it is not a valid assembly.
     <WorkItem(1037628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=1037628")>
     <Fact>
     Public Sub BC31007ERR_BadModuleFile1()
-        Dim ref = ModuleMetadata.CreateFromImage({}).GetReference(filePath:="Foo.dll")
-        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+        Dim ref = ModuleMetadata.CreateFromImage({}).GetReference(filePath:="Goo.dll")
+        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BadRefLib1">
     <file name="a.vb">
 Class C1
@@ -42,9 +42,12 @@ End Class
 </compilation>)
         compilation1 = compilation1.AddReferences(ref)
         Dim expectedErrors1 = <errors>
-BC31007: Unable to load module file 'Foo.dll': PE image doesn't contain managed metadata.
+BC31007: Unable to load module file 'Goo.dll': PE image doesn't contain managed metadata.
                  </errors>
-        CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+
+        Using New EnsureEnglishUICulture
+            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Using
     End Sub
 
     <WorkItem(538349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538349")>
@@ -80,7 +83,7 @@ BC31007: Unable to load module file 'Foo.dll': PE image doesn't contain managed 
         Dim metadata1 = AssemblyMetadata.CreateFromImage(TestResources.General.C1)
         Dim metadata2 = AssemblyMetadata.CreateFromImage(TestResources.General.C2)
 
-        Dim b = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+        Dim b = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="b">
     <file name="b.vb">
 Public Class B
@@ -95,7 +98,7 @@ End Class
 
         Dim metadata3 = AssemblyMetadata.CreateFromImage(b.EmitToArray())
 
-        Dim a = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+        Dim a = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="a">
     <file name="a.vb">
 Class A

@@ -11,24 +11,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Create()
         {
             var pid = ProjectId.CreateNewId();
-            Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(id: null, version: VersionStamp.Default, name: "Foo", assemblyName: "Bar", language: "C#"));
+            Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(id: null, version: VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#"));
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: null, assemblyName: "Bar", language: "C#"));
-            Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: null, language: "C#"));
-            Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: "Bar", language: null));
+            Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: null, language: "C#"));
+            Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: null));
         }
 
         [Fact]
         public void DebuggerDisplayHasProjectNameAndFilePath()
         {
-            var projectInfo = ProjectInfo.Create(name: "Foo", filePath: @"C:\", id: ProjectId.CreateNewId(), version: VersionStamp.Default, assemblyName: "Bar", language: "C#");
-            Assert.Equal(@"ProjectInfo Foo C:\", projectInfo.GetDebuggerDisplay());
+            var projectInfo = ProjectInfo.Create(name: "Goo", filePath: @"C:\", id: ProjectId.CreateNewId(), version: VersionStamp.Default, assemblyName: "Bar", language: "C#");
+            Assert.Equal(@"ProjectInfo Goo C:\", projectInfo.GetDebuggerDisplay());
         }
 
         [Fact]
         public void DebuggerDisplayHasOnlyProjectNameWhenFilePathNotSpecified()
         {
-            var projectInfo = ProjectInfo.Create(name: "Foo", id: ProjectId.CreateNewId(), version: VersionStamp.Default, assemblyName: "Bar", language: "C#");
-            Assert.Equal(@"ProjectInfo Foo", projectInfo.GetDebuggerDisplay());
+            var projectInfo = ProjectInfo.Create(name: "Goo", id: ProjectId.CreateNewId(), version: VersionStamp.Default, assemblyName: "Bar", language: "C#");
+            Assert.Equal(@"ProjectInfo Goo", projectInfo.GetDebuggerDisplay());
         }
     }
 }

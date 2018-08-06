@@ -352,6 +352,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
+    public virtual TResult VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
     public virtual TResult VisitQueryExpression(QueryExpressionSyntax node)
     {
@@ -1579,6 +1585,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
+    public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
     public virtual void VisitQueryExpression(QueryExpressionSyntax node)
     {
@@ -2566,8 +2578,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode VisitRefType(RefTypeSyntax node)
     {
       var refKeyword = this.VisitToken(node.RefKeyword);
+      var readOnlyKeyword = this.VisitToken(node.ReadOnlyKeyword);
       var type = (TypeSyntax)this.Visit(node.Type);
-      return node.Update(refKeyword, type);
+      return node.Update(refKeyword, readOnlyKeyword, type);
     }
 
     public override SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
@@ -2784,9 +2797,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode VisitArgument(ArgumentSyntax node)
     {
       var nameColon = (NameColonSyntax)this.Visit(node.NameColon);
-      var refOrOutKeyword = this.VisitToken(node.RefOrOutKeyword);
+      var refKindKeyword = this.VisitToken(node.RefKindKeyword);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
-      return node.Update(nameColon, refOrOutKeyword, expression);
+      return node.Update(nameColon, refKindKeyword, expression);
     }
 
     public override SyntaxNode VisitNameColon(NameColonSyntax node)
@@ -2901,7 +2914,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var stackAllocKeyword = this.VisitToken(node.StackAllocKeyword);
       var type = (TypeSyntax)this.Visit(node.Type);
-      return node.Update(stackAllocKeyword, type);
+      var initializer = (InitializerExpressionSyntax)this.Visit(node.Initializer);
+      return node.Update(stackAllocKeyword, type, initializer);
+    }
+
+    public override SyntaxNode VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
+    {
+      var stackAllocKeyword = this.VisitToken(node.StackAllocKeyword);
+      var openBracketToken = this.VisitToken(node.OpenBracketToken);
+      var closeBracketToken = this.VisitToken(node.CloseBracketToken);
+      var initializer = (InitializerExpressionSyntax)this.Visit(node.Initializer);
+      return node.Update(stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
     }
 
     public override SyntaxNode VisitQueryExpression(QueryExpressionSyntax node)
@@ -3952,9 +3975,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode VisitCrefParameter(CrefParameterSyntax node)
     {
-      var refOrOutKeyword = this.VisitToken(node.RefOrOutKeyword);
+      var refKindKeyword = this.VisitToken(node.RefKindKeyword);
       var type = (TypeSyntax)this.Visit(node.Type);
-      return node.Update(refOrOutKeyword, type);
+      return node.Update(refKindKeyword, type);
     }
 
     public override SyntaxNode VisitXmlElement(XmlElementSyntax node)
@@ -4530,7 +4553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new RefTypeSyntax instance.</summary>
-    public static RefTypeSyntax RefType(SyntaxToken refKeyword, TypeSyntax type)
+    public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
     {
       switch (refKeyword.Kind())
       {
@@ -4539,16 +4562,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("refKeyword");
       }
+      switch (readOnlyKeyword.Kind())
+      {
+        case SyntaxKind.ReadOnlyKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException("readOnlyKeyword");
+      }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
-      return (RefTypeSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+      return (RefTypeSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)readOnlyKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new RefTypeSyntax instance.</summary>
     public static RefTypeSyntax RefType(TypeSyntax type)
     {
-      return SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), type);
+      return SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), default(SyntaxToken), type);
     }
 
     /// <summary>Creates a new ParenthesizedExpressionSyntax instance.</summary>
@@ -5578,20 +5609,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new ArgumentSyntax instance.</summary>
-    public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+    public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
     {
-      switch (refOrOutKeyword.Kind())
+      switch (refKindKeyword.Kind())
       {
         case SyntaxKind.RefKeyword:
         case SyntaxKind.OutKeyword:
+        case SyntaxKind.InKeyword:
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refOrOutKeyword");
+          throw new ArgumentException("refKindKeyword");
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
-      return (ArgumentSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Argument(nameColon == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.SyntaxToken)refOrOutKeyword.Node, expression == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+      return (ArgumentSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Argument(nameColon == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.SyntaxToken)refKindKeyword.Node, expression == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
     }
 
 
@@ -5984,7 +6016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new StackAllocArrayCreationExpressionSyntax instance.</summary>
-    public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, TypeSyntax type)
+    public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer)
     {
       switch (stackAllocKeyword.Kind())
       {
@@ -5995,14 +6027,56 @@ namespace Microsoft.CodeAnalysis.CSharp
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
-      return (StackAllocArrayCreationExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.StackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+      return (StackAllocArrayCreationExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.StackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green, initializer == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new StackAllocArrayCreationExpressionSyntax instance.</summary>
+    public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(TypeSyntax type, InitializerExpressionSyntax initializer)
+    {
+      return SyntaxFactory.StackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), type, initializer);
+    }
+
+    /// <summary>Creates a new StackAllocArrayCreationExpressionSyntax instance.</summary>
     public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(TypeSyntax type)
     {
-      return SyntaxFactory.StackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), type);
+      return SyntaxFactory.StackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), type, default(InitializerExpressionSyntax));
+    }
+
+    /// <summary>Creates a new ImplicitStackAllocArrayCreationExpressionSyntax instance.</summary>
+    public static ImplicitStackAllocArrayCreationExpressionSyntax ImplicitStackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
+    {
+      switch (stackAllocKeyword.Kind())
+      {
+        case SyntaxKind.StackAllocKeyword:
+          break;
+        default:
+          throw new ArgumentException("stackAllocKeyword");
+      }
+      switch (openBracketToken.Kind())
+      {
+        case SyntaxKind.OpenBracketToken:
+          break;
+        default:
+          throw new ArgumentException("openBracketToken");
+      }
+      switch (closeBracketToken.Kind())
+      {
+        case SyntaxKind.CloseBracketToken:
+          break;
+        default:
+          throw new ArgumentException("closeBracketToken");
+      }
+      if (initializer == null)
+        throw new ArgumentNullException(nameof(initializer));
+      return (ImplicitStackAllocArrayCreationExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ImplicitStackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node, (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node, initializer == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new ImplicitStackAllocArrayCreationExpressionSyntax instance.</summary>
+    public static ImplicitStackAllocArrayCreationExpressionSyntax ImplicitStackAllocArrayCreationExpression(InitializerExpressionSyntax initializer)
+    {
+      return SyntaxFactory.ImplicitStackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), SyntaxFactory.Token(SyntaxKind.OpenBracketToken), SyntaxFactory.Token(SyntaxKind.CloseBracketToken), initializer);
     }
 
     /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
@@ -9743,20 +9817,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new CrefParameterSyntax instance.</summary>
-    public static CrefParameterSyntax CrefParameter(SyntaxToken refOrOutKeyword, TypeSyntax type)
+    public static CrefParameterSyntax CrefParameter(SyntaxToken refKindKeyword, TypeSyntax type)
     {
-      switch (refOrOutKeyword.Kind())
+      switch (refKindKeyword.Kind())
       {
         case SyntaxKind.RefKeyword:
         case SyntaxKind.OutKeyword:
+        case SyntaxKind.InKeyword:
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refOrOutKeyword");
+          throw new ArgumentException("refKindKeyword");
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
-      return (CrefParameterSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.CrefParameter((Syntax.InternalSyntax.SyntaxToken)refOrOutKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+      return (CrefParameterSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.CrefParameter((Syntax.InternalSyntax.SyntaxToken)refKindKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
     }
 
 

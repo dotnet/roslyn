@@ -210,9 +210,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestReplaceSingleTriviaForMultipleTriviaInNode()
             Dim expr = SyntaxFactory.ParseExpression("a + b")
             Dim tr = expr.DescendantTrivia().First()
-            Dim replaced = expr.ReplaceTrivia(tr, {SyntaxFactory.Space, SyntaxFactory.CommentTrivia("' foo "), SyntaxFactory.Space})
+            Dim replaced = expr.ReplaceTrivia(tr, {SyntaxFactory.Space, SyntaxFactory.CommentTrivia("' goo "), SyntaxFactory.Space})
             Dim rtext = replaced.ToFullString()
-            Assert.Equal("a ' foo  + b", rtext)
+            Assert.Equal("a ' goo  + b", rtext)
         End Sub
 
         <Fact()>
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestReplaceMultipleTriviaInToken()
-            Dim id = SyntaxFactory.ParseToken("a ' foo " & Environment.NewLine)
+            Dim id = SyntaxFactory.ParseToken("a ' goo " & Environment.NewLine)
 
             ' replace each trivia with a single space
             Dim id2 = id.ReplaceTrivia(id.GetAllTrivia(), Function(tr, tr2) SyntaxFactory.Space)

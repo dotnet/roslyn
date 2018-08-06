@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis
         public const string MetadataAsSource = nameof(MetadataAsSource);
         public const string MiscellaneousFiles = nameof(MiscellaneousFiles);
         public const string Preview = nameof(Preview);
+        public const string MSBuild = "MSBuildWorkspace"; // This string is specifically used to avoid a breaking change.
 
         internal const string Test = nameof(Test);
         internal const string AnyCodeRoslynWorkspace = nameof(AnyCodeRoslynWorkspace);

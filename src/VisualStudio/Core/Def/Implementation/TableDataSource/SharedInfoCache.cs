@@ -10,6 +10,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class SharedInfoCache
     {
         // this should let us to share common information among diagnostics reducing calculation and allocation.

@@ -68,7 +68,7 @@ Namespace My.Resources
         '''  Looks up a localized string similar to Class C
         '''	Sub Method()
         '''		Dim book = &lt;book
-        '''					$$version=&quot;foo&quot;
+        '''					$$version=&quot;goo&quot;
         '''                   /&gt;
         '''	End Sub
         '''End Class.
@@ -229,7 +229,7 @@ Namespace My.Resources
         
         '''<summary>
         '''  Looks up a localized string similar to Class C
-        '''    Sub Foo()
+        '''    Sub Goo()
         '''        Dim xml = &lt;xml&gt;&lt;code&gt;&lt;node&gt;&lt;/node&gt;&lt;/code&gt;&lt;/xml&gt;
         '''
         '''        Dim j = From node In xml.&lt;code&gt;
@@ -245,7 +245,7 @@ Namespace My.Resources
         
         '''<summary>
         '''  Looks up a localized string similar to Class C
-        '''    Sub Foo()
+        '''    Sub Goo()
         '''        Dim xml = &lt;xml&gt;&lt;code&gt;&lt;node&gt;&lt;/node&gt;&lt;/code&gt;&lt;/xml&gt;
         '''
         '''        Dim j = From node In xml.&lt;code&gt;
@@ -349,7 +349,7 @@ Namespace My.Resources
         '''  Looks up a localized string similar to Class C
         '''	Sub Method()
         '''		Dim book = &lt;book
-        '''                   version=&quot;foo&quot;
+        '''                   version=&quot;goo&quot;
         '''                   &gt;
         '''                   &lt;/book&gt;
         '''	End Sub
@@ -365,7 +365,7 @@ Namespace My.Resources
         '''  Looks up a localized string similar to Class C
         '''    Sub Method()
         '''        Dim book = &lt;book
-        '''                       version=&quot;foo&quot;
+        '''                       version=&quot;goo&quot;
         '''                       &gt;
         '''                   &lt;/book&gt;
         '''    End Sub
@@ -513,7 +513,7 @@ Namespace My.Resources
         '''
         '''Module Program
         '''    Sub Main(args As String())
-        '''        Dim foo = _
+        '''        Dim goo = _
         '''                     &lt;LongBook&gt;
         '''                         &lt;%= _
         '''                             From i In &lt;were&gt;&lt;a&gt;&lt;b&gt;&lt;c&gt;&lt;/c&gt;&lt;/b&gt;&lt;/a&gt;&lt;/were&gt; _

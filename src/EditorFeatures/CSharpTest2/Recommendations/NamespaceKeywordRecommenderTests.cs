@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -87,7 +86,7 @@ $$");
         public async Task TestAfterExtern()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"extern alias foo;
+@"extern alias goo;
 $$");
         }
 
@@ -95,7 +94,7 @@ $$");
         public async Task TestAfterExtern_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"extern alias foo;
+@"extern alias goo;
 $$");
         }
 
@@ -103,7 +102,7 @@ $$");
         public async Task TestAfterUsing()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"using Foo;
+@"using Goo;
 $$");
         }
 
@@ -111,7 +110,7 @@ $$");
         public async Task TestAfterUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"using Foo;
+@"using Goo;
 $$");
         }
 
@@ -119,7 +118,7 @@ $$");
         public async Task TestAfterUsingAlias()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"using Foo = Bar;
+@"using Goo = Bar;
 $$");
         }
 
@@ -127,7 +126,7 @@ $$");
         public async Task TestAfterUsingAlias_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"using Foo = Bar;
+@"using Goo = Bar;
 $$");
         }
 
@@ -226,7 +225,7 @@ $$");
         {
             await VerifyAbsenceAsync(@"namespace N {
     $$
-    using Foo;");
+    using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -260,21 +259,21 @@ $$");
         public async Task TestNotBeforeExtern()
         {
             await VerifyAbsenceAsync(@"$$
-extern alias Foo;");
+extern alias Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBeforeUsing()
         {
             await VerifyAbsenceAsync(@"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBetweenUsings()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"using Foo;
+@"using Goo;
 $$
 using Bar;"));
         }
@@ -283,7 +282,7 @@ using Bar;"));
         public async Task TestAfterGlobalAttribute()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"[assembly: Foo]
+@"[assembly: Goo]
 $$");
         }
 
@@ -291,7 +290,7 @@ $$");
         public async Task TestAfterGlobalAttribute_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"[assembly: Foo]
+@"[assembly: Goo]
 $$");
         }
 
@@ -299,7 +298,7 @@ $$");
         public async Task TestNotAfterAttribute()
         {
             await VerifyAbsenceAsync(
-@"[Foo]
+@"[Goo]
 $$");
         }
 
@@ -308,7 +307,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-  [Foo]
+  [Goo]
   $$");
         }
 

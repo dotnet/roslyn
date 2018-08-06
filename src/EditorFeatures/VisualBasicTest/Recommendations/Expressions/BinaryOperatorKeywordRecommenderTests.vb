@@ -58,17 +58,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllAfterMethodCallInAsNewClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x As New Object(Foo() |)</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x As New Object(Goo() |)</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllAfterPropertyAccessInAssignmentTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = Foo.Bar |</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsContainAsync(<MethodBody>x = Goo.Bar |</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllAfterMethodCallInAssignmentTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = Foo.Bar() |</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsContainAsync(<MethodBody>x = Goo.Bar() |</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -114,22 +114,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneInObjectMemberInitializer1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New foo() With {|</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New goo() With {|</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneInObjectMemberInitializer2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New foo() With {.|</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New goo() With {.|</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneInObjectMemberInitializer3Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New foo() With {.x|</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New goo() With {.x|</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneInObjectMemberInitializer4Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New foo() With {.x |</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New goo() With {.x |</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -184,8 +184,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
             Dim code =
             <File>
 Module M
-    Sub Foo(Of T As Class)()
-        Foo(Of T |
+    Sub Goo(Of T As Class)()
+        Goo(Of T |
     End Sub
 End Module
 </File>
@@ -202,13 +202,13 @@ End Module
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterAddHandlerIdentifierTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>AddHandler System.Console.CancelKeyPress, Foo |</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsContainAsync(<MethodBody>AddHandler System.Console.CancelKeyPress, Goo |</MethodBody>, s_expectedKeywords)
         End Function
 
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterAddHandlerAddressOfIdentifierTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>AddHandler System.Console.CancelKeyPress, AddressOf Foo |</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsMissingAsync(<MethodBody>AddHandler System.Console.CancelKeyPress, AddressOf Goo |</MethodBody>, s_expectedKeywords)
         End Function
 
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
@@ -220,13 +220,13 @@ End Module
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterRemoveHandlerIdentifierTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress, Foo |</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsContainAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress, Goo |</MethodBody>, s_expectedKeywords)
         End Function
 
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterRemoveHandlerAddressOfIdentifierTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress, AddressOf Foo |</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsMissingAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress, AddressOf Goo |</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -257,12 +257,12 @@ Imports S |
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(545988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545988")>
         Public Async Function NoneAfterNamedArgumentTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Foo(f:=|</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Goo(f:=|</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(546659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
         Public Async Function NoneInUsingStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Using Foo |</MethodBody>, s_expectedKeywords)
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Using Goo |</MethodBody>, s_expectedKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(531329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531329")>
@@ -290,7 +290,7 @@ Imports S |
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterIncompleteObjectCreationTest() As Task
             Await VerifyRecommendationsMissingAsync(
-<MethodBody>Dim x = new Foo.|
+<MethodBody>Dim x = new Goo.|
 </MethodBody>, s_expectedKeywords)
         End Function
     End Class

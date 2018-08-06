@@ -33,7 +33,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
                        commands,
                        Path.Combine(responseFileDirectory, s_interactiveResponseFile),
                        initialWorkingDirectory,
-                       GetType(InteractiveHostEntryPoint).Assembly.Location,
                        GetType(VisualBasicReplServiceProvider))
         End Sub
 
@@ -51,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
         Protected Overrides ReadOnly Property CommandLineParser As CommandLineParser
             Get
-                Return VisualBasicCommandLineParser.ScriptRunner
+                Return VisualBasicCommandLineParser.Script
             End Get
         End Property
 

@@ -677,11 +677,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             private string ResolveRelativePath(string path, string baseDirectory, ImmutableArray<string> searchPaths, bool displayPath)
             {
                 List<string> attempts = new List<string>();
-                Func<string, bool> fileExists = file =>
+                bool fileExists(string file)
                 {
                     attempts.Add(file);
                     return File.Exists(file);
-                };
+                }
 
                 string fullPath = FileUtilities.ResolveRelativePath(path, null, baseDirectory, searchPaths, fileExists);
                 if (fullPath == null)

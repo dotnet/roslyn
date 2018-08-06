@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<(bool succeeded, ImmutableArray<DocumentHighlights> highlights)> GetDocumentHighlightsInRemoteProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableDocumentHighlights>>(
+            var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableDocumentHighlights>>(
                 RemoteFeatureOptions.DocumentHighlightingEnabled,
                 nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                 new object[]
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 },
                 cancellationToken).ConfigureAwait(false);
 
-            if (result.IsDefault)
+            if (result == null)
             {
                 return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
             }
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     var tree = location.SourceTree;
 
                     var document = solution.GetDocument(tree);
-                    var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                     if (syntaxFacts != null)
                     {

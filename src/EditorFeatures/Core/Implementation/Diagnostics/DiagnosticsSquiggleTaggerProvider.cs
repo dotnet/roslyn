@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
 
-        protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         private bool? _blueSquiggleForBuildDiagnostic;
 
@@ -35,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         public DiagnosticsSquiggleTaggerProvider(
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
-            : base(diagnosticService, notificationService, listeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(diagnosticService, notificationService, listenerProvider)
         {
         }
 
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override IErrorTag CreateTag(DiagnosticData diagnostic)
         {
-            Contract.Requires(!string.IsNullOrWhiteSpace(diagnostic.Message));
+            Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
             if (errorType == null)
             {

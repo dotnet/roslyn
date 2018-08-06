@@ -55,8 +55,7 @@ namespace RepoUtil
             foreach (var prop in dependencies.Properties())
             {
                 var currentPackage = ParseDependency(prop);
-                NuGetPackage newPackage;
-                if (!changeMap.TryGetValue(currentPackage, out newPackage))
+                if (!changeMap.TryGetValue(currentPackage, out var newPackage))
                 {
                     continue;
                 }

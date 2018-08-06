@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                     End If
                 ElseIf methodDeclaration.ParameterList IsNot Nothing Then
                     ' If we don't have a TypeParametersOpt, then we might be in a place where it's ambiguous where we are.
-                    ' For example, typing Sub Foo(|, it's not clear if that's a TypeParameters block I'm in or a regular
+                    ' For example, typing Sub Goo(|, it's not clear if that's a TypeParameters block I'm in or a regular
                     ' block. The parser chooses the sane choice of calling that a regular parameters block until it knows
                     ' otherwise.
                     If targetToken = methodDeclaration.ParameterList.OpenParenToken Then
@@ -75,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End If
 
             ' Cases:
-            '  Dim f As New Foo(|
-            '  Foo(|
+            '  Dim f As New Goo(|
+            '  Goo(|
             Dim argumentList = targetToken.GetAncestor(Of ArgumentListSyntax)()
             If argumentList IsNot Nothing Then
                 ' Ensure it's not "Dim F(|" unless creating a generic delegate
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 End If
             End If
 
-            ' Case: Dim f As Foo(|
+            ' Case: Dim f As Goo(|
             Dim arrayRankSpecifier = targetToken.GetAncestor(Of ArrayRankSpecifierSyntax)()
             If arrayRankSpecifier IsNot Nothing Then
                 If targetToken = arrayRankSpecifier.OpenParenToken Then

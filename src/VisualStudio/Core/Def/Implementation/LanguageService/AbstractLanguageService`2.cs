@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -230,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
             Contract.ThrowIfNull(wpfTextView, "Could not get IWpfTextView for IVsTextView");
 
-            Contract.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter<TPackage, TLanguageService>)));
+            Debug.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter<TPackage, TLanguageService>)));
 
             var commandHandlerFactory = Package.ComponentModel.GetService<ICommandHandlerServiceFactory>();
             var workspace = Package.ComponentModel.GetService<VisualStudioWorkspace>();
@@ -260,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, Workspace workspace, bool isOpenMetadataAsSource)
+        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, Microsoft.CodeAnalysis.Workspace workspace, bool isOpenMetadataAsSource)
         {
             var outliningManagerService = this.Package.ComponentModel.GetService<IOutliningManagerService>();
             var outliningManager = outliningManagerService.GetOutliningManager(wpfTextView);
@@ -275,8 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             else
             {
-                var viewEx = textView as IVsTextViewEx;
-                if (viewEx != null)
+                if (textView is IVsTextViewEx viewEx)
                 {
                     if (isOpenMetadataAsSource)
                     {

@@ -171,168 +171,168 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket1() As Task
-            Dim code = "$$<Foo()> Dim i As Integer"
-            Dim expected = "<Foo()[|>|] Dim i As Integer"
+            Dim code = "$$<Goo()> Dim i As Integer"
+            Dim expected = "<Goo()[|>|] Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket2() As Task
-            Dim code = "<$$Foo()> Dim i As Integer"
-            Dim expected = "<Foo()[|>|] Dim i As Integer"
+            Dim code = "<$$Goo()> Dim i As Integer"
+            Dim expected = "<Goo()[|>|] Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket3() As Task
-            Dim code = "<Foo$$()> Dim i As Integer"
-            Dim expected = "<Foo([|)|]> Dim i As Integer"
+            Dim code = "<Goo$$()> Dim i As Integer"
+            Dim expected = "<Goo([|)|]> Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket4() As Task
-            Dim code = "<Foo($$)> Dim i As Integer"
-            Dim expected = "<Foo([|)|]> Dim i As Integer"
+            Dim code = "<Goo($$)> Dim i As Integer"
+            Dim expected = "<Goo([|)|]> Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket5() As Task
-            Dim code = "<Foo($$ )> Dim i As Integer"
-            Dim expected = "<Foo( [|)|]> Dim i As Integer"
+            Dim code = "<Goo($$ )> Dim i As Integer"
+            Dim expected = "<Goo( [|)|]> Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket6() As Task
-            Dim code = "<Foo( $$)> Dim i As Integer"
-            Dim expected = "<Foo[|(|] )> Dim i As Integer"
+            Dim code = "<Goo( $$)> Dim i As Integer"
+            Dim expected = "<Goo[|(|] )> Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket7() As Task
-            Dim code = "<Foo( )$$> Dim i As Integer"
-            Dim expected = "<Foo[|(|] )> Dim i As Integer"
+            Dim code = "<Goo( )$$> Dim i As Integer"
+            Dim expected = "<Goo[|(|] )> Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket8() As Task
-            Dim code = "<Foo()$$> Dim i As Integer"
-            Dim expected = "<Foo[|(|])> Dim i As Integer"
+            Dim code = "<Goo()$$> Dim i As Integer"
+            Dim expected = "<Goo[|(|])> Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket9() As Task
-            Dim code = "<Foo()$$ > Dim i As Integer"
-            Dim expected = "<Foo[|(|]) > Dim i As Integer"
+            Dim code = "<Goo()$$ > Dim i As Integer"
+            Dim expected = "<Goo[|(|]) > Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket10() As Task
-            Dim code = "<Foo() $$> Dim i As Integer"
-            Dim expected = "[|<|]Foo() > Dim i As Integer"
+            Dim code = "<Goo() $$> Dim i As Integer"
+            Dim expected = "[|<|]Goo() > Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket11() As Task
-            Dim code = "<Foo() >$$ Dim i As Integer"
-            Dim expected = "[|<|]Foo() > Dim i As Integer"
+            Dim code = "<Goo() >$$ Dim i As Integer"
+            Dim expected = "[|<|]Goo() > Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestAngleBracket12() As Task
-            Dim code = "<Foo()>$$ Dim i As Integer"
-            Dim expected = "[|<|]Foo()> Dim i As Integer"
+            Dim code = "<Goo()>$$ Dim i As Integer"
+            Dim expected = "[|<|]Goo()> Dim i As Integer"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestString1() As Task
-            Dim code = "Dim s As String = $$""Foo"""
-            Dim expected = "Dim s As String = ""Foo[|""|]"
+            Dim code = "Dim s As String = $$""Goo"""
+            Dim expected = "Dim s As String = ""Goo[|""|]"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestString2() As Task
-            Dim code = "Dim s As String = ""$$Foo"""
-            Dim expected = "Dim s As String = ""Foo[|""|]"
+            Dim code = "Dim s As String = ""$$Goo"""
+            Dim expected = "Dim s As String = ""Goo[|""|]"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestString3() As Task
-            Dim code = "Dim s As String = ""Foo$$"""
-            Dim expected = "Dim s As String = [|""|]Foo"""
+            Dim code = "Dim s As String = ""Goo$$"""
+            Dim expected = "Dim s As String = [|""|]Goo"""
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestString4() As Task
-            Dim code = "Dim s As String = ""Foo""$$"
-            Dim expected = "Dim s As String = [|""|]Foo"""
+            Dim code = "Dim s As String = ""Goo""$$"
+            Dim expected = "Dim s As String = [|""|]Goo"""
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestString5() As Task
-            Dim code = "Dim s As String = ""Foo$$"
-            Dim expected = "Dim s As String = ""Foo"
+            Dim code = "Dim s As String = ""Goo$$"
+            Dim expected = "Dim s As String = ""Goo"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestInterpolatedString1() As Task
-            Dim code = "Dim s = $$[||]$""Foo"""
-            Dim expected = "Dim s = $""Foo[|""|]"
+            Dim code = "Dim s = $$[||]$""Goo"""
+            Dim expected = "Dim s = $""Goo[|""|]"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestInterpolatedString2() As Task
-            Dim code = "Dim s = $""$$Foo"""
-            Dim expected = "Dim s = $""Foo[|""|]"
+            Dim code = "Dim s = $""$$Goo"""
+            Dim expected = "Dim s = $""Goo[|""|]"
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestInterpolatedString3() As Task
-            Dim code = "Dim s = $""Foo$$"""
-            Dim expected = "Dim s = [|$""|]Foo"""
+            Dim code = "Dim s = $""Goo$$"""
+            Dim expected = "Dim s = [|$""|]Goo"""
 
             Await TestInClassAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Async Function TestInterpolatedString4() As Task
-            Dim code = "Dim s = $""Foo""$$"
-            Dim expected = "Dim s = [|$""|]Foo"""
+            Dim code = "Dim s = $""Goo""$$"
+            Dim expected = "Dim s = [|$""|]Goo"""
 
             Await TestInClassAsync(code, expected)
         End Function

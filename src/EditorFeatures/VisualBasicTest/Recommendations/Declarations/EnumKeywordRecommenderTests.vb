@@ -142,7 +142,7 @@ End Interface
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EnumNotAfterPrivateInNamespaceTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Namespace Foo
+Namespace Goo
     Private |
 End Namespace</File>, "Enum")
         End Function

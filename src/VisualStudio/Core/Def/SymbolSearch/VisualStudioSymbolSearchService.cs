@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
         }
 
-        public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return FilterAndOrderPackages(allPackagesWithType);
         }
 
-        public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken)
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return result.ToImmutableAndFree();
         }
 
-        public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);

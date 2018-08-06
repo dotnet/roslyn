@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -36,12 +37,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
-        private IEnumerable<EmbeddedText> _embedddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
+        private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
 
         // Only set when running tests to allow realized IL for a given method to be looked up by method.
         internal ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> TestData { get; private set; }
 
         internal readonly DebugInformationFormat DebugInformationFormat;
+        internal readonly HashAlgorithmName PdbChecksumAlgorithm;
 
         public CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SerializationProperties = serializationProperties;
             _methodBodyMap = new ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
             DebugInformationFormat = emitOptions.DebugInformationFormat;
+            PdbChecksumAlgorithm = emitOptions.PdbChecksumAlgorithm;
         }
 
         /// <summary>
@@ -368,12 +371,12 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             get 
             { 
-                return _embedddedTexts; 
+                return _embeddedTexts; 
             }
             set
             {
                 Debug.Assert(value != null);
-                _embedddedTexts = value;
+                _embeddedTexts = value;
             }
         }
 

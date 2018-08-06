@@ -2,9 +2,7 @@
   "nuspecExcludes": [
     "^packages.*",
     "^Binaries.*",
-    "^src\\\\Samples.*",
     "^src\\\\Dependencies.*",
     ".*NuSpec.loc.*",
-    ".*Templates.*"
   ]
 }

@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {
@@ -15,8 +13,6 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
     internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         public const string ElementName = nameof(ElementName);
-
-        private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
 
         public UseExplicitTupleNameDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
@@ -29,11 +25,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => s_registerMethod.Invoke(context, new object[]
-               {
-                   new Action<OperationAnalysisContext>(AnalyzeOperation),
-                   ImmutableArray.Create(OperationKind.FieldReferenceExpression)
-               });
+            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
@@ -46,13 +38,13 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             }
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
-            var severity = option.Notification.Value;
-            if (severity == DiagnosticSeverity.Hidden)
+            var severity = option.Notification.Severity;
+            if (severity == ReportDiagnostic.Suppress)
             {
                 return;
             }
 
-            var fieldReferenceOperation = (IFieldReferenceExpression)context.Operation;
+            var fieldReferenceOperation = (IFieldReferenceOperation)context.Operation;
 
             var field = fieldReferenceOperation.Field;
             if (field.ContainingType.IsTupleType)
@@ -68,9 +60,11 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                         {
                             var properties = ImmutableDictionary<string, string>.Empty.Add(
                                 nameof(ElementName), namedField.Name);
-                            context.ReportDiagnostic(Diagnostic.Create(
-                                GetDescriptorWithSeverity(severity),
+                            context.ReportDiagnostic(DiagnosticHelper.Create(
+                                Descriptor,
                                 nameNode.GetLocation(),
+                                severity,
+                                additionalLocations: null,
                                 properties));
                         }
                     }

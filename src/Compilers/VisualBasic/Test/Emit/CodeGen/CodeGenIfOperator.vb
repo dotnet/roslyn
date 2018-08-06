@@ -624,9 +624,9 @@ End Module
 Option Infer Off
 Module M1
     Sub Main()
-        foo()
+        goo()
     End Sub
-    Public Sub foo(Optional ByVal arg As String = If(False, "6", "61"))
+    Public Sub goo(Optional ByVal arg As String = If(False, "6", "61"))
         System.Console.WriteLine(arg)
     End Sub
 End Module
@@ -662,9 +662,9 @@ Module M1
     Sub Main()
         Dim X = "123"
         Dim Y = "456"
-        Dim Z = If(1 > 2, foo(X), foo(Y))
+        Dim Z = If(1 > 2, goo(X), goo(Y))
     End Sub
-    Private Function foo(ByRef p1 As String)
+    Private Function goo(ByRef p1 As String)
         p1 = "HELLO"
     End Function
 End Module
@@ -680,7 +680,7 @@ End Module
   IL_0006:  ldstr      "456"
   IL_000b:  stloc.1
   IL_000c:  ldloca.s   V_1
-  IL_000e:  call       "Function M1.foo(ByRef String) As Object"
+  IL_000e:  call       "Function M1.goo(ByRef String) As Object"
   IL_0013:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_0018:  pop
   IL_0019:  ret

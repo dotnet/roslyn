@@ -71,10 +71,10 @@ Class Class1
     Implements Class1.Interface1
 
     Public Interface Interface1
-        Sub Foo()
+        Sub Goo()
     End Interface
 
-    Public Sub Foo() Implements Interface1.Foo
+    Public Sub Goo() Implements Interface1.Goo
 
     End Sub
 End Class
@@ -90,8 +90,8 @@ End Class
                 Signature("Class2", "set_Bar", ".method public newslot strict specialname virtual final instance System.Void set_Bar(System.Int32 value) cil managed"),
                 Signature("Class2", "AbcDef", ".method public newslot strict virtual final instance System.Void AbcDef() cil managed"),
                 Signature("Class2", "Bar", ".property readwrite instance System.Int32 Bar"),
-                Signature("Class1+Interface1", "Foo", ".method public newslot strict abstract virtual instance System.Void Foo() cil managed"),
-                Signature("Class1", "Foo", ".method public newslot strict virtual final instance System.Void Foo() cil managed")
+                Signature("Class1+Interface1", "Goo", ".method public newslot strict abstract virtual instance System.Void Goo() cil managed"),
+                Signature("Class1", "Goo", ".method public newslot strict virtual final instance System.Void Goo() cil managed")
             })
 
             verifier.VerifyDiagnostics()

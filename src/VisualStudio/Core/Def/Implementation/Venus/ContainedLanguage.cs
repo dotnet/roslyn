@@ -16,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class ContainedLanguage<TPackage, TLanguageService> : AbstractContainedLanguage
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
@@ -34,6 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // flickering.
         private ITagAggregator<ITag> _bufferTagAggregator;
 
+        // <Previous release> BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        // This is required for the Typescript Language Service
         public ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
@@ -42,14 +46,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             uint itemid,
             TLanguageService languageService,
             SourceCodeKind sourceCodeKind,
-            IFormattingRule vbHelperFormattingRule = null)
+            IFormattingRule vbHelperFormattingRule)
+            : this(bufferCoordinator,
+                   componentModel,
+                   project,
+                   hierarchy,
+                   itemid,
+                   languageService,
+                   sourceCodeKind,
+                   vbHelperFormattingRule,
+                   workspace: null)
+        {
+        }
+
+        public ContainedLanguage(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            AbstractProject project,
+            IVsHierarchy hierarchy,
+            uint itemid,
+            TLanguageService languageService,
+            SourceCodeKind sourceCodeKind,
+            IFormattingRule vbHelperFormattingRule = null,
+            Workspace workspace = null)
             : base(project)
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
             _languageService = languageService;
 
-            this.Workspace = componentModel.GetService<VisualStudioWorkspace>();
+            this.Workspace = workspace ?? componentModel.GetService<VisualStudioWorkspace>();
 
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();

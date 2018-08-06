@@ -5,87 +5,87 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllRecommendationsForFirstParameterTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Goo(|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllRecommendationsForSecondParameterAfterByRefFirstTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(ByRef first As Integer, |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Goo(ByRef first As Integer, |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllRecommendationsForSecondParameterAfterByValFirstTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(ByVal first As Integer, |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Goo(ByVal first As Integer, |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllRecommendationsForFirstParameterAfterGenericParamsTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Of T)(|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Goo(Of T)(|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ByValAndByRefAfterOptionalTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Optional |</ClassDeclaration>, "ByVal", "ByRef")
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Goo(Optional |</ClassDeclaration>, "ByVal", "ByRef")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NothingAfterOptionalByValTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Optional ByVal |</ClassDeclaration>, {})
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Goo(Optional ByVal |</ClassDeclaration>, {})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NothingAfterByRefOptionalTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(ByRef Optional |</ClassDeclaration>, {})
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Goo(ByRef Optional |</ClassDeclaration>, {})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NothingAfterByValOptionalTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(ByVal Optional |</ClassDeclaration>, {})
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Goo(ByVal Optional |</ClassDeclaration>, {})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NothingAfterOptionalByRefTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Optional ByRef |</ClassDeclaration>, {})
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Goo(Optional ByRef |</ClassDeclaration>, {})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ByValAfterParamArrayTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(ParamArray |</ClassDeclaration>, "ByVal")
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Goo(ParamArray |</ClassDeclaration>, "ByVal")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NothingAfterPreviousParamArrayTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(ParamArray arg1 As Integer(), |</ClassDeclaration>, {})
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Goo(ParamArray arg1 As Integer(), |</ClassDeclaration>, {})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionalRecommendedAfterPreviousOptionalTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Optional arg1 = 2, |</ClassDeclaration>, "Optional")
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Goo(Optional arg1 = 2, |</ClassDeclaration>, "Optional")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoByRefByValOrParamArrayAfterByValTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo(ByVal |, |</ClassDeclaration>, "ByVal", "ByRef", "ParamArray")
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Goo(ByVal |, |</ClassDeclaration>, "ByVal", "ByRef", "ParamArray")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoByRefByValAfterByRefTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo(ByRef |, |</ClassDeclaration>, "ByVal", "ByRef")
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Goo(ByRef |, |</ClassDeclaration>, "ByVal", "ByRef")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllAppropriateInPropertyParametersTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Property Foo(| As Integer</ClassDeclaration>, "ByVal", "Optional", "ParamArray")
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Property Goo(| As Integer</ClassDeclaration>, "ByVal", "Optional", "ParamArray")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllInExternalMethodDeclarationTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub Foo Lib "foo.dll" (|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub Goo Lib "goo.dll" (|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllInExternalDelegateDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Sub Foo(|</ClassDeclaration>, "ByVal", "ByRef")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Sub Goo(|</ClassDeclaration>, "ByVal", "ByRef")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -200,7 +200,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterLineContinuationTest() As Task
             Await VerifyRecommendationsContainAsync(
-<ClassDeclaration>Sub Foo(
+<ClassDeclaration>Sub Goo(
 |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
         End Function
     End Class

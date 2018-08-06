@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         private const string TestSource = @"
 Class C
     Public WithEvents Domain As AppDomain
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
@@ -30,15 +30,15 @@ End Structure";
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             VisualStudio.Editor.SetText(TestSource);
 
-            VisualStudio.Editor.PlaceCaret("Foo", charsOffset: 1);
+            VisualStudio.Editor.PlaceCaret("Goo", charsOffset: 1);
 
             VerifyLeftSelected("C");
-            VerifyRightSelected("Foo");
+            VerifyRightSelected("Goo");
 
             VisualStudio.Editor.ExpandTypeNavBar();
             var expectedItems = new[]
@@ -71,7 +71,7 @@ End Structure";
             VisualStudio.Editor.Verify.CurrentLineText("Public Property $$B As Integer", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void CodeSpit()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -79,7 +79,7 @@ End Structure";
             VisualStudio.Editor.PlaceCaret("C", charsOffset: 1);
             VerifyLeftSelected("C");
             VisualStudio.Editor.ExpandMemberNavBar();
-            Assert.Equal(new[] { "New", "Finalize", "Foo" }, VisualStudio.Editor.GetMemberNavBarItems());
+            Assert.Equal(new[] { "New", "Finalize", "Goo" }, VisualStudio.Editor.GetMemberNavBarItems());
             VisualStudio.Editor.SelectMemberNavBarItem("New");
             VisualStudio.Editor.Verify.TextContains(@"
     Public Sub New()
@@ -89,7 +89,7 @@ End Structure";
             VisualStudio.Editor.Verify.CurrentLineText("$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
             VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "False");

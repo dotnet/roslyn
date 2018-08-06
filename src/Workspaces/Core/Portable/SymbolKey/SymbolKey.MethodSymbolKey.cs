@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 // Mark that we're writing out the signature of a method.  This way if we hit a 
                 // method type parameter in our parameter-list or return type, we won't recurse
                 // into it, but will instead only write out the type parameter ordinal.  This
-                // happens with cases like Foo<T>(T t);
+                // happens with cases like Goo<T>(T t);
                 visitor.PushMethod(symbol);
 
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis
                 var parameterRefKinds = reader.ReadRefKindArray();
 
                 // For each method that we look at, we'll have to resolve the parameter list and
-                // return type in the context of that method.  i.e. if we have Foo<T>(IList<T> list)
-                // then we'll need to have marked that we're on the Foo<T> method so that we know 
+                // return type in the context of that method.  i.e. if we have Goo<T>(IList<T> list)
+                // then we'll need to have marked that we're on the Goo<T> method so that we know 
                 // 'T' in IList<T> resolves to.
                 //
                 // Because of this, we keep track of where we are in the reader.  Before resolving

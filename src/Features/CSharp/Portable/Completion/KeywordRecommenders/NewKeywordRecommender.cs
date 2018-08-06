@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // cases:
             //    where T : |
             //    where T : class, |
-            //    where T : Foo, |
+            //    where T : Goo, |
             // note: 'new()' can't come after a 'struct' constraint.
 
             if (context.SyntaxTree.IsTypeParameterConstraintStartContext(context.Position, context.LeftToken, cancellationToken))

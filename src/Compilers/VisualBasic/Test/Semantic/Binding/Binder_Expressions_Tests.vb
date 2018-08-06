@@ -17,14 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Test that BC30157 is generated for a member access off With when there is no containing With.
         <Fact>
         Public Sub MemberAccessNoContainingWith()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MemberAccessNoContainingWith">
     <file name="a.vb">
 Imports System        
 Module M1
     Sub Main()
         Dim x as Integer
-        x = .foo
+        x = .goo
     End Sub
 End Module
     </file>
@@ -33,7 +33,7 @@ End Module
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30157: Leading '.' or '!' can only appear inside a 'With' statement.
-        x = .foo
+        x = .goo
             ~~~~
 </expected>)
         End Sub
@@ -62,20 +62,20 @@ expectedOutput:="123")
         End Sub
 
         <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub Bug679765()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.T_68086 %>
+        <%= SemanticResourceUtil.T_68086 %>
     </file>
-</compilation>, additionalRefs:={MsvbRef})
+</compilation>, references:={MsvbRef})
         End Sub
 
         <WorkItem(707924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707924")>
         <Fact()>
         Public Sub Bug707924a()
-            Dim source = My.Resources.Resource.T_1247520
+            Dim source = SemanticResourceUtil.T_1247520
             Dim result = VisualBasicSyntaxTree.ParseText(source).ToString()
             Assert.Equal(source, result)
         End Sub
@@ -105,7 +105,7 @@ End Module
         ' Test access to a local variable, parameter, type parameter, namespace with arity.
         <Fact>
         Public Sub LocalVariableWrongArity()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LocalVariable1">
     <file name="a.vb">
 Imports System        
@@ -118,7 +118,7 @@ Module M1
         x = System.Collections(Of Decimal)
     End Sub
 
-    Sub foo(y as string)
+    Sub goo(y as string)
         dim z as string
         z = y(of Boolean)
     End Sub
@@ -175,7 +175,7 @@ End Module
         ' Test access to a local variable and assignment of them..
         <Fact>
         Public Sub ArrayAssignmentError1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ArrayAssignmentError1">
     <file name="a.vb">
 Imports System        
@@ -228,7 +228,7 @@ End Module
         ' Test access to a local variable and assignment of them..
         <Fact()>
         Public Sub ArrayAssignmentError2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ArrayAssignmentErrors2">
     <file name="a.vb">
 Option strict on     
@@ -262,7 +262,7 @@ BC30512: Option Strict On disallows implicit conversions from 'UInteger' to 'Int
 Imports System        
 
 Module M1
-    Sub Foo(xParam as Integer, ByRef yParam As Long)
+    Sub Goo(xParam as Integer, ByRef yParam As Long)
         Console.WriteLine("xParam = {0}", xParam)
         Console.WriteLine("yParam = {0}", yParam)
         xParam = 17
@@ -278,7 +278,7 @@ Module M1
         y = 16442
         Console.WriteLine("x = {0}", x)
         Console.WriteLine("y = {0}", y)
-        Foo(x,y)
+        Goo(x,y)
         Console.WriteLine("x = {0}", x)
         Console.WriteLine("y = {0}", y)
     End Sub
@@ -309,8 +309,8 @@ Class C1
     Public Sub New()
     End Sub
 
-    Sub Foo()
-        Console.WriteLine("Called C1.Foo")
+    Sub Goo()
+        Console.WriteLine("Called C1.Goo")
     End Sub
 End Class     
 
@@ -318,12 +318,12 @@ Module M1
     Sub Main()
         dim c as C1
         c = new C1()
-        c.Foo()
+        c.Goo()
     End Sub
 End Module
     </file>
 </compilation>,
-    expectedOutput:="Called C1.Foo")
+    expectedOutput:="Called C1.Goo")
         End Sub
 
         ' Test object creation expression
@@ -357,7 +357,7 @@ End Module
         ' Test access to simple identifier that isn't found anywhere.
         <Fact>
         Public Sub SimpleNameNotFound()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SimpleNameNotFound">
     <file name="a.vb">
 Imports System        
@@ -365,7 +365,7 @@ Imports System
 Module M1
     Sub Main()
         Dim x as Integer
-        x = foo
+        x = goo
     End Sub
 End Module
     </file>
@@ -373,8 +373,8 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30451: 'foo' is not declared. It may be inaccessible due to its protection level.
-        x = foo
+BC30451: 'goo' is not declared. It may be inaccessible due to its protection level.
+        x = goo
             ~~~
 </expected>)
         End Sub
@@ -382,7 +382,7 @@ BC30451: 'foo' is not declared. It may be inaccessible due to its protection lev
         <WorkItem(538871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538871")>
         <Fact>
         Public Sub QualifiedNameBeforeDotNotFound()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="QualifiedNameBeforeDotNotFound">
     <file name="a.vb">
 Imports System
@@ -413,7 +413,7 @@ BC30456: 'B' is not a member of 'MainModule.A'.
         ' Test access to qualified identifier not found, in various scopes
         <Fact>
         Public Sub QualifiedNameNotFound()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="QualifiedNameNotFound">
     <file name="a.vb">
 Imports System        
@@ -430,10 +430,10 @@ Module M1
         Dim x as Integer
         Dim cInstance as C
         cInstance = Nothing
-        x = N.foo
-        x = C.foo
-        x = cInstance.foo
-        x = M1.foo
+        x = N.goo
+        x = C.goo
+        x = cInstance.goo
+        x = M1.goo
     End Sub
 End Module
     </file>
@@ -441,17 +441,17 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30456: 'foo' is not a member of 'N'.
-        x = N.foo
+BC30456: 'goo' is not a member of 'N'.
+        x = N.goo
             ~~~~~
-BC30456: 'foo' is not a member of 'C'.
-        x = C.foo
+BC30456: 'goo' is not a member of 'C'.
+        x = C.goo
             ~~~~~
-BC30456: 'foo' is not a member of 'C'.
-        x = cInstance.foo
+BC30456: 'goo' is not a member of 'C'.
+        x = cInstance.goo
             ~~~~~~~~~~~~~
-BC30456: 'foo' is not a member of 'M1'.
-        x = M1.foo
+BC30456: 'goo' is not a member of 'M1'.
+        x = M1.goo
             ~~~~~~
 </expected>)
         End Sub
@@ -459,7 +459,7 @@ BC30456: 'foo' is not a member of 'M1'.
         ' Test access qualified identifier off of type parameter
         <Fact>
         Public Sub TypeParamCantQualify()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="TypeParamCantQualify">
     <file name="a.vb">
 Imports System        
@@ -467,7 +467,7 @@ Imports System
 Class C(Of T)
     Public Sub f()
         dim x as Integer
-        x = T.foo
+        x = T.goo
     End Sub
 End Class
 
@@ -477,7 +477,7 @@ End Class
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32098: Type parameters cannot be used as qualifiers.
-        x = T.foo
+        x = T.goo
             ~~~~~
 </expected>)
         End Sub
@@ -485,19 +485,19 @@ BC32098: Type parameters cannot be used as qualifiers.
         ' Test access to simple identifier that can be found, but has an error.
         <Fact>
         Public Sub BadSimpleName()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadSimpleName">
     <file name="a.vb">
 Imports System
 
-Class Foo(Of T)
+Class Goo(Of T)
     Shared Public x As Integer
 End Class
 
 Module Module1
     Sub Main()
         Dim y As Integer
-        y = Foo.x
+        y = Goo.x
     End Sub
 End Module
     </file>
@@ -505,8 +505,8 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC32042: Too few type arguments to 'Foo(Of T)'.
-        y = Foo.x
+BC32042: Too few type arguments to 'Goo(Of T)'.
+        y = Goo.x
             ~~~
 </expected>)
         End Sub
@@ -514,18 +514,18 @@ BC32042: Too few type arguments to 'Foo(Of T)'.
         ' Test access to qualified identifier that can be found, but has an error.
         <Fact>
         Public Sub BadQualifiedName()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadQualifiedName">
     <file name="a.vb">
 Imports System
 Namespace N
-    Class Foo(Of T)
+    Class Goo(Of T)
         Shared Public x As Integer
     End Class
 End Namespace
 
 Class C
-    Class Foo(Of T)
+    Class Goo(Of T)
         Shared Public x As Integer
     End Class
 End Class
@@ -535,10 +535,10 @@ Module Module1
         Dim y As Integer
         Dim cInstance as C
         cInstance = Nothing
-        y = N.Foo.x
-        y = C.Foo.x
-        y = cInstance.Foo.x
-        y = cInstance.Foo(Of Integer).x
+        y = N.Goo.x
+        y = C.Goo.x
+        y = cInstance.Goo.x
+        y = cInstance.Goo(Of Integer).x
     End Sub
 End Module
     </file>
@@ -547,17 +547,17 @@ End Module
             ' Note that we produce different (but I think better) error messages than Dev10.
             AssertTheseDiagnostics(compilation,
 <expected>
-BC32042: Too few type arguments to 'Foo(Of T)'.
-        y = N.Foo.x
+BC32042: Too few type arguments to 'Goo(Of T)'.
+        y = N.Goo.x
             ~~~~~
-BC32042: Too few type arguments to 'C.Foo(Of T)'.
-        y = C.Foo.x
+BC32042: Too few type arguments to 'C.Goo(Of T)'.
+        y = C.Goo.x
             ~~~~~
-BC32042: Too few type arguments to 'C.Foo(Of T)'.
-        y = cInstance.Foo.x
+BC32042: Too few type arguments to 'C.Goo(Of T)'.
+        y = cInstance.Goo.x
             ~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        y = cInstance.Foo(Of Integer).x
+        y = cInstance.Goo(Of Integer).x
             ~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -565,7 +565,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
         ' Test access to instance member in various ways to get various errors.
         <Fact>
         Public Sub AccessInstanceFromStatic()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="AccessInstanceFromStatic">
     <file name="a.vb">
 Class K
@@ -578,7 +578,7 @@ Class K
         End Sub
         Public xx As Integer
 
-        Public Shared Sub foo()
+        Public Shared Sub goo()
             Dim v As Integer
             Dim zInstance As Z
             zInstance = Nothing
@@ -626,7 +626,7 @@ BC30469: Reference to a non-shared member requires an object reference.
         ' Test access to static member in various ways to get various errors.
         <Fact>
         Public Sub AccessStaticViaInstance()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="AccessStaticViaInstance">
     <file name="a.vb">
 Class K
@@ -639,7 +639,7 @@ Class K
         End Sub
         Public Shared xx As Integer
 
-        Public Sub foo()
+        Public Sub goo()
             Dim v As Integer
             Dim zInstance As Z
             zInstance = Nothing
@@ -690,7 +690,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(
+            Dim c1 = CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "j.MaxValue"),
                 Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "i.MaxValue"))
 
@@ -698,7 +698,7 @@ End Class
 
         <Fact>
         Public Sub ConstantFields1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="VBConstantFields1">
     <file name="a.vb">
 Module Module1
@@ -778,7 +778,7 @@ Imports System
 Module M1
     Sub Main()
         Dim x as boolean
-        x = Integer?.Equals("foo", "f" + "oo")
+        x = Integer?.Equals("goo", "g" + "oo")
         Console.WriteLine(x)
     End Sub
 End Module
@@ -796,21 +796,21 @@ End Module
 Option Strict On
 
 Module M
-  Function Foo(x As Integer) As Integer()
-    Foo(1) = Nothing
+  Function Goo(x As Integer) As Integer()
+    Goo(1) = Nothing
   End Function
 End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
-    Foo(1) = Nothing
+    Goo(1) = Nothing
     ~~~~~~
-BC42105: Function 'Foo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+BC42105: Function 'Goo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
   End Function
   ~~~~~~~~~~~~
 </expected>)
@@ -821,12 +821,12 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
 Module Module1
 
     Sub Main()
-        Foo()
+        Goo()
     End Sub
 
     Private val As TestClass
 
-    Function Foo() As TestClass
+    Function Goo() As TestClass
         If val Is Nothing Then
             System.Console.WriteLine("Nothing")
             val = New TestClass()
@@ -839,14 +839,14 @@ Module Module1
         Dim x As TestClass = New TestClass()
         x.Field = 1
 
-        Foo = x
-        System.Console.WriteLine(Foo.Field)
-        System.Console.WriteLine(Foo.GetField())
-        System.Console.WriteLine(Foo().Field)
-        System.Console.WriteLine(Foo(3))
+        Goo = x
+        System.Console.WriteLine(Goo.Field)
+        System.Console.WriteLine(Goo.GetField())
+        System.Console.WriteLine(Goo().Field)
+        System.Console.WriteLine(Goo(3))
     End Function
 
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         Return x
     End Function
 End Module
@@ -863,7 +863,7 @@ End Class
     </file>
 </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Nothing
@@ -879,27 +879,27 @@ val
     <file name="a.vb">
 Option Strict On
 Module M
-  Function Foo(x As Integer) As Integer()
-    Dim y As Integer() = Foo(1)
+  Function Goo(x As Integer) As Integer()
+    Dim y As Integer() = Goo(1)
   End Function
 End Module
 
 Module M1
-    Function Foo(x As Object) As Integer
-        Return Foo(1)
+    Function Goo(x As Object) As Integer
+        Return Goo(1)
     End Function
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         Return 1
     End Function
 End Module
     </file>
 </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC42105: Function 'Foo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+BC42105: Function 'Goo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
   End Function
   ~~~~~~~~~~~~    
 </expected>)
@@ -915,10 +915,10 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
 Imports System
 
 Public Class C1
-    Private Shared Sub foo(x as String)
+    Private Shared Sub goo(x as String)
         Console.Writeline("Private")
     End Sub
-    Public Shared Sub foo(x as Object)
+    Public Shared Sub goo(x as Object)
         Console.Writeline("Public")
     End Sub
 End class
@@ -926,7 +926,7 @@ End class
 Module Program
     Sub Main()
         'Below call should bind to public overload that takes object
-        c1.foo("")
+        c1.goo("")
     End Sub
 End Module
     </file>
@@ -949,7 +949,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -967,11 +967,11 @@ BC30491: Expression does not produce a value.
     <file name="a.vb">
 Module Program
   Sub Main()
-    System.Console.WriteLine(Foo.ToString)
+    System.Console.WriteLine(Goo.ToString)
     System.Console.WriteLine(Bar(Of Integer).ToString)
   End Sub
  
-  Function Foo() as Integer
+  Function Goo() as Integer
     return 123
   End Function
 
@@ -982,7 +982,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 123
@@ -994,22 +994,22 @@ End Module
     <file name="a.vb">
 Module Program
   Sub Main()
-    System.Console.WriteLine(Foo.ToString)
+    System.Console.WriteLine(Goo.ToString)
   End Sub
  
-  Function Foo(x as Integer) as Integer
+  Function Goo(x as Integer) as Integer
     return 321
   End Function
 End Module
     </file>
 </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30455: Argument not specified for parameter 'x' of 'Public Function Foo(x As Integer) As Integer'.
-    System.Console.WriteLine(Foo.ToString)
+BC30455: Argument not specified for parameter 'x' of 'Public Function Goo(x As Integer) As Integer'.
+    System.Console.WriteLine(Goo.ToString)
                              ~~~
 </expected>)
 
@@ -1036,7 +1036,7 @@ End Class
  
 Class A(Of T)
   Inherits B
- Sub Foo()
+ Sub Goo()
    T()
  End Sub
 End Class
@@ -1047,7 +1047,7 @@ Class C
     End Sub
 
     Class A(Of S)
-        Sub Foo()
+        Sub Goo()
             S()
         End Sub
     End Class
@@ -1056,7 +1056,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1086,7 +1086,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
         End Sub
@@ -1108,7 +1108,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
                                                <errors>
@@ -1132,27 +1132,27 @@ BC32059: Array lower bounds can be only '0'.
     <file name="a.vb">
 Class Y
     Sub f()
-        Dim foo As Integer
+        Dim goo As Integer
 
-        foo(Of Integer)()
+        goo(Of Integer)()
     End Sub
 
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
 
     End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
                                                <errors>
-BC42024: Unused local variable: 'foo'.
-        Dim foo As Integer
+BC42024: Unused local variable: 'goo'.
+        Dim goo As Integer
             ~~~
-BC32045: 'foo' has no type parameters and so cannot have type arguments.
-        foo(Of Integer)()
+BC32045: 'goo' has no type parameters and so cannot have type arguments.
+        goo(Of Integer)()
            ~~~~~~~~~~~~
                                                </errors>)
 
@@ -1259,7 +1259,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1288,7 +1288,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
                                                <errors>
@@ -1339,7 +1339,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property color(x As Integer) As Color'.
@@ -1392,7 +1392,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1447,7 +1447,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1517,7 +1517,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1589,7 +1589,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
 
             AssertTheseDiagnostics(compilation,
@@ -1652,7 +1652,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
 
             AssertNoDiagnostics(compilation)
@@ -1713,7 +1713,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1789,7 +1789,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1886,7 +1886,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1918,7 +1918,7 @@ Imports Bar = NS1.Bar
 
 Module Module1
     Public Sub Main()
-        Dim o as Foo = New Foo()
+        Dim o as Goo = New Goo()
         Console.WriteLine(o.M())
     End Sub
 End Module
@@ -1929,7 +1929,7 @@ Namespace NS1
     End Class
 End Namespace
 
-Class Foo
+Class Goo
   ReadOnly Property Bar As Bar
     Get 
       Console.WriteLine("property called")
@@ -1946,12 +1946,12 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoDiagnostics(compilation)
 
             CompileAndVerify(compilationDef, expectedOutput:="48").
-                VerifyIL("Foo.M",
+                VerifyIL("Goo.M",
             <![CDATA[
 {
   // Code size        6 (0x6)
@@ -1973,8 +1973,8 @@ Imports Bar2 = NS1.Bar
 
 Module Module1
     Public Sub Main()
-        Dim o As Foo = New Foo()
-        Console.WriteLine(Foo.M())
+        Dim o As Goo = New Goo()
+        Console.WriteLine(Goo.M())
     End Sub
 End Module
 
@@ -1986,7 +1986,7 @@ Namespace NS1
     End Class
 End Namespace
 
-Class Foo
+Class Goo
 
     ReadOnly Property Bar2 As Bar2
         Get
@@ -2002,7 +2002,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
@@ -2032,7 +2032,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(text)
             AssertTheseDiagnostics(compilation,
                                                <errors>
 BC42024: Unused local variable: 'y'.
@@ -2071,7 +2071,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(text)
             AssertTheseDiagnostics(compilation,
 <errors>
 BC30182: Type expected.
@@ -2101,7 +2101,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(text)
             AssertNoErrors(compilation)
 
         End Sub
@@ -2125,14 +2125,14 @@ Imports Con = System.Console
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(text)
             AssertNoErrors(compilation)
 
         End Sub
 
         <Fact>
         Public Sub Bug9300_1()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="NotYetImplementedInRoslyn">
         <file name="a.vb">
 Imports System.Runtime.CompilerServices
@@ -2141,10 +2141,10 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
     End Sub
 
-    Sub Foo(x As Action(Of Object()))
+    Sub Goo(x As Action(Of Object()))
         System.Console.WriteLine("Action(Of Object())")
         x(New Object() {})
     End Sub
@@ -2168,7 +2168,7 @@ End Namespace
 
             Dim expectedErrors1 = <errors>
 BC30251: Type 'Object()' has no constructors.
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
                    ~~~~~
                  </errors>
             AssertTheseDiagnostics(compilation1, expectedErrors1)
@@ -2176,7 +2176,7 @@ BC30251: Type 'Object()' has no constructors.
 
         <Fact>
         Public Sub Bug9300_2()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="NotYetImplementedInRoslyn">
         <file name="a.vb">
 Imports System.Runtime.CompilerServices
@@ -2185,13 +2185,13 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
     End Sub
 
     Class TC1
     End Class
 
-    Sub Foo(x As Action(Of TC1))
+    Sub Goo(x As Action(Of TC1))
     End Sub
 
     &lt;Extension()&gt;
@@ -2213,7 +2213,7 @@ End Namespace
 
             Dim expectedErrors1 = <errors>
 BC30282: Constructor call is valid only as the first statement in an instance constructor.
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
                    ~~~~~
                  </errors>
             AssertTheseDiagnostics(compilation1, expectedErrors1)
@@ -2221,7 +2221,7 @@ BC30282: Constructor call is valid only as the first statement in an instance co
 
         <Fact>
         Public Sub Bug9300_3()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="NotYetImplementedInRoslyn">
         <file name="a.vb">
 Imports System.Runtime.CompilerServices
@@ -2230,15 +2230,15 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
     End Sub
 
-    Sub Foo(x As Action(Of IEnumerable))
+    Sub Goo(x As Action(Of IEnumerable))
         System.Console.WriteLine("Action(Of IEnumerable)")
         x(New Object() {})
     End Sub
 
-    Sub Foo(x As Action(Of Object()))
+    Sub Goo(x As Action(Of Object()))
         System.Console.WriteLine("Action(Of Object())")
         x(New Object() {})
     End Sub
@@ -2268,7 +2268,7 @@ Action(Of IEnumerable)
 
         <Fact>
         Public Sub IllegalTypeExpressionsFromParserShouldNotBlowUpBinding()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="IllegalTypeExpressionsFromParserShouldNotBlowUpBinding">
         <file name="a.vb">
             Class Outer(Of T)
@@ -2312,7 +2312,7 @@ BC30182: Type expected.
         </file>
     </compilation>
 
-            Dim c1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source1_with)
+            Dim c1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source1_with)
 
             Dim baseBuffer = CompileAndVerify(c1).EmittedAssemblyData
 
@@ -2340,7 +2340,7 @@ BC30182: Type expected.
         </file>
     </compilation>
 
-            Dim c2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {MetadataReference.CreateFromImage(baseBuffer)})
+            Dim c2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2, {MetadataReference.CreateFromImage(baseBuffer)})
 
             Dim derivedBuffer = CompileAndVerify(c2).EmittedAssemblyData
 
@@ -2366,11 +2366,11 @@ BC30182: Type expected.
     </file>
 </compilation>
 
-            Dim c1_without = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source1_without)
+            Dim c1_without = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source1_without)
 
             Dim image = CompileAndVerify(c1_without).EmittedAssemblyData
 
-            Dim c3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {MetadataReference.CreateFromImage(derivedBuffer), MetadataReference.CreateFromImage(image)})
+            Dim c3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source3, {MetadataReference.CreateFromImage(derivedBuffer), MetadataReference.CreateFromImage(image)})
 
             AssertTheseDiagnostics(c3, <expected>
 BC30545: Property access must assign to the property or use its value.
@@ -2381,7 +2381,7 @@ BC30545: Property access must assign to the property or use its value.
 
         <Fact>
         Public Sub ColorColorOverriddenProperty()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Bug12687">
     <file name="a.vb">
 Class TypeSubstitution
@@ -2403,7 +2403,7 @@ Class Frame
                 Return Nothing
             End Get
         End Property
-  Function Foo() As Integer
+  Function Goo() As Integer
     Return TypeSubstitution.Create()
   End Function
 End Class
@@ -2417,7 +2417,7 @@ End Class
 
         <Fact>
         Public Sub ColorColorPropertyWithParam()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Bug12687">
     <file name="a.vb">
 Class TypeSubstitution
@@ -2434,7 +2434,7 @@ Class InstanceTypeSymbol
 End Class
 Class Frame
       Inherits InstanceTypeSymbol
-      Function Foo() As Integer
+      Function Goo() As Integer
          Return TypeSubstitution.Create()
       End Function
 End Class
@@ -2452,7 +2452,7 @@ BC30455: Argument not specified for parameter 'a' of 'Public Overridable ReadOnl
 
         <Fact>
         Public Sub ColorColorPropertyWithOverloading()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Bug12687">
     <file name="a.vb">
 Class TypeSubstitution
@@ -2474,7 +2474,7 @@ Class InstanceTypeSymbol
 End Class
 Class Frame
       Inherits InstanceTypeSymbol
-      Function Foo() As Integer
+      Function Goo() As Integer
          Return TypeSubstitution.Create()
       End Function
 End Class
@@ -2489,7 +2489,7 @@ End Class
         ' and IsLValueFieldAccess for FieldAccess.
         <Fact>
         Public Sub IsValidAssignmentTarget()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Structure S
@@ -2526,7 +2526,7 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 
         <Fact>
         Public Sub Bug12900()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MemberAccessNoContainingWith">
     <file name="a.vb">
 Imports System        
@@ -2551,7 +2551,7 @@ BC30203: Identifier expected.
 
         <Fact>
         Public Sub Bug13080()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System        
@@ -2577,7 +2577,7 @@ BC30438: Constants must have a value.
         <WorkItem(546469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546469")>
         <Fact>
         Public Sub GetTypeAllowsArrayOfModules()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">    
 Imports System
@@ -2640,7 +2640,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
         <WorkItem(546469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546469")>
         <Fact()>
         Public Sub GetTypeAllowsModuleAlias()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">    
 Imports ModuleAlias = Bar.Test
@@ -2690,7 +2690,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe)
             AssertTheseDiagnostics(compilation, <expected></expected>)
 
             CompileAndVerify(compilation, expectedOutput:="42")
@@ -2699,7 +2699,7 @@ End Class
         <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
         <Fact()>
         Public Sub Bug1108036()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color
@@ -2740,7 +2740,7 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
         <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
         <Fact()>
         Public Sub Bug1108036_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color
@@ -2781,7 +2781,7 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
         <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Enum E
@@ -2827,7 +2827,7 @@ End Class
         <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Enum E
@@ -2873,7 +2873,7 @@ End Class
         <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Enum E
@@ -2924,7 +2924,7 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
         <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_4()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Enum E
@@ -2975,7 +2975,7 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color
@@ -3015,7 +3015,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact>
         Public Sub Bug1108007_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3061,7 +3061,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -3105,7 +3105,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_4()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3156,7 +3156,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_5()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3210,7 +3210,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_6()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3258,7 +3258,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_7()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3302,7 +3302,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact>
         Public Sub Bug1108007_8()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3355,7 +3355,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_9()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color
@@ -3401,7 +3401,7 @@ End Class    </file>
         <WorkItem(1114969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114969")>
         <Fact()>
         Public Sub Bug1114969()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color

@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -22,12 +21,12 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.CreateExportProvider());
+            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.ExportProvider);
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             var workspace = TestWorkspace.Create(
                 workspaceXml,
-                exportProvider: EditorServicesUtil.CreateExportProvider());
+                exportProvider: EditorServicesUtil.ExportProvider);
 
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
                 Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
                 SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService),
-                Workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
+                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
 
@@ -142,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         public void SendEscape()
         {
-            _commandHandler.ExecuteCommand(new EscapeKeyCommandArgs(_view, _view.TextBuffer), () => { });
+            _commandHandler.ExecuteCommand(new EscapeKeyCommandArgs(_view, _view.TextBuffer), TestCommandExecutionContext.Create());
         }
 
         public void MoveCaret(int delta)
@@ -228,8 +227,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         private async Task WaitForAsyncOperationsAsync()
         {
-            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            await waiters.WaitAllAsync();
+            var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            await provider.WaitAllDispatcherOperationAndTasksAsync(
+                FeatureAttribute.RenameTracking,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.EventHookup);
         }
 
         public void Dispose()

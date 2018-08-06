@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly ConcurrentDictionary<Symbol, Compliance> _declaredOrInheritedCompliance;
 
+        /// <seealso cref="MethodCompiler._compilerTasks"/>
+        private readonly ConcurrentStack<Task> _compilerTasks;
+
         private ClsComplianceChecker(
             CSharpCompilation compilation,
             SyntaxTree filterTree,
@@ -39,7 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             _cancellationToken = cancellationToken;
 
             _declaredOrInheritedCompliance = new ConcurrentDictionary<Symbol, Compliance>();
+
+            if (ConcurrentAnalysis)
+            {
+                _compilerTasks = new ConcurrentStack<Task>();
+            }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether <see cref="ClsComplianceChecker"/> is allowed to analyze in parallel.
+        /// </summary>
+        private bool ConcurrentAnalysis => _filterTree == null && _compilation.Options.ConcurrentBuild;
 
         /// <summary>
         /// Traverses the symbol table checking for CLS compliance.
@@ -54,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var queue = new ConcurrentQueue<Diagnostic>();
             var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken);
             checker.Visit(compilation.Assembly);
+            checker.WaitForWorkers();
 
             foreach (Diagnostic diag in queue)
             {
@@ -146,6 +161,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(symbol.GlobalNamespace);
         }
 
+        private void WaitForWorkers()
+        {
+            var tasks = _compilerTasks;
+            if (tasks == null)
+            {
+                return;
+            }
+
+            while (tasks.TryPop(out Task curTask))
+            {
+                curTask.GetAwaiter().GetResult();
+            }
+        }
+
         public override void VisitNamespace(NamespaceSymbol symbol)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -158,22 +187,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckMemberDistinctness(symbol);
             }
 
-            if (_compilation.Options.ConcurrentBuild)
+            if (ConcurrentAnalysis)
             {
-                var options = _cancellationToken.CanBeCanceled
-                    ? new ParallelOptions() { CancellationToken = _cancellationToken }
-                    : CSharpCompilation.DefaultParallelOptions; // i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
+                VisitNamespaceMembersAsTasks(symbol);
             }
             else
             {
-                foreach (var m in symbol.GetMembersUnordered())
-                {
-                    Visit(m);
-                }
+                VisitNamespaceMembers(symbol);
             }
         }
 
+        private void VisitNamespaceMembersAsTasks(NamespaceSymbol symbol)
+        {
+            foreach (var m in symbol.GetMembersUnordered())
+            {
+                _compilerTasks.Push(Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
+                {
+                    try
+                    {
+                        Visit(m);
+                    }
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+                }), _cancellationToken));
+            }
+        }
+
+        private void VisitNamespaceMembers(NamespaceSymbol symbol)
+        {
+            foreach (var m in symbol.GetMembersUnordered())
+            {
+                Visit(m);
+            }
+        }
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry = false)]
         public override void VisitNamedType(NamedTypeSymbol symbol)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -204,19 +254,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // You may assume we could skip the members if this type is inaccessible,
             // but dev11 reports that they are inaccessible as well.
-            if (_compilation.Options.ConcurrentBuild)
+            foreach (var m in symbol.GetMembersUnordered())
             {
-                var options = _cancellationToken.CanBeCanceled
-                    ? new ParallelOptions() { CancellationToken = _cancellationToken }
-                    : CSharpCompilation.DefaultParallelOptions; //i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
-            }
-            else
-            {
-                foreach (var m in symbol.GetMembersUnordered())
-                {
-                    Visit(m);
-                }
+                Visit(m);
             }
         }
 
@@ -1017,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsInaccessibleBecauseOfConstruction(NamedTypeSymbol type, NamedTypeSymbol context)
         {
             // NOTE: Dev11 (incorrectly) only checks whether "type" is protected - it ignores container accessibility.
-            bool sawProtected = type.DeclaredAccessibility == Accessibility.Protected || type.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
+            bool sawProtected = type.DeclaredAccessibility.HasProtected();
             bool sawGeneric = false; // Generic "type" doesn't count.
             Dictionary<NamedTypeSymbol, NamedTypeSymbol> containingTypes = null; // maps definition to constructed
             {
@@ -1029,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         containingTypes = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>();
                     }
 
-                    sawProtected = sawProtected || containingType.DeclaredAccessibility == Accessibility.Protected || containingType.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
+                    sawProtected = sawProtected || containingType.DeclaredAccessibility.HasProtected();
                     sawGeneric = sawGeneric || containingType.Arity > 0;
 
                     containingTypes.Add(containingType.OriginalDefinition, containingType);

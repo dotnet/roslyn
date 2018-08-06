@@ -72,8 +72,7 @@ namespace Roslyn.Test.Performance.Utilities
 
         protected void InstallVsixes()
         {
-            var vsix1 = Path.Combine(MyBinaries(), "Vsix", "VisualStudioSetup", "Roslyn.VisualStudio.Setup.vsix");
-            var vsix2 = Path.Combine(MyBinaries(), "Vsix", "VisualStudioSetup.Next", "Roslyn.VisualStudio.Setup.Next.vsix");
+            var vsix = Path.Combine(MyBinaries(), "Vsix", "VisualStudioSetup", "Roslyn.VisualStudio.Setup.vsix");
 
             var rootSuffixArg = $"/rootsuffix:{_rootSuffix}";
 
@@ -81,8 +80,7 @@ namespace Roslyn.Test.Performance.Utilities
             ShellOutVital(_installerPath, $"{rootSuffixArg}, /uninstallAll");
 
             // Then install the RoslynDeployment.vsix we just built
-            ShellOutVital(_installerPath, $"{rootSuffixArg} {vsix1}");
-            ShellOutVital(_installerPath, $"{rootSuffixArg} {vsix2}");
+            ShellOutVital(_installerPath, $"{rootSuffixArg} {vsix}");
         }
 
         public override void Test()

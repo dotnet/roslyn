@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -242,31 +242,18 @@ $$");
         public async Task TestInReferenceSwitch()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch (""foo"")
+@"switch (""goo"")
         {
             case $$
         }"));
         }
-
-#if false
-        [WorkItem(8486)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInValueSwitch()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"switch (0)
-        {
-            case $$
-        }"));
-        }
-#endif
 
         [WorkItem(543766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543766")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInDefaultParameterValue()
         {
             await VerifyKeywordAsync(
-@"class C { void Foo(string[] args = $$");
+@"class C { void Goo(string[] args = $$");
         }
 
         [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
@@ -305,6 +292,22 @@ class Program
 /// <see cref=""System.$$"" />
 class C { }
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIs()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"if (x is $$"));
+        }
+
+        [WorkItem(25293, "https://github.com/dotnet/roslyn/issues/25293")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIs_BeforeExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+int x;
+int y = x is $$ Method();
+"));
         }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     return await IterateAllCodeCleanupProvidersAsync(document, document, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
-                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                Contract.Requires(syntaxFactsService != null);
+                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+                Debug.Assert(syntaxFactsService != null);
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
                 var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 }
 
                 var syntaxFactsService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxFactsService>();
-                Contract.Requires(syntaxFactsService != null);
+                Debug.Assert(syntaxFactsService != null);
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
                 var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
@@ -320,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Make sure annotations are positioned outside of any spans. If not, merge two adjacent spans to one.
         /// </summary>
-        private ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        private ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             // Create interval tree for spans
             var intervalTree = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spans);
@@ -470,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 #endif
 
                 var current = 0;
-                var count = codeCleaners.Count();
+                var count = codeCleaners.Length;
 
                 foreach (var codeCleaner in codeCleaners)
                 {
@@ -547,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 var spans = ImmutableArray<TextSpan>.Empty;
 
                 var current = 0;
-                var count = codeCleaners.Count();
+                var count = codeCleaners.Length;
 
                 foreach (var codeCleaner in codeCleaners)
                 {

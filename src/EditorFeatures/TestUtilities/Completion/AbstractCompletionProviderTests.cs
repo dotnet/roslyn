@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -20,9 +22,12 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using CompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
+    [UseExportProvider]
     public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
@@ -38,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         public override void Dispose()
         {
-            this.WorkspaceFixture.CloseTextView();
+            this.WorkspaceFixture.DisposeAfterTest();
             base.Dispose();
         }
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
-            var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var service = document.GetLanguageService<ISyntaxFactsService>();
             var node = (await document.GetSyntaxRootAsync()).FindToken(position).Parent;
 
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
@@ -269,12 +274,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem)
         {
-            Glyph? expectedGlyph = null;
-            if (glyph.HasValue)
-            {
-                expectedGlyph = (Glyph)glyph.Value;
-            }
-
             var document1 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
             await CheckResultsAsync(
                 document1, position, expectedItemOrNull, 
@@ -319,8 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
-            if (customCommitCompletionProvider != null)
+            if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 var completionRules = GetCompletionHelper(document);
                 var textView = (WorkspaceFixture.GetWorkspace()).Documents.Single().GetTextView();
@@ -820,6 +818,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                         service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
                 }
             }
+        }
+
+        protected async Task<ImmutableArray<CompletionItem>> GetCompletionItemsAsync(
+            string markup, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger = false)
+        {
+            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out var code, out int position);
+            var document = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
+
+            var trigger = usePreviousCharAsTrigger
+                ? CompletionTrigger.CreateInsertionTrigger(insertedCharacter: code.ElementAt(position - 1))
+                : CompletionTrigger.Invoke;
+
+            var completionService = GetCompletionService(document.Project.Solution.Workspace);
+            var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
+
+            return completionList == null ? ImmutableArray<CompletionItem>.Empty : completionList.Items;
         }
     }
 }

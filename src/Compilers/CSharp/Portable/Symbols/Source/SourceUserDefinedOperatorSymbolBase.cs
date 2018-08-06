@@ -23,15 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             SourceMemberContainerTypeSymbol containingType,
             Location location,
-            SyntaxReference syntaxReference,
-            SyntaxReference bodySyntaxReference,
-            SyntaxTokenList modifiersSyntax,
-            DiagnosticBag diagnostics,
-            bool isExpressionBodied) :
-            base(containingType, syntaxReference, bodySyntaxReference, location)
+            BaseMethodDeclarationSyntax syntax,
+            DiagnosticBag diagnostics) :
+            base(containingType, syntax.GetReference(), location)
         {
             _name = name;
-            _isExpressionBodied = isExpressionBodied;
+            _isExpressionBodied = syntax.Body == null && syntax.ExpressionBody != null;
 
             var defaultAccess = DeclarationModifiers.Private;
             var allowedModifiers =
@@ -42,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var declarationModifiers = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                modifiersSyntax, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+                syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
@@ -80,11 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: its operator body consists of a semicolon. For expression-bodied
             // SPEC: operators, the body is an expression. For all other operators,
             // SPEC: the operator body consists of a block...
-            if (bodySyntaxReference != null && IsExtern)
+            bool hasBody = syntax.HasAnyBody();
+            if (hasBody && IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
             }
-            else if (bodySyntaxReference == null && !IsExtern && !IsAbstract && !IsPartial)
+            else if (!hasBody && !IsExtern && !IsAbstract && !IsPartial)
             {
                 // Do not report that the body is missing if the operator is marked as
                 // partial or abstract; we will already have given an error for that so
@@ -126,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
+                addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
@@ -141,7 +140,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _lazyReturnType = signatureBinder.BindType(ReturnTypeSyntax, diagnostics);
 
-            if (_lazyReturnType.IsRestrictedType())
+            // restricted types cannot be returned. 
+            // NOTE: Span-like types can be returned (if expression is returnable).
+            if (_lazyReturnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // Method or delegate cannot return type '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, ReturnTypeSyntax.Location, _lazyReturnType);
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: The parameters of an operator must be value parameters.
             foreach (var p in this.Parameters)
             {
-                if (p.RefKind != RefKind.None)
+                if (p.RefKind != RefKind.None && p.RefKind != RefKind.In)
                 {
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, this.Locations[0]);
                     break;
@@ -609,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }
@@ -645,6 +646,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
             }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
     }
 }

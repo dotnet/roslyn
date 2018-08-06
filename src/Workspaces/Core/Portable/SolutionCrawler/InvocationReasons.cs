@@ -45,14 +45,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        public IEnumerator<string> GetEnumerator()
+        public ImmutableHashSet<string>.Enumerator GetEnumerator()
+        {
+            return _reasons.GetEnumerator();
+        }
+
+        IEnumerator<string> IEnumerable<string>.GetEnumerator()
         {
             return _reasons.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return _reasons.GetEnumerator();
+        }
+
+        public override string ToString()
+        {
+            return string.Join("|", _reasons ?? ImmutableHashSet<string>.Empty);
         }
     }
 }

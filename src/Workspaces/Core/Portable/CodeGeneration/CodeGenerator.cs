@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// </summary>
     internal static class CodeGenerator
     {
+        /// <summary>
+        /// Annotation placed on generated syntax.
+        /// </summary>
+        public static readonly SyntaxAnnotation Annotation = new SyntaxAnnotation(nameof(CodeGenerator));
+
         private static ICodeGenerationService GetCodeGenerationService(Workspace workspace, string language)
         {
             return workspace.Services.GetLanguageServices(language).GetService<ICodeGenerationService>();

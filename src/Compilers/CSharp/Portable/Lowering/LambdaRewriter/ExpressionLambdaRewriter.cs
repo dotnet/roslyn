@@ -200,6 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitConditionalOperator((BoundConditionalOperator)node);
                 case BoundKind.Conversion:
                     return VisitConversion((BoundConversion)node);
+                case BoundKind.PassByCopy:
+                    return Visit(((BoundPassByCopy)node).Expression);
                 case BoundKind.DelegateCreationExpression:
                     return VisitDelegateCreationExpression((BoundDelegateCreationExpression)node);
                 case BoundKind.FieldAccess:
@@ -518,12 +520,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var e = type as NamedTypeSymbol;
             if ((object)e != null)
             {
-                if (e.TypeKind == TypeKind.Enum || e.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T && e.TypeArgumentsNoUseSiteDiagnostics[0].TypeKind == TypeKind.Enum)
+                if (e.StrippedType().TypeKind == TypeKind.Enum)
                 {
                     return Convert(node, type, isChecked);
                 }
 
-                var promotedType = e.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ? _nullableType.Construct(PromotedType((NamedTypeSymbol)e.TypeArgumentsNoUseSiteDiagnostics[0])) : PromotedType(e);
+                var promotedType = e.IsNullableType() ? _nullableType.Construct(PromotedType(e.GetNullableUnderlyingType())) : PromotedType(e);
                 if (promotedType != type)
                 {
                     return Convert(node, type, isChecked);
@@ -630,10 +632,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var operand = Visit(node.Operand);
                         return node.ExplicitCastInCode ? Convert(operand, node.Type, false) : operand;
-                    }
-                case ConversionKind.IdentityValue:
-                    {
-                        return Visit(node.Operand);
                     }
                 case ConversionKind.ImplicitNullable:
                     if (node.Operand.Type.IsNullableType())

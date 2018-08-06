@@ -27,8 +27,7 @@ namespace RepoUtil
 
         public bool Run(TextWriter writer, string[] args)
         {
-            List<NuGetPackage> changes;
-            if (!TryParseChangeSource(writer, args, out changes))
+            if (!TryParseChangeSource(writer, args, out var changes))
             {
                 return false;
             }
@@ -164,8 +163,7 @@ namespace RepoUtil
             Console.WriteLine("Calculating the changes");
             foreach (var package in packages)
             {
-                NuGetPackage existingPackage;
-                if (!map.TryGetValue(package.Name, out existingPackage))
+                if (!map.TryGetValue(package.Name, out var existingPackage))
                 {
                     Console.WriteLine($"\tSkipping {package.Name} as it's not a floating package in this repo.");
                 }

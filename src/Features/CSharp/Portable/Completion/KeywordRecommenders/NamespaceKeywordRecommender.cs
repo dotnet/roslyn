@@ -36,16 +36,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // extern alias a;
             // n|
 
-            // using Foo;
+            // using Goo;
             // |
 
-            // using Foo;
+            // using Goo;
             // n|
 
-            // using Foo = Bar;
+            // using Goo = Bar;
             // |
 
-            // using Foo = Bar;
+            // using Goo = Bar;
             // n|
 
             // namespace N {}
@@ -65,15 +65,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // root: n|
 
-            // ns Foo { n|
+            // ns Goo { n|
 
             // extern alias a;
             // n|
 
-            // using Foo;
+            // using Goo;
             // n|
 
-            // using Foo = Bar;
+            // using Goo = Bar;
             // n|
 
             // a namespace can't come before usings/externs
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // extern alias a;
             // |
 
-            // using Foo;
+            // using Goo;
             // |
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 }
             }
 
-            // [assembly: foo]
+            // [assembly: goo]
             // |
 
             if (token.Kind() == SyntaxKind.CloseBracketToken &&

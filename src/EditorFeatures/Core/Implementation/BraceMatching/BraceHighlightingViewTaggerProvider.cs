@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public BraceHighlightingViewTaggerProvider(
             IBraceMatchingService braceMatcherService,
             IForegroundNotificationService notificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.BraceHighlighting), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+                : base(listenerProvider.GetListener(FeatureAttribute.BraceHighlighting), notificationService)
         {
             _braceMatcherService = braceMatcherService;
         }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             var document = documentSnapshotSpan.Document;
             if (!caretPosition.HasValue || document == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             return ProduceTagsAsync(context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value);

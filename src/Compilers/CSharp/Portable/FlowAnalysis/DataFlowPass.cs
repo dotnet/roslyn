@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<Symbol> _capturedVariables = PooledHashSet<Symbol>.GetInstance();
 
+        private readonly PooledHashSet<Symbol> _capturedInside = PooledHashSet<Symbol>.GetInstance();
+        private readonly PooledHashSet<Symbol> _capturedOutside = PooledHashSet<Symbol>.GetInstance();
+
         /// <summary>
         /// The current source assembly.
         /// </summary>
@@ -111,9 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BitVector _alreadyReported;
 
         /// <summary>
-        /// Reflects the enclosing method or lambda at the current location (in the bound tree).
+        /// Reflects the enclosing member or lambda at the current location (in the bound tree).
         /// </summary>
-        protected MethodSymbol currentMethodOrLambda { get; private set; }
+        protected Symbol currentSymbol { get; private set; }
 
         /// <summary>
         /// A cache for remember which structs are empty.
@@ -138,6 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
+            _capturedInside.Free();
+            _capturedOutside.Free();
             _unsafeAddressTakenVariables.Free();
             _variableSlot.Free();
 
@@ -155,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.initiallyAssignedVariables = null;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
-            this.currentMethodOrLambda = member as MethodSymbol;
+            this.currentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             bool strict = compilation.FeatureStrictEnabled; // Compiler flag /features:strict removes the relaxed DA checking we have for backward compatibility
             _emptyStructTypeCache = new EmptyStructTypeCache(compilation, !strict);
@@ -174,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
-            this.currentMethodOrLambda = member as MethodSymbol;
+            this.currentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = null;
             bool strict = compilation.FeatureStrictEnabled; // Compiler flag /features:strict removes the relaxed DA checking we have for backward compatibility
             _emptyStructTypeCache = emptyStructs ?? new EmptyStructTypeCache(compilation, !strict);
@@ -198,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             _sourceAssembly = null;
-            this.currentMethodOrLambda = member as MethodSymbol;
+            this.currentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _emptyStructTypeCache = new NeverEmptyStructTypeCache();
         }
@@ -257,17 +262,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.RemoveReturns();
 
-            if (currentMethodOrLambda?.IsAsync == true &&
-                !currentMethodOrLambda.IsImplicitlyDeclared)
+            if (currentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
             {
                 var foundAwait = result.Any(pending => pending.Branch?.Kind == BoundKind.AwaitExpression);
                 if (!foundAwait)
                 {
                     // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
                     // much better than using its 'Location' (which is the entire span of the lambda).
-                    var diagnosticLocation = currentMethodOrLambda is LambdaSymbol lambda
+                    var diagnosticLocation = currentSymbol is LambdaSymbol lambda
                         ? lambda.DiagnosticLocation
-                        : currentMethodOrLambda.Locations[0];
+                        : currentSymbol.Locations[0];
 
                     Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
                 }
@@ -278,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
-            if (!_requireOutParamsAssigned && topLevelMethod == currentMethodOrLambda)
+            if (!_requireOutParamsAssigned && ReferenceEquals(topLevelMethod, currentSymbol))
             {
                 return;
             }
@@ -394,38 +398,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
         private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
-            if (IsCaptured(variable,
-                           currentMethodOrLambda,
-                           rangeVariableUnderlyingParameter))
+            if (IsCaptured(rangeVariableUnderlyingParameter ?? variable, currentSymbol))
             {
                 NoteCaptured(variable);
             }
         }
 
-        private static bool IsCaptured(Symbol variable,
-                                         MethodSymbol containingMethodOrLambda,
-                                         ParameterSymbol rangeVariableUnderlyingParameter)
+        private static bool IsCaptured(Symbol variable, Symbol containingSymbol)
         {
             switch (variable.Kind)
             {
-                case SymbolKind.Local:
-                    if (((LocalSymbol)variable).IsConst) break;
-                    goto case SymbolKind.Parameter;
-                case SymbolKind.Parameter:
-                    if (containingMethodOrLambda != variable.ContainingSymbol)
-                    {
-                        return true;
-                    }
-                    break;
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                // Range variables are not captured, but their underlying parameters
+                // may be. If this is a range underlying parameter it will be a
+                // ParameterSymbol, not a RangeVariableSymbol.
                 case SymbolKind.RangeVariable:
-                    if (rangeVariableUnderlyingParameter != null &&
-                        containingMethodOrLambda != rangeVariableUnderlyingParameter.ContainingSymbol)
+                    return false;
+
+                case SymbolKind.Local:
+                    if (((LocalSymbol)variable).IsConst)
                     {
-                        return true;
+                        return false;
                     }
                     break;
+
+                case SymbolKind.Parameter:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(variable.Kind);
             }
-            return false;
+
+            // Walk up the containing symbols until we find the target function, in which
+            // case the variable is not captured by the target function, or null, in which 
+            // case it is.
+            for (var currentFunction = variable.ContainingSymbol;
+                 (object)currentFunction != null;
+                 currentFunction = currentFunction.ContainingSymbol)
+            {
+                if (ReferenceEquals(currentFunction, containingSymbol))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -434,23 +453,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="variable"></param>
         private void NoteCaptured(Symbol variable)
         {
-            if (variable.Kind != SymbolKind.RangeVariable || this.regionPlace == PreciseAbstractFlowPass<LocalState>.RegionPlace.Inside)
+            if (this.regionPlace == RegionPlace.Inside)
             {
+                _capturedInside.Add(variable);
+                _capturedVariables.Add(variable);
+            }
+            else if (variable.Kind != SymbolKind.RangeVariable)
+            {
+                _capturedOutside.Add(variable);
                 _capturedVariables.Add(variable);
             }
         }
 
-        protected IEnumerable<Symbol> GetCaptured()
-        {
-            // do not expose poolable capturedVariables outside of this class
-            return _capturedVariables.ToArray();
-        }
-
-        protected IEnumerable<Symbol> GetUnsafeAddressTaken()
-        {
-            // do not expose poolable unsafeAddressTakenVariables outside of this class
-            return _unsafeAddressTakenVariables.Keys.ToArray();
-        }
+        // do not expose PooledHashSet<T> outside of this class
+        protected IEnumerable<Symbol> GetCapturedInside() => _capturedInside.ToArray();
+        protected IEnumerable<Symbol> GetCapturedOutside() => _capturedOutside.ToArray();
+        protected IEnumerable<Symbol> GetCaptured() => _capturedVariables.ToArray();
+        protected IEnumerable<Symbol> GetUnsafeAddressTaken() => _unsafeAddressTakenVariables.Keys.ToArray();
 
 #region Tracking reads/writes of variables for warnings
 
@@ -868,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var propAccess = (BoundPropertyAccess)node;
 
-                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentMethodOrLambda))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentSymbol))
                         {
                             var propSymbol = propAccess.PropertySymbol;
                             var backingField = (propSymbol as SourcePropertySymbol)?.BackingField;
@@ -1070,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.currentMethodOrLambda))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.currentSymbol))
                         {
                             var property = propertyAccess.PropertySymbol;
                             var backingField = (property as SourcePropertySymbol)?.BackingField;
@@ -1156,9 +1175,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void Assign(BoundNode node, BoundExpression value, RefKind refKind = RefKind.None, bool read = true)
+        protected void Assign(BoundNode node, BoundExpression value, bool isRef = false, bool read = true)
         {
-            AssignImpl(node, value, written: true, refKind: refKind, read: read);
+            AssignImpl(node, value, written: true, isRef: isRef, read: read);
         }
 
         /// <summary>
@@ -1167,9 +1186,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">Node being assigned to.</param>
         /// <param name="value">The value being assigned.</param>
         /// <param name="written">True if target location is considered written to.</param>
-        /// <param name="refKind">Target kind (by-ref or not).</param>
+        /// <param name="isRef">Ref assignment or value assignment.</param>
         /// <param name="read">True if target location is considered read from.</param>
-        protected virtual void AssignImpl(BoundNode node, BoundExpression value, RefKind refKind, bool written, bool read)
+        protected virtual void AssignImpl(BoundNode node, BoundExpression value, bool isRef, bool written, bool read)
         {
             switch (node.Kind)
             {
@@ -1203,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)node;
-                        if (local.LocalSymbol.RefKind != refKind)
+                        if (local.LocalSymbol.RefKind != RefKind.None && !isRef)
                         {
                             // Writing through the (reference) value of a reference local
                             // requires us to read the reference itself.
@@ -1219,6 +1238,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Parameter:
+                    {
+                        var paramExpr = (BoundParameter)node;
+                        var param = paramExpr.ParameterSymbol;
+                        // If we're ref-reassigning an out parameter we're effectively
+                        // leaving the original
+                        if (isRef && param.RefKind == RefKind.Out)
+                        {
+                            LeaveParameter(param, node.Syntax, paramExpr.Syntax.Location);
+                        }
+
+                        int slot = MakeSlot(paramExpr);
+                        SetSlotState(slot, written);
+                        if (written) NoteWrite(paramExpr, value, read);
+                        break;
+                    }
+
                 case BoundKind.ThisReference:
                 case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:
@@ -1232,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.RangeVariable:
-                    AssignImpl(((BoundRangeVariable)node).Value, value, refKind, written, read);
+                    AssignImpl(((BoundRangeVariable)node).Value, value, isRef, written, read);
                     break;
 
                 case BoundKind.BadExpression:
@@ -1241,13 +1276,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var bad = (BoundBadExpression)node;
                         if (!bad.ChildBoundNodes.IsDefault && bad.ChildBoundNodes.Length == 1)
                         {
-                            AssignImpl(bad.ChildBoundNodes[0], value, refKind, written, read);
+                            AssignImpl(bad.ChildBoundNodes[0], value, isRef, written, read);
                         }
                         break;
                     }
 
                 case BoundKind.TupleLiteral:
-                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, refKind: refKind), this);
+                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
                     break;
 
                 default:
@@ -1407,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void EnterParameter(ParameterSymbol parameter)
         {
-            if (parameter.RefKind == RefKind.Out && !this.currentMethodOrLambda.IsAsync) // out parameters not allowed in async
+            if (parameter.RefKind == RefKind.Out && !(this.currentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync)) // out parameters not allowed in async
             {
                 int slot = GetOrCreateSlot(parameter);
                 if (slot > 0) SetSlotState(slot, initiallyAssignedVariables?.Contains(parameter) == true);
@@ -1476,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var pat = (BoundDeclarationPattern)pattern;
-                        Assign(pat, null, RefKind.None, false);
+                        Assign(pat, value: null, isRef: false, read: false);
                         break;
                     }
                 case BoundKind.WildcardPattern:
@@ -1504,7 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitStatementsWithLocalFunctions(BoundBlock block)
+        private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
             // Visit the statements in two phases:
             //   1. Local function declarations
@@ -1527,8 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (stmt.Kind == BoundKind.LocalFunctionStatement)
                     {
-                        VisitLocalFunctionStatement(
-                            (BoundLocalFunctionStatement)stmt);
+                        VisitAlways(stmt);
                     }
                 }
             }
@@ -1715,9 +1749,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
 
-            if (localSymbol.IsFixed &&
-                (this.currentMethodOrLambda.MethodKind == MethodKind.AnonymousFunction ||
-                 this.currentMethodOrLambda.MethodKind == MethodKind.LocalFunction) &&
+            if (localSymbol.IsFixed && this.currentSymbol is MethodSymbol currentMethod &&
+                (currentMethod.MethodKind == MethodKind.AnonymousFunction ||
+                 currentMethod.MethodKind == MethodKind.LocalFunction) &&
                 _capturedVariables.Contains(localSymbol))
             {
                 Diagnostics.Add(ErrorCode.ERR_FixedLocalInLambda, new SourceLocation(node.Syntax), localSymbol);
@@ -1795,8 +1829,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            var oldMethodOrLambda = this.currentMethodOrLambda;
-            this.currentMethodOrLambda = node.Symbol;
+            var oldSymbol = this.currentSymbol;
+            this.currentSymbol = node.Symbol;
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
@@ -1831,7 +1865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.State = stateAfterLambda;
 
-            this.currentMethodOrLambda = oldMethodOrLambda;
+            this.currentSymbol = oldSymbol;
             return null;
         }
 
@@ -1855,7 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             base.VisitAssignmentOperator(node);
-            Assign(node.Left, node.Right, refKind: node.RefKind);
+            Assign(node.Left, node.Right, isRef: node.IsRef);
             return null;
         }
 
@@ -2154,7 +2188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
             var result = base.VisitPropertyAccess(node);
-            if (Binder.AccessingAutoPropertyFromConstructor(node, this.currentMethodOrLambda))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, this.currentSymbol))
             {
                 var property = node.PropertySymbol;
                 var backingField = (property as SourcePropertySymbol)?.BackingField;

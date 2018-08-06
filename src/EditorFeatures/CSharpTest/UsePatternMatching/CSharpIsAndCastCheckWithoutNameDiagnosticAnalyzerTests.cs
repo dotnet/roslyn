@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
@@ -103,10 +103,10 @@ class TestFile
 {
     int i;
 
-    void Foo(Func<bool> f) { }
+    void Goo(Func<bool> f) { }
 
     bool M(object obj)
-        => Foo(() => [||]obj is TestFile && ((TestFile)obj).i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
+        => Goo(() => [||]obj is TestFile && ((TestFile)obj).i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
 }",
 @"
 using System;
@@ -115,10 +115,10 @@ class TestFile
 {
     int i;
 
-    void Foo(Func<bool> f) { }
+    void Goo(Func<bool> f) { }
 
     bool M(object obj)
-        => Foo(() => obj is TestFile {|Rename:file|} && file.i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
+        => Goo(() => obj is TestFile {|Rename:file|} && file.i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
 }");
         }
 
@@ -277,7 +277,7 @@ class TestFile
     {
         return obj is TestFile {|Rename:file|} && /*before*/ file /*after*/.i > 0;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]

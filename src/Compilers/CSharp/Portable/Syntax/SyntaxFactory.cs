@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a threadsafty element within an xml documentation comment.
+        /// Creates a threadsafety element within an xml documentation comment.
         /// </summary>
         public static XmlEmptyElementSyntax XmlThreadSafetyElement()
         {
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static XmlEmptyElementSyntax XmlKeywordElement(string keyword)
         {
             return XmlEmptyElement(DocumentationCommentXmlNames.SeeElementName).AddAttributes(
-                XmlTextAttribute(DocumentationCommentXmlNames.KeywordElementName, keyword));
+                XmlTextAttribute(DocumentationCommentXmlNames.LangwordAttributeName, keyword));
         }
 
         /// <summary>
@@ -1878,16 +1878,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         public static bool AreEquivalent(SyntaxTree oldTree, SyntaxTree newTree, bool topLevel)
         {
-            var csOld = oldTree as SyntaxTree;
-            var csNew = newTree as SyntaxTree;
-
-            if (csOld == null && csNew == null)
+            if (oldTree == null && newTree == null)
+            {
                 return true;
+            }
 
-            if (csOld == null || csNew == null)
+            if (oldTree == null || newTree == null)
+            {
                 return false;
+            }
 
-            return SyntaxEquivalence.AreEquivalent(csOld, csNew, ignoreChildNode: null, topLevel: topLevel);
+            return SyntaxEquivalence.AreEquivalent(oldTree, newTree, ignoreChildNode: null, topLevel: topLevel);
         }
 
         /// <summary>

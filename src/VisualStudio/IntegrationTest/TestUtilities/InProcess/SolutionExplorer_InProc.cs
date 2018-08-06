@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -546,7 +547,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             using (var solutionEvents = new UpdateSolutionEvents(buildManager))
             {
                 semaphore.Wait();
-                UpdateSolutionEvents.UpdateSolutionDoneEvent @event = (bool succeeded, bool modified, bool canceled) => semaphore.Release();
+                void @event(bool succeeded, bool modified, bool canceled) => semaphore.Release();
                 solutionEvents.OnUpdateSolutionDone += @event;
                 try
                 {
@@ -722,14 +723,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void OpenFile(string projectName, string relativeFilePath)
         {
             var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+            VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Code_guid, out _, out _, out _, out var view);
 
-            ExecuteCommand(WellKnownCommandNames.File_OpenFile, filePath);
-
-            var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(Path.GetFileName(filePath)))
-            {
-                Thread.Yield();
-            }
+            // Reliably set focus using NavigateToLineAndColumn
+            var textManager = GetGlobalService<SVsTextManager, IVsTextManager>();
+            ErrorHandler.ThrowOnFailure(view.GetBuffer(out var textLines));
+            ErrorHandler.ThrowOnFailure(view.GetCaretPos(out var line, out var column));
+            ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
         }
 
         public void CloseFile(string projectName, string relativeFilePath, bool saveFile)

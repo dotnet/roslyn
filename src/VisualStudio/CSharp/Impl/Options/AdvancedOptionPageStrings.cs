@@ -18,6 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Perform_editor_feature_analysis_in_external_process
             => ServicesVSResources.Perform_editor_feature_analysis_in_external_process;
 
+        public static string Option_Enable_navigation_to_decompiled_sources
+            => ServicesVSResources.Enable_navigation_to_decompiled_sources;
+
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
 
@@ -70,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.When_generating_properties;
 
         public static string Option_prefer_auto_properties
-            => ServicesVSResources.prefer_auto_properties;
+            => ServicesVSResources.codegen_prefer_auto_properties;
 
         public static string Option_prefer_throwing_properties
             => ServicesVSResources.prefer_throwing_properties;
@@ -149,9 +152,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_PlaceSystemNamespaceFirst
-        {
-            get { return CSharpVSResources.Place_System_directives_first_when_sorting_usings; }
-        }
+            => CSharpVSResources.Place_System_directives_first_when_sorting_usings;
+
+        public static string Option_SeparateImportGroups
+            => CSharpVSResources.Separate_using_directive_groups;
 
         public static string Option_Using_Directives =>
             CSharpVSResources.Using_Directives;

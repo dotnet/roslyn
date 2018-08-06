@@ -119,7 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Parse a LanguageVersion from a string input, as the command-line compiler does.
         ''' </summary>
-        <Extension>
         Public Function TryParse(version As String, ByRef result As LanguageVersion) As Boolean
             If version Is Nothing Then
                 result = LanguageVersion.Default
@@ -158,6 +157,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Friend Function DisallowInferredTupleElementNames(self As LanguageVersion) As Boolean
             Return self < Feature.InferredTupleNames.GetLanguageVersion()
+        End Function
+
+        <Extension>
+        Friend Function AllowNonTrailingNamedArguments(self As LanguageVersion) As Boolean
+            Return self >= Feature.NonTrailingNamedArguments.GetLanguageVersion()
         End Function
     End Module
 

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             int {|Definition:$$i|};
 
-            void Foo()
+            void Goo()
             {
                 Console.WriteLine([|i|]);
                 Console.WriteLine(new C().[|i|]);
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             int i = 1, {|Definition:$$j|} = 2;
 
-            void Foo()
+            void Goo()
             {
                 Console.WriteLine(i);
                 Console.WriteLine([|j|]);
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 Console.WriteLine(j);
                 Console.WriteLine(new C().[|j|]);
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 Console.WriteLine(j);
                 Console.WriteLine(new C().[|j|]);
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <ProjectReference>CSharpAssembly1</ProjectReference>
         <Document>
         class D
-            sub Foo()
+            sub Goo()
                 Bar(new c().[|field|])
                 Bar(new C().[|Field|])
                 Bar(new C().blah)
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
         <Document>
         class E
-            sub Foo()
+            sub Goo()
                 ' Find, even in file without the original symbol name.
                 Bar(new c().[|Field|])
                 Bar(new C().blah)
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 int j = C.[|j|];
             }
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Class
 
         Class D
-              Sub Foo()
+              Sub Goo()
                   Dim j As Integer = C.[|j|]
               End Sub
         End Class
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 object j = C.[|j|];
             }
@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Class
 
         Class D
-              Sub Foo()
+              Sub Goo()
                   Dim j As Object = C.[|j|]
               End Sub
         End Class
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 C.[|j|];
             }
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Class
 
         Class D
-              Sub Foo()
+              Sub Goo()
                   Dim j As string = C.[|j|]
               End Sub
         End Class
@@ -344,10 +344,10 @@ class Program
             Dim input =
 <Workspace>
     <Submission Language="C#" CommonReferences="true">
-        object {|Definition:$$foo|};
+        object {|Definition:$$goo|};
     </Submission>
     <Submission Language="C#" CommonReferences="true">
-        [|foo|]
+        [|goo|]
     </Submission>
 </Workspace>
             Await TestAPIAndFeature(input)
@@ -359,13 +359,13 @@ class Program
             Dim input =
 <Workspace>
     <Submission Language="C#" CommonReferences="true">
-        object {|Definition:$$foo|};
+        object {|Definition:$$goo|};
     </Submission>
     <Submission Language="NoCompilation" CommonReferences="false">
         #help
     </Submission>
     <Submission Language="C#" CommonReferences="true">
-        [|foo|]
+        [|goo|]
     </Submission>
 </Workspace>
             Await TestAPIAndFeature(input)
@@ -379,8 +379,8 @@ class Program
         <Document><![CDATA[
 class Definition:Program
 {
-    private int {|Definition:foo|};
-    ///  <see cref="[|foo$$|]"/> to start the program.
+    private int {|Definition:goo|};
+    ///  <see cref="[|goo$$|]"/> to start the program.
     static void Main(string[] args)
     {
     }
@@ -400,8 +400,8 @@ class Definition:Program
         <Document><![CDATA[
 class Definition:Program
 {
-    private int {|Definition:foo$$|};
-    ///  <see cref="[|foo|]"/> to start the program.
+    private int {|Definition:goo$$|};
+    ///  <see cref="[|goo|]"/> to start the program.
     static void Main(string[] args)
     {
     }

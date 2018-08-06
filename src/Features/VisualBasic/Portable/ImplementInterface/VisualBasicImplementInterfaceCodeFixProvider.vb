@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     Friend Class VisualBasicImplementInterfaceCodeFixProvider
         Inherits CodeFixProvider
 
-        Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub foo()' for interface 'ifoo'.
+        Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub goo()' for interface 'igoo'.
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get

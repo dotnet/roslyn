@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class WorkspaceDesktopResources {
@@ -61,33 +61,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloading index failed.
-        /// </summary>
-        internal static string Downloading_index_failed {
-            get {
-                return ResourceManager.GetString("Downloading_index_failed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Downloading index failed:{0}.
-        /// </summary>
-        internal static string Downloading_index_failed_0 {
-            get {
-                return ResourceManager.GetString("Downloading_index_failed_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Downloading IntelliSense index for {0}.
-        /// </summary>
-        internal static string Downloading_IntelliSense_index_for_0 {
-            get {
-                return ResourceManager.GetString("Downloading_IntelliSense_index_for_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid assembly name.
         /// </summary>
         internal static string Invalid_assembly_name {
@@ -102,24 +75,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Invalid_characters_in_assembly_name {
             get {
                 return ResourceManager.GetString("Invalid_characters_in_assembly_name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Msbuild failed when processing the file &apos;{0}&apos;.
-        /// </summary>
-        internal static string Msbuild_failed_when_processing_the_file_0 {
-            get {
-                return ResourceManager.GetString("Msbuild_failed_when_processing_the_file_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Msbuild failed when processing the file &apos;{0}&apos; with message: {1}.
-        /// </summary>
-        internal static string Msbuild_failed_when_processing_the_file_0_with_message_1 {
-            get {
-                return ResourceManager.GetString("Msbuild_failed_when_processing_the_file_0_with_message_1", resourceCulture);
             }
         }
     }

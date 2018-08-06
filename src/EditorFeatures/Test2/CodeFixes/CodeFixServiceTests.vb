@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Reflection
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -17,6 +16,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
+    <[UseExportProvider]>
     Public Class CodeFixServiceTests
 
         Private _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document FilePath="Test.vb">
-                                        Class Foo
+                                        Class Goo
                                         End Class
                                     </Document>
                            </Project>

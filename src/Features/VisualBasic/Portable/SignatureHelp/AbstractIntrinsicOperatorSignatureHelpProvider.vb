@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Return CreateSignatureHelpItems(
                 items, textSpan,
-                GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
+                GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
         Friend Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
@@ -65,8 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim suffixParts = documentation.GetSuffix(semanticModel, position, Nothing, cancellationToken)
 
-            Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
+            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
+            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
 
             Return CreateItem(
                 Nothing, semanticModel, position,

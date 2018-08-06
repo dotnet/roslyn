@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
                 // Chaining of the Speculative SemanticModel (i.e. Generating a speculative SemanticModel from an existing Speculative SemanticModel) is not supported
                 // Hence make sure we always start working off of the actual SemanticModel instead of a speculative SemanticModel.
-                Contract.Assert(!semanticModel.IsSpeculativeSemanticModel);
+                Debug.Assert(!semanticModel.IsSpeculativeSemanticModel);
 
                 var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
 
-            Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans = nodeOrToken =>
+            bool isNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken) =>
                 !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

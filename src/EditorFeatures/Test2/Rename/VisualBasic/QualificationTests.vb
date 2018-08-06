@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
+    <[UseExportProvider]>
     Public Class QualificationTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -23,7 +24,7 @@ Class X
     End Function
     Class B
         Property [|$$X|]()
-        Sub Foo()
+        Sub Goo()
             Dim y = {|stmt1:_Y|}()
         End Sub
     End Class

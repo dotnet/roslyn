@@ -18,6 +18,7 @@ using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 ImmutableArray<MetadataBlock> blocks;
@@ -50,16 +51,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 int localSignatureToken;
                 GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
+                var appDomain = new AppDomain();
                 uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
-                var context = EvaluationContext.CreateMethodContext(
-                    default(CSharpMetadataContext),
+                var context = CreateMethodContext(
+                    appDomain,
                     blocks,
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken);
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllAssemblies);
 
                 string error;
                 var result = context.CompileExpression("1", out error);
@@ -67,15 +70,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var name1 = result.Assembly.GetAssemblyName();
                 Assert.NotEqual(mvid1, Guid.Empty);
 
-                context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(blocks, context),
+                context = CreateMethodContext(
+                    appDomain,
                     blocks,
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken);
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllAssemblies);
 
                 result = context.CompileExpression("2", out error);
                 var mvid2 = result.Assembly.GetModuleVersionId();
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     static void M() { }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -123,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     static void M() { }
 }";
-                var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+                var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
                 WithRuntimeInstance(compilation0, runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.M");
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     static void M() { }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 // (1,2): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
@@ -260,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         int y = x + 1;
     }
 }";
-            var compilation0 = CSharpTestBase.CreateStandardCompilation(
+            var compilation0 = CSharpTestBase.CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
@@ -324,10 +328,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilationA = CreateStandardCompilation(sourceA, options: TestOptions.DebugDll);
+            var compilationA = CreateCompilation(sourceA, options: TestOptions.DebugDll);
             var referenceA = compilationA.EmitToImageReference();
 
-            var compilationB = CreateStandardCompilation(
+            var compilationB = CreateCompilation(
                 sourceB,
                 options: TestOptions.DebugDll,
                 references: new MetadataReference[] { referenceA });
@@ -337,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var referencesB = new[] { MscorlibRef, referenceA };
             var moduleB = compilationB.ToModuleInstance();
 
-            CSharpMetadataContext previous = default(CSharpMetadataContext);
+            var appDomain = new AppDomain();
             int startOffset;
             int endOffset;
             var runtime = CreateRuntimeInstance(moduleB, referencesB);
@@ -360,49 +364,50 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             endOffset = outerScope.EndOffset - 1;
 
             // At start of outer scope.
-            var context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)startOffset, localSignatureToken);
-            Assert.Equal(default(CSharpMetadataContext), previous);
-            previous = new CSharpMetadataContext(methodBlocks, context);
+            var context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)startOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
 
             // At end of outer scope - not reused because of the nested scope.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)endOffset, localSignatureToken);
-            Assert.NotEqual(context, previous.EvaluationContext); // Not required, just documentary.
+            var previous = appDomain.GetMetadataContext();
+            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)endOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+            Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext); // Not required, just documentary.
 
             // At type context.
-            context = EvaluationContext.CreateTypeContext(previous, typeBlocks, moduleVersionId, typeToken);
-            Assert.NotEqual(context, previous.EvaluationContext);
+            previous = appDomain.GetMetadataContext();
+            context = CreateTypeContext(appDomain, typeBlocks, moduleVersionId, typeToken, MakeAssemblyReferencesKind.AllAssemblies);
+            Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext);
             Assert.Null(context.MethodContextReuseConstraints);
-            Assert.Equal(context.Compilation, previous.Compilation);
+            Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation);
 
             // Step through entire method.
             var previousScope = (Scope)null;
-            previous = new CSharpMetadataContext(typeBlocks, context);
+            previous = appDomain.GetMetadataContext();
             for (int offset = startOffset; offset <= endOffset; offset++)
             {
                 var scope = scopes.GetInnermostScope(offset);
-                var constraints = previous.EvaluationContext.MethodContextReuseConstraints;
+                var constraints = GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints;
                 if (constraints.HasValue)
                 {
                     Assert.Equal(scope == previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset));
                 }
 
-                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)offset, localSignatureToken);
+                context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)offset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+                var previousEvaluationContext = GetMetadataContext(previous).EvaluationContext;
                 if (scope == previousScope)
                 {
-                    Assert.Equal(context, previous.EvaluationContext);
+                    Assert.Equal(context, previousEvaluationContext);
                 }
                 else
                 {
                     // Different scope. Should reuse compilation.
-                    Assert.NotEqual(context, previous.EvaluationContext);
-                    if (previous.EvaluationContext != null)
+                    Assert.NotEqual(context, previousEvaluationContext);
+                    if (previousEvaluationContext != null)
                     {
-                        Assert.NotEqual(context.MethodContextReuseConstraints, previous.EvaluationContext.MethodContextReuseConstraints);
-                        Assert.Equal(context.Compilation, previous.Compilation);
+                        Assert.NotEqual(context.MethodContextReuseConstraints, previousEvaluationContext.MethodContextReuseConstraints);
+                        Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation);
                     }
                 }
                 previousScope = scope;
-                previous = new CSharpMetadataContext(methodBlocks, context);
+                previous = appDomain.GetMetadataContext();
             }
 
             // With different references.
@@ -411,25 +416,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             GetContextState(runtime, "C.F", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
             // Different references. No reuse.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)endOffset, localSignatureToken);
-            Assert.NotEqual(context, previous.EvaluationContext);
-            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset));
-            Assert.NotEqual(context.Compilation, previous.Compilation);
-            previous = new CSharpMetadataContext(methodBlocks, context);
+            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)endOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+            Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext);
+            Assert.True(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset));
+            Assert.NotEqual(context.Compilation, GetMetadataContext(previous).Compilation);
+            previous = appDomain.GetMetadataContext();
 
             // Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
-            Assert.NotEqual(context, previous.EvaluationContext);
-            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0));
-            Assert.Equal(context.Compilation, previous.Compilation);
+            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+            Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext);
+            Assert.False(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0));
+            Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation);
 
             // No EvaluationContext. Should reuse Compilation
-            previous = new CSharpMetadataContext(previous.MetadataBlocks, previous.Compilation);
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
-            Assert.Null(previous.EvaluationContext);
+            appDomain.SetMetadataContext(SetMetadataContext(previous, default(Guid), new CSharpMetadataContext(GetMetadataContext(previous).Compilation)));
+            previous = appDomain.GetMetadataContext();
+            Assert.Null(GetMetadataContext(previous).EvaluationContext);
+            Assert.NotNull(GetMetadataContext(previous).Compilation);
+            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+            Assert.Null(GetMetadataContext(previous).EvaluationContext);
             Assert.NotNull(context);
-            Assert.Equal(context.Compilation, previous.Compilation);
+            Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation);
         }
 
         /// <summary>
@@ -449,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return x;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.F");
@@ -492,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return x;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.F");
@@ -584,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.F", atLineNumber: 999);
@@ -629,7 +637,7 @@ class B : A
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "B.M");
@@ -703,7 +711,7 @@ class B : A
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1249,7 +1257,7 @@ class B : A
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
@@ -1294,7 +1302,7 @@ class B : A
         int x = 0;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1349,7 +1357,7 @@ class B : A
         int y;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1439,10 +1447,10 @@ class C
         ((dynamic)o).G();
     }
 }";
-            var compilation0 = CreateStandardCompilation(
+            var compilation0 = CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemCoreRef, CSharpRef });
+                references: new[] { CSharpRef });
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1493,10 +1501,10 @@ class C
     int M() { return 0; }
         }
 ";
-            var compilation0 = CreateStandardCompilation(
+            var compilation0 = CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemCoreRef, CSharpRef });
+                references: new[] { CSharpRef });
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1544,10 +1552,10 @@ class C
     int[] M() { return m; }
 }
 ";
-            var compilation0 = CreateStandardCompilation(
+            var compilation0 = CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemCoreRef, CSharpRef });
+                references: new[] { CSharpRef });
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1592,7 +1600,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1710,7 +1718,7 @@ class C
         object o;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -1739,7 +1747,7 @@ class C
         const int y = 2;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1769,7 +1777,7 @@ class C
         const int x = 1;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -1804,7 +1812,7 @@ class C
         y = default(T);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -1848,7 +1856,7 @@ class C
                     expr: "F(() => y)",
                     error: out error,
                     testData: testData);
-                Assert.Equal(error, "error CS1628: Cannot use ref or out parameter 'y' inside an anonymous method, lambda expression, or query expression");
+                Assert.Equal(error, "error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function");
             });
         }
 
@@ -1914,7 +1922,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1977,7 +1985,7 @@ class C<T>
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2010,14 +2018,14 @@ class C<T>
                 var containingType = method.ContainingType;
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 // Return type E<T> with type argument T from <>c<T>.
-                Assert.Equal(returnType.TypeArguments[0].ContainingSymbol, containingType.ContainingType);
+                Assert.Equal(returnType.TypeArguments()[0].ContainingSymbol, containingType.ContainingType);
                 var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
                 Assert.Equal(1, locals.Length);
                 // All locals of type E<T> with type argument T from <>c<T>.
                 foreach (var local in locals)
                 {
                     var localType = (NamedTypeSymbol)local.Type;
-                    var typeArg = localType.TypeArguments[0];
+                    var typeArg = localType.TypeArguments()[0];
                     Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
                 }
 
@@ -2064,7 +2072,7 @@ class C<T>
         T t;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2107,6 +2115,51 @@ class C<T>
         }
 
         [Fact]
+        public void GenericWithInterfaceConstraint()
+        {
+            var source =
+@"public interface I
+{
+    string Key { get; set; }
+}
+
+class C
+{
+    public static void M<T>(T t) where T : I
+    {
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    expr: "t.Key",
+                    error: out error,
+                    testData: testData);
+
+                var methodData = testData.GetMethodData("<>x.<>m0<T>(T)");
+                var method = methodData.Method;
+                Assert.Equal(1, method.Parameters.Length);
+                var eeTypeParameterSymbol = (EETypeParameterSymbol)method.Parameters[0].Type;
+                Assert.Equal(1, eeTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics.Length);
+                Assert.Equal("I", eeTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics[0].Name);
+
+                methodData.VerifyIL(
+@"{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""string I.Key.get""
+  IL_000d:  ret
+}");
+            });
+        }
+
+        [Fact]
         public void AssignEmitError()
         {
             var longName = new string('P', 1100);
@@ -2117,7 +2170,7 @@ class C<T>
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2146,7 +2199,7 @@ class C<T>
         object o;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2171,7 +2224,7 @@ class C<T>
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2395,7 +2448,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "A.B.M1");
@@ -2463,7 +2516,7 @@ class C<T>
         return u;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2503,7 +2556,7 @@ class C<T>
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2864,7 +2917,7 @@ class B : A
         F(() => base.F(y));
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -2960,7 +3013,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -3021,7 +3074,7 @@ class B : A
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -3295,7 +3348,7 @@ class B : A
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithModuleName("MODULE"));
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll.WithModuleName("MODULE"));
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -3338,7 +3391,7 @@ class Program
         var o = mgr.Reports.Where(e => e.Salary < 100).Select(e => new { e.Name, e.Salary }).First();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "Program.F");
@@ -3395,7 +3448,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -3455,7 +3508,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -3516,7 +3569,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -3534,7 +3587,7 @@ class C
                     out missingAssemblyIdentities,
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData: null);
-                Assert.Equal(error, "error CS1061: 'object[]' does not contain a definition for 'First' and no extension method 'First' accepting a first argument of type 'object[]' could be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal(error, "error CS1061: 'object[]' does not contain a definition for 'First' and no accessible extension method 'First' accepting a first argument of type 'object[]' could be found (are you missing a using directive or an assembly reference?)");
                 AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
             });
         }
@@ -3550,7 +3603,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -3585,8 +3638,8 @@ class C
     {
     }
 }";
-            var netModuleRef = CreateStandardCompilation(sourceNetModule, options: TestOptions.DebugModule).EmitToImageReference();
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll, references: new[] { netModuleRef });
+            var netModuleRef = CreateCompilation(sourceNetModule, options: TestOptions.DebugModule).EmitToImageReference();
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { netModuleRef });
 
             WithRuntimeInstance(compilation1, runtime =>
             {
@@ -3651,34 +3704,34 @@ class C
     }
 }";
             var assemblyName = ExpressionCompilerUtilities.GenerateUniqueName();
-            var compilationN0 = CreateStandardCompilation(
+            var compilationN0 = CreateCompilation(
                 sourceN0,
                 options: TestOptions.DebugModule,
                 assemblyName: assemblyName + "_N0");
             var referenceN0 = ModuleMetadata.CreateFromImage(compilationN0.EmitToArray()).GetReference(display: assemblyName + "_N0");
-            var compilationN1 = CreateStandardCompilation(
+            var compilationN1 = CreateCompilation(
                 sourceN1,
                 options: TestOptions.DebugModule,
                 assemblyName: assemblyName + "_N0"); // Note: "_N0" not "_N1"
             var referenceN1 = ModuleMetadata.CreateFromImage(compilationN1.EmitToArray()).GetReference(display: assemblyName + "_N0");
-            var compilationN2 = CreateStandardCompilation(
+            var compilationN2 = CreateCompilation(
                 sourceN2,
                 options: TestOptions.DebugModule,
                 assemblyName: assemblyName + "_N2");
             var referenceN2 = ModuleMetadata.CreateFromImage(compilationN2.EmitToArray()).GetReference(display: assemblyName + "_N2");
-            var compilationD0 = CreateStandardCompilation(
+            var compilationD0 = CreateCompilation(
                 sourceD0,
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyName + "_D0",
                 references: new MetadataReference[] { referenceN0 });
             var referenceD0 = AssemblyMetadata.CreateFromImage(compilationD0.EmitToArray()).GetReference(display: assemblyName + "_D0");
-            var compilationD1 = CreateStandardCompilation(
+            var compilationD1 = CreateCompilation(
                 sourceD1,
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyName + "_D1",
                 references: new MetadataReference[] { referenceN0 });
             var referenceD1 = AssemblyMetadata.CreateFromImage(compilationD1.EmitToArray()).GetReference(display: assemblyName + "_D1");
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyName,
@@ -4240,7 +4293,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -4288,7 +4341,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -4363,7 +4416,7 @@ class C
         object o = 1;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -4467,7 +4520,7 @@ struct S
         yield return this; // Until iterators always capture 'this', do it explicitly.
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext");
@@ -4504,7 +4557,7 @@ struct S
         yield return this; // Until iterators always capture 'this', do it explicitly.
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext");
@@ -4601,7 +4654,7 @@ struct S
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -4725,7 +4778,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
+            var comp = CreateCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -4791,7 +4844,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
+            var comp = CreateCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -4826,7 +4879,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 new[]
                 {
@@ -4881,7 +4934,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -5129,7 +5182,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -5168,7 +5221,7 @@ class C
         F(z => z != null && x != null, 3);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_0.<M>b__0");
@@ -5201,7 +5254,7 @@ class C
         System.Func<object, bool> f = z => z != null;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<>c.<M>b__0_0");
@@ -5235,7 +5288,7 @@ class C
         Max(1, 2);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -5271,7 +5324,7 @@ class C
         return tt;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.I");
@@ -5308,7 +5361,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<I>d__0.MoveNext");
@@ -5340,7 +5393,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
 
@@ -5387,8 +5440,8 @@ public class C
     }
 }
 ";
-            var libRef = CreateStandardCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
-            var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.DebugDll);
+            var libRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
+            var comp = CreateCompilation(source, new[] { libRef }, TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -5401,7 +5454,7 @@ public class C
                 string actualError;
                 ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
-                Action<string> verify = expr =>
+                void verify(string expr)
                 {
                     context.CompileExpression(
                         expr,
@@ -5415,7 +5468,7 @@ public class C
                         testData: null);
                     Assert.Equal(expectedError, actualError);
                     Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
-                };
+                }
 
                 verify("M(null)");
                 verify("field");
@@ -5437,15 +5490,15 @@ public class C
         {
             var signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
+                WithStrongNameProvider(s_defaultDesktopProvider);
 
             var libBTemplate = @"
 [assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]
 public class B {{ }}
 ";
 
-            var libBv1Ref = CreateStandardCompilation(string.Format(libBTemplate, "1"), assemblyName: "B", options: signedDllOptions).EmitToImageReference();
-            var libBv2Ref = CreateStandardCompilation(string.Format(libBTemplate, "2"), assemblyName: "B", options: signedDllOptions).EmitToImageReference();
+            var libBv1Ref = CreateCompilation(string.Format(libBTemplate, "1"), assemblyName: "B", options: signedDllOptions).EmitToImageReference();
+            var libBv2Ref = CreateCompilation(string.Format(libBTemplate, "2"), assemblyName: "B", options: signedDllOptions).EmitToImageReference();
 
             var libASource = @"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
@@ -5455,7 +5508,7 @@ public class A : B
 }
 ";
 
-            var libAv1Ref = CreateStandardCompilation(libASource, new[] { libBv1Ref }, assemblyName: "A", options: signedDllOptions).EmitToImageReference();
+            var libAv1Ref = CreateCompilation(libASource, new[] { libBv1Ref }, assemblyName: "A", options: signedDllOptions).EmitToImageReference();
 
             var source = @"
 public class Source
@@ -5467,7 +5520,7 @@ public class Source
 }
 ";
 
-            var comp = CreateStandardCompilation(source, new[] { libAv1Ref, libBv2Ref }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { libAv1Ref, libBv2Ref }, TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(1, 1));
@@ -5514,7 +5567,7 @@ class C
     int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");
@@ -5575,7 +5628,7 @@ namespace Windows.Foundation.Metadata
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");
@@ -5598,7 +5651,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var peImage = comp.EmitToArray();
             var symReader = new MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfoBytes>.Empty);
             var module = ModuleInstance.Create(peImage, symReader);
@@ -5631,7 +5684,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var peImage = comp.EmitToArray();
             var module = ModuleInstance.Create(peImage, NotImplementedSymUnmanagedReader.Instance);
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
@@ -5763,8 +5816,8 @@ public class C
         string y = ""a"";
     }
 }";
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
-            var comp2 = CreateStandardCompilation(source2, options: TestOptions.DebugDll);
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            var comp2 = CreateCompilation(source2, options: TestOptions.DebugDll);
 
             using (MemoryStream
                 peStream1Unused = new MemoryStream(),
@@ -5797,15 +5850,16 @@ public class C
                 AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion: 1), "x");
                 AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion: 2), "x", "y");
 
-                var context1 = EvaluationContext.CreateMethodContext(
-                    default(CSharpMetadataContext),
+                var context1 = CreateMethodContext(
+                    new AppDomain(),
                     blocks,
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: 0,
-                    localSignatureToken: localSignatureToken);
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllAssemblies);
 
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
@@ -5816,15 +5870,16 @@ public class C
                     testData: null);
                 AssertEx.SetEqual(locals.Select(l => l.LocalName), "x");
 
-                var context2 = EvaluationContext.CreateMethodContext(
-                    default(CSharpMetadataContext),
+                var context2 = CreateMethodContext(
+                    new AppDomain(),
                     blocks,
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
                     methodVersion: 2,
                     ilOffset: 0,
-                    localSignatureToken: localSignatureToken);
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllAssemblies);
 
                 locals.Clear();
                 context2.CompileGetLocals(
@@ -5852,7 +5907,7 @@ class C
         var q = new[] { new C() }.AsQueryable();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M");
@@ -6016,7 +6071,7 @@ class C
         int y;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 ImmutableArray<MetadataBlock> blocks;
@@ -6026,8 +6081,10 @@ class C
                 int localSignatureToken;
                 GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
-                var context = EvaluationContext.CreateMethodContext(
-                    blocks.ToCompilation(),
+                var appDomain = new AppDomain();
+                var context = CreateMethodContext(
+                    appDomain,
+                    blocks,
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
@@ -6050,9 +6107,9 @@ class C
 }");
 
                 // Verify the context is re-used for ILOffset == 0.
-                var previous = context;
-                context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(blocks, previous),
+                var previous = appDomain.GetMetadataContext();
+                context = CreateMethodContext(
+                    appDomain,
                     blocks,
                     symReader,
                     moduleVersionId,
@@ -6060,12 +6117,12 @@ class C
                     methodVersion: 1,
                     ilOffset: 0,
                     localSignatureToken: localSignatureToken);
-                Assert.Same(previous, context);
+                Assert.Same(GetMetadataContext(previous).EvaluationContext, context);
 
                 // Verify the context is re-used for NoILOffset.
-                previous = context;
-                context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(blocks, previous),
+                previous = appDomain.GetMetadataContext();
+                context = CreateMethodContext(
+                    appDomain,
                     blocks,
                     symReader,
                     moduleVersionId,
@@ -6073,7 +6130,7 @@ class C
                     methodVersion: 1,
                     ilOffset: ExpressionCompilerTestHelpers.NoILOffset,
                     localSignatureToken: localSignatureToken);
-                Assert.Same(previous, context);
+                Assert.Same(GetMetadataContext(previous).EvaluationContext, context);
             });
         }
 
@@ -6092,7 +6149,7 @@ class C
         var useLinq = list.Last();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -6218,7 +6275,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.Test");
@@ -6308,6 +6365,143 @@ class C
   IL_0001:  ret
 }");
         });
+        }
+
+        [Fact]
+        public void InLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
+        {
+            var reference = CreateCompilation(@"
+public delegate void D(in int p);");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var comp = CreateCompilation(@"
+public class Test
+{
+    void M(D lambda)
+    {
+    }
+}", references: new[] { reference.EmitToImageReference() });
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var testData = Evaluate(
+                comp,
+                methodName: "Test.M",
+                expr: "M((in int p) => {})");
+
+            var methodsGenerated = testData.GetMethodsByName().Keys;
+            Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
+            Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
+        }
+
+        [Fact]
+        public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_ReturnTypes()
+        {
+            var reference = CreateCompilation(@"
+public delegate ref readonly int D();");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var comp = CreateCompilation(@"
+public class Test
+{
+    private int x = 0;
+    void M(D lambda)
+    {
+    }
+}", references: new[] { reference.EmitToImageReference() });
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var testData = Evaluate(
+                comp,
+                methodName: "Test.M",
+                expr: "M(() => ref x)");
+
+            var methodsGenerated = testData.GetMethodsByName().Keys;
+            Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
+            Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
+        }
+
+        [Fact]
+        [WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
+        public void RefReturnNonRefLocal()
+        {
+            var source = @"
+delegate ref int D();
+class C
+{
+    static void Main()
+    {
+        int local = 0;
+    }
+    static ref int M(D d)
+    {
+        return ref d();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                context.CompileExpression("M(() => ref local)", out var error);
+                Assert.Equal("error CS8168: Cannot return local 'local' by reference because it is not a ref local", error);
+            });
+        }
+
+        [Fact]
+        public void OutVarInExpression()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+    }
+
+    static object Test(out int x)
+    {
+        x = 1;
+        return x;
+    }
+}";
+            var testData = Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "Test(out var z)");
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            methodData.VerifyIL(
+@"{
+  // Code size       46 (0x2e)
+  .maxstack  4
+  .locals init (System.Guid V_0)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""z""
+  IL_0023:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0028:  call       ""object C.Test(out int)""
+  IL_002d:  ret
+}");
         }
     }
 }

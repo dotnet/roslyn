@@ -573,8 +573,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            var containedLanguageHost = containedDocument.ContainedLanguage.ContainedLanguageHost as IVsContainedLanguageHostInternal;
-            if (containedLanguageHost != null)
+            if (containedDocument.ContainedLanguage.ContainedLanguageHost is IVsContainedLanguageHostInternal containedLanguageHost)
             {
                 foreach (var importClause in memberImportsNamespaces)
                 {

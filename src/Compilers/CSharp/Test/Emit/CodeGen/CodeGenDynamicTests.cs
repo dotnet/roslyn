@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             bool allowUnsafe = false,
             [CallerFilePath]string callerPath = null,
             [CallerLineNumber]int callerLine = 0,
-            CSharpParseOptions parseOptions = null)
+            CSharpParseOptions parseOptions = null,
+            Verification verify = Verification.Passes)
         {
             references = references ?? new[] { SystemCoreRef, CSharpRef };
 
@@ -36,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
             var optimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
 
-            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation);
-            var optimizedVerifier = CompileAndVerify(optimizedCompilation);
+            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, verify: verify);
+            var optimizedVerifier = CompileAndVerify(optimizedCompilation, verify: verify);
 
             // check what IL we emit exactly:
             if (expectedUnoptimizedIL != null)
@@ -137,7 +138,7 @@ public sealed class CSharpArgumentInfo
             }
 
             string source = string.Format(CSharpBinderTemplate, sb.ToString());
-            return CreateStandardCompilation(source, new[] { systemCore ?? SystemCoreRef }, assemblyName: GetUniqueName()).EmitToImageReference();
+            return CreateCompilationWithMscorlib40(source, new[] { systemCore ?? SystemCoreRef }, assemblyName: GetUniqueName()).EmitToImageReference();
         }
 
         private const string ExpressionTypeSource = @"
@@ -216,7 +217,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyEmitDiagnostics(
     // (9,18): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
     //         var a1 = d * d;
     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(9, 18)
@@ -239,7 +240,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
                 // (8,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.Binder.InvokeConstructor'
                 //         new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M));
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M))").WithArguments("Microsoft.CSharp.RuntimeBinder.Binder", "InvokeConstructor")
@@ -264,13 +265,13 @@ class C
 }
 ";
             // the compiler ignores the enum values, uses hardcoded values:
-            CreateStandardCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
+            CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
         }
 
         [Fact]
         public void Missing_Func()
         {
-            var systemCoreRef = CreateStandardCompilation(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -283,13 +284,13 @@ class C
 }
 ";
             // the delegate is generated, no error is reported
-            CompileAndVerify(source, new[] { systemCoreRef, csrtRef });
+            CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef });
         }
 
         [Fact]
         public void InvalidFunc_Arity()
         {
-            var systemCoreRef = CreateStandardCompilation(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
             var funcRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidFuncDelegateName.AsImmutableOrNull());
 
@@ -303,14 +304,14 @@ class C
 }
 ";
             // the delegate is generated, no error is reported
-            var c = CompileAndVerify(source, new[] { systemCoreRef, csrtRef, funcRef });
+            var c = CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef, funcRef });
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
         [Fact, WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void InvalidFunc_Constraints()
         {
-            var systemCoreRef = CreateStandardCompilation(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -330,7 +331,7 @@ class C
 ";
             // Desired: the delegate is generated, no error is reported.
             // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
-            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: false).VerifyIL("C.F", @"
+            CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
 {
   // Code size      189 (0xbd)
   .maxstack  13
@@ -449,7 +450,7 @@ namespace System.Runtime.CompilerServices
     public abstract class CallSiteBinder { }
 }";
 
-            var systemCoreRef = CreateStandardCompilation(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -461,7 +462,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
                 // (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite"),
                 // error CS1969: One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?
@@ -478,7 +479,7 @@ namespace System.Runtime.CompilerServices
     public class CallSiteBinder {}
 }";
 
-            var systemCoreRef = CreateStandardCompilation(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -490,7 +491,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
     // (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite`1' is not defined or imported
     //         return d * d;
     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite`1").WithLocation(6, 16),
@@ -577,7 +578,7 @@ public class C
         d.m(1,2,3);
     }
 }";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var containers = c.GetMembers().OfType<NamedTypeSymbol>().ToArray();
@@ -587,7 +588,7 @@ public class C
                 {
                     Assert.Equal(Accessibility.Private, container.DeclaredAccessibility);
                     Assert.True(container.IsStatic);
-                    Assert.Equal(SpecialType.System_Object, container.BaseType.SpecialType);
+                    Assert.Equal(SpecialType.System_Object, container.BaseType().SpecialType);
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(container.GetAttributes()));
 
                     var members = container.GetMembers();
@@ -633,7 +634,7 @@ public class C
         var x = new System.Action(() => d.m());
     }
 }";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 Assert.Equal(2, c.GetMembers().OfType<NamedTypeSymbol>().Count());
@@ -668,7 +669,7 @@ public class C
         yield return d;        
     }
 }";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__0");
@@ -683,8 +684,17 @@ public class C
                             break;
 
                         case SymbolKind.Method:
-                            // Dev11 marks return type of GetEnumerator with DynamicAttribute, we don't
-                            Assert.Equal(0, ((MethodSymbol)member).GetReturnTypeAttributes().Length);
+                            var attributes = ((MethodSymbol)member).GetReturnTypeAttributes();
+                            switch (member.MetadataName)
+                            {
+                                case "System.Collections.Generic.IEnumerator<dynamic>.get_Current":
+                                case "System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator":
+                                    Assert.Equal(1, attributes.Length);
+                                    break;
+                                default:
+                                    Assert.Equal(0, attributes.Length);
+                                    break;
+                            }
                             break;
 
                         case SymbolKind.Property:
@@ -785,7 +795,7 @@ public class C
         return d(a, b);
     }
 }";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var container = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("<>o__0");
                 Assert.Equal(0, container.GetMembers().Single().GetAttributes().Length);
@@ -805,7 +815,7 @@ public class C
         return d(ref d);
     }
 }";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000004}");
 
@@ -814,8 +824,8 @@ public class C
                 Assert.Equal(4, d.TypeParameters.Length);
                 Assert.True(d.IsSealed);
                 Assert.Equal(CharSet.Ansi, d.MarshallingCharSet);
-                Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType.SpecialType);
-                Assert.Equal(0, d.Interfaces.Length);
+                Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType().SpecialType);
+                Assert.Equal(0, d.Interfaces().Length);
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(d.GetAttributes()));
 
                 // members:
@@ -998,7 +1008,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef });
+            CompileAndVerifyWithCSharp(source);
         }
 
         [Fact]
@@ -1008,20 +1018,20 @@ class C
             string source = @"
 class C
 {
-    static void Foo<T>(T a, dynamic b)
+    static void Goo<T>(T a, dynamic b)
     {
-        System.Action f = () => Foo(a, b);
+        System.Action f = () => Goo(a, b);
     }
 }
 ";
-            CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0<T>.<Foo>b__0", @"
+            CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0<T>.<Goo>b__0", @"
 {
   // Code size      123 (0x7b)
   .maxstack  9
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, T, object>> C.<>o__0<T>.<>p__0""
   IL_0005:  brtrue.s   IL_0050
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""Foo""
+  IL_000c:  ldstr      ""Goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1077,7 +1087,7 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef });
         }
 
         [Fact, WorkItem(16, "http://roslyn.codeplex.com/workitem/16")]
@@ -1521,10 +1531,9 @@ public class C
         l3(d);
     }
 }";
-            CompileAndVerify(src,
+            CompileAndVerifyWithCSharp(src,
                 expectedOutput: "2024",
-                parseOptions: _localFunctionParseOptions,
-                additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+                parseOptions: _localFunctionParseOptions).VerifyDiagnostics();
             CompileAndVerifyIL(src, "C.Main",
                 parseOptions: _localFunctionParseOptions,
                 expectedOptimizedIL: @"
@@ -1555,7 +1564,7 @@ public class C
   IL_0044:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, int>> C.<>o__0.<>p__0""
   IL_0049:  ldloc.1
   IL_004a:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
-  IL_004f:  call       ""void C.<Main>g__L10_0(int)""
+  IL_004f:  call       ""void C.<Main>g__L1|0_0(int)""
   IL_0054:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, int>> C.<>o__0.<>p__1""
   IL_0059:  brtrue.s   IL_007f
   IL_005b:  ldc.i4.0
@@ -1572,7 +1581,7 @@ public class C
   IL_008e:  ldloc.1
   IL_008f:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_0094:  ldloca.s   V_0
-  IL_0096:  call       ""System.Action<int> C.<Main>g__L20_1(int, ref C.<>c__DisplayClass0_0)""
+  IL_0096:  call       ""System.Action<int> C.<Main>g__L2|0_1(int, ref C.<>c__DisplayClass0_0)""
   IL_009b:  stloc.2
   IL_009c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__0.<>p__2""
   IL_00a1:  brtrue.s   IL_00db
@@ -2258,7 +2267,7 @@ public class C
     }
 }";
             // TODO: Why does RefEmit use fat header with maxstack = 2?
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, symbolValidator: module =>
+            var verifier = CompileAndVerifyWithCSharp(source, symbolValidator: module =>
             {
                 var pe = (PEModuleSymbol)module;
 
@@ -5001,7 +5010,7 @@ class C
 1:t
 1:t";
 
-            CompileAndVerify(source: source, expectedOutput: output, additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
         }
 
 
@@ -5104,7 +5113,7 @@ class C
 00011111-
 01111111";
 
-            CompileAndVerify(source: source, expectedOutput: output, additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
         }
 
         [Fact]
@@ -5134,7 +5143,7 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerifyWithCSharp(source, expectedOutput: "");
         }
 
         [Fact]
@@ -6560,8 +6569,7 @@ public class A
   IL_0067:  ret
 }");
 
-            CompileAndVerify(source,
-                new[] { SystemCoreRef, CSharpRef },
+            CompileAndVerifyWithCSharp(source,
                 expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
         }
 
@@ -7403,7 +7411,7 @@ public class Color
 	public int F(int a) { return 1; } 
 }
 ";
-            var lib = CreateStandardCompilation(sourceLib);
+            var lib = CreateCompilation(sourceLib);
 
             string sourceScript = @"
 Color Color;
@@ -7496,12 +7504,12 @@ public class Color
 	public int F(int a) { return 1; } 
 }
 ";
-            var lib = CreateStandardCompilation(sourceLib);
+            var lib = CreateCompilation(sourceLib);
 
             string sourceScript = @"
 Color Color;
 
-void Foo() 
+void Goo() 
 {
     dynamic x = Color.F((dynamic)1);
 }
@@ -7511,7 +7519,7 @@ void Foo()
                 new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef },
                 TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            CompileAndVerify(script).VerifyIL("Foo", @"
+            CompileAndVerify(script).VerifyIL("Goo", @"
 {
   // Code size       99 (0x63)
   .maxstack  9
@@ -7957,7 +7965,7 @@ public class C
 {
     public dynamic M(dynamic d, int a)
     {
-        return d.m(foo: d, bar: a, baz: 123);
+        return d.m(goo: d, bar: a, baz: 123);
     }
 }";
             CompileAndVerifyIL(source, "C.M", @"
@@ -7982,7 +7990,7 @@ public class C
   IL_0028:  dup
   IL_0029:  ldc.i4.1
   IL_002a:  ldc.i4.4
-  IL_002b:  ldstr      ""foo""
+  IL_002b:  ldstr      ""goo""
   IL_0030:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_0035:  stelem.ref
   IL_0036:  dup
@@ -8034,7 +8042,7 @@ partial class C
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedOutput: "2");
+            CompileAndVerifyWithCSharp(source, expectedOutput: "2");
         }
 
         [Fact]
@@ -8698,7 +8706,7 @@ public class C
     public void m(ref object a, out object b) { b = null; }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerifyWithCSharp(source, expectedOutput: "");
         }
 
         /// <summary>
@@ -8943,20 +8951,20 @@ public class C
             string source = @"
 class C
 {
-    static void Foo(dynamic x)
+    static void Goo(dynamic x)
     {
-        System.Action a = () => Foo(x);
+        System.Action a = () => Goo(x);
     }
 }
 ";
-            CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0.<Foo>b__0", @"
+            CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0.<Goo>b__0", @"
 {
   // Code size      107 (0x6b)
   .maxstack  9
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, object>> C.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0046
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""Foo""
+  IL_000c:  ldstr      ""Goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -8998,14 +9006,14 @@ public class C
     public void M(dynamic d) 
     {
         S s = new S();
-        s.foo(d);
+        s.goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             // Dev11 produces more efficient code, see bug 547265:
@@ -9020,7 +9028,7 @@ public struct S
   IL_0008:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__0.<>p__0""
   IL_000d:  brtrue.s   IL_004e
   IL_000f:  ldc.i4     0x100
-  IL_0014:  ldstr      ""foo""
+  IL_0014:  ldstr      ""goo""
   IL_0019:  ldnull
   IL_001a:  ldtoken    ""C""
   IL_001f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9059,14 +9067,14 @@ public class C
 {
     public void M(S s, dynamic d) 
     {
-        s.foo(d);
+        s.goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             CompileAndVerifyIL(source, "C.M", @"
@@ -9076,7 +9084,7 @@ public struct S
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0046
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""foo""
+  IL_000c:  ldstr      ""goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9171,14 +9179,14 @@ public class C
 
     public void M(dynamic d) 
     {
-        s.foo(d);
+        s.goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             CompileAndVerifyIL(source, "C.M", @"
@@ -9188,7 +9196,7 @@ public struct S
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
   IL_0005:  brtrue.s   IL_0045
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""foo""
+  IL_000c:  ldstr      ""goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9231,14 +9239,14 @@ public class C
 
     public void M(dynamic d) 
     {
-        s[0].foo(d);
+        s[0].goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             CompileAndVerifyIL(source, "C.M", @"
@@ -9248,7 +9256,7 @@ public struct S
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
   IL_0005:  brtrue.s   IL_0046
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""foo""
+  IL_000c:  ldstr      ""goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9295,14 +9303,14 @@ public unsafe class C
     {
         S s = new S();
         S* ptr = &s;
-        (*ptr).foo(d);
+        (*ptr).goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             // Dev11 produces more efficient code, see bug 547265:
@@ -9320,7 +9328,7 @@ public struct S
   IL_000c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
   IL_0011:  brtrue.s   IL_0052
   IL_0013:  ldc.i4     0x100
-  IL_0018:  ldstr      ""foo""
+  IL_0018:  ldstr      ""goo""
   IL_001d:  ldnull
   IL_001e:  ldtoken    ""C""
   IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9349,7 +9357,7 @@ public struct S
   IL_0063:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_0068:  ret
 }
-", allowUnsafe: true);
+", allowUnsafe: true, verify: Verification.Fails);
         }
 
         [Fact]
@@ -9364,14 +9372,14 @@ public unsafe class C
     {
         S s = new S();
         S* ptr = &s;
-        ptr->foo(d);
+        ptr->goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             // Dev11 produces more efficient code, see bug 547265:
@@ -9389,7 +9397,7 @@ public struct S
   IL_000c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
   IL_0011:  brtrue.s   IL_0052
   IL_0013:  ldc.i4     0x100
-  IL_0018:  ldstr      ""foo""
+  IL_0018:  ldstr      ""goo""
   IL_001d:  ldnull
   IL_001e:  ldtoken    ""C""
   IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9418,7 +9426,7 @@ public struct S
   IL_0063:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_0068:  ret
 }
-", allowUnsafe: true);
+", allowUnsafe: true, verify: Verification.Fails);
         }
 
         [Fact]
@@ -9432,14 +9440,14 @@ public unsafe class C
     public void M(dynamic d) 
     {
         S* ptr = stackalloc S[2];
-        ptr[1].foo(d);
+        ptr[1].goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             // Dev11 produces more efficient code, see bug 547265:
@@ -9457,7 +9465,7 @@ public struct S
   IL_000c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
   IL_0011:  brtrue.s   IL_0052
   IL_0013:  ldc.i4     0x100
-  IL_0018:  ldstr      ""foo""
+  IL_0018:  ldstr      ""goo""
   IL_001d:  ldnull
   IL_001e:  ldtoken    ""C""
   IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9488,7 +9496,7 @@ public struct S
   IL_006a:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_006f:  ret
 }
-", allowUnsafe: true);
+", allowUnsafe: true, verify: Verification.Fails);
         }
 
         [Fact]
@@ -9612,14 +9620,14 @@ public class C
 {
     public void M(dynamic d, S s, S t) 
     {
-        (s = t).foo(d);
+        (s = t).goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             CompileAndVerifyIL(source, "C.M", @"
@@ -9629,7 +9637,7 @@ public struct S
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0045
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""foo""
+  IL_000c:  ldstr      ""goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9672,14 +9680,14 @@ public class C
 
     public void M(C c, dynamic d) 
     {
-        c.P.foo(d);
+        c.P.goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             CompileAndVerifyIL(source, "C.M", @"
@@ -9689,7 +9697,7 @@ public struct S
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__4.<>p__0""
   IL_0005:  brtrue.s   IL_0045
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""foo""
+  IL_000c:  ldstr      ""goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9732,14 +9740,14 @@ public class C
 
     public void M(C c, dynamic d) 
     {
-        c[0].foo(d);
+        c[0].goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             CompileAndVerifyIL(source, "C.M", @"
@@ -9749,7 +9757,7 @@ public struct S
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__3.<>p__0""
   IL_0005:  brtrue.s   IL_0045
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""foo""
+  IL_000c:  ldstr      ""goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9790,14 +9798,14 @@ public class C
 {
     public void M(System.Func<S> f, dynamic d) 
     {
-        f().foo(d);
+        f().goo(d);
     }
 }
 
 public struct S 
 { 
     public int X;
-    public void foo(int a) {}
+    public void goo(int a) {}
 }
 ";
             CompileAndVerifyIL(source, "C.M", @"
@@ -9807,7 +9815,7 @@ public struct S
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0045
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""foo""
+  IL_000c:  ldstr      ""goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -9967,7 +9975,7 @@ public class C
 {
     public dynamic M(dynamic d, int a)
     {
-        return d(foo: d, bar: a, baz: 123);
+        return d(goo: d, bar: a, baz: 123);
     }
 }";
 
@@ -9991,7 +9999,7 @@ public class C
   IL_0022:  dup
   IL_0023:  ldc.i4.1
   IL_0024:  ldc.i4.4
-  IL_0025:  ldstr      ""foo""
+  IL_0025:  ldstr      ""goo""
   IL_002a:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_002f:  stelem.ref
   IL_0030:  dup
@@ -10030,7 +10038,7 @@ public class C
 {
     public void M(dynamic d, int a)
     {
-        d(foo: d, bar: a, baz: 123);
+        d(goo: d, bar: a, baz: 123);
     }
 }";
             CompileAndVerifyIL(source, "C.M", @"
@@ -10053,7 +10061,7 @@ public class C
   IL_0026:  dup
   IL_0027:  ldc.i4.1
   IL_0028:  ldc.i4.4
-  IL_0029:  ldstr      ""foo""
+  IL_0029:  ldstr      ""goo""
   IL_002e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_0033:  stelem.ref
   IL_0034:  dup
@@ -10300,9 +10308,9 @@ class B
 
 class C : B
 {
-    C(dynamic x) : base((int)Foo(x)) { }
+    C(dynamic x) : base((int)Goo(x)) { }
  
-    static object Foo(object x)
+    static object Goo(object x)
     {
         return x;
     }
@@ -10328,7 +10336,7 @@ class C : B
   IL_003c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, object, object>> C.<>o__0.<>p__0""
   IL_0041:  brtrue.s   IL_007e
   IL_0043:  ldc.i4.0
-  IL_0044:  ldstr      ""Foo""
+  IL_0044:  ldstr      ""Goo""
   IL_0049:  ldnull
   IL_004a:  ldtoken    ""C""
   IL_004f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -10376,9 +10384,9 @@ class B
 
 class C : B
 {
-    C(dynamic x) : base((int)Foo(x)) { }
+    C(dynamic x) : base((int)Goo(x)) { }
  
-    static Action<object> Foo;
+    static Action<object> Goo;
 }
 ";
             CompileAndVerifyIL(source, "C..ctor", @"
@@ -10424,7 +10432,7 @@ class C : B
   IL_0077:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object>> C.<>o__0.<>p__0""
   IL_007c:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object>>.Target""
   IL_0081:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object>> C.<>o__0.<>p__0""
-  IL_0086:  ldsfld     ""System.Action<object> C.Foo""
+  IL_0086:  ldsfld     ""System.Action<object> C.Goo""
   IL_008b:  ldarg.1
   IL_008c:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Action<object>, object)""
   IL_0091:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
@@ -10447,9 +10455,9 @@ class B
 
 class C : B
 {
-    C(dynamic x) : base((int)Foo(x)) { }
+    C(dynamic x) : base((int)Goo(x)) { }
  
-    static Action<object> Foo { get; set; }
+    static Action<object> Goo { get; set; }
 }
 ";
             CompileAndVerifyIL(source, "C..ctor", @"
@@ -10495,7 +10503,7 @@ class C : B
   IL_0077:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object>> C.<>o__0.<>p__0""
   IL_007c:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object>>.Target""
   IL_0081:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object>> C.<>o__0.<>p__0""
-  IL_0086:  call       ""System.Action<object> C.Foo.get""
+  IL_0086:  call       ""System.Action<object> C.Goo.get""
   IL_008b:  ldarg.1
   IL_008c:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, System.Action<object>, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Action<object>, object)""
   IL_0091:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
@@ -13612,7 +13620,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,3): error CS0019: Operator '&=' cannot be applied to operands of type 'int*' and 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "ret &= (1 == d)").WithArguments("&=", "int*", "dynamic"));
         }
@@ -13983,7 +13991,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "hello!", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "hello!", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics();
             // No runtime failure (System.ArrayTypeMismatchException: Attempted to access an element as a type incompatible with the array.)
             // because of the special handling for dynamic in LocalRewriter.TransformCompoundAssignmentLHS
@@ -14893,11 +14901,11 @@ class Program
             return Task.FromResult(1);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
-            comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
+            comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
         }
@@ -14938,11 +14946,11 @@ class Program
             return Task.FromResult(1);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
-            comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
+            comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
         }
@@ -15373,6 +15381,45 @@ class C
                 // (6,15): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
                 //         await d;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(6, 15));
+        }
+
+        #endregion
+
+        #region Regression Tests
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void ByRefDynamic()
+        {
+            string source = @"
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+            System.Console.Write(Test1());
+            System.Console.Write("" "");
+            System.Console.Write(x.Length);
+        }
+
+        static dynamic x = new C1();
+
+        static int Test1()
+        {
+            return M1(ref x.Length);
+        }
+
+        static dynamic M1(ref dynamic d)
+        {
+            d = 321;
+            return d;
+        }
+    }
+
+    class C1
+    {
+        public int Length = 123;
+    }
+";
+            var comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { CSharpRef });
         }
 
         #endregion

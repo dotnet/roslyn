@@ -819,7 +819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     IL_0006:  ret
   } // end of method C1::.ctor
 
-  .method public instance void  Foo([opt] valuetype [mscorlib]System.DateTime pDateTime,
+  .method public instance void  Goo([opt] valuetype [mscorlib]System.DateTime pDateTime,
                                     [opt] valuetype [mscorlib]System.Decimal pDecimal1,
                                     [opt] valuetype [mscorlib]System.Decimal pDecimal2) cil managed
   {
@@ -843,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     // Code size       1 (0x1)
     .maxstack  8
     IL_0000:  ret
-  } // end of method C1::Foo
+  } // end of method C1::Goo
 
 } // end of class C1
 
@@ -856,11 +856,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
-            Dim fooMethod = compilation.GetTypeByMetadataName("C1").GetMember("Foo")
+            Dim gooMethod = compilation.GetTypeByMetadataName("C1").GetMember("Goo")
 
-            Assert.Equal(#11/4/2008#, CType(fooMethod, PEMethodSymbol).Parameters(0).ExplicitDefaultValue)
-            Assert.Equal(1.234D, CType(fooMethod, PEMethodSymbol).Parameters(1).ExplicitDefaultValue)
-            Assert.Equal(23.42D, CType(fooMethod, PEMethodSymbol).Parameters(2).ExplicitDefaultValue)
+            Assert.Equal(#11/4/2008#, CType(gooMethod, PEMethodSymbol).Parameters(0).ExplicitDefaultValue)
+            Assert.Equal(1.234D, CType(gooMethod, PEMethodSymbol).Parameters(1).ExplicitDefaultValue)
+            Assert.Equal(23.42D, CType(gooMethod, PEMethodSymbol).Parameters(2).ExplicitDefaultValue)
         End Sub
 
         <Fact()>
@@ -914,7 +914,7 @@ End Class
 </compilation>
 
             Dim longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull())
-            Dim c = CreateCompilationWithMscorlibAndReferences(source, {longFormRef})
+            Dim c = CreateCompilationWithMscorlib40AndReferences(source, {longFormRef})
             c.AssertTheseDiagnostics(<![CDATA[
 BC30657: 'RT' has a return type that is not supported or parameter types that are not supported.
         Dim s As String = C.RT()
@@ -945,7 +945,7 @@ End Class
 
             Dim references = {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags)}
 
-            Dim comp = CreateCompilationWithMscorlib(source, references:=references)
+            Dim comp = CreateCompilationWithMscorlib40(source, references:=references)
             comp.AssertTheseDiagnostics(
                 <expected><![CDATA[
 BC30390: 'C.Private Overloads Sub M()' is not accessible in this context because it is 'Private'.

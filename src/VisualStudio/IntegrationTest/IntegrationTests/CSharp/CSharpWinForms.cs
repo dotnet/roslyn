@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -18,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -31,7 +32,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"private System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlProperty()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -44,7 +45,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"this.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlPropertyInCode()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -71,7 +72,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddClickHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -97,7 +98,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     }", codeFileActualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -120,23 +121,23 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.DoesNotContain(@"private System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RemoveEventHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
-            VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "FooHandler");
+            VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "GooHandler");
             //  Remove the event handler
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
             //  Verify that the handler is removed
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.cs");
             var actualText = VisualStudio.Editor.GetText();
-            Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Click += new System.EventHandler(VisualStudio.Editor.FooHandler);", actualText);
+            Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Click += new System.EventHandler(VisualStudio.Editor.GooHandler);", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeAccessibility()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -151,7 +152,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"public System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void DeleteControl()
         {
             var project = new ProjectUtils.Project(ProjectName);

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ArrayBuilder<BoundStatement> _loweredDecisionTree = ArrayBuilder<BoundStatement>.GetInstance();
 
             private PatternSwitchLocalRewriter(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
-                : base(localRewriter._factory.CurrentMethod, (SwitchStatementSyntax)node.Syntax, localRewriter._factory.Compilation.Conversions)
+                : base(localRewriter._factory.CurrentFunction, (SwitchStatementSyntax)node.Syntax, localRewriter._factory.Compilation.Conversions)
             {
                 this._localRewriter = localRewriter;
                 this._factory = localRewriter._factory;
@@ -264,11 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var inputConstant = byType.Expression.ConstantValue;
 
                 // three-valued: true if input known null, false if input known non-null, null if not known.
-                bool? inputIsNull = null;
-                if (inputConstant != null)
-                {
-                    inputIsNull = inputConstant.IsNull;
-                }
+                bool? inputIsNull = inputConstant?.IsNull;
 
                 var defaultLabel = _factory.GenerateLabel("byTypeDefault");
 
@@ -426,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(loweredLeft.Type.Equals(loweredRight.Type, TypeCompareKind.AllIgnoreOptions));
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
-                                _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));
+                                _factory.Syntax, loweredLeft, loweredRight, isRef: false, type: loweredLeft.Type, used: false)));
                     }
                 }
             }
@@ -514,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         forValue.Add(_factory.Goto(noValueMatches));
                     }
 
-                    var section = new BoundSwitchSection(_factory.Syntax, ImmutableArray.Create(switchLabel), forValue.ToImmutableAndFree());
+                    var section = new BoundSwitchSection(_factory.Syntax, locals: ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(switchLabel), forValue.ToImmutableAndFree());
                     switchSections.Add(section);
                 }
 

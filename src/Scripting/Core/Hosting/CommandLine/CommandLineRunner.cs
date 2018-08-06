@@ -192,6 +192,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 _compiler.ReportErrors(e.Diagnostics, _console.Error, errorLogger);
                 return CommonCompiler.Failed;
             }
+            catch (Exception e)
+            {
+                DisplayException(e);
+                return e.HResult;
+            }
         }
 
         private void RunInteractiveLoop(ScriptOptions options, string initialScriptCodeOpt, CancellationToken cancellationToken)
@@ -318,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             try
             {
-                _console.ForegroundColor = ConsoleColor.Red;
+                _console.SetForegroundColor(ConsoleColor.Red);
 
                 if (e is FileLoadException && e.InnerException is InteractiveAssemblyLoaderException)
                 {
@@ -348,14 +353,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             _console.Out.WriteLine();
         }
 
-        private void DisplayDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        private void DisplayDiagnostics(ImmutableArray<Diagnostic> diagnostics)
         {
             const int MaxDisplayCount = 5;
 
-            var errorsAndWarnings = diagnostics.ToArray();
-
             // by severity, then by location
-            var ordered = errorsAndWarnings.OrderBy((d1, d2) =>
+            var ordered = diagnostics.OrderBy((d1, d2) =>
             {
                 int delta = (int)d2.Severity - (int)d1.Severity;
                 return (delta != 0) ? delta : d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start;
@@ -365,14 +368,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 foreach (var diagnostic in ordered.Take(MaxDisplayCount))
                 {
-                    _console.ForegroundColor = (diagnostic.Severity == DiagnosticSeverity.Error) ? ConsoleColor.Red : ConsoleColor.Yellow;
+                    _console.SetForegroundColor(diagnostic.Severity == DiagnosticSeverity.Error ? ConsoleColor.Red : ConsoleColor.Yellow);
                     _console.Error.WriteLine(diagnostic.ToString());
                 }
 
-                if (errorsAndWarnings.Length > MaxDisplayCount)
+                if (diagnostics.Length > MaxDisplayCount)
                 {
-                    int notShown = errorsAndWarnings.Length - MaxDisplayCount;
-                    _console.ForegroundColor = ConsoleColor.DarkRed;
+                    int notShown = diagnostics.Length - MaxDisplayCount;
+                    _console.SetForegroundColor(ConsoleColor.DarkRed);
                     _console.Error.WriteLine(string.Format(ScriptingResources.PlusAdditionalError, notShown));
                 }
             }

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             if (_updateActionOpt == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             return _updateActionOpt(_completedItems, _totalItems);

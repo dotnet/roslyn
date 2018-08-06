@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WrongArity,
         NotCreatable,      // E.g., new of an interface or static class
         Inaccessible,
-        NotReferencable,   // E.g., get_Foo binding to an accessor.
+        NotReferencable,   // E.g., get_Goo binding to an accessor.
         NotAValue,
         NotAVariable,      // used for several slightly different places, e.g. LHS of =, out/ref parameters, etc.
         NotInvocable,

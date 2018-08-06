@@ -2,18 +2,19 @@
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class MultiLineLambdaTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyWithFunctionLambda()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Sub foo()
+  Sub goo()
     Dim x = Function()
   End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-  Sub foo()
+  Sub goo()
     Dim x = Function()
 
             End Function
@@ -26,12 +27,12 @@ End Class",
         Public Sub TestApplyWithFunctionLambdaWithMissingEndFunction()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Function foo()
+  Function goo()
     Dim x = Function()
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-  Function foo()
+  Function goo()
     Dim x = Function()
 
             End Function
@@ -43,13 +44,13 @@ End Class",
         Public Sub TestApplyWithSubLambda()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Function foo()
+  Function goo()
     Dim x = Sub()
   End Function
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-  Function foo()
+  Function goo()
     Dim x = Sub()
 
             End Sub
@@ -62,13 +63,13 @@ End Class",
         Public Sub TestApplyWithSubLambdaWithNoParameterParenthesis()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Function foo()
+  Function goo()
     Dim x = Sub
   End Function
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-  Function foo()
+  Function goo()
     Dim x = Sub()
 
             End Sub
@@ -81,13 +82,13 @@ End Class",
         Public Sub TestApplyWithSubLambdaInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Function foo()
+  Function goo()
     M(Sub())
   End Function
 End Class",
                 beforeCaret:={2, 11},
                 after:="Class c1
-  Function foo()
+  Function goo()
     M(Sub()
 
       End Sub)
@@ -100,13 +101,13 @@ End Class",
         Public Sub TestApplyWithSubLambdaAndStatementInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Function foo()
+  Function goo()
     M(Sub() Exit Sub)
   End Function
 End Class",
                 beforeCaret:={2, 11},
                 after:="Class c1
-  Function foo()
+  Function goo()
     M(Sub()
           Exit Sub
       End Sub)
@@ -119,13 +120,13 @@ End Class",
         Public Sub TestApplyWithFunctionLambdaInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Function foo()
+  Function goo()
     M(Function() 1)
   End Function
 End Class",
                 beforeCaret:={2, 17},
                 after:="Class c1
-  Function foo()
+  Function goo()
     M(Function()
           Return 1
       End Function)

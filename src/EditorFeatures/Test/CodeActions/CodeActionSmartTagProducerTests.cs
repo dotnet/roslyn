@@ -22,7 +22,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeActions
             var text =
 @"class C : System.Exception
 {
-    //Foo
+    //Goo
     void Bar()
     {
         Console.WriteLine(1 + 1);

@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Dim result = variable.ToBoundExpression(syntax, node.IsLValue, node.SuppressVirtualCalls)
-            Debug.Assert(result.Type = node.Type OrElse result.Type.BaseType = node.Type)
+            Debug.Assert(result.Type = node.Type OrElse result.Type.BaseTypeNoUseSiteDiagnostics = node.Type)
             Return result
         End Function
 

@@ -22,25 +22,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal SubsumptionDiagnosticBuilder(Symbol enclosingSymbol,
                                               SwitchStatementSyntax syntax,
                                               Conversions conversions,
-                                              BoundExpression expression)
+                                              TypeSymbol switchGoverningType)
             : base(enclosingSymbol, syntax, conversions)
         {
-            _subsumptionTree = CreateEmptyDecisionTree(expression);
+            // For the purpose of computing subsumption, we ignore the input expression's constant
+            // value. Therefore we create a fake expression here that doesn't contain the value.
+            var placeholderExpression = new BoundDup(syntax, RefKind.None, switchGoverningType);
+            _subsumptionTree = CreateEmptyDecisionTree(placeholderExpression);
         }
 
         /// <summary>
         /// Add the case label to the subsumption tree. Return true if the label is reachable
-        /// given the expression and previously added labels. `valueMatched` is set to true
-        /// if and only if the label is a reachable unconditional (no when clause) constant pattern
-        /// whose value is the same as the input expression's constant value, and false otherwise.
+        /// (not subsumed) given the governing expression's type and previously added labels. 
         /// </summary>
-        internal bool AddLabel(BoundPatternSwitchLabel label, DiagnosticBag diagnostics, out bool valueMatched)
+        internal bool AddLabel(BoundPatternSwitchLabel label, DiagnosticBag diagnostics)
         {
             // Use site diagnostics are reported (and cleared) by this method.
             // So they should be empty when we start.
             Debug.Assert(_useSiteDiagnostics.Count == 0);
-
-            valueMatched = false;
 
             if (label.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
             {
@@ -69,30 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (guardAlwaysSatisfied)
                 {
                     // Only unconditional switch labels contribute to subsumption
-                    if (AddToDecisionTree(_subsumptionTree, null, label) == null)
+                    if (AddToDecisionTree(_subsumptionTree, null, label) == null && !label.Pattern.HasErrors)
                     {
-                        return false;
+                        // Since the pattern was not subsumed, we should be able to add it to the decision tree
+                        throw ExceptionUtilities.Unreachable;
                     }
                 }
 
-                // For a constant switch, a constant label is only reachable if the value is equal.
-                var patternConstant = (label.Pattern as BoundConstantPattern)?.ConstantValue;
-                if (this._subsumptionTree.Expression.ConstantValue == null ||
-                    patternConstant == null)
-                {
-                    // either the input or the pattern wasn't a constant, so they might match.
-                    return true;
-                }
-
-                // If not subsumed, the label is considered reachable unless its constant value is
-                // distinct from the constant value of the input expression.
-                if (this._subsumptionTree.Expression.ConstantValue.Equals(patternConstant))
-                {
-                    valueMatched = guardAlwaysSatisfied;
-                    return true;
-                }
-
-                return false;
+                return true;
             }
             finally
             {

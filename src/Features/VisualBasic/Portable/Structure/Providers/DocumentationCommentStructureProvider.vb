@@ -12,10 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class DocumentationCommentStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of DocumentationCommentTriviaSyntax)
 
-        Private Shared Function GetBannerText(documentationComment As DocumentationCommentTriviaSyntax, cancellationToken As CancellationToken) As String
-            Return VisualBasicSyntaxFactsService.Instance.GetBannerText(documentationComment, cancellationToken)
-        End Function
-
         Protected Overrides Sub CollectBlockSpans(documentationComment As DocumentationCommentTriviaSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
                                                   options As OptionSet,
@@ -34,8 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
+            Dim maxBannerLength = options.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.VisualBasic)
+            Dim bannerText = VisualBasicSyntaxFactsService.Instance.GetBannerText(
+                documentationComment, maxBannerLength, cancellationToken)
+
             spans.AddIfNotNull(CreateBlockSpan(
-                fullSpan, fullSpan, GetBannerText(documentationComment, cancellationToken),
+                fullSpan, fullSpan, bannerText,
                 autoCollapse:=True, type:=BlockTypes.Comment,
                 isCollapsible:=True, isDefaultCollapsed:=False))
         End Sub

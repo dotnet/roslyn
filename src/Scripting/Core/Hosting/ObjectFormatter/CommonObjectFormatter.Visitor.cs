@@ -369,8 +369,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                         rootHidden = browsable.State == DebuggerBrowsableState.RootHidden;
                     }
 
-                    FieldInfo field = member as FieldInfo;
-                    if (field != null)
+                    if (member is FieldInfo field)
                     {
                         if (!(includeNonPublic || ignoreVisibility || field.IsPublic || field.IsFamily || field.IsFamilyOrAssembly))
                         {
@@ -537,8 +536,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             private void FormatCollectionHeader(Builder result, ICollection collection)
             {
-                Array array = collection as Array;
-                if (array != null)
+                if (collection is Array array)
                 {
                     result.Append(_formatter.TypeNameFormatter.FormatArrayTypeName(array.GetType(), array, _typeNameOptions));
                     return;
@@ -729,7 +727,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             /// <summary>
             /// Evaluate a format string with possible member references enclosed in braces. 
-            /// E.g. "foo = {GetFooString(),nq}, bar = {Bar}".
+            /// E.g. "goo = {GetGooString(),nq}, bar = {Bar}".
             /// </summary>
             /// <remarks>
             /// Although in theory any expression is allowed to be embedded in the string such behavior is in practice fundamentally broken.

@@ -79,8 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new BoundFieldAccess(this.Syntax,
                                                 this.ReceiverOpt,
-                                                fieldSymbol, null, LookupResultKind.Viable, type,
-                                                this.HasErrors || inferenceFailed);
+                                                fieldSymbol,
+                                                null,
+                                                LookupResultKind.Viable,
+                                                isDeclaration: true,
+                                                type: type,
+                                                hasErrors: this.HasErrors || inferenceFailed);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.VariableSymbol.Kind);

@@ -105,7 +105,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' There are diagnostics for these values (see EnumErrorsInValues test),
             ' but as long as the value is constant (including the needed conversion), the constant value is used
             ' (see conversion of 2.2 vs. conversion of "3").
-            VerifyEnumsValue(text, "Suits", SpecialType.System_Byte, Nothing, CByte(2), Nothing)
+            Dim fields = VerifyEnumsValue(text, "Suits", SpecialType.System_Byte, Nothing, CByte(2), Nothing)
+
+            fields.First.DeclaringCompilation.AssertTheseDiagnostics(
+<expected>
+BC30060: Conversion from 'String' to 'Byte' cannot occur in a constant expression.
+                    ValueA = "3"         	        ' Can't implicitly convert 
+                             ~~~
+BC30439: Constant expression not representable in type 'Byte'.
+                    ValueC = 257         	        ' Out of underlying range 
+                             ~~~
+</expected>)
 
             text =
 <compilation name="C">
@@ -122,7 +132,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' There are diagnostics for these values (see EnumErrorsInValues test),
             ' but as long as the value is constant (including the needed conversion), the constant value is used
             ' (see conversion of 2.2 vs. conversion of "3").
-            VerifyEnumsValue(text, "Suits", SpecialType.System_Byte, Nothing, CByte(2), Nothing)
+            fields = VerifyEnumsValue(text, "Suits", SpecialType.System_Byte, Nothing, CByte(2), Nothing)
+
+            fields.First.DeclaringCompilation.AssertTheseDiagnostics(
+<expected>
+BC30512: Option Strict On disallows implicit conversions from 'String' to 'Byte'.
+            ValueA = "3"                    ' Can't implicitly convert 
+                     ~~~
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Byte'.
+            ValueB = 2.2                    ' Can't implicitly convert: [Option Strict On] disallows implicit conversion
+                     ~~~
+BC30439: Constant expression not representable in type 'Byte'.
+            ValueC = 257                    ' Out of underlying range 
+                     ~~~
+</expected>)
 
             text =
 <compilation name="C">
@@ -138,7 +161,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     </file>
 </compilation>
 
-            VerifyEnumsValue(text, "Suits", SpecialType.System_Int16, CShort(0), CShort(1), CShort(2), Nothing, Nothing, Nothing)
+            fields = VerifyEnumsValue(text, "Suits", SpecialType.System_Int16, CShort(0), CShort(1), CShort(2), Nothing, Nothing, Nothing)
+
+            fields.First.DeclaringCompilation.AssertTheseDiagnostics(
+<expected>
+BC30439: Constant expression not representable in type 'Short'.
+                        d = -65536
+                            ~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -154,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
 
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC30060: Conversion from 'String' to 'Byte' cannot occur in a constant expression.
@@ -167,7 +197,7 @@ BC30439: Constant expression not representable in type 'Byte'.
 </errors>)
 
 
-            comp = CompilationUtils.CreateCompilationWithMscorlib(text, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            comp = CompilationUtils.CreateCompilationWithMscorlib40(text, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC30512: Option Strict On disallows implicit conversions from 'String' to 'Byte'.
@@ -245,7 +275,7 @@ BC30439: Constant expression not representable in type 'Byte'.
         ' No identifier
         <Fact>
         Public Sub BC30203ERR_ExpectedIdentifier_NoIDForEnum()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BadEmptyEnum1">
     <file name="a.vb">
         Enum 
@@ -264,7 +294,7 @@ Enum
 
         <Fact>
         Public Sub EnumTypeCharMismatch()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="EnumTypeCharMismatch">
     <file name="a.vb">
 Enum E As Integer
@@ -283,7 +313,7 @@ BC30277: Type character '$' does not match declared data type 'Integer'.
 
         <Fact>
         Public Sub EnumTypeCharMismatch1()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="EnumTypeCharMismatch">
     <file name="a.vb">
 Imports System 
@@ -324,7 +354,7 @@ End Enum
         <WorkItem(539944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539944")>
         <Fact>
         Public Sub BC30396ERR_BadEnumFlags1_ModifiersForEnum()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
              <compilation name="C">
                  <file name="a.vb">
 Class Program
@@ -367,7 +397,7 @@ BC30396: 'MustInherit' is not valid on an Enum declaration.
 BC30178: Specifier is duplicated.
     Private Private Enum Figure4
             ~~~~~~~
-BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.
+BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.
     Private Public Enum Figure5
             ~~~~~~
 BC30280: Enum 'Figure5' must contain at least one member.
@@ -398,7 +428,7 @@ BC30396: 'NotInheritable' is not valid on an Enum declaration.
 <compilation name="C">
     <file name="a.vb">
          Enum ColorA
-            Private Sub foo()
+            Private Sub goo()
              End Sub
          End Enum
     </file>
@@ -477,7 +507,7 @@ BC30396: 'NotInheritable' is not valid on an Enum declaration.
 ValueE
 -1
 ]]>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(text, TestOptions.ReleaseExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(text, TestOptions.ReleaseExe)
             CompileAndVerify(comp, expectedOutput)
         End Sub
 
@@ -511,7 +541,7 @@ ValueE
 </compilation>
 
             VerifyEnumsValue(text, "c1.Suits", 2, 3, 2)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseDeclarationDiagnostics(comp, <errors></errors>)
         End Sub
 
@@ -562,7 +592,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseDeclarationDiagnostics(comp, <errors>
 BC30628: Structures cannot have 'Inherits' statements.
     Inherits Suits
@@ -590,7 +620,7 @@ End Enum
 
             VerifyEnumsValue(text, "Num")
             VerifyEnumsValue(text, "Figure", 0)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC30185: 'Enum' must end with a matching 'End Enum'.
 Public Enum Num
@@ -691,7 +721,7 @@ End Enum
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseDeclarationDiagnostics(comp, <errors></errors>)
         End Sub
 
@@ -725,7 +755,7 @@ End Enum
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseDeclarationDiagnostics(comp, <errors></errors>)
         End Sub
 
@@ -784,7 +814,7 @@ Public Class c1
 End Class
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             VerifyEnumsValue(comp, "c1.COLORS", SpecialType.System_UInt32, 0UI, 1UI, 2UI)
         End Sub
 
@@ -803,7 +833,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseParseDiagnostics(comp, <errors>
 BC30182: Type expected.
 Public Enum Figure  As 
@@ -827,7 +857,7 @@ End Enum
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseDeclarationDiagnostics(comp, <errors></errors>)
             VerifyEnumsValue(comp, "Figure", SpecialType.System_Int64, CLng(0), CLng(1), CLng(2))
 
@@ -844,7 +874,7 @@ End Enum
     </file>
 </compilation>
 
-            comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseDeclarationDiagnostics(comp, <errors>
 BC30650: Enums must be declared as an integral type.
 Enum Figure As C
@@ -869,7 +899,7 @@ End Class
 </compilation>
 
             VerifyEnumsValue(text, "EnumPartial.partial", 0)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Dim classEnum = TryCast(comp.SourceModule.GlobalNamespace.GetMembers("EnumPartial").Single(), NamedTypeSymbol)
             Dim member = TryCast(classEnum.GetMembers("M").Single(), FieldSymbol)
             Assert.Equal(TypeKind.Enum, member.Type.TypeKind)
@@ -887,7 +917,7 @@ Enum ABC
     c
 End Enum
 Class c1
-    Public Function Foo(Optional o As ABC = ABC.a Or ABC.b) As Integer
+    Public Function Goo(Optional o As ABC = ABC.a Or ABC.b) As Integer
         Return 0
     End Function
     Public Function Moo(Optional o As Object = ABC.a) As Integer
@@ -896,7 +926,7 @@ Class c1
 End Class
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseDeclarationDiagnostics(comp, <errors></errors>)
         End Sub
 
@@ -912,7 +942,7 @@ Enum Enum1
 End Enum
     </file>
 </compilation>
-            CompilationUtils.CreateCompilationWithMscorlib(text).VerifyDiagnostics(Diagnostic(ERRID.ERR_CircularEvaluation1, "A").WithArguments("A"))
+            CompilationUtils.CreateCompilationWithMscorlib40(text).VerifyDiagnostics(Diagnostic(ERRID.ERR_CircularEvaluation1, "A").WithArguments("A"))
         End Sub
 
         <WorkItem(540526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540526")>
@@ -926,7 +956,7 @@ Enum E
 End Enum
     </file>
 </compilation>
-            CompilationUtils.CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CompilationUtils.CreateCompilationWithMscorlib40(text).VerifyDiagnostics(
                     Diagnostic(ERRID.ERR_MissingEndEnum, "Enum E"),
                     Diagnostic(ERRID.ERR_InvInsideEndsEnum, ""),
                     Diagnostic(ERRID.ERR_MissingEndBrack, "[A"),
@@ -941,12 +971,12 @@ End Enum
 <compilation>
     <file name="a.vb">
 Enum E
-    foo:
+    goo:
 End Enum
     </file>
 </compilation>
-            CompilationUtils.CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                    Diagnostic(ERRID.ERR_InvInsideEnum, "foo:"))
+            CompilationUtils.CreateCompilationWithMscorlib40(text).VerifyDiagnostics(
+                    Diagnostic(ERRID.ERR_InvInsideEnum, "goo:"))
         End Sub
 
 
@@ -982,7 +1012,7 @@ End Enum
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(text)
             CompilationUtils.AssertNoErrors(comp)
 
             Dim globalNS = comp.SourceModule.GlobalNamespace
@@ -1042,10 +1072,10 @@ End Enum
                 ValueWorks10 = New B(Sub() Exit Sub).X
                 ValueWorks11 = New D(Function() 23).X
 
-                ValueDoesntWork1 = foo()                       
+                ValueDoesntWork1 = goo()                       
             End Enum
 
-        Public Function foo() As Integer
+        Public Function goo() As Integer
             Return 23
         End Function
 
@@ -1055,7 +1085,7 @@ End Enum
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(text)
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
                 ValueWorks1 = new C(23).X
@@ -1085,7 +1115,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
                 ValueWorks11 = New D(Function() 23).X
                                ~~~~~~~~~~~~~~~~~~~~~~
 BC30059: Constant expression is required.
-                ValueDoesntWork1 = foo()                       
+                ValueDoesntWork1 = goo()                       
                                    ~~~~~
 </errors>)
         End Sub
@@ -1118,7 +1148,7 @@ BC30059: Constant expression is required.
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(text)
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
                 ValueDoesntWork3 = New D(Function() ValueDoesntWork2).X
@@ -1143,7 +1173,7 @@ BC30500: Constant 'ValueDoesntWork4' cannot depend on its own value.
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
                                                           </errors>)
 
@@ -1169,7 +1199,7 @@ BC30650: Enums must be declared as an integral type.
     Enum E As T
               ~
 </errors>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             comp.AssertTheseDiagnostics(errors)
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
@@ -1201,7 +1231,7 @@ Enum E2
 End Enum
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors>
 BC30500: Constant 'M20' cannot depend on its own value.
     M20 = CType(M22, Integer) + 1
@@ -1224,7 +1254,7 @@ BC30060: Conversion from 'E2' to 'Integer' cannot occur in a constant expression
             '     Mn
             ' End Enum
             Dim source = GenerateEnum(6000, Function(i, n) If(i = 0, String.Format("M{0} + 1", n - 1), ""))
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors>
 BC30500: Constant 'M0' cannot depend on its own value.
     M0 = M5999 + 1
@@ -1250,7 +1280,7 @@ BC30500: Constant 'M0' cannot depend on its own value.
             End If
 
             Dim source = GenerateEnum(count, Function(i, n) String.Format("M{0} + 1", If(i = 0, n - 1, i - 1)))
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(source)
 
             ' Note, native compiler doesn't report BC30060, we should try to suppress it too.
             comp.AssertTheseDiagnostics(<errors>
@@ -1281,7 +1311,7 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
             End If
 
             Dim source = GenerateEnum(count, Function(i, n) If(i < n - 1, String.Format("M{0} - 1", i + 1), i.ToString()))
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors/>)
         End Sub
 
@@ -1315,12 +1345,12 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
         End Function
 
         Private Shared Function VerifyEnumsValue(text As XElement, enumName As String, ParamArray expectedEnumValues As Object()) As List(Of Symbol)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Return VerifyEnumsValue(comp, enumName, If(expectedEnumValues.Any() AndAlso expectedEnumValues.First().GetType() Is GetType(Long), SpecialType.System_Int64, SpecialType.System_Int32), expectedEnumValues)
         End Function
 
         Private Shared Function VerifyEnumsValue(text As XElement, enumName As String, underlyingType As SpecialType, ParamArray expectedEnumValues As Object()) As List(Of Symbol)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Return VerifyEnumsValue(comp, enumName, underlyingType, expectedEnumValues)
         End Function
 

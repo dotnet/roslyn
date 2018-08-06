@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 accessibility:=Accessibility.Protected,
                 modifiers:=New DeclarationModifiers(isOverride:=True),
                 returnType:=compilation.GetSpecialType(SpecialType.System_Void),
-                returnsByRef:=False,
+                refKind:=RefKind.None,
                 explicitInterfaceImplementations:=Nothing,
                 name:=WellKnownMemberNames.DestructorName,
                 typeParameters:=Nothing,

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -10,37 +8,41 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 {
-    internal abstract class AbstractExtractInterfaceCommandHandler : ICommandHandler<ExtractInterfaceCommandArgs>
+    internal abstract class AbstractExtractInterfaceCommandHandler : VSCommanding.ICommandHandler<ExtractInterfaceCommandArgs>
     {
-        public CommandState GetCommandState(ExtractInterfaceCommandArgs args, Func<CommandState> nextHandler)
+        public string DisplayName => EditorFeaturesResources.Extract_Interface;
+
+        public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
         {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null ||
                 !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
                 !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
 
             var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!supportsFeatureService.SupportsRefactorings(document))
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
 
-            return CommandState.Available;
+            return VSCommanding.CommandState.Available;
         }
 
-        public void ExecuteCommand(ExtractInterfaceCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var workspace = document.Project.Solution.Workspace;
@@ -48,24 +50,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             if (!workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
                 !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!supportsFeatureService.SupportsRefactorings(document))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
+            // We are about to show a modal UI dialog so we should take over the command execution
+            // wait context. That means the command system won't attempt to show its own wait dialog 
+            // and also will take it into consideration when measuring command handling duration.
+            context.OperationContext.TakeOwnership();
             var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
             var result = extractInterfaceService.ExtractInterface(
                 document,
@@ -75,17 +78,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
             if (result == null || !result.Succeeded)
             {
-                return;
+                return true;
             }
 
             if (!document.Project.Solution.Workspace.TryApplyChanges(result.UpdatedSolution))
             {
                 // TODO: handle failure
-                return;
+                return true;
             }
 
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0);
+
+            return true;
         }
     }
 }

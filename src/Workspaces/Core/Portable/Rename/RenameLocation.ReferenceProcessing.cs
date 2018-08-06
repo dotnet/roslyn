@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     // If we bound through an alias, we'll only rename if the alias's name matches
                     // the name of symbol it points to. We do this because it's common to see things
-                    // like "using Foo = System.Foo" where people want to import a single type
+                    // like "using Goo = System.Goo" where people want to import a single type
                     // rather than a whole namespace of stuff.
                     if (location.Alias != null)
                     {
@@ -424,17 +424,21 @@ namespace Microsoft.CodeAnalysis.Rename
                 foreach (var documentsGroupedByLanguage in RenameUtilities.GetDocumentsAffectedByRename(originalSymbol, solution, renameLocations).GroupBy(d => d.Project.Language))
                 {
                     var syntaxFactsLanguageService = solution.Workspace.Services.GetLanguageServices(documentsGroupedByLanguage.Key).GetService<ISyntaxFactsService>();
-                    foreach (var document in documentsGroupedByLanguage)
-                    {
-                        if (renameInStrings)
-                        {
-                            await AddLocationsToRenameInStringsAsync(document, renameText, syntaxFactsLanguageService,
-                                stringLocations, cancellationToken).ConfigureAwait(false);
-                        }
 
-                        if (renameInComments)
+                    if (syntaxFactsLanguageService != null)
+                    {
+                        foreach (var document in documentsGroupedByLanguage)
                         {
-                            await AddLocationsToRenameInCommentsAsync(document, renameText, commentLocations, cancellationToken).ConfigureAwait(false);
+                            if (renameInStrings)
+                            {
+                                await AddLocationsToRenameInStringsAsync(document, renameText, syntaxFactsLanguageService,
+                                    stringLocations, cancellationToken).ConfigureAwait(false);
+                            }
+
+                            if (renameInComments)
+                            {
+                                await AddLocationsToRenameInCommentsAsync(document, renameText, commentLocations, cancellationToken).ConfigureAwait(false);
+                            }
                         }
                     }
                 }

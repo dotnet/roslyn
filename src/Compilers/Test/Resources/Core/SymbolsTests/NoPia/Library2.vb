@@ -13,6 +13,6 @@ Imports System.Runtime.InteropServices
 
 <ComImport(), Guid("27e3e649-994b-4f58-b3c6-f8089a5f2002"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)> _
 Public Interface I7
-    Function Foo() As List(Of I5)
+    Function Goo() As List(Of I5)
     Function Bar() As List(Of I1)
 End Interface

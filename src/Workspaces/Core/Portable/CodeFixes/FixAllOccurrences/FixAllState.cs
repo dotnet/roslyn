@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -12,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal partial class FixAllState
     {
+        internal readonly int CorrelationId = LogAggregator.GetNextId();
+
         internal FixAllContext.DiagnosticProvider DiagnosticProvider { get; }
 
         public FixAllProvider FixAllProvider { get; }

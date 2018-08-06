@@ -27,11 +27,11 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         <Fact>
         Public Sub SimpleAssembly()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Banana">
     <file name="b.vb">
         Namespace NS
-            Public Class Foo
+            Public Class Goo
             End Class
         End Namespace
     </file>
@@ -56,11 +56,11 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         <Fact>
         Public Sub SourceModule()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Banana">
     <file name="m.vb">
         Namespace NS
-            Public Class Foo
+            Public Class Goo
             End Class
         End Namespace
     </file>
@@ -84,11 +84,11 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         <Fact>
         Public Sub StandardModule()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Banana">
     <file name="m.vb">
     Namespace NS
-        Module MFoo
+        Module MGoo
           Dim A As Integer
           Sub MySub()
           End Sub
@@ -101,9 +101,9 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
 </compilation>)
 
             Dim ns As NamespaceSymbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetMembers("NS").Single(), NamespaceSymbol)
-            Dim sym1 = ns.GetMembers("MFoo").Single()
-            Assert.Equal("MFoo", sym1.Name)
-            Assert.Equal("NS.MFoo", sym1.ToTestDisplayString())
+            Dim sym1 = ns.GetMembers("MGoo").Single()
+            Assert.Equal("MGoo", sym1.Name)
+            Assert.Equal("NS.MGoo", sym1.ToTestDisplayString())
             Assert.Equal(SymbolKind.NamedType, sym1.Kind)
             ' default - Friend
             Assert.Equal(Accessibility.Friend, sym1.DeclaredAccessibility)
@@ -138,8 +138,8 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         ' Check that we disallow certain kids of bad root namespaces
         <Fact>
         Public Sub BadDefaultNSTest()
-            BadDefaultNS("Foo.7")
-            BadDefaultNS("Foo..Bar")
+            BadDefaultNS("Goo.7")
+            BadDefaultNS("Goo..Bar")
             BadDefaultNS(".X")
             BadDefaultNS("$")
         End Sub
@@ -147,13 +147,13 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         ' Check that parse errors are reported 
         <Fact>
         Public Sub NamespaceParseErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Banana">
     <file name="a.vb">
         Imports System.7
     </file>
     <file name="b.vb">
-        Namespace Foo
+        Namespace Goo
         End Class
     </file>
 </compilation>)
@@ -163,7 +163,7 @@ BC30205: End of statement expected.
 Imports System.7
               ~~
 BC30626: 'Namespace' statement must end with a matching 'End Namespace'.
-Namespace Foo
+Namespace Goo
 ~~~~~~~~~~~~~
 BC30460: 'End Class' must be preceded by a matching 'Class'.
         End Class
@@ -176,7 +176,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
         ' Check namespace symbols
         <Fact>
         Public Sub NSSym()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Namespace A
@@ -251,7 +251,7 @@ Namespace A.b.D
         ' Check namespace symbols in the presence of a root namespace
         <Fact>
         Public Sub NSSymWithRootNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Namespace A
@@ -265,7 +265,7 @@ End Namespace
 Namespace C
 End Namespace
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Foo.Bar"))
+</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Goo.Bar"))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
 
@@ -274,13 +274,13 @@ End Namespace
             Assert.Equal(1, globalNS.GetMembers().Length())
 
             Dim members = globalNS.GetMembers()
-            Dim nsFoo As NamespaceSymbol = DirectCast(members.First(), NamespaceSymbol)
-            Assert.Equal("Foo", nsFoo.Name, IdentifierComparison.Comparer)
-            Assert.Equal(SymbolKind.Namespace, nsFoo.Kind)
-            Assert.Equal(1, nsFoo.GetMembers().Length())
+            Dim nsGoo As NamespaceSymbol = DirectCast(members.First(), NamespaceSymbol)
+            Assert.Equal("Goo", nsGoo.Name, IdentifierComparison.Comparer)
+            Assert.Equal(SymbolKind.Namespace, nsGoo.Kind)
+            Assert.Equal(1, nsGoo.GetMembers().Length())
 
-            Dim membersFoo = nsFoo.GetMembers()
-            Dim nsBar As NamespaceSymbol = DirectCast(membersFoo.First(), NamespaceSymbol)
+            Dim membersGoo = nsGoo.GetMembers()
+            Dim nsBar As NamespaceSymbol = DirectCast(membersGoo.First(), NamespaceSymbol)
             Assert.Equal("Bar", nsBar.Name, IdentifierComparison.Comparer)
             Assert.Equal(SymbolKind.Namespace, nsBar.Kind)
             Assert.Equal(3, nsBar.GetMembers().Length())
@@ -314,31 +314,31 @@ End Namespace
         ' Check namespace symbol containers in the presence of a root namespace
         <Fact>
         Public Sub NSContainersWithRootNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Class Type1
 End Class
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Foo.Bar"))
+</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Goo.Bar"))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim members = globalNS.GetMembers()
-            Dim nsFoo As NamespaceSymbol = DirectCast(members.First(), NamespaceSymbol)
-            Dim membersFoo = nsFoo.GetMembers()
-            Dim nsBar As NamespaceSymbol = DirectCast(membersFoo.First(), NamespaceSymbol)
+            Dim nsGoo As NamespaceSymbol = DirectCast(members.First(), NamespaceSymbol)
+            Dim membersGoo = nsGoo.GetMembers()
+            Dim nsBar As NamespaceSymbol = DirectCast(membersGoo.First(), NamespaceSymbol)
             Dim type1Sym = nsBar.GetMembers("Type1").Single()
 
             Assert.Same(nsBar, type1Sym.ContainingSymbol)
-            Assert.Same(nsFoo, nsBar.ContainingSymbol)
-            Assert.Same(globalNS, nsFoo.ContainingSymbol)
+            Assert.Same(nsGoo, nsBar.ContainingSymbol)
+            Assert.Same(globalNS, nsGoo.ContainingSymbol)
             Assert.Same(compilation.SourceModule, globalNS.ContainingSymbol)
         End Sub
 
         ' Check namespace symbol containers in the presence of a root namespace
         <Fact>
         Public Sub NSContainersWithoutRootNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Class Type1
@@ -354,7 +354,7 @@ End Class
 
         <Fact>
         Public Sub ImportsAlias01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Test">
     <file name="a.vb">
 Imports ALS = N1.N2
@@ -405,26 +405,26 @@ End Namespace
 
             Dim text3 = <![CDATA[
     Namespace N1
-      Structure SFoo
+      Structure SGoo
       End Structure
     End Namespace
     ]]>.Value
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Test1">
     <file name="a.vb">
     Namespace N1
-      Class CFoo
+      Class CGoo
       End Class
     End Namespace
     </file>
 </compilation>)
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Test2">
     <file name="b.vb">
     Namespace N1
-      Interface IFoo
+      Interface IGoo
       End Interface
     End Namespace
     </file>
@@ -460,21 +460,21 @@ End Namespace
 
             Dim text1 = <![CDATA[
     Namespace N1
-      Class CFoo
+      Class CGoo
       End Class
     End Namespace
     ]]>.Value
 
             Dim text2 = <![CDATA[
     Namespace N1
-      Interface IFoo
+      Interface IGoo
       End Interface
     End Namespace
     ]]>.Value
 
             Dim text3 = <![CDATA[
     Namespace N1
-      Structure SFoo
+      Structure SGoo
       End Structure
     End Namespace
     ]]>.Value
@@ -515,9 +515,9 @@ End Class
                     </file>
                 </compilation>
 
-            Dim aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Foo"))
+            Dim aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
 
-            Dim comp = CreateCompilationWithReferences(source, {aliasedCorlib})
+            Dim comp = CreateEmptyCompilationWithReferences(source, {aliasedCorlib})
 
             ' NOTE: this doesn't compile in dev11 - it reports that it cannot find System.Object.
             ' However, we've already changed how special type lookup works, so this is not a major issue.
@@ -556,10 +556,10 @@ End Class
                     </file>
                 </compilation>
 
-            Dim libComp = CreateCompilationWithReferences([lib], {MscorlibRef_v4_0_30316_17626})
+            Dim libComp = CreateEmptyCompilationWithReferences([lib], {MscorlibRef_v4_0_30316_17626})
             Dim libRef = libComp.EmitToImageReference(aliases:=ImmutableArray.Create("myTask"))
 
-            Dim comp = CreateCompilationWithReferences(source, {libRef, MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929})
+            Dim comp = CreateEmptyCompilationWithReferences(source, {libRef, MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929})
 
             ' NOTE: Unlike in C#, aliases on metadata references are ignored, so the
             ' reference to System.Threading.Tasks is ambiguous.

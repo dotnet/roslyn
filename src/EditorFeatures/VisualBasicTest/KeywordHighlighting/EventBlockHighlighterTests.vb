@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
         Public Async Function TestEventSample2_1() As Task
             Await TestAsync(<Text>
 Class C
-{|Cursor:[|Public Custom Event|]|} Foo As EventHandler [|Implements|] IFoo.Foo
+{|Cursor:[|Public Custom Event|]|} Goo As EventHandler [|Implements|] IGoo.Goo
     AddHandler(value As EventHandler)
     End AddHandler
     RemoveHandler(value As EventHandler)
@@ -29,7 +29,7 @@ End Class</Text>)
         Public Async Function TestEventSample2_2() As Task
             Await TestAsync(<Text>
 Class C
-[|Public Custom Event|] Foo As EventHandler {|Cursor:[|Implements|]|} IFoo.Foo
+[|Public Custom Event|] Goo As EventHandler {|Cursor:[|Implements|]|} IGoo.Goo
     AddHandler(value As EventHandler)
     End AddHandler
     RemoveHandler(value As EventHandler)
@@ -44,7 +44,7 @@ End Class</Text>)
         Public Async Function TestEventSample2_3() As Task
             Await TestAsync(<Text>
 Class C
-[|Public Custom Event|] Foo As EventHandler [|Implements|] IFoo.Foo
+[|Public Custom Event|] Goo As EventHandler [|Implements|] IGoo.Goo
     AddHandler(value As EventHandler)
     End AddHandler
     RemoveHandler(value As EventHandler)

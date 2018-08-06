@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         // Cannot expose the following two field publicly because this structure is mutable
         // and might become not null/empty, unless we restrict access to it.
         private static readonly Word[] s_emptyArray = Array.Empty<Word>();
-        private static readonly BitVector s_nullValue = new BitVector(0, null, 0);
+        private static readonly BitVector s_nullValue = default;
         private static readonly BitVector s_emptyValue = new BitVector(0, s_emptyArray, 0);
 
         private Word _bits0;
@@ -46,6 +46,16 @@ namespace Microsoft.CodeAnalysis
         public override bool Equals(object obj)
         {
             return obj is BitVector && Equals((BitVector)obj);
+        }
+
+        public static bool operator ==(BitVector left, BitVector right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(BitVector left, BitVector right)
+        {
+            return !left.Equals(right);
         }
 
         public override int GetHashCode()
@@ -216,7 +226,7 @@ namespace Microsoft.CodeAnalysis
         /// For the purposes of the intersection, any bits beyond the current length will be treated as zeroes.
         /// Return true if any changes were made to the bits of this bit vector.
         /// </summary>
-        public bool IntersectWith(BitVector other)
+        public bool IntersectWith(in BitVector other)
         {
             bool anyChanged = false;
             int otherLength = other._bits.Length;
@@ -268,7 +278,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>
         /// True if any bits were set as a result of the union.
         /// </returns>
-        public bool UnionWith(BitVector other)
+        public bool UnionWith(in BitVector other)
         {
             bool anyChanged = false;
 

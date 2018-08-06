@@ -18,7 +18,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var q = new C();
         var b = q[||][4];
@@ -46,7 +46,7 @@ class C
 end class
 
 class D
-    sub Foo()
+    sub Goo()
         dim q = new C()
         dim b = q[||](4)
     end sub
@@ -65,7 +65,7 @@ end class
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 Class A
-    Default ReadOnly Property {|Definition:$$Foo|}(ByVal x As Integer) As Integer
+    Default ReadOnly Property {|Definition:$$Goo|}(ByVal x As Integer) As Integer
         Get
         End Get
     End Property
@@ -97,7 +97,7 @@ Public Class C
         End Set
     End Property
 
-    Public Sub Foo(c As C)
+    Public Sub Goo(c As C)
         c = c.[|Item|](2)
         c[||](1) = c
         c.[|Item|](1) = c

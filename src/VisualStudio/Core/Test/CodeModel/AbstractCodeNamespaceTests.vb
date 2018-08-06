@@ -41,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function GetNameSetter(codeElement As EnvDTE.CodeNamespace) As Action(Of String)
-            Throw New NotImplementedException()
+            Return Sub(name) codeElement.Name = name
         End Function
 
         Protected Overrides Function GetParent(codeElement As EnvDTE.CodeNamespace) As Object

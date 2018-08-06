@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_Projections
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -48,7 +49,7 @@ End Namespace
                 <Document><![CDATA[
 {|S2:
 Class C
-    Sub Foo()
+    Sub Goo()
         System$$
     End Sub
 End Class
@@ -85,7 +86,7 @@ End Class
                 <Document><![CDATA[
 {|S2:
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim s As New$$
     End Sub
 End Class

@@ -51,8 +51,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
         Public Overrides Sub WriteTo(options As OptionSet, writer As ObjectWriter, cancellationToken As CancellationToken)
             WriteOptionSetTo(options, LanguageNames.VisualBasic, writer, cancellationToken)
             WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken)
-            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferInferredTupleNames, writer, cancellationToken)
-            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, writer, cancellationToken)
         End Sub
 
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
@@ -120,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             For i = 0 To count - 1
                 Dim key = reader.ReadString()
                 Dim value = reader.ReadValue()
-                builder.Add(KeyValuePair.Create(key, value))
+                builder.Add(KeyValuePairUtil.Create(key, value))
             Next
             Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.MoveToImmutable())
             Return options.WithFeatures(features)
@@ -131,8 +129,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
 
             options = ReadOptionSetFrom(options, LanguageNames.VisualBasic, reader, cancellationToken)
             options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken)
-            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferInferredTupleNames, reader, cancellationToken)
-            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, reader, cancellationToken)
 
             Return options
         End Function

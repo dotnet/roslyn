@@ -51,9 +51,7 @@ namespace RepoUtil
 
         private static bool Run(string[] args)
         {
-            ParsedArgs parsedArgs;
-            CreateCommand func;
-            if (!TryParseCommandLine(args, out parsedArgs, out func))
+            if (!TryParseCommandLine(args, out var parsedArgs, out var func))
             {
                 Usage();
                 return false;

@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // cases:
-            //  using (foo) { }
-            //  using Foo;
-            //  using Foo = Bar;
+            //  using (goo) { }
+            //  using Goo;
+            //  using Goo = Bar;
             return
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
@@ -38,16 +38,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // extern alias a;
             // u|
 
-            // using Foo;
+            // using Goo;
             // |
 
-            // using Foo;
+            // using Goo;
             // u|
 
-            // using Foo = Bar;
+            // using Goo = Bar;
             // |
 
-            // using Foo = Bar;
+            // using Goo = Bar;
             // u|
 
             // t valid:
@@ -74,15 +74,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // root: u|
 
-            // ns Foo { u|
+            // ns Goo { u|
 
             // extern alias a;
             // u|
 
-            // using Foo;
+            // using Goo;
             // u|
 
-            // using Foo = Bar;
+            // using Goo = Bar;
             // u|
 
             // root: |
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // extern alias a;
             // |
 
-            // using Foo;
+            // using Goo;
             // |
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
