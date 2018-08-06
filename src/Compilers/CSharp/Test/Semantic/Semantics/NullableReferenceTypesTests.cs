@@ -30375,10 +30375,8 @@ class C
             comp.VerifyDiagnostics(
                 // (12,21): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
                 //         d.F(out var v);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(12, 21),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         F(v).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(v)").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(12, 21)
+            );
         }
 
         [Fact]
@@ -34478,10 +34476,8 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(object))").WithLocation(6, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(default(string)).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(string))").WithLocation(8, 9),
-                // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         F(default).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default)").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(string))").WithLocation(8, 9)
+            );
         }
 
         [Fact]
@@ -36306,6 +36302,53 @@ class C
                 // (25,9): warning CS8602: Possible dereference of a null reference.
                 //         t2.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2").WithLocation(25, 9)
+            );
+        }
+
+        [Fact]
+        public void UnconstrainedTypeParameter_TypeInferenceThroughCall()
+        {
+            var source =
+@"
+class C
+{
+    static T Copy<T>(T t) => t;
+    static void CopyOut<T>(T t1, out T t2) => t2 = t1;
+    static void CopyOutInherit<T1, T2>(T1 t1, out T2 t2) where T1 : T2 => t2 = t1;
+    static void M<U>(U u)
+    {
+        var x1 = Copy(u);
+        x1.ToString(); // 1
+
+        CopyOut(u, out var x2);
+        x2.ToString(); // 2
+
+        CopyOut(u, out var x3);
+        x3.ToString(); // 3
+
+        if (u == null) throw null;
+
+        var x4 = Copy(u);
+        x4.ToString();
+
+        CopyOut(u, out var x5);
+        x5.ToString();
+
+        CopyOut(u, out U x6);
+        x6.ToString();
+
+        CopyOutInherit(u, out var x7);
+        x7.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): We should warn on the first 3 ToString calls.
+            comp.VerifyDiagnostics(
+                // (19,9): error CS0411: The type arguments for method 'C.CopyOutInherit<T1, T2>(T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         CopyOutInherit(u, out var x4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "CopyOutInherit").WithArguments("C.CopyOutInherit<T1, T2>(T1, out T2)").WithLocation(19, 9)
             );
         }
 

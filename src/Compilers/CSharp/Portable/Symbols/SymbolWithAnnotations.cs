@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // parameters as annotated during initial binding without causing cycles.
 
                 // Initial binding leaves unconstrained type parameters unannotated, NullableWalker will
-                // set treatUnconstrainedTypeParametersAsNullable where appropriate
-                // T (leave unannotated when treatUnconstrainedTypeParamersAsNullable is false)
+                // set treatUnconstrainedTypeParameterAsNullable where appropriate
+                // T (leave unannotated when treatUnconstrainedTypeParameterAsNullable is false)
                 // T (add annotation when treatUnconstrainedTypeParameterAsNullable is true)
                 // T? where T : class (leave annotated)
                 // string, int (leave unannotated)
