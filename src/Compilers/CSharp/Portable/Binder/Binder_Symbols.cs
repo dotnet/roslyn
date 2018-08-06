@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var symbol = BindTypeOrAliasOrVarKeyword(syntax, diagnostics, out isVar);
             Debug.Assert(isVar == symbol.IsDefault);
-            return isVar ? null : UnwrapAlias(symbol, diagnostics, syntax).Type;
+            return isVar ? default : UnwrapAlias(symbol, diagnostics, syntax).Type;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var symbol = BindTypeOrAliasOrUnmanagedKeyword(syntax, diagnostics, out isUnmanaged);
             Debug.Assert(isUnmanaged == symbol.IsDefault);
-            return isUnmanaged ? null : UnwrapAlias(symbol, diagnostics, syntax).Type;
+            return isUnmanaged ? default : UnwrapAlias(symbol, diagnostics, syntax).Type;
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isVar)
             {
                 alias = null;
-                return null;
+                return default;
             }
             else
             {
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindNamespaceOrTypeSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             var result = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
-            Debug.Assert((object)result != null);
+            Debug.Assert(!result.IsDefault);
 
             return UnwrapAlias(result, diagnostics, syntax, basesBeingResolved);
         }
@@ -1166,7 +1166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ShouldCheckConstraints)
             {
-                type.CheckConstraintsForNonTuple(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+                type.CheckConstraintsForNonTuple(this.Conversions.WithNullability(includeNullability), typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="pointedAtType">The type being pointed at.</param>
         internal PointerTypeSymbol(TypeSymbolWithAnnotations pointedAtType)
         {
-            Debug.Assert((object)pointedAtType != null);
+            Debug.Assert(!pointedAtType.IsNull);
 
             _pointedAtType = pointedAtType;
         }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((object)oldPointedAtType == newPointedAtType)
+            if (oldPointedAtType.IsSameAs(newPointedAtType))
             {
                 result = this;
             }
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations oldPointedAtType = PointedAtType;
             TypeSymbolWithAnnotations newPointedAtType = oldPointedAtType.SetUnknownNullabilityForReferenceTypes();
 
-            if ((object)oldPointedAtType == newPointedAtType)
+            if (oldPointedAtType.IsSameAs(newPointedAtType))
             {
                 return this;
             }

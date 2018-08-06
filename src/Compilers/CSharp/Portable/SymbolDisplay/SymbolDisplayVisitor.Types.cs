@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitArrayType(IArrayTypeSymbol symbol)
         {
-            VisitArrayType(symbol, typeOpt: null);
+            VisitArrayType(symbol, typeOpt: default);
         }
 
         private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations typeOpt)
@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            TypeSymbolWithAnnotations underlyingNonArrayTypeWithAnnotations = (symbol as ArrayTypeSymbol)?.ElementType;
+            TypeSymbolWithAnnotations underlyingNonArrayTypeWithAnnotations = (symbol as ArrayTypeSymbol)?.ElementType ?? default;
             var underlyingNonArrayType = symbol.ElementType;
             while (underlyingNonArrayType.Kind == SymbolKind.ArrayType)
             {
-                underlyingNonArrayTypeWithAnnotations = (underlyingNonArrayType as ArrayTypeSymbol)?.ElementType;
+                underlyingNonArrayTypeWithAnnotations = (underlyingNonArrayType as ArrayTypeSymbol)?.ElementType ?? default;
                 underlyingNonArrayType = ((IArrayTypeSymbol)underlyingNonArrayType).ElementType;
             }
 
-            if ((object)underlyingNonArrayTypeWithAnnotations != null)
+            if (!underlyingNonArrayTypeWithAnnotations.IsNull)
             {
                 VisitTypeSymbolWithAnnotations(underlyingNonArrayTypeWithAnnotations);
             }
@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddArrayRank(arrayType);
                 AddNullableAnnotations(typeOpt);
 
-                typeOpt = (arrayType as ArrayTypeSymbol)?.ElementType;
+                typeOpt = (arrayType as ArrayTypeSymbol)?.ElementType ?? default;
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
         }
 
         private void AddNullableAnnotations(TypeSymbolWithAnnotations typeOpt)
         {
-            if (ReferenceEquals(typeOpt, null))
+            if (typeOpt.IsNull)
             {
                 return;
             }
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         visitor = this.NotFirstVisitorNamespaceOrType;
                     }
 
-                    if ((object)typeArgumentsWithAnnotations == null)
+                    if (typeArgumentsWithAnnotations == null)
                     {
                         typeArg.Accept(visitor);
                     }

@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = expr.Type;
             if ((object)type == null)
             {
-                return null;
+                return default;
             }
             // PROTOTYPE(NullableReferenceTypes): Could we track nullability always,
             // even in C#7, but only report warnings when the feature is enabled?
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     return ((BoundCall)expr).Method.ReturnType.IsNullable;
                 case BoundKind.Conversion:
-                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType?.IsNullable == true ? (bool?)true : null;
+                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.IsNullable == true ? (bool?)true : null;
                 case BoundKind.BinaryOperator:
                     return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.IsNullable;
                 case BoundKind.NullCoalescingOperator:

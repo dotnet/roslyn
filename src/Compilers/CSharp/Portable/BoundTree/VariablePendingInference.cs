@@ -22,19 +22,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundExpression SetInferredType(TypeSymbolWithAnnotations type, DiagnosticBag diagnosticsOpt)
         {
-            Debug.Assert((object)type != null);
+            Debug.Assert(!type.IsNull);
 
             return SetInferredType(type, null, diagnosticsOpt);
         }
 
         internal BoundExpression SetInferredType(TypeSymbolWithAnnotations type, Binder binderOpt, DiagnosticBag diagnosticsOpt)
         {
-            Debug.Assert(binderOpt != null || (object)type != null);
+            Debug.Assert(binderOpt != null || !type.IsNull);
             Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
                 (this.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
                     ((DeclarationExpressionSyntax)this.Syntax).Designation.Kind() == SyntaxKind.SingleVariableDesignation));
 
-            bool inferenceFailed = ((object)type == null);
+            bool inferenceFailed = type.IsNull;
 
             if (inferenceFailed)
             {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
         {
-            return this.SetInferredType(null, binder, diagnosticsOpt);
+            return this.SetInferredType(default, binder, diagnosticsOpt);
         }
 
         private void ReportInferenceFailure(DiagnosticBag diagnostics)

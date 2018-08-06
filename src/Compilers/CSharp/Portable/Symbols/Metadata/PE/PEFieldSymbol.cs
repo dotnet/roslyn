@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private TypeSymbolWithAnnotations _lazyType;
+        private TypeSymbolWithAnnotations.Builder _lazyType;
         private int _lazyFixedSize;
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureSignatureIsLoaded()
         {
-            if ((object)_lazyType == null)
+            if (_lazyType.IsNull)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(fixedElementType)));
                 }
 
-                Interlocked.CompareExchange(ref _lazyType, type, null);
+                _lazyType.InterlockedInitialize(type);
             }
         }
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             EnsureSignatureIsLoaded();
-            return _lazyType;
+            return _lazyType.ToType();
         }
 
         public override bool IsFixed

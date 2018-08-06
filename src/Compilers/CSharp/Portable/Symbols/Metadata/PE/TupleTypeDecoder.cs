@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 TypeSymbolWithAnnotations typeArg = typeArgs[i];
                 TypeSymbolWithAnnotations decoded = DecodeTypeInternal(typeArg);
-                anyDecoded |= !ReferenceEquals(decoded, typeArg);
+                anyDecoded |= !decoded.IsSameAs(typeArg);
                 decodedArgs.Add(decoded);
             }
 
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             TypeSymbolWithAnnotations elementType = type.ElementType;
             TypeSymbolWithAnnotations decodedElementType = DecodeTypeInternal(elementType);
-            return ReferenceEquals(decodedElementType, elementType)
+            return decodedElementType.IsSameAs(elementType)
                 ? type
                 : type.WithElementType(decodedElementType);
         }

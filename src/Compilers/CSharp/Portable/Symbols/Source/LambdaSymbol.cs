@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This symbol is used as the return type of a LambdaSymbol when we are interpreting
         /// lambda's body in order to infer its return type.
         /// </summary>
-        internal static readonly TypeSymbolWithAnnotations ReturnTypeIsBeingInferred = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
+        internal static readonly TypeSymbol ReturnTypeIsBeingInferred = new UnsupportedMetadataTypeSymbol();
 
         /// <summary>
         /// This symbol is used as the return type of a LambdaSymbol when we failed to infer its return type.
         /// </summary>
-        internal static readonly TypeSymbolWithAnnotations InferenceFailureReturnType = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
+        internal static readonly TypeSymbol InferenceFailureReturnType = new UnsupportedMetadataTypeSymbol();
 
         private static readonly TypeSymbolWithAnnotations UnknownReturnType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
             _refKind = refKind;
-            _returnType = returnType ?? ReturnTypeIsBeingInferred;
+            _returnType = returnType.IsNull ? TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesUnusedContext.Instance, ReturnTypeIsBeingInferred) : returnType;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return (object)this.ReturnType != null && this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return !this.ReturnType.IsNull && this.ReturnType.SpecialType == SpecialType.System_Void; }
         }
 
         public override RefKind RefKind
@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // IDE might inspect the symbol and want to know the return type.
         internal void SetInferredReturnType(RefKind refKind, TypeSymbolWithAnnotations inferredReturnType)
         {
-            Debug.Assert((object)inferredReturnType != null);
-            Debug.Assert((object)_returnType == ReturnTypeIsBeingInferred);
+            Debug.Assert(!inferredReturnType.IsNull);
+            Debug.Assert((object)_returnType.TypeSymbol == ReturnTypeIsBeingInferred);
             _refKind = refKind;
             _returnType = inferredReturnType;
         }

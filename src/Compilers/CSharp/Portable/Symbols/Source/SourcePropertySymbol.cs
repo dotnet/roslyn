@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbolWithAnnotations _lazyType;
+        private TypeSymbolWithAnnotations.Builder _lazyType;
 
         /// <summary>
         /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
@@ -238,7 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // lazily since the property name depends on the metadata name of the base property,
                 // and the property name is required to add the property to the containing type, and
                 // the type and parameters are required to determine the override or implementation.
-                _lazyType = this.ComputeType(bodyBinder, syntax, diagnostics);
+                var type = this.ComputeType(bodyBinder, syntax, diagnostics);
+                _lazyType.InterlockedInitialize(type);
                 _lazyParameters = this.ComputeParameters(bodyBinder, syntax, diagnostics);
 
                 bool isOverride = false;
@@ -270,11 +271,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // We do an extra check before copying the type to handle the case where the overriding
                     // property (incorrectly) has a different type than the overridden property.  In such cases,
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-                    if (_lazyType.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
+                    if (type.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
-                        _lazyType = _lazyType.WithTypeAndModifiers(
-                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, _lazyType.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: this),
+                        type = type.WithTypeAndModifiers(
+                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, type.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: this),
                             overriddenPropertyType.CustomModifiers);
+                        _lazyType = default;
+                        _lazyType.InterlockedInitialize(type);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
@@ -471,20 +474,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)_lazyType == null)
+                if (_lazyType.IsNull)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     var binder = this.CreateBinderForTypeAndParameters();
                     var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
                     var result = this.ComputeType(binder, syntax, diagnostics);
-                    if ((object)Interlocked.CompareExchange(ref _lazyType, result, null) == null)
+                    if (_lazyType.InterlockedInitialize(result))
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
                     }
                     diagnostics.Free();
                 }
 
-                return _lazyType;
+                return _lazyType.ToType();
             }
         }
 
@@ -492,9 +495,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)_lazyType != null)
+                if (!_lazyType.IsNull)
                 {
-                    return _lazyType.IsPointerType();
+                    return _lazyType.DefaultType.IsPointerType();
                 }
 
                 var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();

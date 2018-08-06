@@ -14,6 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_Nullable : CSharpTestBase
     {
+        private const string NonNullTypesAttributesDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+        private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
+
         // An empty project should not require System.Attribute.
         [Fact]
         public void EmptyProject_MissingAttribute()
@@ -312,18 +324,6 @@ class C
             });
         }
 
-        private const string NonNullTypesAttributesDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-        private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
-
         [Fact]
         public void EmitAttribute_BaseClass()
         {
@@ -487,7 +487,7 @@ public class C<T> where T : A?
 public class D<T> where T : A
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -511,19 +511,29 @@ class Program
         new C<A>();
         new C<B?>();
         new C<B>();
-        new D<A?>();
+        new D<A?>(); // warning
         new D<A>();
-        new D<B?>();
+        new D<B?>(); // warning
         new D<B>();
     }
 }";
-            var comp2 = CreateCompilation(new[] { source, source2 }, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Report warning for `new D<A?>()` and `new D<B?>()`:
-            comp2.VerifyEmitDiagnostics();
+            var comp2 = CreateCompilation(new[] { source, source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyEmitDiagnostics(
+                // (10,15): warning CS8627: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'D<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                //         new D<A?>(); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("D<T>", "A", "T", "A?").WithLocation(10, 15),
+                // (12,15): warning CS8627: The type 'B?' cannot be used as type parameter 'T' in the generic type or method 'D<T>'. Nullability of type argument 'B?' doesn't match constraint type 'A'.
+                //         new D<B?>(); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B?").WithArguments("D<T>", "A", "T", "B?").WithLocation(12, 15));
 
-            comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            // PROTOTYPE(NullableReferenceTypes): Report warning for `new D<A?>()` and `new D<B?>()`:
-            comp2.VerifyEmitDiagnostics();
+            comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (10,15): warning CS8627: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'D<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                //         new D<A?>(); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("D<T>", "A", "T", "A?").WithLocation(10, 15),
+                // (12,15): warning CS8627: The type 'B?' cannot be used as type parameter 'T' in the generic type or method 'D<T>'. Nullability of type argument 'B?' doesn't match constraint type 'A'.
+                //         new D<B?>(); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B?").WithArguments("D<T>", "A", "T", "B?").WithLocation(12, 15));
 
             var type = comp2.GetMember<NamedTypeSymbol>("C");
             Assert.Equal("A?", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
@@ -590,7 +600,7 @@ public class B<T> where T : A<object?>
 public class C<T> where T : A<object>
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -615,13 +625,23 @@ public class C<T> where T : A<object>
         new C<A<object>>();
     }
 }";
-            var comp2 = CreateCompilation(new[] { source, source2 }, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Report warning for `new B<A<object>>()` and `new C<A<object?>>()`.
-            comp2.VerifyEmitDiagnostics();
+            var comp2 = CreateCompilation(new[] { source, source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyEmitDiagnostics(
+                // (6,15): warning CS8627: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                //         new B<A<object>>(); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B<T>", "A<object?>", "T", "A<object>").WithLocation(6, 15),
+                // (7,15): warning CS8627: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                //         new C<A<object?>>(); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("C<T>", "A<object>", "T", "A<object?>").WithLocation(7, 15));
 
-            comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            // PROTOTYPE(NullableReferenceTypes): Report warning for `new B<A<object>>()` and `new C<A<object?>>()`.
-            comp2.VerifyDiagnostics();
+            comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyDiagnostics(
+                // (6,15): warning CS8627: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                //         new B<A<object>>(); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B<T>", "A<object?>", "T", "A<object>").WithLocation(6, 15),
+                // (7,15): warning CS8627: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                //         new C<A<object?>>(); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("C<T>", "A<object>", "T", "A<object?>").WithLocation(7, 15));
 
             var type = comp2.GetMember<NamedTypeSymbol>("B");
             Assert.Equal("A<System.Object?>!", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
