@@ -119,8 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
-            /*compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier*/);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
+            // Can't use IncludeNonNullableTypeModifier as it pulls on NonNullTypes, which causes cycles while debugging
+            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeUnannotatedTypeModifier);
 
         internal static readonly SymbolDisplayFormat TestDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -385,6 +386,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var str = TypeSymbol.ToDisplayString(format);
             if (format != null && !IsValueType)
             {
+                if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeUnannotatedTypeModifier) != 0 &&
+                    !IsAnnotated)
+                {
+                    return str + "_";
+                }
+
                 switch (IsNullable)
                 {
                     case true:

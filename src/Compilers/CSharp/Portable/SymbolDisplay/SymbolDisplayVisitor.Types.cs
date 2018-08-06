@@ -97,9 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            bool isNullableType = typeOpt.IsNullableType();
+            bool isAnnotated = typeOpt.IsAnnotated;
+
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                !typeOpt.IsNullableType() &&
-                typeOpt.IsAnnotated)
+                !isNullableType &&
+                isAnnotated)
             {
                 AddPunctuation(SyntaxKind.QuestionToken);
             }
@@ -108,6 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeOpt.IsNullable == false)
             {
                 AddPunctuation(SyntaxKind.ExclamationToken);
+            }
+            else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeUnannotatedTypeModifier) &&
+                !isNullableType &&
+                !isAnnotated)
+            {
+                AddPunctuation(SyntaxKind.UnderscoreToken);
             }
         }
 
