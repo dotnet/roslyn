@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -114,6 +115,15 @@ $$");
         {
             await VerifyKeywordAsync(
 @"[$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestOutOuterAttributeInNamespace()
+        {
+            await VerifyKeywordAsync(
+@"[$$
+namespace Goo {}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
