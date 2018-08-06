@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
         protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
-        protected virtual RegisterFixData<TArgumentSyntax> GetDataForFix_LanguageSpecificExpression(
+        protected virtual RegisterFixData<TArgumentSyntax> TryGetLanguageSpecificFixInfo(
             SemanticModel semanticModel,
             SyntaxNode node,
             CancellationToken cancellationToken)
@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
             for (var node = initialNode; node != null; node = node.Parent)
             {
                 var fixData =
-                    GetDataForFix_InvocationExpression(semanticModel, syntaxFacts, node, cancellationToken) ??
-                    GetDataForFix_ObjectCreationExpression(semanticModel, syntaxFacts, node, cancellationToken) ??
-                    GetDataForFix_LanguageSpecificExpression(semanticModel, node, cancellationToken);
+                    TryGetInvocationExpressionFixInfo(semanticModel, syntaxFacts, node, cancellationToken) ??
+                    TryGetObjectCreationFixInfo(semanticModel, syntaxFacts, node, cancellationToken) ??
+                    TryGetLanguageSpecificFixInfo(semanticModel, node, cancellationToken);
 
                 if (fixData != null)
                 {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                               .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
         }
 
-        private static RegisterFixData<TArgumentSyntax> GetDataForFix_InvocationExpression(
+        private static RegisterFixData<TArgumentSyntax> TryGetInvocationExpressionFixInfo(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode node,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        private static RegisterFixData<TArgumentSyntax> GetDataForFix_ObjectCreationExpression(
+        private static RegisterFixData<TArgumentSyntax> TryGetObjectCreationFixInfo(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode node,

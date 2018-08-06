@@ -5,8 +5,8 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
-    internal class RegisterFixData<TArgumentSyntax> where
-        TArgumentSyntax : SyntaxNode
+    internal class RegisterFixData<TArgumentSyntax>
+        where TArgumentSyntax : SyntaxNode
     {
         public RegisterFixData(SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodCandidates)
         {

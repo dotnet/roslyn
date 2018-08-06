@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         protected override ImmutableArray<string> CannotConvertDiagnosticIds
             => GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds;
 
-        protected override RegisterFixData<ArgumentSyntax> GetDataForFix_LanguageSpecificExpression(
+        protected override RegisterFixData<ArgumentSyntax> TryGetLanguageSpecificFixInfo(
             SemanticModel semanticModel,
             SyntaxNode node,
             CancellationToken cancellationToken)
