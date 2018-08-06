@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (expr.IsKind(SyntaxKind.IdentifierName))
                         {
-                            elementNamesBuilder.Add(IsNullOrWhitespace(((IdentifierNameSyntax)expr).Identifier.ValueText) ? 
+                            elementNamesBuilder.Add(string.IsNullOrWhiteSpace(((IdentifierNameSyntax)expr).Identifier.ValueText) ? 
                                 null : 
                                 ((IdentifierNameSyntax)expr).Identifier.ValueText);
                             elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
@@ -2117,25 +2117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementTypesBuilder.Free();
                     elementNamesBuilder.Free();
                 }
-            }
-
-            private bool IsNullOrWhitespace(string text)
-            {
-
-                if (text == null)
-                {
-                    return true;
-                }
-
-                for (var i = 0; i < text.Length; i++)
-                {
-                    if (!SyntaxFacts.IsWhitespace(text[i]) || !SyntaxFacts.IsNewLine(text[i]))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
             }
 
             private void AddTypeAndName(
