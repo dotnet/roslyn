@@ -13970,7 +13970,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context..
+        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a &apos;[NonNullTypes(true/false)]&apos; context..
         /// </summary>
         internal static string WRN_MissingNonNullTypesContext {
             get {
@@ -13979,11 +13979,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context..
+        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a &apos;[NonNullTypes(true/false)]&apos; context..
         /// </summary>
         internal static string WRN_MissingNonNullTypesContext_Title {
             get {
                 return ResourceManager.GetString("WRN_MissingNonNullTypesContext_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;[NonNullTypes(true)]&apos; context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContextForAnnotation {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;[NonNullTypes(true)]&apos; context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContextForAnnotation_Title {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotation_Title", resourceCulture);
             }
         }
         
