@@ -1043,7 +1043,7 @@ End Class
 
         <WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
-        Public Async Function TestConstructorInitializer_OfferFixForConstructorWithDiagnostic() As Task
+        Public Async Function TestConstructorInitializer_DontOfferFixForConstructorWithDiagnostic() As Task
             ' Error BC30057: Too many arguments to 'Public Sub New()'.
             Dim code =
 "
@@ -1053,18 +1053,7 @@ Public Class C
     End Sub
 End Class
 "
-            ' The fixed code has error BC30298: Constructor 'Public Sub New(v As Integer)' cannot call itself: 
-            ' Public Sub New(v As Integer)' calls 'Public Sub New(v As Integer)'.
-            ' The correct behavior would be to not offer a fix.
-            Dim fix =
-"
-Public Class C
-    Public Sub New(v As Integer)
-        Me.New(1)
-    End Sub
-End Class
-"
-            Await TestInRegularAndScriptAsync(code, fix)
+            Await TestMissingAsync(code)
         End Function
 
         <WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")>
@@ -1093,21 +1082,8 @@ Public Class C
     End Sub
 End Class
 "
-            ' This fix is wrong for several reasons. The root cause is, that the fix is offered for the constructor
-            ' with the diagnostic on it causing "error BC30298: Constructor '..' cannot call itself" sooner or later.
-            Dim fix1 =
-"
-Public Class C
-    Public Sub New(i As Integer)
-    End Sub
-    
-    Public Sub New(v As Integer)
-        Me.New(1,1)
-    End Sub
-End Class
-"
             Await TestInRegularAndScriptAsync(code, fix0, index:=0)
-            Await TestInRegularAndScriptAsync(code, fix1, index:=1)
+            Await TestActionCountAsync(code, 1)
         End Function
 
         <WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")>
