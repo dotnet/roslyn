@@ -188,13 +188,13 @@
         <note />
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
-        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="translated">Um CodeFixProvider que pretende dar suporte à correção de todas as ocorrências deve classificar as ações de código registradas em classes de equivalência, atribuindo a ela uma chave de equivalência explícita e não nula, exclusiva em todas as ações de código registradas por este reparador. Isso permite que o FixAllProvider corrija todos os diagnósticos no escopo necessário aplicando ações de código desse reparador que estão na classe de equivalência da ação de código do gatilho.</target>
+        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
+        <target state="translated">Um CodeFixProvider que pretende dar suporte à correção de todas as ocorrências deve classificar as ações de código registradas em classes de equivalência, atribuindo a ela uma chave de equivalência explícita e não nula, exclusiva para cada tipo de ação de código criada por este reparador. Isso permite que o FixAllProvider corrija todos os diagnósticos no escopo necessário aplicando ações de código desse reparador que estão na classe de equivalência da ação de código do gatilho.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
-        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</source>
-        <target state="translated">Forneça um argumento explícito para o parâmetro '{0}' opcional, que é exclusivo e não nulo em todas as ações de código criadas por este reparador.</target>
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
+        <target state="translated">Forneça um argumento explícito para o parâmetro '{0}' opcional, que é exclusivo e não nulo para cada tipo de ação de código criada por este reparador.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">

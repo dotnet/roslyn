@@ -188,13 +188,13 @@
         <note />
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
-        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="translated">支持修复所有事件的 CodeFixProvider 必须将注册的代码操作划分为等效类，方法是为其分配一个非 null 的显式等效键，且该键在此修复程序注册的所有代码操作中都是唯一的。这样，FixAllProvider 即可通过应用此修复程序的代码操作解决所有诊断问题，其中这些操作位于触发器代码操作的等效类中。</target>
+        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
+        <target state="translated">支持修复所有事件的 CodeFixProvider 必须将注册的代码操作划分为等效类，方法是为其分配一个非 null 的显式等效键，且该键对于此修复程序创建的各种代码操作都是唯一的。这样，FixAllProvider 即可通过应用此修复程序的代码操作解决所有诊断问题，其中这些操作位于触发器代码操作的等效类中。</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
-        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</source>
-        <target state="translated">为可选形参“{0}”提供一个显式实参，该形参在此修复程序创建的所有代码操作中均为非 null 且是唯一的。</target>
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
+        <target state="translated">为可选形参“{0}”提供一个显式实参，该形参对于此修复程序创建的各种代码操作均为非 null 且是唯一的。</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">

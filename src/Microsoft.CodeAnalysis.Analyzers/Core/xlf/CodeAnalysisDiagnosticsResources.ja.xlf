@@ -188,13 +188,13 @@
         <note />
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
-        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="translated">すべての出現箇所の修正をサポートすることを目的とした CodeFixProvider は、登録されたコード アクションを同等クラスに分類する必要があります。そのために、この修正ツールによって登録されたすべてのコード アクション内で一意となる null 以外の明示的な同等キーを割り当てます。これにより、FixAllProvider は、トリガー コード アクションの同等クラス内にある、この修正ツールのコード アクションを適用して、必要なスコープ内のすべての診断を修正することができます。</target>
+        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
+        <target state="translated">すべての出現箇所の修正をサポートすることを目的とした CodeFixProvider は、登録されたコード アクションを同等クラスに分類する必要があります。そのために、この修正ツールによって作成された各種類のコード アクション内で一意となる null 以外の明示的な同等キーを割り当てます。これにより、FixAllProvider は、トリガー コード アクションの同等クラス内にある、この修正ツールのコード アクションを適用して、必要なスコープ内のすべての診断を修正することができます。</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
-        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</source>
-        <target state="translated">省略可能なパラメーター '{0}' に明示的な引数を指定してください。この引数は、null ではなく、この修正ツールによって作成されるすべてのコード アクションで一意です。</target>
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
+        <target state="translated">省略可能なパラメーター '{0}' に明示的な引数を指定してください。この引数は、null ではなく、この修正ツールによって作成された各種類のコード アクション内で一意です。</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
