@@ -114,35 +114,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        /// <summary>
-        /// In VB a constructor calls other constructor overloads via a Me.New(..) invocation. We need to exclude the constructor with
-        /// the diagnostic from the candidates because that would likely introduces a recursive call to itself, which in turn would be
-        /// compiler error BC30298: Constructor 'Public Sub New(...)' cannot call itself.
-        /// </summary>
-        private static ImmutableArray<IMethodSymbol> RemoveConstructorWithDiagnosticFromCandidates(
-            TInvocationExpressionSyntax invocationExpression,
-            ImmutableArray<IMethodSymbol> candidates,
-            CancellationToken cancellationToken)
-        {
-            foreach (var candidate in candidates)
-            {
-                if (candidate.MethodKind != MethodKind.Constructor)
-                {
-                    break;
-                }
-
-                if (candidate.DeclaringSyntaxReferences.Any(syntaxReference
-                    => syntaxReference.GetSyntax(cancellationToken)?.Parent?.Contains(invocationExpression) == true))
-                {
-                    candidates = candidates.Remove(candidate);
-                    break;
-                }
-
-            }
-
-            return candidates;
-        }
-
         private static RegisterFixData<TArgumentSyntax> TryGetObjectCreationFixInfo(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
@@ -178,6 +149,35 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// In VB a constructor calls other constructor overloads via a Me.New(..) invocation. We need to exclude the constructor with
+        /// the diagnostic from the candidates because that would likely introduces a recursive call to itself, which in turn would be
+        /// compiler error BC30298: Constructor 'Public Sub New(...)' cannot call itself.
+        /// </summary>
+        private static ImmutableArray<IMethodSymbol> RemoveConstructorWithDiagnosticFromCandidates(
+            TInvocationExpressionSyntax invocationExpression,
+            ImmutableArray<IMethodSymbol> candidates,
+            CancellationToken cancellationToken)
+        {
+            foreach (var candidate in candidates)
+            {
+                if (candidate.MethodKind != MethodKind.Constructor)
+                {
+                    break;
+                }
+
+                if (candidate.DeclaringSyntaxReferences.Any(syntaxReference
+                    => syntaxReference.GetSyntax(cancellationToken)?.Parent?.Contains(invocationExpression) == true))
+                {
+                    candidates = candidates.Remove(candidate);
+                    break;
+                }
+
+            }
+
+            return candidates;
         }
 
         private static ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
