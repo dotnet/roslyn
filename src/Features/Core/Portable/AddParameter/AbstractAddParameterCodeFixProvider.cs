@@ -126,19 +126,19 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
                 if (typeNode == null)
                 {
-                    return null;
+                    return new RegisterFixData<TArgumentSyntax>();
                 }
 
                 // If we can't figure out the type being created, or the type isn't in source,
                 // then there's nothing we can do.
                 if (!(semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() is INamedTypeSymbol type))
                 {
-                    return null;
+                    return new RegisterFixData<TArgumentSyntax>();
                 }
 
                 if (!type.IsNonImplicitAndFromSource())
                 {
-                    return null;
+                    return new RegisterFixData<TArgumentSyntax>();
                 }
 
                 var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
