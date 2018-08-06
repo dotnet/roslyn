@@ -93,7 +93,6 @@
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.17</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>15.8.414-preview</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>15.8.27812-alpha</MicrosoftVisualStudioGraphModelVersion>
-    <MicrosoftVisualStudioImagingVersion>15.7.27703</MicrosoftVisualStudioImagingVersion>
     <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>14.3.26930</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageVersion>15.8.414-preview</MicrosoftVisualStudioLanguageVersion>
@@ -114,8 +113,8 @@
     <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.15.103</MicrosoftVisualStudioSetupConfigurationInteropVersion>
     <MicrosoftVisualStudioSettings140Version>14.3.25407</MicrosoftVisualStudioSettings140Version>
     <MicrosoftVisualStudioShell140Version>14.3.25407</MicrosoftVisualStudioShell140Version>
-    <MicrosoftVisualStudioShell150Version>15.7.27703</MicrosoftVisualStudioShell150Version>
-    <MicrosoftVisualStudioShellFrameworkVersion>15.7.27703</MicrosoftVisualStudioShellFrameworkVersion>
+    <MicrosoftVisualStudioShell150Version>15.8.27828</MicrosoftVisualStudioShell150Version>
+    <MicrosoftVisualStudioShellFrameworkVersion>15.8.27828</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>15.7.27703</MicrosoftVisualStudioShellDesignVersion>
     <MicrosoftVisualStudioShellImmutable100Version>15.0.25415</MicrosoftVisualStudioShellImmutable100Version>
     <MicrosoftVisualStudioShellImmutable110Version>15.0.25415</MicrosoftVisualStudioShellImmutable110Version>
@@ -136,7 +135,6 @@
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
     <MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
     <MicrosoftVisualStudioThreadingVersion>15.8.99-rc</MicrosoftVisualStudioThreadingVersion>
-    <MicrosoftVisualStudioUtilitiesVersion> 15.7.27703</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioValidationVersion>15.3.23</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioVsInteractiveWindowVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
