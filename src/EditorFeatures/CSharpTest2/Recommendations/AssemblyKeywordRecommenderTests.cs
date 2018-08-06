@@ -119,10 +119,21 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestOutOuterAttributeInNamespace()
+        public async Task TestBeforeAttributeNamespace()
         {
             await VerifyKeywordAsync(
 @"[$$
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestBeforeAssemblyAttribute()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+[assembly: Whatever]
 namespace Goo {}");
         }
 

@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
@@ -670,6 +669,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        public static bool IsBeforeNamespace(this SyntaxToken token)
+        {
+            // cases:
+            // | namespace Goo
+            // | [N] namespace Goo
+            return token.GetNextToken().Kind() == SyntaxKind.NamespaceKeyword;
         }
     }
 }
