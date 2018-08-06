@@ -225,7 +225,56 @@ public class C
     }
 }
 ", parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): should not warn 
+            c.VerifyDiagnostics(
+                // (7,18): warning CS8626: No best nullability for operands of conditional expression 'uint' and 'int'.
+                //         uint x = true ? a : 1;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "true ? a : 1").WithArguments("uint", "int").WithLocation(7, 18),
+                // (8,18): warning CS8626: No best nullability for operands of conditional expression 'int' and 'uint'.
+                //         uint y = true ? 1 : a;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "true ? 1 : a").WithArguments("int", "uint").WithLocation(8, 18)
+                );
+        }
 
+        [Fact, WorkItem(26746, "https://github.com/dotnet/roslyn/issues/26746")]
+        public void TernaryWithImplicitUsedDefinedConversion()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+public class C
+{
+    public void M()
+    {
+        C c = new C();
+        C x = true ? c : 1;
+        C y = true ? 1 : c;
+    }
+    public static implicit operator C?(int i) => throw null;
+}
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): should be warning
+            c.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(26746, "https://github.com/dotnet/roslyn/issues/26746")]
+        public void TernaryWithImplicitUsedDefinedConversion2()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+public class C
+{
+    public void M()
+    {
+        C c = null!;
+        int x = true ? c : 1;
+        int y = true ? 1 : c;
+
+        C? c2 = null;
+        int x2 = true ? c2 : 1;
+        int y2 = true ? 1 : c2;
+    }
+    public static implicit operator int(C i) => throw null;
+}
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): should be warning
             c.VerifyDiagnostics();
         }
 
