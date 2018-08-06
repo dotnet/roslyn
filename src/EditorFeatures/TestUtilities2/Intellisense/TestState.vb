@@ -393,6 +393,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             'End If
 
             If displayText IsNot Nothing Then
+                Assert.NotNull(items.SelectedItem)
                 Assert.Equal(displayText, items.SelectedItem.DisplayText)
             End If
 

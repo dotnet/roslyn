@@ -229,18 +229,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
-            // TODO: TypeChar of 0 means Invoke or InvokeAndCommitIfUnique. An API update will make this better. https://github.com/dotnet/roslyn/issues/27426
-            if (typeChar != 0 && !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, RoslynTrigger.CreateInsertionTrigger(typeChar)))
+            if (!ShouldTriggerCompletion(typeChar, triggerLocation, sourceText, service))
             {
                 applicableSpan = default;
                 return false;
             }
 
-            // TODO: Check CompletionOptions.TriggerOnTyping  https://github.com/dotnet/roslyn/issues/27427
-            // TODO: Check CompletionOptions.TriggerOnDeletion
-
             applicableSpan = new SnapshotSpan(triggerLocation.Snapshot, service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan());
             return true;
+        }
+
+        // TODO: TypeChar of 0 means Invoke or InvokeAndCommitIfUnique. An API update will make this better. https://github.com/dotnet/roslyn/issues/27426
+        private static bool ShouldTriggerCompletion(char typeChar, SnapshotPoint triggerLocation, SourceText sourceText, CompletionServiceWithProviders service)
+        {
+            // TODO: Check CompletionOptions.TriggerOnTyping  https://github.com/dotnet/roslyn/issues/27427
+            if (typeChar == 0)
+            {
+                return false;
+            }
+
+            // Both Backspace and Delete.
+            if (typeChar == '\b')
+            {
+                return triggerLocation.Position >= 0 &&
+                    triggerLocation.Position < triggerLocation.Snapshot.Length &&
+                    service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, RoslynTrigger.CreateDeletionTrigger(triggerLocation.GetChar()));
+            }
+
+            return service.ShouldTriggerCompletion(
+                sourceText,
+                triggerLocation.Position,
+                RoslynTrigger.CreateInsertionTrigger(typeChar));
         }
     }
 }
