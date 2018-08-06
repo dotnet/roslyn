@@ -144,6 +144,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static void ReportMissingNonNullTypesContextForAnnotation(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        {
+            foreach (var parameter in parameters)
+            {
+                if (parameter.Type.ContainsNullableReferenceTypes())
+                {
+                    parameter.ReportMissingNonNullTypesContextForAnnotation(diagnostics, parameter.GetNonNullSyntaxNode().Location);
+                }
+            }
+        }
+
         internal static void ReportAnnotatedUnconstrainedTypeParameters(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
             foreach (var parameter in parameters)

@@ -1054,10 +1054,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (ReturnType.ContainsNullableReferenceTypes())
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                ReportMissingNonNullTypesContextForAnnotation(diagnostics, location);
             }
 
             ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(Parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.ReportMissingNonNullTypesContextForAnnotation(Parameters, diagnostics);
         }
 
         /// <summary>
