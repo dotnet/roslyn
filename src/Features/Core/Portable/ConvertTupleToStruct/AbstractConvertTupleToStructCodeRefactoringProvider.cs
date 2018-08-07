@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         
             var equalsMethod = await equalsAndGetHashCodeService.GenerateEqualsMethodAsync(
                 document, namedTypeWithoutMembers, ImmutableArray<ISymbol>.CastUp(fields), 
-                localNameOpt: ICodeDefinitionFactoryExtensions.OtherName, cancellationToken).ConfigureAwait(false);
+                localNameOpt: SyntaxGeneratorExtensions.OtherName, cancellationToken).ConfigureAwait(false);
             var getHashCodeMethod = await equalsAndGetHashCodeService.GenerateGetHashCodeMethodAsync(
                 document, namedTypeWithoutMembers,
                 ImmutableArray<ISymbol>.CastUp(fields), cancellationToken).ConfigureAwait(false);
