@@ -163,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Investigate remaining IsReferenceType usage for replacement by !IsValueType if necessary.
+
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return true;
@@ -316,6 +318,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Consider setting treatUnconstrainedTypeParameterAsNullable during initial binding, and removing this method.
+        /// <summary>
+        /// Adjust the given type, treating top-level unconstrained type parameters as nullable if in the appropriate context. This overrides the current state
+        /// of type parameter.
+        /// </summary>
+        private static TypeSymbolWithAnnotations UnconstrainedTypeParameterAsNullable(TypeSymbolWithAnnotations? initialType)
+        {
+            if (initialType is null || initialType.Value.IsNull)
+            {
+                return default;
+            }
+
+            TypeSymbolWithAnnotations initialTypeNonNull = initialType.Value;
+
+            return initialTypeNonNull.TypeSymbol.IsUnconstrainedTypeParameter() &&
+                   initialTypeNonNull.NonNullTypesContext.NonNullTypes == true &&
+                   initialTypeNonNull.IsNullable != true ?
+                       initialTypeNonNull.AsNullableReferenceType() :
+                       initialTypeNonNull;
         }
 
         protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
@@ -757,15 +780,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < n; i++)
             {
                 var parameter = methodParameters[i];
-                var parameterType = signatureParameters[i].Type;
-                _variableTypes[parameter] = parameterType;
+                var parameterType = UnconstrainedTypeParameterAsNullable(signatureParameters[i].Type);
                 EnterParameter(parameter, parameterType);
             }
         }
 
         private void EnterParameter(ParameterSymbol parameter, TypeSymbolWithAnnotations parameterType)
         {
+            _variableTypes[parameter] = parameterType;
             int slot = GetOrCreateSlot(parameter);
+
             Debug.Assert(!IsConditionalState);
             if (slot > 0 && parameter.RefKind != RefKind.Out)
             {
@@ -895,20 +919,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool returnTypeIsNonNullable = IsNonNullable(returnType);
-            bool returnTypeIsUnconstrainedTypeParameter = IsUnconstrainedTypeParameter(returnType.TypeSymbol);
-            bool reportedNullable = false;
-            if (returnTypeIsNonNullable || returnTypeIsUnconstrainedTypeParameter)
+            if (returnTypeIsNonNullable &&
+                !ReportNullAsNonNullableReferenceIfNecessary(node.ExpressionOpt) &&
+                IsNullable(resultType))
             {
-                reportedNullable = ReportNullAsNonNullableReferenceIfNecessary(node.ExpressionOpt);
-            }
-
-            if (!reportedNullable)
-            {
-                if (IsNullable(resultType) && (returnTypeIsNonNullable || returnTypeIsUnconstrainedTypeParameter) ||
-                    IsUnconstrainedTypeParameter(resultType.TypeSymbol) && returnTypeIsNonNullable)
-                {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
-                }
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
             }
 
             return null;
@@ -918,7 +933,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var method = (MethodSymbol)_member;
             var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnType;
-            Debug.Assert((object)returnType.TypeSymbol != LambdaSymbol.ReturnTypeIsBeingInferred);
+            returnType = UnconstrainedTypeParameterAsNullable(returnType);
+            Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
             return method.IsGenericTaskReturningAsync(compilation) ?
                 ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single() :
                 returnType;
@@ -975,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (initializer, conversion) = RemoveConversion(initializer, includeExplicitConversions: false);
 
             TypeSymbolWithAnnotations valueType = VisitRvalueWithResult(initializer);
-            TypeSymbolWithAnnotations type = local.Type;
+            TypeSymbolWithAnnotations type = UnconstrainedTypeParameterAsNullable(local.Type);
 
             if (node.DeclaredType.InferredType)
             {
@@ -1066,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)type != null)
             {
                 bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
-                if (type.IsReferenceType || isTrackableStructType)
+                if (!type.IsValueType || isTrackableStructType)
                 {
                     receiver = GetOrCreateObjectCreationPlaceholder(node);
                     slot = GetOrCreateSlot(receiver);
@@ -1347,7 +1363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!IsConditionalState);
             // No need to check expression type since System.Array is a reference type.
-            Debug.Assert(node.Expression.Type.IsReferenceType);
+            Debug.Assert(!node.Expression.Type.IsValueType);
             CheckPossibleNullReceiver(node.Expression, checkType: false);
 
             var type = _resultType.TypeSymbol as ArrayTypeSymbol;
@@ -1382,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return methodOpt.ReturnType;
                 }
             }
-            else if (!operatorKind.IsDynamic() && resultType.IsReferenceType == true)
+            else if (!operatorKind.IsDynamic() && !resultType.IsValueType)
             {
                 switch (operatorKind.Operator() | operatorKind.OperandTypes())
                 {
@@ -1700,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiverState = this.State.Clone();
 
-            if (receiver.Type?.IsReferenceType == true)
+            if (receiver.Type != null && !receiver.Type.IsValueType)
             {
                 if (receiverType.IsNullable == false)
                 {
@@ -2187,7 +2203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var argument = arguments[i];
-                if (argument.Type?.IsReferenceType != true)
+                if (argument.Type == null || argument.Type.IsValueType)
                 {
                     continue;
                 }
@@ -2672,7 +2688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool? isNullable = !this.State[slot];
                 if (isNullable != type.IsNullable)
                 {
-                    return TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable);
+                    return TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable, treatUnconstrainedTypeParameterAsNullable: true);
                 }
             }
             return type;
@@ -2766,7 +2782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(operand);
             TypeSymbolWithAnnotations operandType = _resultType;
-            TypeSymbolWithAnnotations explicitType = node.ConversionGroupOpt?.ExplicitType ?? default;
+            TypeSymbolWithAnnotations explicitType = UnconstrainedTypeParameterAsNullable(node.ConversionGroupOpt?.ExplicitType);
             bool fromExplicitCast = !explicitType.IsNull;
             TypeSymbolWithAnnotations resultType = ApplyConversion(node, operand, conversion, explicitType.TypeSymbol ?? node.Type, operandType, checkConversion: !fromExplicitCast, fromExplicitCast: fromExplicitCast, out bool _);
 
@@ -3043,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (!operandType.IsNull && IsUnconstrainedTypeParameter(operandType.TypeSymbol))
                     {
-                        isNullableIfReferenceType = true;
+                        isNullableIfReferenceType = operandType.IsNullable;
                     }
                     else
                     {
@@ -3066,6 +3082,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (operandType.IsNull && operandOpt.IsLiteralNullOrDefault())
                     {
                         isNullableIfReferenceType = true;
+                    }
+                    else if (operandOpt?.Kind == BoundKind.DefaultExpression && operandType.TypeSymbol.IsUnconstrainedTypeParameter() && targetType.IsUnconstrainedTypeParameter())
+                    {
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, node.Syntax);
+                        isNullableIfReferenceType = operandType.IsNullable;
                     }
                     else
                     {
@@ -3090,11 +3111,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    Debug.Assert(targetType.IsReferenceType != true);
+                    Debug.Assert(targetType.IsValueType);
                     break;
             }
 
-            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType);
+            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType, treatUnconstrainedTypeParameterAsNullable: true);
         }
 
         private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundNode node, TypeSymbol targetType, TypeSymbolWithAnnotations operandType)
@@ -3470,7 +3491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return _variableTypes.TryGetValue(parameter, out TypeSymbolWithAnnotations type) ?
                 type :
-                parameter.Type;
+                UnconstrainedTypeParameterAsNullable(parameter.Type);
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
@@ -3760,7 +3781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             var result = base.VisitAwaitExpression(node);
-            if (!node.Type.IsReferenceType || node.HasErrors || (object)node.GetResult == null)
+            if (node.Type.IsValueType || node.HasErrors || (object)node.GetResult == null)
             {
                 SetResult(node);
             }
@@ -3796,7 +3817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
             var result = base.VisitDefaultExpression(node);
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: true);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: true, treatUnconstrainedTypeParameterAsNullable: true);
             return result;
         }
 
@@ -3836,7 +3857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 bool? isNullable = null;
-                if (node.Type.IsReferenceType)
+                if (!node.Type.IsValueType)
                 {
                     switch (node.Conversion.Kind)
                     {
@@ -4099,7 +4120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type.IsDynamic());
 
             // PROTOTYPE(NullableReferenceTypes): Update applicable members based on inferred argument types.
-            bool? isNullable = (node.Type?.IsReferenceType == true) ?
+            bool? isNullable = node.Type != null && !node.Type.IsValueType ?
                 InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
                 null;
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
@@ -4115,8 +4136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 TypeSymbol receiverType = receiverOpt.Type ?? _resultType.TypeSymbol;
                 if ((object)receiverType != null &&
-                    (!checkType || receiverType.IsReferenceType || receiverType.IsUnconstrainedTypeParameter()) &&
-                    (_resultType.IsNullable == true || receiverType.IsUnconstrainedTypeParameter()))
+                    (!checkType || !receiverType.IsValueType) &&
+                    _resultType.IsNullable == true)
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
                 }
