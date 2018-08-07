@@ -91,8 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var fieldType = field.Type;
-                if (!(fieldType.IsReferenceType && fieldType.IsNullable == false) &&
-                    !fieldType.TypeSymbol.IsUnconstrainedTypeParameter())
+                if (fieldType.IsValueType || fieldType.IsNullable != false)
                 {
                     continue;
                 }
