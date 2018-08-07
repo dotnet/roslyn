@@ -14,18 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_Nullable : CSharpTestBase
     {
-        private const string NonNullTypesAttributesDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-        private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
-
         // An empty project should not require System.Attribute.
         [Fact]
         public void EmptyProject_MissingAttribute()
