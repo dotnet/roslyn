@@ -815,4 +815,10 @@ Do you want to proceed?</value>
   <data name="Do_not_show_this_message_again" xml:space="preserve">
     <value>Do not show this message again</value>
   </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
 </root>

@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             {
                 if (!IsAfterDot(data.Snapshot, session.ApplicableToSpan))
                 {
+                    session.Dismiss();
                     return Task.FromResult(new EditorCompletion.FilteredCompletionModel(ImmutableArray<EditorCompletion.CompletionItemWithHighlight>.Empty, 0));
                 }
             }
@@ -113,9 +114,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 }
             }
 
+            var snapshotForDocument = data.InitialSortedList.FirstOrDefault(i => i.Properties.ContainsProperty(CompletionItemSource.TriggerBuffer))?.Properties.GetProperty<ITextBuffer>(CompletionItemSource.TriggerBuffer).CurrentSnapshot ?? data.Snapshot;
+
             if (initialListOfItemsToBeIncluded.Count == 0)
             {
-                return Task.FromResult(HandleAllItemsFilteredOut(data.InitialTrigger.Reason, data.SelectedFilters, selectedFilters, mustSetSelection));
+                var document = snapshotForDocument.GetOpenDocumentInCurrentContextWithChanges();
+                var completionService = document.GetLanguageService<CompletionService>();
+                var completionRules = completionService.GetRules();
+                return Task.FromResult(HandleAllItemsFilteredOut(data.InitialTrigger.Reason, data.SelectedFilters, selectedFilters, completionRules, mustSetSelection));
             }
 
             // If this was deletion, then we control the entire behavior of deletion
@@ -127,8 +133,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var caretPoint = session.TextView.GetCaretPoint(data.Snapshot.TextBuffer);
             var caretPosition = caretPoint.HasValue ? caretPoint.Value.Position : (int?)null;
-
-            var snapshotForDocument = data.InitialSortedList.FirstOrDefault(i => i.Properties.ContainsProperty(CompletionItemSource.TriggerBuffer))?.Properties.GetProperty<ITextBuffer>(CompletionItemSource.TriggerBuffer).CurrentSnapshot ?? data.Snapshot;
 
             return Task.FromResult(HandleNormalFiltering(
                 data.InitialSortedList,
@@ -311,8 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return new EditorCompletion.FilteredCompletionModel(highlightedList, 0, updatedFilters, isHardSelection ? EditorCompletion.UpdateSelectionHint.Selected : EditorCompletion.UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
             }
 
-            // TODO: Better conversion between Roslyn/Editor completion items
-            var selectedItemIndex = itemsInList.IndexOf(i => i.CompletionItem.DisplayText == bestItem.DisplayText);
+            var selectedItemIndex = itemsInList.IndexOf(i => Equals(GetOrCreateRoslynItem(i.CompletionItem), bestItem));
 
             EditorCompletion.CompletionItem uniqueItem = null;
             if (bestItem != null && matchingItems.Length == 1 && filterText.Length > 0)
@@ -518,15 +521,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             (EditorCompletion.InitialTriggerReason triggerReason,
             ImmutableArray<EditorCompletion.CompletionFilterWithState> filters,
             ImmutableArray<EditorCompletion.CompletionFilter> activeFilters,
+            CompletionRules completionRules,
             bool mustSetSelection)
         {
-            // TODO: DismissIfEmpty? https://github.com/dotnet/roslyn/issues/27431
-            // If the user was just typing, and the list went to empty *and* this is a 
-            // language that wants to dismiss on empty, then just return a null model
-            // to stop the completion session.
-
             if (triggerReason == EditorCompletion.InitialTriggerReason.Insertion)
             {
+                // If the user was just typing, and the list went to empty *and* this is a 
+                // language that wants to dismiss on empty, then just return a null model
+                // to stop the completion session.
+                if (completionRules.DismissIfEmpty)
+                {
+                    return null;
+                }
+
                 // TODO: Stop completion when that API is available
                 return new EditorCompletion.FilteredCompletionModel(ImmutableArray<EditorCompletion.CompletionItemWithHighlight>.Empty, 0, filters, mustSetSelection ? EditorCompletion.UpdateSelectionHint.SoftSelected : EditorCompletion.UpdateSelectionHint.NoChange, centerSelection: true, uniqueItem: default);
             }

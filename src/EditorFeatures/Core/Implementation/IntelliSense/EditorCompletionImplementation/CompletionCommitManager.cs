@@ -49,13 +49,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var needsCustomCommit = ((CompletionServiceWithProviders)completionService).GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
             if (needsCustomCommit)
             {
-                CustomCommit(view, buffer, roslynItem, applicableSpan, typeChar, token);
-                return new EditorCompletion.CommitResult(isHandled: true, EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
+                var commitBehavior =  CustomCommit(view, buffer, roslynItem, applicableSpan, typeChar, token);
+                return new EditorCompletion.CommitResult(isHandled: true, commitBehavior);
+            }
+
+            if (!IsCommitCharacter(typeChar, roslynItem.Rules.CommitCharacterRules))
+            {
+                return new EditorCompletion.CommitResult(isHandled: true, EditorCompletion.CommitBehavior.CancelCommit);
             }
 
             if (document.Project.Language == LanguageNames.VisualBasic && typeChar == '\n')
             {
-                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
+                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers);
             }
 
             if (item.InsertText.EndsWith(":") && typeChar == ':')
@@ -64,6 +69,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.None);
+        }
+
+        /// <summary>
+        /// This method needs to support custom procesing of commit characters to be on par with the old completion implementation.
+        /// TODO we should consider removign this method and arrange better processing of commit characters.
+        /// </summary>
+        private bool IsCommitCharacter(char typeChar, ImmutableArray<CharacterSetModificationRule> rules)
+        {
+            // Tab, Enter and Null (call invoke commit) are always a commit character
+            if (typeChar == '\t' || typeChar == '\n' || typeChar == '\0') 
+            {
+                return true;
+            }
+
+            foreach (var rule in rules)
+            {
+                switch (rule.Kind)
+                {
+                    case CharacterSetModificationKind.Add:
+                        if (rule.Characters.Contains(typeChar))
+                        {
+                            return true;
+                        }
+
+                        break;
+
+                    case CharacterSetModificationKind.Remove:
+                        if (rule.Characters.Contains(typeChar))
+                        {
+                            return false;
+                        }
+
+                        break;
+
+                    case CharacterSetModificationKind.Replace:
+                        return rule.Characters.Contains(typeChar);
+                    }
+                }
+
+            return CommitChars.Contains(typeChar);
         }
 
         private EditorCompletion.CommitBehavior CustomCommit(
@@ -78,7 +123,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var service = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
 
-            // TODO: Better error handling https://github.com/dotnet/roslyn/issues/27412
+            bool includesCommitCharacter;
+            if (!buffer.CheckEditAccess())
+            {
+                // We are on the wrong thread.
+                return EditorCompletion.CommitBehavior.None;
+            }
+
+            if (buffer.EditInProgress)
+            {
+                return EditorCompletion.CommitBehavior.None;
+            }
 
             using (var edit = buffer.CreateEdit())
             {
@@ -100,9 +155,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 {
                     view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(buffer.CurrentSnapshot, change.NewPosition.Value));
                 }
+
+                includesCommitCharacter = change.IncludesCommitCharacter;
             }
 
-            return EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
+            return includesCommitCharacter ? EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers : EditorCompletion.CommitBehavior.None;
         }
     }
 }

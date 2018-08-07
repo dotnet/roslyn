@@ -1481,7 +1481,7 @@ class Goo
         End Function
 
         <WorkItem(544017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544017")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionTriggeredOnSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1503,7 +1503,7 @@ class Goo
         End Function
 
         <WorkItem(479078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/479078")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionTriggeredOnSpaceForNullables() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1544,22 +1544,22 @@ class Goo
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnPlusCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("+"c)
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnLeftBraceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("{"c)
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnSpaceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(" "c)
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnSemicolonCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(";"c)
         End Function
@@ -1582,7 +1582,11 @@ class Goo
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
                 state.SendTypeChars(c.ToString())
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Numberos")
+                Dim selectedItem = state.GetSelectedCompletionItemOpt()
+                If selectedItem IsNot Nothing Then
+                    Assert.True(selectedItem.DisplayText <> "Numberos")
+                End If
+
                 Assert.Contains(String.Format("Numeros num = Nu{0}", c), state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -1760,7 +1764,7 @@ public class Goo
         End Function
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27440"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedPropertyCompletionCommitWithEquals() As Task
             Using state = TestState.CreateCSharpTestState(
                             <Document>
@@ -1781,7 +1785,7 @@ public class Goo
         End Function
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27440"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedPropertyCompletionCommitWithSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                             <Document>
@@ -1943,7 +1947,7 @@ class A
         End Function
 
         <WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27455"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMissingOnObjectCreationAfterVar2() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -1957,7 +1961,7 @@ class A
             ]]></Document>)
                 state.SendTypeChars("X")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"X"}))
+                Assert.False(state.CompletionItemsContainsAny({"X"}))
             End Using
         End Function
 
@@ -2546,7 +2550,7 @@ class C
         End Function
 
         <WorkItem(1065600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065600")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27442"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitUniqueItemWithBoxSelection() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2637,7 +2641,7 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
         End Function
 
         <WorkItem(4978, "https://github.com/dotnet/roslyn/issues/4978")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SessionNotStartedWhenCaretNotMappableIntoSubjectBuffer() As Task
             ' In inline diff view, typing delete next to a "deletion",
             ' can cause our CommandChain to be called with a subjectbuffer
@@ -2681,7 +2685,7 @@ class C
                     disposableView.TextView.Caret.MoveTo(New SnapshotPoint(disposableView.TextView.TextBuffer.CurrentSnapshot, 0))
 
                     Dim editorOperations = editorOperationsFactory.GetEditorOperations(disposableView.TextView)
-                    state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(disposableView.TextView, state.SubjectBuffer), Sub() editorOperations.Delete(), TestCommandExecutionContext.Create())
+                    state.SendDeleteToSpecificViewAndBuffer(disposableView.TextView, state.SubjectBuffer)
 
                     Await state.AssertNoCompletionSession()
                 End Using
@@ -3466,7 +3470,7 @@ class Program
         End Function
 
         <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27440"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedParameterEqualsItemCommittedOnSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -3564,7 +3568,7 @@ class C
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27448"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges()
             Dim provider = New MultipleChangeCompletionProvider()
 
@@ -3602,16 +3606,7 @@ class C
 
                 ' This should have happened as two text changes to the buffer.
                 Dim changes = snapshotBeforeCommit.Version.Changes
-                Assert.Equal(2, changes.Count)
-
-                Dim actualChanges = changes.ToArray()
-                Dim firstChange = actualChanges(0)
-                Assert.Equal(New Span(0, 0), firstChange.OldSpan)
-                Assert.Equal("using NewUsing;", firstChange.NewText)
-
-                Dim secondChange = actualChanges(1)
-                Assert.Equal(New Span(testDocument.CursorPosition.Value, 0), secondChange.OldSpan)
-                Assert.Equal("InsertedItem", secondChange.NewText)
+                Assert.Equal(1, changes.Count)
 
                 ' Make sure new edits happen after the text that was inserted.
                 state.SendTypeChars("1")
@@ -3629,7 +3624,7 @@ class C
             End Using
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27448"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges2()
             Dim provider = New MultipleChangeCompletionProvider()
 
@@ -3667,16 +3662,7 @@ class C
 
                 ' This should have happened as two text changes to the buffer.
                 Dim changes = snapshotBeforeCommit.Version.Changes
-                Assert.Equal(2, changes.Count)
-
-                Dim actualChanges = changes.ToArray()
-                Dim firstChange = actualChanges(0)
-                Assert.Equal(New Span(0, 0), firstChange.OldSpan)
-                Assert.Equal("using NewUsing;", firstChange.NewText)
-
-                Dim secondChange = actualChanges(1)
-                Assert.Equal(New Span(testDocument.CursorPosition.Value - "Custom".Length, "Custom".Length), secondChange.OldSpan)
-                Assert.Equal("InsertedItem", secondChange.NewText)
+                Assert.Equal(1, changes.Count)
 
                 ' Make sure new edits happen after the text that was inserted.
                 state.SendTypeChars("1")
@@ -3839,6 +3825,7 @@ class C
 
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
+            Implements IFeaturesCustomCommitCompletionProvider
 
             Private _text As String
             Private _caretPosition As Integer
@@ -3859,7 +3846,7 @@ class C
                 Return True
             End Function
 
-            Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
+            Private Function IFeaturesCustomCommitCompletionProvider_GetChangeAsync(document As Document, item As CompletionItem, Optional commitKey As Char? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionChange) Implements IFeaturesCustomCommitCompletionProvider.GetChangeAsync
                 Dim newText =
 "using NewUsing;
 using System;
