@@ -1583,17 +1583,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ConversionKind.ImplicitReference:
                     case ConversionKind.ExplicitReference:
-                        break;
-                    case ConversionKind.Boxing:
-                        if (!IsUnconstrainedTypeParameter(conversion.Operand?.Type))
-                        {
-                            goto default;
-                        }
+                        possiblyConversion = conversion.Operand;
                         break;
                     default:
                         return possiblyConversion;
                 }
-                possiblyConversion = conversion.Operand;
             }
 
             return possiblyConversion;
@@ -2770,9 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (fromExplicitCast && explicitType.IsNullable == false)
             {
                 TypeSymbol targetType = explicitType.TypeSymbol;
-                if (!targetType.IsValueType &&
-                    (object)resultType != null &&
-                    resultType.IsNullable == true)
+                if (!targetType.IsValueType && resultType.IsNullable == true)
                 {
                     ReportWWarning(node.Syntax);
                 }
@@ -4107,9 +4099,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 Debug.Assert(receiverOpt.Type is null || _resultType.TypeSymbol is null || AreCloseEnough(receiverOpt.Type, _resultType.TypeSymbol));
 #endif
-                if ((object)_resultType != null &&
+                var resultType = _resultType.TypeSymbol;
+                if ((object)resultType != null &&
                     _resultType.IsNullable == true &&
-                    !_resultType.IsValueType)
+                    !resultType.IsValueType)
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
                 }
