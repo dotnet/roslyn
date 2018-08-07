@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 // the tree, a source symbol is defined in, doesn't exist in universe
                 // how this can happen?
-                Contract.Requires(false, "How?");
+                Debug.Assert(false, "How?");
                 return null;
             }
 
