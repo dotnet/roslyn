@@ -52,6 +52,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        // PROTOTYPE(NullableReferenceTypes): we should remove NullableOptOutForAssemblyAttribute
         protected const string NonNullTypesAttributesDefinition = @"
 namespace System.Runtime.CompilerServices
 {

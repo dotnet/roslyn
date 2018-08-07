@@ -31817,12 +31817,29 @@ namespace System
             _value = _f.GetHashCode();
         }
     }
+    public class String { }
+    public struct Boolean { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute(string message) => throw null;
+    }
 }";
-            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (13,17): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         object? _f;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "_f").WithLocation(13, 17)
+                // (16,22): warning CS8602: Possible dereference of a null reference.
+                //             _value = _f.GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_f").WithLocation(16, 22)
                 );
         }
 
