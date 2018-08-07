@@ -529,11 +529,17 @@ class C<T> where T : struct
 
             // [NonNullTypes(false)]
             comp = CreateCompilation(new[] { source, NonNullTypesFalse, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,8): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     T? F3;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(10, 8));
 
             // [NonNullTypes] missing
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,8): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     T? F3;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(10, 8));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Test `where T : unmanaged`.
