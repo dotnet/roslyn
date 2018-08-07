@@ -841,5 +841,33 @@ public class C : System.Runtime.CompilerServices.ITuple
             var expectedOutput = @"True";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void ArgumentNamesInITuplePositional()
+        {
+            var source =
+@"public class Program
+{
+    public static void Main()
+    {
+        object t = null;
+        var r = t is (X: 3, Y: 4, Z: 5);
+    }
+}
+";
+            // Use a version of the platform APIs that lack ITuple
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,23): error CS8422: Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.
+                //         var r = t is (X: 3, Y: 4, Z: 5);
+                Diagnostic(ErrorCode.ERR_ArgumentNameInITuplePattern, "X:").WithLocation(6, 23),
+                // (6,29): error CS8422: Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.
+                //         var r = t is (X: 3, Y: 4, Z: 5);
+                Diagnostic(ErrorCode.ERR_ArgumentNameInITuplePattern, "Y:").WithLocation(6, 29),
+                // (6,35): error CS8422: Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.
+                //         var r = t is (X: 3, Y: 4, Z: 5);
+                Diagnostic(ErrorCode.ERR_ArgumentNameInITuplePattern, "Z:").WithLocation(6, 35)
+                );
+        }
     }
 }
