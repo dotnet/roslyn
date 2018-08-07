@@ -140,6 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var selectedItem = modelOpt.SelectedItemOpt;
+
+                /// set viewSpan = null if the selectedItem is not from the completion list
+                /// All items from the completion list have .Document set to current document 
+                /// in <see cref="CompletionService.GetCompletionsAndSetItemDocumentAsync"/>
+                // https://github.com/dotnet/roslyn/issues/23891
                 var viewSpan = selectedItem == null || selectedItem.Document == null
                     ? (ViewTextSpan?)null
                     : modelOpt.GetViewBufferSpan(selectedItem.Span);
