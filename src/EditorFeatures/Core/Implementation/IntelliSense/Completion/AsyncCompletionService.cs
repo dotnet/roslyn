@@ -33,11 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
 
-        // The completion API is disabled by default.
-        private bool _completionAPIEnabled = false;
-
-        // We will set this flag to true when we will set the value above from a feature flag.
-        private bool _completionAPIEnabledSet = false;
+        // The completion API is not checked by default - null
+        // false - disabled 
+        // true - enabled
+        private bool? _completionAPIEnabled = null;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -49,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
         {
+            AssertIsForeground();
+
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
             _inlineRenameService = inlineRenameService;
@@ -57,31 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _autoBraceCompletionCharSet = new Dictionary<IContentType, ImmutableHashSet<char>>();
-
-            AssertIsForeground();
         }
 
         public bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller)
         {
             AssertIsForeground();
 
-            if (!_completionAPIEnabledSet)
-            {
-                TrySetCompletionAPIFlag(subjectBuffer);
-            }
 
-            // check whether the feature flag (async completion API) is not set and this feature is on.
-            if (_completionAPIEnabled || !subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
-            {
-                controller = null;
-                return false;
-            }
-
-            // If we don't have a presenter, then there's no point in us even being involved.  Just
-            // defer to the next handler in the chain.
-
-            // Also, if there's an inline rename session then we do not want completion.
-            if (_completionPresenter == null || _inlineRenameService.ActiveSession != null)
+            if (!IsModernCompletionEnabled(textView, subjectBuffer))
             {
                 controller = null;
                 return false;
@@ -97,14 +81,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return true;
         }
 
-        private void TrySetCompletionAPIFlag(ITextBuffer subjectBuffer)
+        private bool IsModernCompletionEnabled(ITextView textView, ITextBuffer subjectBuffer)
         {
-            if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+            if (!_completionAPIEnabled.HasValue)
             {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                _completionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI);
-                _completionAPIEnabledSet = true;
+                if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+                {
+                    var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                    _completionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI);
+                }
             }
+
+            // check whether the feature flag (async completion API) is not set and this feature is on.
+            if (_completionAPIEnabled == true || !subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
+            {
+                return false;
+            }
+
+            // If we don't have a presenter, then there's no point in us even being involved.  Just
+            // defer to the next handler in the chain.
+
+            // Also, if there's an inline rename session then we do not want completion.
+            if (_completionPresenter == null || _inlineRenameService.ActiveSession != null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private ImmutableHashSet<char> GetAllAutoBraceCompletionChars(IContentType bufferContentType)

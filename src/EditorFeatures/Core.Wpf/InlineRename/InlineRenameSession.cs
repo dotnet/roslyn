@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Disable completion when an inline rename session starts
             _featureService = featureServiceFactory.GlobalFeatureService;
-            _completionDisabledToken = _featureService.Disable(PredefinedEditorFeatureNames.InteractivePopup, this);
+            _completionDisabledToken = _featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
 
             _renameService = renameService;
             _waitIndicator = waitIndicator;

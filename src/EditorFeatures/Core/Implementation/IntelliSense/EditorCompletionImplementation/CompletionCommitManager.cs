@@ -19,17 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 {
     internal sealed class CompletionCommitManager : IAsyncCompletionCommitManager
     {
-        private ImmutableArray<char> CommitChars => ImmutableArray.Create(
+        private static readonly char[] s_commitChars = new char[] {
             ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
             ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
-            '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
+            '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\'};
 
-        IEnumerable<char> IAsyncCompletionCommitManager.PotentialCommitCharacters => CommitChars;
+        IEnumerable<char> IAsyncCompletionCommitManager.PotentialCommitCharacters => s_commitChars;
 
         public bool ShouldCommitCompletion(char typedChar, SnapshotPoint location, CancellationToken token)
-        {
-            return CommitChars.Contains(typedChar);
-        }
+            => s_commitChars.Contains(typedChar);
 
         public EditorCompletion.CommitResult TryCommit(ITextView view, ITextBuffer buffer, EditorCompletion.CompletionItem item, ITrackingSpan applicableSpan, char typeChar, CancellationToken token)
         {
@@ -85,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 var provider = service.GetProvider(roslynItem);
 
                 // TODO: Do we actually want the document from the initial snapshot?
+                // https://github.com/dotnet/roslyn/issues/27417
                 edit.Delete(applicableSpan.GetSpan(buffer.CurrentSnapshot));
 
                 var change = ((IFeaturesCustomCommitCompletionProvider)provider).GetChangeAsync(

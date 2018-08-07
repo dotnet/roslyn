@@ -304,6 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var updatedFilters = GetUpdatedFilters(sortedList, itemsInList, filters, filterText);
 
             // TODO: Can we get away with less complexity here by only doing hard select on preselection and not on regular filter text matching / etc...
+            // https://github.com/dotnet/roslyn/issues/29108
             var isHardSelection = IsHardSelection(bestItem, snapshot, caretPosition, filterReason, filterText, triggerReason);
 
             if (bestItem == null)
@@ -312,6 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             // TODO: Better conversion between Roslyn/Editor completion items
+            // https://github.com/dotnet/roslyn/issues/29106
             var selectedItemIndex = itemsInList.IndexOf(i => i.CompletionItem.DisplayText == bestItem.DisplayText);
 
             EditorCompletion.CompletionItem uniqueItem = null;
@@ -365,6 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             // TODO: Are there more cases?
+            // https://github.com/dotnet/roslyn/issues/29108
 
             // There was either filter text, or this was a preselect match. In either case, we can
             // hard select this.
@@ -644,11 +647,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return bestItem.Rules.MatchPriority;
         }
 
-        private struct FilterResult
+        private readonly struct FilterResult
         {
-            public EditorCompletion.CompletionItem CompletionItem;
-            public string FilterText;
-            public bool MatchedFilterText;
+            public readonly EditorCompletion.CompletionItem CompletionItem;
+            public readonly string FilterText;
+            public readonly bool MatchedFilterText;
 
             public FilterResult(EditorCompletion.CompletionItem item, string filterText, bool matchedFilterText)
             {

@@ -16,7 +16,6 @@
     <ProjectReference Include="..\..\..\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <NoWarn>$(NoWarn);0618</NoWarn>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
