@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var completionService = document.GetLanguageService<CompletionService>();
 
-            // TODO: Confirm adherence to VS threading requirements https://github.com/dotnet/roslyn/issues/27418
             var completionList = await completionService.GetCompletionsAsync(
                 document,
                 triggerLocation,
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             CompletionService completionService,
             Dictionary<string, EditorCompletion.CompletionFilter> filterCache)
         {
-            var imageId = roslynItem.Tags.GetGlyph().GetImageId();
+            var imageId = Shared.Extensions.GlyphExtensions.GetGlyph(roslynItem.Tags).GetImageId();
             var filters = GetFilters(roslynItem, filterCache);
 
             if (!roslynItem.Properties.TryGetValue(InsertionText, out var insertionText))
@@ -153,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     }
                     else
                     {
-                        var imageId = filter.Tags.GetGlyph().GetImageId();
+                        var imageId = Shared.Extensions.GlyphExtensions.GetGlyph(filter.Tags).GetImageId();
                         var itemFilter = new EditorCompletion.CompletionFilter(
                             filter.DisplayText,
                             filter.AccessKey.ToString(),

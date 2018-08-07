@@ -6,6 +6,9 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.ExperimentationService;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                         .ToArray();
         }
 
-        public static IEnumerable<Assembly> GetEditorAssemblies()
+        public static ComposableCatalog GetEditorAssemblyCatalog()
         {
             var assemblies = new[]
             {
@@ -84,7 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly,
             };
 
-            return assemblies;
+            return ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver())
+                .WithPart(typeof(TestExperimentationServiceInternal));
         }
     }
 }

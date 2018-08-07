@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
         }
 
-        public static Glyph GetGlyph(this ImmutableArray<string> tags)
+        public static Glyph GetGlyph(ImmutableArray<string> tags)
         {
             foreach (var tag in tags)
             {

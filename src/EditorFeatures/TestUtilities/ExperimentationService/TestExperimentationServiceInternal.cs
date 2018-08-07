@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Text.Utilities;
 namespace Microsoft.CodeAnalysis.Test.Utilities.ExperimentationService
 {
     [Export(typeof(IExperimentationServiceInternal)), Shared]
+    [PartNotDiscoverable]
     internal class TestExperimentationServiceInternal : IExperimentationServiceInternal
     {
         [ImportingConstructor]

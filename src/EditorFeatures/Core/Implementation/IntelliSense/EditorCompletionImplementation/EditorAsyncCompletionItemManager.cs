@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             _completionHelper = new CompletionHelper(isCaseSensitive: true);
         }
 
+        // This method is supposed to be called just once per session. That is why we register events there.
+        // If the idea is changed, we need an Initialize method to be added to the interface.
         public Task<ImmutableArray<EditorCompletion.CompletionItem>> SortCompletionListAsync(
             IAsyncCompletionSession session,
             EditorCompletion.AsyncCompletionSessionInitialDataSnapshot data,
@@ -53,7 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         private void SessionDismissed(object sender, EventArgs e)
         {
-            // TODO: Unhook the session's events when the session is available in the args
+            if (sender is IAsyncCompletionSession session)
+            {
+                session.ItemCommitted -= ItemCommitted;
+                session.Dismissed -= SessionDismissed;
+            }
         }
 
         public Task<EditorCompletion.FilteredCompletionModel> UpdateCompletionListAsync(
