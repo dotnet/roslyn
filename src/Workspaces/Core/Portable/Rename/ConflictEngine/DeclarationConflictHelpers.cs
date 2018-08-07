@@ -122,13 +122,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return resultBuilder.ToImmutableAndFree();
         }
 
-        private static ImmutableArray<ImmutableArray<ITypeSymbol>> GetAllSignatures(IPropertySymbol method, bool trimOptionalParameters)
+        private static ImmutableArray<ImmutableArray<ITypeSymbol>> GetAllSignatures(IPropertySymbol property, bool trimOptionalParameters)
         {
             var resultBuilder = ArrayBuilder<ImmutableArray<ITypeSymbol>>.GetInstance();
 
             var signatureBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
 
-            foreach (var parameter in method.Parameters)
+            foreach (var parameter in property.Parameters)
             {
                 // In VB, a method effectively creates multiple signatures which are produced by
                 // chopping off each of the optional parameters on the end, last to first, per 4.1.1 of
