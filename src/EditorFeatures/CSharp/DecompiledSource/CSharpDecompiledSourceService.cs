@@ -16,7 +16,7 @@ using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.CSharp.Transforms;
 using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.TypeSystem;
-
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             document = PerformDecompilation(document, fullName, compilation, assemblyLocation);
 
+            var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            document = await ConvertDocCommentsToRegularComments(document, docCommentFormattingService, cancellationToken);
+
             return document;
         }
 
@@ -96,6 +99,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             // Try to decompile; if an exception is thrown the caller will handle it
             var text = decompiler.DecompileTypeAsString(fullTypeName);
             return document.WithText(SourceText.From(header + text));
+        }
+
+        private async Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
+        {
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var newSyntaxRoot = DocCommentConverter.ConvertToRegularComments(syntaxRoot, docCommentFormattingService, cancellationToken);
+
+            return document.WithSyntaxRoot(newSyntaxRoot);
         }
 
         private string GetFullReflectionName(INamedTypeSymbol containingType)
