@@ -856,6 +856,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void ReportMissingNonNullTypesContextForAnnotation(DiagnosticBag diagnostics, Location location)
+        {
+            if (this.NonNullTypes != true)
+            {
+                diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, location);
+            }
+        }
+
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
         {
             var info = this.GetUseSiteDiagnostic();

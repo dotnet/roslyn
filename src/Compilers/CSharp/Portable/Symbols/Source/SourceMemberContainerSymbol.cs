@@ -1432,6 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 interfaces.Any(t => t.ContainsNullableReferenceTypes()))
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                ReportMissingNonNullTypesContextForAnnotation(diagnostics, location);
             }
         }
 
