@@ -46,14 +46,8 @@ namespace Analyzer.Utilities.Extensions
                 // in candidateMethod to compare against selectedOverload's parameter is set to 0
                 int j = 0;
 
-                if (!trailingOnly && candidateMethod.Parameters.First().Type.Equals(expectedParameterType))
+                if (!trailingOnly && candidateMethod.Parameters.First().Type.Equals(expectedParameterType) && candidateMethod.Parameters[0].RefKind == RefKind.None)
                 {
-                    // Bail out if RefKind of first parameter is not None.
-                    if (candidateMethod.Parameters[0].RefKind != RefKind.None)
-                    {
-                        return false;
-                    }
-
                     // If expectedParameterType is the first parameter then the parameters to compare in candidateMethod against selectedOverload
                     // is offset by 1
                     j = 1;
