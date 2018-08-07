@@ -855,7 +855,6 @@ public class C : System.Runtime.CompilerServices.ITuple
     }
 }
 ";
-            // Use a version of the platform APIs that lack ITuple
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,23): error CS8422: Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.
