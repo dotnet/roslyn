@@ -320,27 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Consider setting treatUnconstrainedTypeParameterAsNullable during initial binding, and removing this method.
-        /// <summary>
-        /// Adjust the given type, treating top-level unconstrained type parameters as nullable if in the appropriate context. This overrides the current state
-        /// of type parameter.
-        /// </summary>
-        private static TypeSymbolWithAnnotations UnconstrainedTypeParameterAsNullable(TypeSymbolWithAnnotations? initialType)
-        {
-            if (initialType is null || initialType.Value.IsNull)
-            {
-                return default;
-            }
-
-            TypeSymbolWithAnnotations initialTypeNonNull = initialType.Value;
-
-            return initialTypeNonNull.TypeSymbol.IsUnconstrainedTypeParameter() &&
-                   initialTypeNonNull.NonNullTypesContext.NonNullTypes == true &&
-                   initialTypeNonNull.IsNullable != true ?
-                       initialTypeNonNull.AsNullableReferenceType() :
-                       initialTypeNonNull;
-        }
-
         protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
         {
             receiver = null;
@@ -780,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < n; i++)
             {
                 var parameter = methodParameters[i];
-                var parameterType = UnconstrainedTypeParameterAsNullable(signatureParameters[i].Type);
+                var parameterType = signatureParameters[i].Type;
                 EnterParameter(parameter, parameterType);
             }
         }
@@ -800,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        #region Visitors
+#region Visitors
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
@@ -933,7 +912,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var method = (MethodSymbol)_member;
             var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnType;
-            returnType = UnconstrainedTypeParameterAsNullable(returnType);
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
             return method.IsGenericTaskReturningAsync(compilation) ?
                 ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single() :
@@ -991,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (initializer, conversion) = RemoveConversion(initializer, includeExplicitConversions: false);
 
             TypeSymbolWithAnnotations valueType = VisitRvalueWithResult(initializer);
-            TypeSymbolWithAnnotations type = UnconstrainedTypeParameterAsNullable(local.Type);
+            TypeSymbolWithAnnotations type = local.Type;
 
             if (node.DeclaredType.InferredType)
             {
@@ -1362,9 +1340,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
 
             Debug.Assert(!IsConditionalState);
-            // No need to check expression type since System.Array is a reference type.
             Debug.Assert(!node.Expression.Type.IsValueType);
-            CheckPossibleNullReceiver(node.Expression, checkType: false);
+            CheckPossibleNullReceiver(node.Expression);
 
             var type = _resultType.TypeSymbol as ArrayTypeSymbol;
 
@@ -1593,8 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 } while (true);
 
                 bool shouldUpdateType(TypeSymbol operandType) =>
-                    !(operandType is null) &&
-                    (operandType.IsReferenceType || operandType.IsUnconstrainedTypeParameter());
+                    !(operandType is null) && !operandType.IsValueType;
             }
         }
 
@@ -1607,12 +1583,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ConversionKind.ImplicitReference:
                     case ConversionKind.ExplicitReference:
-                        possiblyConversion = conversion.Operand;
                         break;
-
+                    case ConversionKind.Boxing:
+                        if (!IsUnconstrainedTypeParameter(conversion.Operand?.Type))
+                        {
+                            goto default;
+                        }
+                        break;
                     default:
                         return possiblyConversion;
                 }
+                possiblyConversion = conversion.Operand;
             }
 
             return possiblyConversion;
@@ -1716,7 +1697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiverState = this.State.Clone();
 
-            if (receiver.Type != null && !receiver.Type.IsValueType)
+            if (receiver.Type?.IsValueType == false)
             {
                 if (receiverType.IsNullable == false)
                 {
@@ -1857,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
         {
             var result = base.VisitConditionalReceiver(node);
-            SetResult(node);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false, treatUnconstrainedTypeParameterAsNullable: false);
             return result;
         }
 
@@ -2688,7 +2669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool? isNullable = !this.State[slot];
                 if (isNullable != type.IsNullable)
                 {
-                    return TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable, treatUnconstrainedTypeParameterAsNullable: true);
+                    return TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable, treatUnconstrainedTypeParameterAsNullable: isNullable == true);
                 }
             }
             return type;
@@ -2782,24 +2763,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(operand);
             TypeSymbolWithAnnotations operandType = _resultType;
-            TypeSymbolWithAnnotations explicitType = UnconstrainedTypeParameterAsNullable(node.ConversionGroupOpt?.ExplicitType);
+            TypeSymbolWithAnnotations explicitType = node.ConversionGroupOpt?.ExplicitType ?? default;
             bool fromExplicitCast = !explicitType.IsNull;
             TypeSymbolWithAnnotations resultType = ApplyConversion(node, operand, conversion, explicitType.TypeSymbol ?? node.Type, operandType, checkConversion: !fromExplicitCast, fromExplicitCast: fromExplicitCast, out bool _);
 
             if (fromExplicitCast && explicitType.IsNullable == false)
             {
                 TypeSymbol targetType = explicitType.TypeSymbol;
-                bool reportNullable = false;
-                if (targetType.IsReferenceType && IsUnconstrainedTypeParameter(resultType.TypeSymbol))
-                {
-                    reportNullable = true;
-                }
-                else if ((targetType.IsReferenceType || IsUnconstrainedTypeParameter(targetType)) &&
+                if (!targetType.IsValueType &&
+                    (object)resultType != null &&
                     resultType.IsNullable == true)
-                {
-                    reportNullable = true;
-                }
-                if (reportNullable)
                 {
                     ReportWWarning(node.Syntax);
                 }
@@ -3115,7 +3088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType, treatUnconstrainedTypeParameterAsNullable: true);
+            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType, treatUnconstrainedTypeParameterAsNullable: isNullableIfReferenceType == true);
         }
 
         private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundNode node, TypeSymbol targetType, TypeSymbolWithAnnotations operandType)
@@ -3491,7 +3464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return _variableTypes.TryGetValue(parameter, out TypeSymbolWithAnnotations type) ?
                 type :
-                UnconstrainedTypeParameterAsNullable(parameter.Type);
+                parameter.Type;
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
@@ -4086,7 +4059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitNewT(BoundNewT node)
         {
             var result = base.VisitNewT(node);
-            SetResult(node);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false, treatUnconstrainedTypeParameterAsNullable: false);
             return result;
         }
 
@@ -4127,17 +4100,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkType = true)
+        private void CheckPossibleNullReceiver(BoundExpression receiverOpt)
         {
             if (receiverOpt != null && this.State.Reachable)
             {
 #if DEBUG
                 Debug.Assert(receiverOpt.Type is null || _resultType.TypeSymbol is null || AreCloseEnough(receiverOpt.Type, _resultType.TypeSymbol));
 #endif
-                TypeSymbol receiverType = receiverOpt.Type ?? _resultType.TypeSymbol;
-                if ((object)receiverType != null &&
-                    (!checkType || !receiverType.IsValueType) &&
-                    _resultType.IsNullable == true)
+                if ((object)_resultType != null &&
+                    _resultType.IsNullable == true &&
+                    !_resultType.IsValueType)
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
                 }
@@ -4286,7 +4258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        #endregion Visitors
+#endregion Visitors
 
         protected override string Dump(LocalState state)
         {
