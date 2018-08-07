@@ -191,7 +191,7 @@ class C
         [Fact, WorkItem(26812, "https://github.com/dotnet/roslyn/issues/26812")]
         public void DoubleAssignment()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(new[] { @"
 using static System.Console;
 class C
 {
@@ -206,7 +206,7 @@ class C
         WriteLine(y.Length);
     }
 }
-", parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics();
         }
