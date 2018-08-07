@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -382,24 +383,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // write out the error baseline as method calls
             int i;
             assertText.AppendLine("Expected:");
-            var expectedText = new StringBuilder();
-            for (i = 0; i < expected.Length; i++)
+            var expectedText = ArrayBuilder<string>.GetInstance();
+            foreach (var d in expected)
             {
-                var d = expected[i];
-                AppendDiagnosticDescription(expectedText, d, indentDepth);
-
-                if (i < expected.Length - 1)
-                {
-                    expectedText.Append(",");
-                }
-
-                expectedText.AppendLine();
+                expectedText.Add(GetDiagnosticDescription(d, indentDepth));
             }
-            assertText.Append(expectedText);
+            GetCommaSeparatedLines(assertText, expectedText);
 
             // write out the actual results as method calls (copy/paste this to update baseline)
             assertText.AppendLine("Actual:");
-            var actualText = new StringBuilder();
+            var actualText = ArrayBuilder<string>.GetInstance();
             var e = actual.GetEnumerator();
             for (i = 0; e.MoveNext(); i++)
             {
@@ -413,7 +406,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (i > 0)
                 {
                     assertText.AppendLine(",");
-                    actualText.AppendLine(",");
                 }
 
                 if (includeDiagnosticMessagesAsComments)
@@ -437,30 +429,45 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     diffDescription = expected[idx];
                 }
-                AppendDiagnosticDescription(assertText, description, indentDepth);
-                AppendDiagnosticDescription(actualText, diffDescription, indentDepth);
+                assertText.Append(GetDiagnosticDescription(description, indentDepth));
+                actualText.Add(GetDiagnosticDescription(diffDescription, indentDepth));
             }
             if (i > 0)
             {
                 assertText.AppendLine();
-                actualText.AppendLine();
             }
 
             assertText.AppendLine("Diff:");
-            assertText.Append(DiffUtil.DiffReport(expectedText.ToString(), actualText.ToString()));
+            assertText.Append(DiffUtil.DiffReport(expectedText, actualText, separator: Environment.NewLine));
+
+            actualText.Free();
+            expectedText.Free();
 
             return assertText.ToString();
         }
 
-        private static void AppendDiagnosticDescription(StringBuilder sb, DiagnosticDescription d, int indentDepth)
+        private static string GetDiagnosticDescription(DiagnosticDescription d, int indentDepth)
         {
-            Indent(sb, indentDepth);
-            sb.Append(d.ToString());
+            return new string(' ', 4 * indentDepth) + d.ToString();
         }
 
         private static void Indent(StringBuilder sb, int count)
         {
             sb.Append(' ', 4 * count);
+        }
+
+        private static void GetCommaSeparatedLines(StringBuilder sb, ArrayBuilder<string> lines)
+        {
+            int n = lines.Count;
+            for (int i = 0; i < n; i++)
+            {
+                sb.Append(lines[i]);
+                if (i < n - 1)
+                {
+                    sb.Append(',');
+                }
+                sb.AppendLine();
+            }
         }
     }
 }
