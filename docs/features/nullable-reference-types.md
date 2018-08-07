@@ -211,7 +211,7 @@ var y = F1(maybeNullString); // List<string?> or List<string~> ?
 var z = F2(obliviousString); // List<string~>! or List<string!>! ?
 var w = F3(obliviousString); // List<string~>! or List<string?>! ?
 ```
-A warning is reported for accessing variables of type T, where T is an unconstrained type parameter.
+A warning is reported for dereferencing variables of type T, where T is an unconstrained type parameter.
 ```C#
 static void F<T>(T t) => t.ToString(); // Warn possible null dereference
 ```
