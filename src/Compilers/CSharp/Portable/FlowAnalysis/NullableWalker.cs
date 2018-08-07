@@ -551,6 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isByRefTarget = IsByRefTarget(targetSlot);
                 if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
 
+                // PROTOTYPE(NullableReferenceTypes): Remove isByRefTarget check?
                 this.State[targetSlot] = isByRefTarget ?
                     // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                     // regardless of what value is being assigned.
@@ -651,6 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                     bool? value = !fieldOrPropertyType.IsNullable;
+                    // PROTOTYPE(NullableReferenceTypes): Remove isByRefTarget check?
                     if (isByRefTarget)
                     {
                         // This is a member access through a by ref entity and it isn't considered declared as not-nullable. 

@@ -34097,7 +34097,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "I<T?> t").WithLocation(4, 19),
                 // (10,11): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 't' in 'string C.F<string>(I<string?> t)'.
                 //         F(x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string>", "I<string?>", "t", "string C.F<string>(I<string?> t)").WithLocation(10, 11));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string>", "I<string?>", "t", "string C.F<string>(I<string?> t)").WithLocation(10, 11),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         F(y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y)").WithLocation(11, 9));
         }
 
         [Fact]
@@ -36615,6 +36618,7 @@ class C
 ";
 
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should not report warnings after `if (u == null) throw null;`.
             comp.VerifyDiagnostics(
                 // (29,9): error CS0411: The type arguments for method 'C.CopyOutInherit<T1, T2>(T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         CopyOutInherit(u, out var x7);
@@ -36627,7 +36631,16 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(13, 9),
                 // (16,9): warning CS8602: Possible dereference of a null reference.
                 //         x3.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(16, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(16, 9),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         x4.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(21, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         x5.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x5").WithLocation(24, 9),
+                // (27,9): warning CS8602: Possible dereference of a null reference.
+                //         x6.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x6").WithLocation(27, 9));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Add tests for unconstrained T in foreach and using

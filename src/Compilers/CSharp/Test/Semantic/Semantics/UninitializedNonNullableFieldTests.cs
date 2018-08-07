@@ -529,11 +529,19 @@ class C<T> where T : struct
 
             // [NonNullTypes(false)]
             comp = CreateCompilation(new[] { source, NonNullTypesFalse, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                //     A() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5));
 
             // [NonNullTypes] missing
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            // PROTOTYPE(NullableReferenceTypes): Should not report any warning when
+            // no `[NonNullTypes]` is equivalent to `[NonNullTypes(Warnings=false)]`.
+            comp.VerifyDiagnostics(
+                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                //     A() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Test `where T : unmanaged`.
