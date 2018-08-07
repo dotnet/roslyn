@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
                 var methodCandidates = type.InstanceConstructors;
 
-                return new RegisterFixData<TArgumentSyntax>(arguments, methodCandidates, false);
+                return new RegisterFixData<TArgumentSyntax>(arguments, methodCandidates, isConstructorInitializer: false);
             }
 
             return null;

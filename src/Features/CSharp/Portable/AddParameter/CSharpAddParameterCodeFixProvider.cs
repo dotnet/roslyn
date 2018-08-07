@@ -64,10 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
                     {
                         var methodCandidates = type.InstanceConstructors;
                         var arguments = constructorInitializer.ArgumentList.Arguments;
-                        return new RegisterFixData<ArgumentSyntax>(
-                            arguments,
-                            methodCandidates,
-                            true);
+                        return new RegisterFixData<ArgumentSyntax>(arguments, methodCandidates, isConstructorInitializer: true);
                     }
                 }
             }
