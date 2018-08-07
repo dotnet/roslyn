@@ -76,6 +76,44 @@ class MyAnalyzer : DiagnosticAnalyzer
             VerifyCSharp(source, expected);
         }
 
+        [Fact, WorkItem(1689, "https://github.com/dotnet/roslyn-analyzers/issues/1689")]
+        public void CSharp_VerifyDiagnostic_PropertyInitializer()
+        {
+            var source = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly DiagnosticDescriptor descriptor1 = new DiagnosticDescriptor(""MyDiagnosticId1"", null, null, null, DiagnosticSeverity.Warning, false);
+    private static readonly DiagnosticDescriptor descriptor2 = new DiagnosticDescriptor(""MyDiagnosticId2"", null, null, null, DiagnosticSeverity.Warning, false);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(descriptor1);
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+
+    private static void AnalyzeSymbol(SymbolAnalysisContext context)
+    {
+        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
+
+        var diag = Diagnostic.Create(descriptor2, Location.None);
+        context.ReportDiagnostic(diag);
+    }
+}";
+            DiagnosticResult[] expected = new[]
+            {
+                GetCSharpExpectedDiagnostic(21, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2")
+            };
+
+            VerifyCSharp(source, expected);
+        }
+
         [Fact]
         public void VisualBasic_VerifyDiagnostic()
         {
