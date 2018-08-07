@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
@@ -18,9 +17,12 @@ using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 {
@@ -66,10 +68,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 }
             }
 
+            // Decompile
             document = PerformDecompilation(document, fullName, compilation, assemblyLocation);
 
+            // Convert XML doc comments to regular comments, just like MAS
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             document = await ConvertDocCommentsToRegularComments(document, docCommentFormattingService, cancellationToken);
+
+            // Parse document
+            var node = await document.GetSyntaxRootAsync();
+
+            // Apply formatting rules
+            document = await Formatter.FormatAsync(
+                  document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                  options: null, rules: GetFormattingRules(document), cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return document;
         }
@@ -108,6 +120,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var newSyntaxRoot = DocCommentConverter.ConvertToRegularComments(syntaxRoot, docCommentFormattingService, cancellationToken);
 
             return document.WithSyntaxRoot(newSyntaxRoot);
+        }
+
+        private IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        {
+            return Formatter.GetDefaultFormattingRules(document);
         }
 
         private string GetFullReflectionName(INamedTypeSymbol containingType)
