@@ -48,20 +48,31 @@ namespace Analyzer.Utilities.Extensions
 
                 if (!trailingOnly && candidateMethod.Parameters.First().Type.Equals(expectedParameterType))
                 {
+                    // Bail out if RefKind of first parameter is not None.
+                    if (candidateMethod.Parameters[0].RefKind != RefKind.None)
+                    {
+                        return false;
+                    }
+
                     // If expectedParameterType is the first parameter then the parameters to compare in candidateMethod against selectedOverload
                     // is offset by 1
                     j = 1;
                 }
-                else if (!candidateMethod.Parameters.Last().Type.Equals(expectedParameterType))
+                else
                 {
-                    // expectedParameterType is neither the first parameter nor the last parameter
-                    return false;
+                    var lastParameter = candidateMethod.Parameters.Last();
+                    if (!lastParameter.Type.Equals(expectedParameterType) || lastParameter.RefKind != RefKind.None)
+                    {
+                        // expectedParameterType is neither the first parameter nor the last parameter
+                        return false;
+                    }
                 }
 
                 for (int i = 0; i < selectedOverload.Parameters.Count(); i++, j++)
                 {
                     if (!selectedOverload.Parameters[i].Type.Equals(candidateMethod.Parameters[j].Type) ||
-                        selectedOverload.Parameters[i].IsParams != candidateMethod.Parameters[j].IsParams)
+                        selectedOverload.Parameters[i].IsParams != candidateMethod.Parameters[j].IsParams ||
+                        selectedOverload.Parameters[i].RefKind != candidateMethod.Parameters[j].RefKind)
                     {
                         return false;
                     }
