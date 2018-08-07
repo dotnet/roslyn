@@ -30,11 +30,10 @@
       <FileVersion>42.42.42.42424</FileVersion>
       
       <!--
-        Respect version explicitly set by the project.
         The default .NET Core SDK implementation sets AssemblyVersion from NuGet package version, 
         which we want to override in dev builds.
       -->
-      <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">42.42.42.42</AssemblyVersion>
+      <AssemblyVersion>42.42.42.42</AssemblyVersion>
     </PropertyGroup>
   </Target>
 
