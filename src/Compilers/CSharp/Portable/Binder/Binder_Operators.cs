@@ -2052,7 +2052,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.
                     Error(diagnostics, ErrorCode.ERR_NotNullableOperatorNotReferenceType, node);
                 }
-                type = type.SetUnknownNullabilityForReferenceTypes();
             }
             return new BoundSuppressNullableWarningExpression(node, expr, type);
         }

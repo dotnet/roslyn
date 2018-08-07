@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OutDeconstructVarPendingInference,
         NonConstructorMethodBody,
         ConstructorMethodBody,
-        ValuePlaceholder,
+        ExpressionWithNullability,
     }
 
 
@@ -6410,33 +6410,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundValuePlaceholder : BoundExpression
+    internal sealed partial class BoundExpressionWithNullability : BoundExpression
     {
-        public BoundValuePlaceholder(SyntaxNode syntax, bool? isNullable, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ValuePlaceholder, syntax, type, hasErrors)
+        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, bool? isNullable, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ExpressionWithNullability, syntax, type, hasErrors || expression.HasErrors())
         {
+
+            Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Expression = expression;
             this.IsNullable = isNullable;
         }
 
-        public BoundValuePlaceholder(SyntaxNode syntax, bool? isNullable, TypeSymbol type)
-            : base(BoundKind.ValuePlaceholder, syntax, type)
-        {
-            this.IsNullable = isNullable;
-        }
 
+        public BoundExpression Expression { get; }
 
         public bool? IsNullable { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
-            return visitor.VisitValuePlaceholder(this);
+            return visitor.VisitExpressionWithNullability(this);
         }
 
-        public BoundValuePlaceholder Update(bool? isNullable, TypeSymbol type)
+        public BoundExpressionWithNullability Update(BoundExpression expression, bool? isNullable, TypeSymbol type)
         {
-            if (isNullable != this.IsNullable || type != this.Type)
+            if (expression != this.Expression || isNullable != this.IsNullable || type != this.Type)
             {
-                var result = new BoundValuePlaceholder(this.Syntax, isNullable, type, this.HasErrors);
+                var result = new BoundExpressionWithNullability(this.Syntax, expression, isNullable, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6762,8 +6762,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitNonConstructorMethodBody(node as BoundNonConstructorMethodBody, arg);
                 case BoundKind.ConstructorMethodBody: 
                     return VisitConstructorMethodBody(node as BoundConstructorMethodBody, arg);
-                case BoundKind.ValuePlaceholder: 
-                    return VisitValuePlaceholder(node as BoundValuePlaceholder, arg);
+                case BoundKind.ExpressionWithNullability: 
+                    return VisitExpressionWithNullability(node as BoundExpressionWithNullability, arg);
             }
 
             return default(R);
@@ -7392,7 +7392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
-        public virtual R VisitValuePlaceholder(BoundValuePlaceholder node, A arg)
+        public virtual R VisitExpressionWithNullability(BoundExpressionWithNullability node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -8020,7 +8020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
-        public virtual BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        public virtual BoundNode VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
             return this.DefaultVisit(node);
         }
@@ -8835,8 +8835,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.ExpressionBody);
             return null;
         }
-        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        public override BoundNode VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
+            this.Visit(node.Expression);
             return null;
         }
     }
@@ -9766,10 +9767,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock expressionBody = (BoundBlock)this.Visit(node.ExpressionBody);
             return node.Update(node.Locals, initializer, blockBody, expressionBody);
         }
-        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        public override BoundNode VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.IsNullable, type);
+            return node.Update(expression, node.IsNullable, type);
         }
     }
 
@@ -11406,10 +11408,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
-        public override TreeDumperNode VisitValuePlaceholder(BoundValuePlaceholder node, object arg)
+        public override TreeDumperNode VisitExpressionWithNullability(BoundExpressionWithNullability node, object arg)
         {
-            return new TreeDumperNode("valuePlaceholder", null, new TreeDumperNode[]
+            return new TreeDumperNode("expressionWithNullability", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
                 new TreeDumperNode("isNullable", node.IsNullable, null),
                 new TreeDumperNode("type", node.Type, null)
             }
