@@ -243,11 +243,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         private static bool ShouldTriggerCompletion(char typeChar, SnapshotPoint triggerLocation, SourceText sourceText, CompletionServiceWithProviders service)
         {
             // TODO: Check CompletionOptions.TriggerOnTyping  https://github.com/dotnet/roslyn/issues/27427
-            if (typeChar == 0)
-            {
-                return false;
-            }
-
             // Both Backspace and Delete.
             if (typeChar == '\b')
             {
@@ -256,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, RoslynTrigger.CreateDeletionTrigger(triggerLocation.GetChar()));
             }
 
-            return service.ShouldTriggerCompletion(
+            return typeChar == 0 || service.ShouldTriggerCompletion(
                 sourceText,
                 triggerLocation.Position,
                 RoslynTrigger.CreateInsertionTrigger(typeChar));
