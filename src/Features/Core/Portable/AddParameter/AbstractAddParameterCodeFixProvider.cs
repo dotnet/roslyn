@@ -65,9 +65,20 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                 if (fixData != null)
                 {
+                    var candidates = fixData.MethodCandidates;
+                    if (fixData.IsConstructorInitializer)
+                    {
+                        // The invocation is a :this() or :base() call. In  the 'this' case we need to exclude the 
+                        // method with the diagnostic because otherwise we might introduce a call to itself (which is forbidden).
+                        if (semanticModel.GetEnclosingSymbol(node.SpanStart, cancellationToken) is IMethodSymbol methodWithDiagnostic)
+                        {
+                            candidates = candidates.Remove(methodWithDiagnostic);
+                        }
+                    }
+
                     var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
                     var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(
-                        argumentOpt, semanticModel, syntaxFacts, fixData.Arguments, fixData.MethodCandidates);
+                        argumentOpt, semanticModel, syntaxFacts, fixData.Arguments, candidates);
                     RegisterFixForMethodOverloads(context, fixData.Arguments, argumentInsertPositionInMethodCandidates);
                     return;
                 }
@@ -106,9 +117,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
                 var candidates = semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IMethodSymbol>().ToImmutableArray();
-                candidates = RemoveConstructorWithDiagnosticFromCandidates(invocationExpression, candidates, cancellationToken);
                 var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
-                return new RegisterFixData<TArgumentSyntax>(arguments, candidates);
+
+                // In VB a constructor calls other constructor overloads via a Me.New(..) invocation.
+                // If the candidates are MethodKind.Constructor than these are the equivalent the a C# ConstructorInitializer.
+                var isConstructorInitializer = candidates.All(m => m.MethodKind == MethodKind.Constructor);
+                return new RegisterFixData<TArgumentSyntax>(arguments, candidates, isConstructorInitializer);
             }
 
             return null;
@@ -145,39 +159,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
                 var methodCandidates = type.InstanceConstructors;
 
-                return new RegisterFixData<TArgumentSyntax>(arguments, methodCandidates);
+                return new RegisterFixData<TArgumentSyntax>(arguments, methodCandidates, false);
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// In VB a constructor calls other constructor overloads via a Me.New(..) invocation. We need to exclude the constructor with
-        /// the diagnostic from the candidates because that would likely introduces a recursive call to itself, which in turn would be
-        /// compiler error BC30298: Constructor 'Public Sub New(...)' cannot call itself.
-        /// </summary>
-        private static ImmutableArray<IMethodSymbol> RemoveConstructorWithDiagnosticFromCandidates(
-            TInvocationExpressionSyntax invocationExpression,
-            ImmutableArray<IMethodSymbol> candidates,
-            CancellationToken cancellationToken)
-        {
-            foreach (var candidate in candidates)
-            {
-                if (candidate.MethodKind != MethodKind.Constructor)
-                {
-                    break;
-                }
-
-                if (candidate.DeclaringSyntaxReferences.Any(syntaxReference
-                    => syntaxReference.GetSyntax(cancellationToken)?.Parent?.Contains(invocationExpression) == true))
-                {
-                    candidates = candidates.Remove(candidate);
-                    break;
-                }
-
-            }
-
-            return candidates;
         }
 
         private static ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(

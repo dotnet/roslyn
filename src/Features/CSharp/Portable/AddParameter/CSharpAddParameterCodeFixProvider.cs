@@ -63,14 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
                     if (type != null && type.IsFromSource())
                     {
                         var methodCandidates = type.InstanceConstructors;
-                        if (constructorInitializer.IsKind(SyntaxKind.ThisConstructorInitializer))
-                        {
-                            // Exclude the constructor with the diagnostic from the list of candidates
-                            methodCandidates = methodCandidates.Remove(constructorSymbol);
-                        }
-
                         var arguments = constructorInitializer.ArgumentList.Arguments;
-                        return new RegisterFixData<ArgumentSyntax>(arguments, methodCandidates);
+                        return new RegisterFixData<ArgumentSyntax>(
+                            arguments,
+                            methodCandidates,
+                            true);
                     }
                 }
             }
