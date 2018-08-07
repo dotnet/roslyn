@@ -116,7 +116,7 @@ $$");
             await VerifyKeywordAsync(
 @"[$$");
         }
-
+        
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestBeforeAttributeNamespace()
@@ -128,11 +128,31 @@ namespace Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestBeforeAssemblyAttribute()
+        public async Task TestNotBeforeAttributeNamespaceWithNoOpenBrace()
+        {
+            await VerifyAbsenceAsync(
+@"$$
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestBeforeAssemblyAttributeWithOpenBrace()
         {
             await VerifyKeywordAsync(
 @"
 [$$
+[assembly: Whatever]
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestNotBeforeAssemblyAttributeWithoutOpenBrace()
+        {
+            await VerifyAbsenceAsync(
+@"
+$$
 [assembly: Whatever]
 namespace Goo {}");
         }
