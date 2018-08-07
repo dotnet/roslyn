@@ -17,14 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.TargetToken.IsBeforeNamespace()|| context.IsTypeAttributeContext(cancellationToken) )
+            if (context.IsTypeAttributeContextBefore(SyntaxKind.NamespaceKeyword, cancellationToken))
             {
                 var token = context.LeftToken;
                 var type = token.GetAncestor<MemberDeclarationSyntax>();
 
                 return type == null || type.IsParentKind(SyntaxKind.CompilationUnit);
             }
-
             return false;
         }
     }

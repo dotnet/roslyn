@@ -670,13 +670,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             return false;
         }
-
-        public static bool IsBeforeNamespace(this SyntaxToken token)
-        {
-            // cases:
-            // | namespace Goo
-            // | [N] namespace Goo
-            return token.GetNextToken().Kind() == SyntaxKind.NamespaceKeyword;
-        }
     }
 }
