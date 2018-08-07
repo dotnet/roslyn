@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (!ReportNullAsNonNullableReferenceIfNecessary(value))
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
+                    ReportDiagnostic(ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
                 }
                 return true;
             }
@@ -613,10 +613,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportWWarning(SyntaxNode syntax)
         {
-            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, syntax);
+            ReportDiagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, syntax);
         }
 
-        private void ReportStaticNullCheckingDiagnostics(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
+        private void ReportDiagnostic(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
         {
             if (!_disableDiagnostics)
             {
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // diagnostics for locals that are set or checked explicitly within this method.
             if (!expressionResultType.IsNull && expressionResultType.IsNullable == false && isNull == true)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
+                ReportDiagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
             }
 
             if (slot > 0 && isNull != null)
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations resultType = ApplyConversion(expr, expr, conversion, returnType.TypeSymbol, result, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
             if (!canConvertNestedNullability)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, GetTypeAsDiagnosticArgument(result.TypeSymbol), returnType.TypeSymbol);
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, GetTypeAsDiagnosticArgument(result.TypeSymbol), returnType.TypeSymbol);
             }
 
             bool returnTypeIsNonNullable = IsNonNullable(returnType);
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !ReportNullAsNonNullableReferenceIfNecessary(node.ExpressionOpt) &&
                 IsNullable(resultType))
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
+                ReportDiagnostic(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
             }
 
             return null;
@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)sourceType != null && IsNullabilityMismatch(destinationType, sourceType))
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, sourceType, destinationType);
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, sourceType, destinationType);
             }
         }
 
@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportNullReferenceAssignmentIfNecessary(initializer, type, valueType, useLegacyWarnings: true);
                 if (!canConvertNestedNullability)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, initializer.Syntax, GetTypeAsDiagnosticArgument(unconvertedType.TypeSymbol), type.TypeSymbol);
+                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, initializer.Syntax, GetTypeAsDiagnosticArgument(unconvertedType.TypeSymbol), type.TypeSymbol);
                 }
             }
 
@@ -1308,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportNullReferenceAssignmentIfNecessary(element, elementType, resultType, useLegacyWarnings: false);
                         if (!canConvertNestedNullability)
                         {
-                            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, element.Syntax, sourceType, elementType.TypeSymbol);
+                            ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, element.Syntax, sourceType, elementType.TypeSymbol);
                         }
                     }
                 }
@@ -1462,7 +1462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // diagnostics for locals that are set or checked explicitly within this method.
                         if (!operandComparedToNullType.IsNull && operandComparedToNullType.IsNullable == false)
                         {
-                            ReportStaticNullCheckingDiagnostics(op == BinaryOperatorKind.Equal ?
+                            ReportDiagnostic(op == BinaryOperatorKind.Equal ?
                                                                     ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse :
                                                                     ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue,
                                                                 binary.Syntax);
@@ -1617,7 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftState = this.State.Clone();
             if (leftResult.IsNullable == false)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_ExpressionIsProbablyNeverNull, leftOperand.Syntax);
+                ReportDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, leftOperand.Syntax);
             }
 
             bool leftIsConstant = leftOperand.ConstantValue != null;
@@ -1697,7 +1697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (receiverType.IsNullable == false)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_ExpressionIsProbablyNeverNull, receiver.Syntax);
+                    ReportDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, receiver.Syntax);
                 }
 
                 int slot = MakeSlot(SkipReferenceConversions(receiver));
@@ -1783,7 +1783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref useSiteDiagnostics);
                 if (resultType.IsNull)
                 {
-                    ReportStaticNullCheckingDiagnostics(
+                    ReportDiagnostic(
                         ErrorCode.WRN_NoBestNullabilityConditionalExpression,
                         node.Syntax,
                         GetTypeAsDiagnosticArgument(consequenceResult.TypeSymbol),
@@ -2612,7 +2612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool canConvertNestedNullability = conversion.Exists;
             if (!canConvertNestedNullability && reportMismatch)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
             }
             return conversion;
         }
@@ -2818,7 +2818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsNullabilityMismatch(method.ReturnType, invoke.ReturnType, requireIdentity: false))
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, syntax,
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, syntax,
                     new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     delegateType);
             }
@@ -2830,7 +2830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodParameter = method.Parameters[i];
                 if (IsNullabilityMismatch(invokeParameter.Type, methodParameter.Type, requireIdentity: invokeParameter.RefKind != RefKind.None))
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
+                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
                         new FormattedSymbol(methodParameter, SymbolDisplayFormat.ShortFormat),
                         new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat),
                         delegateType);
@@ -2863,7 +2863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsNullabilityMismatch(invokeParameter.Type, unboundLambda.ParameterType(i), requireIdentity: true))
                 {
                     // PROTOTYPE(NullableReferenceTypes): Consider using location of specific lambda parameter.
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
+                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
                         unboundLambda.ParameterName(i),
                         unboundLambda.MessageID.Localize(),
                         delegateType);
@@ -3052,7 +3052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (operandOpt?.Kind == BoundKind.DefaultExpression && operandType.TypeSymbol.IsUnconstrainedTypeParameter() && targetType.IsUnconstrainedTypeParameter())
                     {
-                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, node.Syntax);
+                        ReportDiagnostic(ErrorCode.WRN_NullAsNonNullable, node.Syntax);
                         isNullableIfReferenceType = operandType.IsNullable;
                     }
                     else
@@ -3093,7 +3093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // PROTOTYPE(NullableReferenceTypes): Not necessarily an assignment
                 // (see StaticNullChecking_FlowAnalysis.Conversions_07).
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType);
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType);
             }
             return ApplyConversion(node, operandOpt: null, conversion, targetType, operandType, checkConversion: false, fromExplicitCast: false, out _);
         }
@@ -3214,7 +3214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportNullReferenceAssignmentIfNecessary(right, leftType, rightType, UseLegacyWarnings(left));
                 if (!canConvertNestedNullability)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, right.Syntax, GetTypeAsDiagnosticArgument(rightResult.TypeSymbol), leftType.TypeSymbol);
+                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, right.Syntax, GetTypeAsDiagnosticArgument(rightResult.TypeSymbol), leftType.TypeSymbol);
                 }
                 TrackNullableStateForAssignment(right, leftType, MakeSlot(left), rightType, MakeSlot(right));
                 // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
@@ -3414,7 +3414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!ReportNullAsNonNullableReferenceIfNecessary(argument))
                     {
-                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceArgument, argument.Syntax,
+                        ReportDiagnostic(ErrorCode.WRN_NullReferenceArgument, argument.Syntax,
                             new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                             new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
                     }
@@ -3442,7 +3442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ReportNullabilityMismatchInArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType)
         {
-            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argumentType, parameterType,
+            ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argumentType, parameterType,
                 new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                 new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
         }
@@ -4106,7 +4106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _resultType.IsNullable == true &&
                     !resultType.IsValueType)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+                    ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
                 }
             }
         }
@@ -4126,7 +4126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
+            ReportDiagnostic(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
             return true;
         }
 
