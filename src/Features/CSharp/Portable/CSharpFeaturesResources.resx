@@ -524,6 +524,9 @@
   <data name="if_statement_can_be_simplified" xml:space="preserve">
     <value>'if' statement can be simplified</value>
   </data>
+  <data name="Convert_to_method" xml:space="preserve">
+    <value>Convert to method</value>
+  </data>
   <data name="Add_accessibility_modifiers" xml:space="preserve">
     <value>Add accessibility modifiers</value>
   </data>

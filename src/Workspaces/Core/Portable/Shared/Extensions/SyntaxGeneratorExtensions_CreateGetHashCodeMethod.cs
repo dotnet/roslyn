@@ -5,12 +5,11 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static partial class ICodeDefinitionFactoryExtensions
+    internal static partial class SyntaxGeneratorExtensions
     {
         private const string GetHashCodeName = nameof(object.GetHashCode);
 
