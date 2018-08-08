@@ -181,20 +181,23 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             try
             {
+                var project = conflictResolution.NewSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
+
                 if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
                 {
                     var otherThingsNamedTheSame = renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name)
                                                            .Where(s => !s.Equals(renamedSymbol) &&
                                                                        string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
-                    // excluded Method or Property(only for VB) here, as they may have the same name but different parameters
                     IEnumerable<ISymbol> otherThingsNamedTheSameExcludeMethodAndParameterizedProperty;
-                    if (renamedSymbol.Language == LanguageNames.VisualBasic)
+
+                    // Possibly overloaded symbols are excluded here and handled elsewhere
+                    var semanticFactsService = project.LanguageServices.GetService<ISemanticFactsService>();
+                    if (semanticFactsService.SupportsParameterizedProperties)
                     {
-                        // Only VB allows Parameterized Properties
                         otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
-                            .Where(s=> (s.Kind != SymbolKind.Method && s.Kind != SymbolKind.Property) ||
-                            (renamedSymbol.Kind != SymbolKind.Method && renamedSymbol.Kind != SymbolKind.Property));
+                            .Where(s=> !s.MatchesKind(SymbolKind.Method, SymbolKind.Property) ||
+                                !renamedSymbol.MatchesKind(SymbolKind.Method, SymbolKind.Property));
                     }
                     else
                     {
@@ -234,8 +237,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // Some types of symbols (namespaces, cref stuff, etc) might not have ContainingAssemblies
                 if (renamedSymbol.ContainingAssembly != null)
                 {
-                    var project = conflictResolution.NewSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
-
                     // There also might be language specific rules we need to include
                     var languageRenameService = project.LanguageServices.GetService<IRenameRewriterLanguageService>();
                     var languageConflicts = await languageRenameService.ComputeDeclarationConflictsAsync(

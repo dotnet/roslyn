@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,31 +18,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                             .OfType<IMethodSymbol>()
                                             .Where(m => !m.Equals(renamedMethod) && m.Arity == renamedMethod.Arity);
 
-            var signatureToConflictingMember = new Dictionary<ImmutableArray<ITypeSymbol>, IMethodSymbol>(ConflictingSignatureComparer.Instance);
-
-            foreach (var method in potentiallyConfictingMethods)
-            {
-                foreach (var signature in GetAllSignatures(method, trimOptionalParameters))
-                {
-                    signatureToConflictingMember[signature] = method;
-                }
-            }
-
-            var builder = ArrayBuilder<Location>.GetInstance();
-
-            foreach (var signature in GetAllSignatures(renamedMethod, trimOptionalParameters))
-            {
-                if (signatureToConflictingMember.TryGetValue(signature, out var conflictingSymbol))
-                {
-                    if (!(conflictingSymbol.PartialDefinitionPart != null && conflictingSymbol.PartialDefinitionPart == renamedMethod) &&
-                        !(conflictingSymbol.PartialImplementationPart != null && conflictingSymbol.PartialImplementationPart == renamedMethod))
-                    {
-                        builder.AddRange(conflictingSymbol.Locations);
-                    }
-                }
-            }
-
-            return builder.ToImmutableAndFree();
+            return GetConflictLocations(renamedMethod, potentiallyConfictingMethods,
+                (method) => GetAllSignatures((method as IMethodSymbol).Parameters, trimOptionalParameters));
         }
 
         public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IPropertySymbol renamedProperty, bool trimOptionalParameters)
@@ -51,19 +29,27 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                             .OfType<IPropertySymbol>()
                                             .Where(m => !m.Equals(renamedProperty) && m.Parameters.Count() == renamedProperty.Parameters.Count());
 
-            var signatureToConflictingMember = new Dictionary<ImmutableArray<ITypeSymbol>, IPropertySymbol>(ConflictingSignatureComparer.Instance);
+            return GetConflictLocations(renamedProperty, potentiallyConfictingProperties, 
+                (property)=>GetAllSignatures((property as IPropertySymbol).Parameters, trimOptionalParameters));
+        }
 
-            foreach (var property in potentiallyConfictingProperties)
+        private static ImmutableArray<Location> GetConflictLocations(ISymbol renamedMember, 
+            IEnumerable<ISymbol> potentiallyConfictingMembers,
+            Func<ISymbol, ImmutableArray<ImmutableArray<ITypeSymbol>>> getAllSignatures)
+        {
+            var signatureToConflictingMember = new Dictionary<ImmutableArray<ITypeSymbol>, ISymbol>(ConflictingSignatureComparer.Instance);
+
+            foreach (var member in potentiallyConfictingMembers)
             {
-                foreach (var signature in GetAllSignatures(property, trimOptionalParameters))
+                foreach (var signature in getAllSignatures(member))
                 {
-                    signatureToConflictingMember[signature] = property;
+                    signatureToConflictingMember[signature] = member;
                 }
             }
 
             var builder = ArrayBuilder<Location>.GetInstance();
 
-            foreach (var signature in GetAllSignatures(renamedProperty, trimOptionalParameters))
+            foreach (var signature in getAllSignatures(renamedMember))
             {
                 if (signatureToConflictingMember.TryGetValue(signature, out var conflictingSymbol))
                 {
@@ -94,41 +80,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        private static ImmutableArray<ImmutableArray<ITypeSymbol>> GetAllSignatures(IMethodSymbol method, bool trimOptionalParameters)
+        private static ImmutableArray<ImmutableArray<ITypeSymbol>> GetAllSignatures(ImmutableArray<IParameterSymbol> parameters, bool trimOptionalParameters)
         {
             var resultBuilder = ArrayBuilder<ImmutableArray<ITypeSymbol>>.GetInstance();
 
             var signatureBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
 
-            if (method.MethodKind == MethodKind.Conversion)
-            {
-                signatureBuilder.Add(method.ReturnType);
-            }
-
-            foreach (var parameter in method.Parameters)
-            {
-                // In VB, a method effectively creates multiple signatures which are produced by
-                // chopping off each of the optional parameters on the end, last to first, per 4.1.1 of
-                // the spec.
-                if (trimOptionalParameters && parameter.IsOptional)
-                {
-                    resultBuilder.Add(signatureBuilder.ToImmutable());
-                }
-
-                signatureBuilder.Add(parameter.Type);
-            }
-
-            resultBuilder.Add(signatureBuilder.ToImmutableAndFree());
-            return resultBuilder.ToImmutableAndFree();
-        }
-
-        private static ImmutableArray<ImmutableArray<ITypeSymbol>> GetAllSignatures(IPropertySymbol property, bool trimOptionalParameters)
-        {
-            var resultBuilder = ArrayBuilder<ImmutableArray<ITypeSymbol>>.GetInstance();
-
-            var signatureBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
-
-            foreach (var parameter in property.Parameters)
+            foreach (var parameter in parameters)
             {
                 // In VB, a method effectively creates multiple signatures which are produced by
                 // chopping off each of the optional parameters on the end, last to first, per 4.1.1 of
