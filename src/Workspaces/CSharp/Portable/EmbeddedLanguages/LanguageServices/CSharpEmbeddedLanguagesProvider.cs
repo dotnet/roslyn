@@ -7,12 +7,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
 {
-    [ExportLanguageService(typeof(IEmbeddedLanguageProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpEmbeddedLanguageProvider : AbstractEmbeddedLanguageProvider
+    [ExportLanguageService(typeof(IEmbeddedLanguagesProvider), LanguageNames.CSharp), Shared]
+    internal class CSharpEmbeddedLanguagesProvider : AbstractEmbeddedLanguagesProvider
     {
-        public static IEmbeddedLanguageProvider Instance = new CSharpEmbeddedLanguageProvider();
+        public static IEmbeddedLanguagesProvider Instance = new CSharpEmbeddedLanguagesProvider();
 
-        public CSharpEmbeddedLanguageProvider()
+        public CSharpEmbeddedLanguagesProvider()
             : base((int)SyntaxKind.StringLiteralToken,
                    (int)SyntaxKind.InterpolatedStringTextToken,
                    CSharpSyntaxFactsService.Instance,

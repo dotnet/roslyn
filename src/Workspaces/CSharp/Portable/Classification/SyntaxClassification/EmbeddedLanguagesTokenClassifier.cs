@@ -6,13 +6,13 @@ using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal class EmbeddedLanguageTokenClassifier : AbstractEmbeddedLanguageTokenClassifier
+    internal class EmbeddedLanguagesTokenClassifier : AbstractEmbeddedLanguagesTokenClassifier
     {
         public override ImmutableArray<int> SyntaxTokenKinds { get; } =
             ImmutableArray.Create((int)SyntaxKind.StringLiteralToken, (int)SyntaxKind.InterpolatedStringTextToken);
 
-        public EmbeddedLanguageTokenClassifier() 
-            : base(CSharpEmbeddedLanguageProvider.Instance)
+        public EmbeddedLanguagesTokenClassifier() 
+            : base(CSharpEmbeddedLanguagesProvider.Instance)
         {
         }
     }

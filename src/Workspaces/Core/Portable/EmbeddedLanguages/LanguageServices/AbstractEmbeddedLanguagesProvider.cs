@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// <summary>
     /// Abstract implementation of the C# and VB embedded language providers.
     /// </summary>
-    internal abstract class AbstractEmbeddedLanguageProvider : IEmbeddedLanguageProvider
+    internal abstract class AbstractEmbeddedLanguagesProvider : IEmbeddedLanguagesProvider
     {
         private readonly ImmutableArray<IEmbeddedLanguage> _embeddedLanguages;
          
-        protected AbstractEmbeddedLanguageProvider(
+        protected AbstractEmbeddedLanguagesProvider(
             int stringLiteralTokenKind,
             int interpolatedTextTokenKind,
             ISyntaxFactsService syntaxFacts,

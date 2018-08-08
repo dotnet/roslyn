@@ -6,18 +6,18 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {
-    internal abstract class AbstractEmbeddedLanguageTokenClassifier : AbstractSyntaxClassifier
+    internal abstract class AbstractEmbeddedLanguagesTokenClassifier : AbstractSyntaxClassifier
     {
-        private readonly IEmbeddedLanguageProvider _languageProvider;
+        private readonly IEmbeddedLanguagesProvider _languagesProvider;
 
-        protected AbstractEmbeddedLanguageTokenClassifier(IEmbeddedLanguageProvider languageProvider)
+        protected AbstractEmbeddedLanguagesTokenClassifier(IEmbeddedLanguagesProvider languagesProvider)
         {
-            _languageProvider = languageProvider;
+            _languagesProvider = languagesProvider;
         }
 
         public sealed override void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            foreach (var language in _languageProvider.GetEmbeddedLanguages())
+            foreach (var language in _languagesProvider.GetEmbeddedLanguages())
             {
                 var classifier = language.Classifier;
                 if (classifier != null)

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// Service that returns all the embedded languages supported.  Each embedded language can expose
     /// individual language services through the <see cref="IEmbeddedLanguage"/> interface.
     /// </summary>
-    internal interface IEmbeddedLanguageProvider : ILanguageService
+    internal interface IEmbeddedLanguagesProvider : ILanguageService
     {
         ImmutableArray<IEmbeddedLanguage> GetEmbeddedLanguages();
     }
