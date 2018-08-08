@@ -939,7 +939,7 @@ class Program
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArgList()
         {
             var source = @"
