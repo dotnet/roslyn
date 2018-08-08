@@ -10934,7 +10934,7 @@ public class D
     }
 }
 ";
-            var compilation = CreateCompilationWithIL(source, il, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilationWithIL(new[] { NonNullTypesTrue, source, NonNullTypesAttributesDefinition }, il, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn 1
@@ -34078,29 +34078,41 @@ class C
 @"interface I<T> { }
 class C
 {
-    static T F<T>(I<T?> t)
+    static T F1<T>(I<T?> t)
     {
         throw new System.Exception();
     }
-    static void G(I<string> x, I<string?> y)
+    static void G1(I<string> x1, I<string?> y1)
     {
-        F(x).ToString();
-        F(y).ToString();
+        F1(x1).ToString(); // 1
+        F1(y1).ToString(); // 2
+    }
+    static T F2<T>(I<T?> t) where T : class
+    {
+        throw new System.Exception();
+    }
+    static void G2(I<string> x2, I<string?> y2)
+    {
+        F2(x2).ToString(); // 3
+        F2(y2).ToString(); // 4
     }
 }";
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,19): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     static T F<T>(I<T?> t)
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "I<T?> t").WithLocation(4, 19),
-                // (10,11): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 't' in 'string C.F<string>(I<string?> t)'.
-                //         F(x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string>", "I<string?>", "t", "string C.F<string>(I<string?> t)").WithLocation(10, 11),
+                // (4,20): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     static T F1<T>(I<T?> t)
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "I<T?> t").WithLocation(4, 20),
+                // (10,12): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 't' in 'string C.F1<string>(I<string?> t)'.
+                //         F1(x1).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "t", "string C.F1<string>(I<string?> t)").WithLocation(10, 12),
                 // (11,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y)").WithLocation(11, 9));
+                //         F1(y1).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(y1)").WithLocation(11, 9),
+                // (19,12): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 't' in 'string C.F2<string>(I<string?> t)'.
+                //         F2(x2).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("I<string>", "I<string?>", "t", "string C.F2<string>(I<string?> t)").WithLocation(19, 12));
         }
 
         [Fact]
@@ -34361,29 +34373,29 @@ interface IIn<in T> { }
 interface IOut<out T> { }
 class C
 {
-    static T F<T>(I<T> x, I<T?> y)
+    static T F<T>(I<T> x, I<T?> y) where T : class
     {
         throw new System.Exception();
     }
     static void G1(I<string> x1, I<string?> y1)
     {
-        F(x1, x1).ToString();
+        F(x1, x1).ToString(); // 1
         F(x1, y1).ToString();
-        F(y1, x1).ToString();
-        F(y1, y1).ToString();
+        F(y1, x1).ToString(); // 2 and 3
+        F(y1, y1).ToString(); // 4
     }
-    static T F<T>(IIn<T> x, IIn<T?> y)
+    static T F<T>(IIn<T> x, IIn<T?> y) where T : class
     {
         throw new System.Exception();
     }
     static void G2(IIn<string> x2, IIn<string?> y2)
     {
-        F(x2, x2).ToString();
+        F(x2, x2).ToString(); // 5
         F(x2, y2).ToString();
-        F(y2, x2).ToString();
+        F(y2, x2).ToString(); // 6
         F(y2, y2).ToString();
     }
-    static T F<T>(IOut<T> x, IOut<T?> y)
+    static T F<T>(IOut<T> x, IOut<T?> y) where T : class
     {
         throw new System.Exception();
     }
@@ -34391,58 +34403,37 @@ class C
     {
         F(x3, x3).ToString();
         F(x3, y3).ToString();
-        F(y3, x3).ToString();
-        F(y3, y3).ToString();
+        F(y3, x3).ToString(); // 7
+        F(y3, y3).ToString(); // 8
     }
 }";
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (17,29): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     static T F<T>(IIn<T> x, IIn<T?> y)
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "IIn<T?> y").WithLocation(17, 29),
-                // (28,30): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     static T F<T>(IOut<T> x, IOut<T?> y)
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "IOut<T?> y").WithLocation(28, 30),
-                // (6,27): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     static T F<T>(I<T> x, I<T?> y)
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "I<T?> y").WithLocation(6, 27),
                 // (12,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string C.F<string>(I<string> x, I<string?> y)'.
-                //         F(x1, x1).ToString();
+                //         F(x1, x1).ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string C.F<string>(I<string> x, I<string?> y)").WithLocation(12, 15),
-                // (13,11): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'x' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
-                //         F(x1, y1).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "x", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(13, 11),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x1, y1).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x1, y1)").WithLocation(13, 9),
                 // (14,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
-                //         F(y1, x1).ToString();
+                //         F(y1, x1).ToString(); // 2 and 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(14, 15),
                 // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y1, x1).ToString();
+                //         F(y1, x1).ToString(); // 2 and 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, x1)").WithLocation(14, 9),
                 // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y1, y1).ToString();
+                //         F(y1, y1).ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, y1)").WithLocation(15, 9),
                 // (23,15): warning CS8620: Nullability of reference types in argument of type 'IIn<string>' doesn't match target type 'IIn<string?>' for parameter 'y' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
-                //         F(x2, x2).ToString();
+                //         F(x2, x2).ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("IIn<string>", "IIn<string?>", "y", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(23, 15),
                 // (25,15): warning CS8620: Nullability of reference types in argument of type 'IIn<string>' doesn't match target type 'IIn<string?>' for parameter 'y' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
-                //         F(y2, x2).ToString();
+                //         F(y2, x2).ToString(); // 6
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("IIn<string>", "IIn<string?>", "y", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(25, 15),
-                // (26,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y2, y2).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y2, y2)").WithLocation(26, 9),
-                // (35,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x3, y3).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x3, y3)").WithLocation(35, 9),
                 // (36,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y3, x3).ToString();
+                //         F(y3, x3).ToString(); // 7
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y3, x3)").WithLocation(36, 9),
                 // (37,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y3, y3).ToString();
+                //         F(y3, y3).ToString(); // 8
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y3, y3)").WithLocation(37, 9));
         }
 
